@@ -1,0 +1,13 @@
+# Ignore bundler config.
+/.bundle
+
+# Ignore all logfiles and tempfiles.
+/log/*.log
+/tmp
+
+# Ignore configuration
+/config/database.yml
+/config/application.yml
+
+# Ignore coverage reports
+/coverage

@@ -1,0 +1,14 @@
+default: &default
+  adapter: postgis
+  encoding: unicode
+  pool: 5
+  schema_search_path: public
+  hostname: localhost
+
+development:
+  <<: *default
+  database: onestop_development
+
+test:
+  <<: *default
+  database: onestop_test
