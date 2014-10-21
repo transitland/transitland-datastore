@@ -11,10 +11,31 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 0) do
+ActiveRecord::Schema.define(version: 20141021223644) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "postgis"
+  enable_extension "hstore"
+
+  create_table "stop_identifiers", force: true do |t|
+    t.integer  "stop_id"
+    t.string   "identifier_type"
+    t.string   "identifier"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "stop_identifiers", ["stop_id"], :name => "index_stop_identifiers_on_stop_id"
+
+  create_table "stops", force: true do |t|
+    t.string   "onestop_id"
+    t.spatial  "geometry",   limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
+    t.string   "codes",                                                                  array: true
+    t.string   "names",                                                                  array: true
+    t.hstore   "tags"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
 end
