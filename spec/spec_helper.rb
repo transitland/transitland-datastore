@@ -9,6 +9,7 @@ require 'byebug'
 
 require 'simplecov'
 SimpleCov.start 'rails'
+SimpleCov.coverage_dir(File.join("..", "..", "..", ENV['CIRCLE_ARTIFACTS'], "coverage")) if ENV['CIRCLE_ARTIFACTS']
 
 ActiveRecord::Migration.maintain_test_schema!
 
