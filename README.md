@@ -16,7 +16,7 @@ Behind the scenes: a Ruby on Rails web service, backed by Postgres/PostGIS.
     bundle install
     ````
 
-2. Configure your local copy by renaming the example files to `config/application.yml` and config/database.yml`. Edit as appropriate.
+2. Configure your local copy by renaming the example files to `config/application.yml` and `config/database.yml`. Edit as appropriate.
 
 3. Start the server: `bundle exec rails server`
 
