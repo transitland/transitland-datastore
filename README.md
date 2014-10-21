@@ -1,3 +1,5 @@
+[![Circle CI](https://circleci.com/gh/transit-land/onestop.png?style=badge)](https://circleci.com/gh/transit-land/onestop)
+
 # Transit.land Onestop
 
 A community-run directory of transit stops and their various identifiers.
