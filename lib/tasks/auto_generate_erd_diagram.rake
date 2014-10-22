@@ -1,7 +1,7 @@
 if Rails.env.development?
   task :erd_diagrams do
     puts 'Generating ERD diagrams...'
-    system 'bundle exec erd'
+    system 'bundle exec rake erd filetype=svg filename=doc/data-model'
   end
 
   # Run erd_diagrams task after db:migrate and db:rollback tasks
