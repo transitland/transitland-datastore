@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20141021223644) do
+ActiveRecord::Schema.define(version: 20141022180407) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -20,10 +20,10 @@ ActiveRecord::Schema.define(version: 20141021223644) do
 
   create_table "stop_identifiers", force: true do |t|
     t.integer  "stop_id"
-    t.string   "identifier_type"
     t.string   "identifier"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.hstore   "tags"
   end
 
   add_index "stop_identifiers", ["stop_id"], :name => "index_stop_identifiers_on_stop_id"

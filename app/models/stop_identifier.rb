@@ -2,12 +2,12 @@
 #
 # Table name: stop_identifiers
 #
-#  id              :integer          not null, primary key
-#  stop_id         :integer
-#  identifier_type :string(255)
-#  identifier      :string(255)
-#  created_at      :datetime
-#  updated_at      :datetime
+#  id         :integer          not null, primary key
+#  stop_id    :integer
+#  identifier :string(255)
+#  created_at :datetime
+#  updated_at :datetime
+#  tags       :hstore
 #
 # Indexes
 #
@@ -17,6 +17,5 @@
 class StopIdentifier < ActiveRecord::Base
   belongs_to :stop
 
-  validates :identifier, presence: true, uniqueness: { scope: [:identifier_type, :stop] }
-  validates :identifier_type, presence: true
+  validates :identifier, presence: true, uniqueness: { scope: :stop }
 end
