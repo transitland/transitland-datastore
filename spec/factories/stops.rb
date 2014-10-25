@@ -14,7 +14,7 @@
 
 FactoryGirl.define do
   factory :stop do
-    onestop_id "TODO"
+    sequence(:onestop_id) { |n| "ntd9015-#{n}" }
     geometry { "POINT(#{rand(-124.4096..-114.1308)} #{rand(32.5343..42.0095)})" }
     names { [
       ['C. Chavez St & Florida St'],

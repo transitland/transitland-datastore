@@ -28,7 +28,7 @@ RSpec.configure do |config|
   config.include FactoryGirl::Syntax::Methods
 
   config.before(:suite) do
-    DatabaseCleaner.strategy = :truncation
+    DatabaseCleaner.strategy = :truncation, { except: %w[spatial_ref_sys] }
     begin
       DatabaseCleaner.start
       FactoryGirl.lint

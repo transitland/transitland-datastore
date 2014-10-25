@@ -100,6 +100,9 @@ GEM
     hike (1.2.3)
     i18n (0.6.11)
     json (1.8.1)
+    kaminari (0.16.1)
+      actionpack (>= 3.0.0)
+      activesupport (>= 3.0.0)
     libv8 (3.16.14.7)
     mail (2.6.1)
       mime-types (>= 1.16, < 3)
@@ -121,6 +124,8 @@ GEM
       omniauth-oauth (~> 1.0)
     options (2.3.2)
     pg (0.17.1)
+    polyamorous (1.1.0)
+      activerecord (>= 3.0)
     progress_bar (1.0.3)
       highline (~> 1.6.1)
       options (~> 2.3.0)
@@ -234,6 +239,10 @@ GEM
       actionpack (>= 3.0)
       activesupport (>= 3.0)
       sprockets (>= 2.8, < 4.0)
+    squeel (1.2.1)
+      activerecord (>= 3.0)
+      activesupport (>= 3.0)
+      polyamorous (~> 1.1.0)
     temple (0.6.9)
     therubyracer (0.12.1)
       libv8 (~> 3.16.14.0)
@@ -271,6 +280,7 @@ DEPENDENCIES
   factory_girl_rails
   ffaker
   figaro
+  kaminari
   omniauth
   omniauth-osm
   pg
@@ -285,5 +295,6 @@ DEPENDENCIES
   simple_form
   simplecov
   slim
+  squeel
   therubyracer
   uglifier

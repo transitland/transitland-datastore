@@ -16,7 +16,9 @@ gem 'redis-rails'
 gem 'sidekiq'
 
 # data model
+gem 'squeel'
 gem 'enumerize'
+gem 'kaminari'
 
 # authentication and authorization
 gem 'omniauth'

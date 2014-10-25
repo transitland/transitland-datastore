@@ -15,5 +15,10 @@
 class Stop < ActiveRecord::Base
   has_many :stop_identifiers, dependent: :destroy
 
-  validates :onestop_id, presence: true # TODO: make this a more meaningful validation
+  validates :onestop_id, presence: true, uniqueness: true # TODO: make this a more meaningful validation
+
+  paginates_per 50
+
+  GEOFACTORY = RGeo::Geographic.spherical_factory(srid: 4326) # TODO: double check this
+  set_rgeo_factory_for_column :geometry, GEOFACTORY.projection_factory
 end
