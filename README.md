@@ -6,6 +6,10 @@ A community-run directory of transit stops and their various identifiers.
 
 Behind the scenes: a Ruby on Rails web service, backed by Postgres/PostGIS.
 
+## Data Model
+
+![diagram of Onestop's data model](doc/data-model.svg)
+
 ## To Develop Locally
 
 1. Install dependencies:
