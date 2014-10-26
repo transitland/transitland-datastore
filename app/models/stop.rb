@@ -17,7 +17,7 @@ class Stop < ActiveRecord::Base
 
   validates :onestop_id, presence: true, uniqueness: true # TODO: make this a more meaningful validation
 
-  paginates_per 50
+  PER_PAGE = 50
 
   GEOFACTORY = RGeo::Geographic.spherical_factory(srid: 4326) # TODO: double check this
   set_rgeo_factory_for_column :geometry, GEOFACTORY.projection_factory

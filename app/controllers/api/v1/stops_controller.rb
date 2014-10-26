@@ -1,4 +1,6 @@
 class Api::V1::StopsController < Api::V1::BaseApiController
+  include JsonCollectionPagination
+
   before_action :set_stop, only: [:show, :update, :destroy]
 
   def index
@@ -15,9 +17,8 @@ class Api::V1::StopsController < Api::V1::BaseApiController
       bbox_coordinates = params[:bbox].split(',')
       @stops = @stops.where{geometry.op('&&', st_makeenvelope(bbox_coordinates[0], bbox_coordinates[1], bbox_coordinates[2], bbox_coordinates[3], Stop::GEOFACTORY.srid))}
     end
-    page = params[:page] || 0
-    @stops = @stops.page(page)
-    render json: @stops, meta: { total: @stops.count, page: page, per_page: Stop.default_per_page }
+
+    render paginated_json_collection(@stops, Proc.new { |params| api_v1_stops_url(params) }, params[:offset], Stop::PER_PAGE)
   end
 
   def show
