@@ -5,6 +5,9 @@ gem 'rails', '4.1.6'
 # configuration
 gem 'figaro'
 
+# web server
+gem 'unicorn', group: [:staging, :production]
+
 # data stores
 gem 'pg'
 gem 'activerecord-postgis-adapter'
