@@ -44,8 +44,7 @@ describe Api::V1::StopsController do
       expect_json_types({
         onestop_id: :string,
         geometry: :string,
-        codes: :array,
-        names: :array,
+        name: :string,
         created_at: :date,
         updated_at: :date
       })

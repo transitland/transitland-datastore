@@ -10,8 +10,7 @@
 class StopSerializer < ApplicationSerializer
   attributes :onestop_id,
              :geometry,
-             :codes,
-             :names,
+             :name,
              :tags,
              :created_at,
              :updated_at,

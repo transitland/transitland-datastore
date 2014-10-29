@@ -5,11 +5,10 @@
 #  id         :integer          not null, primary key
 #  onestop_id :string(255)
 #  geometry   :spatial          geometry, 4326
-#  codes      :string(255)      is an Array
-#  names      :string(255)      is an Array
 #  tags       :hstore
 #  created_at :datetime
 #  updated_at :datetime
+#  name       :string(255)
 #
 
 describe Stop do
