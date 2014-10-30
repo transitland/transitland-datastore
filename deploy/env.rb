@@ -23,6 +23,11 @@ config = {
 
 client = AWS::OpsWorks::Client.new
 
+# get the instances we want to deploy to
+i = client.describe_instances(
+  layer_id: layer
+)
+
 instance_arr = []
 i[:instances].each do |instance|
   instance.values_at(:instance_id).each do |v|
