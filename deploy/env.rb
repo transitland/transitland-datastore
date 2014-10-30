@@ -45,7 +45,7 @@ deployment = client.create_deployment(
   comment: "Deploying build from circleci: #{ENV['CIRCLE_BUILD_NUM']} sha: #{ENV['CIRCLE_SHA1']} #{ENV['CIRCLE_COMPARE_URL']}"
 )
 
-timeout = 60 * 5
+timeout = 60 * 10
 time_start = Time.now.utc
 time_passed = 0
 success = false
