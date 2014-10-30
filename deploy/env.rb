@@ -25,7 +25,7 @@ client = AWS::OpsWorks::Client.new
 
 # get the instances we want to deploy to
 i = client.describe_instances(
-  layer_id: layer
+  layer_id: config[environment.to_sym][:layer_id]
 )
 
 instance_arr = []
