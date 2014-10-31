@@ -10,6 +10,10 @@
 #  updated_at :datetime
 #  name       :string(255)
 #
+# Indexes
+#
+#  index_stops_on_onestop_id  (onestop_id)
+#
 
 class Stop < ActiveRecord::Base
   has_many :stop_identifiers, dependent: :destroy
