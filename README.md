@@ -8,7 +8,7 @@ Behind the scenes: a Ruby on Rails web service, backed by Postgres/PostGIS.
 
 ## Data Model
 
-![diagram of Onestop's data model](doc/data-model.svg)
+![diagram of Onestop's data model](https://rawgit.com/transit-land/onestop/master/doc/data-model.svg)
 
 ## To Develop Locally
 
