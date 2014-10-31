@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/transit-land/onestop.png?label=ready&title=Ready)](https://waffle.io/transit-land/onestop)
 [![Circle CI](https://circleci.com/gh/transit-land/onestop.png?style=badge)](https://circleci.com/gh/transit-land/onestop)
 
 # Transit.land Onestop
