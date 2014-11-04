@@ -42,8 +42,11 @@ class Stop < ActiveRecord::Base
 
   before_validation :set_onestop_id
 
+  private
+
   def set_onestop_id
-    self.onestop_id ||= self.generate_unique_onestop_id({})
+    self.onestop_id ||= generate_unique_onestop_id({})
+  end
   end
 
   def generate_unique_onestop_id(options)

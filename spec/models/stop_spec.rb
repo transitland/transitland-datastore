@@ -55,13 +55,13 @@ describe Stop do
   context 'onestop_id' do
     it 'never has space, period, or pound characters' do
       stop = Stop.new(name: 'Main St. Transit Center #1')
-      onestop_id = stop.generate_unique_onestop_id({})
+      onestop_id = stop.send(:generate_unique_onestop_id, {})
       expect(onestop_id.split(/[\.\# ]/).count).to eq 1
     end
 
     it 'is 11 characters long' do
       stop = Stop.new(name: 'Main St. Transit Center #1')
-      onestop_id = stop.generate_unique_onestop_id({})
+      onestop_id = stop.send(:generate_unique_onestop_id, {})
       expect(onestop_id.length).to eq 11
     end
 
