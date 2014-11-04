@@ -4,7 +4,7 @@ class Api::V1::StopsController < Api::V1::BaseApiController
   before_action :set_stop, only: [:show, :update, :destroy]
 
   def index
-    @stops = Stop.where('')
+    @stops = Stop.includes(:stop_identifiers).where('') # TODO: check performance against eager_load, joins, etc.
     if params[:identifier].present?
       @stops = @stops.joins(:stop_identifiers).where("stop_identifiers.identifier = ?", params[:identifier])
     end
@@ -25,6 +25,7 @@ class Api::V1::StopsController < Api::V1::BaseApiController
     render json: @stop
   end
 
+  # TODO: remove create/update/destroy actions and replace with changesets
   def create
     @stop = Stop.new(stop_params)
     @stop.save!
@@ -44,10 +45,10 @@ class Api::V1::StopsController < Api::V1::BaseApiController
   private
 
   def set_stop
-    @stop = Stop.find_by!(onestop_id: params[:id])
+    @stop = Stop.find_by!(onestop_id: params[:id].downcase)
   end
 
   def stop_params
-    params.require(:stop).permit! # TODO: actually limit parameters
+    params.require(:stop).permit! # this is bad, but changesets will replace this
   end
 end

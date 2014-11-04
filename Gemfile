@@ -19,6 +19,7 @@ gem 'sidekiq'
 # data model
 gem 'squeel'
 gem 'enumerize'
+gem 'gtfs', github: 'drewda/gtfs', branch: 'update-rubyzip-gem'
 
 # authentication and authorization
 gem 'omniauth'
