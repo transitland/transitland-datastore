@@ -21,6 +21,11 @@ describe Stop do
     expect(Stop.exists?(stop)).to be true
   end
 
+  it "won't have extra spaces in its name" do
+    stop = create(:stop, name: ' Main St. Stop ')
+    expect(stop.name).to eq 'Main St. Stop'
+  end
+
   context 'match_against_existing_stop_or_create' do
     it 'if stop with same onestop_id already exists, returns that' do
       stop_with_same_onestop_id = create(:stop)

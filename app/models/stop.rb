@@ -41,12 +41,16 @@ class Stop < ActiveRecord::Base
   end
 
   before_validation :set_onestop_id
+  before_save :clean_attributes
 
   private
 
   def set_onestop_id
     self.onestop_id ||= generate_unique_onestop_id({})
   end
+
+  def clean_attributes
+    self.name.strip! if self.name.present?
   end
 
   def generate_unique_onestop_id(options)
