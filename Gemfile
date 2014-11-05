@@ -20,6 +20,7 @@ gem 'sidekiq'
 gem 'squeel'
 gem 'enumerize'
 gem 'gtfs', github: 'drewda/gtfs', branch: 'update-rubyzip-gem'
+gem 'rgeo-geojson'
 
 # authentication and authorization
 gem 'omniauth'

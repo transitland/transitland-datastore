@@ -7,34 +7,48 @@ describe Api::V1::StopsController do
   end
 
   describe 'GET index' do
-    it 'returns all stops when no parameters provided' do
-      get :index
-      expect_json_types({ stops: :array }) # TODO: remove root node?
-      expect_json({ stops: -> (stops) {
-        expect(stops.length).to eq 4
-      }})
+    context 'as JSON' do
+      it 'returns all stops when no parameters provided' do
+        get :index
+        expect_json_types({ stops: :array }) # TODO: remove root node?
+        expect_json({ stops: -> (stops) {
+          expect(stops.length).to eq 4
+        }})
+      end
+
+      it 'returns the appropriate stop when identifier provided' do
+        create(:stop_identifier, stop: @glen_park)
+        get :index, identifier: @glen_park.stop_identifiers.first.identifier
+        expect_json({ stops: -> (stops) {
+          expect(stops.first[:onestop_id]).to eq @glen_park.onestop_id
+        }})
+      end
+
+      it 'returns stops within a circular radius when lat/lon/r provided' do
+        get :index, lat: 37.732520, lon: -122.433415, r: 500
+        expect_json({ stops: -> (stops) {
+          expect(stops.map { |stop| stop[:onestop_id] }).to match_array([@glen_park, @bosworth_diamond].map(&:onestop_id))
+        }})
+      end
+
+      it 'returns stop within a bounding box' do
+        get :index, bbox: '-122.4131,37.7136,-122.3789,37.8065'
+        expect_json({ stops: -> (stops) {
+          expect(stops.map { |stop| stop[:onestop_id] }).to match_array([@metro_embarcadero, @gilman_paul_3rd].map(&:onestop_id))
+        }})
+      end
     end
 
-    it 'returns the appropriate stop when identifier provided' do
-      create(:stop_identifier, stop: @glen_park)
-      get :index, identifier: @glen_park.stop_identifiers.first.identifier
-      expect_json({ stops: -> (stops) {
-        expect(stops.first[:onestop_id]).to eq @glen_park.onestop_id
-      }})
-    end
-
-    it 'returns stops within a circular radius when lat/lon/r provided' do
-      get :index, lat: 37.732520, lon: -122.433415, r: 500
-      expect_json({ stops: -> (stops) {
-        expect(stops.map { |stop| stop[:onestop_id] }).to match_array([@glen_park, @bosworth_diamond].map(&:onestop_id))
-      }})
-    end
-
-    it 'returns stop within a bounding box' do
-      get :index, bbox: '-122.4131,37.7136,-122.3789,37.8065'
-      expect_json({ stops: -> (stops) {
-        expect(stops.map { |stop| stop[:onestop_id] }).to match_array([@metro_embarcadero, @gilman_paul_3rd].map(&:onestop_id))
-      }})
+    context 'as GeoJSON' do
+      it 'returns stop within a bounding box' do
+        get :index, format: :geojson, bbox: '-122.4131,37.7136,-122.3789,37.8065'
+        expect_json({
+          type: 'FeatureCollection',
+          features: -> (features) {
+            expect(features.map { |feature| feature[:id] }).to match_array([@metro_embarcadero, @gilman_paul_3rd].map(&:onestop_id))
+          }
+        })
+      end
     end
   end
 

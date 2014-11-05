@@ -32,7 +32,7 @@ class Api::V1::BaseApiController < ApplicationController
   private
 
   def set_default_response_format
-    request.format = :json
+    request.format = :json if request.format != :geojson
   end
 
   def render_error(code, message = nil)
