@@ -1,6 +1,5 @@
 class Api::V1::StopsController < Api::V1::BaseApiController
   include JsonCollectionPagination
-  respond_to :json, :geojson
 
   before_action :set_stop, only: [:show, :update, :destroy]
 
