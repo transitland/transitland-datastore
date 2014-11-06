@@ -28,9 +28,9 @@ class Stop < ActiveRecord::Base
   def self.match_against_existing_stop_or_create(attrs)
     if attrs.has_key?(:onestop_id) && attrs[:onestop_id].present?
       # TODO: update?
-      return Stop.find_or_initialize_by(onestop_id: attrs[:onestop_id])
+      return Stop.find_or_create_by(onestop_id: attrs[:onestop_id])
     end
-    radius = 10 # TODO: move to config
+    radius = 5 # TODO: move to config
     existing_stops = Stop.select{['stops.*', st_distance(geometry, attrs[:geometry]).as(distance)]}.where{st_dwithin(stops.geometry, attrs[:geometry], radius) & (name == attrs[:name]) }.order('distance')
     if existing_stops.count == 0
       return Stop.create(attrs)

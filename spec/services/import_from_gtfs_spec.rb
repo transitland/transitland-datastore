@@ -16,13 +16,12 @@ describe ImportFromGtfs do
   end
 
   context 'import' do
-    before(:each) do
-      Stop.stub(:match_against_existing_stop_or_create) { true }
-    end
+    # TODO: rewrite these tests with mocks/stubs so they're quicker
 
-    it 'will try to match or create a record for each stop' do
-      expect(Stop).to receive(:match_against_existing_stop_or_create).exactly(3859).times
+    it "will create records (Stop and StopIdentifier's) for each stop
+        and run an optional block after each stop is imported" do
       @vta_gtfs_import.import
+      expect(Stop.count).to eq 3859
     end
 
     it 'will run an optional block after each stop is imported' do

@@ -21,6 +21,7 @@ class StopSerializer < ApplicationSerializer
              :name,
              :tags,
              :created_at,
-             :updated_at,
-             :stop_identifiers
+             :updated_at
+
+  has_many :stop_identifiers
 end
