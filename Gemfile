@@ -19,7 +19,7 @@ gem 'sidekiq'
 # data model
 gem 'squeel'
 gem 'enumerize'
-gem 'gtfs', github: 'drewda/gtfs', branch: 'update-rubyzip-gem'
+gem 'gtfs', github: 'nerdEd/gtfs'
 gem 'rgeo-geojson'
 
 # authentication and authorization

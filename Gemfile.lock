@@ -8,9 +8,8 @@ GIT
       rake (>= 0.8.7)
 
 GIT
-  remote: git://github.com/drewda/gtfs.git
-  revision: cc9ef28d586b7560d3bde6e9d66784f48462dde9
-  branch: update-rubyzip-gem
+  remote: git://github.com/nerdEd/gtfs.git
+  revision: 820528acf4efeee50600a40f3f9a26206010d899
   specs:
     gtfs (0.2.3)
       multi_json
