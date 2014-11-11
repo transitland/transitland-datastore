@@ -17,10 +17,18 @@ Behind the scenes: a Ruby on Rails web service, backed by Postgres/PostGIS.
     ````
     brew install postgis
     brew install redis
+    brew install graphviz
     bundle install
     ````
 
 2. Configure your local copy by renaming the example files to `config/application.yml` and `config/database.yml`. Edit as appropriate.
+
+3. Create a local database and run migrations: `bundle exec rake db:setup`
+
+4. Add stop data. You can import one, both, or neither:
+
+  - VTA (San Jose): `bundle exec rake import_from_gtfs[spec/support/example_gtfs_archives/vta_gtfs.zip]`
+  - SFMTA (San Francisco): `bundle exec rake import_from_gtfs[spec/support/example_gtfs_archives/sfmta_gtfs.zip]`
 
 3. Start the server: `bundle exec rails server`
 
@@ -29,3 +37,20 @@ Behind the scenes: a Ruby on Rails web service, backed by Postgres/PostGIS.
 1. Install dependencies: `brew install chromedriver` (as well as a copy of the latest Chrome)
 2. Run the full test suite: `bundle exec rake`
 3. To view coverage report: `open coverage/index.html`
+
+## API Endpoints
+
+Example URL  | Parameters
+---------------|------------
+`/api/v1/stops` | none required
+`/api/v1/stops?identifer=4973` | `identifier` can be any type of stop identifier
+`/api/v1/stops?lon=-121.977772198&lat=37.413530093&r=100` | `lon` is longitude; `lat` is latitude; `r` is radius of search in meters (if not specified, defaults to 100 meters)
+`/api/v1/stops?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
+
+Pagination for JSON endpoints:
+- `?offset=50` is the index of the first stop to be displayed (starts with 0)
+- by default, 50 stops are displayed per page
+
+Format:
+- by default, responses are paginated JSON
+- specify `.geojson` instead for GeoJSON on any endpoint. For example: `/api/v1/stops.geojson?bbox=-122.4183,37.7758,-122.4120,37.7858`
