@@ -23,14 +23,9 @@ Behind the scenes: a Ruby on Rails web service, backed by Postgres/PostGIS.
 
 2. Configure your local copy by renaming the example files to `config/application.yml` and `config/database.yml`. Edit as appropriate.
 
-3. Create a local database and run migrations: `bundle exec rake db:setup`
+3. Create a local database, run migrations, and load seed data (GTFS files for San Francisco MTA and San Jose VTA): `bundle exec rake db:setup`
 
-4. Add stop data. You can import one, both, or neither:
-
-  - VTA (San Jose): `bundle exec rake import_from_gtfs[spec/support/example_gtfs_archives/vta_gtfs.zip]`
-  - SFMTA (San Francisco): `bundle exec rake import_from_gtfs[spec/support/example_gtfs_archives/sfmta_gtfs.zip]`
-
-3. Start the server: `bundle exec rails server`
+4. Start the server: `bundle exec rails server`
 
 ## To Run Tests Locally
 
