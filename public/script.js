@@ -24,12 +24,13 @@
   }
 
 
-
-
   var geojsonLayer = new L.GeoJSON.AJAX("/api/v1/stops.geojson", {onEachFeature:popUp});
 
+  var markers = new L.MarkerClusterGroup();
+
   geojsonLayer.on('data:loaded',function(e){
-      geojsonLayer.addTo(map);
+      markers.addLayer(geojsonLayer);
+      markers.addTo(map);
       map.fitBounds(geojsonLayer.getBounds());
   });
 
