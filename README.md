@@ -1,4 +1,5 @@
 [![Circle CI](https://circleci.com/gh/transit-land/onestop.png?style=badge)](https://circleci.com/gh/transit-land/onestop)
+[![Dependency Status](https://gemnasium.com/transit-land/onestop.svg)](https://gemnasium.com/transit-land/onestop)
 
 # Transit.land Onestop
 
