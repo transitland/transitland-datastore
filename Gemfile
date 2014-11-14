@@ -21,6 +21,7 @@ gem 'squeel'
 gem 'enumerize'
 gem 'gtfs', github: 'nerdEd/gtfs'
 gem 'rgeo-geojson'
+gem 'c_geohash', require: 'geohash'
 
 # authentication and authorization
 gem 'omniauth'

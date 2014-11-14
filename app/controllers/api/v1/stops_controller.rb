@@ -57,7 +57,7 @@ class Api::V1::StopsController < Api::V1::BaseApiController
   private
 
   def set_stop
-    @stop = Stop.find_by!(onestop_id: params[:id].downcase)
+    @stop = Stop.find_by_onestop_id!(params[:id])
   end
 
   def stop_params
