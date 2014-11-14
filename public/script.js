@@ -23,19 +23,40 @@
     layer.bindPopup(JSON.stringify(feature));
   }
 
+  // var geojsonLayer = new L.GeoJSON.AJAX("/api/v1/stops.geojson", {onEachFeature:popUp});
 
-  var geojsonLayer = new L.GeoJSON.AJAX("/api/v1/stops.geojson", {onEachFeature:popUp});
+  // var markers = new L.MarkerClusterGroup();
 
-  var markers = new L.MarkerClusterGroup();
+  // geojsonLayer.on('data:loaded',function(e){
+  //     markers.addLayer(geojsonLayer);
+  //     markers.addTo(map);
+  //     map.fitBounds(geojsonLayer.getBounds());
+  // });
 
-  geojsonLayer.on('data:loaded',function(e){
-      markers.addLayer(geojsonLayer);
-      markers.addTo(map);
-      map.fitBounds(geojsonLayer.getBounds());
+  function getStops(){
+    var mapExtent = map.getBounds();
+    var swLng = mapExtent._southWest.lng;
+    var swLat = mapExtent._southWest.lat;
+    var neLng = mapExtent._northEast.lng;
+    var neLat = mapExtent._northEast.lat;
+    
+    console.log(swLng, swLat, neLng, neLat);
+    console.log(mapExtent);
+
+    var markers = new L.MarkerClusterGroup();
+    var geojsonLayer = new L.GeoJSON.AJAX("/api/v1/stops.geojson?bbox="+swLng+","+swLat+","+neLng+","+neLat, {onEachFeature:popUp});
+
+    geojsonLayer.on('data:loaded',function(e){
+        markers.addLayer(geojsonLayer);
+        markers.addTo(map);
+    });
+  }
+
+  $(document).ready(function () {
+    $(".getStops").click(getStops);
   });
 
  
-
 
 })();
 
