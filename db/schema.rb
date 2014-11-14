@@ -19,7 +19,7 @@ ActiveRecord::Schema.define(version: 20141031233950) do
   enable_extension "hstore"
 
   create_table "stop_identifiers", force: true do |t|
-    t.integer  "stop_id"
+    t.integer  "stop_id",    null: false
     t.string   "identifier"
     t.datetime "created_at"
     t.datetime "updated_at"

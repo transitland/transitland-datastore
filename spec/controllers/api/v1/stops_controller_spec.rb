@@ -1,9 +1,9 @@
 describe Api::V1::StopsController do
   before(:each) do
-    @glen_park = create(:stop, geometry: 'POINT(-122.433416 37.732525)')
-    @bosworth_diamond = create(:stop, geometry: 'POINT(-122.434011 37.733595)')
-    @metro_embarcadero = create(:stop, geometry: 'POINT(-122.396431 37.793152)')
-    @gilman_paul_3rd = create(:stop, geometry: 'POINT(-122.395644 37.722413)')
+    @glen_park = create(:stop, geometry: 'POINT(-122.433416 37.732525)', name: 'Glen Park' )
+    @bosworth_diamond = create(:stop, geometry: 'POINT(-122.434011 37.733595)', name: 'Bosworth + Diamond')
+    @metro_embarcadero = create(:stop, geometry: 'POINT(-122.396431 37.793152)', name: 'Metro Embarcadero')
+    @gilman_paul_3rd = create(:stop, geometry: 'POINT(-122.395644 37.722413)', name: 'Gilman + Paul + 3rd St.')
   end
 
   describe 'GET index' do
@@ -76,7 +76,7 @@ describe Api::V1::StopsController do
   describe 'POST create' do
     it 'will work when given valid input' do
       expect {
-        post :create, stop: { onestop_id: 'ntd53-Blah'}
+        post :create, stop: { onestop_id: 's-9q8zn2j-ClStTS'}
       }.to change{Stop.count}.by(1)
     end
 

@@ -16,14 +16,19 @@
 #
 
 class Stop < ActiveRecord::Base
-  has_many :stop_identifiers, dependent: :destroy
-
-  validates :onestop_id, presence: true, uniqueness: true # TODO: make this a more meaningful validation
+  include OnestopId
 
   PER_PAGE = 50
 
-  GEOFACTORY = RGeo::Geographic.spherical_factory(srid: 4326) # TODO: double check this
-  set_rgeo_factory_for_column :geometry, GEOFACTORY.projection_factory
+  GEOFACTORY = RGeo::Geographic.simple_mercator_factory #(srid: 4326) # TODO: double check this
+  set_rgeo_factory_for_column :geometry, GEOFACTORY
+
+  has_many :stop_identifiers, dependent: :destroy
+
+  def self.find_by_onestop_id!(onestop_id)
+    # TODO: make this case insensitive
+    Stop.find_by!(onestop_id: onestop_id)
+  end
 
   def self.match_against_existing_stop_or_create(attrs)
     if attrs.has_key?(:onestop_id) && attrs[:onestop_id].present?
@@ -46,26 +51,10 @@ class Stop < ActiveRecord::Base
   private
 
   def set_onestop_id
-    self.onestop_id ||= generate_unique_onestop_id({})
+    self.onestop_id ||= generate_unique_onestop_id
   end
 
   def clean_attributes
     self.name.strip! if self.name.present?
-  end
-
-  def generate_unique_onestop_id(options)
-    # TODO: replace this holder version with something real
-    # with the form of AGENCY-STOPNAME
-    potential_onestop_id = name.gsub(' ', '-').gsub(/[\.\#]/, '')[0..10].downcase
-    if options.has_key?(:trailing_num) && options[:trailing_num] > 0
-      trailing_num = options[:trailing_num]
-      potential_onestop_id = "#{potential_onestop_id}-#{options[:trailing_num]}"
-    end
-    trailing_num ||= 1
-    if Stop.where(onestop_id: potential_onestop_id).count > 0 # TODO: make this more efficient; cache the list?
-      generate_unique_onestop_id({ trailing_num: trailing_num + 1 })
-    else
-      potential_onestop_id
-    end
   end
 end

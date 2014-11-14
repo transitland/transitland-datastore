@@ -56,25 +56,4 @@ describe Stop do
       expect(returned_stop.id).to be > stop.id
     end
   end
-
-  context 'onestop_id' do
-    it 'never has space, period, or pound characters' do
-      stop = Stop.new(name: 'Main St. Transit Center #1')
-      onestop_id = stop.send(:generate_unique_onestop_id, {})
-      expect(onestop_id.split(/[\.\# ]/).count).to eq 1
-    end
-
-    it 'is 11 characters long' do
-      stop = Stop.new(name: 'Main St. Transit Center #1')
-      onestop_id = stop.send(:generate_unique_onestop_id, {})
-      expect(onestop_id.length).to eq 11
-    end
-
-    it 'ends with an integer if the base form already exists' do
-      stop1 = Stop.create(name: 'Main St. Transit Center #1')
-      stop2 = Stop.create(name: 'Main St. Transit Center #1')
-      expect(stop1.onestop_id).not_to eq stop2.onestop_id
-      expect(stop2.onestop_id.last).to eq '2'
-    end
-  end
 end
