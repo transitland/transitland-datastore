@@ -11,3 +11,8 @@
 
 # Ignore coverage reports
 /coverage
+
+# Ignore editor project files
+.idea
+*.sublime-*
+
