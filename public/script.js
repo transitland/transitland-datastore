@@ -9,6 +9,10 @@
 
   stopTiles.addTo(map);
 
+  var markers = new L.MarkerClusterGroup();
+
+
+
 
 
   // TO DO: add stop ID
@@ -23,15 +27,6 @@
     layer.bindPopup(JSON.stringify(feature));
   }
 
-  // var geojsonLayer = new L.GeoJSON.AJAX("/api/v1/stops.geojson", {onEachFeature:popUp});
-
-  // var markers = new L.MarkerClusterGroup();
-
-  // geojsonLayer.on('data:loaded',function(e){
-  //     markers.addLayer(geojsonLayer);
-  //     markers.addTo(map);
-  //     map.fitBounds(geojsonLayer.getBounds());
-  // });
 
   function getStops(){
     var mapExtent = map.getBounds();
@@ -43,7 +38,6 @@
     console.log(swLng, swLat, neLng, neLat);
     console.log(mapExtent);
 
-    var markers = new L.MarkerClusterGroup();
     var geojsonLayer = new L.GeoJSON.AJAX("/api/v1/stops.geojson?bbox="+swLng+","+swLat+","+neLng+","+neLat, {onEachFeature:popUp});
 
     geojsonLayer.on('data:loaded',function(e){
@@ -52,11 +46,16 @@
     });
   }
 
+  function removeMarkers(e){
+    markers.clearLayers();
+  }
+
+
   $(document).ready(function () {
-    $(".getStops").click(getStops);
+    $(".getStops").click(function(e){
+      removeMarkers();
+      getStops();
+    });
   });
 
- 
-
 })();
-
