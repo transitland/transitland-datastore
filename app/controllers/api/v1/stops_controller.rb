@@ -1,7 +1,7 @@
 class Api::V1::StopsController < Api::V1::BaseApiController
   include JsonCollectionPagination
 
-  before_action :set_stop, only: [:show, :update, :destroy]
+  before_action :set_stop, only: [:show]
 
   def index
     @stops = Stop.includes(:stop_identifiers).where('') # TODO: check performance against eager_load, joins, etc.
@@ -37,31 +37,10 @@ class Api::V1::StopsController < Api::V1::BaseApiController
     render json: @stop
   end
 
-  # TODO: remove create/update/destroy actions and replace with changesets
-  def create
-    @stop = Stop.new(stop_params)
-    @stop.save!
-    render json: @stop
-  end
-
-  def update
-    @stop.update(stop_params)
-    render json: @stop, status: :ok
-  end
-
-  def destroy
-    @stop.destroy!
-    render json: @stop, status: :ok
-  end
-
   private
 
   def set_stop
     @stop = Stop.find_by_onestop_id!(params[:id])
-  end
-
-  def stop_params
-    params.require(:stop).permit! # this is bad, but changesets will replace this
   end
 
   def stop_collection_geojson(stops)
