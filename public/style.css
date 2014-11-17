@@ -1,7 +1,7 @@
 #stopMap { position:absolute; top:0; bottom:0; left:0; width:100%; }
 
 .getStops {
-    background:rgba(92,185,213,0.85);
+    background:rgba(175,29,194,1);
     color:#FFF;
     display:block;
     position:absolute;
@@ -12,9 +12,9 @@
     z-index:100;
     text-align:center;
     padding:5px;
-    border:none;
+    border: none;
     font-family: sans-serif;
-    font-weight: 300;
+    font-weight: lighter;
     font-size: 16px;
     cursor: pointer;
 }

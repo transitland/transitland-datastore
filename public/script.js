@@ -12,10 +12,6 @@
   var markers = new L.MarkerClusterGroup();
 
 
-
-
-
-  // TO DO: add stop ID
   function popUp(feature, layer) {
     // layer.bindPopup("Stop name: "+feature.properties.name+
     //                 "<br/>ID: "+feature.id+
@@ -26,7 +22,6 @@
     //                 "<br/>GTFS_Source: "+feature.properties.identifiers[0].tags.gtfs_source);
     layer.bindPopup(JSON.stringify(feature));
   }
-
 
   function getStops(){
     var mapExtent = map.getBounds();
@@ -49,7 +44,6 @@
   function removeMarkers(e){
     markers.clearLayers();
   }
-
 
   $(document).ready(function () {
     $(".getStops").click(function(e){
