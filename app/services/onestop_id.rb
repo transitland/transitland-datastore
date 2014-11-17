@@ -10,7 +10,11 @@ class OnestopId
     if (geometry.respond_to?(:lat) && geometry.respond_to?(:lon)) || geometry.respond_to?(:centroid)
       @geometry = geometry
     elsif geometry.is_a? String
-      @geometry = Stop::GEOFACTORY.parse_wkt(geometry)
+      begin
+        @geometry = Stop::GEOFACTORY.parse_wkt(geometry)
+      rescue RGeo::Error::ParseError
+        raise ArgumentError.new "Geometry isn't a valid WKT string."
+      end
     else
       raise ArgumentError.new "Geometry must either be an RGeo object or a WKT string."
     end
