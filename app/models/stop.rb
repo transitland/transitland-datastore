@@ -16,14 +16,15 @@
 #
 
 class Stop < ActiveRecord::Base
-  include OnestopId
-
   PER_PAGE = 50
 
   GEOFACTORY = RGeo::Geographic.simple_mercator_factory #(srid: 4326) # TODO: double check this
   set_rgeo_factory_for_column :geometry, GEOFACTORY
 
   has_many :stop_identifiers, dependent: :destroy
+
+  validates :onestop_id, presence: true, uniqueness: true
+  validate :onestop_id, :validate_onestop_id
 
   def self.find_by_onestop_id!(onestop_id)
     # TODO: make this case insensitive
@@ -51,10 +52,16 @@ class Stop < ActiveRecord::Base
   private
 
   def set_onestop_id
-    self.onestop_id ||= generate_unique_onestop_id
+    self.onestop_id ||= OnestopId.new(self.name, self.geometry).generate_unique
   end
 
   def clean_attributes
     self.name.strip! if self.name.present?
+  end
+
+  def validate_onestop_id
+    is_a_valid_onestop_id, onestop_id_errors = OnestopId.valid?(self.onestop_id)
+    errors.add(:onestop_id, onestop_id_errors)
+    is_a_valid_onestop_id
   end
 end
