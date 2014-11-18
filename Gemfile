@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.1.7'
+gem 'rails', '4.1.8'
 
 # configuration
 gem 'figaro'
@@ -19,7 +19,7 @@ gem 'sidekiq'
 # data model
 gem 'squeel'
 gem 'enumerize'
-gem 'gtfs', github: 'nerdEd/gtfs'
+gem 'gtfs'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 
