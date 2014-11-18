@@ -7,15 +7,6 @@ GIT
       activerecord (>= 2.3.0)
       rake (>= 0.8.7)
 
-GIT
-  remote: git://github.com/nerdEd/gtfs.git
-  revision: 820528acf4efeee50600a40f3f9a26206010d899
-  specs:
-    gtfs (0.2.3)
-      multi_json
-      rake
-      rubyzip
-
 GEM
   remote: https://rubygems.org/
   specs:
@@ -111,6 +102,10 @@ GEM
     ffi (1.9.6)
     figaro (1.0.0)
       thor (~> 0.14)
+    gtfs (0.2.4)
+      multi_json
+      rake
+      rubyzip (~> 1.1)
     hashie (3.3.1)
     highline (1.6.21)
     hike (1.2.3)
@@ -312,7 +307,7 @@ DEPENDENCIES
   factory_girl_rails
   ffaker
   figaro
-  gtfs!
+  gtfs
   omniauth
   omniauth-osm
   pg

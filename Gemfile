@@ -19,7 +19,7 @@ gem 'sidekiq'
 # data model
 gem 'squeel'
 gem 'enumerize'
-gem 'gtfs', github: 'nerdEd/gtfs'
+gem 'gtfs'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 
