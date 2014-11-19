@@ -13,14 +13,8 @@
 
 
   function popUp(feature, layer) {
-    // layer.bindPopup("Stop name: "+feature.properties.name+
-    //                 "<br/>ID: "+feature.id+
-    //                 "<br/>Indentifier: "+feature.properties.identifiers.identifier+
-    //                 "<br/>Coordinates: "+feature.geometry.coordinates+
-    //                 "<br/>Tags: "+feature.properties.tags+
-    //                 "<br/>GTFS_Column: "+feature.properties.identifiers[0].tags.gtfs_column+
-    //                 "<br/>GTFS_Source: "+feature.properties.identifiers[0].tags.gtfs_source);
-    layer.bindPopup(renderjson.set_show_to_level("all")(feature));
+    // Change set_show_to_level to "all" to display all json data expanded, or adjust number to desired level
+    layer.bindPopup(renderjson.set_show_to_level("2")(feature));
   }
 
   function getStops(){
