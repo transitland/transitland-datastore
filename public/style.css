@@ -1,0 +1,31 @@
+#stopMap { position:absolute; top:0; bottom:0; left:0; width:100%; }
+
+.getStops {
+    background:rgba(241,128,23,.9);
+    color:#FFF;
+    display:block;
+    position:absolute;
+    bottom: 50px;
+    left:30px;
+    width:100px;
+    height: 20px;
+    z-index:100;
+    text-align:center;
+    padding:5px;
+    border: none;
+    font-family: sans-serif;
+    font-weight: lighter;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+/* Turn overflow-wrap off if using renderjson */
+.leaflet-popup-content {
+    /*overflow-wrap: break-word;*/
+    width: auto !important;
+}
+
+/*.leaflet-popup-content-wrapper {
+    overflow-wrap: break-word;
+    width: auto;
+}*/
