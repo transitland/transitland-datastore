@@ -1,7 +1,7 @@
 #stopMap { position:absolute; top:0; bottom:0; left:0; width:100%; }
 
 .getStops {
-    background:rgba(175,29,194,1);
+    background:rgba(241,128,23,.9);
     color:#FFF;
     display:block;
     position:absolute;
@@ -19,6 +19,13 @@
     cursor: pointer;
 }
 
+/* Turn overflow-wrap off if using renderjson */
 .leaflet-popup-content {
-    overflow-wrap: break-word;
+    /*overflow-wrap: break-word;*/
+    width: auto !important;
 }
+
+/*.leaflet-popup-content-wrapper {
+    overflow-wrap: break-word;
+    width: auto;
+}*/

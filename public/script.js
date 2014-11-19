@@ -20,8 +20,7 @@
     //                 "<br/>Tags: "+feature.properties.tags+
     //                 "<br/>GTFS_Column: "+feature.properties.identifiers[0].tags.gtfs_column+
     //                 "<br/>GTFS_Source: "+feature.properties.identifiers[0].tags.gtfs_source);
-    layer.bindPopup(JSON.stringify(feature, {
-      }));
+    layer.bindPopup(renderjson.set_show_to_level("all")(feature));
   }
 
   function getStops(){
