@@ -14,7 +14,7 @@
 
   function popUp(feature, layer) {
     // Change set_show_to_level to "all" to display all json data expanded, or adjust number to desired level
-    layer.bindPopup(renderjson.set_show_to_level("2")(feature));
+    layer.bindPopup(renderjson.set_show_to_level(2)(feature));
   }
 
   function getStops(){
