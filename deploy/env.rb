@@ -40,7 +40,8 @@ deployment = client.create_deployment(
   app_id: config[environment.to_sym][:app_id],
   instance_ids: instance_arr,
   command: {
-    name: "deploy"
+    name: "deploy",
+    args: { "migrate": ["true"] }
   },
   comment: "Deploying build from circleci: #{ENV['CIRCLE_BUILD_NUM']} sha: #{ENV['CIRCLE_SHA1']} #{ENV['CIRCLE_COMPARE_URL']}"
 )
