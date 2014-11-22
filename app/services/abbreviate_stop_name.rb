@@ -36,7 +36,7 @@ class AbbreviateStopName
   private
 
   def clean(full_name)
-    clean_name = full_name.gsub(/[\.\#\&'"]/, '')
+    clean_name = full_name.gsub(/[\.\#\&'":\*]/, '')
     clean_name.gsub!(/[\_\-\/\+\(\)@]/, ' ')
     clean_name.squeeze(' ')
     clean_name
