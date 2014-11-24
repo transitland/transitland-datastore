@@ -3,6 +3,7 @@ class ImportFromGtfs
 
   def initialize(file_path)
     @gtfs = GTFS::Source.build(file_path) # {strict: false}) ?
+    @file_name = File.basename(file_path)
   end
 
   def import
@@ -12,7 +13,7 @@ class ImportFromGtfs
       if gtfs_stop.id.present?
         stop_identifier = stop.stop_identifiers.find_or_initialize_by(identifier: gtfs_stop.id)
         stop_identifier.update(tags: {
-          gtfs_source: @gtfs.source,
+          gtfs_source: @file_name,
           gtfs_column: 'id'
         })
       end
@@ -20,7 +21,7 @@ class ImportFromGtfs
       if gtfs_stop.code.present?
         stop_identifier = stop.stop_identifiers.find_or_initialize_by(identifier: gtfs_stop.code)
         stop_identifier.update(tags: {
-          gtfs_source: @gtfs.source,
+          gtfs_source: @file_name,
           gtfs_column: 'code'
         })
       end
