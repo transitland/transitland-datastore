@@ -18,10 +18,11 @@ describe ImportFromGtfs do
   context 'import' do
     # TODO: rewrite these tests with mocks/stubs so they're quicker
 
-    it "will create records (Stop and StopIdentifier's) for each stop
-        and run an optional block after each stop is imported" do
+    it "will create records (Stop and StopIdentifier's) for each stop" do
       @vta_gtfs_import.import
       expect(Stop.count).to eq 3859
+      expect(StopIdentifier.count).to eq 7718
+      expect(StopIdentifier.first.tags['gtfs_source']).to eq 'vta_gtfs.zip'
     end
 
     it 'will run an optional block after each stop is imported' do

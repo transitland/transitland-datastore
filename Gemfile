@@ -66,4 +66,5 @@ gem 'capybara', group: :test
 gem 'selenium-webdriver', group: :test
 
 # misc.
-gem 'progress_bar'
+gem 'ruby-progressbar'
+gem 'filesize'
