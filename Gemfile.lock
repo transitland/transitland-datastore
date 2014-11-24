@@ -102,12 +102,12 @@ GEM
     ffi (1.9.6)
     figaro (1.0.0)
       thor (~> 0.14)
+    filesize (0.0.3)
     gtfs (0.2.4)
       multi_json
       rake
       rubyzip (~> 1.1)
     hashie (3.3.1)
-    highline (1.6.21)
     hike (1.2.3)
     i18n (0.6.11)
     json (1.8.1)
@@ -132,13 +132,9 @@ GEM
       omniauth (~> 1.0)
     omniauth-osm (0.3.2)
       omniauth-oauth (~> 1.0)
-    options (2.3.2)
     pg (0.17.1)
     polyamorous (1.1.0)
       activerecord (>= 3.0)
-    progress_bar (1.0.3)
-      highline (~> 1.6.1)
-      options (~> 2.3.0)
     pry (0.10.1)
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
@@ -223,6 +219,7 @@ GEM
       rspec-support (~> 3.1.0)
     rspec-support (3.1.2)
     ruby-graphviz (1.0.9)
+    ruby-progressbar (1.7.0)
     rubyzip (1.1.6)
     sass (3.4.8)
     sass-rails-source-maps (0.0.4)
@@ -307,11 +304,11 @@ DEPENDENCIES
   factory_girl_rails
   ffaker
   figaro
+  filesize
   gtfs
   omniauth
   omniauth-osm
   pg
-  progress_bar
   pry-byebug
   pry-rails
   rails (= 4.1.8)
@@ -319,6 +316,7 @@ DEPENDENCIES
   redis-rails
   rgeo-geojson
   rspec-rails
+  ruby-progressbar
   sass-rails-source-maps
   selenium-webdriver
   sidekiq
