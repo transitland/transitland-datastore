@@ -1,7 +1,12 @@
 (function () {
 
-  // zoom level set to 1 due to leaflet bugginess -- maptiles don't refresh after fitBounds without setting zoom level this way.
-  var map = L.map('stopMap').setView([37.749, -122.443], 1);
+  var map = L.map('stopMap', {
+    minZoom: 10,
+    tileLayer: {
+      continuousWorld: false,
+      noWrap: true
+    }
+  }).setView([37.749, -122.443], 12);
 
   var stopTiles = L.tileLayer('https://{s}.tiles.mapbox.com/v3/randyme.k5036ipp/{z}/{x}/{y}.png', {
     maxZoom: 18
