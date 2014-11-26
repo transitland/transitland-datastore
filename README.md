@@ -28,6 +28,12 @@ Behind the scenes: a Ruby on Rails web service, backed by Postgres/PostGIS.
 
 4. Start the server: `bundle exec rails server`
 
+
+## To Import a GTFS Feed
+
+* Import a local file by running: `bundle exec rake import_from_gtfs[spec/support/example_gtfs_archives/vta_gtfs.zip]` with the relative path to a local GTFS .zip archive
+* Import a remote file by running: `bundle exec rake import_from_gtfs[http://gtfs.s3.amazonaws.com/santa-cruz-metro_20140607_0125.zip]` with a URL to a GTFS .zip archive
+
 ## To Run Tests Locally
 
 1. Install dependencies: `brew install chromedriver` (as well as a copy of the latest Chrome)
