@@ -10,8 +10,22 @@
 <title>Onestop</title>
 <polygon fill="white" stroke="none" points="-28.8,28.8 -28.8,-263.749 352.8,-263.749 352.8,28.8 -28.8,28.8"/>
 <text text-anchor="middle" x="162" y="-220.549" font-family="Arial Bold" font-size="13.00">Onestop domain model</text>
+<!-- m_Identifier -->
+<g id="node1" class="node"><title>m_Identifier</title>
+<path fill="none" stroke="black" d="M192,-107.5C192,-107.5 312,-107.5 312,-107.5 318,-107.5 324,-113.5 324,-119.5 324,-119.5 324,-180.5 324,-180.5 324,-186.5 318,-192.5 312,-192.5 312,-192.5 192,-192.5 192,-192.5 186,-192.5 180,-186.5 180,-180.5 180,-180.5 180,-119.5 180,-119.5 180,-113.5 186,-107.5 192,-107.5"/>
+<text text-anchor="start" x="226.775" y="-179.7" font-family="Arial Bold" font-size="11.00">Identifier</text>
+<polyline fill="none" stroke="black" points="180,-172.5 324,-172.5 "/>
+<text text-anchor="start" x="187" y="-159" font-family="Arial" font-size="10.00">identified_entity_id </text>
+<text text-anchor="start" x="272.615" y="-159" font-family="Arial Italic" font-size="10.00" fill="#999999">integer ∗</text>
+<text text-anchor="start" x="187" y="-145" font-family="Arial" font-size="10.00">identified_entity_type </text>
+<text text-anchor="start" x="283.733" y="-145" font-family="Arial Italic" font-size="10.00" fill="#999999">string ∗</text>
+<text text-anchor="start" x="187" y="-131" font-family="Arial" font-size="10.00">identifier </text>
+<text text-anchor="start" x="227.576" y="-131" font-family="Arial Italic" font-size="10.00" fill="#999999">string ∗</text>
+<text text-anchor="start" x="187" y="-117" font-family="Arial" font-size="10.00">tags </text>
+<text text-anchor="start" x="208.68" y="-117" font-family="Arial Italic" font-size="10.00" fill="#999999">hstore</text>
+</g>
 <!-- m_Operator -->
-<g id="node1" class="node"><title>m_Operator</title>
+<g id="node2" class="node"><title>m_Operator</title>
 <path fill="none" stroke="black" d="M12,-113.5C12,-113.5 132,-113.5 132,-113.5 138,-113.5 144,-119.5 144,-125.5 144,-125.5 144,-184.5 144,-184.5 144,-190.5 138,-196.5 132,-196.5 132,-196.5 12,-196.5 12,-196.5 6,-196.5 0,-190.5 0,-184.5 0,-184.5 0,-125.5 0,-125.5 0,-119.5 6,-113.5 12,-113.5"/>
 <text text-anchor="start" x="46.7727" y="-183.7" font-family="Arial Bold" font-size="11.00">Operator</text>
 <polyline fill="none" stroke="black" points="0,-176.5 144,-176.5 "/>
@@ -24,21 +38,26 @@
 <text text-anchor="start" x="7" y="-123" font-family="Arial" font-size="10.00">tags </text>
 <text text-anchor="start" x="28.6797" y="-123" font-family="Arial Italic" font-size="10.00" fill="#999999">hstore</text>
 </g>
+<!-- m_Operator&#45;&gt;m_Identifier -->
+<g id="edge3" class="edge"><title>m_Operator&#45;&gt;m_Identifier</title>
+<path fill="none" stroke="black" d="M144.118,-153.002C152.886,-152.756 161.896,-152.503 170.787,-152.253"/>
+<polygon fill="black" stroke="black" points="171.087,-155.396 179.995,-151.995 170.91,-149.099 171.087,-155.396"/>
+</g>
 <!-- m_OperatorServingStop -->
-<g id="node2" class="node"><title>m_OperatorServingStop</title>
-<path fill="none" stroke="black" d="M192,-116.5C192,-116.5 312,-116.5 312,-116.5 318,-116.5 324,-122.5 324,-128.5 324,-128.5 324,-147.5 324,-147.5 324,-153.5 318,-159.5 312,-159.5 312,-159.5 192,-159.5 192,-159.5 186,-159.5 180,-153.5 180,-147.5 180,-147.5 180,-128.5 180,-128.5 180,-122.5 186,-116.5 192,-116.5"/>
-<text text-anchor="start" x="194.38" y="-146.7" font-family="Arial Bold" font-size="11.00">OperatorServingStop</text>
-<polyline fill="none" stroke="black" points="180,-139.5 324,-139.5 "/>
-<text text-anchor="start" x="187" y="-126" font-family="Arial" font-size="10.00">tags </text>
-<text text-anchor="start" x="208.68" y="-126" font-family="Arial Italic" font-size="10.00" fill="#999999">hstore</text>
+<g id="node3" class="node"><title>m_OperatorServingStop</title>
+<path fill="none" stroke="black" d="M192,-29.5C192,-29.5 312,-29.5 312,-29.5 318,-29.5 324,-35.5 324,-41.5 324,-41.5 324,-60.5 324,-60.5 324,-66.5 318,-72.5 312,-72.5 312,-72.5 192,-72.5 192,-72.5 186,-72.5 180,-66.5 180,-60.5 180,-60.5 180,-41.5 180,-41.5 180,-35.5 186,-29.5 192,-29.5"/>
+<text text-anchor="start" x="194.38" y="-59.7" font-family="Arial Bold" font-size="11.00">OperatorServingStop</text>
+<polyline fill="none" stroke="black" points="180,-52.5 324,-52.5 "/>
+<text text-anchor="start" x="187" y="-39" font-family="Arial" font-size="10.00">tags </text>
+<text text-anchor="start" x="208.68" y="-39" font-family="Arial Italic" font-size="10.00" fill="#999999">hstore</text>
 </g>
 <!-- m_Operator&#45;&gt;m_OperatorServingStop -->
 <g id="edge1" class="edge"><title>m_Operator&#45;&gt;m_OperatorServingStop</title>
-<path fill="none" stroke="black" d="M144.118,-148.208C152.886,-147.37 161.896,-146.51 170.787,-145.661"/>
-<polygon fill="black" stroke="black" points="171.336,-148.773 179.995,-144.781 170.737,-142.501 171.336,-148.773"/>
+<path fill="none" stroke="black" d="M144.118,-113.448C164.962,-101.27 187.17,-88.2937 205.912,-77.3433"/>
+<polygon fill="black" stroke="black" points="207.537,-80.0426 213.718,-72.7825 204.358,-74.603 207.537,-80.0426"/>
 </g>
 <!-- m_Stop -->
-<g id="node3" class="node"><title>m_Stop</title>
+<g id="node4" class="node"><title>m_Stop</title>
 <path fill="none" stroke="black" d="M12,-0.5C12,-0.5 132,-0.5 132,-0.5 138,-0.5 144,-6.5 144,-12.5 144,-12.5 144,-71.5 144,-71.5 144,-77.5 138,-83.5 132,-83.5 132,-83.5 12,-83.5 12,-83.5 6,-83.5 0,-77.5 0,-71.5 0,-71.5 0,-12.5 0,-12.5 0,-6.5 6,-0.5 12,-0.5"/>
 <text text-anchor="start" x="57.7808" y="-70.7" font-family="Arial Bold" font-size="11.00">Stop</text>
 <polyline fill="none" stroke="black" points="0,-63.5 144,-63.5 "/>
@@ -56,25 +75,15 @@
 <path fill="none" stroke="black" stroke-dasharray="1,5" d="M72,-113.36C72,-106.616 72,-99.8726 72,-93.1292"/>
 <polygon fill="black" stroke="black" points="75.1501,-92.9336 72,-83.9336 68.8501,-92.9336 75.1501,-92.9336"/>
 </g>
+<!-- m_Stop&#45;&gt;m_Identifier -->
+<g id="edge5" class="edge"><title>m_Stop&#45;&gt;m_Identifier</title>
+<path fill="none" stroke="black" d="M141.565,-83.6011C151.788,-89.8042 162.392,-96.2381 172.797,-102.551"/>
+<polygon fill="black" stroke="black" points="171.376,-105.373 180.704,-107.349 174.644,-99.9869 171.376,-105.373"/>
+</g>
 <!-- m_Stop&#45;&gt;m_OperatorServingStop -->
-<g id="edge3" class="edge"><title>m_Stop&#45;&gt;m_OperatorServingStop</title>
-<path fill="none" stroke="black" d="M144.118,-80.3556C163.852,-90.9987 184.809,-102.302 202.89,-112.053"/>
-<polygon fill="black" stroke="black" points="201.563,-114.916 210.98,-116.416 204.554,-109.371 201.563,-114.916"/>
-</g>
-<!-- m_StopIdentifier -->
-<g id="node4" class="node"><title>m_StopIdentifier</title>
-<path fill="none" stroke="black" d="M192,-13.5C192,-13.5 312,-13.5 312,-13.5 318,-13.5 324,-19.5 324,-25.5 324,-25.5 324,-58.5 324,-58.5 324,-64.5 318,-70.5 312,-70.5 312,-70.5 192,-70.5 192,-70.5 186,-70.5 180,-64.5 180,-58.5 180,-58.5 180,-25.5 180,-25.5 180,-19.5 186,-13.5 192,-13.5"/>
-<text text-anchor="start" x="214.556" y="-57.7" font-family="Arial Bold" font-size="11.00">StopIdentifier</text>
-<polyline fill="none" stroke="black" points="180,-50.5 324,-50.5 "/>
-<text text-anchor="start" x="187" y="-37" font-family="Arial" font-size="10.00">identifier </text>
-<text text-anchor="start" x="227.576" y="-37" font-family="Arial Italic" font-size="10.00" fill="#999999">string ∗</text>
-<text text-anchor="start" x="187" y="-23" font-family="Arial" font-size="10.00">tags </text>
-<text text-anchor="start" x="208.68" y="-23" font-family="Arial Italic" font-size="10.00" fill="#999999">hstore</text>
-</g>
-<!-- m_Stop&#45;&gt;m_StopIdentifier -->
-<g id="edge4" class="edge"><title>m_Stop&#45;&gt;m_StopIdentifier</title>
-<path fill="none" stroke="black" d="M144.118,-42C152.886,-42 161.896,-42 170.787,-42"/>
-<polygon fill="black" stroke="black" points="170.995,-45.1501 179.995,-42 170.995,-38.8501 170.995,-45.1501"/>
+<g id="edge4" class="edge"><title>m_Stop&#45;&gt;m_OperatorServingStop</title>
+<path fill="none" stroke="black" d="M144.118,-45.5958C152.886,-46.0392 161.896,-46.4947 170.787,-46.9443"/>
+<polygon fill="black" stroke="black" points="170.848,-50.1013 179.995,-47.4099 171.166,-43.8093 170.848,-50.1013"/>
 </g>
 </g>
 </svg>

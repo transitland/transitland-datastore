@@ -17,8 +17,8 @@ describe Api::V1::StopsController do
       end
 
       it 'returns the appropriate stop when identifier provided' do
-        create(:stop_identifier, stop: @glen_park)
-        get :index, identifier: @glen_park.stop_identifiers.first.identifier
+        create(:stop_identifier, identified_entity: @glen_park)
+        get :index, identifier: @glen_park.identifiers.first.identifier
         expect_json({ stops: -> (stops) {
           expect(stops.first[:onestop_id]).to eq @glen_park.onestop_id
         }})

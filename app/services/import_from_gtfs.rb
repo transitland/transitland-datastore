@@ -11,16 +11,16 @@ class ImportFromGtfs
       stop = Stop.match_against_existing_stop_or_create({name: gtfs_stop.name,geometry: "POINT(#{gtfs_stop.lon} #{gtfs_stop.lat})"})
 
       if gtfs_stop.id.present?
-        stop_identifier = stop.stop_identifiers.find_or_initialize_by(identifier: gtfs_stop.id)
-        stop_identifier.update(tags: {
+        identifier = stop.identifiers.find_or_initialize_by(identifier: gtfs_stop.id)
+        identifier.update(tags: {
           gtfs_source: @file_name,
           gtfs_column: 'id'
         })
       end
 
       if gtfs_stop.code.present?
-        stop_identifier = stop.stop_identifiers.find_or_initialize_by(identifier: gtfs_stop.code)
-        stop_identifier.update(tags: {
+        identifier = stop.identifiers.find_or_initialize_by(identifier: gtfs_stop.code)
+        identifier.update(tags: {
           gtfs_source: @file_name,
           gtfs_column: 'code'
         })

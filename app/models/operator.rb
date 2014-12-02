@@ -20,6 +20,7 @@ class Operator < ActiveRecord::Base
 
   has_many :operator_serving_stops, dependent: :destroy
   has_many :stops, through: :operator_serving_stops
+  has_many :identifiers, dependent: :destroy
 
   GEOFACTORY = RGeo::Geographic.simple_mercator_factory #(srid: 4326) # TODO: double check this
   set_rgeo_factory_for_column :geometry, GEOFACTORY

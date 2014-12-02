@@ -17,13 +17,13 @@
 
 class Stop < ActiveRecord::Base
   include OnestopId
+  include EntityWithIdentifiers
 
   PER_PAGE = 50
 
   GEOFACTORY = RGeo::Geographic.simple_mercator_factory #(srid: 4326) # TODO: double check this
   set_rgeo_factory_for_column :geometry, GEOFACTORY
 
-  has_many :stop_identifiers, dependent: :destroy
   has_many :operator_serving_stops, dependent: :destroy
   has_many :operators, through: :operator_serving_stops
 

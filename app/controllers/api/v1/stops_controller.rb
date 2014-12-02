@@ -4,9 +4,9 @@ class Api::V1::StopsController < Api::V1::BaseApiController
   before_action :set_stop, only: [:show, :update, :destroy]
 
   def index
-    @stops = Stop.includes(:stop_identifiers).where('') # TODO: check performance against eager_load, joins, etc.
+    @stops = Stop.includes(:identifiers).where('') # TODO: check performance against eager_load, joins, etc.
     if params[:identifier].present?
-      @stops = @stops.joins(:stop_identifiers).where("stop_identifiers.identifier = ?", params[:identifier])
+      @stops = @stops.joins(:identifiers).where("identifiers.identifier = ?", params[:identifier])
     end
     if [params[:lat], params[:lon]].map(&:present?).all?
       point = Stop::GEOFACTORY.point(params[:lon], params[:lat])
@@ -77,12 +77,12 @@ class Api::V1::StopsController < Api::V1::BaseApiController
           created_at: stop.created_at,
           updated_at: stop.updated_at,
           tags: stop.tags,
-          identifiers: stop.stop_identifiers.map do |stop_identifier|
+          identifiers: stop.identifiers.map do |identifier|
             {
-              identifier: stop_identifier.identifier,
-              tags: stop_identifier.tags,
-              created_at: stop_identifier.created_at,
-              updated_at: stop_identifier.updated_at
+              identifier: identifier.identifier,
+              tags: identifier.tags,
+              created_at: identifier.created_at,
+              updated_at: identifier.updated_at
             }
           end
         }

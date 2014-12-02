@@ -11,12 +11,24 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20141202182820) do
+ActiveRecord::Schema.define(version: 20141202190949) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "postgis"
   enable_extension "hstore"
+
+  create_table "identifiers", force: true do |t|
+    t.integer  "identified_entity_id",   null: false
+    t.string   "identified_entity_type", null: false
+    t.string   "identifier"
+    t.hstore   "tags"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "identifiers", ["identified_entity_id", "identified_entity_type"], :name => "identified_entity"
+  add_index "identifiers", ["identified_entity_id"], :name => "index_identifiers_on_identified_entity_id"
 
   create_table "operator_serving_stops", force: true do |t|
     t.integer  "stop_id",     null: false
@@ -40,16 +52,6 @@ ActiveRecord::Schema.define(version: 20141202182820) do
   end
 
   add_index "operators", ["onestop_id"], :name => "index_operators_on_onestop_id", :unique => true
-
-  create_table "stop_identifiers", force: true do |t|
-    t.integer  "stop_id",    null: false
-    t.string   "identifier"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.hstore   "tags"
-  end
-
-  add_index "stop_identifiers", ["stop_id"], :name => "index_stop_identifiers_on_stop_id"
 
   create_table "stops", force: true do |t|
     t.string   "onestop_id"
