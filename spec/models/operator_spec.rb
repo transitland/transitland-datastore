@@ -7,6 +7,12 @@
 #  tags       :hstore
 #  created_at :datetime
 #  updated_at :datetime
+#  onestop_id :string(255)
+#  geometry   :spatial          geometry, 4326
+#
+# Indexes
+#
+#  index_operators_on_onestop_id  (onestop_id) UNIQUE
 #
 
 describe Operator do

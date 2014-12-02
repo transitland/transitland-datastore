@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20141202001240) do
+ActiveRecord::Schema.define(version: 20141202182820) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -35,7 +35,11 @@ ActiveRecord::Schema.define(version: 20141202001240) do
     t.hstore   "tags"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "onestop_id"
+    t.spatial  "geometry",   limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
   end
+
+  add_index "operators", ["onestop_id"], :name => "index_operators_on_onestop_id", :unique => true
 
   create_table "stop_identifiers", force: true do |t|
     t.integer  "stop_id",    null: false

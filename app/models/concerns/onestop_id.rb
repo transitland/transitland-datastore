@@ -1,21 +1,44 @@
 module OnestopId
   extend ActiveSupport::Concern
 
-  ONESTOP_ID_PREFIX = 's'
+  ONESTOP_ID_PREFIX = {
+    'Stop' => 's',
+    'Operator' => 'o'
+  }
   ONESTOP_ID_COMPONENT_SEPARATOR = '-'
+  GEOHASH_LENGTH = {
+    'Stop' => 7, # 7 digit geohash will resolve to a bounding box less than
+    # or equal to 153 x 153 meters (depending upon latitude).
+    'Operator' => 2
+  }
   CANONICAL_NAME_ABBREVIATION_LENGTH = 6
 
   included do
     validates :onestop_id, presence: true, uniqueness: true
     validate :onestop_id, :validate_onestop_id
+
+    before_validation :set_onestop_id
+
+    def find_by_onestop_id!(onestop_id)
+      # TODO: make this case insensitive
+      self.find_by!(onestop_id: onestop_id)
+    end
   end
 
   private
 
+  def set_onestop_id
+    self.onestop_id ||= generate_unique_onestop_id
+  end
+
+  def onestop_id_prefix_for_this_object
+    ONESTOP_ID_PREFIX[self.class.to_s]
+  end
+
   def validate_onestop_id
     is_a_valid_onestop_id = true
-    if !onestop_id.start_with?(ONESTOP_ID_PREFIX + ONESTOP_ID_COMPONENT_SEPARATOR)
-      errors.add(:onestop_id, "must start with \"#{ONESTOP_ID_PREFIX + ONESTOP_ID_COMPONENT_SEPARATOR}\" as its 1st component")
+    if !onestop_id.start_with?(onestop_id_prefix_for_this_object + ONESTOP_ID_COMPONENT_SEPARATOR)
+      errors.add(:onestop_id, "must start with \"#{onestop_id_prefix_for_this_object + ONESTOP_ID_COMPONENT_SEPARATOR}\" as its 1st component")
       is_a_valid_onestop_id = false
     end
     if onestop_id.split('-').length != 3
@@ -34,8 +57,6 @@ module OnestopId
   end
 
   def geohash
-    # 7 digit geohash will resolve to a bounding box less than
-    # or equal to 153 x 153 meters (depending upon latitude).
     # To plot a geohash: http://www.movable-type.co.uk/scripts/geohash.html
     if geometry.respond_to?(:lat) && geometry.respond_to?(:lon)
       lat = geometry.lat
@@ -45,19 +66,21 @@ module OnestopId
       lat = centroid.lat
       lon = centroid.lon
     else
-      raise ArgumentError.new "Stop doesn't have a latitude, longitude, or centroid."
+      raise ArgumentError.new "#{self.class.to_s} doesn't have a latitude, longitude, or centroid."
     end
-    GeoHash.encode(lat, lon, 7)
+    # TODO: also compute from a bounding box? (for an Operator)
+    # https://github.com/davidmoten/geo/blob/59d0b214d32dc8563bf0339cf07d50b23b6ce8de/src/main/java/com/github/davidmoten/geo/GeoHash.java#L574
+    GeoHash.encode(lat, lon, GEOHASH_LENGTH[self.class.to_s])
   end
 
   def generate_onestop_id(name_abbreviation_length)
-    ONESTOP_ID_PREFIX + ONESTOP_ID_COMPONENT_SEPARATOR + geohash + ONESTOP_ID_COMPONENT_SEPARATOR + AbbreviateStopName.new(self.name).abbreviate(name_abbreviation_length)
+    onestop_id_prefix_for_this_object + ONESTOP_ID_COMPONENT_SEPARATOR + geohash + ONESTOP_ID_COMPONENT_SEPARATOR + AbbreviateName.new(self.name).abbreviate(name_abbreviation_length)
   end
 
   def generate_unique_onestop_id
     potential_onestop_id = generate_onestop_id(CANONICAL_NAME_ABBREVIATION_LENGTH)
     i = 1
-    until Stop.where(onestop_id: potential_onestop_id).count == 0
+    until self.class.where(onestop_id: potential_onestop_id).count == 0
       i += 1
       if (2..3).include?(i)
         potential_onestop_id = generate_onestop_id(CANONICAL_NAME_ABBREVIATION_LENGTH + i - 1)

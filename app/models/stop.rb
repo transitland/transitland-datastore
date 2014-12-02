@@ -27,11 +27,6 @@ class Stop < ActiveRecord::Base
   has_many :operator_serving_stops, dependent: :destroy
   has_many :operators, through: :operator_serving_stops
 
-  def self.find_by_onestop_id!(onestop_id)
-    # TODO: make this case insensitive
-    Stop.find_by!(onestop_id: onestop_id)
-  end
-
   def self.match_against_existing_stop_or_create(attrs)
     if attrs.has_key?(:onestop_id) && attrs[:onestop_id].present?
       # TODO: update?
@@ -47,14 +42,9 @@ class Stop < ActiveRecord::Base
     end
   end
 
-  before_validation :set_onestop_id
   before_save :clean_attributes
 
   private
-
-  def set_onestop_id
-    self.onestop_id ||= generate_unique_onestop_id
-  end
 
   def clean_attributes
     self.name.strip! if self.name.present?
