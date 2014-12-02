@@ -24,6 +24,8 @@ class Stop < ActiveRecord::Base
   set_rgeo_factory_for_column :geometry, GEOFACTORY
 
   has_many :stop_identifiers, dependent: :destroy
+  has_many :operator_serving_stops, dependent: :destroy
+  has_many :operators, through: :operator_serving_stops
 
   def self.find_by_onestop_id!(onestop_id)
     # TODO: make this case insensitive
