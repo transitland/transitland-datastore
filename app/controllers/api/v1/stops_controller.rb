@@ -4,9 +4,9 @@ class Api::V1::StopsController < Api::V1::BaseApiController
   before_action :set_stop, only: [:show, :update, :destroy]
 
   def index
-    @stops = Stop.includes(:identifiers).where('') # TODO: check performance against eager_load, joins, etc.
+    @stops = Stop.where('')
     if params[:identifier].present?
-      @stops = @stops.joins(:identifiers).where("identifiers.identifier = ?", params[:identifier])
+      @stops = @stops.with_identifier(params[:identifier])
     end
     if [params[:lat], params[:lon]].map(&:present?).all?
       point = Stop::GEOFACTORY.point(params[:lon], params[:lat])
@@ -17,6 +17,8 @@ class Api::V1::StopsController < Api::V1::BaseApiController
       bbox_coordinates = params[:bbox].split(',')
       @stops = @stops.where{geometry.op('&&', st_makeenvelope(bbox_coordinates[0], bbox_coordinates[1], bbox_coordinates[2], bbox_coordinates[3], Stop::GEOFACTORY.srid))}
     end
+
+    @stops = @stops.preload(:identifiers) # TODO: check performance against eager_load, joins, etc.
 
     respond_to do |format|
       format.json do

@@ -16,8 +16,8 @@
 #
 
 class Stop < ActiveRecord::Base
-  include OnestopId
-  include EntityWithIdentifiers
+  include HasAOnestopId
+  include IsAnEntityWithIdentifiers
 
   PER_PAGE = 50
 

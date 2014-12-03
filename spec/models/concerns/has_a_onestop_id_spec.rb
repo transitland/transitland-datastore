@@ -1,4 +1,4 @@
-describe OnestopId do
+describe HasAOnestopId do
   context 'validation' do
     it 'for a Stop, must start with "s-" as its 1st component' do
       stop = Stop.new(onestop_id: '69y7pwu-RetSta', geometry: 'POINT(-58.374722 -34.591389)')

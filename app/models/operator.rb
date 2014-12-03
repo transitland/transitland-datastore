@@ -16,7 +16,8 @@
 #
 
 class Operator < ActiveRecord::Base
-  include OnestopId
+  include HasAOnestopId
+  include IsAnEntityWithIdentifiers
 
   has_many :operator_serving_stops, dependent: :destroy
   has_many :stops, through: :operator_serving_stops

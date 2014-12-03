@@ -1,17 +1,5 @@
-module OnestopId
+module HasAOnestopId
   extend ActiveSupport::Concern
-
-  ONESTOP_ID_PREFIX = {
-    'Stop' => 's',
-    'Operator' => 'o'
-  }
-  ONESTOP_ID_COMPONENT_SEPARATOR = '-'
-  GEOHASH_LENGTH = {
-    'Stop' => 7, # 7 digit geohash will resolve to a bounding box less than
-    # or equal to 153 x 153 meters (depending upon latitude).
-    'Operator' => 2
-  }
-  CANONICAL_NAME_ABBREVIATION_LENGTH = 6
 
   included do
     validates :onestop_id, presence: true, uniqueness: true
@@ -32,13 +20,13 @@ module OnestopId
   end
 
   def onestop_id_prefix_for_this_object
-    ONESTOP_ID_PREFIX[self.class.to_s]
+    OnestopIdService::MODEL_TO_PREFIX[self.class]
   end
 
   def validate_onestop_id
     is_a_valid_onestop_id = true
-    if !onestop_id.start_with?(onestop_id_prefix_for_this_object + ONESTOP_ID_COMPONENT_SEPARATOR)
-      errors.add(:onestop_id, "must start with \"#{onestop_id_prefix_for_this_object + ONESTOP_ID_COMPONENT_SEPARATOR}\" as its 1st component")
+    if !onestop_id.start_with?(onestop_id_prefix_for_this_object + OnestopIdService::COMPONENT_SEPARATOR)
+      errors.add(:onestop_id, "must start with \"#{onestop_id_prefix_for_this_object + OnestopIdService::COMPONENT_SEPARATOR}\" as its 1st component")
       is_a_valid_onestop_id = false
     end
     if onestop_id.split('-').length != 3
@@ -70,20 +58,20 @@ module OnestopId
     end
     # TODO: also compute from a bounding box? (for an Operator)
     # https://github.com/davidmoten/geo/blob/59d0b214d32dc8563bf0339cf07d50b23b6ce8de/src/main/java/com/github/davidmoten/geo/GeoHash.java#L574
-    GeoHash.encode(lat, lon, GEOHASH_LENGTH[self.class.to_s])
+    GeoHash.encode(lat, lon, OnestopIdService::GEOHASH_LENGTH[self.class])
   end
 
   def generate_onestop_id(name_abbreviation_length)
-    onestop_id_prefix_for_this_object + ONESTOP_ID_COMPONENT_SEPARATOR + geohash + ONESTOP_ID_COMPONENT_SEPARATOR + AbbreviateName.new(self.name).abbreviate(name_abbreviation_length)
+    onestop_id_prefix_for_this_object + OnestopIdService::COMPONENT_SEPARATOR + geohash + OnestopIdService::COMPONENT_SEPARATOR + AbbreviateName.new(self.name).abbreviate(name_abbreviation_length)
   end
 
   def generate_unique_onestop_id
-    potential_onestop_id = generate_onestop_id(CANONICAL_NAME_ABBREVIATION_LENGTH)
+    potential_onestop_id = generate_onestop_id(OnestopIdService::CANONICAL_NAME_ABBREVIATION_LENGTH)
     i = 1
     until self.class.where(onestop_id: potential_onestop_id).count == 0
       i += 1
       if (2..3).include?(i)
-        potential_onestop_id = generate_onestop_id(CANONICAL_NAME_ABBREVIATION_LENGTH + i - 1)
+        potential_onestop_id = generate_onestop_id(OnestopIdService::CANONICAL_NAME_ABBREVIATION_LENGTH + i - 1)
       else
         potential_onestop_id = "#{potential_onestop_id}#{i}"
       end
