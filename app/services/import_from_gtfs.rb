@@ -8,7 +8,10 @@ class ImportFromGtfs
 
   def import
     @gtfs.stops.each do |gtfs_stop|
-      stop = Stop.match_against_existing_stop_or_create({name: gtfs_stop.name,geometry: "POINT(#{gtfs_stop.lon} #{gtfs_stop.lat})"})
+      stop = Stop.match_against_existing_or_create({
+        name: gtfs_stop.name,
+        geometry: "POINT(#{gtfs_stop.lon} #{gtfs_stop.lat})"
+      })
 
       if gtfs_stop.id.present?
         identifier = stop.identifiers.find_or_initialize_by(identifier: gtfs_stop.id)

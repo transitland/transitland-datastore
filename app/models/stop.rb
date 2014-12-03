@@ -27,7 +27,7 @@ class Stop < ActiveRecord::Base
   has_many :operator_serving_stops, dependent: :destroy
   has_many :operators, through: :operator_serving_stops
 
-  def self.match_against_existing_stop_or_create(attrs)
+  def self.match_against_existing_or_create(attrs)
     if attrs.has_key?(:onestop_id) && attrs[:onestop_id].present?
       # TODO: update?
       return Stop.find_or_create_by(onestop_id: attrs[:onestop_id])
