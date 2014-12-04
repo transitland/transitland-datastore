@@ -1,4 +1,5 @@
 class Api::V1::StopsController < Api::V1::BaseApiController
+  include Geojson
   include JsonCollectionPagination
 
   before_action :set_stop, only: [:show, :update, :destroy]
@@ -18,7 +19,7 @@ class Api::V1::StopsController < Api::V1::BaseApiController
       @stops = @stops.where{geometry.op('&&', st_makeenvelope(bbox_coordinates[0], bbox_coordinates[1], bbox_coordinates[2], bbox_coordinates[3], Stop::GEOFACTORY.srid))}
     end
 
-    @stops = @stops.preload(:identifiers) # TODO: check performance against eager_load, joins, etc.
+    @stops = @stops.preload(:identifiers, :operator_serving_stops, :operators) # TODO: check performance against eager_load, joins, etc.
 
     respond_to do |format|
       format.json do
@@ -30,7 +31,7 @@ class Api::V1::StopsController < Api::V1::BaseApiController
         )
       end
       format.geojson do
-        render json: stop_collection_geojson(@stops)
+        render json: Geojson.from_entity_collection(@stops)
       end
     end
   end
@@ -64,32 +65,5 @@ class Api::V1::StopsController < Api::V1::BaseApiController
 
   def stop_params
     params.require(:stop).permit! # this is bad, but changesets will replace this
-  end
-
-  def stop_collection_geojson(stops)
-    # TODO: paginate or serve as GeoJSON tiles, perhaps for consumption by
-    # https://github.com/glenrobertson/leaflet-tilelayer-geojson
-    factory = RGeo::GeoJSON::EntityFactory.instance
-    features = stops.map do |stop|
-      factory.feature(
-        stop.geometry,
-        stop.onestop_id,
-        {
-          name: stop.name,
-          created_at: stop.created_at,
-          updated_at: stop.updated_at,
-          tags: stop.tags,
-          identifiers: stop.identifiers.map do |identifier|
-            {
-              identifier: identifier.identifier,
-              tags: identifier.tags,
-              created_at: identifier.created_at,
-              updated_at: identifier.updated_at
-            }
-          end
-        }
-      )
-    end
-    RGeo::GeoJSON.encode(factory.feature_collection(features))
   end
 end
