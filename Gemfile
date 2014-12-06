@@ -29,6 +29,7 @@ gem 'omniauth-osm'
 
 # API
 gem 'active_model_serializers'
+gem 'oj'
 
 # views
 gem 'slim'
