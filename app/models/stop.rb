@@ -16,21 +16,18 @@
 #
 
 class Stop < ActiveRecord::Base
-  include OnestopId
+  include HasAOnestopId
+  include IsAnEntityWithIdentifiers
 
   PER_PAGE = 50
 
   GEOFACTORY = RGeo::Geographic.simple_mercator_factory #(srid: 4326) # TODO: double check this
   set_rgeo_factory_for_column :geometry, GEOFACTORY
 
-  has_many :stop_identifiers, dependent: :destroy
+  has_many :operator_serving_stops, dependent: :destroy
+  has_many :operators, through: :operator_serving_stops
 
-  def self.find_by_onestop_id!(onestop_id)
-    # TODO: make this case insensitive
-    Stop.find_by!(onestop_id: onestop_id)
-  end
-
-  def self.match_against_existing_stop_or_create(attrs)
+  def self.match_against_existing_or_create(attrs)
     if attrs.has_key?(:onestop_id) && attrs[:onestop_id].present?
       # TODO: update?
       return Stop.find_or_create_by(onestop_id: attrs[:onestop_id])
@@ -45,14 +42,9 @@ class Stop < ActiveRecord::Base
     end
   end
 
-  before_validation :set_onestop_id
   before_save :clean_attributes
 
   private
-
-  def set_onestop_id
-    self.onestop_id ||= generate_unique_onestop_id
-  end
 
   def clean_attributes
     self.name.strip! if self.name.present?

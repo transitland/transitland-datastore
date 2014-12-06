@@ -1,4 +1,4 @@
-class AbbreviateStopName
+class AbbreviateName
   attr_accessor :full_name
 
   CONJUNCTIONS_TO_REMOVE = ['at', 'of', 'in', 'on', 'by', 'and', 'for']
@@ -9,6 +9,8 @@ class AbbreviateStopName
   end
 
   def abbreviate(name_abbreviation_length)
+    return @full_name if @full_name.length <= name_abbreviation_length
+
     clean_full_name = clean(@full_name)
     all_words = clean_full_name.split(' ')
     main_words = remove_inconsequential_words(all_words)

@@ -15,7 +15,7 @@
 #  index_stops_on_onestop_id  (onestop_id)
 #
 
-class StopSerializer < ApplicationSerializer
+class StopSerializer < EntitySerializer
   attributes :onestop_id,
              :geometry,
              :name,
@@ -23,5 +23,5 @@ class StopSerializer < ApplicationSerializer
              :created_at,
              :updated_at
 
-  has_many :stop_identifiers
+  has_many :operator_serving_stops
 end

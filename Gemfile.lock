@@ -41,7 +41,7 @@ GEM
       minitest (~> 5.1)
       thread_safe (~> 0.1)
       tzinfo (~> 1.1)
-    airborne (0.1.3)
+    airborne (0.1.5)
       activesupport (>= 4.0.1)
       rack-test (~> 0.6, >= 0.6.2)
       rest-client (~> 1.7, >= 1.7.2)
@@ -120,10 +120,11 @@ GEM
     mini_portile (0.6.1)
     minitest (5.4.3)
     multi_json (1.10.1)
-    netrc (0.8.0)
+    netrc (0.9.0)
     nokogiri (1.6.4.1)
       mini_portile (~> 0.6.0)
     oauth (0.4.7)
+    oj (2.11.1)
     omniauth (1.2.2)
       hashie (>= 1.2, < 4)
       rack (~> 1.0)
@@ -306,6 +307,7 @@ DEPENDENCIES
   figaro
   filesize
   gtfs
+  oj
   omniauth
   omniauth-osm
   pg

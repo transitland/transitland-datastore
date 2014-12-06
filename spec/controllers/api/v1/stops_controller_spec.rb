@@ -17,8 +17,8 @@ describe Api::V1::StopsController do
       end
 
       it 'returns the appropriate stop when identifier provided' do
-        create(:stop_identifier, stop: @glen_park)
-        get :index, identifier: @glen_park.stop_identifiers.first.identifier
+        create(:stop_identifier, identified_entity: @glen_park)
+        get :index, identifier: @glen_park.identifiers.first.identifier
         expect_json({ stops: -> (stops) {
           expect(stops.first[:onestop_id]).to eq @glen_park.onestop_id
         }})
@@ -85,9 +85,7 @@ describe Api::V1::StopsController do
         post :create
       }.to change{Stop.count}.by(0)
       expect(response.status).to eq 400
-      expect_json({ error: -> (error) {
-        expect(error).to eq 'param is missing or the value is empty: stop'
-      }})
+      expect_json({ error: 'param is missing or the value is empty: stop' })
     end
 
     it 'will fail gracefully when given invalid input' do
@@ -95,9 +93,7 @@ describe Api::V1::StopsController do
         post :create, stop: { blah: 'whah'}
       }.to change{Stop.count}.by(0)
       expect(response.status).to eq 400
-      expect_json({ error: -> (error) {
-        expect(error).to eq 'unknown attribute: blah'
-      }})
+      expect_json({ error: 'unknown attribute: blah' })
     end
   end
 
@@ -110,9 +106,7 @@ describe Api::V1::StopsController do
     it 'will fail gracefully when given invalid input' do
       put :update, id: @glen_park.onestop_id, stop: { taags: { indoor: true } }
       expect(response.status).to eq 400
-      expect_json({ error: -> (error) {
-        expect(error).to eq 'unknown attribute: taags'
-      }})
+      expect_json({ error: 'unknown attribute: taags' })
     end
   end
 

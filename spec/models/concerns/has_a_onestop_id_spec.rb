@@ -1,6 +1,6 @@
-describe OnestopId do
+describe HasAOnestopId do
   context 'validation' do
-    it 'must start with "s-" as its 1st component' do
+    it 'for a Stop, must start with "s-" as its 1st component' do
       stop = Stop.new(onestop_id: '69y7pwu-RetSta', geometry: 'POINT(-58.374722 -34.591389)')
       expect(stop.valid?).to be false
       expect(stop.errors.messages[:onestop_id]).to include 'must start with "s-" as its 1st component'
@@ -13,7 +13,7 @@ describe OnestopId do
       expect(stop.errors.messages[:onestop_id]).to include 'must include 3 components separated by hyphens ("-")'
     end
 
-    it 'must include a valid geohash as its 2nd component, after "s-"' do
+    it 'must include a valid geohash as its 2nd component' do
       stop = Stop.new(onestop_id: 's-69y@7pwu-RetSta', geometry: 'POINT(-58.374722 -34.591389)')
       expect(stop.valid?).to be false
       expect(stop.errors.messages[:onestop_id]).to include 'must include a valid geohash as its 2nd component, after "s-"'
@@ -27,7 +27,7 @@ describe OnestopId do
   end
 
   context 'generate_unique_onestop_id' do
-    it 'never has spaces or suymbols' do
+    it 'never has spaces or symbols' do
       stop = Stop.new(name: 'Retiro/Station @Platform #1', geometry: 'POINT(-58.374722 -34.591389)')
       onestop_id = stop.send(:generate_unique_onestop_id)
       expect(onestop_id.split(/[\.\# \@\/\\\+]/).count).to eq 1
@@ -43,10 +43,20 @@ describe OnestopId do
       # TODO: write this
     end
 
-    it 'abbreviates the stop name as the 3rd (of 3) components' do
+    it 'for a Stop, abbreviates the name as the 3rd (of 3) components' do
       stop = Stop.new(name: 'Retiro Station', geometry: 'POINT(-58.374722 -34.591389)')
       onestop_id = stop.send(:generate_unique_onestop_id)
       expect(onestop_id.split('-').last).to eq 'RetSta'
+    end
+
+    it 'for an Operator, abbreviates the name as the 3rd (of 3) components' do
+      operator = Operator.new(name: 'SFMTA', geometry: 'POINT(-122.433416 37.732525)')
+      onestop_id = operator.send(:generate_unique_onestop_id)
+      expect(onestop_id.split('-').last).to eq 'SFMTA'
+
+      operator = Operator.new(name: 'San Francisco Municipal Transportation Agency', geometry: 'POINT(-122.433416 37.732525)')
+      onestop_id = operator.send(:generate_unique_onestop_id)
+      expect(onestop_id.split('-').last).to eq 'SFMTAg'
     end
   end
 end
