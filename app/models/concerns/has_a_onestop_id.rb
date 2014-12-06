@@ -58,7 +58,13 @@ module HasAOnestopId
     end
     # TODO: also compute from a bounding box? (for an Operator)
     # https://github.com/davidmoten/geo/blob/59d0b214d32dc8563bf0339cf07d50b23b6ce8de/src/main/java/com/github/davidmoten/geo/GeoHash.java#L574
-    GeoHash.encode(lat, lon, OnestopIdService::GEOHASH_LENGTH[self.class])
+    geohash_length = OnestopIdService::GEOHASH_LENGTH[self.class]
+    geohash = GeoHash.encode(lat, lon, geohash_length)
+    if geohash_length > 0 && geohash_length < 3
+      geohash[0..(geohash_length - 1)]
+    else
+      geohash
+    end
   end
 
   def generate_onestop_id(name_abbreviation_length)
