@@ -19,8 +19,8 @@ class Operator < ActiveRecord::Base
   include HasAOnestopId
   include IsAnEntityWithIdentifiers
 
-  has_many :operator_serving_stops, dependent: :destroy
-  has_many :stops, through: :operator_serving_stops
+  has_many :operators_serving_stop, dependent: :destroy
+  has_many :stops, through: :operators_serving_stop
 
   PER_PAGE = 50
 

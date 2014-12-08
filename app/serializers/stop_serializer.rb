@@ -23,5 +23,5 @@ class StopSerializer < EntitySerializer
              :created_at,
              :updated_at
 
-  has_many :operator_serving_stops
+  has_many :operators_serving_stop
 end

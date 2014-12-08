@@ -19,7 +19,7 @@ class Api::V1::StopsController < Api::V1::BaseApiController
       @stops = @stops.where{geometry.op('&&', st_makeenvelope(bbox_coordinates[0], bbox_coordinates[1], bbox_coordinates[2], bbox_coordinates[3], Stop::GEOFACTORY.srid))}
     end
 
-    @stops = @stops.preload(:identifiers, :operator_serving_stops) # TODO: check performance against eager_load, joins, etc.
+    @stops = @stops.preload(:identifiers, :operators_serving_stop) # TODO: check performance against eager_load, joins, etc.
 
     respond_to do |format|
       format.json do
