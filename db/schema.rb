@@ -18,39 +18,6 @@ ActiveRecord::Schema.define(version: 20141208200454) do
   enable_extension "postgis"
   enable_extension "hstore"
 
-  create_table "feed_import_errors", force: true do |t|
-    t.integer  "feed_import_id"
-    t.string   "error_type"
-    t.text     "body"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
-  add_index "feed_import_errors", ["feed_import_id"], :name => "index_feed_import_errors_on_feed_import_id"
-
-  create_table "feed_imports", force: true do |t|
-    t.integer  "feed_id"
-    t.boolean  "successfully_imported"
-    t.string   "file_file_name"
-    t.string   "file_content_type"
-    t.integer  "file_file_size"
-    t.datetime "file_updated_at"
-    t.string   "hash"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
-  add_index "feed_imports", ["feed_id"], :name => "index_feed_imports_on_feed_id"
-
-  create_table "feeds", force: true do |t|
-    t.string   "url"
-    t.string   "format"
-    t.datetime "last_checked_at"
-    t.datetime "last_imported_at"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
   create_table "identifiers", force: true do |t|
     t.integer  "identified_entity_id",   null: false
     t.string   "identified_entity_type", null: false
@@ -73,18 +40,6 @@ ActiveRecord::Schema.define(version: 20141208200454) do
   end
 
   add_index "operators", ["onestop_id"], :name => "index_operators_on_onestop_id", :unique => true
-
-  create_table "operators_in_feed", force: true do |t|
-    t.integer  "feed_id"
-    t.integer  "operator_id"
-    t.string   "onestop_id"
-    t.string   "gtfs_agency_id"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
-  add_index "operators_in_feed", ["feed_id"], :name => "index_operators_in_feed_on_feed_id"
-  add_index "operators_in_feed", ["operator_id"], :name => "index_operators_in_feed_on_operator_id"
 
   create_table "operators_serving_stop", force: true do |t|
     t.integer  "stop_id",     null: false
