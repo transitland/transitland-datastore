@@ -73,6 +73,10 @@ GEM
     childprocess (0.5.5)
       ffi (~> 1.0, >= 1.0.11)
     choice (0.1.6)
+    climate_control (0.0.3)
+      activesupport (>= 3.0)
+    cocaine (0.5.4)
+      climate_control (>= 0.0.3, < 1.0)
     coderay (1.1.0)
     coffee-rails (4.1.0)
       coffee-script (>= 2.2.0)
@@ -136,6 +140,11 @@ GEM
       omniauth (~> 1.0)
     omniauth-osm (0.3.2)
       omniauth-oauth (~> 1.0)
+    paperclip (4.2.0)
+      activemodel (>= 3.0.0)
+      activesupport (>= 3.0.0)
+      cocaine (~> 0.5.3)
+      mime-types
     pg (0.17.1)
     polyamorous (1.1.0)
       activerecord (>= 3.0)
@@ -318,6 +327,7 @@ DEPENDENCIES
   oj
   omniauth
   omniauth-osm
+  paperclip
   pg
   pry-byebug
   pry-rails

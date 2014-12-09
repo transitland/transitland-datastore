@@ -22,6 +22,9 @@ class Operator < ActiveRecord::Base
   has_many :operators_serving_stop, dependent: :destroy
   has_many :stops, through: :operators_serving_stop
 
+  has_many :operators_in_feed
+  has_many :feeds, through: :operators_in_feed
+
   PER_PAGE = 50
 
   GEOFACTORY = RGeo::Geographic.simple_mercator_factory #(srid: 4326) # TODO: double check this

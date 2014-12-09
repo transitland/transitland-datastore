@@ -16,3 +16,5 @@
 .idea
 *.sublime-*
 
+# Ignore Paperclip uploads
+/public/system*

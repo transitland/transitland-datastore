@@ -1,0 +1,83 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: http://archives.sfmta.com/transitdata/google_transit.zipp
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 301
+      message: Moved Permanently
+    headers:
+      Date:
+      - Tue, 09 Dec 2014 16:10:07 GMT
+      Server:
+      - Apache/2.0.64 (Unix)
+      Location:
+      - http://gtfs.sfmta.com/transitdata/google_transit.zipp
+      Content-Length:
+      - '261'
+      Content-Type:
+      - text/html; charset=iso-8859-1
+    body:
+      encoding: UTF-8
+      string: |
+        <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+        <html><head>
+        <title>301 Moved Permanently</title>
+        </head><body>
+        <h1>Moved Permanently</h1>
+        <p>The document has moved <a href="http://gtfs.sfmta.com/transitdata/google_transit.zipp">here</a>.</p>
+        </body></html>
+    http_version: 
+  recorded_at: Tue, 09 Dec 2014 16:10:10 GMT
+- request:
+    method: get
+    uri: http://gtfs.sfmta.com/transitdata/google_transit.zipp
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 404
+      message: Not Found
+    headers:
+      Date:
+      - Tue, 09 Dec 2014 16:10:07 GMT
+      Server:
+      - Apache/2.0.64 (Unix)
+      Content-Length:
+      - '348'
+      Content-Type:
+      - text/html; charset=iso-8859-1
+    body:
+      encoding: UTF-8
+      string: |
+        <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+        <html><head>
+        <title>404 Not Found</title>
+        </head><body>
+        <h1>Not Found</h1>
+        <p>The requested URL /transitdata/google_transit.zipp was not found on this server.</p>
+        <p>Additionally, a 404 Not Found
+        error was encountered while trying to use an ErrorDocument to handle the request.</p>
+        </body></html>
+    http_version: 
+  recorded_at: Tue, 09 Dec 2014 16:10:10 GMT
+recorded_with: VCR 2.9.3
