@@ -63,6 +63,8 @@ gem 'factory_girl_rails', group: [:development, :test]
 gem 'ffaker', group: [:development, :test]
 gem 'rspec-rails', group: [:development, :test]
 gem 'airborne', group: :test
+gem 'vcr', group: :test
+gem 'webmock', group: :test
 gem 'capybara', group: :test
 gem 'selenium-webdriver', group: :test
 

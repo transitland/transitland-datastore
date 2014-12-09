@@ -4,6 +4,7 @@ require 'rspec/rails'
 require 'capybara/rails'
 require 'capybara/rspec'
 require 'database_cleaner'
+require 'webmock/rspec'
 require 'ffaker'
 require 'byebug'
 
