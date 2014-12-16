@@ -5,24 +5,26 @@
  -->
 <!-- Title: Onestop Pages: 1 -->
 <svg width="562pt" height="509pt"
- viewBox="0.00 0.00 561.60 509.29" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(28.8 480.491)">
+ viewBox="0.00 0.00 561.60 509.22" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(28.8 480.419)">
 <title>Onestop</title>
-<polygon fill="white" stroke="none" points="-28.8,28.8 -28.8,-480.491 532.8,-480.491 532.8,28.8 -28.8,28.8"/>
-<text text-anchor="middle" x="252" y="-437.291" font-family="Arial Bold" font-size="13.00">Onestop domain model</text>
+<polygon fill="white" stroke="none" points="-28.8,28.8 -28.8,-480.419 532.8,-480.419 532.8,28.8 -28.8,28.8"/>
+<text text-anchor="middle" x="252" y="-437.219" font-family="Arial Bold" font-size="13.00">Onestop domain model</text>
 <!-- m_Feed -->
 <g id="node1" class="node"><title>m_Feed</title>
-<path fill="none" stroke="black" d="M12,-265.5C12,-265.5 132,-265.5 132,-265.5 138,-265.5 144,-271.5 144,-277.5 144,-277.5 144,-336.5 144,-336.5 144,-342.5 138,-348.5 132,-348.5 132,-348.5 12,-348.5 12,-348.5 6,-348.5 0,-342.5 0,-336.5 0,-336.5 0,-277.5 0,-277.5 0,-271.5 6,-265.5 12,-265.5"/>
-<text text-anchor="start" x="57.1631" y="-335.7" font-family="Arial Bold" font-size="11.00">Feed</text>
-<polyline fill="none" stroke="black" points="0,-328.5 144,-328.5 "/>
-<text text-anchor="start" x="7" y="-315" font-family="Arial" font-size="10.00">feed_format </text>
-<text text-anchor="start" x="63.1426" y="-315" font-family="Arial Italic" font-size="10.00" fill="#999999">string</text>
-<text text-anchor="start" x="7" y="-302" font-family="Arial" font-size="10.00">last_fetched_at </text>
-<text text-anchor="start" x="77.6055" y="-302" font-family="Arial Italic" font-size="10.00" fill="#999999">datetime</text>
-<text text-anchor="start" x="7" y="-289" font-family="Arial" font-size="10.00">last_imported_at </text>
-<text text-anchor="start" x="83.709" y="-289" font-family="Arial Italic" font-size="10.00" fill="#999999">datetime</text>
-<text text-anchor="start" x="7" y="-276" font-family="Arial" font-size="10.00">url </text>
-<text text-anchor="start" x="20.8916" y="-276" font-family="Arial Italic" font-size="10.00" fill="#999999">string ∗</text>
+<path fill="none" stroke="black" d="M12,-260C12,-260 132,-260 132,-260 138,-260 144,-266 144,-272 144,-272 144,-344 144,-344 144,-350 138,-356 132,-356 132,-356 12,-356 12,-356 6,-356 0,-350 0,-344 0,-344 0,-272 0,-272 0,-266 6,-260 12,-260"/>
+<text text-anchor="start" x="57.1631" y="-343.2" font-family="Arial Bold" font-size="11.00">Feed</text>
+<polyline fill="none" stroke="black" points="0,-336 144,-336 "/>
+<text text-anchor="start" x="7" y="-323" font-family="Arial" font-size="10.00">feed_format </text>
+<text text-anchor="start" x="63.1426" y="-323" font-family="Arial Italic" font-size="10.00" fill="#999999">string</text>
+<text text-anchor="start" x="7" y="-310" font-family="Arial" font-size="10.00">last_fetched_at </text>
+<text text-anchor="start" x="77.6055" y="-310" font-family="Arial Italic" font-size="10.00" fill="#999999">datetime</text>
+<text text-anchor="start" x="7" y="-297" font-family="Arial" font-size="10.00">last_imported_at </text>
+<text text-anchor="start" x="83.709" y="-297" font-family="Arial Italic" font-size="10.00" fill="#999999">datetime</text>
+<text text-anchor="start" x="7" y="-284" font-family="Arial" font-size="10.00">tags </text>
+<text text-anchor="start" x="28.6797" y="-284" font-family="Arial Italic" font-size="10.00" fill="#999999">hstore</text>
+<text text-anchor="start" x="7" y="-271" font-family="Arial" font-size="10.00">url </text>
+<text text-anchor="start" x="20.8916" y="-271" font-family="Arial Italic" font-size="10.00" fill="#999999">string ∗</text>
 </g>
 <!-- m_FeedImport -->
 <g id="node2" class="node"><title>m_FeedImport</title>
@@ -46,8 +48,8 @@
 </g>
 <!-- m_Feed&#45;&gt;m_FeedImport -->
 <g id="edge3" class="edge"><title>m_Feed&#45;&gt;m_FeedImport</title>
-<path fill="none" stroke="black" d="M144.118,-312.993C152.886,-313.732 161.896,-314.491 170.787,-315.24"/>
-<polygon fill="black" stroke="black" points="170.763,-318.399 179.995,-316.016 171.292,-312.122 170.763,-318.399"/>
+<path fill="none" stroke="black" d="M144.118,-313.594C152.886,-314.283 161.896,-314.992 170.787,-315.691"/>
+<polygon fill="black" stroke="black" points="170.776,-318.85 179.995,-316.415 171.27,-312.569 170.776,-318.85"/>
 </g>
 <!-- m_FeedImportError -->
 <g id="node3" class="node"><title>m_FeedImportError</title>
@@ -61,27 +63,27 @@
 </g>
 <!-- m_Feed&#45;&gt;m_FeedImportError -->
 <g id="edge4" class="edge"><title>m_Feed&#45;&gt;m_FeedImportError</title>
-<path fill="none" stroke="black" stroke-dasharray="1,5" d="M108.733,-348.686C127.728,-367.617 152.764,-387.984 180,-398 240.067,-420.089 263.027,-417.45 324,-398 350.293,-389.612 375.659,-372.148 395.089,-356.074"/>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M116.029,-356.123C133.964,-372.718 156.169,-389.31 180,-398 240.127,-419.925 263.027,-417.45 324,-398 350.293,-389.612 375.659,-372.148 395.089,-356.074"/>
 <polygon fill="black" stroke="black" points="397.146,-358.46 401.97,-350.234 393.07,-353.656 397.146,-358.46"/>
 </g>
 <!-- m_Operator -->
 <g id="node5" class="node"><title>m_Operator</title>
-<path fill="none" stroke="black" d="M12,-122.5C12,-122.5 132,-122.5 132,-122.5 138,-122.5 144,-128.5 144,-134.5 144,-134.5 144,-193.5 144,-193.5 144,-199.5 138,-205.5 132,-205.5 132,-205.5 12,-205.5 12,-205.5 6,-205.5 0,-199.5 0,-193.5 0,-193.5 0,-134.5 0,-134.5 0,-128.5 6,-122.5 12,-122.5"/>
-<text text-anchor="start" x="46.7727" y="-192.7" font-family="Arial Bold" font-size="11.00">Operator</text>
-<polyline fill="none" stroke="black" points="0,-185.5 144,-185.5 "/>
-<text text-anchor="start" x="7" y="-172" font-family="Arial" font-size="10.00">geometry </text>
-<text text-anchor="start" x="51.4629" y="-172" font-family="Arial Italic" font-size="10.00" fill="#999999">spatial</text>
-<text text-anchor="start" x="7" y="-159" font-family="Arial" font-size="10.00">name </text>
-<text text-anchor="start" x="34.793" y="-159" font-family="Arial Italic" font-size="10.00" fill="#999999">string</text>
-<text text-anchor="start" x="7" y="-146" font-family="Arial" font-size="10.00">onestop_id </text>
-<text text-anchor="start" x="58.709" y="-146" font-family="Arial Italic" font-size="10.00" fill="#999999">string ∗</text>
-<text text-anchor="start" x="7" y="-132" font-family="Arial" font-size="10.00">tags </text>
-<text text-anchor="start" x="28.6797" y="-132" font-family="Arial Italic" font-size="10.00" fill="#999999">hstore</text>
+<path fill="none" stroke="black" d="M12,-120.5C12,-120.5 132,-120.5 132,-120.5 138,-120.5 144,-126.5 144,-132.5 144,-132.5 144,-191.5 144,-191.5 144,-197.5 138,-203.5 132,-203.5 132,-203.5 12,-203.5 12,-203.5 6,-203.5 0,-197.5 0,-191.5 0,-191.5 0,-132.5 0,-132.5 0,-126.5 6,-120.5 12,-120.5"/>
+<text text-anchor="start" x="46.7727" y="-190.7" font-family="Arial Bold" font-size="11.00">Operator</text>
+<polyline fill="none" stroke="black" points="0,-183.5 144,-183.5 "/>
+<text text-anchor="start" x="7" y="-170" font-family="Arial" font-size="10.00">geometry </text>
+<text text-anchor="start" x="51.4629" y="-170" font-family="Arial Italic" font-size="10.00" fill="#999999">spatial</text>
+<text text-anchor="start" x="7" y="-157" font-family="Arial" font-size="10.00">name </text>
+<text text-anchor="start" x="34.793" y="-157" font-family="Arial Italic" font-size="10.00" fill="#999999">string</text>
+<text text-anchor="start" x="7" y="-144" font-family="Arial" font-size="10.00">onestop_id </text>
+<text text-anchor="start" x="58.709" y="-144" font-family="Arial Italic" font-size="10.00" fill="#999999">string ∗</text>
+<text text-anchor="start" x="7" y="-130" font-family="Arial" font-size="10.00">tags </text>
+<text text-anchor="start" x="28.6797" y="-130" font-family="Arial Italic" font-size="10.00" fill="#999999">hstore</text>
 </g>
 <!-- m_Feed&#45;&gt;m_Operator -->
 <g id="edge6" class="edge"><title>m_Feed&#45;&gt;m_Operator</title>
-<path fill="none" stroke="black" stroke-dasharray="1,5" d="M72,-265.416C72,-248.597 72,-231.778 72,-214.959"/>
-<polygon fill="black" stroke="black" points="75.1501,-214.615 72,-205.615 68.8501,-214.615 75.1501,-214.615"/>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M72,-259.893C72,-244.217 72,-228.54 72,-212.863"/>
+<polygon fill="black" stroke="black" points="75.1501,-212.633 72,-203.633 68.8501,-212.633 75.1501,-212.633"/>
 </g>
 <!-- m_OperatorInFeed -->
 <g id="node6" class="node"><title>m_OperatorInFeed</title>
@@ -95,8 +97,8 @@
 </g>
 <!-- m_Feed&#45;&gt;m_OperatorInFeed -->
 <g id="edge5" class="edge"><title>m_Feed&#45;&gt;m_OperatorInFeed</title>
-<path fill="none" stroke="black" d="M144.118,-265.448C161.094,-255.529 178.976,-245.081 195.153,-235.63"/>
-<polygon fill="black" stroke="black" points="196.764,-238.337 202.946,-231.076 193.586,-232.897 196.764,-238.337"/>
+<path fill="none" stroke="black" d="M144.118,-266.049C161.261,-255.936 179.327,-245.279 195.628,-235.663"/>
+<polygon fill="black" stroke="black" points="197.326,-238.319 203.477,-231.033 194.125,-232.893 197.326,-238.319"/>
 </g>
 <!-- m_FeedImport&#45;&gt;m_FeedImportError -->
 <g id="edge7" class="edge"><title>m_FeedImport&#45;&gt;m_FeedImportError</title>
@@ -117,13 +119,13 @@
 </g>
 <!-- m_Operator&#45;&gt;m_Identifier -->
 <g id="edge1" class="edge"><title>m_Operator&#45;&gt;m_Identifier</title>
-<path fill="none" stroke="black" d="M129.793,-122.335C145.976,-110.535 163.649,-97.7157 180,-86 184.059,-83.0913 188.257,-80.0982 192.489,-77.0912"/>
-<polygon fill="black" stroke="black" points="194.602,-79.4544 200.122,-71.6789 190.958,-74.3152 194.602,-79.4544"/>
+<path fill="none" stroke="black" d="M131.558,-120.343C147.28,-109.176 164.28,-97.1176 180,-86 184.077,-83.1163 188.288,-80.1418 192.53,-77.1481"/>
+<polygon fill="black" stroke="black" points="194.637,-79.5164 200.176,-71.7545 191.006,-74.3684 194.637,-79.5164"/>
 </g>
 <!-- m_Operator&#45;&gt;m_OperatorInFeed -->
 <g id="edge10" class="edge"><title>m_Operator&#45;&gt;m_OperatorInFeed</title>
-<path fill="none" stroke="black" d="M144.118,-179.582C152.978,-181.523 162.085,-183.519 171.068,-185.487"/>
-<polygon fill="black" stroke="black" points="170.53,-188.594 179.995,-187.443 171.878,-182.439 170.53,-188.594"/>
+<path fill="none" stroke="black" d="M144.118,-178.381C152.978,-180.422 162.085,-182.52 171.068,-184.589"/>
+<polygon fill="black" stroke="black" points="170.518,-187.694 179.995,-186.645 171.932,-181.555 170.518,-187.694"/>
 </g>
 <!-- m_OperatorServingStop -->
 <g id="node7" class="node"><title>m_OperatorServingStop</title>
@@ -135,37 +137,37 @@
 </g>
 <!-- m_Operator&#45;&gt;m_OperatorServingStop -->
 <g id="edge8" class="edge"><title>m_Operator&#45;&gt;m_OperatorServingStop</title>
-<path fill="none" stroke="black" d="M144.118,-147.619C152.978,-145.578 162.085,-143.48 171.068,-141.411"/>
-<polygon fill="black" stroke="black" points="171.932,-144.445 179.995,-139.355 170.518,-138.306 171.932,-144.445"/>
+<path fill="none" stroke="black" d="M144.118,-146.418C152.978,-144.477 162.085,-142.481 171.068,-140.513"/>
+<polygon fill="black" stroke="black" points="171.878,-143.561 179.995,-138.557 170.53,-137.406 171.878,-143.561"/>
 </g>
 <!-- m_Stop -->
 <g id="node8" class="node"><title>m_Stop</title>
-<path fill="none" stroke="black" d="M12,-9.5C12,-9.5 132,-9.5 132,-9.5 138,-9.5 144,-15.5 144,-21.5 144,-21.5 144,-80.5 144,-80.5 144,-86.5 138,-92.5 132,-92.5 132,-92.5 12,-92.5 12,-92.5 6,-92.5 0,-86.5 0,-80.5 0,-80.5 0,-21.5 0,-21.5 0,-15.5 6,-9.5 12,-9.5"/>
-<text text-anchor="start" x="57.7808" y="-79.7" font-family="Arial Bold" font-size="11.00">Stop</text>
-<polyline fill="none" stroke="black" points="0,-72.5 144,-72.5 "/>
-<text text-anchor="start" x="7" y="-59" font-family="Arial" font-size="10.00">geometry </text>
-<text text-anchor="start" x="51.4629" y="-59" font-family="Arial Italic" font-size="10.00" fill="#999999">spatial</text>
-<text text-anchor="start" x="7" y="-46" font-family="Arial" font-size="10.00">name </text>
-<text text-anchor="start" x="34.793" y="-46" font-family="Arial Italic" font-size="10.00" fill="#999999">string</text>
-<text text-anchor="start" x="7" y="-33" font-family="Arial" font-size="10.00">onestop_id </text>
-<text text-anchor="start" x="58.709" y="-33" font-family="Arial Italic" font-size="10.00" fill="#999999">string ∗</text>
-<text text-anchor="start" x="7" y="-19" font-family="Arial" font-size="10.00">tags </text>
-<text text-anchor="start" x="28.6797" y="-19" font-family="Arial Italic" font-size="10.00" fill="#999999">hstore</text>
+<path fill="none" stroke="black" d="M12,-7.5C12,-7.5 132,-7.5 132,-7.5 138,-7.5 144,-13.5 144,-19.5 144,-19.5 144,-78.5 144,-78.5 144,-84.5 138,-90.5 132,-90.5 132,-90.5 12,-90.5 12,-90.5 6,-90.5 0,-84.5 0,-78.5 0,-78.5 0,-19.5 0,-19.5 0,-13.5 6,-7.5 12,-7.5"/>
+<text text-anchor="start" x="57.7808" y="-77.7" font-family="Arial Bold" font-size="11.00">Stop</text>
+<polyline fill="none" stroke="black" points="0,-70.5 144,-70.5 "/>
+<text text-anchor="start" x="7" y="-57" font-family="Arial" font-size="10.00">geometry </text>
+<text text-anchor="start" x="51.4629" y="-57" font-family="Arial Italic" font-size="10.00" fill="#999999">spatial</text>
+<text text-anchor="start" x="7" y="-44" font-family="Arial" font-size="10.00">name </text>
+<text text-anchor="start" x="34.793" y="-44" font-family="Arial Italic" font-size="10.00" fill="#999999">string</text>
+<text text-anchor="start" x="7" y="-31" font-family="Arial" font-size="10.00">onestop_id </text>
+<text text-anchor="start" x="58.709" y="-31" font-family="Arial Italic" font-size="10.00" fill="#999999">string ∗</text>
+<text text-anchor="start" x="7" y="-17" font-family="Arial" font-size="10.00">tags </text>
+<text text-anchor="start" x="28.6797" y="-17" font-family="Arial Italic" font-size="10.00" fill="#999999">hstore</text>
 </g>
 <!-- m_Operator&#45;&gt;m_Stop -->
 <g id="edge9" class="edge"><title>m_Operator&#45;&gt;m_Stop</title>
-<path fill="none" stroke="black" stroke-dasharray="1,5" d="M72,-122.36C72,-115.616 72,-108.873 72,-102.129"/>
-<polygon fill="black" stroke="black" points="75.1501,-101.934 72,-92.9336 68.8501,-101.934 75.1501,-101.934"/>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M72,-120.36C72,-113.616 72,-106.873 72,-100.129"/>
+<polygon fill="black" stroke="black" points="75.1501,-99.9336 72,-90.9336 68.8501,-99.9336 75.1501,-99.9336"/>
 </g>
 <!-- m_Stop&#45;&gt;m_Identifier -->
 <g id="edge2" class="edge"><title>m_Stop&#45;&gt;m_Identifier</title>
-<path fill="none" stroke="black" d="M144.118,-45.0069C152.886,-44.268 161.896,-43.5088 170.787,-42.7595"/>
-<polygon fill="black" stroke="black" points="171.292,-45.8783 179.995,-41.9835 170.763,-39.6005 171.292,-45.8783"/>
+<path fill="none" stroke="black" d="M144.118,-43.806C152.886,-43.1656 161.896,-42.5076 170.787,-41.8582"/>
+<polygon fill="black" stroke="black" points="171.249,-44.983 179.995,-41.1857 170.79,-38.6998 171.249,-44.983"/>
 </g>
 <!-- m_Stop&#45;&gt;m_OperatorServingStop -->
 <g id="edge11" class="edge"><title>m_Stop&#45;&gt;m_OperatorServingStop</title>
-<path fill="none" stroke="black" d="M144.118,-79.7667C159.093,-85.8242 174.773,-92.1667 189.366,-98.0694"/>
-<polygon fill="black" stroke="black" points="188.294,-101.034 197.819,-101.488 190.657,-95.1935 188.294,-101.034"/>
+<path fill="none" stroke="black" d="M144.118,-78.5658C159.498,-84.9598 175.621,-91.6628 190.547,-97.8678"/>
+<polygon fill="black" stroke="black" points="189.662,-100.911 199.182,-101.457 192.08,-95.0939 189.662,-100.911"/>
 </g>
 </g>
 </svg>

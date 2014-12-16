@@ -9,6 +9,7 @@
 #  last_imported_at :datetime
 #  created_at       :datetime
 #  updated_at       :datetime
+#  tags             :hstore
 #
 
 class Feed < ActiveRecord::Base
