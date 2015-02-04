@@ -1,7 +1,7 @@
-[![Circle CI](https://circleci.com/gh/transit-land/onestop.png?style=badge)](https://circleci.com/gh/transit-land/onestop)
-[![Dependency Status](https://gemnasium.com/transit-land/onestop.svg)](https://gemnasium.com/transit-land/onestop)
+[![Circle CI](https://circleci.com/gh/transit-land/transitland-datastore.png?style=badge)](https://circleci.com/gh/transit-land/transitland-datastore)
+[![Dependency Status](https://gemnasium.com/transit-land/transitland-datastore.svg)](https://gemnasium.com/transit-land/transitland-datastore)
 
-# Transit.land Onestop
+# Transitland Datastore
 
 A community-run directory of transit stops and their various identifiers.
 
@@ -9,7 +9,7 @@ Behind the scenes: a Ruby on Rails web service, backed by Postgres/PostGIS.
 
 ## Data Model
 
-![diagram of Onestop's data model](https://rawgit.com/transit-land/onestop/master/doc/data-model.svg)
+![diagram of Transitland Datastore's data model](https://rawgit.com/transit-land/transitland-datastore/master/doc/data-model.svg)
 
 ## To Develop Locally
 
