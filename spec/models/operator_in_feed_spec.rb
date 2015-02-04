@@ -1,0 +1,21 @@
+# == Schema Information
+#
+# Table name: operators_in_feed
+#
+#  id             :integer          not null, primary key
+#  feed_id        :integer
+#  operator_id    :integer
+#  onestop_id     :string(255)
+#  gtfs_agency_id :string(255)
+#  created_at     :datetime
+#  updated_at     :datetime
+#
+# Indexes
+#
+#  index_operators_in_feed_on_feed_id      (feed_id)
+#  index_operators_in_feed_on_operator_id  (operator_id)
+#
+
+describe OperatorInFeed do
+  pending "add some examples to (or delete) #{__FILE__}"
+end
