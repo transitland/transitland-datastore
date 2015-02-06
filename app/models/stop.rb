@@ -16,22 +16,18 @@
 #
 
 class Stop < ActiveRecord::Base
+  include HasAOnestopId
+  include IsAnEntityWithIdentifiers
+
   PER_PAGE = 50
 
   GEOFACTORY = RGeo::Geographic.simple_mercator_factory #(srid: 4326) # TODO: double check this
   set_rgeo_factory_for_column :geometry, GEOFACTORY
 
-  has_many :stop_identifiers, dependent: :destroy
+  has_many :operators_serving_stop, dependent: :destroy
+  has_many :operators, through: :operators_serving_stop
 
-  validates :onestop_id, presence: true, uniqueness: true
-  validate :onestop_id, :validate_onestop_id
-
-  def self.find_by_onestop_id!(onestop_id)
-    # TODO: make this case insensitive
-    Stop.find_by!(onestop_id: onestop_id)
-  end
-
-  def self.match_against_existing_stop_or_create(attrs)
+  def self.match_against_existing_or_create(attrs)
     if attrs.has_key?(:onestop_id) && attrs[:onestop_id].present?
       # TODO: update?
       return Stop.find_or_create_by(onestop_id: attrs[:onestop_id])
@@ -46,14 +42,9 @@ class Stop < ActiveRecord::Base
     end
   end
 
-  before_validation :set_onestop_id
   before_save :clean_attributes
 
   private
-
-  def set_onestop_id
-    self.onestop_id ||= OnestopId.new(self.name, self.geometry).generate_unique
-  end
 
   def clean_attributes
     self.name.strip! if self.name.present?
@@ -61,7 +52,9 @@ class Stop < ActiveRecord::Base
 
   def validate_onestop_id
     is_a_valid_onestop_id, onestop_id_errors = OnestopId.valid?(self.onestop_id)
-    errors.add(:onestop_id, onestop_id_errors)
+    onestop_id_errors.each do |onestop_id_error|
+      errors.add(:onestop_id, onestop_id_error)
+    end
     is_a_valid_onestop_id
   end
 end

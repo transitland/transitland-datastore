@@ -59,7 +59,7 @@ class OnestopId
   private
 
   def generate(name_abbreviation_length)
-    ONESTOP_ID_PREFIX + ONESTOP_ID_COMPONENT_SEPARATOR + geohash + ONESTOP_ID_COMPONENT_SEPARATOR + AbbreviateStopName.new(@name).abbreviate(name_abbreviation_length)
+    ONESTOP_ID_PREFIX + ONESTOP_ID_COMPONENT_SEPARATOR + geohash + ONESTOP_ID_COMPONENT_SEPARATOR + AbbreviateName.new(@name).abbreviate(name_abbreviation_length)
   end
 
   def geohash
