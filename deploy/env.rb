@@ -15,9 +15,9 @@ AWS.config(
 
 config = {
   staging: {
-    stack_id: "db959bc5-7818-4a1c-8b9f-04d26ce6dae5",
-    layer_id: "c1f6b265-27b0-4bc6-b8eb-bb4d72a80179",
-    app_id: "914e9d2b-8656-4780-bb92-998a78e3c0ed"
+    stack_id: "c268a326-fc6a-4d0b-a24d-686b0b87524e",
+    layer_id: "677ecf26-eb45-4e07-a0ca-590fe602fd4c",
+    app_id: "ffd516b0-e1b4-4cb6-8c52-d06de7b0c822"
   }
 }
 
