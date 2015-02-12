@@ -22,6 +22,7 @@ gem 'enumerize'
 gem 'gtfs'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
+gem 'json-schema'
 
 # authentication and authorization
 gem 'omniauth'

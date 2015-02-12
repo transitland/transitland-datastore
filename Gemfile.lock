@@ -111,6 +111,7 @@ GEM
     hike (1.2.3)
     i18n (0.6.11)
     json (1.8.1)
+    json-schema (2.4.1)
     kgio (2.9.2)
     libv8 (3.16.14.7)
     mail (2.6.3)
@@ -307,6 +308,7 @@ DEPENDENCIES
   figaro
   filesize
   gtfs
+  json-schema
   oj
   omniauth
   omniauth-osm
