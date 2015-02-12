@@ -26,10 +26,26 @@ class Changeset < ActiveRecord::Base
 
   attr_accessor :when_to_apply
 
-  has_many :stops
-  has_many :operators
-  has_many :operators_serving_stop
-  has_many :identifiers
+  has_many :stops_created_or_updated, class_name: 'Stop', foreign_key: 'created_or_updated_in_changeset_id'
+  has_many :stops_destroyed, class_name: 'Stop', foreign_key: 'destroyed_in_changeset_id'
+
+  has_many :operators_created_or_updated, class_name: 'Operator', foreign_key: 'created_or_updated_in_changeset_id'
+  has_many :operators_destroyed, class_name: 'Operator', foreign_key: 'destroyed_in_changeset_id'
+
+  has_many :operators_serving_stop_created_or_updated, class_name: 'OperatorServingStop', foreign_key: 'created_or_updated_in_changeset_id'
+  has_many :operators_serving_stop_destroyed, class_name: 'OperatorServingStop', foreign_key: 'destroyed_in_changeset_id'
+
+  has_many :identifiers_created_or_updated, class_name: 'Identifier', foreign_key: 'created_or_updated_in_changeset_id'
+  has_many :identifiers_destroyed, class_name: 'Identifier', foreign_key: 'destroyed_in_changeset_id'
+
+  def entities_created_or_updated
+    # NOTE: this is probably evaluating the SQL queries, rather than merging together ARel relations
+    # in Rails 5, there will be an ActiveRecord::Relation.or() operator to use instead here
+    (stops_created_or_updated + operators_created_or_updated + operators_serving_stop_created_or_updated + identifiers_created_or_updated)
+  end
+  def entities_destroyed
+    (stops_created_or_updated + operators_created_or_updated + operators_serving_stop_created_or_updated + identifiers_created_or_updated)
+  end
 
   validate :validate_payload
 
