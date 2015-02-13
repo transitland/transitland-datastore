@@ -7,9 +7,22 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   end
 
   def create
+    params_for_this_changeset = changeset_params
+    when_to_apply = params_for_this_changeset.delete('whenToApply')
     @changeset = Changeset.new(changeset_params)
-    @changeset.save!
-    render json: @changeset
+    if when_to_apply.present? && when_to_apply == 'instantlyIfClean'
+      @changeset.save!
+      trial_succeeds = @changeset.trial_succeeds?
+      if trial_succeeds
+        applied = @changeset.apply!
+        return render json: { applied: applied }
+      else
+        return render json: { trialSucceeds: trial_succeeds }
+      end
+    else
+      @changeset.save!
+      return render json: @changeset
+    end
   end
 
   def show
@@ -17,8 +30,8 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   end
 
   def check
-    is_valid_and_can_be_cleanly_applied = @changeset.is_valid_and_can_be_cleanly_applied?
-    render json: { isValidAndCanBeCleanlyApplied: is_valid_and_can_be_cleanly_applied}
+    trial_succeeds = @changeset.trial_succeeds?
+    render json: { trialSucceeds: trial_succeeds }
   end
 
   def apply

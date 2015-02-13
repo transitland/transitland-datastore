@@ -124,12 +124,16 @@ describe Changeset do
       })
     end
 
-    it 'is_valid_and_can_be_cleanly_applied?' do
+    it 'trial_succeeds?' do
       @changeset1.apply!
       expect(Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS').name).to eq '1st Ave. & Holloway Street'
-      expect(@changeset2.is_valid_and_can_be_cleanly_applied?). to eq true
-      expect(@changeset2_bad.is_valid_and_can_be_cleanly_applied?). to eq false
+      expect(@changeset2.applied).to eq false
+      expect(@changeset2.trial_succeeds?).to eq true
+      expect(@changeset2.reload.applied).to eq false
       expect(Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS').name).to eq '1st Ave. & Holloway Street'
+      expect(@changeset2_bad.trial_succeeds?).to eq false
+      @changeset2.apply!
+      expect(Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS').name).to eq '1st Ave. & Holloway St.'
     end
 
     it 'and will set applied and applied_at values' do

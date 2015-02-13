@@ -24,8 +24,6 @@ class Changeset < ActiveRecord::Base
 
   include HasAJsonPayload
 
-  attr_accessor :when_to_apply
-
   has_many :stops_created_or_updated, class_name: 'Stop', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :stops_destroyed, class_name: 'Stop', foreign_key: 'destroyed_in_changeset_id'
 
@@ -63,17 +61,20 @@ class Changeset < ActiveRecord::Base
     onestop_id_format_proc.call(onestop_id, 'stop')
   })
 
-  def is_valid_and_can_be_cleanly_applied?
-    valid_payload_and_clean_application = validate_payload
+  def trial_succeeds?
+    trial_succeeds = false
     Changeset.transaction do
       begin
         apply!
-      rescue
-        valid_payload_and_clean_application = false
+      rescue Exception => e
+        raise ActiveRecord::Rollback
+      else
+        trial_succeeds = true
+        raise ActiveRecord::Rollback
       end
-      raise ActiveRecord::Rollback
     end
-    valid_payload_and_clean_application
+    self.reload
+    trial_succeeds
   end
 
   def apply!

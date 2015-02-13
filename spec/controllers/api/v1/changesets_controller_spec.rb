@@ -36,13 +36,23 @@ describe Api::V1::ChangesetsController do
       expect(response.status).to eq 400
       expect(Changeset.count).to eq 0
     end
+
+    it 'should be able to instantly create and apply a Changeset with a valid payload' do
+      attrs = FactoryGirl.attributes_for(:changeset)
+      attrs[:whenToApply] = 'instantlyIfClean'
+      post :create, changeset: attrs
+      expect(Changeset.count).to eq 1
+      expect(Changeset.first.applied).to eq true
+      expect(Stop.count).to eq 1
+    end
   end
 
   context 'POST check' do
     it 'should be able to identify a Changeset that will apply cleanly' do
       changeset = create(:changeset)
       post :check, id: changeset.id
-      expect_json({ isValidAndCanBeCleanlyApplied: true })
+      expect_json({ trialSucceeds: true })
+      expect(changeset.applied).to eq false
     end
 
     it 'should be able to identify a Changeset that will NOT apply cleanly' do
@@ -55,7 +65,8 @@ describe Api::V1::ChangesetsController do
         ]
       })
       post :check, id: changeset.id
-      expect_json({ isValidAndCanBeCleanlyApplied: false })
+      expect_json({ trialSucceeds: false })
+      expect(changeset.applied).to eq false
     end
   end
 
