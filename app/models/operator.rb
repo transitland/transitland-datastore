@@ -26,14 +26,12 @@ class Operator < ActiveRecord::Base
   include HasAOnestopId
   include IsAnEntityWithIdentifiers
   include TrackedByChangeset
+  include HasAGeographicGeometry
 
   has_many :operators_serving_stop, dependent: :destroy
   has_many :stops, through: :operators_serving_stop
 
   PER_PAGE = 50
-
-  GEOFACTORY = RGeo::Geographic.simple_mercator_factory #(srid: 4326) # TODO: double check this
-  set_rgeo_factory_for_column :geometry, GEOFACTORY
 
   validate :name, presence: true
 end

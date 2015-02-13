@@ -33,6 +33,25 @@ describe Stop do
     expect(stop.name).to eq 'Main St. Stop'
   end
 
+  context 'geometry' do
+    it 'can be specified with WKT' do
+      stop = create(:stop, geometry: 'POINT(-122.433416 37.732525)')
+      expect(Stop.exists?(stop)).to be true
+      expect(stop.geometry.to_s).to eq 'POINT (-122.433416 37.732525)'
+    end
+
+    it 'can be specified with GeoJSON' do
+      stop = create(:stop, geometry: { type: 'Point', coordinates: [-122.433416, 37.732525] })
+      expect(Stop.exists?(stop)).to be true
+      expect(stop.geometry.to_s).to eq 'POINT (-122.433416 37.732525)'
+    end
+
+    it 'can be read as GeoJSON' do
+      stop = create(:stop, geometry: { type: 'Point', coordinates: [-122.433416, 37.732525] })
+      expect(stop.geometry(as: :geojson)).to eq({ 'type' => 'Point', 'coordinates' => [-122.433416, 37.732525] })
+    end
+  end
+
   context 'match_against_existing_or_initialize' do
     it 'if stop with same onestop_id already exists, returns that' do
       stop_with_same_onestop_id = create(:stop)

@@ -26,11 +26,9 @@ class Stop < ActiveRecord::Base
   include HasAOnestopId
   include IsAnEntityWithIdentifiers
   include TrackedByChangeset
+  include HasAGeographicGeometry
 
   PER_PAGE = 50
-
-  GEOFACTORY = RGeo::Geographic.simple_mercator_factory #(srid: 4326) # TODO: double check this
-  set_rgeo_factory_for_column :geometry, GEOFACTORY
 
   has_many :operators_serving_stop, dependent: :destroy
   has_many :operators, through: :operators_serving_stop
