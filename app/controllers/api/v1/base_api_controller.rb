@@ -9,6 +9,10 @@ class Api::V1::BaseApiController < ApplicationController
     render_error 500, "[#{exception.class.name}] #{exception.message}"
   end
 
+  rescue_from 'Changeset::Error' do |exception|
+    render_error 400, exception.message
+  end
+
   rescue_from 'ActiveRecord::RecordNotFound' do |exception|
     render_error 404, exception.message
   end

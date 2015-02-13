@@ -24,7 +24,7 @@
 
 FactoryGirl.define do
   factory :stop do
-    onestop_id { "s-9q#{rand(1..9)}y-#{Faker::Lorem.word}" } # TODO: make a onestop_id faker
+    onestop_id { Faker::OnestopId.stop }
     geometry { "POINT(#{rand(-124.4096..-114.1308)} #{rand(32.5343..42.0095)})" }
     name { [
       'C. Chavez St & Florida St',

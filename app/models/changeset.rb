@@ -15,7 +15,7 @@ class Changeset < ActiveRecord::Base
   class Error < StandardError
     attr_accessor :changeset, :message, :backtrace
 
-    def initialize(changeset, message, backtrace=nil)
+    def initialize(changeset, message, backtrace=[])
       @changeset = changeset
       @message = message
       @backtrace = backtrace
@@ -47,16 +47,21 @@ class Changeset < ActiveRecord::Base
     (stops_created_or_updated + operators_created_or_updated + operators_serving_stop_created_or_updated + identifiers_created_or_updated)
   end
 
+  after_initialize :set_default_values
+
   validate :validate_payload
 
-  onestop_id_format_proc = -> (onestop_id) do
-    is_a_valid_onestop_id, onestop_id_errors = OnestopId.valid?(onestop_id)
-    if !is_a_valid_onestop_id
-      error_description = onestop_id_errors.join(', ')
-      raise JSON::Schema::CustomFormatError.new(error_description)
-    end
+  onestop_id_format_proc = -> (onestop_id, expected_entity_type) do
+    is_a_valid_onestop_id, onestop_id_errors = OnestopId.validate_onestop_id_string(onestop_id, expected_entity_type: expected_entity_type)
+    raise JSON::Schema::CustomFormatError.new(onestop_id_errors.join(', ')) if !is_a_valid_onestop_id
   end
-  JSON::Validator.register_format_validator('onestop_id', onestop_id_format_proc)
+  JSON::Validator.schema_reader = JSON::Schema::Reader.new(accept_uri: false, accept_file: true)
+  JSON::Validator.register_format_validator('operator-onestop-id', -> (onestop_id) {
+    onestop_id_format_proc.call(onestop_id, 'operator')
+  })
+  JSON::Validator.register_format_validator('stop-onestop-id', -> (onestop_id) {
+    onestop_id_format_proc.call(onestop_id, 'stop')
+  })
 
   def is_valid_and_can_be_cleanly_applied?
     valid_payload_and_clean_application = validate_payload
@@ -85,7 +90,7 @@ class Changeset < ActiveRecord::Base
               Operator.apply_change(changeset: self, attrs: change[:operator], action: change[:action])
             end
           end
-          self.update(applied: true)
+          self.update(applied: true, applied_at: Time.now)
           return true
         rescue
           raise Changeset::Error.new(self, $!.message, $!.backtrace)
@@ -94,9 +99,10 @@ class Changeset < ActiveRecord::Base
     end
   end
 
-  def revert
+  def revert!
     if applied
       # TODO: write it
+      raise Changeset::Error.new(self, "cannot revert. This functionality doesn't exist yet.")
     else
       raise Changeset::Error.new(self, 'cannot revert. This changeset has not been applied yet.')
     end
@@ -108,6 +114,12 @@ class Changeset < ActiveRecord::Base
 
   private
 
+  def set_default_values
+    if self.new_record?
+      self.applied ||= false
+    end
+  end
+
   def validate_payload
     payload_validation_errors = JSON::Validator.fully_validate(
       File.join(__dir__, 'json_schemas', 'changeset.json'),
@@ -115,7 +127,9 @@ class Changeset < ActiveRecord::Base
       errors_as_objects: true
     )
     if payload_validation_errors.length > 0
-      errors.add(:payload, payload_validation_errors.map { |error| error[:message] })
+      payload_validation_errors.each do |error|
+        errors.add(:payload, error[:message])
+      end
       false
     else
       true

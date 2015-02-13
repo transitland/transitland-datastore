@@ -48,7 +48,7 @@ module TrackedByChangeset
     end
 
     def self.changeable_associated_models
-      # TODO!!!!!!
+      @changeable_associated_models ||= (self.reflections.keys - [:created_or_updated_in_changeset, :destroyed_in_changeset])
     end
   end
 

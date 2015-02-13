@@ -20,7 +20,7 @@ FactoryGirl.define do
           {
             action: "createUpdate",
             stop: {
-              onestopId: 's-9q8yt4b-1AvHoS'
+              onestopId: Faker::OnestopId.stop
             }
           }
         ]

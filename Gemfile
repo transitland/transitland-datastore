@@ -29,7 +29,7 @@ gem 'omniauth'
 gem 'omniauth-osm'
 
 # API
-gem 'active_model_serializers'
+gem 'active_model_serializers', '0.9.3'
 gem 'oj'
 
 # views

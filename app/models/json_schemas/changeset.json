@@ -15,11 +15,7 @@
             "required": ["stop"],
             "properties": {
               "stop": {
-                "properties": {
-                  "/": {
-                    "$ref": "./stop.json"
-                  }
-                }
+                "$ref": "./stop.json"
               }
             }
           },
@@ -27,11 +23,7 @@
             "required": ["operator"],
             "properties": {
               "operator": {
-                "properties": {
-                  "/": {
-                    "$ref": "./operator.json"
-                  }
-                }
+                "$ref": "./operator.json"
               }
             }
           }
