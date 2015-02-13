@@ -91,4 +91,56 @@ describe HashHelpers do
       })
     end
   end
+
+  context 'update_keys' do
+    it 'can go from camelCaseHash to underscored_hash' do
+      camelCaseHash = {
+        "changeset" => {
+          "payload" => {
+            "changes" => [
+              {
+                "action" => "createUpdate",
+                "stop" => {
+                  "onestopId" => "s-9q8yt4b-1AvHoS",
+                  "name" => "1st Ave. & Holloway Street",
+                  "tags" => {
+                    "wheelchairAccessible" => true,
+                    "numberOfSeats" => 5
+                  },
+                  "geometry" => {
+                    "type" => "Point",
+                    "coordinates" => [-106.5234375, 31.05293398570514]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+      underscored_hash = HashHelpers::update_keys(camelCaseHash, :underscore)
+      expect(underscored_hash).to eq({
+        changeset: {
+          payload: {
+            changes: [
+              {
+                action: "createUpdate",
+                stop: {
+                  onestop_id: "s-9q8yt4b-1AvHoS",
+                  name: "1st Ave. & Holloway Street",
+                  tags: {
+                    wheelchair_accessible: true,
+                    number_of_seats: 5
+                  },
+                  geometry: {
+                    type: "Point",
+                    coordinates: [-106.5234375, 31.05293398570514]
+                  }
+                }
+              }
+            ]
+          }
+        }
+      })
+    end
+  end
 end

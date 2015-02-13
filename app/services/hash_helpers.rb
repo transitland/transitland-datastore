@@ -30,7 +30,14 @@ module HashHelpers
       when Hash
         new_hash[updated_key] = update_keys(new_hash[updated_key], method, *args)
       when Array
-        new_hash[updated_key].map! { |item_in_array| update_keys(item_in_array, method, *args) }
+        new_hash[updated_key].map! do |item_in_array|
+          case item_in_array
+          when Hash
+            update_keys(item_in_array, method, *args)
+          else
+            item_in_array
+          end
+        end
       end
     end
     new_hash
