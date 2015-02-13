@@ -1,59 +1,100 @@
-# Transitland Datastore
+# Transitland Datastore Changesets
 
+The only way to create, edit, and destroy data in the Transitland Datastore is through changesets. Each changeset contains a JSON payload of actions. When the changeset is applied, those actions are carried out on the database. Old records are retained in the database, but they're no longer marked as `current`. The new records are marked as `current` and given an appropriate `version_number` (1 greater than before, in the case of edited records). Destroyed records are "soft" deleted from the database.
 
+## Using the API
 
-## Changesets
+To create, check, and apply a changeset, you can either do each step as a separate HTTP request to the API, or you can try it in one-go.
 
-<div class="mermaid">
-  sequenceDiagram
-    client->>datastore: POST /api/v1/changesets
-    Note left of datastore: Text in note<br/>spanning several<br/>rows.
-    datastore->>client:a
-</div>
+### Step by Step
 
+1. Create a changeset: `POST /api/v1/changesets` with JSON like this in the request body:
 
-type of entity | entities | identifier(s) | actions
--------------- | ------- | ------------- | -------
-Onestop entities | <ul><li>Operator</li><li>Feed</li><li>Stop</li><li>Route</li></ul> | Onestop ID  | <ul><li>create</li><li>edit</li><li>destroy</li></ul>
-internal Transitland entities | <ul><li>OperatorServingStop</li><li>RouteServingStop</li><li>TripSeries + TripSeriesServingStop</li><li>TripSeries + Trip + StopTime</li></ul> | <ul><li>Onestop ID for "left" side</li><li>Onestop ID for "right" side</li><li>attributes</li></ul> | <ul><li>create if doesn't already exist</li><li>delete if already exists</li></ul>	
-
-````json
-{
-    "changes": [
-        {
-            "action": "createUpdate",
-            "operator": {
-                "onestop_id": "o-53-BART",
-                "stops": ["s-e3-Embarc", "s-e3-Montg"],
-                "routes": ["r-e3-NJudah"]
-                "tags": {}
-            }
-        }, {
+  ````json
+  {
+    "changeset": {
+      "payload": {
+        "changes": [
+          {
             "action": "createUpdate",
             "stop": {
-                "onestop_id": "s-e3-Embarc"
-                "tags": {}doit
-                
-           }
-        }
-    ]
-}
+              "onestopId": "s-9q8yt4b-1AvHoS",
+              "name": "1st Ave. & Holloway Street"
+            }
+          }
+        ]
+      },
+      "notes": "In this changeset, we are creating or editing a stop. If a stop with this Onestop ID already exists, we'll just update its name. If it does not already exist, we will create it."
+    }
+  }
+  ````
+
+2. In the response, you'll get an ID for the changeset
+3. Check that the changeset can be cleanly applied to the database: `POST /api/v1/changesets/143/check` (assuming that the ID you got back in Step 2 is `143`)
+4. Apply the changeset: `POST /api/v1/changesets/143/apply`
+
+### All in One Go
+
+To create, check, and apply a changeset all in one API request: `POST /api/v1/changesets` with JSON like this in the request body. Note the `"whenToApply"` property:
+
+  ````json
+  {
+    "changeset": {
+      "whenToApply": "instantlyIfClean",
+      "payload": {
+        "changes": [
+          {
+            "action": "createUpdate",
+            "stop": {
+              "onestopId": "s-9q8yt4b-1AvHoS",
+              "name": "1st Ave. & Holloway Street"
+            }
+          }
+        ]
+      },
+      "notes": "In this changeset, we are creating or editing a stop. If a stop with this Onestop ID already exists, we'll just update its name. If it does not already exist, we will create it."
+    }
+  }
+  ````
+
+### Changeset Properties
+
+Property | Required | Description
+-------- | -------- | -----------
+`payload` | yes | see below
+`notes` | - | a few sentences or a paragraph of plain text describing the changes
+`whenToApply` | - | Two options:<ul><li>`holdForReview`</li> (default, if none specified)<li>`instantlyIfClean`</li></ul>
+
+### Payload Format
+The payload is a JSON object. It's an array of change actions:
+
+````json
+"changes": []
 ````
 
+Each changeset can contain one or more change actions.
 
-<script src="https://cdn.rawgit.com/knsv/mermaid/0.3.3/dist/mermaid.full.js"></script>
+The possible actions include `createUpdate` and `destroy`:
 
-<div class="mermaid">
-  graph LR
-    Operator-->OperatorServingStop
-    OperatorServingStop-->Stop
-    Operator-->Route
-    Route-->RouteServingStop
-    RouteServingStop-->Stop
-    Route-->TripSeries
-    TripSeries-->TripSeriesServingStop
-    TripSeriesServingStop-->Stop
-    TripSeries-->Trip
-    Trip-->StopTime
-    StopTime-->Stop
-</div>
+````json
+"changes": [
+  {
+    "action": "createUpdate",
+    "stop": {
+      "onestopId": "s-9q8yt4b-1AvHoS",
+      "name": "1st Ave. & Holloway Street"
+    },
+  },
+  {
+    "action": "destroy",
+    "stop": {
+      "onestopId": "s-9q8yt4b-2AvNo"
+    }
+  }
+]
+````
+
+#### Payload JSON Schema
+Payloads are validated using JSON schemas found in `/app/models/json_schemas`.
+
+Note that the API consumers and produces JSON with `"camelCaseKeysInQuotationMarks"`, while internally, the Datastore uses `ruby_symbols_with_underscores`. 

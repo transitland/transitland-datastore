@@ -3,7 +3,9 @@
 
 # Transitland Datastore
 
-A community-run directory of transit stops and their various identifiers.
+A community-run and -edited timetable and map of public transit service around the world.
+
+Integrates with the [Onestop ID Registry](https://github.com/transit-land/onestop-id-registry).
 
 Behind the scenes: a Ruby on Rails web service, backed by Postgres/PostGIS.
 
@@ -24,15 +26,7 @@ Behind the scenes: a Ruby on Rails web service, backed by Postgres/PostGIS.
 
 2. Configure your local copy by renaming the example files to `config/application.yml` and `config/database.yml`. Edit as appropriate.
 
-3. Create a local database, run migrations, and load seed data (GTFS files for San Francisco MTA and San Jose VTA): `bundle exec rake db:setup`
-
-4. Start the server: `bundle exec rails server`
-
-
-## To Import a GTFS Feed
-
-* Import a local file by running: `bundle exec rake import_from_gtfs[spec/support/example_gtfs_archives/vta_gtfs.zip]` with the relative path to a local GTFS .zip archive
-* Import a remote file by running: `bundle exec rake import_from_gtfs[http://gtfs.s3.amazonaws.com/santa-cruz-metro_20140607_0125.zip]` with a URL to a GTFS .zip archive
+3. Start the server: `bundle exec rails server`
 
 ## To Run Tests Locally
 
@@ -43,16 +37,25 @@ Behind the scenes: a Ruby on Rails web service, backed by Postgres/PostGIS.
 ## API Endpoints
 
 Example URL  | Parameters
----------------|------------
-`/api/v1/stops` | none required
-`/api/v1/stops?identifer=4973` | `identifier` can be any type of stop identifier
-`/api/v1/stops?lon=-121.977772198&lat=37.413530093&r=100` | `lon` is longitude; `lat` is latitude; `r` is radius of search in meters (if not specified, defaults to 100 meters)
-`/api/v1/stops?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
+-------------|-----------
+`POST /api/v1/changeset` | include a [changeset payload](docs/changesets.md) in the request body
+`POST /api/v1/changeset/1/check` | 
+`POST /api/v1/changeset/1/apply` | 
+`POST /api/v1/changeset/1/revert` | 
+`GET /api/v1/onestop_id/o-9q8y-SFMTA` | final part of the path can be a Onestop ID for any type of entity (for example, a stop or an operator)
+`GET /api/v1/stops` | none required
+`GET /api/v1/stops?identifer=4973` | `identifier` can be any type of stop identifier
+`GET /api/v1/stops?lon=-121.977772198&lat=37.413530093&r=100` | `lon` is longitude; `lat` is latitude; `r` is radius of search in meters (if not specified, defaults to 100 meters)
+`GET /api/v1/stops?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
+`GET /api/v1/operators` | none required
+`GET /api/v1/operators?identifer=SFMUNI` | `identifier` can be any type of operator identifier
+`GET /api/v1/operators?lon=-121.977772198&lat=37.413530093&r=100` | `lon` is longitude; `lat` is latitude; `r` is radius of search in meters (if not specified, defaults to 100 meters)
+`GET /api/v1/operators?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
 
 Pagination for JSON endpoints:
-- `?offset=50` is the index of the first stop to be displayed (starts with 0)
-- by default, 50 stops are displayed per page
+- `?offset=50` is the index of the first entity to be displayed (starts with 0)
+- by default, 50 entities are displayed per page
 
 Format:
 - by default, responses are paginated JSON
-- specify `.geojson` instead for GeoJSON on any endpoint. For example: `/api/v1/stops.geojson?bbox=-122.4183,37.7758,-122.4120,37.7858`
+- specify `.geojson` instead for GeoJSON on some endpoints. For example: `/api/v1/stops.geojson?bbox=-122.4183,37.7758,-122.4120,37.7858`
