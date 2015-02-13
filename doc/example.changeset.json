@@ -1,0 +1,24 @@
+{
+   "changeset": {
+     "whenToApply": "instantlyIfClean",
+     "payload": {
+       "changes": [
+         {
+           "action": "createUpdate",
+           "stop": {
+             "onestopId": "s-9q8yt4b-1AvHoSTest",
+             "name": "1st Ave. & Holloway Street",
+	         "geometry": {
+	           "type": "Point",
+	           "coordinates": [
+	             -122.41327285766602,
+	             37.774921097392664
+	           ]
+	         }
+           }
+         }
+       ]
+     },
+     "notes": "In this changeset, we are creating or editing a stop. If a stop with this Onestop ID already exists, we'll just update its name. If it does not already exist, we will create it."
+   }
+}
