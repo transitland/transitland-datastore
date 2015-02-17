@@ -38,10 +38,10 @@ Behind the scenes: a Ruby on Rails web service, backed by Postgres/PostGIS.
 
 Example URL  | Parameters
 -------------|-----------
-`POST /api/v1/changeset` | include a [changeset payload](docs/changesets.md) in the request body
-`POST /api/v1/changeset/1/check` | 
-`POST /api/v1/changeset/1/apply` | 
-`POST /api/v1/changeset/1/revert` | 
+`POST /api/v1/changesets` | include a [changeset payload](docs/changesets.md) in the request body
+`POST /api/v1/changesets/1/check` | 
+`POST /api/v1/changesets/1/apply` | 
+`POST /api/v1/changesets/1/revert` | 
 `GET /api/v1/onestop_id/o-9q8y-SFMTA` | final part of the path can be a Onestop ID for any type of entity (for example, a stop or an operator)
 `GET /api/v1/stops` | none required
 `GET /api/v1/stops?identifer=4973` | `identifier` can be any type of stop identifier
