@@ -47,6 +47,36 @@ describe Api::V1::ChangesetsController do
     end
   end
 
+  context 'POST update' do
+    it "should be able to update a Changeset that hasn't yet been applied" do
+      changeset = create(:changeset)
+      post :update, id: changeset.id, changeset: {
+        notes: 'this is the NEW note'
+      }
+      expect(changeset.reload.notes).to eq 'this is the NEW note'
+    end
+
+    it "shouldn't be able to update the payload of an applied Changeset" do
+      changeset = create(:changeset)
+      changeset.apply!
+      new_payload = {
+        changes: [
+          {
+            action: "destroy",
+            stop: {
+              onestopId: Faker::OnestopId.stop
+            }
+          }
+        ]
+      }
+      post :update, id: changeset.id, changeset: {
+        payload: new_payload
+      }
+      expect(changeset.payload).to_not eq new_payload
+      expect_json({ meta: { errors: ['cannot update a Changeset that has already been applied'] }})
+    end
+  end
+
   context 'POST check' do
     it 'should be able to identify a Changeset that will apply cleanly' do
       changeset = create(:changeset)

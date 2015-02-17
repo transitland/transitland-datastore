@@ -39,6 +39,7 @@ Behind the scenes: a Ruby on Rails web service, backed by Postgres/PostGIS.
 Example URL  | Parameters
 -------------|-----------
 `POST /api/v1/changesets` | include a [changeset payload](docs/changesets.md) in the request body
+`PUT /api/v1/changesets/32`<br/>(a Changeset can only be updated if it hasn't yet been applied)| include a [changeset payload](docs/changesets.md) in the request body
 `POST /api/v1/changesets/1/check` | 
 `POST /api/v1/changesets/1/apply` | 
 `POST /api/v1/changesets/1/revert` | 

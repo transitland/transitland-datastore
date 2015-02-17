@@ -1,5 +1,5 @@
 class Api::V1::ChangesetsController < Api::V1::BaseApiController
-  before_action :set_changeset, only: [:show, :check, :apply, :revert]
+  before_action :set_changeset, only: [:show, :update, :check, :apply, :revert]
 
   def index
     @changesets = Changeset.where('')
@@ -23,6 +23,16 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
       @changeset.save!
       return render json: @changeset
     end
+  end
+
+  def update
+    if @changeset.applied
+      return render json: @changeset, meta: { errors: ['cannot update a Changeset that has already been applied'] }
+    else
+      @changeset.update(changeset_params)
+      render json: @changeset
+    end
+
   end
 
   def show
