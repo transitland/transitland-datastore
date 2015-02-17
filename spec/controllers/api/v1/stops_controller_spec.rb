@@ -16,6 +16,24 @@ describe Api::V1::StopsController do
         }})
       end
 
+      it 'returns current records by default' do
+        @glen_park.update(current: false)
+        get :index
+        expect_json_types({ stops: :array }) # TODO: remove root node?
+        expect_json({ stops: -> (stops) {
+          expect(stops.length).to eq 3
+        }})
+      end
+
+      it 'returns historical records when specified' do
+        @glen_park.update(current: false)
+        get :index, include_old: true
+        expect_json_types({ stops: :array }) # TODO: remove root node?
+        expect_json({ stops: -> (stops) {
+          expect(stops.length).to eq 4
+        }})
+      end
+
       it 'returns the appropriate stop when identifier provided' do
         create(:stop_identifier, identified_entity: @glen_park)
         get :index, identifier: @glen_park.identifiers.first.identifier
