@@ -69,11 +69,12 @@ describe Api::V1::ChangesetsController do
           }
         ]
       }
-      post :update, id: changeset.id, changeset: {
+      put :update, id: changeset.id, changeset: {
         payload: new_payload
       }
       expect(changeset.payload).to_not eq new_payload
-      expect_json({ meta: { errors: ['cannot update a Changeset that has already been applied'] }})
+      expect_json({ message: ['cannot update a Changeset that has already been applied'] })
+      expect(response.code).to eq 400
     end
   end
 

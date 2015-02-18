@@ -27,12 +27,11 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
 
   def update
     if @changeset.applied
-      return render json: @changeset, meta: { errors: ['cannot update a Changeset that has already been applied'] }
+      raise Changeset::Error.new(@changeset, 'cannot update a Changeset that has already been applied')
     else
       @changeset.update(changeset_params)
       render json: @changeset
     end
-
   end
 
   def show
