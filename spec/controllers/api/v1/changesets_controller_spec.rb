@@ -58,7 +58,7 @@ describe Api::V1::ChangesetsController do
 
     it "shouldn't be able to update the payload of an applied Changeset" do
       changeset = create(:changeset)
-      changeset.apply!
+      changeset.update(applied: true)
       new_payload = {
         changes: [
           {
@@ -73,8 +73,8 @@ describe Api::V1::ChangesetsController do
         payload: new_payload
       }
       expect(changeset.payload).to_not eq new_payload
-      expect_json({ message: ['cannot update a Changeset that has already been applied'] })
-      expect(response.code).to eq 400
+      expect_json({ message: 'cannot update a Changeset that has already been applied' })
+      expect(response.code).to eq '400'
     end
   end
 
