@@ -12,5 +12,6 @@ Rails.application.routes.draw do
       resources :stops, only: [:index, :show]
       resources :operators, only: [:index, :show]
     end
+    match '*unmatched_route', :to => 'v1/base_api#raise_not_found!', via: :all
   end
 end
