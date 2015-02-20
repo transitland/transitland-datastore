@@ -1,13 +1,13 @@
-module TrackedByChangeset
+module CurrentTrackedByChangeset
   extend ActiveSupport::Concern
 
   included do
     belongs_to :created_or_updated_in_changeset, class_name: 'Changeset'
-    belongs_to :destroyed_in_changeset, class_name: 'Changeset'
+    has_many :old_versions, -> { order('version DESC') }, class_name: "Old#{self.to_s}"
+  end
 
-    scope :current, -> { where(current: true) }
-
-    def self.apply_change(changeset: nil, attrs: {}, action: nil)
+  module ClassMethods
+    def apply_change(changeset: nil, attrs: {}, action: nil)
       case action
       when 'createUpdate'
         existing_model = self.find_by_onestop_id(attrs[:onestop_id])
@@ -29,57 +29,59 @@ module TrackedByChangeset
       end
     end
 
-    def self.create_making_history(changeset: nil, new_attrs: {})
+    def create_making_history(changeset: nil, new_attrs: {})
       self.transaction do
         new_model = self.new(new_attrs)
         new_model.version = 1
         new_model.created_or_updated_in_changeset = changeset
-        new_model.current = true
         new_model.save!
         new_model
         # TODO: associated models
       end
     end
 
-    private
-
-    def self.changeable_attributes
-      @changeable_attributes ||= (self.attribute_names - ['id', 'created_at', 'updated_at', 'created_or_updated_in_changeset_id', 'destroyed_in_changeset_id', 'version', 'current']).map(&:to_sym)
+    def instantiate_an_old_model
+      Object.const_get("Old#{self.to_s.capitalize}").new
     end
 
-    def self.changeable_associated_models
+    def changeable_attributes
+      @changeable_attributes ||= (self.attribute_names - ['id', 'created_at', 'updated_at', 'created_or_updated_in_changeset_id', 'destroyed_in_changeset_id', 'version']).map(&:to_sym)
+    end
+
+    def changeable_associated_models
       @changeable_associated_models ||= (self.reflections.keys - [:created_or_updated_in_changeset, :destroyed_in_changeset])
     end
   end
 
   def destroy_making_history(changeset: nil)
     self.class.transaction do
-      self.current = false
-      self.destroyed_in_changeset = changeset
-      self.save!
+      old_model = self.class.instantiate_an_old_model
+      old_model.assign_attributes(changeable_attributes_as_a_cloned_hash)
+      old_model.version = self.version
+      old_model.destroyed_in_changeset = changeset
+      self.destroy! # cascade on to dependents??
+      old_model.save!
       # TODO: associated models
     end
   end
 
   def update_making_history(changeset: nil, new_attrs: {})
     self.class.transaction do
-      old_model = self
+      old_model = self.class.instantiate_an_old_model
+      old_model.assign_attributes(changeable_attributes_as_a_cloned_hash)
+      old_model.version = self.version
+      old_model.current = self
 
-      new_model = old_model.dup
-      new_model.merge_in_attributes(new_attrs)
-      new_model.created_or_updated_in_changeset = changeset
-      new_model.version = old_model.version + 1
+      self.version = self.version + 1
+      self.merge_in_attributes(new_attrs)
+      self.created_or_updated_in_changeset = changeset
 
-      old_model.current = false
+      # update associations!
 
       old_model.save!
-      new_model.save!
+      self.save!
       # TODO: associated models
     end
-  end
-
-  def is_current?
-    is_current && destroyed_in_changeset.blank?
   end
 
   def merge_in_attributes(new_attrs)

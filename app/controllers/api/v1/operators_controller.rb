@@ -6,11 +6,9 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
 
   def index
     @operators = Operator.includes(:identifiers).where('') # TODO: check performance against eager_load, joins, etc.
-    unless params[:include_old].present? && params[:include_old]
-      @operators = @operators.current
-    end
+
     if params[:identifier].present?
-      @operators = @operators.joins(:identifiers).where("identifiers.identifier = ?", params[:identifier])
+      @operators = @operators.with_identifier(params[:identifier])
     end
     if [params[:lat], params[:lon]].map(&:present?).all?
       point = Operator::GEOFACTORY.point(params[:lon], params[:lat])

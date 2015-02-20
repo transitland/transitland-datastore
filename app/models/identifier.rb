@@ -1,6 +1,6 @@
 # == Schema Information
 #
-# Table name: identifiers
+# Table name: current_identifiers
 #
 #  id                                 :integer          not null, primary key
 #  identified_entity_id               :integer          not null
@@ -10,21 +10,29 @@
 #  created_at                         :datetime
 #  updated_at                         :datetime
 #  created_or_updated_in_changeset_id :integer
-#  destroyed_in_changeset_id          :integer
 #  version                            :integer
-#  current                            :boolean
 #
 # Indexes
 #
-#  identified_entity                          (identified_entity_id,identified_entity_type)
-#  identifiers_cu_in_changeset_id_index       (created_or_updated_in_changeset_id)
-#  identifiers_d_in_changeset_id_index        (destroyed_in_changeset_id)
-#  index_identifiers_on_current               (current)
-#  index_identifiers_on_identified_entity_id  (identified_entity_id)
+#  #c_identifiers_cu_in_changeset_id_index            (created_or_updated_in_changeset_id)
+#  identified_entity                                  (identified_entity_id,identified_entity_type)
+#  index_current_identifiers_on_identified_entity_id  (identified_entity_id)
 #
 
-class Identifier < ActiveRecord::Base
+class BaseIdentifier < ActiveRecord::Base
+  self.abstract_class = true
+
   belongs_to :identified_entity, polymorphic: true
+end
+
+class Identifier < BaseIdentifier
+  self.table_name_prefix = 'current_'
+
+  include CurrentTrackedByChangeset
 
   validates :identifier, presence: true, uniqueness: { scope: :identified_entity }
+end
+
+class OldIdentifier < BaseIdentifier
+  include OldTrackedByChangeset
 end

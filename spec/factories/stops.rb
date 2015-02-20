@@ -32,7 +32,6 @@ FactoryGirl.define do
       'West Portal/Sloat/St Francis Circle'
     ].sample }
     version 1
-    current true
     association :created_or_updated_in_changeset, factory: :changeset
   end
 end

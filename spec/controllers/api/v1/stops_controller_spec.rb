@@ -8,26 +8,8 @@ describe Api::V1::StopsController do
 
   describe 'GET index' do
     context 'as JSON' do
-      it 'returns all stops when no parameters provided' do
+      it 'returns all current stops when no parameters provided' do
         get :index
-        expect_json_types({ stops: :array }) # TODO: remove root node?
-        expect_json({ stops: -> (stops) {
-          expect(stops.length).to eq 4
-        }})
-      end
-
-      it 'returns current records by default' do
-        @glen_park.update(current: false)
-        get :index
-        expect_json_types({ stops: :array }) # TODO: remove root node?
-        expect_json({ stops: -> (stops) {
-          expect(stops.length).to eq 3
-        }})
-      end
-
-      it 'returns historical records when specified' do
-        @glen_park.update(current: false)
-        get :index, include_old: true
         expect_json_types({ stops: :array }) # TODO: remove root node?
         expect_json({ stops: -> (stops) {
           expect(stops.length).to eq 4

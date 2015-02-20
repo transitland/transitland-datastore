@@ -163,11 +163,11 @@ describe Changeset do
       @changeset1.apply!
       expect(Stop.count).to eq 1
       @changeset2.apply!
-      expect(Stop.count).to eq 2
-      expect(Stop.current.count).to eq 1
+      expect(Stop.count).to eq 1
+      expect(OldStop.count).to eq 1
       @changeset3.apply!
-      expect(Stop.count).to eq 2
-      expect(Stop.current.count).to eq 0
+      expect(Stop.count).to eq 0
+      expect(OldStop.count).to eq 2
       expect(Stop.find_by_onestop_id('s-9q8yt4b-1AvHoS')).to be_nil
     end
   end

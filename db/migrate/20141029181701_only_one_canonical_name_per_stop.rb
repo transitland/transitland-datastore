@@ -1,4 +1,8 @@
 class OnlyOneCanonicalNamePerStop < ActiveRecord::Migration
+  class Stop < ActiveRecord::Base
+    # psuedo object stand-in, since new versions of code have Stop and OldStop
+  end
+
   def change
     remove_column :stops, :codes
     add_column :stops, :name, :string

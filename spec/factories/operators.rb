@@ -27,6 +27,5 @@ FactoryGirl.define do
     onestop_id { Faker::OnestopId.operator }
     name { Faker::Company.name }
     geometry { "POINT(#{rand(-124.4..-90.1)} #{rand(28.1..50.0095)})" }
-    current true
   end
 end

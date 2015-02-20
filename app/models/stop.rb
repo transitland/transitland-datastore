@@ -1,6 +1,6 @@
 # == Schema Information
 #
-# Table name: stops
+# Table name: current_stops
 #
 #  id                                 :integer          not null, primary key
 #  onestop_id                         :string(255)
@@ -10,27 +10,29 @@
 #  updated_at                         :datetime
 #  name                               :string(255)
 #  created_or_updated_in_changeset_id :integer
-#  destroyed_in_changeset_id          :integer
 #  version                            :integer
-#  current                            :boolean
 #
 # Indexes
 #
-#  index_stops_on_current          (current)
-#  index_stops_on_onestop_id       (onestop_id)
-#  stops_cu_in_changeset_id_index  (created_or_updated_in_changeset_id)
-#  stops_d_in_changeset_id_index   (destroyed_in_changeset_id)
+#  #c_stops_cu_in_changeset_id_index  (created_or_updated_in_changeset_id)
+#  index_current_stops_on_onestop_id  (onestop_id)
 #
 
-class Stop < ActiveRecord::Base
-  include HasAOnestopId
-  include IsAnEntityWithIdentifiers
-  include TrackedByChangeset
-  include HasAGeographicGeometry
+class StopBase < ActiveRecord::Base
+  self.abstract_class = true
 
   PER_PAGE = 50
+end
 
-  has_many :operators_serving_stop, dependent: :destroy
+class Stop < StopBase
+  self.table_name_prefix = 'current_'
+
+  include HasAOnestopId
+  include CurrentTrackedByChangeset
+  include IsAnEntityWithIdentifiers
+  include HasAGeographicGeometry
+
+  has_many :operators_serving_stop
   has_many :operators, through: :operators_serving_stop
 
   before_save :clean_attributes
@@ -40,4 +42,13 @@ class Stop < ActiveRecord::Base
   def clean_attributes
     self.name.strip! if self.name.present?
   end
+end
+
+class OldStop < StopBase
+  include OldTrackedByChangeset
+  include IsAnEntityWithIdentifiers
+  include HasAGeographicGeometry
+
+  has_many :operators_serving_stop
+  # has_many :operators, through: :operators_serving_stop
 end

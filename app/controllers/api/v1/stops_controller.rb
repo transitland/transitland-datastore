@@ -6,9 +6,7 @@ class Api::V1::StopsController < Api::V1::BaseApiController
 
   def index
     @stops = Stop.where('')
-    unless params[:include_old].present? && params[:include_old]
-      @stops = @stops.current
-    end
+
     if params[:identifier].present?
       @stops = @stops.with_identifier(params[:identifier])
     end

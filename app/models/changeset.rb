@@ -25,16 +25,16 @@ class Changeset < ActiveRecord::Base
   include HasAJsonPayload
 
   has_many :stops_created_or_updated, class_name: 'Stop', foreign_key: 'created_or_updated_in_changeset_id'
-  has_many :stops_destroyed, class_name: 'Stop', foreign_key: 'destroyed_in_changeset_id'
+  has_many :stops_destroyed, class_name: 'OldStop', foreign_key: 'destroyed_in_changeset_id'
 
   has_many :operators_created_or_updated, class_name: 'Operator', foreign_key: 'created_or_updated_in_changeset_id'
-  has_many :operators_destroyed, class_name: 'Operator', foreign_key: 'destroyed_in_changeset_id'
+  has_many :operators_destroyed, class_name: 'OldOperator', foreign_key: 'destroyed_in_changeset_id'
 
   has_many :operators_serving_stop_created_or_updated, class_name: 'OperatorServingStop', foreign_key: 'created_or_updated_in_changeset_id'
-  has_many :operators_serving_stop_destroyed, class_name: 'OperatorServingStop', foreign_key: 'destroyed_in_changeset_id'
+  has_many :operators_serving_stop_destroyed, class_name: 'OldOperatorServingStop', foreign_key: 'destroyed_in_changeset_id'
 
   has_many :identifiers_created_or_updated, class_name: 'Identifier', foreign_key: 'created_or_updated_in_changeset_id'
-  has_many :identifiers_destroyed, class_name: 'Identifier', foreign_key: 'destroyed_in_changeset_id'
+  has_many :identifiers_destroyed, class_name: 'OldIdentifier', foreign_key: 'destroyed_in_changeset_id'
 
   def entities_created_or_updated
     # NOTE: this is probably evaluating the SQL queries, rather than merging together ARel relations

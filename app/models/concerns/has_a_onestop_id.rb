@@ -7,12 +7,12 @@ module HasAOnestopId
 
     def self.find_by_onestop_id!(onestop_id)
       # TODO: make this case insensitive
-      self.find_by!(onestop_id: onestop_id, current: true)
+      self.find_by!(onestop_id: onestop_id)
     end
 
     def self.find_by_onestop_id(onestop_id)
       # TODO: make this case insensitive
-      self.find_by(onestop_id: onestop_id, current: true)
+      self.find_by(onestop_id: onestop_id)
     end
   end
 

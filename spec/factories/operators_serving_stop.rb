@@ -27,6 +27,5 @@ FactoryGirl.define do
   factory :operator_serving_stop do
     operator
     stop
-    current true
   end
 end
