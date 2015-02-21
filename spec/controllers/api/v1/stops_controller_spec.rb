@@ -8,7 +8,7 @@ describe Api::V1::StopsController do
 
   describe 'GET index' do
     context 'as JSON' do
-      it 'returns all stops when no parameters provided' do
+      it 'returns all current stops when no parameters provided' do
         get :index
         expect_json_types({ stops: :array }) # TODO: remove root node?
         expect_json({ stops: -> (stops) {
@@ -70,51 +70,6 @@ describe Api::V1::StopsController do
     it 'returns a 404 when not found' do
       get :show, id: 'ntd9015-2053'
       expect(response.status).to eq 404
-    end
-  end
-
-  describe 'POST create' do
-    it 'will work when given valid input' do
-      expect {
-        post :create, stop: { onestop_id: 's-9q8zn2j-ClStTS'}
-      }.to change{Stop.count}.by(1)
-    end
-
-    it 'will fail gracefully when given no input' do
-      expect {
-        post :create
-      }.to change{Stop.count}.by(0)
-      expect(response.status).to eq 400
-      expect_json({ error: 'param is missing or the value is empty: stop' })
-    end
-
-    it 'will fail gracefully when given invalid input' do
-      expect {
-        post :create, stop: { blah: 'whah'}
-      }.to change{Stop.count}.by(0)
-      expect(response.status).to eq 400
-      expect_json({ error: 'unknown attribute: blah' })
-    end
-  end
-
-  describe 'PUT update' do
-    it 'will work when given valid input' do
-      put :update, id: @glen_park.onestop_id, stop: { tags: { indoor: true } }
-      expect(@glen_park.reload.tags['indoor']).to eq 'true'
-    end
-
-    it 'will fail gracefully when given invalid input' do
-      put :update, id: @glen_park.onestop_id, stop: { taags: { indoor: true } }
-      expect(response.status).to eq 400
-      expect_json({ error: 'unknown attribute: taags' })
-    end
-  end
-
-  describe 'DELETE destroy' do
-    it 'will work when given valid ID' do
-      expect {
-        delete :destroy, id: @glen_park.onestop_id
-      }.to change{Stop.count}.by(-1)
     end
   end
 end

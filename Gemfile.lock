@@ -23,7 +23,7 @@ GEM
       activesupport (= 4.1.8)
       builder (~> 3.1)
       erubis (~> 2.7.0)
-    active_model_serializers (0.9.0)
+    active_model_serializers (0.9.3)
       activemodel (>= 3.2)
     activemodel (4.1.8)
       activesupport (= 4.1.8)
@@ -41,6 +41,7 @@ GEM
       minitest (~> 5.1)
       thread_safe (~> 0.1)
       tzinfo (~> 1.1)
+    addressable (2.3.7)
     airborne (0.1.5)
       activesupport (>= 4.0.1)
       rack-test (~> 0.6, >= 0.6.2)
@@ -111,6 +112,8 @@ GEM
     hike (1.2.3)
     i18n (0.6.11)
     json (1.8.1)
+    json-schema (2.5.0)
+      addressable (~> 2.3)
     kgio (2.9.2)
     libv8 (3.16.14.7)
     mail (2.6.3)
@@ -288,7 +291,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  active_model_serializers
+  active_model_serializers (= 0.9.3)
   activerecord-postgis-adapter
   airborne
   annotate!
@@ -307,6 +310,7 @@ DEPENDENCIES
   figaro
   filesize
   gtfs
+  json-schema
   oj
   omniauth
   omniauth-osm

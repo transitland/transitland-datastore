@@ -1,21 +1,24 @@
 # == Schema Information
 #
-# Table name: stops
+# Table name: current_stops
 #
-#  id         :integer          not null, primary key
-#  onestop_id :string(255)
-#  geometry   :spatial          geometry, 4326
-#  tags       :hstore
-#  created_at :datetime
-#  updated_at :datetime
-#  name       :string(255)
+#  id                                 :integer          not null, primary key
+#  onestop_id                         :string(255)
+#  geometry                           :spatial          geometry, 4326
+#  tags                               :hstore
+#  created_at                         :datetime
+#  updated_at                         :datetime
+#  name                               :string(255)
+#  created_or_updated_in_changeset_id :integer
+#  version                            :integer
 #
 # Indexes
 #
-#  index_stops_on_onestop_id  (onestop_id)
+#  #c_stops_cu_in_changeset_id_index  (created_or_updated_in_changeset_id)
+#  index_current_stops_on_onestop_id  (onestop_id)
 #
 
-class StopSerializer < EntitySerializer
+class StopSerializer < CurrentEntitySerializer
   attributes :onestop_id,
              :geometry,
              :name,

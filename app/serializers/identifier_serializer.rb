@@ -1,19 +1,22 @@
 # == Schema Information
 #
-# Table name: identifiers
+# Table name: current_identifiers
 #
-#  id                     :integer          not null, primary key
-#  identified_entity_id   :integer          not null
-#  identified_entity_type :string(255)      not null
-#  identifier             :string(255)
-#  tags                   :hstore
-#  created_at             :datetime
-#  updated_at             :datetime
+#  id                                 :integer          not null, primary key
+#  identified_entity_id               :integer          not null
+#  identified_entity_type             :string(255)      not null
+#  identifier                         :string(255)
+#  tags                               :hstore
+#  created_at                         :datetime
+#  updated_at                         :datetime
+#  created_or_updated_in_changeset_id :integer
+#  version                            :integer
 #
 # Indexes
 #
-#  identified_entity                          (identified_entity_id,identified_entity_type)
-#  index_identifiers_on_identified_entity_id  (identified_entity_id)
+#  #c_identifiers_cu_in_changeset_id_index            (created_or_updated_in_changeset_id)
+#  identified_entity                                  (identified_entity_id,identified_entity_type)
+#  index_current_identifiers_on_identified_entity_id  (identified_entity_id)
 #
 
 class IdentifierSerializer < ApplicationSerializer

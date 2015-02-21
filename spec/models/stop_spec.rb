@@ -1,18 +1,21 @@
 # == Schema Information
 #
-# Table name: stops
+# Table name: current_stops
 #
-#  id         :integer          not null, primary key
-#  onestop_id :string(255)
-#  geometry   :spatial          geometry, 4326
-#  tags       :hstore
-#  created_at :datetime
-#  updated_at :datetime
-#  name       :string(255)
+#  id                                 :integer          not null, primary key
+#  onestop_id                         :string(255)
+#  geometry                           :spatial          geometry, 4326
+#  tags                               :hstore
+#  created_at                         :datetime
+#  updated_at                         :datetime
+#  name                               :string(255)
+#  created_or_updated_in_changeset_id :integer
+#  version                            :integer
 #
 # Indexes
 #
-#  index_stops_on_onestop_id  (onestop_id)
+#  #c_stops_cu_in_changeset_id_index  (created_or_updated_in_changeset_id)
+#  index_current_stops_on_onestop_id  (onestop_id)
 #
 
 describe Stop do
@@ -26,34 +29,26 @@ describe Stop do
     expect(stop.name).to eq 'Main St. Stop'
   end
 
-  context 'match_against_existing_or_create' do
-    it 'if stop with same onestop_id already exists, returns that' do
-      stop_with_same_onestop_id = create(:stop)
-      stop_with_different_onestop_id = create(:stop)
-      returned_stop = Stop.match_against_existing_or_create({
-        onestop_id: stop_with_same_onestop_id.onestop_id,
-      })
-      expect(returned_stop.id).to eq stop_with_same_onestop_id.id
+  context 'geometry' do
+    it 'can be specified with WKT' do
+      stop = create(:stop, geometry: 'POINT(-122.433416 37.732525)')
+      expect(Stop.exists?(stop)).to be true
+      expect(stop.geometry.to_s).to eq 'POINT (-122.433416 37.732525)'
     end
 
-    it 'if stop with same name exists within 10 meters, returns that' do
-      stop = create(:stop, geometry: 'POINT(-122.1646481752 37.4431429028)', name: 'University Ave. Marguerite')
-      other_stop = create(:stop, geometry: 'POINT(-122.1653 37.4436)', name: 'University Ave. Caltrain Northbound')
-      returned_stop = Stop.match_against_existing_or_create({
-        geometry: 'POINT(-122.1646106243 37.4431386436)',
-          name: 'University Ave. Marguerite'
-      })
-      expect(returned_stop.id).to eq stop.id
+    it 'can be specified with GeoJSON' do
+      stop = create(:stop, geometry: { type: 'Point', coordinates: [-122.433416, 37.732525] })
+      expect(Stop.exists?(stop)).to be true
+      expect(stop.geometry.to_s).to eq 'POINT (-122.433416 37.732525)'
     end
 
-    it 'if no similar stop exists, creates and returns a new one' do
-      stop = create(:stop, geometry: 'POINT(-122.1646481752 37.4431429028)', name: 'University Ave. Marguerite')
-      returned_stop = Stop.match_against_existing_or_create({
-        geometry: 'POINT(-122.1653 37.4436)',
-          name: 'University Ave. Caltrain Northbound'
-      })
-      expect(Stop.count).to eq 2
-      expect(returned_stop.id).to be > stop.id
+    it 'can be read as GeoJSON' do
+      stop = create(:stop, geometry: { type: 'Point', coordinates: [-122.433416, 37.732525] })
+      expect(stop.geometry(as: :geojson)).to eq({ 'type' => 'Point', 'coordinates' => [-122.433416, 37.732525] })
     end
+  end
+
+  context 'diff_against' do
+    pending 'write some specs'
   end
 end

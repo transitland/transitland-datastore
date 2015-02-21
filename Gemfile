@@ -22,13 +22,14 @@ gem 'enumerize'
 gem 'gtfs'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
+gem 'json-schema'
 
 # authentication and authorization
 gem 'omniauth'
 gem 'omniauth-osm'
 
 # API
-gem 'active_model_serializers'
+gem 'active_model_serializers', '0.9.3'
 gem 'oj'
 
 # views

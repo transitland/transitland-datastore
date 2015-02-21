@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Transitland Datastore Operator",
+  "type": "object",
+  "required": ["name", "onestopId"],
+  "properties": {
+    "onestopId": {
+      "type": "string",
+      "format": "operator-onestop-id"
+    },
+    "name": { "type": "string" },
+    "tags": { "type": "object" },
+    "geometry": { "type": "object" },
+    "identifiers": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": ["identifier"],
+        "properties": {
+          "identifier": { "type": "string" }
+        }
+      }
+    },
+    "operatorsServingStop": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": ["stopOnestopId"],
+        "properties": {
+          "stopOnestopId": {
+            "type": "string",
+            "format": "stop-onestop-id"
+          },
+          "tags": { "type": "object" }
+        }
+      }
+    }
+  }
+}
