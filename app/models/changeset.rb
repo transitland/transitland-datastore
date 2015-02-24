@@ -42,7 +42,7 @@ class Changeset < ActiveRecord::Base
     (stops_created_or_updated + operators_created_or_updated + operators_serving_stop_created_or_updated + identifiers_created_or_updated)
   end
   def entities_destroyed
-    (stops_created_or_updated + operators_created_or_updated + operators_serving_stop_created_or_updated + identifiers_created_or_updated)
+    (stops_destroyed + operators_destroyed + operators_serving_stop_destroyed + identifiers_destroyed)
   end
 
   after_initialize :set_default_values
