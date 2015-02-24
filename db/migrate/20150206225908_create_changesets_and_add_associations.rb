@@ -27,6 +27,10 @@ class CreateChangesetsAndAddAssociations < ActiveRecord::Migration
     add_index  "current_#{table}", :created_or_updated_in_changeset_id, name: "#c_#{table}_cu_in_changeset_id_index"
     add_column "current_#{table}", :version, :integer
 
+    # because the CREATE TABLE ... FROM WITH NO DATA doesn't properly set the primary key
+    remove_column "old_#{table}", :id
+    add_column "old_#{table}", :id, :primary_key
+
     add_column "old_#{table}", :created_or_updated_in_changeset_id, :integer
     add_index  "old_#{table}", :created_or_updated_in_changeset_id, name: "o_#{table}_cu_in_changeset_id_index"
     add_column "old_#{table}", :destroyed_in_changeset_id, :integer
