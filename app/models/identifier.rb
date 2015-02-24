@@ -29,6 +29,16 @@ class Identifier < BaseIdentifier
   self.table_name_prefix = 'current_'
 
   include CurrentTrackedByChangeset
+  current_tracked_by_changeset kind_of_model_tracked: :relationship
+
+  def self.find_by_attributes_for_changeset_updates(attrs = {})
+    if attrs.keys.all?([:onestop_id, :identifier])
+      identified_onestop_entity = OnestopIdService.find!(attrs[:identified_entity_onestop_id])
+      find_by(identified_entity: identified_onestop_entity, identifier: attrs[:identifer])
+    else
+      raise ArgumentError.new('must specify Onestop ID for the identified entity and the identifier string')
+    end
+  end
 
   validates :identifier, presence: true, uniqueness: { scope: :identified_entity }
 end

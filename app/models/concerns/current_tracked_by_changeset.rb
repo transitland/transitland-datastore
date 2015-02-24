@@ -7,10 +7,12 @@ module CurrentTrackedByChangeset
   end
 
   module ClassMethods
+    attr_reader :kind_of_model_tracked
+
     def apply_change(changeset: nil, attrs: {}, action: nil)
+      existing_model = find_existing_model(attrs)
       case action
       when 'createUpdate'
-        existing_model = self.find_by_onestop_id(attrs[:onestop_id])
         attrs_to_apply = attrs.select { |key, value| self.changeable_attributes.include?(key) }
         if existing_model
           existing_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply)
@@ -18,7 +20,6 @@ module CurrentTrackedByChangeset
           self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
         end
       when 'destroy'
-        existing_model = self.find_by_onestop_id!(attrs[:onestop_id])
         if existing_model
           existing_model.destroy_making_history(changeset: changeset)
         else
@@ -40,8 +41,17 @@ module CurrentTrackedByChangeset
       end
     end
 
+    def find_existing_model(attrs = {})
+      case @kind_of_model_tracked
+      when :onestop_entity
+        self.find_by_onestop_id(attrs[:onestop_id])
+      when :relationship
+        self.find_by_attributes_for_changeset_updates(attrs)
+      end
+    end
+
     def instantiate_an_old_model
-      Object.const_get("Old#{self.to_s.capitalize}").new
+      Object.const_get("Old#{self.to_s}").new
     end
 
     def changeable_attributes
@@ -50,6 +60,16 @@ module CurrentTrackedByChangeset
 
     def changeable_associated_models
       @changeable_associated_models ||= (self.reflections.keys - [:created_or_updated_in_changeset, :destroyed_in_changeset])
+    end
+
+    private
+
+    def current_tracked_by_changeset(kind_of_model_tracked: nil)
+      if [:onestop_entity, :relationship].include?(kind_of_model_tracked)
+        @kind_of_model_tracked = kind_of_model_tracked
+      else
+        raise ArgumentError.new("must specify whether it's an entity or a relationship being tracked")
+      end
     end
   end
 
@@ -94,7 +114,7 @@ module CurrentTrackedByChangeset
 
   def changeable_attributes_as_a_cloned_hash
     cloned_hash = self.attributes.clone
-    cloned_hash.symbolize_keys.slice!(*self.class.changeable_attributes)
+    cloned_hash = cloned_hash.symbolize_keys.slice(*self.class.changeable_attributes)
     cloned_hash
   end
 end

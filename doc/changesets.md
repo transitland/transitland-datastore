@@ -49,10 +49,25 @@ To create, check, and apply a changeset all in one API request: `POST /api/v1/ch
               "onestopId": "s-9q8yt4b-1AvHoS",
               "name": "1st Ave. & Holloway Street"
             }
+          },
+          {
+            "action": "createUpdate",
+            "operator": {
+              "onestopId": "o-9q8y-SFMTA",
+              "name": "San Francisco Municipal Transportation Agency"
+            }
+          },
+          {
+            "action": "createUpdate",
+            "operatorRouteStopRelationship": {
+              "operatorOnestopId": "o-9q8y-SFMTA",
+              "stopOnestopId": "s-9q8yt4b-1AvHoS"
+            }
           }
+
         ]
       },
-      "notes": "In this changeset, we are creating or editing a stop. If a stop with this Onestop ID already exists, we'll just update its name. If it does not already exist, we will create it."
+      "notes": "In this changeset, we are creating/editing a stop, an operator, and the relationship between the two."
     }
   }
   ````

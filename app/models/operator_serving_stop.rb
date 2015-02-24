@@ -27,6 +27,17 @@ class OperatorServingStop < BaseOperatorServingStop
   self.table_name_prefix = 'current_'
 
   include CurrentTrackedByChangeset
+  current_tracked_by_changeset kind_of_model_tracked: :relationship
+
+  def self.find_by_attributes_for_changeset_updates(attrs = {})
+    if attrs.keys.all?([:operator_onestop_id, :stop_onestop_id])
+      operator = Operator.find_by_onestop_id!(attrs[:operator_onestop_id])
+      stop = Operator.find_by_onestop_id!(attrs[:stop_onestop_id])
+      find_by(operator: operator, stop: stop)
+    else
+      raise ArgumentError.new('must specify Onestop IDs for an operator and for a stop')
+    end
+  end
 
   belongs_to :stop
   belongs_to :operator

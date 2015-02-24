@@ -28,9 +28,12 @@ class Operator < BaseOperator
   self.table_name_prefix = 'current_'
 
   include HasAOnestopId
-  include CurrentTrackedByChangeset
   include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
+  include CurrentTrackedByChangeset
+  current_tracked_by_changeset({
+    kind_of_model_tracked: :onestop_entity
+  })
 
   has_many :operators_serving_stop
   has_many :stops, through: :operators_serving_stop

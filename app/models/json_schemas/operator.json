@@ -21,21 +21,6 @@
           "identifier": { "type": "string" }
         }
       }
-    },
-    "operatorsServingStop": {
-      "type": "array",
-      "uniqueItems": true,
-      "items": {
-        "type": "object",
-        "required": ["stopOnestopId"],
-        "properties": {
-          "stopOnestopId": {
-            "type": "string",
-            "format": "stop-onestop-id"
-          },
-          "tags": { "type": "object" }
-        }
-      }
     }
   }
 }

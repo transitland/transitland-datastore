@@ -22,21 +22,6 @@
           "required": ["identifier"]
         }
       }
-    },
-    "operatorsServingStop": {
-      "type": "array",
-      "uniqueItems": true,
-      "items": {
-        "type": "object",
-        "required": ["operatorOnestopId"],
-        "properties": {
-          "operatorOnestopId": {
-            "type": "string",
-            "format": "operator-onestop-id"
-          },
-          "tags": { "type": "object" }
-        }
-      }
     }
   }
 }
