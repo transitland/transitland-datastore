@@ -26,14 +26,6 @@
                 "$ref": "./operator.json"
               }
             }
-          },
-          {
-            "required": ["operatorRouteStopRelationship"],
-            "properties": {
-              "operatorRouteStopRelationship": {
-                "$ref": "./operator_route_stop_relationship.json"
-              }
-            }
           }
         ],
         "properties": {

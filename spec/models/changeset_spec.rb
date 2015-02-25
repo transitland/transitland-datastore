@@ -161,7 +161,7 @@ describe Changeset do
       expect(Stop.find_by_onestop_id('s-9q8yt4b-1AvHoS')).to be_nil
     end
 
-    it 'to create a relationship' do
+    it 'to create and remove a relationship' do
       @changeset1.apply!
       @changeset2.apply!
       changeset3 = create(:changeset, payload: {
@@ -170,21 +170,32 @@ describe Changeset do
             action: 'createUpdate',
             operator: {
               onestopId: 'o-9q8y-SFMTA',
-              name: 'SFMTA'
-            }
-          },
-          {
-            action: 'createUpdate',
-            operatorRouteStopRelationship: {
-              operatorOnestopId: 'o-9q8y-SFMTA',
-              stopOnestopId: 's-9q8yt4b-1AvHoS'
-            }
+              name: 'SFMTA',
+              serves: ['s-9q8yt4b-1AvHoS']
+            },
           }
         ]
       })
       expect(Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS').operators.count).to eq 0
       changeset3.apply!
       expect(Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS').operators).to include Operator.find_by_onestop_id!('o-9q8y-SFMTA')
+
+      changeset4 = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              notServedBy: ['o-9q8y-SFMTA']
+            },
+          }
+        ]
+      })
+      changeset4.apply!
+      expect(Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS').operators.count).to eq 0
+      expect(OldOperatorServingStop.count).to eq 1
+      expect(OldOperatorServingStop.first.operator).to eq Operator.find_by_onestop_id!('o-9q8y-SFMTA')
+      expect(OldOperatorServingStop.first.stop).to eq Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS')
     end
   end
 

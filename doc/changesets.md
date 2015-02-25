@@ -54,20 +54,13 @@ To create, check, and apply a changeset all in one API request: `POST /api/v1/ch
             "action": "createUpdate",
             "operator": {
               "onestopId": "o-9q8y-SFMTA",
-              "name": "San Francisco Municipal Transportation Agency"
-            }
-          },
-          {
-            "action": "createUpdate",
-            "operatorRouteStopRelationship": {
-              "operatorOnestopId": "o-9q8y-SFMTA",
-              "stopOnestopId": "s-9q8yt4b-1AvHoS"
+              "name": "San Francisco Municipal Transportation Agency",
+              "serves": ["s-9q8yt4b-1AvHoS"]
             }
           }
-
         ]
       },
-      "notes": "In this changeset, we are creating/editing a stop, an operator, and the relationship between the two."
+      "notes": "In this changeset, we are creating/editing a stop and an operator, and we're specifying a relationship between the two."
     }
   }
   ````

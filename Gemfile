@@ -17,7 +17,6 @@ gem 'redis-rails'
 gem 'sidekiq'
 
 # data model
-gem 'virtus'
 gem 'squeel'
 gem 'enumerize'
 gem 'gtfs'

@@ -90,18 +90,6 @@ class Changeset < ActiveRecord::Base
             if change[:operator].present?
               Operator.apply_change(changeset: self, attrs: change[:operator], action: change[:action])
             end
-            if change[:operator_route_stop_relationship].present?
-              operator_serves_stop = case change[:action]
-                when 'createUpdate' then true
-                when 'destroy' then false
-              end
-              operator_route_stop_relationship = OperatorRouteStopRelationship.new(
-                operator_onestop_id: change[:operator_route_stop_relationship][:operator_onestop_id],
-                stop_onestop_id: change[:operator_route_stop_relationship][:stop_onestop_id],
-                does_operator_serve_stop: operator_serves_stop
-              )
-              operator_route_stop_relationship.apply_change(in_changeset: self)
-            end
           end
           self.update(applied: true, applied_at: Time.now)
           return true

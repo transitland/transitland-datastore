@@ -21,6 +21,22 @@
           "identifier": { "type": "string" }
         }
       }
+    },
+    "serves": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "format": "stop-onestop-id"
+      }
+    },
+    "doesNotServe": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "format": "stop-onestop-id"
+      }
     }
   }
 }

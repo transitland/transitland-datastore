@@ -4,10 +4,14 @@ module CurrentTrackedByChangeset
   included do
     belongs_to :created_or_updated_in_changeset, class_name: 'Changeset'
     has_many :old_versions, -> { order('version DESC') }, class_name: "Old#{self.to_s}"
+
+    attr_accessor :marked_for_destroy_making_history,
+                  :old_model_left_after_destroy_making_history
   end
 
   module ClassMethods
-    attr_reader :kind_of_model_tracked
+    attr_reader :kind_of_model_tracked,
+                :virtual_attributes
 
     def apply_change(changeset: nil, attrs: {}, action: nil)
       existing_model = find_existing_model(attrs)
@@ -30,15 +34,28 @@ module CurrentTrackedByChangeset
       end
     end
 
+    def before_create_making_history(instantiated_model, changeset)
+      # this is available for overriding in models
+      return true
+    end
+
     def create_making_history(changeset: nil, new_attrs: {})
       self.transaction do
         new_model = self.new(new_attrs)
         new_model.version = 1
         new_model.created_or_updated_in_changeset = changeset
-        new_model.save!
-        new_model
-        # TODO: associated models
+        proceed = self.before_create_making_history(new_model, changeset) # handle associations
+        if proceed
+          new_model.save!
+          self.after_create_making_history(new_model, changeset)
+          new_model
+        end
       end
+    end
+
+    def after_create_making_history(created_model, changeset)
+      # this is available for overriding in models
+      return true
     end
 
     def find_existing_model(attrs = {})
@@ -55,7 +72,7 @@ module CurrentTrackedByChangeset
     end
 
     def changeable_attributes
-      @changeable_attributes ||= (self.attribute_names - ['id', 'created_at', 'updated_at', 'created_or_updated_in_changeset_id', 'destroyed_in_changeset_id', 'version']).map(&:to_sym)
+      @changeable_attributes ||= (self.attribute_names + @virtual_attributes - ['id', 'created_at', 'updated_at', 'created_or_updated_in_changeset_id', 'destroyed_in_changeset_id', 'version']).map(&:to_sym)
     end
 
     def changeable_associated_models
@@ -64,13 +81,20 @@ module CurrentTrackedByChangeset
 
     private
 
-    def current_tracked_by_changeset(kind_of_model_tracked: nil)
+    def current_tracked_by_changeset(kind_of_model_tracked: nil, virtual_attributes: [])
       if [:onestop_entity, :relationship].include?(kind_of_model_tracked)
         @kind_of_model_tracked = kind_of_model_tracked
       else
         raise ArgumentError.new("must specify whether it's an entity or a relationship being tracked")
       end
+
+      @virtual_attributes = virtual_attributes
     end
+  end
+
+  def before_destroy_making_history(changeset, old_model)
+    # this is available for overriding in models
+    return true
   end
 
   def destroy_making_history(changeset: nil)
@@ -79,10 +103,25 @@ module CurrentTrackedByChangeset
       old_model.assign_attributes(changeable_attributes_as_a_cloned_hash)
       old_model.version = self.version
       old_model.destroyed_in_changeset = changeset
-      self.destroy! # cascade on to dependents??
-      old_model.save!
-      # TODO: associated models
+
+      self.marked_for_destroy_making_history = true
+      self.old_model_left_after_destroy_making_history = old_model
+
+      # handle any associations
+      proceed = (
+        old_model.before_destroy_making_history(changeset) &&
+        self.before_destroy_making_history(changeset, old_model)
+      )
+      if proceed
+        self.destroy!
+        old_model.save!
+      end
     end
+  end
+
+  def before_update_making_history(changeset)
+    # this is available for overriding in models
+    return true
   end
 
   def update_making_history(changeset: nil, new_attrs: {})
@@ -96,11 +135,15 @@ module CurrentTrackedByChangeset
       self.merge_in_attributes(new_attrs)
       self.created_or_updated_in_changeset = changeset
 
-      # update associations!
-
-      old_model.save!
-      self.save!
-      # TODO: associated models
+      # handle any associations
+      proceed = (
+        old_model.before_update_making_history(changeset) &&
+        self.before_update_making_history(changeset)
+      )
+      if proceed
+        old_model.save!
+        self.save!
+      end
     end
   end
 
