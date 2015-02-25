@@ -22,15 +22,48 @@ class BaseOperator < ActiveRecord::Base
   self.abstract_class = true
 
   PER_PAGE = 50
+
+  attr_accessor :serves, :does_not_serve
 end
 
 class Operator < BaseOperator
   self.table_name_prefix = 'current_'
 
   include HasAOnestopId
-  include CurrentTrackedByChangeset
   include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
+
+  include CurrentTrackedByChangeset
+  current_tracked_by_changeset({
+    kind_of_model_tracked: :onestop_entity,
+    virtual_attributes: [:serves, :does_not_serve]
+  })
+  def self.after_create_making_history(created_model, changeset)
+    OperatorRouteStopRelationship.manage_multiple(
+      operator: {
+        serves: created_model.serves || [],
+        does_not_serve: created_model.does_not_serve || [],
+        model: created_model
+      },
+      changeset: changeset
+    )
+  end
+  def before_update_making_history(changeset)
+    OperatorRouteStopRelationship.manage_multiple(
+      operator: {
+        serves: self.serves || [],
+        does_not_serve: self.does_not_serve || [],
+        model: self
+      },
+      changeset: changeset
+    )
+  end
+  def before_destroy_making_history(changeset, old_model)
+    # operators_serving_stop.each do |operator_serving_stop|
+    #   operator_serving_stop.destroy_making_history(changeset)
+    # end
+    return true
+  end
 
   has_many :operators_serving_stop
   has_many :stops, through: :operators_serving_stop

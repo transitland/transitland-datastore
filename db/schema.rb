@@ -85,8 +85,7 @@ ActiveRecord::Schema.define(version: 20150206225908) do
   add_index "current_stops", ["created_or_updated_in_changeset_id"], :name => "#c_stops_cu_in_changeset_id_index"
   add_index "current_stops", ["onestop_id"], :name => "index_current_stops_on_onestop_id"
 
-  create_table "old_identifiers", id: false, force: true do |t|
-    t.integer  "id"
+  create_table "old_identifiers", force: true do |t|
     t.integer  "identified_entity_id"
     t.string   "identified_entity_type"
     t.string   "identifier"
@@ -103,8 +102,7 @@ ActiveRecord::Schema.define(version: 20150206225908) do
   add_index "old_identifiers", ["current_id"], :name => "index_old_identifiers_on_current_id"
   add_index "old_identifiers", ["destroyed_in_changeset_id"], :name => "identifiers_d_in_changeset_id_index"
 
-  create_table "old_operators", id: false, force: true do |t|
-    t.integer  "id"
+  create_table "old_operators", force: true do |t|
     t.string   "name"
     t.hstore   "tags"
     t.datetime "created_at"
@@ -121,8 +119,7 @@ ActiveRecord::Schema.define(version: 20150206225908) do
   add_index "old_operators", ["current_id"], :name => "index_old_operators_on_current_id"
   add_index "old_operators", ["destroyed_in_changeset_id"], :name => "operators_d_in_changeset_id_index"
 
-  create_table "old_operators_serving_stop", id: false, force: true do |t|
-    t.integer  "id"
+  create_table "old_operators_serving_stop", force: true do |t|
     t.integer  "stop_id"
     t.integer  "operator_id"
     t.hstore   "tags"
@@ -142,8 +139,7 @@ ActiveRecord::Schema.define(version: 20150206225908) do
   add_index "old_operators_serving_stop", ["operator_type", "operator_id"], :name => "operators_serving_stop_operator"
   add_index "old_operators_serving_stop", ["stop_type", "stop_id"], :name => "operators_serving_stop_stop"
 
-  create_table "old_stops", id: false, force: true do |t|
-    t.integer  "id"
+  create_table "old_stops", force: true do |t|
     t.string   "onestop_id"
     t.spatial  "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.hstore   "tags"

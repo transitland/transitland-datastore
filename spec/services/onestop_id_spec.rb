@@ -10,6 +10,11 @@ describe OnestopId do
   end
 
   context 'validation' do
+    it 'must not be blank' do
+      is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string('')
+      expect(is_a_valid_onestop_id).to be false
+      expect(errors).to include 'must not be blank'
+    end
     it 'must start with "s-" as its 1st component' do
       is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string('69y7pwu-RetSta', expected_entity_type: 'stop')
       expect(is_a_valid_onestop_id).to be false

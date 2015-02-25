@@ -60,6 +60,10 @@ class OnestopId
     errors = []
     is_a_valid_onestop_id = true
 
+    if onestop_id.blank?
+      return false, ['must not be blank']
+    end
+
     if onestop_id.split(COMPONENT_SEPARATOR).length != 3
       errors << 'must include 3 components separated by hyphens ("-")'
       is_a_valid_onestop_id = false

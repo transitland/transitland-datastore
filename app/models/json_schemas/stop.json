@@ -23,19 +23,20 @@
         }
       }
     },
-    "operatorsServingStop": {
+    "servedBy": {
       "type": "array",
       "uniqueItems": true,
       "items": {
-        "type": "object",
-        "required": ["operatorOnestopId"],
-        "properties": {
-          "operatorOnestopId": {
-            "type": "string",
-            "format": "operator-onestop-id"
-          },
-          "tags": { "type": "object" }
-        }
+        "type": "string",
+        "format": "operator-onestop-id"
+      }
+    },
+    "notServedBy": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "format": "operator-onestop-id"
       }
     }
   }
