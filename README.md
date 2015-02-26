@@ -1,17 +1,17 @@
-[![Circle CI](https://circleci.com/gh/transit-land/transitland-datastore.png?style=badge)](https://circleci.com/gh/transit-land/transitland-datastore)
-[![Dependency Status](https://gemnasium.com/transit-land/transitland-datastore.svg)](https://gemnasium.com/transit-land/transitland-datastore)
+[![Circle CI](https://circleci.com/gh/transitland/transitland-datastore.png?style=badge)](https://circleci.com/gh/transitland/transitland-datastore)
+[![Dependency Status](https://gemnasium.com/transitland/transitland-datastore.svg)](https://gemnasium.com/transitland/transitland-datastore)
 
 # Transitland Datastore
 
 A community-run and -edited timetable and map of public transit service around the world.
 
-Integrates with the [Onestop ID Registry](https://github.com/transit-land/onestop-id-registry).
+Integrates with the [Onestop ID Registry](https://github.com/transitland/onestop-id-registry).
 
 Behind the scenes: a Ruby on Rails web service, backed by Postgres/PostGIS.
 
 ## Data Model
 
-![diagram of Transitland Datastore's data model](https://rawgit.com/transit-land/transitland-datastore/master/doc/data-model.svg)
+![diagram of Transitland Datastore's data model](https://rawgit.com/transitland/transitland-datastore/master/doc/data-model.svg)
 
 ## To Develop Locally
 
