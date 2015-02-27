@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150206225908) do
+ActiveRecord::Schema.define(version: 20150225174635) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -70,6 +70,34 @@ ActiveRecord::Schema.define(version: 20150206225908) do
   add_index "current_operators_serving_stop", ["operator_id"], :name => "index_current_operators_serving_stop_on_operator_id"
   add_index "current_operators_serving_stop", ["stop_id", "operator_id"], :name => "index_current_operators_serving_stop_on_stop_id_and_operator_id", :unique => true
   add_index "current_operators_serving_stop", ["stop_id"], :name => "index_current_operators_serving_stop_on_stop_id"
+
+  create_table "current_routes", force: true do |t|
+    t.string   "onestop_id"
+    t.string   "name"
+    t.hstore   "tags"
+    t.integer  "operator_id"
+    t.integer  "created_or_updated_in_changeset_id"
+    t.integer  "version"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "current_routes", ["created_or_updated_in_changeset_id"], :name => "c_route_cu_in_changeset"
+  add_index "current_routes", ["operator_id"], :name => "index_current_routes_on_operator_id"
+
+  create_table "current_routes_serving_stop", force: true do |t|
+    t.integer  "route_id"
+    t.integer  "stop_id"
+    t.hstore   "tags"
+    t.integer  "created_or_updated_in_changeset_id"
+    t.integer  "version"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "current_routes_serving_stop", ["created_or_updated_in_changeset_id"], :name => "c_rss_cu_in_changeset"
+  add_index "current_routes_serving_stop", ["route_id"], :name => "index_current_routes_serving_stop_on_route_id"
+  add_index "current_routes_serving_stop", ["stop_id"], :name => "index_current_routes_serving_stop_on_stop_id"
 
   create_table "current_stops", force: true do |t|
     t.string   "onestop_id"
@@ -138,6 +166,45 @@ ActiveRecord::Schema.define(version: 20150206225908) do
   add_index "old_operators_serving_stop", ["destroyed_in_changeset_id"], :name => "operators_serving_stop_d_in_changeset_id_index"
   add_index "old_operators_serving_stop", ["operator_type", "operator_id"], :name => "operators_serving_stop_operator"
   add_index "old_operators_serving_stop", ["stop_type", "stop_id"], :name => "operators_serving_stop_stop"
+
+  create_table "old_routes", force: true do |t|
+    t.string   "onestop_id"
+    t.string   "name"
+    t.hstore   "tags"
+    t.integer  "operator_id"
+    t.string   "operator_type"
+    t.integer  "created_or_updated_in_changeset_id"
+    t.integer  "destroyed_in_changeset_id"
+    t.integer  "current_id"
+    t.integer  "version"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "old_routes", ["created_or_updated_in_changeset_id"], :name => "o_route_cu_in_changeset"
+  add_index "old_routes", ["current_id"], :name => "index_old_routes_on_current_id"
+  add_index "old_routes", ["destroyed_in_changeset_id"], :name => "o_route_d_in_changeset"
+  add_index "old_routes", ["operator_id", "operator_type"], :name => "index_old_routes_on_operator_id_and_operator_type"
+
+  create_table "old_routes_serving_stop", force: true do |t|
+    t.integer  "route_id"
+    t.string   "route_type"
+    t.integer  "stop_id"
+    t.string   "stop_type"
+    t.hstore   "tags"
+    t.integer  "created_or_updated_in_changeset_id"
+    t.integer  "destroyed_in_changeset_id"
+    t.integer  "current_id"
+    t.integer  "version"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "old_routes_serving_stop", ["created_or_updated_in_changeset_id"], :name => "o_rss_cu_in_changeset"
+  add_index "old_routes_serving_stop", ["current_id"], :name => "index_old_routes_serving_stop_on_current_id"
+  add_index "old_routes_serving_stop", ["destroyed_in_changeset_id"], :name => "o_rss_d_in_changeset"
+  add_index "old_routes_serving_stop", ["route_id", "route_type"], :name => "index_old_routes_serving_stop_on_route_id_and_route_type"
+  add_index "old_routes_serving_stop", ["stop_id", "stop_type"], :name => "index_old_routes_serving_stop_on_stop_id_and_stop_type"
 
   create_table "old_stops", force: true do |t|
     t.string   "onestop_id"

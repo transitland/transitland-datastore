@@ -6,7 +6,7 @@ describe OperatorRouteStopRelationship do
       @operator_route_stop_relationship1 = OperatorRouteStopRelationship.new({
         operator_onestop_id: @operator.onestop_id,
         stop_onestop_id: @stop.onestop_id,
-        does_operator_serve_stop: true
+        does_service_exist: true
       })
       @changeset1 = create(:changeset)
     end
@@ -22,7 +22,7 @@ describe OperatorRouteStopRelationship do
       operator_route_stop_relationship2 = OperatorRouteStopRelationship.new({
         operator_onestop_id: @operator.onestop_id,
         stop_onestop_id: @stop.onestop_id,
-        does_operator_serve_stop: false
+        does_service_exist: false
       })
       changeset2 = create(:changeset)
       expect(OldOperatorServingStop.count).to eq 0
@@ -37,7 +37,7 @@ describe OperatorRouteStopRelationship do
       operator_route_stop_relationship = OperatorRouteStopRelationship.new({
         operator_onestop_id: @operator.onestop_id,
         stop_onestop_id: @stop.onestop_id,
-        does_operator_serve_stop: false
+        does_service_exist: false
       })
       expect(OldOperatorServingStop.count).to eq 0
       expect(OperatorServingStop.count).to eq 0

@@ -63,7 +63,7 @@ module CurrentTrackedByChangeset
       when :onestop_entity
         self.find_by_onestop_id(attrs[:onestop_id])
       when :relationship
-        self.find_by_attributes_for_changeset_updates(attrs)
+        self.find_by_attributes(attrs)
       end
     end
 
