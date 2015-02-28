@@ -1,16 +1,19 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "Transitland Datastore Operator",
+  "title": "Transitland Datastore Route",
   "type": "object",
   "required": ["onestopId"],
   "properties": {
     "onestopId": {
       "type": "string",
+      "format": "route-onestop-id"
+    },
+    "operatedBy": {
+      "type": "string",
       "format": "operator-onestop-id"
     },
     "name": { "type": "string" },
     "tags": { "type": "object" },
-    "geometry": { "type": "object" },
     "identifiers": {
       "type": "array",
       "uniqueItems": true,

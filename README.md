@@ -13,6 +13,18 @@ Behind the scenes: a Ruby on Rails web service, backed by Postgres/PostGIS.
 
 ![diagram of Transitland Datastore's data model](https://rawgit.com/transitland/transitland-datastore/master/doc/data-model.svg)
 
+The Datastore uses [changesets](docs/changesets.md) to track additions/edits/removals of entities.
+
+Every entity has a globally unique Onestop ID (from the [Onestop ID Registry](https://github.com/transit-land/onestop-id-registry)). Entities include:
+
+* `Operator`
+* `Stop`
+* `Route`
+
+Entities are associated with each other using relationship managers:
+
+* [operator-route-stop relationships](docs/operator-route-stop-relationships.md)
+
 ## To Develop Locally
 
 1. Install dependencies:
@@ -52,6 +64,8 @@ Example URL  | Parameters
 `GET /api/v1/operators?identifer=SFMUNI` | `identifier` can be any type of operator identifier
 `GET /api/v1/operators?lon=-121.977772198&lat=37.413530093&r=100` | `lon` is longitude; `lat` is latitude; `r` is radius of search in meters (if not specified, defaults to 100 meters)
 `GET /api/v1/operators?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
+`GET /api/v1/routes` | none required
+`GET /api/v1/routes?identifer=19X` | `identifier` can be any type of route identifier
 
 Pagination for JSON endpoints:
 - `?offset=50` is the index of the first entity to be displayed (starts with 0)

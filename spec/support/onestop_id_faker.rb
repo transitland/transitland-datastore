@@ -8,6 +8,10 @@ module Faker
       generate_unique_fake_onestop_id('o')
     end
 
+    def self.route
+      generate_unique_fake_onestop_id('r')
+    end
+
     private
 
     def self.generate_unique_fake_onestop_id(entity_prefix)
@@ -37,6 +41,8 @@ module Faker
         ['CntrStn', 'RedSquare', 'FakeLand', 'MallOMerica'].sample
       when 'o'
         ['AlwaysLate', 'FailTrain', 'BestBus', 'BadBus', 'GitGoin'].sample
+      when 'r'
+        ['ECR', '522Rapid', 'NJudah'].sample
       end
     end
   end

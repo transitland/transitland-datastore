@@ -30,8 +30,14 @@ class Changeset < ActiveRecord::Base
   has_many :operators_created_or_updated, class_name: 'Operator', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :operators_destroyed, class_name: 'OldOperator', foreign_key: 'destroyed_in_changeset_id'
 
+  has_many :routes_created_or_updated, class_name: 'Route', foreign_key: 'created_or_updated_in_changeset_id'
+  has_many :routes_destroyed, class_name: 'OldRoute', foreign_key: 'destroyed_in_changeset_id'
+
   has_many :operators_serving_stop_created_or_updated, class_name: 'OperatorServingStop', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :operators_serving_stop_destroyed, class_name: 'OldOperatorServingStop', foreign_key: 'destroyed_in_changeset_id'
+
+  has_many :routes_serving_stop_created_or_updated, class_name: 'RouteServingStop', foreign_key: 'created_or_updated_in_changeset_id'
+  has_many :routes_serving_stop_destroyed, class_name: 'OldRouteServingStop', foreign_key: 'destroyed_in_changeset_id'
 
   has_many :identifiers_created_or_updated, class_name: 'Identifier', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :identifiers_destroyed, class_name: 'OldIdentifier', foreign_key: 'destroyed_in_changeset_id'
@@ -39,10 +45,24 @@ class Changeset < ActiveRecord::Base
   def entities_created_or_updated
     # NOTE: this is probably evaluating the SQL queries, rather than merging together ARel relations
     # in Rails 5, there will be an ActiveRecord::Relation.or() operator to use instead here
-    (stops_created_or_updated + operators_created_or_updated + operators_serving_stop_created_or_updated + identifiers_created_or_updated)
+    (
+      stops_created_or_updated +
+      operators_created_or_updated +
+      routes_created_or_updated +
+      operators_serving_stop_created_or_updated +
+      routes_serving_stop_created_or_updated +
+      identifiers_created_or_updated
+    )
   end
   def entities_destroyed
-    (stops_destroyed + operators_destroyed + operators_serving_stop_destroyed + identifiers_destroyed)
+    (
+      stops_destroyed +
+      operators_destroyed +
+      routes_destroyed +
+      operators_serving_stop_destroyed +
+      routes_serving_stop_destroyed +
+      identifiers_destroyed
+    )
   end
 
   after_initialize :set_default_values
@@ -89,6 +109,9 @@ class Changeset < ActiveRecord::Base
             end
             if change[:operator].present?
               Operator.apply_change(changeset: self, attrs: change[:operator], action: change[:action])
+            end
+            if change[:route].present?
+              Route.apply_change(changeset: self, attrs: change[:route], action: change[:action])
             end
           end
           self.update(applied: true, applied_at: Time.now)

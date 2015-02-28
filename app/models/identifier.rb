@@ -21,8 +21,6 @@
 
 class BaseIdentifier < ActiveRecord::Base
   self.abstract_class = true
-
-  belongs_to :identified_entity, polymorphic: true
 end
 
 class Identifier < BaseIdentifier
@@ -31,7 +29,9 @@ class Identifier < BaseIdentifier
   include CurrentTrackedByChangeset
   current_tracked_by_changeset kind_of_model_tracked: :relationship
 
-  def self.find_by_attributes_for_changeset_updates(attrs = {})
+  belongs_to :identified_entity, polymorphic: true
+
+  def self.find_by_attributes(attrs = {})
     if attrs.keys.all?([:onestop_id, :identifier])
       identified_onestop_entity = OnestopIdService.find!(attrs[:identified_entity_onestop_id])
       find_by(identified_entity: identified_onestop_entity, identifier: attrs[:identifer])
@@ -45,4 +45,6 @@ end
 
 class OldIdentifier < BaseIdentifier
   include OldTrackedByChangeset
+
+  belongs_to :identified_entity, polymorphic: true
 end

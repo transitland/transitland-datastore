@@ -18,7 +18,7 @@
 #  index_current_stops_on_onestop_id  (onestop_id)
 #
 
-class StopBase < ActiveRecord::Base
+class BaseStop < ActiveRecord::Base
   self.abstract_class = true
 
   PER_PAGE = 50
@@ -26,7 +26,7 @@ class StopBase < ActiveRecord::Base
   attr_accessor :served_by, :not_served_by
 end
 
-class Stop < StopBase
+class Stop < BaseStop
   self.table_name_prefix = 'current_'
 
   include HasAOnestopId
@@ -60,13 +60,19 @@ class Stop < StopBase
   end
   def before_destroy_making_history(changeset, old_model)
     operators_serving_stop.each do |operator_serving_stop|
-      operator_serving_stop.destroy_making_history(changeset)
+      operator_serving_stop.destroy_making_history(changeset: changeset)
+    end
+    routes_serving_stop.each do |route_serving_stop|
+      route_serving_stop.destroy_making_history(changeset: changeset)
     end
     return true
   end
 
   has_many :operators_serving_stop
   has_many :operators, through: :operators_serving_stop
+
+  has_many :routes_serving_stop
+  has_many :routes, through: :routes_serving_stop
 
   before_save :clean_attributes
 
@@ -77,11 +83,14 @@ class Stop < StopBase
   end
 end
 
-class OldStop < StopBase
+class OldStop < BaseStop
   include OldTrackedByChangeset
   include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
 
-  has_many :operators_serving_stop
-  # has_many :operators, through: :operators_serving_stop
+  has_many :old_operators_serving_stop, as: :stop
+  has_many :operators, through: :operators_serving_stop
+
+  has_many :old_routes_serving_stop, as: :stop
+  has_many :routes, through: :routes_serving_stop
 end

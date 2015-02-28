@@ -1,3 +1,13 @@
+require 'simplecov'
+SimpleCov.start do
+  load_profile 'rails'
+
+  add_group 'Services', 'app/services'
+  add_group 'Serializers', 'app/serializers'
+
+  coverage_dir(File.join("..", "..", "..", ENV['CIRCLE_ARTIFACTS'], "coverage")) if ENV['CIRCLE_ARTIFACTS']
+end
+
 ENV["RAILS_ENV"] ||= 'test'
 require File.expand_path("../../config/environment", __FILE__)
 require 'rspec/rails'
@@ -6,10 +16,6 @@ require 'capybara/rspec'
 require 'database_cleaner'
 require 'ffaker'
 require 'byebug'
-
-require 'simplecov'
-SimpleCov.start 'rails'
-SimpleCov.coverage_dir(File.join("..", "..", "..", ENV['CIRCLE_ARTIFACTS'], "coverage")) if ENV['CIRCLE_ARTIFACTS']
 
 ActiveRecord::Migration.maintain_test_schema!
 

@@ -26,6 +26,14 @@
                 "$ref": "./operator.json"
               }
             }
+          },
+          {
+            "required": ["route"],
+            "properties": {
+              "route": {
+                "$ref": "./route.json"
+              }
+            }
           }
         ],
         "properties": {
