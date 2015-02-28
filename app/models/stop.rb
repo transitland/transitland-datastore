@@ -60,7 +60,10 @@ class Stop < BaseStop
   end
   def before_destroy_making_history(changeset, old_model)
     operators_serving_stop.each do |operator_serving_stop|
-      operator_serving_stop.destroy_making_history(changeset)
+      operator_serving_stop.destroy_making_history(changeset: changeset)
+    end
+    routes_serving_stop.each do |route_serving_stop|
+      route_serving_stop.destroy_making_history(changeset: changeset)
     end
     return true
   end
@@ -85,9 +88,9 @@ class OldStop < BaseStop
   include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
 
-  has_many :operators_serving_stop
+  has_many :old_operators_serving_stop, as: :stop
   has_many :operators, through: :operators_serving_stop
 
-  has_many :routes_serving_stop
+  has_many :old_routes_serving_stop, as: :stop
   has_many :routes, through: :routes_serving_stop
 end

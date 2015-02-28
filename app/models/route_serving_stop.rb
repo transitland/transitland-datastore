@@ -44,7 +44,7 @@ class RouteServingStop < BaseRouteServingStop
   def before_destroy_making_history(changeset, old_model)
     if Stop.exists?(self.stop) && !self.stop.marked_for_destroy_making_history
       old_model.stop = self.stop
-    elsif self.route.old_model_left_after_destroy_making_history.present?
+    elsif self.stop.old_model_left_after_destroy_making_history.present?
       old_model.stop = self.stop.old_model_left_after_destroy_making_history
     else
       raise 'about to create a broken OldRouteServingStop record'

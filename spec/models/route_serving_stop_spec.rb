@@ -86,5 +86,48 @@ describe RouteServingStop do
       expect(OldRouteServingStop.count).to eq 1
       expect(Stop.find_by_onestop_id!('s-9q8yt4b-19Hollway').routes.count).to eq 0
     end
+
+    it 'will be removed when stop is destroyed' do
+      @changeset1.apply!
+      changeset2 = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'destroy',
+            stop: {
+              onestopId: 's-9q8yt4b-19Hollway'
+            }
+          }
+        ]
+      })
+      changeset2.apply!
+      expect(RouteServingStop.count).to eq 0
+      expect(OperatorServingStop.count).to eq 0
+      expect(OldRouteServingStop.count).to eq 1
+      expect(OldOperatorServingStop.count).to eq 1
+      expect(Route.find_by_onestop_id!('r-9q8y-19Express').stops.count).to eq 0
+      expect(OldRouteServingStop.first.stop).to be_a OldStop
+      expect(OldStop.first.old_routes_serving_stop.first.route).to eq Route.find_by_onestop_id!('r-9q8y-19Express')
+      expect(OldStop.first.old_operators_serving_stop.first.operator).to eq Operator.find_by_onestop_id!('o-9q8y-SFMTA')
+    end
+
+    it 'will be removed when route is destroyed' do
+      @changeset1.apply!
+      changeset2 = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'destroy',
+            route: {
+              onestopId: 'r-9q8y-19Express'
+            }
+          }
+        ]
+      })
+      changeset2.apply!
+      expect(RouteServingStop.count).to eq 0
+      expect(OldRouteServingStop.count).to eq 1
+      expect(Stop.find_by_onestop_id!('s-9q8yt4b-19Hollway').routes.count).to eq 0
+      expect(OldRouteServingStop.first.route).to be_a OldRoute
+      expect(OldRouteServingStop.first.stop).to eq Stop.find_by_onestop_id!('s-9q8yt4b-19Hollway')
+    end
   end
 end

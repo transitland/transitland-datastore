@@ -24,4 +24,98 @@ describe OperatorServingStop do
     operator_serving_stop = create(:operator_serving_stop)
     expect(OperatorServingStop.exists?(operator_serving_stop)).to be true
   end
+
+  context 'through changesets' do
+    before(:each) do
+      @changeset1 = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            stop: {
+              onestopId: 's-9q8yt4b-19Hollway',
+              name: '19th Ave & Holloway St'
+            }
+          },
+          {
+            action: 'createUpdate',
+            operator: {
+              onestopId: 'o-9q8y-SFMTA',
+              name: 'SFMTA',
+              serves: ['s-9q8yt4b-19Hollway']
+            }
+          }
+        ]
+      })
+    end
+
+    it 'can be created' do
+      @changeset1.apply!
+      expect(Stop.find_by_onestop_id!('s-9q8yt4b-19Hollway').operators).to include Operator.find_by_onestop_id!('o-9q8y-SFMTA')
+      expect(Operator.find_by_onestop_id!('o-9q8y-SFMTA').stops).to include Stop.find_by_onestop_id!('s-9q8yt4b-19Hollway')
+      expect(@changeset1.entities_created_or_updated).to match_array([
+        Stop.find_by_onestop_id!('s-9q8yt4b-19Hollway'),
+        Operator.find_by_onestop_id!('o-9q8y-SFMTA'),
+        OperatorServingStop.find_by_attributes({ operator_onestop_id: 'o-9q8y-SFMTA', stop_onestop_id: 's-9q8yt4b-19Hollway'})
+      ])
+    end
+
+    it 'can be destroyed' do
+      @changeset1.apply!
+      changeset2 = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            operator: {
+              onestopId: 'o-9q8y-SFMTA',
+              doesNotServe: ['s-9q8yt4b-19Hollway']
+            }
+          }
+        ]
+      })
+      changeset2.apply!
+      expect(OperatorServingStop.count).to eq 0
+      expect(OldOperatorServingStop.count).to eq 1
+      expect(Stop.find_by_onestop_id!('s-9q8yt4b-19Hollway').operators.count).to eq 0
+    end
+
+    it 'will be removed when stop is destroyed' do
+      @changeset1.apply!
+      changeset2 = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'destroy',
+            stop: {
+              onestopId: 's-9q8yt4b-19Hollway'
+            }
+          }
+        ]
+      })
+      changeset2.apply!
+      expect(OperatorServingStop.count).to eq 0
+      expect(OldOperatorServingStop.count).to eq 1
+      expect(Operator.find_by_onestop_id!('o-9q8y-SFMTA').stops.count).to eq 0
+      expect(OldOperatorServingStop.first.stop).to be_a OldStop
+      expect(OldStop.first.old_operators_serving_stop.first.operator).to eq Operator.find_by_onestop_id!('o-9q8y-SFMTA')
+    end
+
+    it 'will be removed when operator is destroyed' do
+      @changeset1.apply!
+      changeset2 = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'destroy',
+            operator: {
+              onestopId: 'o-9q8y-SFMTA'
+            }
+          }
+        ]
+      })
+      changeset2.apply!
+      expect(OperatorServingStop.count).to eq 0
+      expect(OldOperatorServingStop.count).to eq 1
+      expect(Stop.find_by_onestop_id!('s-9q8yt4b-19Hollway').operators.count).to eq 0
+      expect(OldOperatorServingStop.first.operator).to be_a OldOperator
+      expect(OldOperatorServingStop.first.stop).to eq Stop.find_by_onestop_id!('s-9q8yt4b-19Hollway')
+    end
+  end
 end
