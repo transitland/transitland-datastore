@@ -13,7 +13,7 @@ Behind the scenes: a Ruby on Rails web service, backed by Postgres/PostGIS.
 
 ![diagram of Transitland Datastore's data model](https://rawgit.com/transitland/transitland-datastore/master/doc/data-model.svg)
 
-The Datastore uses [changesets](docs/changesets.md) to track additions/edits/removals of entities.
+The Datastore uses [changesets](doc/changesets.md) to track additions/edits/removals of entities.
 
 Every entity has a globally unique Onestop ID (from the [Onestop ID Registry](https://github.com/transit-land/onestop-id-registry)). Entities include:
 
@@ -23,7 +23,7 @@ Every entity has a globally unique Onestop ID (from the [Onestop ID Registry](ht
 
 Entities are associated with each other using relationship managers:
 
-* [operator-route-stop relationships](docs/operator-route-stop-relationships.md)
+* [operator-route-stop relationships](doc/operator-route-stop-relationships.md)
 
 ## To Develop Locally
 
@@ -50,8 +50,8 @@ Entities are associated with each other using relationship managers:
 
 Example URL  | Parameters
 -------------|-----------
-`POST /api/v1/changesets` | include a [changeset payload](docs/changesets.md) in the request body
-`PUT /api/v1/changesets/32`<br/>(a Changeset can only be updated if it hasn't yet been applied)| include a [changeset payload](docs/changesets.md) in the request body
+`POST /api/v1/changesets` | include a [changeset payload](doc/changesets.md) in the request body
+`PUT /api/v1/changesets/32`<br/>(a Changeset can only be updated if it hasn't yet been applied)| include a [changeset payload](doc/changesets.md) in the request body
 `POST /api/v1/changesets/1/check` | 
 `POST /api/v1/changesets/1/apply` | 
 `POST /api/v1/changesets/1/revert` | 
