@@ -83,7 +83,7 @@ class OldOperator < BaseOperator
   include HasAGeographicGeometry
 
   has_many :old_operators_serving_stop, as: :operator
-  has_many :operators, through: :operators_serving_stop
+  has_many :stops, through: :old_operators_serving_stop, source_type: 'Operator'
 
   has_many :routes, as: :operator
 end

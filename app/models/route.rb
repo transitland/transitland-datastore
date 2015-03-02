@@ -85,6 +85,6 @@ class OldRoute < BaseRoute
   include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
 
-  has_many :routes_serving_stop
-  has_many :routes, through: :routes_serving_stop
+  has_many :old_routes_serving_stop
+  has_many :routes, through: :old_routes_serving_stop, source_type: 'Route'
 end

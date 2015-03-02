@@ -89,8 +89,8 @@ class OldStop < BaseStop
   include HasAGeographicGeometry
 
   has_many :old_operators_serving_stop, as: :stop
-  has_many :operators, through: :operators_serving_stop
+  has_many :operators, through: :old_operators_serving_stop, source_type: 'Stop'
 
   has_many :old_routes_serving_stop, as: :stop
-  has_many :routes, through: :routes_serving_stop
+  has_many :routes, through: :old_routes_serving_stop, source_type: 'Stop'
 end
