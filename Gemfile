@@ -34,7 +34,6 @@ gem 'oj'
 
 # views
 gem 'slim'
-gem 'simple_form'
 
 # CSS
 gem 'bootstrap-sass'
