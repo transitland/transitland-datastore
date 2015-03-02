@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.1.8'
+gem 'rails', '4.2.0'
 
 # configuration
 gem 'figaro'
@@ -10,7 +10,7 @@ gem 'unicorn', group: [:staging, :production]
 
 # data stores
 gem 'pg'
-gem 'activerecord-postgis-adapter'
+gem 'activerecord-postgis-adapter', '3.0.0.beta2'
 gem 'redis-rails'
 
 # background processing
