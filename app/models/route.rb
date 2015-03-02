@@ -77,7 +77,7 @@ class Route < BaseRoute
   has_many :stops, through: :routes_serving_stop
   belongs_to :operator
 
-  validate :name, presence: true
+  validates :name, presence: true
 end
 
 class OldRoute < BaseRoute

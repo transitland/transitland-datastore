@@ -74,7 +74,7 @@ class Operator < BaseOperator
   has_many :routes
   has_many :routes_serving_stop, through: :routes
 
-  validate :name, presence: true
+  validates :name, presence: true
 end
 
 class OldOperator < BaseOperator
