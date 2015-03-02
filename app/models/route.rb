@@ -3,8 +3,8 @@
 # Table name: current_routes
 #
 #  id                                 :integer          not null, primary key
-#  onestop_id                         :string(255)
-#  name                               :string(255)
+#  onestop_id                         :string
+#  name                               :string
 #  tags                               :hstore
 #  operator_id                        :integer
 #  created_or_updated_in_changeset_id :integer

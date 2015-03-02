@@ -4,8 +4,8 @@
 #
 #  id                                 :integer          not null, primary key
 #  identified_entity_id               :integer          not null
-#  identified_entity_type             :string(255)      not null
-#  identifier                         :string(255)
+#  identified_entity_type             :string           not null
+#  identifier                         :string
 #  tags                               :hstore
 #  created_at                         :datetime
 #  updated_at                         :datetime

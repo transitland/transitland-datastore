@@ -1,7 +1,7 @@
 GIT
-  remote: git://github.com/drewda/annotate_models.git
-  revision: aba074b1a2f616ef167c0fbbe7766ae13e83e711
-  branch: active-model-serializers
+  remote: git://github.com/ctran/annotate_models.git
+  revision: 46dc0846be0c65570038432cfb37cc07789a6528
+  ref: 46dc084
   specs:
     annotate (2.6.5)
       activerecord (>= 2.3.0)

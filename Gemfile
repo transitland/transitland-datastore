@@ -55,7 +55,7 @@ gem 'pry-rails', group: [:development, :test]
 
 # code coverage and documentation
 gem 'rails-erd', group: :development
-gem 'annotate', group: :development, github: 'drewda/annotate_models', branch: 'active-model-serializers'
+gem 'annotate', group: :development, github: 'ctran/annotate_models', ref: '46dc084'
 gem 'simplecov', :require => false, group: [:development, :test]
 
 # testing
