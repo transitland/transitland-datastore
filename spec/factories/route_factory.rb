@@ -18,12 +18,15 @@
 #  index_current_routes_on_operator_id  (operator_id)
 #
 
-class RouteSerializer < CurrentEntitySerializer
-  attributes :onestop_id,
-             :name,
-             :tags,
-             :created_at,
-             :updated_at
-
-  has_many :routes_serving_stop
+FactoryGirl.define do
+  factory :route do
+    onestop_id { Faker::OnestopId.route }
+    name { [
+      '19 Polk',
+      'N Judah',
+      '522 Rapid'
+    ].sample }
+    version 1
+    association :created_or_updated_in_changeset, factory: :changeset
+  end
 end

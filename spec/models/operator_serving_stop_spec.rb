@@ -22,7 +22,7 @@
 describe OperatorServingStop do
   it 'can be created' do
     operator_serving_stop = create(:operator_serving_stop)
-    expect(OperatorServingStop.exists?(operator_serving_stop)).to be true
+    expect(OperatorServingStop.exists?(operator_serving_stop.id)).to be true
   end
 
   context 'through changesets' do

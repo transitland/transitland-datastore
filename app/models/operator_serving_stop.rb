@@ -43,7 +43,7 @@ class OperatorServingStop < BaseOperatorServingStop
   belongs_to :operator
 
   def before_destroy_making_history(changeset, old_model)
-    if Stop.exists?(self.stop) && !self.stop.marked_for_destroy_making_history
+    if Stop.exists?(self.stop.id) && !self.stop.marked_for_destroy_making_history
       old_model.stop = self.stop
     elsif self.stop.old_model_left_after_destroy_making_history.present?
       old_model.stop = self.stop.old_model_left_after_destroy_making_history
@@ -51,7 +51,7 @@ class OperatorServingStop < BaseOperatorServingStop
       raise 'about to create a broken OldOperatorServingStop record'
     end
 
-    if Operator.exists?(self.operator) && !self.operator.marked_for_destroy_making_history
+    if Operator.exists?(self.operator.id) && !self.operator.marked_for_destroy_making_history
       old_model.operator = self.operator
     elsif self.operator.old_model_left_after_destroy_making_history.present?
       old_model.operator = self.operator.old_model_left_after_destroy_making_history

@@ -3,12 +3,12 @@
 # Table name: current_stops
 #
 #  id                                 :integer          not null, primary key
-#  onestop_id                         :string(255)
-#  geometry                           :spatial          geometry, 4326
+#  onestop_id                         :string
+#  geometry                           :geography({:srid geometry, 4326
 #  tags                               :hstore
 #  created_at                         :datetime
 #  updated_at                         :datetime
-#  name                               :string(255)
+#  name                               :string
 #  created_or_updated_in_changeset_id :integer
 #  version                            :integer
 #
@@ -21,7 +21,7 @@
 describe Stop do
   it 'can be created' do
     stop = create(:stop)
-    expect(Stop.exists?(stop)).to be true
+    expect(Stop.exists?(stop.id)).to be true
   end
 
   it "won't have extra spaces in its name" do
@@ -32,13 +32,13 @@ describe Stop do
   context 'geometry' do
     it 'can be specified with WKT' do
       stop = create(:stop, geometry: 'POINT(-122.433416 37.732525)')
-      expect(Stop.exists?(stop)).to be true
+      expect(Stop.exists?(stop.id)).to be true
       expect(stop.geometry.to_s).to eq 'POINT (-122.433416 37.732525)'
     end
 
     it 'can be specified with GeoJSON' do
       stop = create(:stop, geometry: { type: 'Point', coordinates: [-122.433416, 37.732525] })
-      expect(Stop.exists?(stop)).to be true
+      expect(Stop.exists?(stop.id)).to be true
       expect(stop.geometry.to_s).to eq 'POINT (-122.433416 37.732525)'
     end
 

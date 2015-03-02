@@ -21,7 +21,7 @@
 describe RouteServingStop do
   it 'can be created' do
     route_serving_stop = create(:route_serving_stop)
-    expect(RouteServingStop.exists?(route_serving_stop)).to be true
+    expect(RouteServingStop.exists?(route_serving_stop.id)).to be true
   end
 
   context 'through changesets' do

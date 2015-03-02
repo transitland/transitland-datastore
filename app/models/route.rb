@@ -3,8 +3,8 @@
 # Table name: current_routes
 #
 #  id                                 :integer          not null, primary key
-#  onestop_id                         :string(255)
-#  name                               :string(255)
+#  onestop_id                         :string
+#  name                               :string
 #  tags                               :hstore
 #  operator_id                        :integer
 #  created_or_updated_in_changeset_id :integer
@@ -77,7 +77,7 @@ class Route < BaseRoute
   has_many :stops, through: :routes_serving_stop
   belongs_to :operator
 
-  validate :name, presence: true
+  validates :name, presence: true
 end
 
 class OldRoute < BaseRoute
@@ -85,6 +85,6 @@ class OldRoute < BaseRoute
   include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
 
-  has_many :routes_serving_stop
-  has_many :routes, through: :routes_serving_stop
+  has_many :old_routes_serving_stop
+  has_many :routes, through: :old_routes_serving_stop, source_type: 'Route'
 end

@@ -42,7 +42,7 @@ class RouteServingStop < BaseRouteServingStop
   belongs_to :route
 
   def before_destroy_making_history(changeset, old_model)
-    if Stop.exists?(self.stop) && !self.stop.marked_for_destroy_making_history
+    if Stop.exists?(self.stop.id) && !self.stop.marked_for_destroy_making_history
       old_model.stop = self.stop
     elsif self.stop.old_model_left_after_destroy_making_history.present?
       old_model.stop = self.stop.old_model_left_after_destroy_making_history
@@ -50,7 +50,7 @@ class RouteServingStop < BaseRouteServingStop
       raise 'about to create a broken OldRouteServingStop record'
     end
 
-    if Route.exists?(self.route) && !self.route.marked_for_destroy_making_history
+    if Route.exists?(self.route.id) && !self.route.marked_for_destroy_making_history
       old_model.route = self.route
     elsif self.route.old_model_left_after_destroy_making_history.present?
       old_model.route = self.route.old_model_left_after_destroy_making_history

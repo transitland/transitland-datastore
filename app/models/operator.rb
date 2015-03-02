@@ -3,12 +3,12 @@
 # Table name: current_operators
 #
 #  id                                 :integer          not null, primary key
-#  name                               :string(255)
+#  name                               :string
 #  tags                               :hstore
 #  created_at                         :datetime
 #  updated_at                         :datetime
-#  onestop_id                         :string(255)
-#  geometry                           :spatial          geometry, 4326
+#  onestop_id                         :string
+#  geometry                           :geography({:srid geometry, 4326
 #  created_or_updated_in_changeset_id :integer
 #  version                            :integer
 #
@@ -74,7 +74,7 @@ class Operator < BaseOperator
   has_many :routes
   has_many :routes_serving_stop, through: :routes
 
-  validate :name, presence: true
+  validates :name, presence: true
 end
 
 class OldOperator < BaseOperator
@@ -83,7 +83,7 @@ class OldOperator < BaseOperator
   include HasAGeographicGeometry
 
   has_many :old_operators_serving_stop, as: :operator
-  has_many :operators, through: :operators_serving_stop
+  has_many :stops, through: :old_operators_serving_stop, source_type: 'Operator'
 
   has_many :routes, as: :operator
 end

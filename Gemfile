@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.1.8'
+gem 'rails', '4.2.0'
 
 # configuration
 gem 'figaro'
@@ -10,7 +10,7 @@ gem 'unicorn', group: [:staging, :production]
 
 # data stores
 gem 'pg'
-gem 'activerecord-postgis-adapter'
+gem 'activerecord-postgis-adapter', '3.0.0.beta2'
 gem 'redis-rails'
 
 # background processing
@@ -34,7 +34,6 @@ gem 'oj'
 
 # views
 gem 'slim'
-gem 'simple_form'
 
 # CSS
 gem 'bootstrap-sass'
@@ -55,7 +54,7 @@ gem 'pry-rails', group: [:development, :test]
 
 # code coverage and documentation
 gem 'rails-erd', group: :development
-gem 'annotate', group: :development, github: 'drewda/annotate_models', branch: 'active-model-serializers'
+gem 'annotate', group: :development, github: 'ctran/annotate_models', ref: '46dc084'
 gem 'simplecov', :require => false, group: [:development, :test]
 
 # testing

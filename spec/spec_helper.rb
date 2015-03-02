@@ -34,18 +34,18 @@ RSpec.configure do |config|
   config.include FactoryGirl::Syntax::Methods
 
   config.before(:suite) do
-    DatabaseCleaner.strategy = :truncation, { except: %w[spatial_ref_sys] }
+    DatabaseCleaner.strategy = :truncation, { except: ['public.spatial_ref_sys'] }
     begin
       DatabaseCleaner.start
       FactoryGirl.lint
     ensure
-      DatabaseCleaner.clean
+      DatabaseCleaner.clean_with :truncation, { except: ['public.spatial_ref_sys'] }
     end
   end
 
   config.before(:each) do
     # TODO: sign out current user
-    DatabaseCleaner.clean
+    DatabaseCleaner.clean_with :truncation, { except: ['public.spatial_ref_sys'] }
   end
 
   config.before(:each, type: :feature) do
