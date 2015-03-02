@@ -23,14 +23,14 @@ describe Identifier do
   context 'on a Stop' do
     it 'can be created' do
       identifier = create(:stop_identifier)
-      expect(Identifier.exists?(identifier)).to be true
+      expect(Identifier.exists?(identifier.id)).to be true
     end
   end
 
   context 'on an Operator' do
     it 'can be created' do
       identifier = create(:operator_identifier)
-      expect(Identifier.exists?(identifier)).to be true
+      expect(Identifier.exists?(identifier.id)).to be true
     end
   end
 end

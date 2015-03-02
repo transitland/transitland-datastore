@@ -21,6 +21,6 @@
 describe Operator do
   it 'can be created' do
     operator = create(:operator)
-    expect(Operator.exists?(operator)).to be true
+    expect(Operator.exists?(operator.id)).to be true
   end
 end

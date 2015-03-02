@@ -21,6 +21,6 @@
 describe Route do
   it 'can be created' do
     route = create(:route)
-    expect(Route.exists?(route)).to be true
+    expect(Route.exists?(route.id)).to be true
   end
 end

@@ -21,7 +21,7 @@
 describe Stop do
   it 'can be created' do
     stop = create(:stop)
-    expect(Stop.exists?(stop)).to be true
+    expect(Stop.exists?(stop.id)).to be true
   end
 
   it "won't have extra spaces in its name" do
@@ -32,13 +32,13 @@ describe Stop do
   context 'geometry' do
     it 'can be specified with WKT' do
       stop = create(:stop, geometry: 'POINT(-122.433416 37.732525)')
-      expect(Stop.exists?(stop)).to be true
+      expect(Stop.exists?(stop.id)).to be true
       expect(stop.geometry.to_s).to eq 'POINT (-122.433416 37.732525)'
     end
 
     it 'can be specified with GeoJSON' do
       stop = create(:stop, geometry: { type: 'Point', coordinates: [-122.433416, 37.732525] })
-      expect(Stop.exists?(stop)).to be true
+      expect(Stop.exists?(stop.id)).to be true
       expect(stop.geometry.to_s).to eq 'POINT (-122.433416 37.732525)'
     end
 
