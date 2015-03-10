@@ -11,6 +11,7 @@
 #  version                            :integer
 #  created_at                         :datetime
 #  updated_at                         :datetime
+#  geometry                           :geography({:srid geometry, 4326
 #
 # Indexes
 #
@@ -31,6 +32,7 @@ class Route < BaseRoute
 
   include HasAOnestopId
   include IsAnEntityWithIdentifiers
+  include HasAGeographicGeometry
 
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
