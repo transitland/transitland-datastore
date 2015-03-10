@@ -48,7 +48,14 @@ describe RouteServingStop do
               onestopId: 'r-9q8y-19Express',
               name: 'Fictional 19th Ave. Express',
               operatedBy: 'o-9q8y-SFMTA',
-              serves: ['s-9q8yt4b-19Hollway']
+              serves: ['s-9q8yt4b-19Hollway'],
+              geometry: {
+                type: 'MultiLineString',
+                coordinates: [
+                  [[-73.87481689453125, 40.88860081193033],[ -73.9764404296875, 40.763901280945866],[ -73.94622802734375, 40.686886382151116],[ -73.9544677734375, 40.61186744303007]],
+                  [[-74.1851806640625,40.81588791441588],[-74.00665283203124,40.83251504043271],[-73.948974609375,40.7909394098518],[-73.8006591796875,40.751418432997426],[-73.4326171875,40.79301881008675]]
+                ]
+              }
             }
           }
         ]
@@ -66,6 +73,7 @@ describe RouteServingStop do
         OperatorServingStop.find_by_attributes({ operator_onestop_id: 'o-9q8y-SFMTA', stop_onestop_id: 's-9q8yt4b-19Hollway'}),
         RouteServingStop.find_by_attributes({ route_onestop_id: 'r-9q8y-19Express', stop_onestop_id: 's-9q8yt4b-19Hollway'})
       ])
+      expect(Route.find_by_onestop_id!('r-9q8y-19Express').geometry[:coordinates][0][0]).to eq [-73.87481689453125, 40.88860081193033]
     end
 
     it 'can be destroyed' do
