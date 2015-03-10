@@ -33,18 +33,25 @@ describe Stop do
     it 'can be specified with WKT' do
       stop = create(:stop, geometry: 'POINT(-122.433416 37.732525)')
       expect(Stop.exists?(stop.id)).to be true
-      expect(stop.geometry.to_s).to eq 'POINT (-122.433416 37.732525)'
+      expect(stop.geometry).to eq({ type: 'Point', coordinates: [-122.433416, 37.732525] })
     end
 
     it 'can be specified with GeoJSON' do
-      stop = create(:stop, geometry: { type: 'Point', coordinates: [-122.433416, 37.732525] })
+      geojson = { type: 'Point', coordinates: [-122.433416, 37.732525] }
+      stop = create(:stop, geometry: geojson)
       expect(Stop.exists?(stop.id)).to be true
-      expect(stop.geometry.to_s).to eq 'POINT (-122.433416 37.732525)'
+      expect(stop.geometry).to eq geojson
     end
 
-    it 'can be read as GeoJSON' do
+    it 'can be read as GeoJSON (by default)' do
+      geojson = { type: 'Point', coordinates: [-122.433416, 37.732525] }
+      stop = create(:stop, geometry: geojson)
+      expect(stop.geometry).to eq geojson
+    end
+
+    it 'can be read as WKT' do
       stop = create(:stop, geometry: { type: 'Point', coordinates: [-122.433416, 37.732525] })
-      expect(stop.geometry(as: :geojson)).to eq({ 'type' => 'Point', 'coordinates' => [-122.433416, 37.732525] })
+      expect(stop.geometry(as: :wkt).to_s).to eq('POINT (-122.433416 37.732525)')
     end
   end
 

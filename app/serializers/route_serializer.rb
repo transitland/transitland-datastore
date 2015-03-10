@@ -11,6 +11,7 @@
 #  version                            :integer
 #  created_at                         :datetime
 #  updated_at                         :datetime
+#  geometry                           :geography({:srid geometry, 4326
 #
 # Indexes
 #
@@ -21,6 +22,7 @@
 class RouteSerializer < CurrentEntitySerializer
   attributes :onestop_id,
              :name,
+             :geometry,
              :tags,
              :created_at,
              :updated_at

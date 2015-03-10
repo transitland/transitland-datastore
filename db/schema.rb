@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150225174635) do
+ActiveRecord::Schema.define(version: 20150310002641) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -72,14 +72,15 @@ ActiveRecord::Schema.define(version: 20150225174635) do
   add_index "current_operators_serving_stop", ["stop_id"], name: "index_current_operators_serving_stop_on_stop_id", using: :btree
 
   create_table "current_routes", force: :cascade do |t|
-    t.string   "onestop_id"
-    t.string   "name"
-    t.hstore   "tags"
-    t.integer  "operator_id"
-    t.integer  "created_or_updated_in_changeset_id"
-    t.integer  "version"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.string    "onestop_id"
+    t.string    "name"
+    t.hstore    "tags"
+    t.integer   "operator_id"
+    t.integer   "created_or_updated_in_changeset_id"
+    t.integer   "version"
+    t.datetime  "created_at"
+    t.datetime  "updated_at"
+    t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
   end
 
   add_index "current_routes", ["created_or_updated_in_changeset_id"], name: "c_route_cu_in_changeset", using: :btree
@@ -168,17 +169,18 @@ ActiveRecord::Schema.define(version: 20150225174635) do
   add_index "old_operators_serving_stop", ["stop_type", "stop_id"], name: "operators_serving_stop_stop", using: :btree
 
   create_table "old_routes", force: :cascade do |t|
-    t.string   "onestop_id"
-    t.string   "name"
-    t.hstore   "tags"
-    t.integer  "operator_id"
-    t.string   "operator_type"
-    t.integer  "created_or_updated_in_changeset_id"
-    t.integer  "destroyed_in_changeset_id"
-    t.integer  "current_id"
-    t.integer  "version"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.string    "onestop_id"
+    t.string    "name"
+    t.hstore    "tags"
+    t.integer   "operator_id"
+    t.string    "operator_type"
+    t.integer   "created_or_updated_in_changeset_id"
+    t.integer   "destroyed_in_changeset_id"
+    t.integer   "current_id"
+    t.integer   "version"
+    t.datetime  "created_at"
+    t.datetime  "updated_at"
+    t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
   end
 
   add_index "old_routes", ["created_or_updated_in_changeset_id"], name: "o_route_cu_in_changeset", using: :btree

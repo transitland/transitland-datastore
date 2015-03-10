@@ -19,12 +19,12 @@ module HasAGeographicGeometry
     end
   end
 
-  def geometry(as: :wkt)
+  def geometry(as: :geojson)
     case as
     when :wkt
       return self.send(:read_attribute, :geometry)
      when :geojson
-      return RGeo::GeoJSON.encode(self.send(:read_attribute, :geometry))
+      return RGeo::GeoJSON.encode(self.send(:read_attribute, :geometry)).symbolize_keys
     end
   end
 end
