@@ -59,7 +59,7 @@ describe Api::V1::OperatorsController do
         get :show, id: @vta.onestop_id
         expect_json_types({
           onestop_id: :string,
-          geometry: :string,
+          geometry: :object,
           name: :string,
           created_at: :date,
           updated_at: :date

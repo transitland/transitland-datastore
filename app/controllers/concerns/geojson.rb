@@ -7,7 +7,7 @@ module Geojson
     factory = RGeo::GeoJSON::EntityFactory.instance
     features = entities.map do |entity|
       factory.feature(
-        entity.geometry,
+        entity.geometry(as: :wkt),
         entity.onestop_id,
         {
           name: entity.name,
