@@ -22,7 +22,7 @@ describe HasAOnestopId do
     it 'must include only letters and digits in its abbreviated name (the 3rd component)' do
       stop = Stop.new(onestop_id: '6s-9y7pwu-RetSt#a', geometry: 'POINT(-58.374722 -34.591389)')
       expect(stop.valid?).to be false
-      expect(stop.errors.messages[:onestop_id]).to include 'must include only letters and digits in its abbreviated name (the 3rd component)'
+      expect(stop.errors.messages[:onestop_id]).to include 'must include only letters, digits, and ~ or @ in its abbreviated name (the 3rd component)'
     end
   end
 end

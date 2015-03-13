@@ -85,7 +85,7 @@ class OnestopId
     end
 
     if !valid_component?(:name, onestop_id.split(COMPONENT_SEPARATOR)[2])
-      errors << 'must include only letters and digits in its abbreviated name (the 3rd component)'
+      errors << 'must include only letters, digits, and ~ or @ in its abbreviated name (the 3rd component)'
       is_a_valid_onestop_id = false
     end
     return is_a_valid_onestop_id, errors
@@ -101,7 +101,7 @@ class OnestopId
     when :geohash
       !(value =~ /[^a-z\d]/)
     when :name
-      !(value =~ /[^a-zA-Z\d]/)
+      !(value =~ /[^a-zA-Z\d\@\~]/)
     else
       false
     end

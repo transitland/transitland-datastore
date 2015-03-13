@@ -33,10 +33,14 @@ describe OnestopId do
       expect(errors).to include 'must include a valid geohash as its 2nd component'
     end
 
-    it 'must include only letters and digits in its abbreviated name (the 3rd component)' do
-      is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string('6s-9y7pwu-RetSt#a')
+    it 'must include only letters, digits, and ~ or @ in its abbreviated name (the 3rd component)' do
+      is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string('s-9y7pwu-RetSt#a')
       expect(is_a_valid_onestop_id).to be false
-      expect(errors).to include 'must include only letters and digits in its abbreviated name (the 3rd component)'
+      expect(errors).to include 'must include only letters, digits, and ~ or @ in its abbreviated name (the 3rd component)'
+      is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string('s-9y7pwu-RetSt~a')
+      expect(is_a_valid_onestop_id).to be true
+      is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string('s-9y7pwu-RetSt@a')
+      expect(is_a_valid_onestop_id).to be true
     end
   end
 end
