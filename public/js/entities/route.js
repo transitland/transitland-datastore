@@ -11,7 +11,7 @@ DeveloperPlayground.Routes = Backbone.Collection.extend({
 	},
 	
 	parse: function(response, xhr) {
-		return response.stops;
+		return response.routes;
 	}
 });
 
