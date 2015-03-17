@@ -7,6 +7,10 @@ module HashHelpers
         merged_hash.delete(key)
       elsif merged_hash[key] == value
         next
+      elsif key == :geometry
+        # NOTE: we probably already have an RGeo::Geographic::SphericalPolygonImpl
+        # existing internally, and a GeoJSON hash incoming
+        merged_hash[key] = value
       elsif value.is_a?(Hash)
         merged_hash[key] = merge_hashes(existing_hash: (existing_hash[key] || {}), incoming_hash: value)
       elsif value.is_a?(Array)
