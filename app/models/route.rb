@@ -57,7 +57,7 @@ class Route < BaseRoute
   def before_update_making_history(changeset)
     if self.operated_by.present?
       operator = Operator.find_by_onestop_id!(self.operated_by)
-      new_model.operator = operator
+      self.operator = operator
     end
     OperatorRouteStopRelationship.manage_multiple(
       route: {
