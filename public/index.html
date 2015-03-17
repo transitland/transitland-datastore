@@ -1,37 +1,101 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset=utf-8 />
-<title>Stop Map</title>
+  <meta charset=utf-8 />
+  <title>Transitland Developer Playground</title>
 
-<script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
-<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+  <script src="/js/lib/jquery.js"></script>
+  <script src="/js/lib/underscore.js"></script>
+  <script src="/js/lib/backbone.js"></script>
+  <link href="/assets/bootstrap.css" rel="stylesheet">
+  <link href="/assets/developer-playground.css" rel='stylesheet' />
 
-<link rel="stylesheet" type="text/css" href="/style.css">
-
-<script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
-
-<script src="https://rawgit.com/calvinmetcalf/leaflet-ajax/master/dist/leaflet.ajax.min.js"></script>
-
-<script src="https://rawgit.com/caldwell/renderjson/master/renderjson.js"></script>
-
-<script src="https://rawgit.com/Leaflet/Leaflet.markercluster/master/dist/leaflet.markercluster.js"></script>
-<link href="https://rawgit.com/Leaflet/Leaflet.markercluster/master/dist/MarkerCluster.Default.css" rel='stylesheet' />
-<link href="https://rawgit.com/Leaflet/Leaflet.markercluster/master/dist/MarkerCluster.css" rel='stylesheet' />
-
-
-
-
-
+  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+  <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+ 
 </head>
 <body>
+
+  <div id="developer-playground">
+  </div>
+
+ 
+  <script type="text/template" id="playground-template">
+      <!--<h1>Query Builder</h1>-->
+        
+        </div>
+        <p class="lead">I want to see 
+         <span class="btn-group">
+            <select class="form-control" id="entity">
+              <option selected value="base">_ _ _ _ _ _ _</option>
+              <option value="stops">stops</option>
+              <option value="operators">operator</option>
+              <option value="routes">routes</option>
+            </select>
+          </span> by 
+
+          <span class="btn-group">
+            <select class="form-control" id="parameter">
+              <option>_ _ _ _ _ _ _</option>
+            </select>
+          </span>
+          <span class="btn-group">
+            <select class="form-control" id="operator-name">
+              <option><option>
+            </select>
+          </span>
+          <button class="btn btn-med btn-default">SUBMIT</button>
+        </p>
+
+        <div id="map-view" style="width:100vw;height:300px;"></div>
+
+        
+        <table id="table-view" style="background: steelblue; width:100vw;height:200px;">    
+          <thead>
+          </thead>
+          <tbody>
+            <tr>
+            </tr>
+          </tbody>
+        </table>
+
+  </script>
+  
+  <script type="text/template" id="stop-header-template"> 
+    <th>Longitude</th>
+    <th>Latitude</th>
+  </script>
+
+  <script type="text/template" id="operator-header-template"> 
+    <th>Name</th>
+    <th>Name</th>
+  </script>   
+  
+ <script type="text/template" id="stop-template">
+    <td align="left"><%= geometry.coordinates[0] %></td>
+    <td align="left"><%= geometry.coordinates[1] %></td>
+  </script>
+  
+
+  <script type="text/template" id="operator-template">
+    <td align="left"><%= identifiers[0].identifier %></td>
+    <td align="left"><%= name %></td>
+  </script>
+
+  
  
 
+  <script src="js/lib/bootstrap.js"></script>
+  <script type="text/javascript" src="/js/entities/operator.js"></script>
+  <script type="text/javascript" src="/js/entities/stop.js"></script>
+  <script type="text/javascript" src="/js/entities/route.js"></script>
+  <script type="text/javascript" src="/js/views/map.js" type="text/javascript"></script>
+  <script type="text/javascript" src="/js/views/table.js" type="text/javascript"></script>
+  <script type="text/javascript" src="/js/views/header.js" type="text/javascript"></script>
+  <script type="text/javascript" src="/js/views/row.js" type="text/javascript"></script>
+  <script type="text/javascript" src="/js/developer-playground.js"></script>
+  <script type="text/javascript" src="/js/views/start-query-builder.js"></script>
 
-<div id='stopMap'></div>
-<a class='getStops'>Find Stops</a>
-
-<script type='text/javascript' src="/script.js"></script>
 
 
 </body>
