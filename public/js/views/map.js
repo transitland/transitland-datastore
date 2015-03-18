@@ -40,9 +40,9 @@ DeveloperPlayground.MapView = Backbone.View.extend({
         return this;
     },
 
-    removeFeatureGroup: function(){
-        this.map.removeLayer(this.layergroup);
-    }
+    // removeFeatureGroup: function(){
+    //     this.map.removeLayer(this.layergroup);
+    // }
 
 });
 

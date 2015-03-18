@@ -24,6 +24,25 @@
       <!--<h1>Query Builder</h1>-->
         
         </div>
+
+
+
+
+      <!--  <div class="btn-group">
+          <button type="button" class="form-control" id="entity" data-toggle="dropdown" aria-expanded="false">
+            _ _ _ _ _ <span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu" role="menu">
+            <li><a href="#">Action</a></li>
+            <li><a href="#">Another action</a></li>
+            <li><a href="#">Something else here</a></li>
+            <li class="divider"></li>
+            <li><a href="#">Separated link</a></li>
+          </ul>
+        </div>
+        -->
+
+
         <p class="lead">I want to see 
          <span class="btn-group">
             <select class="form-control" id="entity">
@@ -70,6 +89,11 @@
     <th>Name</th>
     <th>Name</th>
   </script>   
+
+  <script type="text/template" id="routes-header-template"> 
+    <th>Name</th>
+    <th>Name</th>
+  </script> 
   
  <script type="text/template" id="stop-template">
     <td align="left"><%= geometry.coordinates[0] %></td>
@@ -78,11 +102,14 @@
   
 
   <script type="text/template" id="operator-template">
-    <td align="left"><%= identifiers[0].identifier %></td>
+    <td align="left"></td>
     <td align="left"><%= name %></td>
   </script>
 
-  
+  <script type="text/template" id="route-template">
+    <td align="left"></td>
+    <td align="left"><%= name %></td>
+  </script>
  
 
   <script src="js/lib/bootstrap.js"></script>

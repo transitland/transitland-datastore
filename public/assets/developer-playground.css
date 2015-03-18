@@ -5,17 +5,29 @@ a:hover {
 }
 
 /* Custom default button */
+.btn-success:hover, 
+.btn-success:active, 
+.btn-success.active, 
+.btn-success.disabled, 
+.btn-success[disabled],
+.btn-default:focus,
 .btn-default {
   text-shadow: none; /* Prevent inheritence from `body` */
   color: white;
   background-color: #333;
   border: 2px solid #fff;
+  font-size: 16px;
+  outline:none;
+
 }
+
+.btn-default:active, .btn-default.active, .btn-default.disabled, .btn-default[disabled],
 .btn-default:hover{
   text-shadow: none; /* Prevent inheritence from `body` */
   color: white;
+  outline:none;
   background-color: steelblue;
-  border: 2px solid steelblue;
+  font-size: 16px;
 }
  
 
@@ -28,7 +40,6 @@ body {
 body {
   color: #fff;
   text-align: center;
-  text-shadow: 0 1px 3px rgba(0,0,0,.5);
 }
 
 /* Extra markup and styles for table-esque vertical and horizontal centering */
@@ -59,23 +70,24 @@ body {
   font-weight: bold;
 }
 
-
+.form-control:focus,
 .form-control {
   display: block;
   width: 100px;
   height: 34px;
-  padding: 6px 12px;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.42857143;
-  color: #555;
+  color: yellow;
   background-color: #333;
   background-image: none;
   /*border: 1px solid #ccc;*/
   border: none;
-  border-radius: 0px;
-  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
-          box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+  border-radius: 1px;
+  -webkit-box-shadow: none;
+          box-shadow: none;
   -webkit-transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;
        -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
           transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
 }
+
+

@@ -4,6 +4,7 @@ DeveloperPlayground.HeaderView = Backbone.View.extend({
 	el: 'table#table-view thead',
     templateStopHeader: _.template( $('#stop-header-template').html() ),
     templateOperatorHeader: _.template( $('#operator-header-template').html() ),
+    templateRouteHeader: _.template( $('#routes-header-template').html() ),
 		
 	initialize: function() {
 		// console.log("headerView initialized");
@@ -19,8 +20,8 @@ DeveloperPlayground.HeaderView = Backbone.View.extend({
 		} else if (this.collection instanceof DeveloperPlayground.Operators) {
 			this.$el.html(this.templateOperatorHeader());
 			return this;
-		} else {
-			// console.log("header instanceof not working:");
+		} else if (this.collection instanceof DeveloperPlayground.Routes) {
+			this.$el.html(this.templateRouteHeader());
 			return this;
 		}
 	},
