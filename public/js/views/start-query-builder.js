@@ -22,13 +22,16 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
 
     render: function() {
         this.$el.html(this.template());
-        $(".form-control#operator-name").hide();
+        $(".form-control#name").hide();
         this.mapview = new DeveloperPlayground.MapView();
         this.mapview.render();
         return this;
     },
 
     changeParam: function() {
+
+        $(".form-control#name").hide();
+
         var $entitySelect = $('select.form-control#entity');
         var $parameterSelect = $('select.form-control#parameter');
         var selectValues = {
@@ -55,10 +58,6 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
             }
         };
 
-        if($parameterSelect.val() != "name") {
-            $(".form-control#operator-name").hide();
-        }
-
         $parameterSelect.empty().append(function() {
             var output = '';
             $.each(selectValues[$entitySelect.val()], function(key, value) {
@@ -70,11 +69,21 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
     
     changeName: function() {
         var $parameterSelect = $('select.form-control#parameter');
-        var $nameSelect = $('select.form-control#operator-name');
+        var $nameSelect = $('select.form-control#name');
+
+        var $entitySelect = $('select.form-control#entity');
+
 
         // 
-        // ***** Populate selectName list using operator query?
+        // ***** Populate selectName list using operator query
         // 
+        // run query on /api/v1/operators.json
+        // operators.name returns name as string
+        // 
+        // 1. create empty dictionary
+        // 2. for each item in operators, add key/value pair as values under name key of dict
+
+
         var selectName = {
             "name": {
                 "": "",
@@ -90,9 +99,9 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
         // 
 
         if($parameterSelect.val() == "name") {
-            $(".form-control#operator-name").show();
+            $(".form-control#name").show();
         } else {
-            $(".form-control#operator-name").hide();
+            $(".form-control#name").hide();
         }
     
         $nameSelect.empty().append(function() {
@@ -107,7 +116,7 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
     submit: function() {
         var $entitySelect = $('select.form-control#entity');
         var $parameterSelect = $('select.form-control#parameter');
-        var $nameSelect = $('select.form-control#operator-name');
+        var $nameSelect = $('select.form-control#name');
         var bounds = this.mapview.getBounds();
         var identifier = $nameSelect.val();
         var collection;
