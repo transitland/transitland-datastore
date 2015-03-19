@@ -7,7 +7,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     @routes = Route.includes(:identifiers).where('') # TODO: check performance against eager_load, joins, etc.
 
     if params[:identifier].present?
-      @routes = @routes.with_identifier(params[:identifier])
+      @routes = @routes.with_identifier_or_name(params[:identifier])
     end
     if params[:bbox].present? && params[:bbox].split(',').length == 4
       bbox_coordinates = params[:bbox].split(',')
