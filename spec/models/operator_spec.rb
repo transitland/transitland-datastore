@@ -23,4 +23,14 @@ describe Operator do
     operator = create(:operator)
     expect(Operator.exists?(operator.id)).to be true
   end
+
+  it 'can be found by identifier and/or name' do
+    bart = create(:operator, name: 'BART')
+    bart.identifiers.create(identifier: 'Bay Area Rapid Transit')
+    sfmta = create(:operator, name: 'SFMTA')
+    expect(Operator.with_identifier('Bay Area Rapid Transit')).to match_array([bart])
+    expect(Operator.with_identifier_or_name('BART')).to match_array([bart])
+    expect(Operator.with_identifier('SFMTA')).to be_empty
+    expect(Operator.with_identifier_or_name('SFMTA')).to match_array([sfmta])
+  end
 end

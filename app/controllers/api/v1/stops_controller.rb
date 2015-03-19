@@ -8,7 +8,7 @@ class Api::V1::StopsController < Api::V1::BaseApiController
     @stops = Stop.where('')
 
     if params[:identifier].present?
-      @stops = @stops.with_identifier(params[:identifier])
+      @stops = @stops.with_identifier_or_name(params[:identifier])
     end
     if [params[:lat], params[:lon]].map(&:present?).all?
       point = Stop::GEOFACTORY.point(params[:lon], params[:lat])

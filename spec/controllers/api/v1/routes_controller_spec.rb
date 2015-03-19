@@ -24,6 +24,22 @@ describe Api::V1::RoutesController do
         }})
       end
 
+      context 'returns routes by identifier' do
+        it 'when not found' do
+          get :index, identifier: '19X'
+          expect_json({ routes: -> (routes) {
+            expect(routes.length).to eq 0
+          }})
+        end
+
+        it 'when found' do
+          get :index, identifier: 'Richmond - Daly City/Millbrae'
+          expect_json({ routes: -> (routes) {
+            expect(routes.length).to eq 1
+          }})
+        end
+      end
+
       it 'returns route within a bounding box' do
         get :index, bbox: '-122.4228858947754,37.59043119366754,-122.34460830688478,37.62374937200642'
         expect_json({ routes: -> (routes) {
