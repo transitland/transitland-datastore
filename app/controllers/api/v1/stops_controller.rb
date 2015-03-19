@@ -22,13 +22,15 @@ class Api::V1::StopsController < Api::V1::BaseApiController
 
     @stops = @stops.preload(:identifiers, :operators_serving_stop) # TODO: check performance against eager_load, joins, etc.
 
+    per_page = params[:per_page].blank? ? Stop::PER_PAGE : params[:per_page].to_i
+
     respond_to do |format|
       format.json do
         render paginated_json_collection(
           @stops,
           Proc.new { |params| api_v1_stops_url(params) },
           params[:offset],
-          Stop::PER_PAGE
+          per_page
         )
       end
       format.geojson do
