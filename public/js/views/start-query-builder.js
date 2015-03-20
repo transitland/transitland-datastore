@@ -106,7 +106,6 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
         var identifier = $nameSelect.val();
         console.log("identifier: ", identifier);
 
-        var collection;
         var shouldFetchAndResetCollection = true;
 
         // FOR STOP QUERIES
@@ -135,8 +134,6 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
                     url: '/api/v1/'+$entitySelect.val()+'.json?bbox='+bounds
                 });
             } else if($parameterSelect.val() == "name") {
-                collection = this.operators;
-                
                 console.log("operators by name");
                 this.operators.hideAll();
                 this.operators.get(identifier).set({ display: true });
