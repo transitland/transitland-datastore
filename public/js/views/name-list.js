@@ -3,17 +3,10 @@ var DeveloperPlayground = DeveloperPlayground || {};
 DeveloperPlayground.NameListView = Backbone.View.extend({
 	el: '.btn-group#nameMenu',
 
-	// template: _.template( $('#name-list-template').html() ),
-	
 	initialize:function(options){
         this.collection = options.collection;
         this.listenTo(this.collection, 'add', this.renderName);
         this.collection.each(this.renderName, this);
-        // this.listenTo(this.collection, 'change', this.close);
-        // new:
-        // this.listenTo(this.collection, 'remove', this.clearRows);
-        // 
-        // this.render();
     },
 
     renderName: function(model) {

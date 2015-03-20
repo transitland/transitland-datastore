@@ -61,34 +61,39 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
             });
             return output;
         });
+
+        return this;
     },
     
     changeName: function() {
         var $entitySelect = $('select.form-control#entity');
         var $parameterSelect = $('select.form-control#parameter');
         var $nameSelect = $('select.form-control#name');
-        
 
         if($parameterSelect.val() == "name") {
-            // var $entitySelect = $('select.form-control#entity');
 
-            // ********** MOVE COLLECTION SETTING TO CHANGE PARAM FUNCTION ***********
-            collection = this.operators;
-            // **********************************************
-            
-            // var entity = $entitySelect.val();
-            // console.log("entity: ", entity);
-            // collection = entity;
-            // console.log("collection: ", collection);
+            if ($entitySelect.val() == "operators") {
+                collection = this.operators;
+                $(".form-control#name").show();
+                this.nameListView = new DeveloperPlayground.NameListView({collection: collection});
+                collection.fetch();
+                return this;
+            } else if ($entitySelect.val() == "stops") {
+                collection = this.stops;
+                 $(".form-control#name").show();
+                this.nameListView = new DeveloperPlayground.NameListView({collection: collection});
+                collection.fetch();
+                return this;
+            } else if ($entitySelect.val() == "routes") {
+                collection = this.routes;
+                 $(".form-control#name").show();
+                this.nameListView = new DeveloperPlayground.NameListView({collection: collection});
+                collection.fetch();
+                return this;
+            }
 
-            $(".form-control#name").show();
-            this.nameListView = new DeveloperPlayground.NameListView({collection: collection});
-            collection.fetch();
-            // this.nameListView.selectName();
-            return this;
         } else {
             $(".form-control#name").hide();
-            this.nameListView.close();
         }
 
     },
@@ -107,9 +112,9 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
         // FOR STOP QUERIES
 
         if ($entitySelect.val() == "stops") {
-            collection = this.stops;
             // for search by map view
             if($parameterSelect.val() == "map view") {
+            collection = this.stops;
             this.stops.setQueryParameters({
                     url: '/api/v1/'+$entitySelect.val()+'.json?bbox='+bounds
                 });
@@ -123,9 +128,9 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
         // FOR OPERATOR QUERIES
         
         } else if ($entitySelect.val() == "operators") {
-            collection = this.operators;
             
             if($parameterSelect.val() == "map view") {
+                collection = this.operators;
                 this.operators.setQueryParameters({
                     url: '/api/v1/'+$entitySelect.val()+'.json?bbox='+bounds
                 });
@@ -133,9 +138,6 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
                 this.operators.hideAll();
                 this.operators.get(identifier).set({ display: true });
                 shouldFetchAndResetCollection = false;
-                // this.operators.setQueryParameters({
-                //     url: '/api/v1/'+$entitySelect.val()+'/'+identifier,
-                // });
             } else {
                 alert("Please select either map view or name.");
             }
@@ -143,8 +145,8 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
         //  FOR ROUTE QUERIES
         
         } else if ($entitySelect.val() == "routes") {
-            collection = this.routes;
             if($parameterSelect.val() == "map view") {
+                collection = this.routes;
                 this.routes.setQueryParameters({
                     url: '/api/v1/'+$entitySelect.val()+'.json?bbox='+bounds
                 });
@@ -153,6 +155,7 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
                     url: '/api/v1/'+$entitySelect.val()+'.json?identifier='+identifier,
                 });
             } else if($parameterSelect.val() == "route number") {
+                collection = this.routes;
                 alert("routes by route number not yet functional");
             }
         } else {
