@@ -13,6 +13,7 @@ DeveloperPlayground.MapView = Backbone.View.extend({
 
     setCollection: function(options){
         this.collection = options.collection;
+        console.log("setCollection: ", this.collection);
         this.listenTo(this.collection, 'add', this.addPoint);
         this.listenTo(this.collection, 'sync', this.addFeatureGroup);
         this.collection.each(this.addPoint, this);
@@ -22,6 +23,7 @@ DeveloperPlayground.MapView = Backbone.View.extend({
     },
     
     render: function() {
+        console.log("render map");
         this.featuregroup = new L.featureGroup();
         this.map = L.map('map-view').setView([37.749, -122.443], 9);
         L.tileLayer('https://{s}.tiles.mapbox.com/v3/randyme.4d62ee7c/{z}/{x}/{y}.png', {maxZoom: 18})
@@ -30,12 +32,14 @@ DeveloperPlayground.MapView = Backbone.View.extend({
     },
 
     getBounds: function() {
+        console.log("getbounds");
         this.bounds=this.map.getBounds();
         this.bBoxString=this.bounds.toBBoxString();
         return this.bBoxString;
     },
 
     addPoint: function(stop) {
+        console.log("addPoint");
         if (stop.get('display') !== false) {
             var s = {'type': 'Feature', 'geometry':stop.attributes.geometry};
             L.geoJson(s, {
@@ -50,6 +54,7 @@ DeveloperPlayground.MapView = Backbone.View.extend({
     },
 
     addFeatureGroup: function() {
+        console.log("addFeatureGroup");
         this.featuregroup.addTo(this.map);
         this.map.fitBounds(this.featuregroup.getBounds());
     }
