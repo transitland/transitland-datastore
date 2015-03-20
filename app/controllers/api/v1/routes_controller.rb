@@ -7,8 +7,14 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     @routes = Route.includes(:identifiers).where('') # TODO: check performance against eager_load, joins, etc.
 
     if params[:identifier].present?
-      @routes = @routes.with_identifier(params[:identifier])
+      @routes = @routes.with_identifier_or_name(params[:identifier])
     end
+    if params[:bbox].present? && params[:bbox].split(',').length == 4
+      bbox_coordinates = params[:bbox].split(',')
+      @routes = @routes.where{geometry.op('&&', st_makeenvelope(bbox_coordinates[0], bbox_coordinates[1], bbox_coordinates[2], bbox_coordinates[3], Route::GEOFACTORY.srid))}
+    end
+
+    per_page = params[:per_page].blank? ? Route::PER_PAGE : params[:per_page].to_i
 
     respond_to do |format|
       format.json do
@@ -16,7 +22,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
           @routes,
           Proc.new { |params| api_v1_routes_url(params) },
           params[:offset],
-          Route::PER_PAGE
+          per_page
         )
       end
     end
