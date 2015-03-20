@@ -21,32 +21,11 @@
 
  
   <script type="text/template" id="playground-template">
-      <!--<h1>Query Builder</h1>-->
-        
-        </div>
-
-
-
-
-      <!--  <div class="btn-group">
-          <button type="button" class="form-control" id="entity" data-toggle="dropdown" aria-expanded="false">
-            _ _ _ _ _ <span class="caret"></span>
-          </button>
-          <ul class="dropdown-menu" role="menu">
-            <li><a href="#">Action</a></li>
-            <li><a href="#">Another action</a></li>
-            <li><a href="#">Something else here</a></li>
-            <li class="divider"></li>
-            <li><a href="#">Separated link</a></li>
-          </ul>
-        </div>
-        -->
-
-
+      
         <p class="lead">I want to see 
          <span class="btn-group">
             <select class="form-control" id="entity">
-              <option selected value="base">_ _ _ _ _ _ _</option>
+              <option selected value="base">_____________</option>
               <option value="stops">stops</option>
               <option value="operators">operator</option>
               <option value="routes">routes</option>
@@ -55,12 +34,11 @@
 
           <span class="btn-group">
             <select class="form-control" id="parameter">
-              <option>_ _ _ _ _ _ _</option>
+              <option>_______________</option>
             </select>
           </span>
-          <span class="btn-group">
+          <span class="btn-group" id="nameMenu">
             <select class="form-control" id="name">
-              <option><option>
             </select>
           </span>
           <button class="btn btn-med btn-default">SUBMIT</button>
@@ -69,7 +47,7 @@
         <div id="map-view" style="width:100vw;height:300px;"></div>
 
         
-        <table id="table-view" style="background: steelblue; width:100vw;height:200px;">    
+        <table id="table-view" style="background: white; color: #ff7900; width:100vw;height:200px;">    
           <thead>
           </thead>
           <tbody>
@@ -78,6 +56,10 @@
           </tbody>
         </table>
 
+  </script>
+
+  <script type="text/template" id="name-template">
+    <%= name %>
   </script>
   
   <script type="text/template" id="stop-header-template"> 
@@ -117,6 +99,8 @@
   <script type="text/javascript" src="/js/entities/stop.js"></script>
   <script type="text/javascript" src="/js/entities/route.js"></script>
   <script type="text/javascript" src="/js/views/map.js" type="text/javascript"></script>
+  <script type="text/javascript" src="/js/views/name-list.js" type="text/javascript"></script>
+  <script type="text/javascript" src="/js/views/name.js" type="text/javascript"></script>
   <script type="text/javascript" src="/js/views/table.js" type="text/javascript"></script>
   <script type="text/javascript" src="/js/views/header.js" type="text/javascript"></script>
   <script type="text/javascript" src="/js/views/row.js" type="text/javascript"></script>

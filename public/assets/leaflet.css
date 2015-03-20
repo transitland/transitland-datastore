@@ -32,7 +32,7 @@
 	}
 .leaflet-marker-icon,
 .leaflet-marker-shadow {
-	display: block;
+	display: none;
 	}
 /* map is broken in FF if you have max-width: 100% on tiles */
 .leaflet-container img {

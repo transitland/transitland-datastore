@@ -5,13 +5,7 @@ DeveloperPlayground.TableView = Backbone.View.extend({
 
     initialize:function(options){
         this.collection = options.collection;
-        // $("tbody", this.$el).empty(this.$el);
         this.listenTo(this.collection, 'add', this.renderRow);
-        // this.listenTo(this.collection, 'change', this.close);
-        // new:
-        // this.listenTo(this.collection, 'remove', this.clearRows);
-        // 
-        // this.render();
     },
 
     renderRow: function(model) {

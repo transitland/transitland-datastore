@@ -39,7 +39,6 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
                 "": "",
                 "map view": "",
                 "name": "",
-                // "mode": "",
             },
             "operators": {
                 "": "",
@@ -52,9 +51,6 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
                 "map view": "",
                 "name": "",
                 "route number": "",
-                // accept typed search on string for name/identifier:
-                // "name": "",
-                // "mode": "",
             }
         };
 
@@ -68,49 +64,33 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
     },
     
     changeName: function() {
+        var $entitySelect = $('select.form-control#entity');
         var $parameterSelect = $('select.form-control#parameter');
         var $nameSelect = $('select.form-control#name');
-
-        var $entitySelect = $('select.form-control#entity');
-
-
-        // 
-        // ***** Populate selectName list using operator query
-        // 
-        // run query on /api/v1/operators.json
-        // operators.name returns name as string
-        // 
-        // 1. create empty dictionary
-        // 2. for each item in operators, add key/value pair as values under name key of dict
-
-
-        var selectName = {
-            "name": {
-                "": "",
-                "AC Transit": "",
-                "BART": "",
-                "Muni": "",
-                "SamTrans": "",
-                "VTA": "",
-            }
-        };
-        // 
-        // 
-        // 
+        
 
         if($parameterSelect.val() == "name") {
+            // var $entitySelect = $('select.form-control#entity');
+
+            // ********** MOVE COLLECTION SETTING TO CHANGE PARAM FUNCTION ***********
+            collection = this.operators;
+            // **********************************************
+            
+            // var entity = $entitySelect.val();
+            // console.log("entity: ", entity);
+            // collection = entity;
+            // console.log("collection: ", collection);
+
             $(".form-control#name").show();
+            this.nameListView = new DeveloperPlayground.NameListView({collection: collection});
+            collection.fetch();
+            // this.nameListView.selectName();
+            return this;
         } else {
             $(".form-control#name").hide();
+            this.nameListView.close();
         }
-    
-        $nameSelect.empty().append(function() {
-            var output = '';
-            $.each(selectName[$parameterSelect.val()], function(key, value) {
-                output += '<option>' + key + '</option>';
-            });
-            return output;
-        });
+
     },
 
     submit: function() {
@@ -119,7 +99,10 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
         var $nameSelect = $('select.form-control#name');
         var bounds = this.mapview.getBounds();
         var identifier = $nameSelect.val();
+        console.log("identifier: ", identifier);
+
         var collection;
+        var shouldFetchAndResetCollection = true;
 
         // FOR STOP QUERIES
 
@@ -141,25 +124,22 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
         
         } else if ($entitySelect.val() == "operators") {
             collection = this.operators;
-            if($parameterSelect.val() === "") {
-                this.operators.setQueryParameters({
-                    url: '/api/v1/'+$entitySelect.val()+'.json'
-                });
-            }
-            else if($parameterSelect.val() == "map view") {
+            
+            if($parameterSelect.val() == "map view") {
                 this.operators.setQueryParameters({
                     url: '/api/v1/'+$entitySelect.val()+'.json?bbox='+bounds
                 });
             } else if($parameterSelect.val() == "name") {
-                this.operators.setQueryParameters({
-                    url: '/api/v1/'+$entitySelect.val()+'.json?identifier='+identifier,
-                });
+                this.operators.hideAll();
+                this.operators.get(identifier).set({ display: true });
+                shouldFetchAndResetCollection = false;
+                // this.operators.setQueryParameters({
+                //     url: '/api/v1/'+$entitySelect.val()+'/'+identifier,
+                // });
+            } else {
+                alert("Please select either map view or name.");
             }
-            // for search by mode
-            // } else if($parameterSelect.val() == "mode") {
-            //     alert("operators by mode not yet functional");
-            // }
-
+            
         //  FOR ROUTE QUERIES
         
         } else if ($entitySelect.val() == "routes") {
@@ -172,20 +152,19 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
                 this.routes.setQueryParameters({
                     url: '/api/v1/'+$entitySelect.val()+'.json?identifier='+identifier,
                 });
-            // for search by mode
             } else if($parameterSelect.val() == "route number") {
                 alert("routes by route number not yet functional");
-            // } else if($parameterSelect.val() == "mode") {
-            //     alert("routes by mode not yet functional");
             }
         } else {
-            alert("please select a parameter");
+            alert("Please select a parameter.");
         }
 
-        collection.reset();
+        if (shouldFetchAndResetCollection) {
+            collection.reset();
+        }
 
-        this.mapview.setCollection({collection: collection});
         this.mapview.featuregroup.clearLayers();
+        this.mapview.setCollection({collection: collection});
         this.mapview.initialize({collection: collection});
 
         if ('undefined' !== typeof this.tableview) this.tableview.close();
@@ -193,9 +172,9 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
         this.tableview = new DeveloperPlayground.TableView({collection: collection});
         this.headerView = new DeveloperPlayground.HeaderView({collection: collection});
 
-        collection.fetch();
+        if (shouldFetchAndResetCollection) {
+            collection.fetch();
+        }
 
     },
-
-
 });
