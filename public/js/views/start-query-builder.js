@@ -71,26 +71,6 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
         // var $nameSelect = $('select.form-control#name');
 
         if($parameterSelect.val() == "name" || $parameterSelect.val() == "operator") {
-
-            // if ($entitySelect.val() == "operators") {
-            //     collection = this.operators;
-            //     $(".form-control#name").show();
-            //     this.nameListView = new DeveloperPlayground.NameListView({collection: collection});
-            //     collection.fetch();
-            //     return this;
-            // } else if ($entitySelect.val() == "stops") {
-            //     collection = this.operators;
-            //      $(".form-control#name").show();
-            //     this.nameListView = new DeveloperPlayground.NameListView({collection: collection});
-            //     collection.fetch();
-            //     return this;
-            // } else if ($entitySelect.val() == "routes") {
-            //     collection = this.routes;
-            //      $(".form-control#name").show();
-            //     this.nameListView = new DeveloperPlayground.NameListView({collection: collection});
-            //     collection.fetch();
-            //     return this;
-            // }
             collection = this.operators;
             $(".form-control#name").show();
             this.nameListView = new DeveloperPlayground.NameListView({collection: collection});
@@ -157,10 +137,12 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
                 this.routes.setQueryParameters({
                     url: '/api/v1/'+$entitySelect.val()+'.json?bbox='+bounds
                 });
-            } else if($parameterSelect.val() == "name") {
+            } else if($parameterSelect.val() == "operator") {
+                collection = this.routes;
                 this.routes.setQueryParameters({
-                    url: '/api/v1/'+$entitySelect.val()+'.json?identifier='+identifier,
+                    url: '/api/v1/'+$entitySelect.val()+'.json?operatedBy='+identifier,
                 });
+                console.log("url: ", this.url);
             } else if($parameterSelect.val() == "route number") {
                 collection = this.routes;
                 alert("routes by route number not yet functional");
