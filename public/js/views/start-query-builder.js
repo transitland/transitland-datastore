@@ -50,7 +50,7 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
                 "": "",
                 "map view": "",
                 "operator": "",
-                "route number": "",
+                // "route number": "",
             }
         };
 
@@ -66,9 +66,7 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
     },
     
     changeName: function() {
-        // var $entitySelect = $('select.form-control#entity');
         var $parameterSelect = $('select.form-control#parameter');
-        // var $nameSelect = $('select.form-control#name');
 
         if($parameterSelect.val() == "name" || $parameterSelect.val() == "operator") {
             collection = this.operators;

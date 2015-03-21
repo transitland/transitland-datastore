@@ -6,7 +6,7 @@ DeveloperPlayground.NameListView = Backbone.View.extend({
 	initialize:function(options){
         this.collection = options.collection;
         this.listenTo(this.collection, 'add', this.renderName);
-        this.collection.each(this.renderName, this);
+        // this.collection.each(this.renderName, this);
     },
 
     renderName: function(model) {
