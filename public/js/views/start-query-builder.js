@@ -66,32 +66,36 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
     },
     
     changeName: function() {
-        var $entitySelect = $('select.form-control#entity');
+        // var $entitySelect = $('select.form-control#entity');
         var $parameterSelect = $('select.form-control#parameter');
-        var $nameSelect = $('select.form-control#name');
+        // var $nameSelect = $('select.form-control#name');
 
         if($parameterSelect.val() == "name" || $parameterSelect.val() == "operator") {
 
-            if ($entitySelect.val() == "operators") {
-                collection = this.operators;
-                $(".form-control#name").show();
-                this.nameListView = new DeveloperPlayground.NameListView({collection: collection});
-                collection.fetch();
-                return this;
-            } else if ($entitySelect.val() == "stops") {
-                collection = this.stops;
-                 $(".form-control#name").show();
-                this.nameListView = new DeveloperPlayground.NameListView({collection: collection});
-                collection.fetch();
-                return this;
-            } else if ($entitySelect.val() == "routes") {
-                collection = this.routes;
-                 $(".form-control#name").show();
-                this.nameListView = new DeveloperPlayground.NameListView({collection: collection});
-                collection.fetch();
-                return this;
-            }
-
+            // if ($entitySelect.val() == "operators") {
+            //     collection = this.operators;
+            //     $(".form-control#name").show();
+            //     this.nameListView = new DeveloperPlayground.NameListView({collection: collection});
+            //     collection.fetch();
+            //     return this;
+            // } else if ($entitySelect.val() == "stops") {
+            //     collection = this.operators;
+            //      $(".form-control#name").show();
+            //     this.nameListView = new DeveloperPlayground.NameListView({collection: collection});
+            //     collection.fetch();
+            //     return this;
+            // } else if ($entitySelect.val() == "routes") {
+            //     collection = this.routes;
+            //      $(".form-control#name").show();
+            //     this.nameListView = new DeveloperPlayground.NameListView({collection: collection});
+            //     collection.fetch();
+            //     return this;
+            // }
+            collection = this.operators;
+            $(".form-control#name").show();
+            this.nameListView = new DeveloperPlayground.NameListView({collection: collection});
+            collection.fetch();
+            return this;
         } else {
             $(".form-control#name").hide();
         }
@@ -104,6 +108,7 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
         var $nameSelect = $('select.form-control#name');
         var bounds = this.mapview.getBounds();
         var identifier = $nameSelect.val();
+
         console.log("identifier: ", identifier);
 
         var shouldFetchAndResetCollection = true;
@@ -118,10 +123,12 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
                     url: '/api/v1/'+$entitySelect.val()+'.json?bbox='+bounds
                 });
             // for search by operator name
-            } else if($parameterSelect.val() == "name") {
+            } else if($parameterSelect.val() == "operator") {
+                collection = this.stops;
                 this.stops.setQueryParameters({
-                    url: '/api/v1/'+$entitySelect.val()+'.json?identifier='+identifier,
+                    url: '/api/v1/'+$entitySelect.val()+'.json?operatedBy='+identifier,
                 });
+                console.log("url: ", this.url);
             }
         
         // FOR OPERATOR QUERIES

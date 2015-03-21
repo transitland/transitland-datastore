@@ -4,6 +4,8 @@ DeveloperPlayground.Stop = Backbone.Model.extend();
 
 DeveloperPlayground.Stops = Backbone.Collection.extend({
 	model: DeveloperPlayground.Stop,
+	url: '/api/v1/stops.json',
+
 	setQueryParameters: function(queryParameters) {
 		this.identifier = queryParameters.identifier;
 		this.url = queryParameters.url;
