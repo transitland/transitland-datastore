@@ -30,7 +30,7 @@
 .backgrid td {
   display: none;
   height: 20px;
-  max-width: 250px;
+  max-width: 50px;
   padding: 4px 5px;
   overflow: hidden;
   line-height: 20px;
@@ -38,7 +38,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   vertical-align: middle;
-  border-bottom: 1px solid #DDD;
+  border-bottom: 0px solid #DDD;
 }
 
 .backgrid th.renderable,
@@ -48,18 +48,20 @@
 
 .backgrid th {
   font-weight: bold;
-  text-align: center;
+  text-align: left;
 }
 
 .backgrid th.sortable a {
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
+  color: white;
+
 }
 
 .backgrid thead th {
   vertical-align: bottom;
-  background-color: #f9f9f9;
+  background-color: #0a0a0a;
 }
 
 .backgrid thead th a {
