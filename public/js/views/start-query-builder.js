@@ -157,10 +157,15 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
         this.mapview.setCollection({collection: collection});
         this.mapview.initialize({collection: collection});
 
-        if ('undefined' !== typeof this.tableview) this.tableview.close();
+        // if ('undefined' !== typeof this.tableview) this.tableview.close();
+        if ('undefined' !== typeof this.gridview) this.gridview.close();
 
-        this.tableview = new DeveloperPlayground.TableView({collection: collection});
-        this.headerView = new DeveloperPlayground.HeaderView({collection: collection});
+        this.gridview = new DeveloperPlayground.GridView({collection: collection});
+        
+        
+
+        // this.tableview = new DeveloperPlayground.TableView({collection: collection});
+        // this.headerView = new DeveloperPlayground.HeaderView({collection: collection});
 
         if (shouldFetchAndResetCollection) {
             collection.fetch();
