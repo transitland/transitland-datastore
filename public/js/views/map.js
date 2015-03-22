@@ -3,10 +3,6 @@ var DeveloperPlayground = DeveloperPlayground || {};
 DeveloperPlayground.MapView = Backbone.View.extend({
     el: '#map-view',
 
-    // initialize: function () {
-        
-    // },
-
     events: {
         'click #map-view' : 'getBounds'
     },
@@ -26,7 +22,10 @@ DeveloperPlayground.MapView = Backbone.View.extend({
         // console.log("render map");
         this.featuregroup = new L.featureGroup();
         this.map = L.map('map-view').setView([37.749, -122.443], 9);
-        L.tileLayer('https://{s}.tiles.mapbox.com/v3/randyme.4d62ee7c/{z}/{x}/{y}.png', {maxZoom: 18})
+        L.tileLayer('https://{s}.tiles.mapbox.com/v3/randyme.4d62ee7c/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+        })
             .addTo(this.map);
         return this;
     },
@@ -39,9 +38,7 @@ DeveloperPlayground.MapView = Backbone.View.extend({
     },
 
     addPoint: function(stop) {
-        // console.log("addPoint");
-        // stop.attributes.operators_serving_stop.each(console.log("operator serving stop: ", onestop_id));
-        // console.log("operaters serving stop: ", stop.attributes.operators_serving_stop);
+        console.log("addPoint");
         if (stop.get('display') !== false) {
             var s = {'type': 'Feature', 'geometry':stop.attributes.geometry};
             L.geoJson(s, {
@@ -51,12 +48,24 @@ DeveloperPlayground.MapView = Backbone.View.extend({
             }).addTo(this.featuregroup);
         }
 
-        // apply styling here ^^
         return this;
     },
 
+    //  addPoint: function(stop) {
+    //     var markers = L.markerClusterGroup();
+
+    //     if (stop.get('display') !== false) {
+    //         var s = {'type': 'Feature', 'geometry':stop.attributes.geometry};
+    //         var marker = L.marker(new L.LatLng(stop.attributes.geometry.coordinates[1], stop.attributes.geometry.coordinates[0]));
+    //         // marker.bindPopup(title);
+    //         markers.addLayer(marker);
+    //     }
+    //     this.map.addLayer(markers);
+    //     return this;
+    // },
+
+
     addFeatureGroup: function() {
-        console.log("addFeatureGroup");
         this.featuregroup.addTo(this.map);
         this.map.fitBounds(this.featuregroup.getBounds());
     }
