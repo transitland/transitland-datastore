@@ -39,9 +39,29 @@ DeveloperPlayground.MapView = Backbone.View.extend({
 
     addPoint: function(stop) {
         console.log("addPoint");
+        var stopIcon = L.icon({
+            iconUrl: "/assets/images/dot2a.png",
+            iconSize:     [38, 95], // size of the icon
+            iconAnchor:   [22, 94], // point of the icon which will correspond to marker's location
+            popupAnchor:  [-3, -76] // point from which the popup should open relative to the iconAnchor
+        });
         if (stop.get('display') !== false) {
-            var s = {'type': 'Feature', 'geometry':stop.attributes.geometry};
+            var s = {
+                'type': 'Feature',
+                'geometry':stop.attributes.geometry,
+                // 'icon': this.stopIcon,
+                // 'properties':{
+                //     'icon': {
+                //         'title': "stop-marker",
+                //         'iconUrl': "/assets/images/dot2a.png",
+                //         'iconSize': [50, 50],
+                //         'iconAnchor': [25, 25],
+                //         'popupAnchor': [25, 25]
+                //     }
+                // }
+            };
             L.geoJson(s, {
+                icon: stopIcon,
                 color: '#dd339c',
                 opacity: 1,
                 weight: 3,
@@ -66,6 +86,7 @@ DeveloperPlayground.MapView = Backbone.View.extend({
 
 
     addFeatureGroup: function() {
+        // this.featuregroup.
         this.featuregroup.addTo(this.map);
         this.map.fitBounds(this.featuregroup.getBounds());
     }

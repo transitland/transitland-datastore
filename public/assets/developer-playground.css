@@ -14,7 +14,7 @@ a:hover {
 .btn-default {
   text-shadow: none; /* Prevent inheritence from `body` */
   color: #8ac418;
-  background-color: white;
+  background-color: #0a0a0a;
   border: 2px solid #8ac418;
   font-size: 16px;
   outline:none;
@@ -24,7 +24,7 @@ a:hover {
 .btn-default:active, .btn-default.active, .btn-default.disabled, .btn-default[disabled],
 .btn-default:hover{
   text-shadow: none; /* Prevent inheritence from `body` */
-  color: white;
+  color: #0a0a0a;
   border: 2px solid #8ac418;
   outline:#8ac418;
   background-color: #8ac418;
@@ -36,8 +36,8 @@ a:hover {
 body {
   padding-top: 10%;
   height: 100%;
-  background-color: white;
-  color: #0a0a0a;
+  background-color: #0a0a0a;
+  color: #8ac418;
   text-align: center;
 }
 
@@ -77,7 +77,7 @@ body {
   text-align: center;
   line-height: 1.42857143;
   color: #ffcf03;
-  background-color: white;
+  background-color: #0a0a0a;
   background-image: none;
   /*border: 1px solid #ccc;*/
   border: none;
