@@ -80,6 +80,17 @@ class Route < BaseRoute
   belongs_to :operator
 
   validates :name, presence: true
+
+  scope :operated_by, -> (model_or_onestop_id) {
+    if model_or_onestop_id.is_a?(Operator)
+      where(operator: model_or_onestop_id)
+    elsif model_or_onestop_id.is_a?(String)
+      operator = Operator.find_by_onestop_id!(model_or_onestop_id)
+      where(operator: operator)
+    else
+      raise ArgumentError.new('must provide an Operator model or a Onestop ID')
+    end
+  }
 end
 
 class OldRoute < BaseRoute

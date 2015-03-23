@@ -53,6 +53,19 @@ describe Api::V1::RoutesController do
           expect(routes.length).to eq 0
         }})
       end
+
+      it 'returns routes operated by an Operator' do
+        other_operator = create(:operator)
+        other_route = create(:route, operator: other_operator)
+
+        bart = create(:operator, name: 'BART', onestop_id: 'o-9q9-BART')
+        @richmond_millbrae_route.update(operator: bart)
+
+        get :index, operatedBy: 'o-9q9-BART'
+        expect_json({ routes: -> (routes) {
+          expect(routes.first[:onestop_id]).to eq 'r-9q8y-richmond~dalycity~millbrae'
+        }})
+      end
     end
   end
 
