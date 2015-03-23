@@ -30,8 +30,9 @@
 .backgrid td {
   display: none;
   height: 20px;
-  max-width: 50px;
+  /*max-width: 50px;*/
   padding: 4px 5px;
+  padding-left: 15px;
   overflow: hidden;
   line-height: 20px;
   text-align: left;
