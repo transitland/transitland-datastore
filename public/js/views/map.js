@@ -19,8 +19,18 @@ DeveloperPlayground.MapView = Backbone.View.extend({
     },
     
     render: function() {
-        this.featuregroup = new L.featureGroup();
-        this.markerclustergroup = new L.MarkerClusterGroup();
+        // this.featuregroup = new L.featureGroup();
+        this.markerclustergroup = new L.MarkerClusterGroup({
+            maxClusterRadius: 120,
+            iconCreateFunction: function (cluster) {
+                var markers = cluster.getAllChildMarkers();
+                var n = 0;
+                for (var i = 0; i < markers.length; i++) {
+                    n += markers[i].number;
+                }
+                return L.divIcon({ html: n, className: 'mycluster', iconSize: L.point(40, 40) });
+            }
+        });
         this.map = L.map('map-view').setView([37.749, -122.443], 9);
         L.tileLayer('https://{s}.tiles.mapbox.com/v3/randyme.4d62ee7c/{z}/{x}/{y}.png', {
             maxZoom: 18,
@@ -58,12 +68,6 @@ DeveloperPlayground.MapView = Backbone.View.extend({
     },
 
     styleEachFeature: function(feature) {
-        // var stopIcon = L.icon({
-        //     iconUrl: "/assets/images/dot2a.png",
-        //     iconSize:     [15, 15], // size of the icon
-        //     iconAnchor:   [5, 5], // point of the icon which will correspond to marker's location
-        //     popupAnchor:  [5, 5] // point from which the popup should open relative to the iconAnchor
-        // });
 
         var operatorStyle = {
             color: "#dd339c",
@@ -72,7 +76,6 @@ DeveloperPlayground.MapView = Backbone.View.extend({
             opacity: .8,
             fillOpacity: .3,
             className: 'blah'
-            // icon: stopIcon,
         };
 
         var routeStyle = {
@@ -80,7 +83,6 @@ DeveloperPlayground.MapView = Backbone.View.extend({
             weight: 3,
             opacity: 1,
             className: 'blah'
-            // icon: stopIcon,
         };
 
         var geom_type = feature.geometry.type.toLowerCase();
@@ -106,23 +108,12 @@ DeveloperPlayground.MapView = Backbone.View.extend({
         });
 
         var geom_type = feature.geometry.type.toLowerCase();
-        
-        // if ( geom_type === 'polygon') {
-        //     // layer.bindPopup(feature.name);
-        // } else if (geom_type == 'point') {
-        //     // layer.bindPopup('stop');
-        //     layer.setIcon(stopIcon);
-        // } else if (geom_type.indexOf('line') !== -1) {
-        //     // layer.bindPopup('route');
-        // }
 
         if (geom_type == 'point') {
             layer.setIcon(stopIcon);
         }
 
         layer.bindPopup(feature.name);
-
-
     },
 
 
