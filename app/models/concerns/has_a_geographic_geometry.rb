@@ -24,7 +24,7 @@ module HasAGeographicGeometry
     when :wkt
       return self.send(:read_attribute, :geometry)
      when :geojson
-      return RGeo::GeoJSON.encode(self.send(:read_attribute, :geometry)).symbolize_keys
+      return RGeo::GeoJSON.encode(self.send(:read_attribute, :geometry)).try(:symbolize_keys)
     end
   end
 end
