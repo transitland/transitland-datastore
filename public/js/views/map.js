@@ -20,6 +20,7 @@ DeveloperPlayground.MapView = Backbone.View.extend({
     
     render: function() {
         this.featuregroup = new L.featureGroup();
+        this.markerclustergroup = new L.MarkerClusterGroup();
         this.map = L.map('map-view').setView([37.749, -122.443], 9);
         L.tileLayer('https://{s}.tiles.mapbox.com/v3/randyme.4d62ee7c/{z}/{x}/{y}.png', {
             maxZoom: 18,
@@ -36,11 +37,8 @@ DeveloperPlayground.MapView = Backbone.View.extend({
     },
 
     addFeature: function(feature) {
-        // var $entitySelect = $('select.form-control#entity');
         this.collection = feature.collection;
 
-        console.log("addFeature");
-        
         if (feature.get('display') !== false) {
             var s = {
                 'type': 'Feature',
@@ -51,47 +49,55 @@ DeveloperPlayground.MapView = Backbone.View.extend({
                 onEachFeature: this.onEachFeature,
                 style: this.styleEachFeature
             })
-            .addTo(this.featuregroup);
+            // .addTo(this.featuregroup);
+            .addTo(this.markerclustergroup);
+
         }
 
         return this;
     },
 
     styleEachFeature: function(feature) {
-        var stopIcon = L.icon({
-            iconUrl: "/assets/images/dot2a.png",
-            iconSize:     [15, 15], // size of the icon
-            iconAnchor:   [5, 5], // point of the icon which will correspond to marker's location
-            popupAnchor:  [5, 5] // point from which the popup should open relative to the iconAnchor
-        });
+        // var stopIcon = L.icon({
+        //     iconUrl: "/assets/images/dot2a.png",
+        //     iconSize:     [15, 15], // size of the icon
+        //     iconAnchor:   [5, 5], // point of the icon which will correspond to marker's location
+        //     popupAnchor:  [5, 5] // point from which the popup should open relative to the iconAnchor
+        // });
 
-        var styles = {
-            color: "#f00",
-            fillColor: "#000",
-            weight: 10,
+        var operatorStyle = {
+            color: "#dd339c",
+            fillColor: "#dd339c",
+            weight: 3,
+            opacity: .8,
+            fillOpacity: .3,
+            className: 'blah'
+            // icon: stopIcon,
+        };
+
+        var routeStyle = {
+            color: "#7720f2",
+            weight: 3,
             opacity: 1,
-            fillOpacity: 1,
             className: 'blah'
             // icon: stopIcon,
         };
 
         var geom_type = feature.geometry.type.toLowerCase();
+       
         if ( geom_type === 'polygon') {
-            return styles;
+            return operatorStyle;
         } else if (geom_type == 'point') {
             return {};
         } else if (geom_type.indexOf('line') !== -1) {
-            styles.color = "#f34";
-            return styles;
+            // styles.color = "#f34";
+            return routeStyle;
         }
         return {};
     },
 
     onEachFeature: function(feature, layer) {
 
-        // this.collection = feature.collection;
-        // console.log("collection: ",this.collection);
-
         var stopIcon = L.icon({
             iconUrl: "/assets/images/dot2a.png",
             iconSize:     [15, 15], // size of the icon
@@ -99,30 +105,34 @@ DeveloperPlayground.MapView = Backbone.View.extend({
             popupAnchor:  [5, 5] // point from which the popup should open relative to the iconAnchor
         });
 
-        // var $entitySelect = $('select.form-control#entity');
-        // console.log("$entitySelect: ",this.$entitySelect);
-
         var geom_type = feature.geometry.type.toLowerCase();
-        if ( geom_type === 'polygon') {
-            layer.bindPopup('operator');
-        } else if (geom_type == 'point') {
-            layer.bindPopup('stop');
+        
+        // if ( geom_type === 'polygon') {
+        //     // layer.bindPopup(feature.name);
+        // } else if (geom_type == 'point') {
+        //     // layer.bindPopup('stop');
+        //     layer.setIcon(stopIcon);
+        // } else if (geom_type.indexOf('line') !== -1) {
+        //     // layer.bindPopup('route');
+        // }
+
+        if (geom_type == 'point') {
             layer.setIcon(stopIcon);
-        } else if (geom_type.indexOf('line') !== -1) {
-            layer.bindPopup('route');
         }
-    
-        console.log('feature');
-        console.log(feature);
-        console.log('layer type');
-        console.log(typeof layer);
+
+        layer.bindPopup(feature.name);
+
 
     },
 
 
     addFeatureGroup: function() {
-        this.featuregroup.addTo(this.map);
-        this.map.fitBounds(this.featuregroup.getBounds());
+        console.log('add');
+        // this.featuregroup.addTo(this.map);
+        this.markerclustergroup.addTo(this.map);
+        // this.map.fitBounds(this.featuregroup.getBounds());
+        this.map.fitBounds(this.markerclustergroup.getBounds());
+
     }
 
 });

@@ -153,7 +153,8 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
             collection.reset();
         }
 
-        this.mapview.featuregroup.clearLayers();
+        // this.mapview.featuregroup.clearLayers();
+        this.mapview.markerclustergroup.clearLayers();
         this.mapview.setCollection({collection: collection});
         this.mapview.initialize({collection: collection});
 
@@ -162,7 +163,7 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
 
         this.gridview = new DeveloperPlayground.GridView({collection: collection});
         
-        
+
 
         // this.tableview = new DeveloperPlayground.TableView({collection: collection});
         // this.headerView = new DeveloperPlayground.HeaderView({collection: collection});
