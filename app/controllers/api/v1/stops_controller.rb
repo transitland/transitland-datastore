@@ -10,6 +10,9 @@ class Api::V1::StopsController < Api::V1::BaseApiController
     if params[:identifier].present?
       @stops = @stops.with_identifier_or_name(params[:identifier])
     end
+    if params[:servedBy].present?
+      @stops = @stops.served_by(params[:servedBy].split(','))
+    end
     if [params[:lat], params[:lon]].map(&:present?).all?
       point = Stop::GEOFACTORY.point(params[:lon], params[:lat])
       r = params[:r] || 100 # meters TODO: move this to a more logical place

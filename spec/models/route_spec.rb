@@ -37,4 +37,13 @@ describe Route do
     expect(Route.exists?(route.id)).to be true
     expect(route.geometry).to eq geojson
   end
+
+  it 'can be found by operator' do
+    bart = create(:operator, name: 'BART')
+    sfmta = create(:operator, name: 'SFMTA')
+    route1 = create(:route, operator: bart)
+    route2 = create(:route, operator: sfmta)
+    expect(Route.operated_by(bart)).to match_array([route1])
+    expect(Route.operated_by(sfmta.onestop_id)).to match_array([route2])
+  end
 end

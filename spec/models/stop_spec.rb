@@ -55,6 +55,42 @@ describe Stop do
     end
   end
 
+  context 'served_by' do
+    before(:each) do
+      @bart = create(:operator, name: 'BART')
+      @sfmta = create(:operator, name: 'SFMTA')
+      @bart_route = create(:route, operator: @bart)
+      @sfmta_route = create(:route, operator: @sfmta)
+      @stop_with_both = create(:stop)
+      @stop_with_sfmta = create(:stop)
+      @stop_with_both.routes << [@bart_route, @sfmta_route]
+      @stop_with_both.operators << [@bart, @sfmta]
+      @stop_with_sfmta.routes << @sfmta_route
+      @stop_with_sfmta.operators << @sfmta
+    end
+
+    it 'by operator' do
+      expect(Stop.served_by([@sfmta])).to match_array([@stop_with_both, @stop_with_sfmta])
+      expect(Stop.served_by([@sfmta.onestop_id])).to match_array([@stop_with_both, @stop_with_sfmta])
+      expect(Stop.served_by([@bart])).to match_array([@stop_with_both])
+      expect(Stop.served_by([@bart.onestop_id])).to match_array([@stop_with_both])
+      expect(Stop.served_by([@sfmta.onestop_id, @bart])).to match_array([@stop_with_both, @stop_with_sfmta])
+    end
+
+    it 'by route' do
+      expect(Stop.served_by([@sfmta_route])).to match_array([@stop_with_both, @stop_with_sfmta])
+      expect(Stop.served_by([@sfmta_route.onestop_id])).to match_array([@stop_with_both, @stop_with_sfmta])
+      expect(Stop.served_by([@bart_route])).to match_array([@stop_with_both])
+      expect(Stop.served_by([@bart_route.onestop_id])).to match_array([@stop_with_both])
+      expect(Stop.served_by([@sfmta_route.onestop_id, @bart_route])).to match_array([@stop_with_both, @stop_with_sfmta])
+    end
+
+    it 'by both operator and route' do
+      expect(Stop.served_by([@sfmta_route.onestop_id, @bart])).to match_array([@stop_with_both, @stop_with_sfmta])
+      expect(Stop.served_by([@sfmta_route, @bart.onestop_id])).to match_array([@stop_with_both, @stop_with_sfmta])
+    end
+  end
+
   context 'diff_against' do
     pending 'write some specs'
   end
