@@ -37,6 +37,33 @@ describe Api::V1::StopsController do
           expect(stops.map { |stop| stop[:onestop_id] }).to match_array([@metro_embarcadero, @gilman_paul_3rd].map(&:onestop_id))
         }})
       end
+
+      context 'returns stop by servedBy' do
+        before(:each) do
+          @bart = create(:operator, name: 'BART')
+          @sfmta = create(:operator, name: 'SFMTA')
+          @bart_route = create(:route, operator: @bart)
+          @sfmta_route = create(:route, operator: @sfmta)
+          @metro_embarcadero.routes << [@bart_route, @sfmta_route]
+          @metro_embarcadero.operators << [@bart, @sfmta]
+          @gilman_paul_3rd.routes << @sfmta_route
+          @gilman_paul_3rd.operators << @sfmta
+        end
+
+        it 'with an operator Onestop ID' do
+          get :index, servedBy: @bart.onestop_id
+          expect_json({ stops: -> (stops) {
+            expect(stops.map { |stop| stop[:onestop_id] }).to match_array([@metro_embarcadero.onestop_id])
+          }})
+        end
+
+        it 'with an operator and a route Onestop ID' do
+          get :index, servedBy: "#{@bart.onestop_id},#{@sfmta_route.onestop_id}"
+          expect_json({ stops: -> (stops) {
+            expect(stops.map { |stop| stop[:onestop_id] }).to match_array([@metro_embarcadero, @gilman_paul_3rd].map(&:onestop_id))
+          }})
+        end
+      end
     end
 
     context 'as GeoJSON' do

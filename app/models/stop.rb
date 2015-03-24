@@ -74,6 +74,50 @@ class Stop < BaseStop
   has_many :routes_serving_stop
   has_many :routes, through: :routes_serving_stop
 
+  scope :served_by, -> (onestop_ids_and_models) {
+    operators = []
+    routes = []
+    onestop_ids_and_models.each do |onestop_id_or_model|
+      case onestop_id_or_model
+      when Operator
+        operators << onestop_id_or_model
+      when Route
+        routes << onestop_id_or_model
+      when String
+        model = OnestopIdService.find!(onestop_id_or_model)
+        case model
+        when Route then routes << model
+        when Operator then operators << model
+        else ArgumentError.new('only accepts Operator or Route models')
+        end
+      else
+        raise ArgumentError.new('must provide an Operator model or a Onestop ID')
+      end
+    end
+    if operators.length > 0 && routes.length > 0
+      joins{
+        operators_serving_stop.operator
+      }.joins{
+        routes_serving_stop.route
+      }.where{
+        (operators_serving_stop.operator_id >> operators.map(&:id)) |
+        (routes_serving_stop.route_id >> routes.map(&:id))
+      }.uniq(:stop)
+    elsif operators.length > 0
+      joins{operators_serving_stop.operator}.where{operators_serving_stop.operator_id >> operators.map(&:id)}.uniq(:stop)
+    elsif routes.length > 0
+      joins{routes_serving_stop.route}.where{routes_serving_stop.route_id >> routes.map(&:id)}.uniq(:stop)
+    else
+      raise ArgumentError.new('must provide at least one Operator or Route')
+    end
+  }
+  scope :served_by_route, -> (route) {
+    joins{routes_serving_stop.route}.where{routes_serving_stop.route_id == route.id}
+  }
+  scope :served_by_operator, -> (operator) {
+    joins{operators_serving_stop.operator}.where{operators_serving_stop.operator_id == operator.id}
+  }
+
   before_save :clean_attributes
 
   private
