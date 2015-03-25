@@ -33,7 +33,9 @@ DeveloperPlayground.MapView = Backbone.View.extend({
         //     }
         // }
         );
-        this.map = L.map('map-view').setView([37.749, -122.443], 9);
+        this.map = L.map('map-view',{
+            scrollWheelZoom: false
+        }).setView([37.749, -122.443], 9);
         L.tileLayer('https://{s}.tiles.mapbox.com/v3/randyme.li1lhlf0/{z}/{x}/{y}.png', {
             maxZoom: 18,
             attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
@@ -125,7 +127,7 @@ DeveloperPlayground.MapView = Backbone.View.extend({
         // this.featuregroup.addTo(this.map);
         this.markerclustergroup.addTo(this.map);
         // this.map.fitBounds(this.featuregroup.getBounds());
-        this.map.fitBounds(this.markerclustergroup.getBounds());
+        // this.map.fitBounds(this.markerclustergroup.getBounds());
 
     }
 
