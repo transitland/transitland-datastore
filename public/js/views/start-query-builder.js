@@ -35,19 +35,22 @@ DeveloperPlayground.StartQueryBuilderView = Backbone.View.extend({
         var $entitySelect = $('select.form-control#entity');
         var $parameterSelect = $('select.form-control#parameter');
         var selectValues = {
+            "base": {
+                "__________": "",
+            },
             "stops": {
-                "": "",
+                "__________": "",
                 "map view": "",
                 "operator": "",
             },
             "operators": {
-                "": "",
+                "__________": "",
                 "map view": "",
                 "name": "",
                 // "mode": "",
             },
             "routes": {
-                "": "",
+                "__________": "",
                 "map view": "",
                 "operator": "",
                 // "route number": "",

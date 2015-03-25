@@ -20,19 +20,21 @@ DeveloperPlayground.MapView = Backbone.View.extend({
     
     render: function() {
         // this.featuregroup = new L.featureGroup();
-        this.markerclustergroup = new L.MarkerClusterGroup({
-            maxClusterRadius: 120,
-            iconCreateFunction: function (cluster) {
-                var markers = cluster.getAllChildMarkers();
-                var n = 0;
-                for (var i = 0; i < markers.length; i++) {
-                    n += markers[i].number;
-                }
-                return L.divIcon({ html: n, className: 'mycluster', iconSize: L.point(40, 40) });
-            }
-        });
+        this.markerclustergroup = new L.MarkerClusterGroup(
+        //     {
+        //     maxClusterRadius: 120,
+        //     iconCreateFunction: function (cluster) {
+        //         var markers = cluster.getAllChildMarkers();
+        //         var n = 0;
+        //         for (var i = 0; i < markers.length; i++) {
+        //             n += markers[i].number;
+        //         }
+        //         return L.divIcon({ html: n, className: 'mycluster', iconSize: L.point(32, 32) });
+        //     }
+        // }
+        );
         this.map = L.map('map-view').setView([37.749, -122.443], 9);
-        L.tileLayer('https://{s}.tiles.mapbox.com/v3/randyme.4d62ee7c/{z}/{x}/{y}.png', {
+        L.tileLayer('https://{s}.tiles.mapbox.com/v3/randyme.li1lhlf0/{z}/{x}/{y}.png', {
             maxZoom: 18,
             attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
         })
@@ -80,6 +82,7 @@ DeveloperPlayground.MapView = Backbone.View.extend({
 
         var routeStyle = {
             color: "#7720f2",
+            // color: feature.properties.tags.route_color,
             weight: 3,
             opacity: 1,
             className: 'blah'

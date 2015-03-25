@@ -13,6 +13,7 @@
   <link href="/assets/bootstrap.css" rel="stylesheet">
   <link href="/assets/developer-playground.css" rel='stylesheet' />
   <link href="/assets/backgrid.css" rel='stylesheet' />
+  <link href='http://fonts.googleapis.com/css?family=Lato:400,300,700' rel='stylesheet' type='text/css'>
   <!-- <link href="/assets/leaflet.css" rel='stylesheet' /> -->
 
   <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
@@ -33,7 +34,7 @@
  
   <script type="text/template" id="playground-template">
       
-        <p class="lead">I want to see 
+        <p class="h2">SHOW ME
          <span class="btn-group">
             <select class="form-control" id="entity">
               <option selected value="base">__________</option>
@@ -41,7 +42,7 @@
               <option value="operators">operators</option>
               <option value="routes">routes</option>
             </select>
-          </span> by 
+          </span> BY 
 
           <span class="btn-group">
             <select class="form-control" id="parameter">
@@ -52,11 +53,13 @@
             <select class="form-control" id="name">
             </select>
           </span>
+
+        </p>
+        <p class="h2">
           <span>
           <button class="btn btn-med btn-default">RUN QUERY</button>
           </span>
         </p>
-
         <div id="map-view" style="width:100vw;height:300px;"></div>
 
         

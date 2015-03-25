@@ -9,11 +9,16 @@
 .backgrid-container {
   position: relative;
   display: block;
-  width: 100%;
+  width: 800px  ;
   height: 465px;
+  margin:30px auto;
   padding: 0;
   overflow: auto;
   border: 0;
+  font-weight:300;
+  letter-spacing:1px;
+  font-family: "Lato",Helvetica,Arial,sans-serif;
+  font-size:21px;
 }
 
 .backgrid {
@@ -29,12 +34,12 @@
 .backgrid th,
 .backgrid td {
   display: none;
-  height: 20px;
+  height: 30px;
   /*max-width: 50px;*/
   padding: 4px 5px;
   padding-left: 15px;
   overflow: hidden;
-  line-height: 20px;
+  line-height: 30px;
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;

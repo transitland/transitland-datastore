@@ -4,6 +4,21 @@ a:hover {
   color: #fff;
 }
 
+h2{
+  font-weight:700;
+  font-size:16px;
+  letter-spacing: 3.1px;
+  display:inline;
+  vertical-align: middle;
+  margin:0 auto;
+  color: white;
+}
+
+#developer-playground p.h2{
+  margin-bottom: 30px;
+  margin-top: 30px;
+}
+
 /* Custom default button */
 .btn-success:hover, 
 .btn-success:active, 
@@ -12,32 +27,48 @@ a:hover {
 .btn-success[disabled],
 .btn-default:focus,
 .btn-default {
+  font-weight:700;
+  font-size:16px;
+  letter-spacing: 3.1px;
+  display:inline;
+  vertical-align: middle;
   text-shadow: none; /* Prevent inheritence from `body` */
-  color: #8ac418;
-  background-color: #0a0a0a;
-  border: 2px solid #8ac418;
-  font-size: 16px;
+  color: white;
+  background-color: #8ac418;
+  border: 0px solid #8ac418;
+  /*font-size: 16px;*/
   outline:none;
+  border-radius: 0px;
 
 }
 
 .btn-default:active, .btn-default.active, .btn-default.disabled, .btn-default[disabled],
 .btn-default:hover{
   text-shadow: none; /* Prevent inheritence from `body` */
-  color: #0a0a0a;
-  border: 2px solid #8ac418;
+  color: white;
+  border: 0px solid #8ac418;
   outline:#8ac418;
-  background-color: #8ac418;
+  background-color: #5a881d;
   font-size: 16px;
+  border-radius: 0px;
+
 }
  
 
 
 body {
+  font-family:Lato,Helvetica,Arial,sans-serif;
+  font-weight:700;
+  font-size:16px;
+  letter-spacing: 3.1px;
+  display:inline;
+  vertical-align: middle;
+  margin:0 auto;
+  color: white;
   padding-top: 10%;
   height: 100%;
   background-color: #0a0a0a;
-  color: #8ac418;
+  /*color: white;*/
   text-align: center;
 }
 
@@ -71,12 +102,17 @@ body {
 
 .form-control:focus,
 .form-control {
-  display: block;
-  height: 34px;
-  font-size: 18px;
+  font-weight:700;
+  font-size:30px;
+  vertical-align: top;
+  letter-spacing: 3.1px;
+  display:inline;
+  text-transform: uppercase;
+  text-shadow: none;
+  /*height: 34px;*/
   text-align: center;
-  line-height: 1.42857143;
-  color: #ffcf03;
+  /*line-height: 1.42857143;*/
+  color: #8ac418;
   background-color: #0a0a0a;
   background-image: none;
   /*border: 1px solid #ccc;*/
@@ -89,4 +125,7 @@ body {
           transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
 }
 
+.btn-group{
+  vertical-align: text-top;
+}
 
