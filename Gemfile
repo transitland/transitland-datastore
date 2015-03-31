@@ -25,6 +25,7 @@ gem 'c_geohash', require: 'geohash'
 gem 'json-schema'
 
 # authentication and authorization
+gem 'rack-cors', :require => 'rack/cors'
 gem 'omniauth'
 gem 'omniauth-osm'
 
