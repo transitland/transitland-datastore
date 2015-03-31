@@ -70,3 +70,6 @@ gem 'selenium-webdriver', group: :test
 # misc.
 gem 'ruby-progressbar'
 gem 'filesize'
+
+# deployment
+gem 'aws-sdk', group: [:staging, :production]

@@ -60,6 +60,11 @@ GEM
     autoprefixer-rails (5.1.7)
       execjs
       json
+    aws-sdk (1.59.0)
+      aws-sdk-v1 (= 1.59.0)
+    aws-sdk-v1 (1.59.0)
+      json (~> 1.4)
+      nokogiri (>= 1.4.4)
     better_errors (2.1.1)
       coderay (>= 1.0.0)
       erubis (>= 2.6.6)
@@ -322,6 +327,7 @@ DEPENDENCIES
   activerecord-postgis-adapter (= 3.0.0.beta2)
   airborne
   annotate!
+  aws-sdk
   better_errors
   binding_of_caller
   bootstrap-sass
