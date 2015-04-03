@@ -20,12 +20,17 @@
 #
 
 class OperatorServingStopSerializer < ApplicationSerializer
-  attributes :onestop_id,
+  attributes :operator_onestop_id,
+             :operator_name,
              :tags,
              :created_at,
              :updated_at
 
-  def onestop_id
+  def operator_onestop_id
     object.operator.onestop_id
+  end
+
+  def operator_name
+    object.operator.name
   end
 end
