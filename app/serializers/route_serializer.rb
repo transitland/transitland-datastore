@@ -26,6 +26,4 @@ class RouteSerializer < CurrentEntitySerializer
              :tags,
              :created_at,
              :updated_at
-
-  has_many :routes_serving_stop
 end
