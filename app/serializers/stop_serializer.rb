@@ -24,7 +24,15 @@ class StopSerializer < CurrentEntitySerializer
              :name,
              :tags,
              :created_at,
-             :updated_at
+             :updated_at,
+             :operators_serving_stop
 
-  has_many :operators_serving_stop
+  def operators_serving_stop
+    object.operators_serving_stop.map do |oso|
+      {
+        name: oso.operator.name,
+        onestop_id: oso.operator.onestop_id
+      }
+    end
+  end
 end
