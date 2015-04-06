@@ -30,8 +30,8 @@ class StopSerializer < CurrentEntitySerializer
   def operators_serving_stop
     object.operators_serving_stop.map do |oso|
       {
-        name: oso.operator.name,
-        onestop_id: oso.operator.onestop_id
+        operator_name: oso.operator.name,
+        operator_onestop_id: oso.operator.onestop_id
       }
     end
   end
