@@ -7,14 +7,6 @@ load Gem.bin_path('bundler', 'bundle')
 
 require 'aws-sdk'
 
-Aws.config.update({
-  region: 'us-east-1',
-  credentials: Aws::Credentials.new(
-    ENV["#{environment.upcase}_AWS_ACCESS_KEY_ID"],
-    ENV["#{environment.upcase}_AWS_SECRET_ACCESS_KEY"]
-  )
-})
-
 config = {
   staging: {
     stack_id: "c268a326-fc6a-4d0b-a24d-686b0b87524e",
@@ -23,7 +15,13 @@ config = {
   }
 }
 
-client = Aws::OpsWorks::Client.new
+client = Aws::OpsWorks::Client.new({
+  region: 'us-east-1',
+  credentials: Aws::Credentials.new(
+    ENV["#{environment.upcase}_AWS_ACCESS_KEY_ID"],
+    ENV["#{environment.upcase}_AWS_SECRET_ACCESS_KEY"]
+  )
+})
 
 # get the instances we want to deploy to
 instances = client.describe_instances(
