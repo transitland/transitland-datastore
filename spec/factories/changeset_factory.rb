@@ -13,7 +13,7 @@
 
 FactoryGirl.define do
   factory :changeset do
-    notes { Faker::Lorem.paragraph }
+    notes { FFaker::Lorem.paragraph }
     payload {
       {
         changes: [
