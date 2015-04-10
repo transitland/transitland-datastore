@@ -11,19 +11,19 @@ Behind the scenes: a Ruby on Rails web service, backed by Postgres/PostGIS.
 
 ## Data Model
 
-![diagram of Transitland Datastore's data model](https://rawgit.com/transitland/transitland-datastore/master/doc/data-model.svg)
-
-The Datastore uses [changesets](doc/changesets.md) to track additions/edits/removals of entities.
-
 Every entity has a globally unique Onestop ID (from the [Onestop ID Registry](https://github.com/transit-land/onestop-id-registry)). Entities include:
 
 * `Operator`
 * `Stop`
 * `Route`
 
+The Datastore uses [changesets](doc/changesets.md) to track additions/edits/removals of entities.
+
 Entities are associated with each other using relationship managers:
 
 * [operator-route-stop relationships](doc/operator-route-stop-relationships.md)
+
+For a complete visualization of the Datastore's data model, see (doc/data-model.svg)[doc/data-model.svg]
 
 ## To Develop Locally
 
