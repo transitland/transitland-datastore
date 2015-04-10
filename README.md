@@ -38,7 +38,14 @@ Entities are associated with each other using relationship managers:
 
 2. Configure your local copy by renaming the example files to `config/application.yml` and `config/database.yml`. Edit as appropriate.
 
-3. Start the server: `bundle exec rails server`
+3. Create and initialize the database:
+
+  ````
+  bundle exec rake db:create
+  bundle exec rake db:setup
+  ````
+
+4. Start the server: `bundle exec rails server`
 
 ## To Run Tests Locally
 
