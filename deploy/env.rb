@@ -7,10 +7,13 @@ load Gem.bin_path('bundler', 'bundle')
 
 require 'aws-sdk'
 
-AWS.config(
-  access_key_id: ENV["#{environment.upcase}_AWS_ACCESS_KEY_ID"],
-  secret_access_key: ENV["#{environment.upcase}_AWS_SECRET_ACCESS_KEY"]
-)
+Aws.config.update({
+  region: 'us-east-1',
+  credentials: Aws::Credentials.new(
+    ENV["#{environment.upcase}_AWS_ACCESS_KEY_ID"],
+    ENV["#{environment.upcase}_AWS_SECRET_ACCESS_KEY"]
+  )
+})
 
 config = {
   staging: {
@@ -20,24 +23,19 @@ config = {
   }
 }
 
-client = AWS::OpsWorks::Client.new
+client = Aws::OpsWorks::Client.new
 
 # get the instances we want to deploy to
-i = client.describe_instances(
+instances = client.describe_instances(
   layer_id: config[environment.to_sym][:layer_id]
 )
 
-instance_arr = []
-i[:instances].each do |instance|
-  instance.values_at(:instance_id).each do |v|
-    instance_arr.push(v)
-  end
-end
+instance_ids = instances[:instances].map(&:instance_id)
 
 deployment = client.create_deployment(
   stack_id: config[environment.to_sym][:stack_id],
   app_id: config[environment.to_sym][:app_id],
-  instance_ids: instance_arr,
+  instance_ids: instance_ids,
   command: {
     name: "deploy",
     args: { "migrate" => ["true"] }
@@ -55,7 +53,7 @@ i = 0
 while !success
   desc = client.describe_deployments(options = {:deployment_ids => [deployment[:deployment_id]]})
   success = desc[:deployments][0][:status] == "successful"
-  time_passed = Time.now.utc - time_start 
+  time_passed = Time.now.utc - time_start
   if i >= process.length - 1
     i = 0
   else
