@@ -17,9 +17,8 @@ config = {
 
 client = Aws::OpsWorks::Client.new({
   region: 'us-east-1',
-  credentials: Aws::Credentials.new(
-    ENV["#{environment.upcase}_AWS_ACCESS_KEY_ID"],
-    ENV["#{environment.upcase}_AWS_SECRET_ACCESS_KEY"]
+  access_key_id: ENV["#{environment.upcase}_AWS_ACCESS_KEY_ID"],
+  secret_access_key: ENV["#{environment.upcase}_AWS_SECRET_ACCESS_KEY"]
   )
 })
 
