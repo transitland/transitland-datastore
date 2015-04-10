@@ -1,6 +1,7 @@
 class Api::V1::BaseApiController < ApplicationController
   protect_from_forgery with: :null_session
 
+  before_filter :allow_rack_mini_profiler
   before_filter :set_default_response_format
 
   rescue_from Exception do |exception|
@@ -43,6 +44,11 @@ class Api::V1::BaseApiController < ApplicationController
   end
 
   private
+
+  def allow_rack_mini_profiler
+    # TODO: limit this to admin users
+    Rack::MiniProfiler.authorize_request
+  end
 
   def set_default_response_format
     request.format = :json if request.format != :geojson
