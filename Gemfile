@@ -33,19 +33,6 @@ gem 'omniauth-osm'
 gem 'active_model_serializers', '0.9.3'
 gem 'oj'
 
-# views
-gem 'slim'
-
-# CSS
-gem 'bootstrap-sass'
-gem 'sass-rails-source-maps'
-
-# JavaScript
-gem 'coffee-rails'
-gem 'coffee-rails-source-maps'
-gem 'uglifier'
-gem 'therubyracer', platforms: :ruby
-
 # development tools
 gem 'better_errors', group: :development
 gem 'binding_of_caller', group: :development
@@ -55,7 +42,7 @@ gem 'pry-rails', group: [:development, :test]
 
 # code coverage and documentation
 gem 'rails-erd', group: :development
-gem 'annotate', group: :development, github: 'ctran/annotate_models', ref: '46dc084'
+gem 'annotate', group: :development
 gem 'simplecov', :require => false, group: [:development, :test]
 
 # testing
@@ -64,12 +51,6 @@ gem 'factory_girl_rails', group: [:development, :test]
 gem 'ffaker', group: [:development, :test]
 gem 'rspec-rails', group: [:development, :test]
 gem 'airborne', group: :test
-gem 'capybara', group: :test
-gem 'selenium-webdriver', group: :test
-
-# misc.
-gem 'ruby-progressbar'
-gem 'filesize'
 
 # deployment and monitoring
 gem 'aws-sdk', group: [:staging, :production]

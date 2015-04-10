@@ -11,19 +11,19 @@ Behind the scenes: a Ruby on Rails web service, backed by Postgres/PostGIS.
 
 ## Data Model
 
-![diagram of Transitland Datastore's data model](https://rawgit.com/transitland/transitland-datastore/master/doc/data-model.svg)
-
-The Datastore uses [changesets](doc/changesets.md) to track additions/edits/removals of entities.
-
 Every entity has a globally unique Onestop ID (from the [Onestop ID Registry](https://github.com/transit-land/onestop-id-registry)). Entities include:
 
 * `Operator`
 * `Stop`
 * `Route`
 
+The Datastore uses [changesets](doc/changesets.md) to track additions/edits/removals of entities.
+
 Entities are associated with each other using relationship managers:
 
 * [operator-route-stop relationships](doc/operator-route-stop-relationships.md)
+
+For a complete visualization of the Datastore's data model, see [doc/data-model.svg](doc/data-model.svg)
 
 ## To Develop Locally
 
@@ -38,13 +38,25 @@ Entities are associated with each other using relationship managers:
 
 2. Configure your local copy by renaming the example files to `config/application.yml` and `config/database.yml`. Edit as appropriate.
 
-3. Start the server: `bundle exec rails server`
+3. Create and initialize the database:
+
+  ````
+  bundle exec rake db:create
+  bundle exec rake db:setup
+  ````
+
+4. **Optional** Add sample data to the database (includes [a few operators, stops, and routes in the SF Bay Area](db/sample-changesets/sf-bay-area.json)):
+
+  ````
+  bundle exec rake db:seed
+  ````
+
+5. Start the server: `bundle exec rails server`
 
 ## To Run Tests Locally
 
-1. Install dependencies: `brew install chromedriver` (as well as a copy of the latest Chrome)
-2. Run the full test suite: `bundle exec rake`
-3. To view coverage report: `open coverage/index.html`
+1. Run the full test suite: `bundle exec rake`
+2. To view coverage report: `open coverage/index.html`
 
 ## API Endpoints
 
