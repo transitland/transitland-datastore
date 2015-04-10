@@ -55,9 +55,8 @@ Entities are associated with each other using relationship managers:
 
 ## To Run Tests Locally
 
-1. Install dependencies: `brew install chromedriver` (as well as a copy of the latest Chrome)
-2. Run the full test suite: `bundle exec rake`
-3. To view coverage report: `open coverage/index.html`
+1. Run the full test suite: `bundle exec rake`
+2. To view coverage report: `open coverage/index.html`
 
 ## API Endpoints
 
