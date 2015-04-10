@@ -45,7 +45,13 @@ Entities are associated with each other using relationship managers:
   bundle exec rake db:setup
   ````
 
-4. Start the server: `bundle exec rails server`
+4. **Optional** Add sample data to the database (includes [a few operators, stops, and routes in the SF Bay Area](db/sample-changesets/sf-bay-area.json)):
+
+  ````
+  bundle exec rake db:seed
+  ````
+
+5. Start the server: `bundle exec rails server`
 
 ## To Run Tests Locally
 
