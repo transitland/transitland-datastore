@@ -71,10 +71,6 @@ gem 'selenium-webdriver', group: :test
 gem 'ruby-progressbar'
 gem 'filesize'
 
-# deployment
+# deployment and monitoring
 gem 'aws-sdk', group: [:staging, :production]
-
-# profiling
-gem 'rack-mini-profiler'
-gem 'stackprof'
-gem 'flamegraph'
+gem 'newrelic_rpm', group: [:staging, :production]
