@@ -99,6 +99,8 @@ Any API calls that involve writing to the database (creating/editing/applying ch
 API_AUTH_TOKENS: 1a4494f1fc463ab8e32d6b,AN_OPTIONAL_SECOND_KEY
 ````
 
+Or, specify as an environment variable. For example, `API_AUTH_TOKENS=1a4494f1fc463ab8e32d6b,AN_OPTIONAL_SECOND_KEY bundle exec rails server`
+
 To authenticate, include the following in your POST or PUT request:
 
 header name   | header value
