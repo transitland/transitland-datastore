@@ -31,7 +31,7 @@ To create, check, and apply a changeset, you can either do each step as a separa
 
 2. In the response, you'll get an ID for the changeset
 3. Check that the changeset can be cleanly applied to the database: `POST /api/v1/changesets/143/check` (assuming that the ID you got back in Step 2 is `143`)
-4. Apply the changeset: `POST /api/v1/changesets/143/apply`
+4. Apply the changeset: `POST /api/v1/changesets/143/apply` making sure to include an [API Auth Key](../readme.md#api-authentication).
 
 ### All in One Go
 

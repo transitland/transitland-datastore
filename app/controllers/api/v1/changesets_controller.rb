@@ -1,4 +1,5 @@
 class Api::V1::ChangesetsController < Api::V1::BaseApiController
+  before_filter :require_api_auth_token, only: [:create, :update, :check, :apply, :revert]
   before_action :set_changeset, only: [:show, :update, :check, :apply, :revert]
 
   def index

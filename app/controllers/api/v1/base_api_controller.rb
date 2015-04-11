@@ -44,6 +44,16 @@ class Api::V1::BaseApiController < ApplicationController
 
   private
 
+  def require_api_auth_token
+    authenticate_or_request_with_http_token do |token, options|
+      api_auth_tokens.include?(token)
+    end
+  end
+
+  def api_auth_tokens
+    @api_auth_tokens ||= Figaro.env.api_auth_tokens.split(',').map(&:to_s).map(&:strip)
+  end
+
   def set_default_response_format
     request.format = :json if request.format != :geojson
   end
