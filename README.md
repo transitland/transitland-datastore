@@ -36,7 +36,7 @@ For a complete visualization of the Datastore's data model, see [doc/data-model.
     bundle install
     ````
 
-2. Configure your local copy by renaming the example files to `config/application.yml` and `config/database.yml`. Edit as appropriate.
+2. Configure your local copy by renaming the example files to `config/application.yml` and `config/database.yml`. Edit as appropriate. Note that the tokens you specify in `config/application.yml` will be used for [API Authentication](#api-authentication).
 
 3. Create and initialize the database:
 
@@ -62,11 +62,11 @@ For a complete visualization of the Datastore's data model, see [doc/data-model.
 
 Example URL  | Parameters
 -------------|-----------
-`POST /api/v1/changesets` | include a [changeset payload](doc/changesets.md) in the request body
-`PUT /api/v1/changesets/32`<br/>(a Changeset can only be updated if it hasn't yet been applied)| include a [changeset payload](doc/changesets.md) in the request body
-`POST /api/v1/changesets/1/check` | 
-`POST /api/v1/changesets/1/apply` | 
-`POST /api/v1/changesets/1/revert` | 
+`POST /api/v1/changesets` | include a [changeset payload](doc/changesets.md) in the request body ([secured](#api-authentication))
+`PUT /api/v1/changesets/32`<br/>(a Changeset can only be updated if it hasn't yet been applied)| include a [changeset payload](doc/changesets.md) in the request body ([secured](#api-authentication))
+`POST /api/v1/changesets/1/check` | ([secured](#api-authentication))
+`POST /api/v1/changesets/1/apply` | ([secured](#api-authentication))
+`POST /api/v1/changesets/1/revert` | ([secured](#api-authentication))
 `GET /api/v1/onestop_id/o-9q8y-SFMTA` | final part of the path can be a Onestop ID for any type of entity (for example, a stop or an operator)
 `GET /api/v1/stops` | none required
 `GET /api/v1/stops?identifer=4973` | `identifier` can be any type of stop identifier
@@ -89,3 +89,20 @@ Pagination for JSON endpoints:
 Format:
 - by default, responses are paginated JSON
 - specify `.geojson` instead for GeoJSON on some endpoints. For example: `/api/v1/stops.geojson?bbox=-122.4183,37.7758,-122.4120,37.7858`
+
+## API Authentication
+
+Any API calls that involve writing to the database (creating/editing/applying changesets) require authentication. For now, API keys are specified in `config/application.yml`. Keys can be any alphanumeric string, separated by commas. For example:
+
+````yaml
+# config/application.yml
+API_AUTH_TOKENS: 1a4494f1fc463ab8e32d6b,AN_OPTIONAL_SECOND_KEY
+````
+
+Or, specify as an environment variable. For example, `API_AUTH_TOKENS=1a4494f1fc463ab8e32d6b,AN_OPTIONAL_SECOND_KEY bundle exec rails server`
+
+To authenticate, include the following in your POST or PUT request:
+
+header name   | header value
+------------- | ---------------------------------
+Authorization | Token token=fde67e1437ebf73e1f3eW
