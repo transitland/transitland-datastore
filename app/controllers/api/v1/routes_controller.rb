@@ -1,5 +1,6 @@
 class Api::V1::RoutesController < Api::V1::BaseApiController
   include JsonCollectionPagination
+  include DownloadableCsv
 
   before_action :set_route, only: [:show]
 
@@ -27,6 +28,9 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
           params[:offset],
           per_page
         )
+      end
+      format.csv do
+        return_downloadable_csv(@routes, 'routes')
       end
     end
   end

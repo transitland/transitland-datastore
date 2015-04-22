@@ -1,6 +1,7 @@
 class Api::V1::StopsController < Api::V1::BaseApiController
   include Geojson
   include JsonCollectionPagination
+  include DownloadableCsv
 
   before_action :set_stop, only: [:show]
 
@@ -39,6 +40,9 @@ class Api::V1::StopsController < Api::V1::BaseApiController
       format.geojson do
         render json: Geojson.from_entity_collection(@stops)
       end
+      format.csv do
+        return_downloadable_csv(@stops, 'stops')
+      end
     end
   end
 
@@ -50,32 +54,5 @@ class Api::V1::StopsController < Api::V1::BaseApiController
 
   def set_stop
     @stop = Stop.find_by_onestop_id!(params[:id])
-  end
-
-  def stop_collection_geojson(stops)
-    # TODO: paginate or serve as GeoJSON tiles, perhaps for consumption by
-    # https://github.com/glenrobertson/leaflet-tilelayer-geojson
-    factory = RGeo::GeoJSON::EntityFactory.instance
-    features = stops.map do |stop|
-      factory.feature(
-        stop.geometry,
-        stop.onestop_id,
-        {
-          name: stop.name,
-          created_at: stop.created_at,
-          updated_at: stop.updated_at,
-          tags: stop.tags,
-          identifiers: stop.stop_identifiers.map do |stop_identifier|
-            {
-              identifier: stop_identifier.identifier,
-              tags: stop_identifier.tags,
-              created_at: stop_identifier.created_at,
-              updated_at: stop_identifier.updated_at
-            }
-          end
-        }
-      )
-    end
-    RGeo::GeoJSON.encode(factory.feature_collection(features))
   end
 end
