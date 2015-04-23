@@ -48,8 +48,8 @@ class Route < BaseRoute
     [
       onestop_id,
       name,
-      operator.name,
-      operator.onestop_id
+      operator.try(:name),
+      operator.try(:onestop_id)
     ]
   end
 

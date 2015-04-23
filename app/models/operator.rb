@@ -45,7 +45,7 @@ class Operator < BaseOperator
     [
       onestop_id,
       name,
-      tags[:agency_url]
+      tags.try(:fetch, :agency_url, '')
     ]
   end
 

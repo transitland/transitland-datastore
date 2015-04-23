@@ -67,6 +67,25 @@ describe Api::V1::RoutesController do
         }})
       end
     end
+
+    context 'as CSV' do
+      before(:each) do
+        @sfmta = create(:operator, geometry: 'POINT(-122.395644 37.722413)', name: 'SFMTA')
+        @richmond_millbrae_route.update(operator: @sfmta)
+      end
+      it 'should return a CSV file for download' do
+        get :index, format: :csv
+        expect(response.headers['Content-Type']).to eq 'text/csv'
+        expect(response.headers['Content-Disposition']).to eq 'attachment; filename=routes.csv'
+      end
+
+      it 'should include column headers and row values' do
+        get :index, format: :csv #, identifier: 'Richmond - Daly City/Millbrae'
+        expect(response.body.lines.count).to eq 2
+        expect(response.body).to start_with(Route.csv_column_names.join(','))
+        expect(response.body).to include([@richmond_millbrae_route.onestop_id, @richmond_millbrae_route.name, @sfmta.name, @sfmta.onestop_id].join(','))
+      end
+    end
   end
 
   describe 'GET show' do

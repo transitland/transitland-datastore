@@ -1,6 +1,11 @@
 describe Api::V1::OperatorsController do
   before(:each) do
-    @vta = create(:operator, name: 'Santa Clara Valley Transportation Agency', geometry: 'POINT(-121.891583 37.336063)')
+    @vta = create(
+      :operator,
+      name: 'Santa Clara Valley Transportation Agency',
+      geometry: 'POINT(-121.891583 37.336063)',
+      tags: { agency_url: 'http://www.vta.org'}
+    )
     @sfmta = create(:operator, name: 'SFMTA', geometry: 'POINT(-122.418611 37.774870)')
 
     @vta.identifiers.create(identifier: 'VTA')
@@ -49,6 +54,21 @@ describe Api::V1::OperatorsController do
           type: 'FeatureCollection',
           features: -> (features) { expect(features.first[:id]).to eq @vta.onestop_id }
         })
+      end
+    end
+
+    context 'as CSV' do
+      it 'should return a CSV file for download' do
+        get :index, format: :csv
+        expect(response.headers['Content-Type']).to eq 'text/csv'
+        expect(response.headers['Content-Disposition']).to eq 'attachment; filename=operators.csv'
+      end
+
+      it 'should include column headers and row values' do
+        get :index, format: :csv, bbox: '-122.0883,37.198,-121.8191,37.54804'
+        expect(response.body.lines.count).to eq 2
+        expect(response.body).to start_with(Operator.csv_column_names.join(','))
+        expect(response.body).to include([@vta.onestop_id, @vta.name, @vta.tags[:agency_url]].join(','))
       end
     end
   end
