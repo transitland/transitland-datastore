@@ -33,6 +33,28 @@ class Stop < BaseStop
   include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
 
+  include CanBeSerializedToCsv
+  def self.csv_column_names
+    [
+      'Onestop ID',
+      'Name',
+      'Operators serving stop (names)',
+      'Operators serving stop (Onestop IDs)',
+      'Latitude (centroid)',
+      'Longitude (centroid)'
+    ]
+  end
+  def csv_row_values
+    [
+      onestop_id,
+      name,
+      operators_serving_stop.map {|oss| oss.operator.name }.join(', '),
+      operators_serving_stop.map {|oss| oss.operator.onestop_id }.join(', '),
+      geometry_centroid[:lat],
+      geometry_centroid[:lon]
+    ]
+  end
+
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,

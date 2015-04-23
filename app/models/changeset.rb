@@ -22,6 +22,10 @@ class Changeset < ActiveRecord::Base
     end
   end
 
+  PER_PAGE = 50
+
+  include CanBeSerializedToCsv
+
   include HasAJsonPayload
 
   has_many :stops_created_or_updated, class_name: 'Stop', foreign_key: 'created_or_updated_in_changeset_id'

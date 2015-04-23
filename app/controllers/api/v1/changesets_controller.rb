@@ -1,10 +1,28 @@
 class Api::V1::ChangesetsController < Api::V1::BaseApiController
+  include JsonCollectionPagination
+  include DownloadableCsv
+
   before_filter :require_api_auth_token, only: [:create, :update, :check, :apply, :revert]
   before_action :set_changeset, only: [:show, :update, :check, :apply, :revert]
 
   def index
     @changesets = Changeset.where('')
-    render json: @changesets
+
+    per_page = params[:per_page].blank? ? Changeset::PER_PAGE : params[:per_page].to_i
+
+    respond_to do |format|
+      format.json do
+        render paginated_json_collection(
+          @changesets,
+          Proc.new { |params| api_v1_changesets_url(params) },
+          params[:offset],
+          per_page
+        )
+      end
+      format.csv do
+        return_downloadable_csv(@changesets, 'changesets')
+      end
+    end
   end
 
   def create

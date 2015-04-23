@@ -34,6 +34,25 @@ class Route < BaseRoute
   include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
 
+  include CanBeSerializedToCsv
+  def self.csv_column_names
+    [
+      'Onestop ID',
+      'Name',
+      'Operated by (name)',
+      'Operated by (Onestop ID)'
+    ]
+  end
+
+  def csv_row_values
+    [
+      onestop_id,
+      name,
+      operator.try(:name),
+      operator.try(:onestop_id)
+    ]
+  end
+
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,

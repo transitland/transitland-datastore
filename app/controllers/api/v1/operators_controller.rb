@@ -1,6 +1,7 @@
 class Api::V1::OperatorsController < Api::V1::BaseApiController
   include Geojson
   include JsonCollectionPagination
+  include DownloadableCsv
 
   before_action :set_operator, only: [:show]
 
@@ -33,6 +34,9 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
       end
       format.geojson do
         render json: Geojson.from_entity_collection(@operators)
+      end
+      format.csv do
+        return_downloadable_csv(@operators, 'operators')
       end
     end
   end

@@ -55,7 +55,7 @@ class Api::V1::BaseApiController < ApplicationController
   end
 
   def set_default_response_format
-    request.format = :json if request.format != :geojson
+    request.format = :json unless [:geojson, :csv].include?(request.format.to_sym)
   end
 
   def render_error(code: 500, message: '', errors: {})

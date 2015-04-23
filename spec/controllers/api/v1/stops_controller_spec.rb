@@ -77,6 +77,25 @@ describe Api::V1::StopsController do
         })
       end
     end
+
+    context 'as CSV' do
+      before(:each) do
+        @sfmta = create(:operator, geometry: 'POINT(-122.395644 37.722413)', name: 'SFMTA')
+        @metro_embarcadero.operators << @sfmta
+      end
+      it 'should return a CSV file for download' do
+        get :index, format: :csv
+        expect(response.headers['Content-Type']).to eq 'text/csv'
+        expect(response.headers['Content-Disposition']).to eq 'attachment; filename=stops.csv'
+      end
+
+      it 'should include column headers and row values' do
+        get :index, format: :csv, bbox: '-122.4131,37.7136,-122.3789,37.8065'
+        expect(response.body.lines.count).to eq 3
+        expect(response.body).to start_with('Onestop ID,Name,Operators serving stop (names),Operators serving stop (Onestop IDs),Latitude (centroid),Longitude (centroid)')
+        expect(response.body).to include("#{@metro_embarcadero.onestop_id},#{@metro_embarcadero.name},#{@sfmta.name},#{@sfmta.onestop_id},#{@metro_embarcadero.geometry(as: :wkt).lat},#{@metro_embarcadero.geometry(as: :wkt).lon}")
+      end
+    end
   end
 
   describe 'GET show' do

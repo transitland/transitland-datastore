@@ -33,6 +33,22 @@ class Operator < BaseOperator
   include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
 
+  include CanBeSerializedToCsv
+  def self.csv_column_names
+    [
+      'Onestop ID',
+      'Name',
+      'Website'
+    ]
+  end
+  def csv_row_values
+    [
+      onestop_id,
+      name,
+      tags.try(:fetch, :agency_url, '')
+    ]
+  end
+
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
