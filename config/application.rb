@@ -32,5 +32,7 @@ module TransitlandDatastore
         resource '*', :headers => :any, :methods => [:get, :post, :put, :patch, :options]
       end
     end
+
+    config.skylight.environments += ['staging']
   end
 end
