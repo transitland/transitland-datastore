@@ -5,7 +5,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
   before_action :set_route, only: [:show]
 
   def index
-    @routes = Route.includes(:identifiers).where('') # TODO: check performance against eager_load, joins, etc.
+    @routes = Route.includes(:identifiers).where('')
 
     if params[:identifier].present?
       @routes = @routes.with_identifier_or_name(params[:identifier])

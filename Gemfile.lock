@@ -66,6 +66,9 @@ GEM
     binding_of_caller (0.7.2)
       debug_inspector (>= 0.0.1)
     builder (3.2.2)
+    bullet (4.14.5)
+      activesupport (>= 3.0.0)
+      uniform_notifier (~> 1.9.0)
     byebug (4.0.5)
       columnize (= 0.9.0)
     c_geohash (1.1.2)
@@ -243,6 +246,8 @@ GEM
       multi_json (~> 1.0)
       simplecov-html (~> 0.9.0)
     simplecov-html (0.9.0)
+    skylight (0.6.0)
+      activesupport (>= 3.0.0)
     slop (3.6.0)
     sprockets (2.12.3)
       hike (~> 1.2)
@@ -271,6 +276,7 @@ GEM
       kgio (~> 2.6)
       rack
       raindrops (~> 0.7)
+    uniform_notifier (1.9.0)
 
 PLATFORMS
   ruby
@@ -283,6 +289,7 @@ DEPENDENCIES
   aws-sdk
   better_errors
   binding_of_caller
+  bullet
   byebug
   c_geohash
   database_cleaner
@@ -307,5 +314,6 @@ DEPENDENCIES
   rspec-rails
   sidekiq
   simplecov
+  skylight
   squeel
   unicorn

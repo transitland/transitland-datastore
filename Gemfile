@@ -55,3 +55,5 @@ gem 'airborne', group: :test
 # deployment and monitoring
 gem 'aws-sdk', group: [:staging, :production]
 gem 'newrelic_rpm', group: [:staging, :production]
+gem 'bullet', group: :development
+gem 'skylight', group: [:staging, :production]
