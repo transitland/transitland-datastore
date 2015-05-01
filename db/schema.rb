@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150310002641) do
+ActiveRecord::Schema.define(version: 20150501181034) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -27,21 +27,6 @@ ActiveRecord::Schema.define(version: 20150310002641) do
     t.datetime "updated_at"
   end
 
-  create_table "current_identifiers", force: :cascade do |t|
-    t.integer  "identified_entity_id",               null: false
-    t.string   "identified_entity_type",             null: false
-    t.string   "identifier"
-    t.hstore   "tags"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.integer  "created_or_updated_in_changeset_id"
-    t.integer  "version"
-  end
-
-  add_index "current_identifiers", ["created_or_updated_in_changeset_id"], name: "#c_identifiers_cu_in_changeset_id_index", using: :btree
-  add_index "current_identifiers", ["identified_entity_id", "identified_entity_type"], name: "identified_entity", using: :btree
-  add_index "current_identifiers", ["identified_entity_id"], name: "index_current_identifiers_on_identified_entity_id", using: :btree
-
   create_table "current_operators", force: :cascade do |t|
     t.string    "name"
     t.hstore    "tags"
@@ -51,9 +36,11 @@ ActiveRecord::Schema.define(version: 20150310002641) do
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.integer   "created_or_updated_in_changeset_id"
     t.integer   "version"
+    t.string    "identifiers",                                                                                    array: true
   end
 
   add_index "current_operators", ["created_or_updated_in_changeset_id"], name: "#c_operators_cu_in_changeset_id_index", using: :btree
+  add_index "current_operators", ["identifiers"], name: "index_current_operators_on_identifiers", using: :gin
   add_index "current_operators", ["onestop_id"], name: "index_current_operators_on_onestop_id", unique: true, using: :btree
 
   create_table "current_operators_serving_stop", force: :cascade do |t|
@@ -81,9 +68,11 @@ ActiveRecord::Schema.define(version: 20150310002641) do
     t.datetime  "created_at"
     t.datetime  "updated_at"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
+    t.string    "identifiers",                                                                                    array: true
   end
 
   add_index "current_routes", ["created_or_updated_in_changeset_id"], name: "c_route_cu_in_changeset", using: :btree
+  add_index "current_routes", ["identifiers"], name: "index_current_routes_on_identifiers", using: :gin
   add_index "current_routes", ["operator_id"], name: "index_current_routes_on_operator_id", using: :btree
 
   create_table "current_routes_serving_stop", force: :cascade do |t|
@@ -109,27 +98,12 @@ ActiveRecord::Schema.define(version: 20150310002641) do
     t.string    "name"
     t.integer   "created_or_updated_in_changeset_id"
     t.integer   "version"
+    t.string    "identifiers",                                                                                    array: true
   end
 
   add_index "current_stops", ["created_or_updated_in_changeset_id"], name: "#c_stops_cu_in_changeset_id_index", using: :btree
+  add_index "current_stops", ["identifiers"], name: "index_current_stops_on_identifiers", using: :gin
   add_index "current_stops", ["onestop_id"], name: "index_current_stops_on_onestop_id", using: :btree
-
-  create_table "old_identifiers", force: :cascade do |t|
-    t.integer  "identified_entity_id"
-    t.string   "identified_entity_type"
-    t.string   "identifier"
-    t.hstore   "tags"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.integer  "created_or_updated_in_changeset_id"
-    t.integer  "destroyed_in_changeset_id"
-    t.integer  "current_id"
-    t.integer  "version"
-  end
-
-  add_index "old_identifiers", ["created_or_updated_in_changeset_id"], name: "o_identifiers_cu_in_changeset_id_index", using: :btree
-  add_index "old_identifiers", ["current_id"], name: "index_old_identifiers_on_current_id", using: :btree
-  add_index "old_identifiers", ["destroyed_in_changeset_id"], name: "identifiers_d_in_changeset_id_index", using: :btree
 
   create_table "old_operators", force: :cascade do |t|
     t.string    "name"
@@ -142,11 +116,13 @@ ActiveRecord::Schema.define(version: 20150310002641) do
     t.integer   "destroyed_in_changeset_id"
     t.integer   "current_id"
     t.integer   "version"
+    t.string    "identifiers",                                                                                    array: true
   end
 
   add_index "old_operators", ["created_or_updated_in_changeset_id"], name: "o_operators_cu_in_changeset_id_index", using: :btree
   add_index "old_operators", ["current_id"], name: "index_old_operators_on_current_id", using: :btree
   add_index "old_operators", ["destroyed_in_changeset_id"], name: "operators_d_in_changeset_id_index", using: :btree
+  add_index "old_operators", ["identifiers"], name: "index_old_operators_on_identifiers", using: :gin
 
   create_table "old_operators_serving_stop", force: :cascade do |t|
     t.integer  "stop_id"
@@ -181,11 +157,13 @@ ActiveRecord::Schema.define(version: 20150310002641) do
     t.datetime  "created_at"
     t.datetime  "updated_at"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
+    t.string    "identifiers",                                                                                    array: true
   end
 
   add_index "old_routes", ["created_or_updated_in_changeset_id"], name: "o_route_cu_in_changeset", using: :btree
   add_index "old_routes", ["current_id"], name: "index_old_routes_on_current_id", using: :btree
   add_index "old_routes", ["destroyed_in_changeset_id"], name: "o_route_d_in_changeset", using: :btree
+  add_index "old_routes", ["identifiers"], name: "index_old_routes_on_identifiers", using: :gin
   add_index "old_routes", ["operator_type", "operator_id"], name: "index_old_routes_on_operator_type_and_operator_id", using: :btree
 
   create_table "old_routes_serving_stop", force: :cascade do |t|
@@ -219,10 +197,12 @@ ActiveRecord::Schema.define(version: 20150310002641) do
     t.integer   "destroyed_in_changeset_id"
     t.integer   "current_id"
     t.integer   "version"
+    t.string    "identifiers",                                                                                    array: true
   end
 
   add_index "old_stops", ["created_or_updated_in_changeset_id"], name: "o_stops_cu_in_changeset_id_index", using: :btree
   add_index "old_stops", ["current_id"], name: "index_old_stops_on_current_id", using: :btree
   add_index "old_stops", ["destroyed_in_changeset_id"], name: "stops_d_in_changeset_id_index", using: :btree
+  add_index "old_stops", ["identifiers"], name: "index_old_stops_on_identifiers", using: :gin
 
 end

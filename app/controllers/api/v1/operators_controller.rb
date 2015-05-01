@@ -6,7 +6,7 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
   before_action :set_operator, only: [:show]
 
   def index
-    @operators = Operator.includes(:identifiers).where('')
+    @operators = Operator.where('')
 
     if params[:identifier].present?
       @operators = @operators.with_identifier_or_name(params[:identifier])

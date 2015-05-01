@@ -15,12 +15,7 @@
       "type": "array",
       "uniqueItems": true,
       "items": {
-        "type": "object",
-        "properties": {
-          "identifier": { "type": "string" },
-          "tags": { "type": "object" },
-          "required": ["identifier"]
-        }
+        "type": "string"
       }
     },
     "servedBy": {

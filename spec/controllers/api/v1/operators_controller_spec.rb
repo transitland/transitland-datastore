@@ -4,11 +4,10 @@ describe Api::V1::OperatorsController do
       :operator,
       name: 'Santa Clara Valley Transportation Agency',
       geometry: 'POINT(-121.891583 37.336063)',
-      tags: { agency_url: 'http://www.vta.org'}
+      tags: { agency_url: 'http://www.vta.org'},
+      identifiers: ['VTA']
     )
     @sfmta = create(:operator, name: 'SFMTA', geometry: 'POINT(-122.418611 37.774870)')
-
-    @vta.identifiers.create(identifier: 'VTA')
 
     @glen_park = create(:stop, geometry: 'POINT(-122.433416 37.732525)', name: 'Glen Park' )
 
