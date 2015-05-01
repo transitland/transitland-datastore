@@ -9,6 +9,8 @@ Integrates with the [Onestop ID Registry](https://github.com/transitland/onestop
 
 Behind the scenes: a Ruby on Rails web service (backed by Postgres/PostGIS), along with an asynchronous Sidekiq queue (backed by Resque) that runs Ruby and Python data-ingestion libraries.
 
+For more information about the overall process, see [Transitland: How it Works](http://transit.land/how-it-works/).
+
 ## Data Model
 
 Every entity has a globally unique Onestop ID (from the [Onestop ID Registry](https://github.com/transit-land/onestop-id-registry)). Entities include:
@@ -76,6 +78,7 @@ Example URL  | Parameters
 `POST /api/v1/changesets/1/check` | ([secured](#api-authentication))
 `POST /api/v1/changesets/1/apply` | ([secured](#api-authentication))
 `POST /api/v1/changesets/1/revert` | ([secured](#api-authentication))
+`POST /api/v1/webhooks/feed_eater` | ([secured](#api-authentication))
 `GET /api/v1/onestop_id/o-9q8y-SFMTA` | final part of the path can be a Onestop ID for any type of entity (for example, a stop or an operator)
 `GET /api/v1/stops` | none required
 `GET /api/v1/stops?identifer=4973` | `identifier` can be any type of stop identifier
@@ -99,9 +102,31 @@ Format:
 - by default, responses are paginated JSON
 - specify `.geojson` instead for GeoJSON on some endpoints. For example: `/api/v1/stops.geojson?bbox=-122.4183,37.7758,-122.4120,37.7858`
 
+## Running the Onestop "feed eater" pipeline
+
+This asynchronous background worker will import feeds specified in the [Onestop ID Registry](https://github.com/transitland/onestop-id-registry).
+
+To enqueue a worker from the command line:
+
+    bundle exec rake enqueue_feed_eater_worker
+
+To enqueue a worker from an endpoint:
+
+    POST /api/v1/webhooks/feed_eater
+    
+Note that this endpoint requires [API authentication](#api-authentication).
+
+To check the status of background workers, you can view Sidekiq's dashboard at: `/worker_dashboard`. In production and staging environments, accessing the dashboard will require the user name and password specified in `/config/application.yml` or by environment variable.
+
+To run the background workers regularly on servers, set up crontab entries:
+
+    bundle exec whenever --update-crontab --set environment=production
+
+Note that the crontab schedule is set in [config/schedule.rb](config/schedule.rb).
+
 ## API Authentication
 
-Any API calls that involve writing to the database (creating/editing/applying changesets) require authentication. For now, API keys are specified in `config/application.yml`. Keys can be any alphanumeric string, separated by commas. For example:
+Any API calls that involve writing to the database (creating/editing/applying changesets or running the "feed eater" data ingestion pipeline) require authentication. API keys are specified in `config/application.yml`. Keys can be any alphanumeric string, separated by commas. For example:
 
 ````yaml
 # config/application.yml
