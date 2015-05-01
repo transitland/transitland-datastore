@@ -51,7 +51,7 @@ GEM
       activemodel (= 4.2.0)
       activesupport (= 4.2.0)
       arel (~> 6.0)
-    activerecord-postgis-adapter (3.0.0.beta2)
+    activerecord-postgis-adapter (3.0.0.beta4)
       activerecord (~> 4.2)
       rgeo-activerecord (~> 2.1)
     activesupport (4.2.0)
@@ -329,7 +329,7 @@ PLATFORMS
 
 DEPENDENCIES
   active_model_serializers (= 0.9.3)
-  activerecord-postgis-adapter (= 3.0.0.beta2)
+  activerecord-postgis-adapter (= 3.0.0.beta4)
   airborne
   annotate
   aws-sdk
