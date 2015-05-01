@@ -4,6 +4,7 @@ SimpleCov.start do
 
   add_group 'Services', 'app/services'
   add_group 'Serializers', 'app/serializers'
+  add_group 'Workers', 'app/workers'
 
   coverage_dir(File.join("..", "..", "..", ENV['CIRCLE_ARTIFACTS'], "coverage")) if ENV['CIRCLE_ARTIFACTS']
 end
@@ -11,6 +12,7 @@ end
 ENV["RAILS_ENV"] ||= 'test'
 require File.expand_path("../../config/environment", __FILE__)
 require 'rspec/rails'
+require 'sidekiq/testing'
 require 'database_cleaner'
 require 'ffaker'
 require 'byebug'
@@ -38,6 +40,7 @@ RSpec.configure do |config|
 
   config.before(:each) do
     DatabaseCleaner.clean_with :truncation, { except: ['spatial_ref_sys'] }
+    Sidekiq::Worker.clear_all
   end
 
   config.before(:each, type: :feature) do

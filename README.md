@@ -7,7 +7,9 @@ A community-run and -edited timetable and map of public transit service around t
 
 Integrates with the [Onestop ID Registry](https://github.com/transitland/onestop-id-registry).
 
-Behind the scenes: a Ruby on Rails web service, backed by Postgres/PostGIS.
+Behind the scenes: a Ruby on Rails web service (backed by Postgres/PostGIS), along with an asynchronous Sidekiq queue (backed by Resque) that runs Ruby and Python data-ingestion libraries.
+
+For more information about the overall process, see [Transitland: How it Works](http://transit.land/how-it-works/).
 
 ## Data Model
 
@@ -27,16 +29,25 @@ For a complete visualization of the Datastore's data model, see [doc/data-model.
 
 ## To Develop Locally
 
-1. Install dependencies:
+0. We'll assume you already have Ruby 2.0+ and Python 2.7 interpreters available on your system.
+
+1. Install dependencies. Here's how to do it on Mac OS using the [Homebrew package manager](http://brew.sh/):
+
+  * `brew install postgis` Postgres database with the [PostGIS extension](http://postgis.net/)
+  * `brew install redis` [Redis key-value store](http://redis.io/) (used for the Sidekiq async worker queue)
+  * **optional** `brew install graphviz` Graphviz graph visualization library (used to generate entity-relation diagrams). Only necessary if you'll be adding models and database migrations.
+
+2. Run the Datastore setup script, which will install Ruby gems, install Python packages, and set your local configuration to default values:
 
     ````
-    brew install postgis
-    brew install redis
-    brew install graphviz
-    bundle install
+    bin/setup
     ````
 
-2. Configure your local copy by renaming the example files to `config/application.yml` and `config/database.yml`. Edit as appropriate. Note that the tokens you specify in `config/application.yml` will be used for [API Authentication](#api-authentication).
+2. Depending upon your needs, you may need to modify your configuration by editing `config/application.yml` and `config/database.yml`.
+
+   Note that any values in `config/database.yml` can also be overwritten with environment variables---useful if you're running a production server.
+   
+   The tokens you specify in `config/application.yml` will be used for [API Authentication](#api-authentication).
 
 3. Create and initialize the database:
 
@@ -51,7 +62,7 @@ For a complete visualization of the Datastore's data model, see [doc/data-model.
   bundle exec rake db:seed
   ````
 
-5. Start the server: `bundle exec rails server`
+5. Start the server and background queue: `bundle exec foreman start`
 
 ## To Run Tests Locally
 
@@ -67,6 +78,7 @@ Example URL  | Parameters
 `POST /api/v1/changesets/1/check` | ([secured](#api-authentication))
 `POST /api/v1/changesets/1/apply` | ([secured](#api-authentication))
 `POST /api/v1/changesets/1/revert` | ([secured](#api-authentication))
+`POST /api/v1/webhooks/feed_eater` | ([secured](#api-authentication))
 `GET /api/v1/onestop_id/o-9q8y-SFMTA` | final part of the path can be a Onestop ID for any type of entity (for example, a stop or an operator)
 `GET /api/v1/stops` | none required
 `GET /api/v1/stops?identifer=4973` | `identifier` can be any type of stop identifier
@@ -90,9 +102,31 @@ Format:
 - by default, responses are paginated JSON
 - specify `.geojson` instead for GeoJSON on some endpoints. For example: `/api/v1/stops.geojson?bbox=-122.4183,37.7758,-122.4120,37.7858`
 
+## Running the Onestop "feed eater" pipeline
+
+This asynchronous background worker will import feeds specified in the [Onestop ID Registry](https://github.com/transitland/onestop-id-registry).
+
+To enqueue a worker from the command line:
+
+    bundle exec rake enqueue_feed_eater_worker
+
+To enqueue a worker from an endpoint:
+
+    POST /api/v1/webhooks/feed_eater
+    
+Note that this endpoint requires [API authentication](#api-authentication).
+
+To check the status of background workers, you can view Sidekiq's dashboard at: `/worker_dashboard`. In production and staging environments, accessing the dashboard will require the user name and password specified in `/config/application.yml` or by environment variable.
+
+To run the background workers regularly on servers, set up crontab entries:
+
+    bundle exec whenever --update-crontab --set environment=production
+
+Note that the crontab schedule is set in [config/schedule.rb](config/schedule.rb).
+
 ## API Authentication
 
-Any API calls that involve writing to the database (creating/editing/applying changesets) require authentication. For now, API keys are specified in `config/application.yml`. Keys can be any alphanumeric string, separated by commas. For example:
+Any API calls that involve writing to the database (creating/editing/applying changesets or running the "feed eater" data ingestion pipeline) require authentication. API keys are specified in `config/application.yml`. Keys can be any alphanumeric string, separated by commas. For example:
 
 ````yaml
 # config/application.yml

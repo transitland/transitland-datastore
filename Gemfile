@@ -2,11 +2,11 @@ source 'https://rubygems.org'
 
 gem 'rails', '4.2.0'
 
+# process runner
+gem 'foreman', group: :development
+
 # configuration
 gem 'figaro'
-
-# web server
-gem 'unicorn', group: [:staging, :production]
 
 # data stores
 gem 'pg'
@@ -15,6 +15,8 @@ gem 'redis-rails'
 
 # background processing
 gem 'sidekiq'
+gem 'sinatra', require: nil # for Sidekiq dashboard
+gem 'whenever', require: false # to manage crontab
 
 # data model
 gem 'squeel'
@@ -23,6 +25,10 @@ gem 'gtfs'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 gem 'json-schema'
+
+# Onestop libraries
+gem 'onestop-id-client', github: 'transitland/onestop-id-ruby-client', tag: 'v0.0.4', require: 'onestop_id_client'
+gem 'onestop-id-registry-validator', github: 'transitland/onestop-id-registry-validator', tag: 'v0.0.4', require: 'onestop_id_registry_validator'
 
 # authentication and authorization
 gem 'rack-cors', :require => 'rack/cors'
@@ -57,3 +63,6 @@ gem 'aws-sdk', group: [:staging, :production]
 gem 'newrelic_rpm', group: [:staging, :production]
 gem 'bullet', group: :development
 gem 'skylight', group: [:staging, :production]
+
+# web server
+gem 'unicorn', group: [:staging, :production]

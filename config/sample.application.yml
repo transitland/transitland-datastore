@@ -1,0 +1,7 @@
+API_AUTH_TOKENS: iamallowedtotouchthis,iamalsoallowedtotouchthis
+SIDEKIQ_DASHBOARD_USERNAME: onlyneedonproduction
+SIDEKIQ_DASHBOARD_PASSWORD: onlyneedonproduction
+ONESTOP_ID_REGISTRY_LOCAL_PATH: ./tmp/onestop-id-registry
+DATASTORE_PROTOCOL: http
+DATASTORE_HOST: localhost
+DATASTORE_PORT: '3000'

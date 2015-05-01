@@ -1,0 +1,29 @@
+#!/usr/bin/env ruby
+require 'pathname'
+
+# path to your application root.
+APP_ROOT = Pathname.new File.expand_path('../../',  __FILE__)
+
+Dir.chdir APP_ROOT do
+  puts '== Installing Ruby dependencies =='
+  system 'gem install bundler --conservative'
+  system 'bundle check || bundle install'
+
+  puts "\n== Installing Python dependences =="
+  system 'pip install -r requirements.txt --upgrade'
+
+  puts "\n== Copying sample config files =="
+  unless File.exist?('config/application.yml')
+    system 'cp config/sample.application.yml config/application.yml'
+  end
+  unless File.exist?('config/database.yml')
+    system 'cp config/sample.database.yml config/database.yml'
+  end
+
+  puts "\n== Removing old logs and tempfiles =="
+  system 'rm -f log/*'
+  system 'rm -rf tmp/cache'
+
+  puts "\n== Restarting application server =="
+  system 'touch tmp/restart.txt'
+end
