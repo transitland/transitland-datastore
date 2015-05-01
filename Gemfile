@@ -56,7 +56,6 @@ gem 'database_cleaner', group: :test
 gem 'factory_girl_rails', group: [:development, :test]
 gem 'ffaker', group: [:development, :test]
 gem 'rspec-rails', group: [:development, :test]
-gem 'rspec-sidekiq', group: :test
 gem 'airborne', group: :test
 
 # deployment and monitoring
