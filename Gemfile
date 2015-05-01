@@ -31,7 +31,7 @@ gem 'onestop-id-client', github: 'transitland/onestop-id-ruby-client', tag: 'v0.
 gem 'onestop-id-registry-validator', github: 'transitland/onestop-id-registry-validator', tag: 'v0.0.4', require: 'onestop_id_registry_validator'
 
 # authentication and authorization
-gem 'rack-cors', :require => 'rack/cors'
+gem 'rack-cors', require: 'rack/cors'
 gem 'omniauth'
 gem 'omniauth-osm'
 
