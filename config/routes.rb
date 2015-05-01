@@ -2,7 +2,7 @@ require 'sidekiq/web'
 
 Sidekiq::Web.use Rack::Auth::Basic do |username, password|
   username == Figaro.env.sidekiq_dashboard_username && password == Figaro.env.sidekiq_dashboard_password
-end if Rails.env.production?
+end if Rails.env.production? || Rails.env.staging?
 
 Rails.application.routes.draw do
   namespace :api do
