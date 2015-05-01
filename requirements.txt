@@ -1,0 +1,5 @@
+-e git+https://github.com/transitland/mapzen-geohash.git#egg=mzgeohash
+-e git+https://github.com/transitland/mapzen-gtfs.git#egg=mzgtfs
+-e git+https://github.com/transitland/onestop-id-python-client.git#egg=onestop
+-e git+https://github.com/transitland/onestop-similarity.git#egg=onestop_similarity
+-e git+https://github.com/transitland/onestop-updater.git#egg=onestop_updater

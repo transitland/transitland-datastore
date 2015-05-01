@@ -7,7 +7,7 @@ A community-run and -edited timetable and map of public transit service around t
 
 Integrates with the [Onestop ID Registry](https://github.com/transitland/onestop-id-registry).
 
-Behind the scenes: a Ruby on Rails web service, backed by Postgres/PostGIS.
+Behind the scenes: a Ruby on Rails web service (backed by Postgres/PostGIS), along with an asynchronous Sidekiq queue (backed by Resque) that runs Ruby and Python data-ingestion libraries.
 
 ## Data Model
 
@@ -27,16 +27,25 @@ For a complete visualization of the Datastore's data model, see [doc/data-model.
 
 ## To Develop Locally
 
-1. Install dependencies:
+0. We'll assume you already have Ruby 2.0+ and Python 2.7 interpreters available on your system.
+
+1. Install dependencies. Here's how to do it on Mac OS using the [Homebrew package manager](http://brew.sh/):
+
+  * `brew install postgis` Postgres database with the [PostGIS extension](http://postgis.net/)
+  * `brew install redis` [Redis key-value store](http://redis.io/) (used for the Sidekiq async worker queue)
+  * **optional** `brew install graphviz` Graphviz graph visualization library (used to generate entity-relation diagrams). Only necessary if you'll be adding models and database migrations.
+
+2. Run the Datastore setup script, which will install Ruby gems, install Python packages, and set your local configuration to default values:
 
     ````
-    brew install postgis
-    brew install redis
-    brew install graphviz
-    bundle install
+    bin/setup
     ````
 
-2. Configure your local copy by renaming the example files to `config/application.yml` and `config/database.yml`. Edit as appropriate. Note that the tokens you specify in `config/application.yml` will be used for [API Authentication](#api-authentication).
+2. Depending upon your needs, you may need to modify your configuration by editing `config/application.yml` and `config/database.yml`.
+
+   Note that any values in `config/database.yml` can also be overwritten with environment variables---useful if you're running a production server.
+   
+   The tokens you specify in `config/application.yml` will be used for [API Authentication](#api-authentication).
 
 3. Create and initialize the database:
 
@@ -51,7 +60,7 @@ For a complete visualization of the Datastore's data model, see [doc/data-model.
   bundle exec rake db:seed
   ````
 
-5. Start the server: `bundle exec rails server`
+5. Start the server and background queue: `bundle exec foreman start`
 
 ## To Run Tests Locally
 
