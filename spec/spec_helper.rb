@@ -4,6 +4,7 @@ SimpleCov.start do
 
   add_group 'Services', 'app/services'
   add_group 'Serializers', 'app/serializers'
+  add_group 'Workers', 'app/workers'
 
   coverage_dir(File.join("..", "..", "..", ENV['CIRCLE_ARTIFACTS'], "coverage")) if ENV['CIRCLE_ARTIFACTS']
 end
