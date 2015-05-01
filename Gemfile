@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.2.0'
+gem 'rails', '4.2.1'
 
 # process runner
 gem 'foreman', group: :development
@@ -10,7 +10,7 @@ gem 'figaro'
 
 # data stores
 gem 'pg'
-gem 'activerecord-postgis-adapter', '3.0.0.beta2'
+gem 'activerecord-postgis-adapter', '3.0.0.beta4'
 gem 'redis-rails'
 
 # background processing
@@ -31,7 +31,7 @@ gem 'onestop-id-client', github: 'transitland/onestop-id-ruby-client', tag: 'v0.
 gem 'onestop-id-registry-validator', github: 'transitland/onestop-id-registry-validator', tag: 'v0.0.4', require: 'onestop_id_registry_validator'
 
 # authentication and authorization
-gem 'rack-cors', :require => 'rack/cors'
+gem 'rack-cors', require: 'rack/cors'
 gem 'omniauth'
 gem 'omniauth-osm'
 
