@@ -54,7 +54,7 @@ class Operator < BaseOperator
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
-    virtual_attributes: [:serves, :does_not_serve]
+    virtual_attributes: [:serves, :does_not_serve, :identified_by, :not_identified_by]
   })
   def self.after_create_making_history(created_model, changeset)
     OperatorRouteStopRelationship.manage_multiple(
@@ -75,6 +75,7 @@ class Operator < BaseOperator
       },
       changeset: changeset
     )
+    super(changeset)
   end
   def before_destroy_making_history(changeset, old_model)
     operators_serving_stop.each do |operator_serving_stop|
@@ -97,7 +98,6 @@ end
 
 class OldOperator < BaseOperator
   include OldTrackedByChangeset
-  include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
 
   has_many :old_operators_serving_stop, as: :operator

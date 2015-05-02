@@ -76,8 +76,7 @@ describe Changeset do
             action: 'createUpdate',
             stop: {
               onestopId: 's-9q8yt4b-1AvHoS',
-              name: '1st Ave. & Holloway Street',
-              identifiers: ['gtfs://sfmta/53532']
+              name: '1st Ave. & Holloway Street'
             }
           }
         ]

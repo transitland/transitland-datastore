@@ -14,7 +14,14 @@
     },
     "name": { "type": "string" },
     "tags": { "type": "object" },
-    "identifiers": {
+    "identifiedBy": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "notIdentifiedBy": {
       "type": "array",
       "uniqueItems": true,
       "items": {
