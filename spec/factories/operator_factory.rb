@@ -11,11 +11,13 @@
 #  geometry                           :geography({:srid geometry, 4326
 #  created_or_updated_in_changeset_id :integer
 #  version                            :integer
+#  identifiers                        :string           is an Array
 #
 # Indexes
 #
-#  #c_operators_cu_in_changeset_id_index  (created_or_updated_in_changeset_id)
-#  index_current_operators_on_onestop_id  (onestop_id) UNIQUE
+#  #c_operators_cu_in_changeset_id_index   (created_or_updated_in_changeset_id)
+#  index_current_operators_on_identifiers  (identifiers)
+#  index_current_operators_on_onestop_id   (onestop_id) UNIQUE
 #
 
 FactoryGirl.define do

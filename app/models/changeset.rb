@@ -43,9 +43,6 @@ class Changeset < ActiveRecord::Base
   has_many :routes_serving_stop_created_or_updated, class_name: 'RouteServingStop', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :routes_serving_stop_destroyed, class_name: 'OldRouteServingStop', foreign_key: 'destroyed_in_changeset_id'
 
-  has_many :identifiers_created_or_updated, class_name: 'Identifier', foreign_key: 'created_or_updated_in_changeset_id'
-  has_many :identifiers_destroyed, class_name: 'OldIdentifier', foreign_key: 'destroyed_in_changeset_id'
-
   def entities_created_or_updated
     # NOTE: this is probably evaluating the SQL queries, rather than merging together ARel relations
     # in Rails 5, there will be an ActiveRecord::Relation.or() operator to use instead here
@@ -54,8 +51,7 @@ class Changeset < ActiveRecord::Base
       operators_created_or_updated +
       routes_created_or_updated +
       operators_serving_stop_created_or_updated +
-      routes_serving_stop_created_or_updated +
-      identifiers_created_or_updated
+      routes_serving_stop_created_or_updated
     )
   end
   def entities_destroyed
@@ -64,8 +60,7 @@ class Changeset < ActiveRecord::Base
       operators_destroyed +
       routes_destroyed +
       operators_serving_stop_destroyed +
-      routes_serving_stop_destroyed +
-      identifiers_destroyed
+      routes_serving_stop_destroyed
     )
   end
 

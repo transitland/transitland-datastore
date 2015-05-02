@@ -12,10 +12,12 @@
 #  created_at                         :datetime
 #  updated_at                         :datetime
 #  geometry                           :geography({:srid geometry, 4326
+#  identifiers                        :string           is an Array
 #
 # Indexes
 #
 #  c_route_cu_in_changeset              (created_or_updated_in_changeset_id)
+#  index_current_routes_on_identifiers  (identifiers)
 #  index_current_routes_on_operator_id  (operator_id)
 #
 
@@ -56,12 +58,12 @@ class Route < BaseRoute
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
-    virtual_attributes: [:serves, :does_not_serve, :operated_by]
+    virtual_attributes: [:serves, :does_not_serve, :operated_by, :identified_by, :not_identified_by]
   })
   def self.before_create_making_history(new_model, changeset)
     operator = Operator.find_by_onestop_id!(new_model.operated_by)
     new_model.operator = operator
-    return true
+    super(new_model, changeset)
   end
   def self.after_create_making_history(created_model, changeset)
     OperatorRouteStopRelationship.manage_multiple(
@@ -86,6 +88,7 @@ class Route < BaseRoute
       },
       changeset: changeset
     )
+    super(changeset)
   end
   def before_destroy_making_history(changeset, old_model)
     routes_serving_stop.each do |route_serving_stop|
@@ -114,7 +117,6 @@ end
 
 class OldRoute < BaseRoute
   include OldTrackedByChangeset
-  include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
 
   has_many :old_routes_serving_stop

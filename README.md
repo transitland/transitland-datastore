@@ -25,6 +25,8 @@ Entities are associated with each other using relationship managers:
 
 * [operator-route-stop relationships](doc/operator-route-stop-relationships.md)
 
+Entities also include any number of [identifiers](doc/identifiers.md).
+
 For a complete visualization of the Datastore's data model, see [doc/data-model.svg](doc/data-model.svg)
 
 ## To Develop Locally

@@ -11,15 +11,18 @@
     "name": { "type": "string" },
     "tags": { "type": "object" },
     "geometry": { "type": "object" },
-    "identifiers": {
+    "identifiedBy": {
       "type": "array",
       "uniqueItems": true,
       "items": {
-        "type": "object",
-        "required": ["identifier"],
-        "properties": {
-          "identifier": { "type": "string" }
-        }
+        "type": "string"
+      }
+    },
+    "notIdentifiedBy": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
       }
     },
     "serves": {

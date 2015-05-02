@@ -14,14 +14,7 @@ module Geojson
           created_at: entity.created_at,
           updated_at: entity.updated_at,
           tags: entity.tags,
-          identifiers: entity.identifiers.map do |entity_identifier|
-            {
-              identifier: entity_identifier.identifier,
-              tags: entity_identifier.tags,
-              created_at: entity_identifier.created_at,
-              updated_at: entity_identifier.updated_at
-            }
-          end
+          identifiers: entity.identifiers
         }
       )
     end

@@ -11,11 +11,13 @@
 #  name                               :string
 #  created_or_updated_in_changeset_id :integer
 #  version                            :integer
+#  identifiers                        :string           is an Array
 #
 # Indexes
 #
-#  #c_stops_cu_in_changeset_id_index  (created_or_updated_in_changeset_id)
-#  index_current_stops_on_onestop_id  (onestop_id)
+#  #c_stops_cu_in_changeset_id_index   (created_or_updated_in_changeset_id)
+#  index_current_stops_on_identifiers  (identifiers)
+#  index_current_stops_on_onestop_id   (onestop_id)
 #
 
 class BaseStop < ActiveRecord::Base
@@ -58,7 +60,7 @@ class Stop < BaseStop
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
-    virtual_attributes: [:served_by, :not_served_by]
+    virtual_attributes: [:served_by, :not_served_by, :identified_by, :not_identified_by]
   })
   def self.after_create_making_history(created_model, changeset)
     OperatorRouteStopRelationship.manage_multiple(
@@ -79,6 +81,7 @@ class Stop < BaseStop
       },
       changeset: changeset
     )
+    super(changeset)
   end
   def before_destroy_making_history(changeset, old_model)
     operators_serving_stop.each do |operator_serving_stop|
@@ -151,7 +154,6 @@ end
 
 class OldStop < BaseStop
   include OldTrackedByChangeset
-  include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
 
   has_many :old_operators_serving_stop, as: :stop

@@ -36,6 +36,7 @@ module CurrentTrackedByChangeset
 
     def before_create_making_history(instantiated_model, changeset)
       # this is available for overriding in models
+      super(instantiated_model, changeset) if defined?(super)
       return true
     end
 
@@ -55,6 +56,7 @@ module CurrentTrackedByChangeset
 
     def after_create_making_history(created_model, changeset)
       # this is available for overriding in models
+      super(created_model, changeset) if defined?(super)
       return true
     end
 
@@ -94,6 +96,7 @@ module CurrentTrackedByChangeset
 
   def before_destroy_making_history(changeset, old_model)
     # this is available for overriding in models
+    super(changeset, old_model) if defined?(super)
     return true
   end
 
@@ -121,6 +124,7 @@ module CurrentTrackedByChangeset
 
   def before_update_making_history(changeset)
     # this is available for overriding in models
+    super(changeset) if defined?(super)
     return true
   end
 

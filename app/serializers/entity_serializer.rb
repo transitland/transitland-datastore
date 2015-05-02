@@ -1,3 +1,3 @@
 class EntitySerializer < ApplicationSerializer
-  has_many :identifiers
+  attributes :identifiers
 end

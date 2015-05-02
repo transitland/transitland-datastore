@@ -12,11 +12,7 @@
             "website": "http://www.sfmta.com",
             "timezone": "America/Los_Angeles"
           },
-          "identifiers": [{
-            "identifier": "MUNI"
-          }, {
-            "identifier": "SFMTA"
-          }],
+          "identifiers": ["MUNI", "SFMTA"],
           "geometry": {
             "type": "Polygon",
             "coordinates": [

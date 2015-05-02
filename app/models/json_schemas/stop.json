@@ -11,16 +11,18 @@
     "geometry": { "type": "object" },
     "tags": { "type": "object" },
     "name": { "type": "string" },
-    "identifiers": {
+    "identifiedBy": {
       "type": "array",
       "uniqueItems": true,
       "items": {
-        "type": "object",
-        "properties": {
-          "identifier": { "type": "string" },
-          "tags": { "type": "object" },
-          "required": ["identifier"]
-        }
+        "type": "string"
+      }
+    },
+    "notIdentifiedBy": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
       }
     },
     "servedBy": {

@@ -1,6 +1,6 @@
 describe Api::V1::StopsController do
   before(:each) do
-    @glen_park = create(:stop, geometry: 'POINT(-122.433416 37.732525)', name: 'Glen Park' )
+    @glen_park = create(:stop, geometry: 'POINT(-122.433416 37.732525)', name: 'Glen Park', identifiers: ['SFMTA-GP'])
     @bosworth_diamond = create(:stop, geometry: 'POINT(-122.434011 37.733595)', name: 'Bosworth + Diamond')
     @metro_embarcadero = create(:stop, geometry: 'POINT(-122.396431 37.793152)', name: 'Metro Embarcadero')
     @gilman_paul_3rd = create(:stop, geometry: 'POINT(-122.395644 37.722413)', name: 'Gilman + Paul + 3rd St.')
@@ -17,8 +17,7 @@ describe Api::V1::StopsController do
       end
 
       it 'returns the appropriate stop when identifier provided' do
-        create(:stop_identifier, identified_entity: @glen_park)
-        get :index, identifier: @glen_park.identifiers.first.identifier
+        get :index, identifier: 'SFMTA-GP'
         expect_json({ stops: -> (stops) {
           expect(stops.first[:onestop_id]).to eq @glen_park.onestop_id
         }})

@@ -24,7 +24,7 @@ class Api::V1::StopsController < Api::V1::BaseApiController
       @stops = @stops.where{geometry.op('&&', st_makeenvelope(bbox_coordinates[0], bbox_coordinates[1], bbox_coordinates[2], bbox_coordinates[3], Stop::GEOFACTORY.srid))}
     end
 
-    @stops = @stops.includes{[identifiers, operators_serving_stop, operators_serving_stop.operator]} # TODO: check performance against eager_load, joins, etc.
+    @stops = @stops.includes{[operators_serving_stop, operators_serving_stop.operator]} # TODO: check performance against eager_load, joins, etc.
 
     per_page = params[:per_page].blank? ? Stop::PER_PAGE : params[:per_page].to_i
 
