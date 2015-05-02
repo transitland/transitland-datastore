@@ -197,6 +197,26 @@ describe Changeset do
       expect(OldOperatorServingStop.first.operator).to eq Operator.find_by_onestop_id!('o-9q8y-SFMTA')
       expect(OldOperatorServingStop.first.stop).to eq Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS')
     end
+
+    it 'to create an identifier' do
+      changeset1 = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              name: '1st Ave. & Holloway Street',
+              identifiers: [
+                { identifier: 'ANOTHER NAME' }
+              ]
+            }
+          }
+        ]
+      })
+      changeset1.apply!
+      expect(Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS').identifiers.count).to eq 1
+      expect(Identifier.where(identifier: 'ANOTHER NAME').count).to eq 1
+    end
   end
 
   context 'revert' do
