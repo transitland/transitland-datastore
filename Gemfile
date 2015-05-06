@@ -35,9 +35,12 @@ gem 'rack-cors', require: 'rack/cors'
 gem 'omniauth'
 gem 'omniauth-osm'
 
-# API
+# providing API
 gem 'active_model_serializers', '0.9.3'
 gem 'oj'
+
+# consuming other APIs
+gem 'faraday'
 
 # development tools
 gem 'better_errors', group: :development
@@ -56,6 +59,8 @@ gem 'database_cleaner', group: :test
 gem 'factory_girl_rails', group: [:development, :test]
 gem 'ffaker', group: [:development, :test]
 gem 'rspec-rails', group: [:development, :test]
+gem 'vcr', group: :test
+gem 'webmock', group: :test
 gem 'airborne', group: :test
 
 # deployment and monitoring

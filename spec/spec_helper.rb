@@ -16,10 +16,18 @@ require 'sidekiq/testing'
 require 'database_cleaner'
 require 'ffaker'
 require 'byebug'
+require 'vcr'
+require 'webmock/rspec'
 
 ActiveRecord::Migration.maintain_test_schema!
 
 Dir[Rails.root.join("spec/support/**/*.rb")].each {|f| require f}
+
+VCR.configure do |c|
+  c.cassette_library_dir = File.join(File.dirname(__FILE__), '/support/vcr_cassettes')
+  c.hook_into :webmock
+  c.configure_rspec_metadata!
+end
 
 RSpec.configure do |config|
   config.mock_with :rspec

@@ -145,6 +145,22 @@ class Stop < BaseStop
 
   before_save :clean_attributes
 
+  def conflate_with_osm
+    Stop.transaction do
+      locations = []
+      locations << {
+        lat: geometry(as: :wkt).lat,
+        lon: geometry(as: :wkt).lon
+      }
+      tyr_locate_response = TyrService.locate(locations: locations)
+      way_id = tyr_locate_response[0][:ways][0][:way_id]
+
+      stop_tags = tags.try(:clone) || {}
+      stop_tags[:osm_way_id] = way_id
+      update(tags: stop_tags)
+    end
+  end
+
   private
 
   def clean_attributes
