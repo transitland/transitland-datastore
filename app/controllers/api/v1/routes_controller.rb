@@ -17,6 +17,9 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
       bbox_coordinates = params[:bbox].split(',')
       @routes = @routes.where{geometry.op('&&', st_makeenvelope(bbox_coordinates[0], bbox_coordinates[1], bbox_coordinates[2], bbox_coordinates[3], Route::GEOFACTORY.srid))}
     end
+    if params[:onestop_id].present?
+      @routes = @routes.where(onestop_id: params[:onestop_id])
+    end
 
     per_page = params[:per_page].blank? ? Route::PER_PAGE : params[:per_page].to_i
 
