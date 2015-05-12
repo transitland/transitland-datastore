@@ -43,13 +43,16 @@ class FeedValidator(object):
 def run():
   parser = util.default_parser('Validate GTFS')
   args = parser.parse_args()
+  #
   r = transitland.registry.FeedRegistry(path=args.registry)
   feedids = args.feedids
   if args.all:
     feedids = r.feeds()
   if len(feedids) == 0:
     raise Exception("No feeds specified! Try --all")
+  #
   for feedid in feedids:
+    print feedid
     feed = r.feed(feedid)
     validator = FeedValidator(feed.filename())
     validator.feedvalidator('%s.html'%feed.onestop())
