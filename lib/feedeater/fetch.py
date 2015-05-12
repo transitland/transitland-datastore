@@ -1,5 +1,6 @@
 """Fetch Transitland Feed Registry feeds."""
 import argparse
+import os
 
 import transitland.registry
 
@@ -24,7 +25,8 @@ def run():
   for feedid in feedids:
     print feedid
     feed = r.feed(feedid)
-    feed.download(verify=(not args.noverify))
+    filename = os.path.join(args.workdir, '%s.zip'%feed.onestop())
+    feed.download(filename=filename, verify=(not args.noverify))
     
 if __name__ == "__main__":
   run()

@@ -30,7 +30,8 @@ def run():
   #
   for feedid in args.feedids:
     feed = r.feed(feedid)
-    gtfsfeed = mzgtfs.feed.Feed(feed.filename())
+    filename = os.path.join(args.workdir, '%s.zip'%feed.onestop())
+    gtfsfeed = mzgtfs.feed.Feed(filename)
     feed2 = transitland.entities.Feed.from_gtfs(
       gtfsfeed,
       feedid=feedid
