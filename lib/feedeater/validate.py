@@ -3,11 +3,12 @@ import os
 import subprocess
 import argparse
 
+import mzgtfs.feed
 import transitland.registry
 
 import util
 
-class FeedValidator(object):
+class FeedEaterValidator(object):
   def __init__(self, filename):
     self.exceptions = []
     self.filename = filename
@@ -19,6 +20,13 @@ class FeedValidator(object):
   def warnings(self):
     # Filter for warnings
     return self.exceptions    
+    
+  def validate(self):
+    feed = mzgtfs.feed.Feed(self.filename)
+    print "Date ranges:", feed.dates()  
+    print "Internal validation..."
+    result = feed.validate()
+    print "...:", result
     
   def feedvalidator(self, report='report.html'):
     self.exceptions = []
@@ -52,10 +60,13 @@ def run():
     raise Exception("No feeds specified! Try --all")
   #
   for feedid in feedids:
-    print feedid
     feed = r.feed(feedid)
-    validator = FeedValidator(feed.filename())
-    validator.feedvalidator('%s.html'%feed.onestop())
+    filename = os.path.join(args.workdir, '%s.zip'%feed.onestop())
+    reportfilename = os.path.join(args.workdir, '%s.html'%feed.onestop())
+    # 
+    validator = FeedEaterValidator(filename)
+    validator.validate()
+    validator.feedvalidator(report=reportfilename)
     if validator.errors():
       print "Feed contains errors."
     elif validator.warnings():
