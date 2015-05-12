@@ -44,6 +44,14 @@ describe Api::V1::OperatorsController do
           expect(operators.first[:onestop_id]).to eq @sfmta.onestop_id
         }})
       end
+
+      it 'returns the appropriate operator when Onestop ID provided' do
+        get :index, onestop_id: @sfmta.onestop_id
+        expect_json({ operators: -> (operators) {
+          expect(operators.first[:onestop_id]).to eq @sfmta.onestop_id
+          expect(operators.count).to eq 1
+        }})
+      end
     end
 
     context 'as GeoJSON' do
