@@ -7,6 +7,7 @@ import transitland.registry
 import transitland.entities
 import transitland.datastore
 
+import similarity
 import util
 
 def run():
@@ -29,20 +30,40 @@ def run():
     raise Exception("No feeds specified! Try --all")    
   #
   for feedid in args.feedids:
-    feed = r.feed(feedid)
-    filename = os.path.join(args.workdir, '%s.zip'%feed.onestop())
+    infeed = r.feed(feedid)
+    filename = os.path.join(args.workdir, '%s.zip'%infeed.onestop())
     gtfsfeed = mzgtfs.feed.Feed(filename)
-    feed2 = transitland.entities.Feed.from_gtfs(
+    feed = transitland.entities.Feed.from_gtfs(
       gtfsfeed,
       feedid=feedid
     )
     updater = transitland.datastore.Datastore(
       args.host,
       apitoken=args.apitoken,
-      debug=True
+      debug=args.debug
     )
-    for entity in sorted(feed2.operators(), key=lambda x:x.onestop()):
-      updater.update_operator(entity)
+    # TODO:
+    # If two stops merge into the Onestop ID?
+    for stop in feed.stops():
+      search_stops = updater.stops(point=stop.point(), radius=1000)      
+      s = similarity.CompareEntities(stop, search_stops)
+      s.score()
+      s.merge()
+    # update with the merged entity...
+    for operator in feed.operators():
+      entities = operator.stops() # | operator.routes()
+      # Note: Agencies must be created before routes/stops.
+      # Post without relationships
+      updater.update_entity(operator, rels=False)
+      for entity in entities:
+        updater.update_entity(entity, rels=False)
+      # Update relationships
+      updater.update_entity(operator)
+      for entity in entities:
+        updater.update_entity(entity)
+      
+    
+    
 
 if __name__ == "__main__":
   run()
