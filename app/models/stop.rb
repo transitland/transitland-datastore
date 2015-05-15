@@ -145,6 +145,17 @@ class Stop < BaseStop
 
   before_save :clean_attributes
 
+  if Figaro.env.auto_conflate_stops_with_osm ||
+     Figaro.env.auto_conflate_stops_with_osm == 'true'
+    after_save :queue_conflate_with_osm
+  end
+
+  def queue_conflate_with_osm
+    if self.geometry_changed?
+      ConflateStopsWithOsmWorker.perform_async([self.id])
+    end
+  end
+
   def conflate_with_osm
     Stop.transaction do
       locations = []
