@@ -23,6 +23,9 @@ class Api::V1::StopsController < Api::V1::BaseApiController
       bbox_coordinates = params[:bbox].split(',')
       @stops = @stops.where{geometry.op('&&', st_makeenvelope(bbox_coordinates[0], bbox_coordinates[1], bbox_coordinates[2], bbox_coordinates[3], Stop::GEOFACTORY.srid))}
     end
+    if params[:onestop_id].present?
+      @stops = @stops.where(onestop_id: params[:onestop_id])
+    end
 
     @stops = @stops.includes{[operators_serving_stop, operators_serving_stop.operator]} # TODO: check performance against eager_load, joins, etc.
 
