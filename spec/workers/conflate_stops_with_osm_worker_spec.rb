@@ -19,7 +19,7 @@ describe ConflateStopsWithOsmWorker do
       }
     ])
     worker = ConflateStopsWithOsmWorker.new
-    worker.perform(stop_ids: [@bosworth_diamond.id, @metro_embarcadero.id])
+    worker.perform([@bosworth_diamond.id, @metro_embarcadero.id])
     expect(@bosworth_diamond.reload.tags).to eq({ 'osm_way_id' => '8917801' })
     expect(@metro_embarcadero.reload.tags).to eq({ 'osm_way_id' => '8917801' })
     expect(@glen_park.reload.tags).to be_blank
