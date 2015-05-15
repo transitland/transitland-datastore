@@ -18,21 +18,33 @@ http_interactions:
       code: 200
       message: OK
     headers:
+      Access-Control-Allow-Credentials:
+      - 'true'
+      Access-Control-Allow-Headers:
+      - Origin, Accept, Content-Type, X-Requested-With, X-CSRF-Token
+      Access-Control-Allow-Methods:
+      - GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD
       Access-Control-Allow-Origin:
       - "*"
+      Access-Control-Expose-Headers:
+      - content-type, content-length, X-ApiaxleProxy-Qps-Left, X-ApiaxleProxy-Qpd-Left
       Content-Type:
       - application/json;charset=utf-8
       Date:
-      - Wed, 06 May 2015 00:00:22 GMT
+      - Fri, 15 May 2015 22:45:57 GMT
       Server:
-      - BaseHTTP/0.3 Python/2.7.6
+      - nginx/1.4.6 (Ubuntu)
+      X-Apiaxleproxy-Qpd-Left:
+      - '19988'
+      X-Apiaxleproxy-Qps-Left:
+      - '0'
       Content-Length:
-      - '265'
+      - '263'
       Connection:
       - keep-alive
     body:
       encoding: UTF-8
-      string: '[{"input_lon":-122.413605,"ways":[{"correlated_lon":-122.413605,"way_id":8917801,"correlated_lat":37.775692}],"input_lat":37.775692},{"input_lon":-122.413605,"ways":[{"correlated_lon":-122.413605,"way_id":8917801,"correlated_lat":37.775692}],"input_lat":37.775692}]'
+      string: '[{"input_lon":-122.413605,"ways":[{"correlated_lon":-122.413605,"way_id":8917801,"correlated_lat":37.775692}],"input_lat":37.775692},{"input_lon":-73.990471,"ways":[{"correlated_lon":-73.990471,"way_id":5671311,"correlated_lat":40.744549}],"input_lat":40.744549}]'
     http_version: 
-  recorded_at: Tue, 05 May 2015 23:59:35 GMT
+  recorded_at: Fri, 15 May 2015 22:44:39 GMT
 recorded_with: VCR 2.9.3

@@ -27,7 +27,7 @@ class TyrService
     else
       raw_json = response.body
       parsed_json = JSON.parse(raw_json)
-      parsed_json.map(&:symbolize_keys)
+      parsed_json.map(&:deep_symbolize_keys)
     end
   end
 
