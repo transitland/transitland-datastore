@@ -2,7 +2,7 @@
 http_interactions:
 - request:
     method: get
-    uri: http://valhalla.api.dev.mapzen.com/locate?json=%7B%22locations%22:%5B%7B%22lat%22:37.775692,%22lon%22:-122.413601%7D%5D,%22costing%22:%22pedestrian%22%7D
+    uri: http://valhalla.api.dev.mapzen.com/locate?json=%7B%22locations%22:%5B%7B%22lat%22:37.775692,%22lon%22:-122.413601%7D%5D,%22costing%22:%22pedestrian%22,%22api_key%22:%22fakeapikey%22%7D
     body:
       encoding: US-ASCII
       string: ''
@@ -31,11 +31,11 @@ http_interactions:
       Content-Type:
       - application/json;charset=utf-8
       Date:
-      - Fri, 15 May 2015 22:45:57 GMT
+      - Fri, 15 May 2015 23:23:02 GMT
       Server:
       - nginx/1.4.6 (Ubuntu)
       X-Apiaxleproxy-Qpd-Left:
-      - '19989'
+      - '19983'
       X-Apiaxleproxy-Qps-Left:
       - '1'
       Content-Length:
@@ -46,5 +46,5 @@ http_interactions:
       encoding: UTF-8
       string: '[{"input_lon":-122.413605,"ways":[{"correlated_lon":-122.413605,"way_id":8917801,"correlated_lat":37.775692}],"input_lat":37.775692}]'
     http_version: 
-  recorded_at: Fri, 15 May 2015 22:44:38 GMT
+  recorded_at: Fri, 15 May 2015 23:21:43 GMT
 recorded_with: VCR 2.9.3

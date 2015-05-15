@@ -1,4 +1,8 @@
 describe TyrService do
+  before(:each) do
+    allow(Figaro.env).to receive(:tyr_api_key) { 'fakeapikey' }
+  end
+
   it 'should work for one location' do
     VCR.use_cassette('tyr_one_location') do
       locations = [

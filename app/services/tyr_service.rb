@@ -17,7 +17,8 @@ class TyrService
     response = connection.get('/locate') do |req|
       json_payload = {
         locations: locations,
-        costing: costing
+        costing: costing,
+        api_key: Figaro.env.tyr_api_key
       }
       req.params['json'] = JSON.dump(json_payload)
     end
