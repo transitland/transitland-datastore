@@ -31,7 +31,7 @@ def run():
   #
   for feedid in args.feedids:
     infeed = r.feed(feedid)
-    filename = os.path.join(args.workdir, '%s.zip'%infeed.onestop())
+    filename = args.filename or os.path.join(args.workdir, '%s.zip'%infeed.onestop())
     gtfsfeed = mzgtfs.feed.Feed(filename)
     feed = transitland.entities.Feed.from_gtfs(
       gtfsfeed,
@@ -61,9 +61,6 @@ def run():
       updater.update_entity(operator)
       for entity in entities:
         updater.update_entity(entity)
-      
-    
-    
 
 if __name__ == "__main__":
   run()

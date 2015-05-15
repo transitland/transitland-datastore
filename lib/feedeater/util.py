@@ -36,6 +36,9 @@ def default_parser(description=None):
     help='Debug', 
     action='store_true'
   )
+  parser.add_argument('--filename',
+    help='Specify GTFS filename manually'
+  )  
   return parser
   
 def haversine(point1, point2):
