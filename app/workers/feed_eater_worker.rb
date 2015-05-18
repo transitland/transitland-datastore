@@ -18,7 +18,7 @@ class FeedEaterWorker
     system "python -m feedeater.validate #{updated.join(' ')}"
     
     logger.info '4. Uploading feed to datastore'
-    system "pythom -m feedeater.post #{updated.join(' ')}"
+    system "python -m feedeater.post #{updated.join(' ')}"
 
     logger.info '5. Creating GTFS artifacts'
     system "python -m feedeater.artifact #{updated.join(' ')}"
