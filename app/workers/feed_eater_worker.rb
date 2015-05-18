@@ -26,5 +26,6 @@ class FeedEaterWorker
     # logger.info '5. Creating FeedEater Reports'
 
     # logger.info '6. Uploading to S3'
+    # aws s3 sync . s3://onestop-feed-cache.transit.land
   end
 end
