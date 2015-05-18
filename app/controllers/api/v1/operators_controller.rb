@@ -20,6 +20,9 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
       bbox_coordinates = params[:bbox].split(',')
       @operators = @operators.where{geometry.op('&&', st_makeenvelope(bbox_coordinates[0], bbox_coordinates[1], bbox_coordinates[2], bbox_coordinates[3], Operator::GEOFACTORY.srid))}
     end
+    if params[:onestop_id].present?
+      @operators = @operators.where(onestop_id: params[:onestop_id])
+    end
 
     per_page = params[:per_page].blank? ? Operator::PER_PAGE : params[:per_page].to_i
 
