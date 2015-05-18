@@ -6,17 +6,22 @@ class FeedEaterWorker
     logger.info '0. Fetching latest onestop-id-registry'
     OnestopIdClient::Registry.repo(force_update: true)
 
-    logger.info '1. Downloading feeds that have been updated'
-    system "python -m feedeater.fetch #{feed_onestop_ids.join(' ')}"
+    logger.info '1. Checking for new feeds'
+    updated = `python -m feedeater.check #{feed_onestop_ids.join(' ')}`
+    updated = updated.split()
+    logger.info " -> #{updated.join(' ')}"
 
-    logger.info '1. Validating feeds'
-    system "python -m feedeater.validate #{feed_onestop_ids.join(' ')}"
+    logger.info '2. Downloading feeds that have been updated'
+    system "python -m feedeater.fetch #{updated.join(' ')}"
+
+    logger.info '3. Validating feeds'
+    system "python -m feedeater.validate #{updated.join(' ')}"
     
-    logger.info '3. Uploading feed to datastore'
-    system "pythom -m feedeater.post #{feed_onestop_ids.join(' ')}"
+    logger.info '4. Uploading feed to datastore'
+    system "pythom -m feedeater.post #{updated.join(' ')}"
 
-    logger.info '4. Creating GTFS artifacts'
-    system "python -m feedeater.artifact #{feed_onestop_ids.join(' ')}"
+    logger.info '5. Creating GTFS artifacts'
+    system "python -m feedeater.artifact #{updated.join(' ')}"
   
     # logger.info '5. Creating FeedEater Reports'
 
