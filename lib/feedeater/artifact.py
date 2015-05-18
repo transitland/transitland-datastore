@@ -11,10 +11,10 @@ import util
 # Temporary:
 import tyr
 
-def tyr_osm(stop, apitoken=None):
+def tyr_osm(stop, apitoken=None, debug=False):
   if not tyr:
     return None
-  t = tyr.TYR('http://valhalla.api.dev.mapzen.com', apitoken=apitoken, debug=True)
+  t = tyr.TYR('http://valhalla.api.dev.mapzen.com', apitoken=apitoken, debug=debug)
   response = t.locate([stop.point()])
   try:
     assert response
@@ -72,19 +72,23 @@ def run():
       onestop_id = match.onestop()
       osm_way_id = match.data.get('osm_way_id')
       if not osm_way_id and tyr:
-        osm_way_id = tyr_osm(stop, apitoken=os.getenv('TYR_AUTH_TOKEN'))
+        osm_way_id = tyr_osm(
+          stop, 
+          apitoken=os.getenv('TYR_AUTH_TOKEN'), 
+          debug=args.debug
+        )
         print "  ... got tyr osm_way_id:", osm_way_id
       print "  onestop_id: %s, osm_way_id: %s"%(onestop_id, osm_way_id)
       stop.set('onestop_id', onestop_id)
       stop.set('osm_way_id', osm_way_id)
 
     # Write output
-    stopstxt = 'stops.txt'
-    artifact = '%s.artifact.zip'%feedid 
+    stopstxt = os.path.join(args.workdir, 'stops.txt')
+    artifact = os.path.join(args.workdir, '%s.artifact.zip'%feedid)
     if os.path.exists(stopstxt):
       os.unlink(stopstxt)
     if os.path.exists(artifact):
-      os.path.unlink(artifact)    
+      os.unlink(artifact)    
     #
     print "Creating output artifact: %s"%artifact
     gtfsfeed.write(stopstxt, gtfsfeed.stops(), sortkey='stop_id')
