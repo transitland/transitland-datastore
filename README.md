@@ -142,3 +142,9 @@ To authenticate, include the following in your POST or PUT request:
 header name   | header value
 ------------- | ---------------------------------
 Authorization | Token token=fde67e1437ebf73e1f3eW
+
+## Conflating Stops with OpenStreetMap
+
+Depends on the Valhalla routing engine and its [Tyr ("Take Your Route") service](https://github.com/valhalla/tyr/).
+
+To automatically conflate stops whenever they are created or their location changed, add `TYR_API_KEY` to `config/application.yml` and set `AUTO_CONFLATE_STOPS_WITH_OSM` to `true`.

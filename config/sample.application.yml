@@ -5,3 +5,5 @@ ONESTOP_ID_REGISTRY_LOCAL_PATH: ./tmp/onestop-id-registry
 DATASTORE_PROTOCOL: http
 DATASTORE_HOST: localhost
 DATASTORE_PORT: '3000'
+AUTO_CONFLATE_STOPS_WITH_OSM: 'true'
+TYR_API_KEY: 'get one from mapzen.com/developers'
