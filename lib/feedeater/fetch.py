@@ -8,25 +8,28 @@ import util
 
 def run():
   parser = util.default_parser('Fetch Transitland Feed Registry GTFS feeds')
-  parser.add_argument(
-    '--noverify', 
-    action='store_true',
-    help='Do not verify downloaded feed checksums', 
-  )
   args = parser.parse_args()
-  #
+
+  # Registry
   r = transitland.registry.FeedRegistry(path=args.registry)
-  feedids = args.feedids
-  if args.all:
-    feedids = sorted(r.feeds())
-  if len(feedids) == 0:
-    raise Exception("No feeds specified! Try --all")
-  #
+
+  # Download feeds
+  newfeeds = []
+  feedids = args.feedids or r.feeds()
   for feedid in feedids:
-    print feedid
+    print "===== Feed: %s ====="%feedid
     feed = r.feed(feedid)
     filename = os.path.join(args.workdir, '%s.zip'%feed.onestop())
-    feed.download(filename=filename, verify=(not args.noverify))
+    if feed.verify_sha1(filename):
+      print "Cached"
+    else:
+      print "Downloading: %s -> %s"%(feed.url(), filename)
+      feed.download(filename, verify=False)
+      newfeeds.append(feedid)
+    if not feed.verify_sha1(filename):
+      print "Warning: Incorrect SHA1 checksum."
+
+  return newfeeds
     
 if __name__ == "__main__":
   run()
