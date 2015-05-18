@@ -15,7 +15,7 @@ def seqratio(a, b):
 
 def score_distance(e1, e2):
   """Score on the inverse distance."""
-  d = util.haversine(e1.point(), e2.point()) * 0.01
+  d = util.haversine(e1.point(), e2.point())
   return 1/(d+1.0)
 
 def score_name(e1, e2):
@@ -36,9 +36,10 @@ class ScoreResult(object):
     self.match = match
     self.score = score
     
-  def print_match(self):
+  def print_match(self, indent=''):
     if self.match:
-      print "%s <-> %s (score: %0.2f, d: %0.2fm, ds: %0.2f, ss: %0.2f)"%(
+      print "%s%s <-> %s (score: %0.2f, d: %0.2fm, ds: %0.2f, ss: %0.2f)"%(
+        indent,
         self.source.name(), 
         self.match.name(), 
         self.score,
@@ -47,7 +48,10 @@ class ScoreResult(object):
         score_name(self.source, self.match)
       )
     else:
-      print "%s <-> no result"%(self.source.name())
+      print "%s%s <-> no result"%(
+        indent, 
+        self.source.name()
+      )
 
 class CompareEntities(object):
   def __init__(self, entity, search_entities, score_func=None):
@@ -73,32 +77,34 @@ class CompareEntities(object):
       results.append(result)
     self.results = results
   
-  def merge(self, threshold=0.5):
+  def merge(self, threshold=0.5, indent=''):
     """Merge the entity with the best result."""
     results = sorted(self.results, key=lambda x:x.score, reverse=True)
     if results:
       best = results[0]
     else:
-      best = ScoreResult(entity)
-    best.print_match()
+      best = ScoreResult(self.entity)
+    best.print_match(indent=indent)
     
-    # Skip 100% matches for now...
+    # Identifier matches.
     idm = set()
     if best.match:
       idm = set(self.entity.identifiers()) & set(best.match.identifiers())
-    # if best.score == 1.0:
-    #   print "\tperfect match"
-    #   return self.entity
+
+    # Score results.
+    if best.score == 1.0:
+      print "\tperfect match, updating tags..."
+      best.match.merge(self.entity)
+      self.entity.data = best.match.data
     # elif best.score > threshold and idm:
     #   print "\tid match"
     #   return self.entity
-    if best.score > threshold:
-      print "\tscore above threshold, merging..."
-      # maintain relationships
-      # best.match.set_tag('foo','bar')
+    elif best.score > threshold:
+      print "%sscore above threshold, merging..."%indent
       best.match.merge(self.entity)
       self.entity.data = best.match.data
     else:
-      print "...no match."
+      print "%s...no match."%indent
+      
     return self.entity
 
