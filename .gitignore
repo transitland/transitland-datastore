@@ -37,3 +37,6 @@ var/
 __pycache__/
 *.py[cod]
 *.so
+
+# Ignore Python virtualenv
+virtualenv/
