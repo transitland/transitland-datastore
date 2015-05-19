@@ -1,19 +1,9 @@
 GIT
-  remote: git://github.com/transitland/onestop-id-registry-validator.git
-  revision: ecc3d853fac39654687e33662c7f03aa0518057e
-  tag: v0.0.4
+  remote: git://github.com/transitland/transitland-ruby-client.git
+  revision: 6c813144c798e074f429f1dfb5f616784997836e
+  tag: 6c81314
   specs:
-    onestop-id-registry-validator (0.0.4)
-      json-schema (~> 2.5)
-      onestop-id-client (= 0.0.4)
-      rake (~> 10.0)
-
-GIT
-  remote: git://github.com/transitland/onestop-id-ruby-client.git
-  revision: a7b5a1c9011c7fcbae11f52c97836bc11f17f769
-  tag: v0.0.4
-  specs:
-    onestop-id-client (0.0.4)
+    transitland_client (0.0.5)
       git (~> 1.2)
       virtus (~> 1.0)
 
@@ -357,8 +347,6 @@ DEPENDENCIES
   oj
   omniauth
   omniauth-osm
-  onestop-id-client!
-  onestop-id-registry-validator!
   pg
   pry-byebug
   pry-rails
@@ -373,6 +361,7 @@ DEPENDENCIES
   sinatra
   skylight
   squeel
+  transitland_client!
   unicorn
   vcr
   webmock

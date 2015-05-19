@@ -26,9 +26,8 @@ gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 gem 'json-schema'
 
-# Onestop libraries
-gem 'onestop-id-client', github: 'transitland/onestop-id-ruby-client', tag: 'v0.0.4', require: 'onestop_id_client'
-gem 'onestop-id-registry-validator', github: 'transitland/onestop-id-registry-validator', tag: 'v0.0.4', require: 'onestop_id_registry_validator'
+# Transitland libraries
+gem 'transitland_client', github: 'transitland/transitland-ruby-client', tag: '6c81314', require: 'transitland_client'
 
 # authentication and authorization
 gem 'rack-cors', require: 'rack/cors'
