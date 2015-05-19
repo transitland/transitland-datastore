@@ -1,5 +1,7 @@
-PATH
-  remote: ../transitland-ruby-client
+GIT
+  remote: git://github.com/transitland/transitland-ruby-client.git
+  revision: 6c813144c798e074f429f1dfb5f616784997836e
+  tag: 6c81314
   specs:
     transitland_client (0.0.5)
       git (~> 1.2)
