@@ -2,22 +2,30 @@ class FeedEaterWorker
   include Sidekiq::Worker
 
   def perform(feed_onestop_ids: [])
-    logger.info '0. fetching latest onestop-id-registry'
+    # TODO: datastore_api_base_url = Figaro.env.DATASTORE_PROTOCOL + "://" + Figaro.env.DATASTORE_HOST +
+    logger.info '0. Fetching latest onestop-id-registry'
     OnestopIdClient::Registry.repo(force_update: true)
 
-    logger.info '1. downloading feeds that have been updated'
+    logger.info '1. Checking for new feeds'
+    updated = `python -m feedeater.check #{feed_onestop_ids.join(' ')}`
+    updated = updated.split()
+    logger.info " -> #{updated.join(' ')}"
 
-    # TODO: datastore_api_base_url = Figaro.env.DATASTORE_PROTOCOL + "://" + Figaro.env.DATASTORE_HOST +
+    logger.info '2. Downloading feeds that have been updated'
+    system "python -m feedeater.fetch #{updated.join(' ')}"
 
-    # 1.1. feedvalidator.py
-    # 2. onestop-updater: Merge & POST changesets to Datastore
-    system "cd #{Figaro.env.onestop_id_registry_local_path} &&
-            python -m onestop_updater.checkfeeds
-            #{feed_onestop_ids.join(' ')}"
+    logger.info '3. Validating feeds'
+    system "python -m feedeater.validate #{updated.join(' ')}"
+    
+    logger.info '4. Uploading feed to datastore'
+    system "python -m feedeater.post #{updated.join(' ')}"
 
-    # 3. onestop-updater: Write out GTFS+onestop
-    # 4. onestop-updater: Push to Amazon S3
+    logger.info '5. Creating GTFS artifacts'
+    system "python -m feedeater.artifact #{updated.join(' ')}"
+  
+    # logger.info '5. Creating FeedEater Reports'
 
-    # 5. build report & upload validator output to S3
+    # logger.info '6. Uploading to S3'
+    # aws s3 sync . s3://onestop-feed-cache.transit.land
   end
 end
