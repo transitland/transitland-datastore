@@ -1,7 +1,7 @@
 API_AUTH_TOKENS: iamallowedtotouchthis,iamalsoallowedtotouchthis
 SIDEKIQ_DASHBOARD_USERNAME: onlyneedonproduction
 SIDEKIQ_DASHBOARD_PASSWORD: onlyneedonproduction
-TRANSITLAND_FEED_REGISTRY_PATH: ./tmp/transitland-feed-registry
+TRANSITLAND_FEED_REGISTRY_PATH: <%= Rails.root.join('tmp', 'transitland-feed-registry') %>
 DATASTORE_PROTOCOL: http
 DATASTORE_HOST: localhost
 DATASTORE_PORT: '3000'
