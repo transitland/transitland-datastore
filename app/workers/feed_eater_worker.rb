@@ -3,8 +3,8 @@ class FeedEaterWorker
 
   def perform(feed_onestop_ids: [])
     # TODO: datastore_api_base_url = Figaro.env.DATASTORE_PROTOCOL + "://" + Figaro.env.DATASTORE_HOST +
-    logger.info '0. Fetching latest onestop-id-registry'
-    OnestopIdClient::Registry.repo(force_update: true)
+    logger.info '0. Fetching latest transitland-feed-registry'
+    TransitlandClient::FeedRegistry.repo(force_update: true)
 
     logger.info '1. Checking for new feeds'
     updated = `python -m feedeater.check #{feed_onestop_ids.join(' ')}`
