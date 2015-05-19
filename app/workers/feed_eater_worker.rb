@@ -9,8 +9,15 @@ class FeedEaterWorker
     logger.info '1. Checking for new feeds'
     python = './virtualenv/bin/python'
     updated = `#{python} ./lib/feedeater/check.py #{feed_onestop_ids.join(' ')}`
-    updated = updated.split()
+    if updated
+      updated = updated.split()
+    else
+      updated = []
+    end
     logger.info " -> #{updated.join(' ')}"
+    if updated.length == 0
+      return
+    end
 
     logger.info '2. Downloading feeds that have been updated'
     system "#{python} ./lib/feedeater/fetch.py #{updated.join(' ')}"
