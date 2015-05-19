@@ -10,7 +10,8 @@ Dir.chdir APP_ROOT do
   system 'bundle check || bundle install'
 
   puts "\n== Installing Python dependences =="
-  system 'pip install -r requirements.txt --upgrade'
+  system 'virtualenv virtualenv'
+  system 'virtualenv/bin/pip install -r requirements.txt --upgrade'
 
   puts "\n== Copying sample config files =="
   unless File.exist?('config/application.yml')
