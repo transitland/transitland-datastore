@@ -46,12 +46,12 @@ class Api::V1::BaseApiController < ApplicationController
 
   def require_api_auth_token
     authenticate_or_request_with_http_token do |token, options|
-      api_auth_tokens.include?(token)
+      api_auth_token == token
     end
   end
 
-  def api_auth_tokens
-    @api_auth_tokens ||= Figaro.env.api_auth_tokens.split(',').map(&:to_s).map(&:strip)
+  def api_auth_token
+    @api_auth_token ||= Figaro.env.transitland_datastore_auth_token.to_s.strip
   end
 
   def set_default_response_format

@@ -1,4 +1,4 @@
-API_AUTH_TOKENS: iamallowedtotouchthis,iamalsoallowedtotouchthis
+TRANSITLAND_DATASTORE_AUTH_TOKEN: iamallowedtotouchthis
 SIDEKIQ_DASHBOARD_USERNAME: onlyneedonproduction
 SIDEKIQ_DASHBOARD_PASSWORD: onlyneedonproduction
 TRANSITLAND_FEED_REGISTRY_PATH: <%= Rails.root.join('tmp', 'transitland-feed-registry') %>
