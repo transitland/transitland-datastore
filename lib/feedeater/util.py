@@ -3,6 +3,14 @@ import os
 import argparse
 import math
 
+def makedirs(path):
+  if not path:
+    raise OSError("No path specified")
+  try:
+    os.makedirs(path)
+  except OSError, e:
+    pass
+
 def default_parser(description=None):
   parser = argparse.ArgumentParser(description=description)
   parser.add_argument(
@@ -12,13 +20,13 @@ def default_parser(description=None):
   )
   parser.add_argument(
     '--registry', 
-    help='Feed Registry Path',
+    help='Feed registry path',
     default=os.getenv('TRANSITLAND_FEED_REGISTRY_PATH')
   )
   parser.add_argument(
     '--workdir',
-    help='Work/data directory',
-    default=os.path.join(os.getenv('TRANSITLAND_FEED_REGISTRY_PATH'), 'data')
+    help='Feed data directory',
+    default=os.getenv('TRANSITLAND_FEED_DATA_PATH')
   )
   parser.add_argument(
     '--all', 
@@ -36,7 +44,8 @@ def default_parser(description=None):
     help='Debug', 
     action='store_true'
   )
-  parser.add_argument('--filename',
+  parser.add_argument(
+    '--filename',
     help='Specify GTFS filename manually'
   )  
   return parser
