@@ -24,6 +24,7 @@ def run():
       print "Cached"
     else:
       print "Downloading: %s -> %s"%(feed.url(), filename)
+      util.makedirs(args.workdir)
       feed.download(filename, verify=False)
       newfeeds.append(feedid)
     if not feed.verify_sha1(filename):
