@@ -128,14 +128,14 @@ Note that the crontab schedule is set in [config/schedule.rb](config/schedule.rb
 
 ## API Authentication
 
-Any API calls that involve writing to the database (creating/editing/applying changesets or running the "feed eater" data ingestion pipeline) require authentication. API keys are specified in `config/application.yml`. Keys can be any alphanumeric string, separated by commas. For example:
+Any API calls that involve writing to the database (creating/editing/applying changesets or running the "feed eater" data ingestion pipeline) require authentication. API keys are specified in `config/application.yml`. The key can be any alphanumeric string. For example:
 
 ````yaml
 # config/application.yml
-API_AUTH_TOKENS: 1a4494f1fc463ab8e32d6b,AN_OPTIONAL_SECOND_KEY
+TRANSITLAND_DATASTORE_AUTH_TOKEN: 1a4494f1fc463ab8e32d6b
 ````
 
-Or, specify as an environment variable. For example, `API_AUTH_TOKENS=1a4494f1fc463ab8e32d6b,AN_OPTIONAL_SECOND_KEY bundle exec rails server`
+Or, specify as an environment variable. For example, `TRANSITLAND_DATASTORE_AUTH_TOKEN: 1a4494f1fc463ab8e32d6b bundle exec rails server`
 
 To authenticate, include the following in your POST or PUT request:
 

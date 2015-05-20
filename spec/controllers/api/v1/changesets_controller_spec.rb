@@ -1,6 +1,6 @@
 describe Api::V1::ChangesetsController do
   before(:each) do
-    allow(Figaro.env).to receive(:api_auth_tokens) { 'THISISANAPIKEY,THISISANOTHERKEY' }
+    allow(Figaro.env).to receive(:transitland_datastore_auth_token) { 'THISISANAPIKEY' }
   end
 
   context 'GET index' do
@@ -52,7 +52,7 @@ describe Api::V1::ChangesetsController do
     end
 
     it 'should be able to instantly create and apply a Changeset with a valid payload' do
-      @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANOTHERKEY'
+      @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANAPIKEY'
       attrs = FactoryGirl.attributes_for(:changeset)
       attrs[:whenToApply] = 'instantlyIfClean'
       post :create, changeset: attrs
@@ -64,7 +64,7 @@ describe Api::V1::ChangesetsController do
 
   context 'POST update' do
     before(:each) do
-      @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANOTHERKEY'
+      @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANAPIKEY'
     end
 
     it "should be able to update a Changeset that hasn't yet been applied" do
@@ -99,7 +99,7 @@ describe Api::V1::ChangesetsController do
 
   context 'POST check' do
     before(:each) do
-      @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANOTHERKEY'
+      @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANAPIKEY'
     end
 
     it 'should be able to identify a Changeset that will apply cleanly' do
@@ -126,7 +126,7 @@ describe Api::V1::ChangesetsController do
 
   context 'POST apply' do
     before(:each) do
-      @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANOTHERKEY'
+      @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANAPIKEY'
     end
 
     it 'should be able to apply a clean Changeset' do

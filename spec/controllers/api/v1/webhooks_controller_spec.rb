@@ -1,6 +1,6 @@
 describe Api::V1::WebhooksController do
   before(:each) do
-    allow(Figaro.env).to receive(:api_auth_tokens) { 'THISISANAPIKEY,THISISANOTHERKEY' }
+    allow(Figaro.env).to receive(:transitland_datastore_auth_token) { 'THISISANOTHERKEY' }
     @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANOTHERKEY'
   end
 

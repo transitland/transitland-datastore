@@ -1,7 +1,7 @@
 class FeedEaterWorker
   include Sidekiq::Worker
 
-  def perform(feed_onestop_ids: [])
+  def perform(feed_onestop_ids = [])
     # TODO: datastore_api_base_url = Figaro.env.DATASTORE_PROTOCOL + "://" + Figaro.env.DATASTORE_HOST +
     logger.info '0. Fetching latest transitland-feed-registry'
     TransitlandClient::FeedRegistry.repo(force_update: true)
@@ -24,13 +24,13 @@ class FeedEaterWorker
 
     logger.info '3. Validating feeds'
     system "#{python} ./lib/feedeater/validate.py #{updated.join(' ')}"
-    
+
     logger.info '4. Uploading feed to datastore'
     system "#{python} ./lib/feedeater/post.py #{updated.join(' ')}"
 
     logger.info '5. Creating GTFS artifacts'
     system "#{python} ./lib/feedeater/artifact.py #{updated.join(' ')}"
-  
+
     # logger.info '5. Creating FeedEater Reports'
 
     # logger.info '6. Uploading to S3'
