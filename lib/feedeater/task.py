@@ -1,9 +1,12 @@
 """Base FeedEater Task."""
+import sys
 import os
 import argparse
+import logging
 
 import transitland.registry
 import transitland.datastore
+import logging
 
 def default_parser(description=None, feedids=False):
   parser = argparse.ArgumentParser(description=description)
@@ -18,7 +21,6 @@ def default_parser(description=None, feedids=False):
       'feedid', 
       help='Feed ID'
     )
-    
   parser.add_argument(
     '--registry', 
     help='Feed registry path',
@@ -48,9 +50,13 @@ def default_parser(description=None, feedids=False):
     '--filename',
     help='Specify GTFS filename manually'
   )  
+  parser.add_argument(
+    '--log',
+    help='Log file'
+  )  
   return parser
 
-class FeedEaterTask(object):
+class FeedEaterTask(object):  
   def __init__(
       self,
       filename=None,
@@ -60,7 +66,8 @@ class FeedEaterTask(object):
       workdir=None,
       host=None,
       apitoken=None,
-      debug=None
+      debug=None,
+      log=None
     ):
     assert registry
     self.filename = filename
@@ -73,7 +80,24 @@ class FeedEaterTask(object):
       apitoken=apitoken,
       debug=debug
     )
-    self.debug = debug
+    self.logger = self._log_init(logfile=log, debug=debug)
+    
+  def _log_init(self, logfile=None, debug=False):
+    kw = {
+      'format': '[%(asctime)s] %(message)s',
+      'datefmt': '%Y-%m-%d %H:%M:%S',
+      'stream': sys.stdout,
+    }
+    if debug:
+      kw['level'] = logging.DEBUG
+    else:
+      kw['level'] = logging.INFO      
+    if logfile:
+      logfile = os.path.join(self.workdir, logfile)
+      kw['filename'] = logfile
+      kw['filemode'] = 'a'
+    logging.basicConfig(**kw)
+    return logging.getLogger(self.__class__.__name__)
     
   @classmethod
   def from_args(cls):
@@ -85,6 +109,13 @@ class FeedEaterTask(object):
   def parser(cls):
     return default_parser(cls.__doc__)
     
+  def debug(self, msg):
+    self.logger.debug(msg)
+    
+  def log(self, msg):
+    # '[%s] %s'%(self.feedid, msg)
+    self.logger.info(msg)
+  
   def run(self):
     pass
     

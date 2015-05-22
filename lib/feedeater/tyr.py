@@ -4,16 +4,16 @@ import urllib
 import urllib2
 import collections
 
-def tyr_osm(stop, apitoken=None, debug=False):
-  if not tyr:
-    return None
-  t = tyr.TYR('http://valhalla.api.dev.mapzen.com', apitoken=apitoken, debug=debug)
+import util
+
+def tyr_osm(stop, endpoint=None, apitoken=None, debug=False):
+  endpoint = endpoint or 'http://valhalla.api.dev.mapzen.com'
+  t = TYR(endpoint, apitoken=apitoken, debug=debug)
   response = t.locate([stop.point()])
   try:
     assert response
     assert response[0]['ways']
   except:
-    print "No matching OSM Way ID for stop."
     return None
   ways = collections.defaultdict(list)
   for way in response[0]['ways']:
@@ -27,7 +27,6 @@ class TYR(object):
   def __init__(self, endpoint, apitoken=None, debug=False):
     self.endpoint = endpoint
     self.apitoken = apitoken
-    self.debug = debug    
     
   def locate(self, locations, costing='pedestrian'):
     data = {
@@ -46,8 +45,6 @@ class TYR(object):
         endpoint,
         urllib.urlencode(qs)
       )
-    if self.debug:
-      print "====== GET: %s ======"%endpoint
     req = urllib2.Request(endpoint)
     response = urllib2.urlopen(req)
     ret = response.read()
@@ -55,7 +52,4 @@ class TYR(object):
       ret = json.loads(ret)
     except ValueError, e:
       return None
-    if self.debug:
-      print "--> Response: "
-      print ret
     return ret
