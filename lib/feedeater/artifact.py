@@ -7,8 +7,6 @@ import mzgtfs.feed
 
 import util
 import task
-# Temporary:
-import tyr
 
 class FeedEaterArtifact(task.FeedEaterTask):
   def run(self):
@@ -31,13 +29,6 @@ class FeedEaterArtifact(task.FeedEaterTask):
       match = sorted(found, key=lambda x:x.data['updated_at'])[0]
       onestop_id = match.onestop()
       osm_way_id = match.data.get('osm_way_id')
-      if not osm_way_id and tyr:
-        osm_way_id = tyr.tyr_osm(
-          stop, 
-          apitoken=os.getenv('TYR_AUTH_TOKEN'), 
-          debug=self.debug
-        )
-        print "  ... got tyr osm_way_id:", osm_way_id
       print "  onestop_id: %s, osm_way_id: %s"%(onestop_id, osm_way_id)
       stop.set('onestop_id', onestop_id)
       stop.set('osm_way_id', osm_way_id)
