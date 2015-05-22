@@ -4,7 +4,6 @@ class FeedEaterWorker
   PYTHON = './virtualenv/bin/python'
 
   def perform(feed_onestop_ids = [])
-    # TODO: datastore_api_base_url = Figaro.env.DATASTORE_PROTOCOL + "://" + Figaro.env.DATASTORE_HOST +
     logger.info '0. Fetching latest transitland-feed-registry'
     TransitlandClient::FeedRegistry.repo(force_update: true)
 

@@ -34,9 +34,13 @@ module TransitlandDatastore
     end
 
     # Set base URL
-    default_url_options = { host: Figaro.env.datastore_host }
-    default_url_options[:protocol] = Figaro.env.datastore_protocol if Figaro.env.datastore_protocol.present?
-    default_url_options[:port] = Figaro.env.datastore_port if Figaro.env.datastore_port.present?
+    default_url_options = {
+      host: Figaro.env.transitland_datastore_host.match(/:\/\/([^:]+)/)[1],
+      protocol: Figaro.env.transitland_datastore_host.split('://')[0]
+    }
+    if (port_match = Figaro.env.transitland_datastore_host.match(/:(\d+)/))
+      default_url_options[:port] = port_match[1]
+    end
     config.action_mailer.default_url_options = default_url_options
   end
 end
