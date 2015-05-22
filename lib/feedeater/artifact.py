@@ -4,65 +4,25 @@ import os
 import collections
 
 import mzgtfs.feed
-import transitland.registry
-import transitland.datastore
 
 import util
+import task
 # Temporary:
 import tyr
 
-def tyr_osm(stop, apitoken=None, debug=False):
-  if not tyr:
-    return None
-  t = tyr.TYR('http://valhalla.api.dev.mapzen.com', apitoken=apitoken, debug=debug)
-  response = t.locate([stop.point()])
-  try:
-    assert response
-    assert response[0]['ways']
-  except:
-    print "No matching OSM Way ID for stop."
-    return None
-  ways = collections.defaultdict(list)
-  for way in response[0]['ways']:
-    d = util.haversine(stop.point(), (way['correlated_lon'], way['correlated_lat']))
-    ways[d].append(way['way_id'])
-  # get the lowest way_id in the closest way.
-  way_id = sorted(ways[sorted(ways.keys())[0]])[0]
-  return way_id
-
-def run():
-  parser = util.default_parser('Merge Onestop/OSM Way into GTFS tables')
-  parser.add_argument('--apitoken',
-    help='API Token',
-    default=os.getenv('TRANSITLAND_DATASTORE_AUTH_TOKEN')
-  )
-  parser.add_argument("--host",
-    help="Datastore Host",
-    default=os.getenv('TRANSITLAND_DATASTORE_HOST') or 'http://localhost:3000'
-  )
-  args = parser.parse_args()
-
-  # Registry
-  r = transitland.registry.FeedRegistry(path=args.registry)
-  ds = transitland.datastore.Datastore(
-    args.host,
-    apitoken=args.apitoken,
-    debug=args.debug
-  )
-
-  # Create GTFS Artifacts
-  feedids = args.feedids or r.feeds()
-  for feedid in feedids:
-    print "===== Feed: %s ====="%feedid
-    infeed = r.feed(feedid)
-    filename = args.filename or os.path.join(args.workdir, '%s.zip'%feedid)
+class FeedEaterArtifact(task.FeedEaterTask):
+  def run(self):
+    # Create GTFS Artifacts
+    print "===== Feed: %s ====="%self.feedid
+    feed = self.registry.feed(self.feedid)
+    filename = self.filename or os.path.join(self.workdir, '%s.zip'%feed.onestop())
     print "Opening: %s"%filename
-    gtfsfeed = mzgtfs.feed.Feed(filename, debug=args.debug)
+    gtfsfeed = mzgtfs.feed.Feed(filename, debug=self.debug)
 
     for stop in gtfsfeed.stops():
-      identifier = stop.feedid(feedid)
+      identifier = stop.feedid(self.feedid)
       print "Looking for identifier: %s"%identifier
-      found = ds.stops(identifier=identifier)
+      found = self.datastore.stops(identifier=identifier)
       if not found:
         print "  No identifier found!"
         stop.set('onestop_id', None)
@@ -72,10 +32,10 @@ def run():
       onestop_id = match.onestop()
       osm_way_id = match.data.get('osm_way_id')
       if not osm_way_id and tyr:
-        osm_way_id = tyr_osm(
+        osm_way_id = tyr.tyr_osm(
           stop, 
           apitoken=os.getenv('TYR_AUTH_TOKEN'), 
-          debug=args.debug
+          debug=self.debug
         )
         print "  ... got tyr osm_way_id:", osm_way_id
       print "  onestop_id: %s, osm_way_id: %s"%(onestop_id, osm_way_id)
@@ -83,8 +43,8 @@ def run():
       stop.set('osm_way_id', osm_way_id)
 
     # Write output
-    stopstxt = os.path.join(args.workdir, 'stops.txt')
-    artifact = os.path.join(args.workdir, '%s.artifact.zip'%feedid)
+    stopstxt = os.path.join(self.workdir, 'stops.txt')
+    artifact = os.path.join(self.workdir, '%s.artifact.zip'%feed.onestop())
     if os.path.exists(stopstxt):
       os.unlink(stopstxt)
     if os.path.exists(artifact):
