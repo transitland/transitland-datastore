@@ -16,6 +16,8 @@ class FeedEaterWorker
     else
       feedids = []
     end
+    feedids = ['f-9q9-bayarearapidtransit']
+
     logger.info " -> #{feedids.join(' ')}"
     if feedids.length == 0
       return
@@ -24,16 +26,16 @@ class FeedEaterWorker
     # TODO: Child jobs
     for feed in feedids
       logger.info "2. Downloading feed: #{feed}"
-      run_python_and_return_stdout('./lib/feedeater/fetch.py', feed)
+      run_python_and_return_stdout('./lib/feedeater/fetch.py', "--log #{feed}.txt #{feed}")
 
       logger.info "3. Validating feed: #{feed}"
-      run_python_and_return_stdout('./lib/feedeater/validate.py', feed)
+      run_python_and_return_stdout('./lib/feedeater/validate.py', "--log #{feed}.txt #{feed}")
 
       logger.info "4. Uploading feed: #{feed}"
-      run_python_and_return_stdout('./lib/feedeater/post.py', feed)
+      run_python_and_return_stdout('./lib/feedeater/post.py', "--log #{feed}.txt #{feed}")
 
       logger.info "5. Creating GTFS artifact: #{feed}"
-      run_python_and_return_stdout('./lib/feedeater/artifact.py', feed)
+      run_python_and_return_stdout('./lib/feedeater/artifact.py', "--log #{feed}.txt #{feed}")
 
       # logger.info '6. Creating FeedEater Reports'
       # logger.info '7. Uploading to S3'
