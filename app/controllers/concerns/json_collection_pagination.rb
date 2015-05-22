@@ -13,9 +13,9 @@ module JsonCollectionPagination
         offset: offset,
         per_page: per_page
     }
-    meta[:next] = path_helper.call(offset: offset + per_page) if is_there_a_next_page?(total, offset, per_page)
-    meta[:prev] = path_helper.call(offset: offset - per_page) if is_there_a_prev_page?(total, offset, per_page)
-    { json: collection.offset(offset), meta: meta }
+    meta[:next] = path_helper.call(offset: offset + per_page, per_page: per_page) if is_there_a_next_page?(total, offset, per_page)
+    meta[:prev] = path_helper.call(offset: offset - per_page, per_page: per_page) if is_there_a_prev_page?(total, offset, per_page)
+    { json: collection.offset(offset).limit(per_page), meta: meta }
   end
 
   private
