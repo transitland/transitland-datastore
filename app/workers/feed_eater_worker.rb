@@ -32,8 +32,7 @@ class FeedEaterWorker
       logger.info "4. Uploading feed: #{feed}"
       run_python_and_return_stdout('./lib/feedeater/post.py', feed)
 
-      logger.info "5. Creating GTFS artifact: #{feed}"
-      run_python_and_return_stdout('./lib/feedeater/artifact.py', feed)
+      # TODO: trigger GTFS feed generator job
 
       # logger.info '6. Creating FeedEater Reports'
       # logger.info '7. Uploading to S3'
