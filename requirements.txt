@@ -1,3 +1,2 @@
--e git+https://github.com/transitland/mapzen-geohash.git#egg=mzgeohash
--e git+https://github.com/transitland/mapzen-gtfs.git#egg=mzgtfs
--e git+https://github.com/transitland/transitland-python-client.git#egg=transitland
+-e git+https://github.com/transitland/mapzen-gtfs.git@v0.10.2#egg=mzgtfs
+-e git+https://github.com/transitland/transitland-python-client.git@a2444be1d0a62d7df7285519084cf7bf1c5af608#egg=transitland
