@@ -1,4 +1,4 @@
-"""Comparison utilities."""
+"""Similarity utilities."""
 import math
 import difflib
 import collections
@@ -29,31 +29,27 @@ def score_name_distance(e1, e2):
 def filter_threshold(matches, threshold=0.5):
   return filter(lambda x:x.score >= threshold, matches)
 
-class ScoreResult(object):
+class Match(object):
   """Result of a comparison between two entities."""
-  def __init__(self, source, match=None, score=0.0):
-    self.source = source
+  def __init__(self, entity, match=None, score=0.0):
+    self.entity = entity
     self.match = match
     self.score = score
     
-  def print_match(self, indent=''):
+  def __str__(self):
     if self.match:
-      print "%s%s <-> %s (score: %0.2f, d: %0.2fm, ds: %0.2f, ss: %0.2f)"%(
-        indent,
-        self.source.name(), 
+      return "Match: %s <-> %s (score: %0.2f, d: %0.2fm)"%(
+        self.entity.name(), 
         self.match.name(), 
         self.score,
-        util.haversine(self.source.point(), self.match.point()),
-        score_distance(self.source, self.match),
-        score_name(self.source, self.match)
+        util.haversine(self.entity.point(), self.match.point())
       )
     else:
-      print "%s%s <-> no result"%(
-        indent, 
-        self.source.name()
+      return "Match: %s <-> no result"%(
+        self.entity.name()
       )
 
-class CompareEntities(object):
+class MatchEntities(object):
   def __init__(self, entity, search_entities, score_func=None):
     """Compare entities."""
     self.entity = entity
@@ -61,15 +57,11 @@ class CompareEntities(object):
     self.score_func = score_func or score_name_distance    
     self.result = []
   
-  def find_search_entities(self):
-    """Find a set of entities to compare against."""
-    return self.search_entities
-
   def score(self):
     """Return the best matching entity."""  
     results = []
-    for search_entity in self.find_search_entities():
-      result = ScoreResult(
+    for search_entity in self.search_entities:
+      result = Match(
         self.entity, 
         search_entity, 
         self.score_func(self.entity, search_entity)
@@ -77,34 +69,10 @@ class CompareEntities(object):
       results.append(result)
     self.results = results
   
-  def merge(self, threshold=0.5, indent=''):
-    """Merge the entity with the best result."""
+  def best(self):
     results = sorted(self.results, key=lambda x:x.score, reverse=True)
     if results:
       best = results[0]
     else:
-      best = ScoreResult(self.entity)
-    best.print_match(indent=indent)
-    
-    # Identifier matches.
-    idm = set()
-    if best.match:
-      idm = set(self.entity.identifiers()) & set(best.match.identifiers())
-
-    # Score results.
-    if best.score == 1.0:
-      print "\tperfect match, updating tags..."
-      best.match.merge(self.entity)
-      self.entity.data = best.match.data
-    # elif best.score > threshold and idm:
-    #   print "\tid match"
-    #   return self.entity
-    elif best.score > threshold:
-      print "%sscore above threshold, merging..."%indent
-      best.match.merge(self.entity)
-      self.entity.data = best.match.data
-    else:
-      print "%s...no match."%indent
-      
-    return self.entity
-
+      best = Match(self.entity)
+    return best
