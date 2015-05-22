@@ -49,4 +49,5 @@ class FeedEaterArtifact(task.FeedEaterTask):
       os.unlink(stopstxt)
     
 if __name__ == "__main__":
-  run()
+  task = FeedEaterArtifact.from_args()
+  task.run()
