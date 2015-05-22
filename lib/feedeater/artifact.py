@@ -13,18 +13,18 @@ import tyr
 class FeedEaterArtifact(task.FeedEaterTask):
   def run(self):
     # Create GTFS Artifacts
-    print "===== Feed: %s ====="%self.feedid
+    self.log("===== Feed: %s ====="%self.feedid)
     feed = self.registry.feed(self.feedid)
     filename = self.filename or os.path.join(self.workdir, '%s.zip'%feed.onestop())
-    print "Opening: %s"%filename
-    gtfsfeed = mzgtfs.feed.Feed(filename, debug=self.debug)
+    self.log("Opening: %s"%filename)
+    gtfsfeed = mzgtfs.feed.Feed(filename)
 
     for stop in gtfsfeed.stops():
       identifier = stop.feedid(self.feedid)
-      print "Looking for identifier: %s"%identifier
+      self.log("Looking for identifier: %s"%identifier)
       found = self.datastore.stops(identifier=identifier)
       if not found:
-        print "  No identifier found!"
+        self.log("  No identifier found!")
         stop.set('onestop_id', None)
         stop.set('osm_way_id', None)
         continue
@@ -34,11 +34,10 @@ class FeedEaterArtifact(task.FeedEaterTask):
       if not osm_way_id and tyr:
         osm_way_id = tyr.tyr_osm(
           stop, 
-          apitoken=os.getenv('TYR_AUTH_TOKEN'), 
-          debug=self.debug
+          apitoken=os.getenv('TYR_AUTH_TOKEN')
         )
-        print "  ... got tyr osm_way_id:", osm_way_id
-      print "  onestop_id: %s, osm_way_id: %s"%(onestop_id, osm_way_id)
+        self.log("  ... got tyr osm_way_id: %s"%osm_way_id)
+      self.log("  onestop_id: %s, osm_way_id: %s"%(onestop_id, osm_way_id))
       stop.set('onestop_id', onestop_id)
       stop.set('osm_way_id', osm_way_id)
 
@@ -50,7 +49,7 @@ class FeedEaterArtifact(task.FeedEaterTask):
     if os.path.exists(artifact):
       os.unlink(artifact)    
     #
-    print "Creating output artifact: %s"%artifact
+    self.log("Creating output artifact: %s"%artifact)
     gtfsfeed.write(stopstxt, gtfsfeed.stops(), sortkey='stop_id')
     gtfsfeed.make_zip(artifact, files=[stopstxt], clone=filename)
     #
