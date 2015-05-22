@@ -16,7 +16,6 @@ class FeedEaterWorker
     else
       feedids = []
     end
-    feedids = ['f-9q9-bayarearapidtransit']
 
     logger.info " -> #{feedids.join(' ')}"
     if feedids.length == 0
