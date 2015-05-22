@@ -110,7 +110,9 @@ This asynchronous background worker will import feeds specified in the [Onestop 
 
 To enqueue a worker from the command line:
 
-    bundle exec rake enqueue_feed_eater_worker
+  - to load all feeds: `bundle exec rake enqueue_feed_eater_worker`
+  - to load one specified feed: `bundle exec rake enqueue_feed_eater_worker[f-9q9-bayarearapidtransit]`
+  - to load a few specified feeds: `bundle exec rake enqueue_feed_eater_worker['f-9q9-actransit f-c23-kingcounty']`
 
 To enqueue a worker from an endpoint:
 
