@@ -1,6 +1,11 @@
-task enqueue_feed_eater_worker: [:environment] do
+task :enqueue_feed_eater_worker, [:feed_onestop_ids] => [:environment] do |t, args|
   begin
-    feed_eater_worker = FeedEaterWorker.perform_async
+    if args.feed_onestop_ids.present?
+      array_of_feed_onestop_ids = args.feed_onestop_ids.split(' ')
+    else
+      array_of_feed_onestop_ids = []
+    end
+    feed_eater_worker = FeedEaterWorker.perform_async(array_of_feed_onestop_ids)
     if feed_eater_worker
       puts "FeedEaterWorker ##{feed_eater_worker} has been created and enqueued."
     else

@@ -7,7 +7,7 @@ class FeedEaterWorker
     logger.info '0. Fetching latest transitland-feed-registry'
     TransitlandClient::FeedRegistry.repo(force_update: true)
 
-    logger.info '1. Checking for new feeds'
+    logger.info "1. Checking for new feed files for #{feed_onestop_ids.join(', ')}"
 
     feedids = run_python_and_return_stdout('./lib/feedeater/check.py', feed_onestop_ids.join(' '))
     if feedids
