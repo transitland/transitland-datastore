@@ -11,7 +11,7 @@
 #  name                               :string
 #  created_or_updated_in_changeset_id :integer
 #  version                            :integer
-#  identifiers                        :string           is an Array
+#  identifiers                        :string           default([]), is an Array
 #
 # Indexes
 #

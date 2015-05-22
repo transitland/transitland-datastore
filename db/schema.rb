@@ -36,7 +36,7 @@ ActiveRecord::Schema.define(version: 20150501181034) do
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.integer   "created_or_updated_in_changeset_id"
     t.integer   "version"
-    t.string    "identifiers",                                                                                    array: true
+    t.string    "identifiers",                                                                                    default: [], array: true
   end
 
   add_index "current_operators", ["created_or_updated_in_changeset_id"], name: "#c_operators_cu_in_changeset_id_index", using: :btree
@@ -68,7 +68,7 @@ ActiveRecord::Schema.define(version: 20150501181034) do
     t.datetime  "created_at"
     t.datetime  "updated_at"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
-    t.string    "identifiers",                                                                                    array: true
+    t.string    "identifiers",                                                                                    default: [], array: true
   end
 
   add_index "current_routes", ["created_or_updated_in_changeset_id"], name: "c_route_cu_in_changeset", using: :btree
@@ -98,7 +98,7 @@ ActiveRecord::Schema.define(version: 20150501181034) do
     t.string    "name"
     t.integer   "created_or_updated_in_changeset_id"
     t.integer   "version"
-    t.string    "identifiers",                                                                                    array: true
+    t.string    "identifiers",                                                                                    default: [], array: true
   end
 
   add_index "current_stops", ["created_or_updated_in_changeset_id"], name: "#c_stops_cu_in_changeset_id_index", using: :btree
@@ -116,7 +116,7 @@ ActiveRecord::Schema.define(version: 20150501181034) do
     t.integer   "destroyed_in_changeset_id"
     t.integer   "current_id"
     t.integer   "version"
-    t.string    "identifiers",                                                                                    array: true
+    t.string    "identifiers",                                                                                    default: [], array: true
   end
 
   add_index "old_operators", ["created_or_updated_in_changeset_id"], name: "o_operators_cu_in_changeset_id_index", using: :btree
@@ -157,7 +157,7 @@ ActiveRecord::Schema.define(version: 20150501181034) do
     t.datetime  "created_at"
     t.datetime  "updated_at"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
-    t.string    "identifiers",                                                                                    array: true
+    t.string    "identifiers",                                                                                    default: [], array: true
   end
 
   add_index "old_routes", ["created_or_updated_in_changeset_id"], name: "o_route_cu_in_changeset", using: :btree
@@ -197,7 +197,7 @@ ActiveRecord::Schema.define(version: 20150501181034) do
     t.integer   "destroyed_in_changeset_id"
     t.integer   "current_id"
     t.integer   "version"
-    t.string    "identifiers",                                                                                    array: true
+    t.string    "identifiers",                                                                                    default: [], array: true
   end
 
   add_index "old_stops", ["created_or_updated_in_changeset_id"], name: "o_stops_cu_in_changeset_id_index", using: :btree

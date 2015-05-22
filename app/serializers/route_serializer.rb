@@ -12,7 +12,7 @@
 #  created_at                         :datetime
 #  updated_at                         :datetime
 #  geometry                           :geography({:srid geometry, 4326
-#  identifiers                        :string           is an Array
+#  identifiers                        :string           default([]), is an Array
 #
 # Indexes
 #
