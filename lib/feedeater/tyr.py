@@ -4,6 +4,25 @@ import urllib
 import urllib2
 import collections
 
+def tyr_osm(stop, apitoken=None, debug=False):
+  if not tyr:
+    return None
+  t = tyr.TYR('http://valhalla.api.dev.mapzen.com', apitoken=apitoken, debug=debug)
+  response = t.locate([stop.point()])
+  try:
+    assert response
+    assert response[0]['ways']
+  except:
+    print "No matching OSM Way ID for stop."
+    return None
+  ways = collections.defaultdict(list)
+  for way in response[0]['ways']:
+    d = util.haversine(stop.point(), (way['correlated_lon'], way['correlated_lat']))
+    ways[d].append(way['way_id'])
+  # get the lowest way_id in the closest way.
+  way_id = sorted(ways[sorted(ways.keys())[0]])[0]
+  return way_id
+  
 class TYR(object):
   def __init__(self, endpoint, apitoken=None, debug=False):
     self.endpoint = endpoint
