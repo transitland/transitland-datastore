@@ -8,32 +8,35 @@ class FeedEaterWorker
 
     logger.info '1. Checking for new feeds'
     python = './virtualenv/bin/python'
-    updated = `#{python} ./lib/feedeater/check.py #{feed_onestop_ids.join(' ')}`
-    if updated
-      updated = updated.split()
+    feedids = `#{python} ./lib/feedeater/check.py #{feed_onestop_ids.join(' ')}`
+    if feedids
+      feedids = feedids.split()
     else
-      updated = []
+      feedids = []
     end
-    logger.info " -> #{updated.join(' ')}"
-    if updated.length == 0
+    logger.info " -> #{feedids.join(' ')}"
+    if feedids.length == 0
       return
     end
+  
+    # TODO: Child jobs
+    for feed in feedids
+      logger.info "2. Downloading feed: #{feed}"
+      system "#{python} ./lib/feedeater/fetch.py #{feed}"
 
-    logger.info '2. Downloading feeds that have been updated'
-    system "#{python} ./lib/feedeater/fetch.py #{updated.join(' ')}"
+      logger.info "3. Validating feed: #{feed}"
+      system "#{python} ./lib/feedeater/validate.py #{feed}"
+    
+      logger.info "4. Uploading feed: #{feed}"
+      system "#{python} ./lib/feedeater/post.py #{feed}"
 
-    logger.info '3. Validating feeds'
-    system "#{python} ./lib/feedeater/validate.py #{updated.join(' ')}"
+      logger.info "5. Creating GTFS artifact: #{feed}"
+      system "#{python} ./lib/feedeater/artifact.py #{feed}"
 
-    logger.info '4. Uploading feed to datastore'
-    system "#{python} ./lib/feedeater/post.py #{updated.join(' ')}"
-
-    logger.info '5. Creating GTFS artifacts'
-    system "#{python} ./lib/feedeater/artifact.py #{updated.join(' ')}"
-
-    # logger.info '5. Creating FeedEater Reports'
-
-    # logger.info '6. Uploading to S3'
-    # aws s3 sync . s3://onestop-feed-cache.transit.land
+      # logger.info '6. Creating FeedEater Reports'
+      # logger.info '7. Uploading to S3'
+      # aws s3 sync . s3://onestop-feed-cache.transit.land
+    end
+    
   end
 end

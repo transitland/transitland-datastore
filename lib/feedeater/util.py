@@ -11,45 +11,6 @@ def makedirs(path):
   except OSError, e:
     pass
 
-def default_parser(description=None):
-  parser = argparse.ArgumentParser(description=description)
-  parser.add_argument(
-    'feedids', 
-    help='Feed IDs',
-    nargs='*'
-  )
-  parser.add_argument(
-    '--registry', 
-    help='Feed registry path',
-    default=os.getenv('TRANSITLAND_FEED_REGISTRY_PATH')
-  )
-  parser.add_argument(
-    '--workdir',
-    help='Feed data directory',
-    default=os.getenv('TRANSITLAND_FEED_DATA_PATH')
-  )
-  parser.add_argument(
-    '--all', 
-    help='Update all feeds', 
-    action='store_true'
-  )
-  parser.add_argument(
-    '--verbose', 
-    help='Verbosity', 
-    type=int, 
-    default=1
-  )
-  parser.add_argument(
-    '--debug', 
-    help='Debug', 
-    action='store_true'
-  )
-  parser.add_argument(
-    '--filename',
-    help='Specify GTFS filename manually'
-  )  
-  return parser
-  
 def haversine(point1, point2):
   """Haversine distance between two (lon,lat) points, in km."""
   # Based on description of Haversine formula:

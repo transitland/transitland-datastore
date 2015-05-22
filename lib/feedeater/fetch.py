@@ -1,36 +1,24 @@
 """Fetch Transitland Feed Registry feeds."""
-import argparse
 import os
 
-import transitland.registry
-
 import util
+import task
 
-def run():
-  parser = util.default_parser('Fetch Transitland Feed Registry GTFS feeds')
-  args = parser.parse_args()
-
-  # Registry
-  r = transitland.registry.FeedRegistry(path=args.registry)
-
-  # Download feeds
-  newfeeds = []
-  feedids = args.feedids or r.feeds()
-  for feedid in feedids:
-    print "===== Feed: %s ====="%feedid
-    feed = r.feed(feedid)
-    filename = os.path.join(args.workdir, '%s.zip'%feed.onestop())
+class FeedEaterFetch(task.FeedEaterTask):
+  def run(self):
+    # Download feeds
+    print "===== Feed: %s ====="%self.feedid
+    feed = self.registry.feed(self.feedid)
+    filename = self.filename or os.path.join(self.workdir, '%s.zip'%feed.onestop())
     if feed.verify_sha1(filename):
       print "Cached"
     else:
       print "Downloading: %s -> %s"%(feed.url(), filename)
-      util.makedirs(args.workdir)
+      util.makedirs(self.workdir)
       feed.download(filename, verify=False)
-      newfeeds.append(feedid)
     if not feed.verify_sha1(filename):
       print "Warning: Incorrect SHA1 checksum."
-
-  return newfeeds
     
 if __name__ == "__main__":
-  run()
+  task = FeedEaterFetch.from_args()
+  task.run()
