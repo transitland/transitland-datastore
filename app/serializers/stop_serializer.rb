@@ -29,4 +29,5 @@ class StopSerializer < CurrentEntitySerializer
              :updated_at
 
   has_many :operators_serving_stop
+  has_many :routes_serving_stop
 end
