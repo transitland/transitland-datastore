@@ -18,7 +18,7 @@ class TyrService
       json_payload = {
         locations: locations,
         costing: costing,
-        api_key: Figaro.env.tyr_api_key
+        api_key: Figaro.env.tyr_auth_token
       }
       req.params['json'] = JSON.dump(json_payload)
     end
