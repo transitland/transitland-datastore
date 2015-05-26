@@ -67,14 +67,14 @@ class FeedEaterTask(object):
       host=None,
       apitoken=None,
       debug=None,
-      log=None
+      log=None,
+      **kwargs
     ):
-    assert registry
     self.filename = filename
     self.feedid = feedid
     self.feedids = feedids
     self.registry = transitland.registry.FeedRegistry(path=registry)
-    self.workdir = workdir or os.path.join(registry, 'data')
+    self.workdir = workdir or os.path.join(self.registry.path, 'data')
     self.datastore = transitland.datastore.Datastore(
       host,
       apitoken=apitoken,
@@ -83,31 +83,32 @@ class FeedEaterTask(object):
     self.logger = self._log_init(logfile=log, debug=debug)
     
   def _log_init(self, logfile=None, debug=False):
-    kw = {
-      'format': '[%(asctime)s] %(message)s',
-      'datefmt': '%Y-%m-%d %H:%M:%S',
-      'stream': sys.stdout,
-    }
+    fmt = '[%(asctime)s] %(message)s'
+    datefmt = '%Y-%m-%d %H:%M:%S'
+    logger = logging.getLogger(str(id(self)))
     if debug:
-      kw['level'] = logging.DEBUG
+      logger.setLevel(logging.DEBUG)
     else:
-      kw['level'] = logging.INFO      
+      logger.setLevel(logging.INFO)
     if logfile:
       logfile = os.path.join(self.workdir, logfile)
-      kw['filename'] = logfile
-      kw['filemode'] = 'a'
-    logging.basicConfig(**kw)
-    return logging.getLogger(self.__class__.__name__)
+      fh = logging.FileHandler(logfile)
+    else:
+      fh = logging.StreamHandler(sys.stdout) 
+    fh.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(fmt, datefmt=datefmt)
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+    return logger
     
   @classmethod
   def from_args(cls):
-    parser = cls.parser()
+    parser = cls().parser()
     args = parser.parse_args()  
     return cls(**vars(args))
 
-  @classmethod
-  def parser(cls):
-    return default_parser(cls.__doc__)
+  def parser(self):
+    return default_parser(self.__doc__)
     
   def debug(self, msg):
     self.logger.debug(msg)

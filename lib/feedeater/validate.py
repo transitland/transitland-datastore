@@ -7,6 +7,18 @@ import mzgtfs.validation
 import task
 
 class FeedEaterValidate(task.FeedEaterTask):
+  def __init__(self, *args, **kwargs):
+    super(FeedEaterValidate, self).__init__(*args, **kwargs)
+    self.feedvalidator = kwargs.get('feedvalidator')
+
+  def parser(self):
+    parser = super(FeedEaterValidate, self).parser()
+    parser.add_argument(
+      '--feedvalidator',
+      help='Path to feedvalidator.py'
+    )  
+    return parser
+    
   def run(self):
     # Validate feeds
     self.log("===== Feed: %s ====="%self.feedid)
@@ -17,7 +29,11 @@ class FeedEaterValidate(task.FeedEaterTask):
     gtfsfeed = mzgtfs.feed.Feed(filename)    
     validator = mzgtfs.validation.ValidationReport()
     # gtfsfeed.validate(validator)
-    gtfsfeed.validate_feedvalidator(validator, report=report)
+    gtfsfeed.validate_feedvalidator(
+      validator, 
+      feedvalidator=self.feedvalidator,
+      report=report,
+    )
     # validator.report()
     self.log("Validation report:")
     if not validator.exceptions:

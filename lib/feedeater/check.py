@@ -5,9 +5,8 @@ import util
 import task
 
 class FeedEaterCheck(task.FeedEaterTask):
-  @classmethod
-  def parser(cls):
-    return task.default_parser(cls.__doc__, feedids=True)
+  def parser(self):
+    return task.default_parser(self.__doc__, feedids=True)
 
   def run(self):
     # Check feeds
