@@ -1,6 +1,6 @@
 describe TyrService do
   before(:each) do
-    allow(Figaro.env).to receive(:tyr_api_key) { 'fakeapikey' }
+    allow(Figaro.env).to receive(:tyr_auth_token) { 'fakeapikey' }
   end
 
   it 'should work for one location' do
