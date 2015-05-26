@@ -83,21 +83,23 @@ class FeedEaterTask(object):
     self.logger = self._log_init(logfile=log, debug=debug)
     
   def _log_init(self, logfile=None, debug=False):
-    kw = {
-      'format': '[%(asctime)s] %(message)s',
-      'datefmt': '%Y-%m-%d %H:%M:%S',
-      'stream': sys.stdout,
-    }
+    fmt = '[%(asctime)s] %(message)s'
+    datefmt = '%Y-%m-%d %H:%M:%S'
+    logger = logging.getLogger(str(id(self)))
     if debug:
-      kw['level'] = logging.DEBUG
+      logger.setLevel(logging.DEBUG)
     else:
-      kw['level'] = logging.INFO      
+      logger.setLevel(logging.INFO)
     if logfile:
       logfile = os.path.join(self.workdir, logfile)
-      kw['filename'] = logfile
-      kw['filemode'] = 'a'
-    logging.basicConfig(**kw)
-    return logging.getLogger(self.__class__.__name__)
+      fh = logging.FileHandler(logfile)
+    else:
+      fh = logging.StreamHandler(sys.stdout) 
+    fh.setLevel(logging.DEBUG)
+    formatter = logging.Formatter(fmt, datefmt=datefmt)
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+    return logger
     
   @classmethod
   def from_args(cls):
