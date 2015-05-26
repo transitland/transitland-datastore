@@ -27,7 +27,7 @@ class FeedEaterWorker
       run_python_and_return_stdout('./lib/feedeater/fetch.py', "--log #{feed}.txt #{feed}")
 
       logger.info "3. Validating feed: #{feed}"
-      run_python_and_return_stdout('./lib/feedeater/validate.py', "--validator #{FEEDVALIDATOR} --log #{feed}.txt #{feed}")
+      run_python_and_return_stdout('./lib/feedeater/validate.py', "--feedvalidator #{FEEDVALIDATOR} --log #{feed}.txt #{feed}")
 
       logger.info "4. Uploading feed: #{feed}"
       run_python_and_return_stdout('./lib/feedeater/post.py', "--log #{feed}.txt #{feed}")
