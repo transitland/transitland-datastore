@@ -2,6 +2,7 @@ class FeedEaterWorker
   include Sidekiq::Worker
 
   PYTHON = './virtualenv/bin/python'
+  FEEDVALIDATOR = './virtualenv/bin/feedvalidator.py'
 
   def perform(feed_onestop_ids = [])
     logger.info '0. Fetching latest transitland-feed-registry'
@@ -15,7 +16,6 @@ class FeedEaterWorker
     else
       feedids = []
     end
-
     logger.info " -> #{feedids.join(' ')}"
     if feedids.length == 0
       return
@@ -27,7 +27,7 @@ class FeedEaterWorker
       run_python_and_return_stdout('./lib/feedeater/fetch.py', "--log #{feed}.txt #{feed}")
 
       logger.info "3. Validating feed: #{feed}"
-      run_python_and_return_stdout('./lib/feedeater/validate.py', "--log #{feed}.txt #{feed}")
+      run_python_and_return_stdout('./lib/feedeater/validate.py', "--validator #{FEEDVALIDATOR} --log #{feed}.txt #{feed}")
 
       logger.info "4. Uploading feed: #{feed}"
       run_python_and_return_stdout('./lib/feedeater/post.py', "--log #{feed}.txt #{feed}")
