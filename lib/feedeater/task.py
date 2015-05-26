@@ -67,14 +67,14 @@ class FeedEaterTask(object):
       host=None,
       apitoken=None,
       debug=None,
-      log=None
+      log=None,
+      **kwargs
     ):
-    assert registry
     self.filename = filename
     self.feedid = feedid
     self.feedids = feedids
     self.registry = transitland.registry.FeedRegistry(path=registry)
-    self.workdir = workdir or os.path.join(registry, 'data')
+    self.workdir = workdir or os.path.join(self.registry.path, 'data')
     self.datastore = transitland.datastore.Datastore(
       host,
       apitoken=apitoken,
@@ -101,13 +101,12 @@ class FeedEaterTask(object):
     
   @classmethod
   def from_args(cls):
-    parser = cls.parser()
+    parser = cls().parser()
     args = parser.parse_args()  
     return cls(**vars(args))
 
-  @classmethod
-  def parser(cls):
-    return default_parser(cls.__doc__)
+  def parser(self):
+    return default_parser(self.__doc__)
     
   def debug(self, msg):
     self.logger.debug(msg)
