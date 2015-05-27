@@ -1,5 +1,9 @@
 module Faker
   module OnestopId
+    def self.feed
+      generate_unique_fake_onestop_id('f')
+    end
+
     def self.stop
       generate_unique_fake_onestop_id('s')
     end
@@ -43,6 +47,8 @@ module Faker
         ['AlwaysLate', 'FailTrain', 'BestBus', 'BadBus', 'GitGoin'].sample
       when 'r'
         ['ECR', '522Rapid', 'NJudah'].sample
+      when 'f'
+        ['BART', 'ACTransit'].sample
       end
     end
   end

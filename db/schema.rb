@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150501181034) do
+ActiveRecord::Schema.define(version: 20150526200426) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -104,6 +104,34 @@ ActiveRecord::Schema.define(version: 20150501181034) do
   add_index "current_stops", ["created_or_updated_in_changeset_id"], name: "#c_stops_cu_in_changeset_id_index", using: :btree
   add_index "current_stops", ["identifiers"], name: "index_current_stops_on_identifiers", using: :gin
   add_index "current_stops", ["onestop_id"], name: "index_current_stops_on_onestop_id", using: :btree
+
+  create_table "feed_imports", force: :cascade do |t|
+    t.integer  "feed_id"
+    t.boolean  "success"
+    t.string   "sha1"
+    t.text     "import_log"
+    t.text     "validation_report"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "feed_imports", ["created_at"], name: "index_feed_imports_on_created_at", using: :btree
+  add_index "feed_imports", ["feed_id"], name: "index_feed_imports_on_feed_id", using: :btree
+
+  create_table "feeds", force: :cascade do |t|
+    t.string   "onestop_id"
+    t.string   "url"
+    t.string   "feed_format"
+    t.hstore   "tags"
+    t.string   "operator_onestop_ids_in_feed", default: [], array: true
+    t.string   "last_sha1"
+    t.datetime "last_fetched_at"
+    t.datetime "last_imported_at"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "feeds", ["onestop_id"], name: "index_feeds_on_onestop_id", using: :btree
 
   create_table "old_operators", force: :cascade do |t|
     t.string    "name"

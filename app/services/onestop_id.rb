@@ -11,7 +11,8 @@ class OnestopId
   PREFIX_TO_MODEL = {
     's' => Stop,
     'o' => Operator,
-    'r' => Route
+    'r' => Route,
+    'f' => Feed
   }
   MODEL_TO_PREFIX = PREFIX_TO_MODEL.invert
   COMPONENT_SEPARATOR = '-'

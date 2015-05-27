@@ -5,46 +5,78 @@ class FeedEaterWorker
   FEEDVALIDATOR = './virtualenv/bin/feedvalidator.py'
 
   def perform(feed_onestop_ids = [])
-    logger.info '0. Fetching latest transitland-feed-registry'
-    TransitlandClient::FeedRegistry.repo(force_update: true)
+    logger.info '-1. clearing ZIP, HTML, and LOG out of data dir'
+    clear_data_dir
 
-    logger.info "1. Checking for new feed files for #{feed_onestop_ids.join(', ')}"
+    logger.info '0. update feeds from feed registry'
+    Feed.update_feeds_from_feed_registry
 
-    feedids = run_python_and_return_stdout('./lib/feedeater/check.py', feed_onestop_ids.join(' '))
-    if feedids
-      feedids = feedids.split()
+    logger.info '1. fetch and check feeds for updated versions'
+    updated_feed_onestop_ids = Feed.fetch_and_check_for_updated_version(feed_onestop_ids).map(&:onestop_id)
+
+    if updated_feed_onestop_ids.length == 0
+      logger.info 'no updated feeds need to be processed.'
     else
-      feedids = []
+      # TODO: Child jobs
+      for feed_onestop_id in updated_feed_onestop_ids
+        feed = Feed.find_by(onestop_id: feed_onestop_id)
+        feed_import = FeedImport.create(feed: feed)
+
+        log_file_path = artifact_file_path("#{feed_onestop_id}.log")
+        begin
+          logger.info "3. Validating feed: #{feed_onestop_id}"
+          run_python('./lib/feedeater/validate.py', "--feedvalidator #{FEEDVALIDATOR} --log #{log_file_path} #{feed_onestop_id}")
+
+          logger.info "4. Uploading feed: #{feed_onestop_id}"
+          run_python('./lib/feedeater/post.py', "--log #{log_file_path} #{feed_onestop_id}")
+
+          logger.info "5. Creating GTFS artifact: #{feed_onestop_id}"
+          run_python('./lib/feedeater/artifact.py', "--log #{log_file_path} #{feed_onestop_id}")
+          # TODO: upload GTFS artifact to S3
+          # what happens with a human-readable index.html?
+
+        rescue
+          logger.error $!
+          logger.error $!.backtrace
+          feed_import.update(success: false)
+        else
+          feed.has_been_fetched_and_imported!(on_feed_import: feed_import)
+        ensure
+          if File.exist?(log_file_path)
+            import_log = File.open(log_file_path, 'r').read
+          else
+            import_log = nil
+          end
+
+          if File.exist?(artifact_file_path("#{feed_onestop_id}.html"))
+            validation_report = File.open(artifact_file_path("#{feed_onestop_id}.html"), 'r').read
+          else
+            validation_report = nil
+          end
+
+          feed_import.update(
+            import_log: import_log,
+            validation_report: validation_report
+          )
+        end
+      end
     end
-    logger.info " -> #{feedids.join(' ')}"
-    if feedids.length == 0
-      return
-    end
-
-    # TODO: Child jobs
-    for feed in feedids
-      logger.info "2. Downloading feed: #{feed}"
-      run_python_and_return_stdout('./lib/feedeater/fetch.py', "--log #{feed}.txt #{feed}")
-
-      logger.info "3. Validating feed: #{feed}"
-      run_python_and_return_stdout('./lib/feedeater/validate.py', "--feedvalidator #{FEEDVALIDATOR} --log #{feed}.txt #{feed}")
-
-      logger.info "4. Uploading feed: #{feed}"
-      run_python_and_return_stdout('./lib/feedeater/post.py', "--log #{feed}.txt #{feed}")
-
-      logger.info "5. Creating GTFS artifact: #{feed}"
-      run_python_and_return_stdout('./lib/feedeater/artifact.py', "--log #{feed}.txt #{feed}")
-
-      # logger.info '6. Creating FeedEater Reports'
-      # logger.info '7. Uploading to S3'
-      # aws s3 sync . s3://onestop-feed-cache.transit.land
-    end
-
   end
 
   private
 
-  def run_python_and_return_stdout(file, args)
-    `#{PYTHON} #{file} #{args}`
+  def clear_data_dir
+    FileUtils.rm Dir.glob(artifact_file_path('*.html'))
+    FileUtils.rm Dir.glob(artifact_file_path('*.zip'))
+    FileUtils.rm Dir.glob(artifact_file_path('*.log'))
+  end
+
+  def run_python(file, args)
+    success = system("#{PYTHON} #{file} #{args}")
+    raise "Error running Python #{file} #{args}" if !success
+  end
+
+  def artifact_file_path(name)
+    File.join(Figaro.env.transitland_feed_data_path, name)
   end
 end
