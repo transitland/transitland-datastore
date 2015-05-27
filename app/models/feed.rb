@@ -2,16 +2,17 @@
 #
 # Table name: feeds
 #
-#  id               :integer          not null, primary key
-#  onestop_id       :string
-#  url              :string
-#  feed_format      :string
-#  tags             :hstore
-#  last_sha1        :string
-#  last_fetched_at  :datetime
-#  last_imported_at :datetime
-#  created_at       :datetime
-#  updated_at       :datetime
+#  id                           :integer          not null, primary key
+#  onestop_id                   :string
+#  url                          :string
+#  feed_format                  :string
+#  tags                         :hstore
+#  operator_onestop_ids_in_feed :string           default([]), is an Array
+#  last_sha1                    :string
+#  last_fetched_at              :datetime
+#  last_imported_at             :datetime
+#  created_at                   :datetime
+#  updated_at                   :datetime
 #
 # Indexes
 #
@@ -77,6 +78,7 @@ class Feed < ActiveRecord::Base
     TransitlandClient::Entities::Feed.all.each do |feed_in_registry|
       feed = Feed.find_or_create_by(onestop_id: feed_in_registry.onestop_id)
       feed.url = feed_in_registry.url
+      feed.operator_onestop_ids_in_feed = feed_in_registry.operators_in_feed.map(&:operator_onestop_id)
       feed.feed_format = feed_in_registry.feed_format
       feed.tags = feed_in_registry.tags
       feed.save!

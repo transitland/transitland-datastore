@@ -122,6 +122,7 @@ ActiveRecord::Schema.define(version: 20150526200426) do
     t.string   "url"
     t.string   "feed_format"
     t.hstore   "tags"
+    t.string   "operator_onestop_ids_in_feed", default: [], array: true
     t.string   "last_sha1"
     t.datetime "last_fetched_at"
     t.datetime "last_imported_at"

@@ -2,16 +2,17 @@
 #
 # Table name: feeds
 #
-#  id               :integer          not null, primary key
-#  onestop_id       :string
-#  url              :string
-#  feed_format      :string
-#  tags             :hstore
-#  last_sha1        :string
-#  last_fetched_at  :datetime
-#  last_imported_at :datetime
-#  created_at       :datetime
-#  updated_at       :datetime
+#  id                           :integer          not null, primary key
+#  onestop_id                   :string
+#  url                          :string
+#  feed_format                  :string
+#  tags                         :hstore
+#  operator_onestop_ids_in_feed :string           default([]), is an Array
+#  last_sha1                    :string
+#  last_fetched_at              :datetime
+#  last_imported_at             :datetime
+#  created_at                   :datetime
+#  updated_at                   :datetime
 #
 # Indexes
 #
@@ -22,6 +23,7 @@ class FeedSerializer < ApplicationSerializer
   attributes :onestop_id,
              :url,
              :feed_format,
+             :operator_onestop_ids_in_feed,
              :tags,
              :last_sha1,
              :last_fetched_at,
