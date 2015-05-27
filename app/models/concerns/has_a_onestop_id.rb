@@ -2,7 +2,7 @@ module HasAOnestopId
   extend ActiveSupport::Concern
 
   included do
-    validates :onestop_id, presence: true, uniqueness: { scope: :version }
+    validates :onestop_id, presence: true
     validate :onestop_id, :validate_onestop_id
 
     def self.find_by_onestop_id!(onestop_id)
