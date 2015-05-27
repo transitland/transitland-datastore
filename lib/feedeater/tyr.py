@@ -7,7 +7,7 @@ import collections
 import util
 
 def tyr_osm(stop, endpoint, apitoken=None, debug=False):
-  t = TYR(tyrhost, apitoken=apitoken, debug=debug)
+  t = TYR(endpoint, apitoken=apitoken, debug=debug)
   response = t.locate([stop.point()])
   try:
     assert response
