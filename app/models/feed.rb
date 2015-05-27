@@ -26,7 +26,7 @@ class Feed < ActiveRecord::Base
 
   PER_PAGE = 50
 
-  has_many :feed_imports, dependent: :destroy
+  has_many :feed_imports, -> { order 'created_at DESC' }, dependent: :destroy
 
   validates :url, presence: true
   validates :url, format: { with: URI.regexp }, if: Proc.new { |feed| feed.url.present? }

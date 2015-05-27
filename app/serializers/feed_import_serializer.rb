@@ -13,7 +13,8 @@
 #
 # Indexes
 #
-#  index_feed_imports_on_feed_id  (feed_id)
+#  index_feed_imports_on_created_at  (created_at)
+#  index_feed_imports_on_feed_id     (feed_id)
 #
 
 class FeedImportSerializer < ApplicationSerializer

@@ -21,5 +21,6 @@ class CreateFeedsAndFeedImports < ActiveRecord::Migration
       t.text :validation_report
       t.timestamps
     end
+    add_index :feed_imports, :created_at
   end
 end

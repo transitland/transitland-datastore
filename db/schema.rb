@@ -115,6 +115,7 @@ ActiveRecord::Schema.define(version: 20150526200426) do
     t.datetime "updated_at"
   end
 
+  add_index "feed_imports", ["created_at"], name: "index_feed_imports_on_created_at", using: :btree
   add_index "feed_imports", ["feed_id"], name: "index_feed_imports_on_feed_id", using: :btree
 
   create_table "feeds", force: :cascade do |t|
