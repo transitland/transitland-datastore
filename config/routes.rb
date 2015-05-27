@@ -1,8 +1,19 @@
 require 'sidekiq/web'
 
+# Sidekiq dashboard HTTP basic auth
 Sidekiq::Web.use Rack::Auth::Basic do |username, password|
   username == Figaro.env.sidekiq_dashboard_username && password == Figaro.env.sidekiq_dashboard_password
 end if Rails.env.production? || Rails.env.staging?
+
+# host, protocol, port for full URLs
+default_url_options = {
+  host: Figaro.env.transitland_datastore_host.match(/:\/\/([^:]+)/)[1],
+  protocol: Figaro.env.transitland_datastore_host.split('://')[0]
+}
+if (port_match = Figaro.env.transitland_datastore_host.match(/:(\d+)/))
+  default_url_options[:port] = port_match[1]
+end
+Rails.application.routes.default_url_options = default_url_options
 
 Rails.application.routes.draw do
   namespace :api do
