@@ -23,6 +23,8 @@ require 'open-uri'
 class Feed < ActiveRecord::Base
   include HasAOnestopId
 
+  PER_PAGE = 50
+
   has_many :feed_imports, dependent: :destroy
 
   validates :url, presence: true

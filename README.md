@@ -15,6 +15,7 @@ For more information about the overall process, see [Transitland: How it Works](
 
 Every entity has a globally unique Onestop ID (from the [Onestop ID Registry](https://github.com/transit-land/onestop-id-registry)). Entities include:
 
+* `Feed`
 * `Operator`
 * `Stop`
 * `Route`
@@ -80,7 +81,6 @@ Example URL  | Parameters
 `POST /api/v1/changesets/1/check` | ([secured](#api-authentication))
 `POST /api/v1/changesets/1/apply` | ([secured](#api-authentication))
 `POST /api/v1/changesets/1/revert` | ([secured](#api-authentication))
-`POST /api/v1/webhooks/feed_eater` | ([secured](#api-authentication))
 `GET /api/v1/onestop_id/o-9q8y-SFMTA` | final part of the path can be a Onestop ID for any type of entity (for example, a stop or an operator)
 `GET /api/v1/stops` | none required
 `GET /api/v1/stops?identifer=4973` | `identifier` can be any type of stop identifier
@@ -95,6 +95,10 @@ Example URL  | Parameters
 `GET /api/v1/routes?identifer=19X` | `identifier` can be any type of route identifier
 `GET /api/v1/routes?operatedBy=o-9q9-BART` | `operatedBy` is a Onestop ID for an operator/agency
 `GET /api/v1/routes?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
+`POST /api/v1/webhooks/feed_eater` | ([secured](#api-authentication))
+`GET /api/v1/feeds` | none required
+`GET /api/v1/feeds/f-9q9-bayarearapidtransit` | none required
+`GET /api/v1/feeds/f-9q9-bayarearapidtransit/feed_imports` | none required
 
 Pagination for JSON endpoints:
 - `?offset=50` is the index of the first entity to be displayed (starts with 0)

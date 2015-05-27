@@ -16,10 +16,21 @@
 #  index_feed_imports_on_feed_id  (feed_id)
 #
 
-class FeedImport < ActiveRecord::Base
-  PER_PAGE = 1
+class FeedImportSerializer < ApplicationSerializer
+  attributes :feed_onestop_id,
+             :feed_url,
+             :success,
+             :sha1,
+             :import_log,
+             :validation_report,
+             :created_at,
+             :updated_at
 
-  belongs_to :feed
+  def feed_onestop_id
+    object.feed.onestop_id
+  end
 
-  validates :feed, presence: true
+  def feed_url
+    api_v1_feed_url(object.feed.onestop_id)
+  end
 end
