@@ -56,28 +56,11 @@ class FeedEaterPost(task.FeedEaterTask):
   
   def update_operator(self, operator):
     self.log("Updating operator: %s"%operator.onestop())
-    entities = sorted(
-      operator.stops() | operator.routes(), 
-      key=lambda x:x.onestop()
-    )
-    # Post without relationships
-    self.datastore.update_entity(operator, rels=False)
-    for entity in entities:
-      self.log("  ... %s"%entity.onestop())
-      self.datastore.update_entity(entity, rels=False)
-    # Update relationships
-    self.datastore.update_entity(operator)
-    for entity in entities:
-      self.log("  ... %s (rels)"%entity.onestop())
-      self.datastore.update_entity(entity)
-     
-  # def update_operator(self, operator):
-  #   self.log("Updating operator: %s"%operator.onestop())
-  #   entities = []
-  #   entities.append(operator)
-  #   entities += list(operator.stops())
-  #   entities += list(operator.routes())
-  #   self.datastore.update_entities(entities)
+    entities = []
+    entities.append(operator)
+    entities += list(operator.stops())
+    entities += list(operator.routes())
+    self.datastore.update_entities(entities)
      
 if __name__ == "__main__":
   task = FeedEaterPost.from_args()
