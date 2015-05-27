@@ -63,12 +63,17 @@ class Feed < ActiveRecord::Base
     Digest::SHA1.file(file_path).hexdigest
   end
 
-  def has_been_fetched_and_imported!
+  def has_been_fetched_and_imported!(on_feed_import: nil)
+    sha1 = file_sha1_hash
     update(
       last_fetched_at: DateTime.now,
       last_imported_at: DateTime.now,
-      last_sha1: file_sha1_hash
+      last_sha1: sha1
     )
+    on_feed_import.update(
+      success: true,
+      sha1: sha1
+    ) if on_feed_import
   end
 
   def self.update_feeds_from_feed_registry

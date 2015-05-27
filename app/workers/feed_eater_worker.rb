@@ -40,8 +40,7 @@ class FeedEaterWorker
           logger.error $!.backtrace
           feed_import.update(success: false)
         else
-          feed_import.update(success: true)
-          feed.has_been_fetched_and_imported!
+          feed.has_been_fetched_and_imported!(on_feed_import: feed_import)
         ensure
           if File.exist?(log_file_path)
             import_log = File.open(log_file_path, 'r').read
