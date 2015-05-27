@@ -11,6 +11,25 @@ import task
 import tyr
 
 class FeedEaterArtifact(task.FeedEaterTask):
+  def __init__(self, *args, **kwargs):
+    super(FeedEaterArtifact, self).__init__(*args, **kwargs)
+    self.tyrhost = kwargs.get('tyrhost')
+    self.tyrtoken = kwargs.get('tyrtoken')
+
+  def parser(self):
+    parser = super(FeedEaterArtifact, self).parser()
+    parser.add_argument(
+      '--tyrtoken',
+      help='TYR api token',
+      default=os.getenv('TYR_AUTH_TOKEN')
+    )
+    parser.add_argument(
+      '--tyrhost',
+      help='TYR Host',
+      default=os.getenv('TYR_HOST') or 'http://valhalla.dev.mapzen.com'
+    )      
+    return parser
+  
   def run(self):
     # Create GTFS Artifacts
     self.log("===== Feed: %s ====="%self.feedid)
@@ -33,8 +52,9 @@ class FeedEaterArtifact(task.FeedEaterTask):
       osm_way_id = match.data.get('osm_way_id')
       if not osm_way_id and tyr:
         osm_way_id = tyr.tyr_osm(
-          stop, 
-          apitoken=os.getenv('TYR_AUTH_TOKEN')
+          stop,
+          endpoint=self.tyrhost,
+          apitoken=self.tyrtoken
         )
         self.log("  ... got tyr osm_way_id: %s"%osm_way_id)
       self.log("  onestop_id: %s, osm_way_id: %s"%(onestop_id, osm_way_id))
