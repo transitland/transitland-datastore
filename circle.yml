@@ -10,4 +10,4 @@ deployment:
   staging:
     branch: master
     commands:
-      - ./deploy/env.rb staging
+      - ./deploy/env.rb dev

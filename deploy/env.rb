@@ -8,10 +8,10 @@ load Gem.bin_path('bundler', 'bundle')
 require 'aws-sdk'
 
 config = {
-  staging: {
+  dev: {
     stack_id: "c268a326-fc6a-4d0b-a24d-686b0b87524e",
-    layer_id: "677ecf26-eb45-4e07-a0ca-590fe602fd4c",
-    app_id: "ffd516b0-e1b4-4cb6-8c52-d06de7b0c822"
+    layer_id: "e1e5395b-d38b-4dca-99ab-5724f38298aa",
+    app_id: "37734730-4a4f-48cf-94b9-ca03e5cc4e98"
   }
 }
 
