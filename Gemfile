@@ -64,6 +64,7 @@ gem 'airborne', group: :test
 
 # deployment and monitoring
 gem 'aws-sdk', group: [:staging, :production]
+gem 'sentry-raven', group: [:staging, :production]
 gem 'bullet', group: :development
 
 # web server
