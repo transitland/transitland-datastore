@@ -8,7 +8,7 @@ require 'singleton'
 class TyrService
   include Singleton
 
-  BASE_URL = Figaro.env.tyr_service_base_url || 'http://valhalla.api.dev.mapzen.com'
+  BASE_URL = Figaro.env.tyr_host || 'https://valhalla.mapzen.com'
 
   class Error < StandardError
   end
