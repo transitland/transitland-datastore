@@ -26,7 +26,7 @@ class FeedEaterArtifact(task.FeedEaterTask):
     parser.add_argument(
       '--tyrhost',
       help='TYR Host',
-      default=os.getenv('TYR_HOST') or 'http://valhalla.dev.mapzen.com'
+      default=os.getenv('TYR_HOST') or 'https://valhalla.mapzen.com'
     )      
     return parser
   
