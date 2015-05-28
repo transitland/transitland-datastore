@@ -264,6 +264,8 @@ GEM
     ruby-graphviz (1.0.9)
     rubyzip (1.1.7)
     safe_yaml (1.0.4)
+    sentry-raven (0.13.3)
+      faraday (>= 0.7.6)
     sidekiq (3.3.4)
       celluloid (>= 0.16.0)
       connection_pool (>= 2.1.1)
@@ -352,6 +354,7 @@ DEPENDENCIES
   redis-rails
   rgeo-geojson
   rspec-rails
+  sentry-raven
   sidekiq
   simplecov
   sinatra
