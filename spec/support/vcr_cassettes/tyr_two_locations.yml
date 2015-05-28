@@ -2,7 +2,7 @@
 http_interactions:
 - request:
     method: get
-    uri: http://valhalla.dev.mapzen.com/locate?json=%7B%22locations%22:%5B%7B%22lat%22:37.775692,%22lon%22:-122.413601%7D,%7B%22lat%22:40.74455,%22lon%22:-73.990472%7D%5D,%22costing%22:%22pedestrian%22,%22api_key%22:%22fakeapikey%22%7D
+    uri: https://valhalla.mapzen.com/locate?json=%7B%22locations%22:%5B%7B%22lat%22:37.775692,%22lon%22:-122.413601%7D,%7B%22lat%22:40.74455,%22lon%22:-73.990472%7D%5D,%22costing%22:%22pedestrian%22,%22api_key%22:%22fakeapikey%22%7D
     body:
       encoding: US-ASCII
       string: ''
@@ -45,6 +45,6 @@ http_interactions:
     body:
       encoding: UTF-8
       string: '[{"input_lon":-122.413605,"ways":[{"correlated_lon":-122.413605,"way_id":8917801,"correlated_lat":37.775692}],"input_lat":37.775692},{"input_lon":-73.990471,"ways":[{"correlated_lon":-73.990471,"way_id":5671311,"correlated_lat":40.744549}],"input_lat":40.744549}]'
-    http_version: 
+    http_version:
   recorded_at: Thu, 28 May 2015 18:45:11 GMT
 recorded_with: VCR 2.9.3
