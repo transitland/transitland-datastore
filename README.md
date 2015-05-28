@@ -96,6 +96,7 @@ Example URL  | Parameters
 `GET /api/v1/routes?operatedBy=o-9q9-BART` | `operatedBy` is a Onestop ID for an operator/agency
 `GET /api/v1/routes?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
 `POST /api/v1/webhooks/feed_eater` | ([secured](#api-authentication))
+`POST /api/v1/webhooks/feed_eater?feed_onestop_ids=f-9q9-bayarearapidtransit,f-9q9-actransit` | `feed_onestop_ids` is an optional parameter; by default, all feeds in the registry are checked for updates ([secured](#api-authentication))
 `GET /api/v1/feeds` | none required
 `GET /api/v1/feeds/f-9q9-bayarearapidtransit` | none required
 `GET /api/v1/feeds/f-9q9-bayarearapidtransit/feed_imports` | none required
