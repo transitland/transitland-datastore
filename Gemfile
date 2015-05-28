@@ -27,7 +27,7 @@ gem 'c_geohash', require: 'geohash'
 gem 'json-schema'
 
 # Transitland libraries
-gem 'transitland_client', github: 'transitland/transitland-ruby-client', tag: 'v0.0.5', require: 'transitland_client'
+gem 'transitland_client', github: 'transitland/transitland-ruby-client', tag: 'v0.0.6', require: 'transitland_client'
 
 # authentication and authorization
 gem 'rack-cors', require: 'rack/cors'
