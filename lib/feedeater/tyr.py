@@ -6,8 +6,7 @@ import collections
 
 import util
 
-def tyr_osm(stop, endpoint=None, apitoken=None, debug=False):
-  endpoint = endpoint or 'http://valhalla.api.dev.mapzen.com'
+def tyr_osm(stop, endpoint, apitoken=None, debug=False):
   t = TYR(endpoint, apitoken=apitoken, debug=debug)
   response = t.locate([stop.point()])
   try:
