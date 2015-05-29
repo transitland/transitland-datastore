@@ -32,10 +32,10 @@ class RouteSerializer < CurrentEntitySerializer
              :updated_at
 
   def operated_by_onestop_id
-    operator.onestop_id
+    object.operator.try(:onestop_id)
   end
 
   def operated_by_name
-    operator.name
+    object.operator.try(:name)
   end
 end
