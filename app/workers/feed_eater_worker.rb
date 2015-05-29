@@ -38,10 +38,10 @@ class FeedEaterWorker
           logger.info "5. Creating GTFS artifact: #{feed_onestop_id}"
           run_python('./lib/feedeater/artifact.py', "--log #{log_file_path} #{feed_onestop_id}")
           # TODO: upload GTFS artifact to S3
-          # what happens with a human-readable index.html?
-        rescue
-          logger.error $!
-          logger.error $!.backtrace
+        rescue Exception => e
+          # NOTE: we're catching all exceptions, including Interrupt, SignalException, and SyntaxError
+          exception_log = "\n#{e}\n#{e.backtrace}\n"
+          logger.error exception_log
           feed_import.update(success: false)
         else
           feed.has_been_fetched_and_imported!(on_feed_import: feed_import)
@@ -50,7 +50,10 @@ class FeedEaterWorker
           if File.exist?(log_file_path)
             import_log = File.open(log_file_path, 'r').read
           else
-            import_log = nil
+            import_log = ''
+          end
+          if exception_log.present?
+            import_log << exception_log
           end
           if File.exist?(validation_report_path)
             validation_report = File.open(validation_report_path, 'r').read
