@@ -26,6 +26,16 @@ class RouteSerializer < CurrentEntitySerializer
              :name,
              :geometry,
              :tags,
+             :operated_by_onestop_id,
+             :operated_by_name,
              :created_at,
              :updated_at
+
+  def operated_by_onestop_id
+    operator.onestop_id
+  end
+
+  def operated_by_name
+    operator.name
+  end
 end
