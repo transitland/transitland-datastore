@@ -1,6 +1,7 @@
 describe TyrService do
   before(:each) do
     allow(Figaro.env).to receive(:tyr_auth_token) { 'fakeapikey' }
+    stub_const('TyrService::BASE_URL', 'https://valhalla.mapzen.com')
   end
 
   it 'should work for one location' do
