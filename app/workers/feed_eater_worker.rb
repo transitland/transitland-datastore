@@ -43,6 +43,7 @@ class FeedEaterWorker
           exception_log = "\n#{e}\n#{e.backtrace}\n"
           logger.error exception_log
           feed_import.update(success: false)
+          Raven.capture_exception(e) if defined?(Raven)
         else
           feed.has_been_fetched_and_imported!(on_feed_import: feed_import)
         ensure
