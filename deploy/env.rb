@@ -12,6 +12,11 @@ config = {
     stack_id: "c268a326-fc6a-4d0b-a24d-686b0b87524e",
     layer_id: "e1e5395b-d38b-4dca-99ab-5724f38298aa",
     app_id: "37734730-4a4f-48cf-94b9-ca03e5cc4e98"
+  },
+  production: {
+    stack_id: "3c2c59ef-c407-474b-b6a1-5551397c0a51",
+    layer_id: "be95fa2e-0630-4447-b6b1-6768a86d251c",
+    app_id: "404c267b-a060-4871-977b-9948b7a2bc5d"
   }
 }
 

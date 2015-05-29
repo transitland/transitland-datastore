@@ -11,3 +11,7 @@ deployment:
     branch: master
     commands:
       - ./deploy/env.rb dev
+  production:
+    branch: production
+    commands:
+      - ./deploy/env.rb production
