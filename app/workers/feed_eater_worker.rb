@@ -14,7 +14,7 @@ class FeedEaterWorker
     if updated_feed_onestop_ids.length == 0
       logger.info ' -> No updated feeds need to be processed.'
     else
-      logger.info " -> Updating feeds: #{updated_feed_onestop_ids}"
+      logger.info " -> Updating feeds: #{updated_feed_onestop_ids.join(' ')}"
       # TODO: Child jobs
       for feed_onestop_id in updated_feed_onestop_ids
         feed = Feed.find_by(onestop_id: feed_onestop_id)
