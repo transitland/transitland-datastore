@@ -23,6 +23,9 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
     if params[:onestop_id].present?
       @operators = @operators.where(onestop_id: params[:onestop_id])
     end
+    if params[:tag_key].present? && params[:tag_value].present?
+      @operators = @operators.with_tag(params[:tag_key], params[:tag_value])
+    end
 
     per_page = params[:per_page].blank? ? Operator::PER_PAGE : params[:per_page].to_i
 
