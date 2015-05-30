@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150526200426) do
+ActiveRecord::Schema.define(version: 20150529220919) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -42,6 +42,7 @@ ActiveRecord::Schema.define(version: 20150526200426) do
   add_index "current_operators", ["created_or_updated_in_changeset_id"], name: "#c_operators_cu_in_changeset_id_index", using: :btree
   add_index "current_operators", ["identifiers"], name: "index_current_operators_on_identifiers", using: :gin
   add_index "current_operators", ["onestop_id"], name: "index_current_operators_on_onestop_id", unique: true, using: :btree
+  add_index "current_operators", ["tags"], name: "index_current_operators_on_tags", using: :btree
 
   create_table "current_operators_serving_stop", force: :cascade do |t|
     t.integer  "stop_id",                            null: false
@@ -74,6 +75,7 @@ ActiveRecord::Schema.define(version: 20150526200426) do
   add_index "current_routes", ["created_or_updated_in_changeset_id"], name: "c_route_cu_in_changeset", using: :btree
   add_index "current_routes", ["identifiers"], name: "index_current_routes_on_identifiers", using: :gin
   add_index "current_routes", ["operator_id"], name: "index_current_routes_on_operator_id", using: :btree
+  add_index "current_routes", ["tags"], name: "index_current_routes_on_tags", using: :btree
 
   create_table "current_routes_serving_stop", force: :cascade do |t|
     t.integer  "route_id"
@@ -104,6 +106,7 @@ ActiveRecord::Schema.define(version: 20150526200426) do
   add_index "current_stops", ["created_or_updated_in_changeset_id"], name: "#c_stops_cu_in_changeset_id_index", using: :btree
   add_index "current_stops", ["identifiers"], name: "index_current_stops_on_identifiers", using: :gin
   add_index "current_stops", ["onestop_id"], name: "index_current_stops_on_onestop_id", using: :btree
+  add_index "current_stops", ["tags"], name: "index_current_stops_on_tags", using: :btree
 
   create_table "feed_imports", force: :cascade do |t|
     t.integer  "feed_id"
@@ -132,6 +135,7 @@ ActiveRecord::Schema.define(version: 20150526200426) do
   end
 
   add_index "feeds", ["onestop_id"], name: "index_feeds_on_onestop_id", using: :btree
+  add_index "feeds", ["tags"], name: "index_feeds_on_tags", using: :btree
 
   create_table "old_operators", force: :cascade do |t|
     t.string    "name"
