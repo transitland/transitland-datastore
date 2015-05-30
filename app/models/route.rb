@@ -36,6 +36,7 @@ class Route < BaseRoute
   include HasAOnestopId
   include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
+  include HasTags
 
   include CanBeSerializedToCsv
   def self.csv_column_names

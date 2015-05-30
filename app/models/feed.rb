@@ -24,6 +24,7 @@ require 'open-uri'
 
 class Feed < ActiveRecord::Base
   include HasAOnestopId
+  include HasTags
 
   PER_PAGE = 50
 
