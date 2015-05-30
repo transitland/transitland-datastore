@@ -12,12 +12,15 @@ class FeedEaterPost(task.FeedEaterTask):
   def run(self):
     # Update datastore.
     self.log("===== Feed: %s ====="%self.feedid)
-    infeed = self.registry.feed(self.feedid)
-    filename = self.filename or os.path.join(self.workdir, '%s.zip'%infeed.onestop())
+    feed = self.registry.feed(self.feedid)
+    filename = self.filename or os.path.join(self.workdir, '%s.zip'%feed.onestop())
     self.log("Opening: %s"%filename)
     gtfsfeed = mzgtfs.feed.Feed(filename)
     self.log("Creating Onestop Entities")
-    feed = transitland.entities.Feed.from_gtfs(gtfsfeed, feedid=self.feedid)
+    feed.load_gtfs(gtfsfeed, populate=False)
+    if not feed.operators():
+      self.log("No matching operators specified in the feed registry entry. Nothing to do.")
+      return
 
     # Similarity search.
     for o in feed.operators():
@@ -29,11 +32,14 @@ class FeedEaterPost(task.FeedEaterTask):
       
     # Post changesets.
     for operator in feed.operators():
+      self.log("Updating operator: %s"%operator.onestop())
       self.update_operator(operator)
+      self.log("Done")      
+    self.log("Finished!")
   
   def datastore_merge(self, entity, threshold=0.5):
     self.log("Looking for entity: %s"%entity.onestop())
-    search_entities = self.datastore.stops(point=entity.point(), radius=1000)   
+    search_entities = self.datastore.stops(point=entity.point(), radius=100)
     s = similarity.MatchEntities(entity, search_entities)
     s.score()
     best = s.best()
@@ -55,7 +61,6 @@ class FeedEaterPost(task.FeedEaterTask):
     return entity
   
   def update_operator(self, operator):
-    self.log("Updating operator: %s"%operator.onestop())
     entities = []
     entities.append(operator)
     entities += list(operator.stops())
