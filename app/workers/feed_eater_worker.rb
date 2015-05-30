@@ -5,15 +5,16 @@ class FeedEaterWorker
   FEEDVALIDATOR = './virtualenv/bin/feedvalidator.py'
 
   def perform(feed_onestop_ids = [])
-    logger.info '0. update feeds from feed registry'
+    logger.info '0. Update feeds from feed registry'
     Feed.update_feeds_from_feed_registry
 
-    logger.info '1. fetch and check feeds for updated versions'
+    logger.info '1. Fetch and check feeds for updated versions'
     updated_feed_onestop_ids = Feed.fetch_and_check_for_updated_version(feed_onestop_ids).map(&:onestop_id)
 
     if updated_feed_onestop_ids.length == 0
-      logger.info 'no updated feeds need to be processed.'
+      logger.info ' -> No updated feeds need to be processed.'
     else
+      logger.info " -> Updating feeds: #{updated_feed_onestop_ids}"
       # TODO: Child jobs
       for feed_onestop_id in updated_feed_onestop_ids
         feed = Feed.find_by(onestop_id: feed_onestop_id)
