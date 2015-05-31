@@ -27,7 +27,9 @@ class Api::V1::StopsController < Api::V1::BaseApiController
       @stops = @stops.where(onestop_id: params[:onestop_id])
     end
     if params[:tag_key].present? && params[:tag_value].present?
-      @stops = @stops.with_tag(params[:tag_key], params[:tag_value])
+      @stops = @stops.with_tag_equals(params[:tag_key], params[:tag_value])
+    elsif params[:tag_key].present?
+      @stops = @stops.with_tag(params[:tag_key])
     end
 
     @stops = @stops.includes{[operators_serving_stop, operators_serving_stop.operator]} # TODO: check performance against eager_load, joins, etc.
