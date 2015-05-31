@@ -19,6 +19,7 @@
 #  c_route_cu_in_changeset              (created_or_updated_in_changeset_id)
 #  index_current_routes_on_identifiers  (identifiers)
 #  index_current_routes_on_operator_id  (operator_id)
+#  index_current_routes_on_tags         (tags)
 #
 
 class BaseRoute < ActiveRecord::Base
@@ -35,6 +36,7 @@ class Route < BaseRoute
   include HasAOnestopId
   include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
+  include HasTags
 
   include CanBeSerializedToCsv
   def self.csv_column_names

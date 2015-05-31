@@ -20,6 +20,11 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     if params[:onestop_id].present?
       @routes = @routes.where(onestop_id: params[:onestop_id])
     end
+    if params[:tag_key].present? && params[:tag_value].present?
+      @routes = @routes.with_tag_equals(params[:tag_key], params[:tag_value])
+    elsif params[:tag_key].present?
+      @routes = @routes.with_tag(params[:tag_key])
+    end
 
     per_page = params[:per_page].blank? ? Route::PER_PAGE : params[:per_page].to_i
 

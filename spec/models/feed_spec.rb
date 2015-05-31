@@ -17,6 +17,7 @@
 # Indexes
 #
 #  index_feeds_on_onestop_id  (onestop_id)
+#  index_feeds_on_tags        (tags)
 #
 
 describe Feed do

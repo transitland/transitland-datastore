@@ -18,6 +18,7 @@
 #  #c_operators_cu_in_changeset_id_index   (created_or_updated_in_changeset_id)
 #  index_current_operators_on_identifiers  (identifiers)
 #  index_current_operators_on_onestop_id   (onestop_id) UNIQUE
+#  index_current_operators_on_tags         (tags)
 #
 
 class BaseOperator < ActiveRecord::Base
@@ -34,6 +35,7 @@ class Operator < BaseOperator
   include HasAOnestopId
   include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
+  include HasTags
 
   include CanBeSerializedToCsv
   def self.csv_column_names

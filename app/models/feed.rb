@@ -17,12 +17,14 @@
 # Indexes
 #
 #  index_feeds_on_onestop_id  (onestop_id)
+#  index_feeds_on_tags        (tags)
 #
 
 require 'open-uri'
 
 class Feed < ActiveRecord::Base
   include HasAOnestopId
+  include HasTags
 
   PER_PAGE = 50
 
