@@ -63,6 +63,27 @@ describe Api::V1::StopsController do
           }})
         end
       end
+
+      context 'returns stops by tags' do
+        before(:each) do
+          @glen_park.update(tags: { wheelchair_accessible: 'yes' })
+          @gilman_paul_3rd.update(tags: { wheelchair_accessible: 'no' })
+        end
+
+        it 'with a tag key' do
+          get :index, tag_key: 'wheelchair_accessible'
+          expect_json({ stops: -> (stops) {
+            expect(stops.map { |stop| stop[:onestop_id] }).to match_array([@glen_park.onestop_id, @gilman_paul_3rd.onestop_id])
+          }})
+        end
+
+        it 'with a tag key and value' do
+          get :index, tag_key: 'wheelchair_accessible', tag_value: 'yes'
+          expect_json({ stops: -> (stops) {
+            expect(stops.map { |stop| stop[:onestop_id] }).to match_array([@glen_park.onestop_id])
+          }})
+        end
+      end
     end
 
     context 'as GeoJSON' do
