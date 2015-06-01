@@ -40,6 +40,7 @@ class FeedEaterValidate(task.FeedEaterTask):
       self.log("No errors")
     for e in validator.exceptions:
       self.log("%s: %s"%(e.source, e.message))
+    self.log("Finished!")
     
 if __name__ == "__main__":
   task = FeedEaterValidate.from_args()

@@ -75,6 +75,7 @@ class FeedEaterArtifact(task.FeedEaterTask):
     #
     if os.path.exists(stopstxt):
       os.unlink(stopstxt)
+    self.log("Finished!")
     
 if __name__ == "__main__":
   task = FeedEaterArtifact.from_args()

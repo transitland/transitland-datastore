@@ -87,17 +87,25 @@ Example URL  | Parameters
 `GET /api/v1/stops?lon=-121.977772198&lat=37.413530093&r=100` | `lon` is longitude; `lat` is latitude; `r` is radius of search in meters (if not specified, defaults to 100 meters)
 `GET /api/v1/stops?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
 `GET /api/v1/stops?servedBy=o-9q9-BART,r-9q8y-richmond~dalycity~millbrae` | `servedBy` can be any number of Onestop ID's for operators and routes
+`GET /api/v1/stops?tag_key=wheelchair_accessible` | find all stops that have a tag of `tag_key` with any value
+`GET /api/v1/stops?tag_key=wheelchair_accessible&tag_value=yes` | find all stops that have a tag of `tag_key` and a value of `tag_value`
 `GET /api/v1/operators` | none required
 `GET /api/v1/operators?identifer=SFMUNI` | `identifier` can be any type of operator identifier
 `GET /api/v1/operators?lon=-121.977772198&lat=37.413530093&r=100` | `lon` is longitude; `lat` is latitude; `r` is radius of search in meters (if not specified, defaults to 100 meters)
 `GET /api/v1/operators?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
+`GET /api/v1/operators?tag_key=agency_timezone` | find all operators that have a tag of `tag_key` with any value
+`GET /api/v1/operators?tag_key=agency_timezone&tag_value=America/Los_Angeles` | find all operators that have a tag of `tag_key` and a value of `tag_value`
 `GET /api/v1/routes` | none required
 `GET /api/v1/routes?identifer=19X` | `identifier` can be any type of route identifier
 `GET /api/v1/routes?operatedBy=o-9q9-BART` | `operatedBy` is a Onestop ID for an operator/agency
 `GET /api/v1/routes?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
+`GET /api/v1/routes?tag_key=vehicle_type` | find all routes that have a tag of `tag_key` with any value
+`GET /api/v1/routes?tag_key=vehicle_type&tag_value=bus` | find all routes that have a tag of `tag_key` and a value of `tag_value`
 `POST /api/v1/webhooks/feed_eater` | ([secured](#api-authentication))
 `POST /api/v1/webhooks/feed_eater?feed_onestop_ids=f-9q9-bayarearapidtransit,f-9q9-actransit` | `feed_onestop_ids` is an optional parameter; by default, all feeds in the registry are checked for updates ([secured](#api-authentication))
 `GET /api/v1/feeds` | none required
+`GET /api/v1/feeds?tag_key=license` | find all feeds that have a tag of `tag_key` with any value
+`GET /api/v1/feeds?tag_key=license&tag_value=Creative%20Commons%20Attribution%203.0%20Unported%20License` | find all feeds that have a tag of `tag_key` and a value of `tag_value`
 `GET /api/v1/feeds/f-9q9-bayarearapidtransit` | none required
 `GET /api/v1/feeds/f-9q9-bayarearapidtransit/feed_imports` | none required
 

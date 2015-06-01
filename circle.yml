@@ -10,8 +10,8 @@ deployment:
   staging:
     branch: master
     commands:
-      - ./deploy/env.rb dev
+      - ./deploy/env.rb staging
   production:
     branch: production
     commands:
-      - ./deploy/env.rb production
+      - ./deploy/env.rb prod

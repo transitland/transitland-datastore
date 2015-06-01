@@ -7,6 +7,12 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
   def index
     @feeds = Feed.where('')
 
+    if params[:tag_key].present? && params[:tag_value].present?
+      @feeds = @feeds.with_tag_equals(params[:tag_key], params[:tag_value])
+    elsif params[:tag_key].present?
+      @feeds = @feeds.with_tag(params[:tag_key])
+    end
+
     per_page = params[:per_page].blank? ? Feed::PER_PAGE : params[:per_page].to_i
 
     respond_to do |format|
