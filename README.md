@@ -87,8 +87,8 @@ Example URL  | Parameters
 `GET /api/v1/stops?lon=-121.977772198&lat=37.413530093&r=100` | `lon` is longitude; `lat` is latitude; `r` is radius of search in meters (if not specified, defaults to 100 meters)
 `GET /api/v1/stops?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
 `GET /api/v1/stops?servedBy=o-9q9-BART,r-9q8y-richmond~dalycity~millbrae` | `servedBy` can be any number of Onestop ID's for operators and routes
-`GET /api/v1/stops?tag_key=wheelchair_accessible` | find all stops that have a tag of `tag_key` with any value
-`GET /api/v1/stops?tag_key=wheelchair_accessible&tag_value=yes` | find all stops that have a tag of `tag_key` and a value of `tag_value`
+`GET /api/v1/stops?tag_key=wheelchair_boarding` | find all stops that have a tag of `tag_key` with any value
+`GET /api/v1/stops?tag_key=wheelchair_boarding&tag_value=1` | find all stops that have a tag of `tag_key` and a value of `tag_value`
 `GET /api/v1/operators` | none required
 `GET /api/v1/operators?identifer=SFMUNI` | `identifier` can be any type of operator identifier
 `GET /api/v1/operators?lon=-121.977772198&lat=37.413530093&r=100` | `lon` is longitude; `lat` is latitude; `r` is radius of search in meters (if not specified, defaults to 100 meters)
