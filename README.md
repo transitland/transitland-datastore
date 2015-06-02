@@ -5,7 +5,7 @@
 
 A community-run and -edited timetable and map of public transit service around the world.
 
-Integrates with the [Onestop ID Registry](https://github.com/transitland/onestop-id-registry).
+Integrates with the [Transitland Feed Registry](https://github.com/transitland/transitland-feed-registry).
 
 Behind the scenes: a Ruby on Rails web service (backed by Postgres/PostGIS), along with an asynchronous Sidekiq queue (backed by Resque) that runs Ruby and Python data-ingestion libraries.
 
@@ -13,7 +13,7 @@ For more information about the overall process, see [Transitland: How it Works](
 
 ## Data Model
 
-Every entity has a globally unique Onestop ID (from the [Onestop ID Registry](https://github.com/transit-land/onestop-id-registry)). Entities include:
+Every entity has a globally unique [Onestop ID](https://github.com/transitland/onestop-id-scheme). Entities include:
 
 * `Feed`
 * `Operator`
@@ -117,9 +117,9 @@ Format:
 - by default, responses are paginated JSON
 - specify `.geojson` instead for GeoJSON on some endpoints. For example: `/api/v1/stops.geojson?bbox=-122.4183,37.7758,-122.4120,37.7858`
 
-## Running the Onestop "feed eater" pipeline
+## Running the FeedEater pipeline
 
-This asynchronous background worker will import feeds specified in the [Onestop ID Registry](https://github.com/transitland/onestop-id-registry).
+This asynchronous background worker will import feeds specified in the [Transitland Feed Registry](https://github.com/transitland/transitland-feed-registry).
 
 To enqueue a worker from the command line:
 
