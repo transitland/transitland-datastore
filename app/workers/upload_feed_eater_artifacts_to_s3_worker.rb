@@ -15,8 +15,8 @@ class UploadFeedEaterArtifactsToS3Worker
       raise StandardError.new("must specify ENV['ARTIFACT_UPLOAD_S3_REGION']")
     elsif Figaro.env.artifact_upload_s3_bucket.blank?
       raise StandardError.new("must specify ENV['ARTIFACT_UPLOAD_S3_BUCKET']")
-    elsif Figaro.env.aws_access_key.blank?
-      raise StandardError.new("must specify ENV['AWS_ACCESS_KEY']")
+    elsif Figaro.env.aws_access_key_id.blank?
+      raise StandardError.new("must specify ENV['AWS_ACCESS_KEY_ID']")
     elsif Figaro.env.aws_secret_access_key.blank?
       raise StandardError.new("must specify ENV['AWS_SECRET_ACCESS_KEY']")
     else
