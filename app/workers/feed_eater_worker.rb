@@ -21,15 +21,15 @@ class FeedEaterWorker
         feed_import = FeedImport.create(feed: feed)
 
         # Clear out old log files
-        log_file_path = artifact_file_path("#{feed_onestop_id}.log")
-        validation_report_path = artifact_file_path("#{feed_onestop_id}.html")
+        log_file_path = FeedEaterWorker.artifact_file_path("#{feed_onestop_id}.log")
+        validation_report_path = FeedEaterWorker.artifact_file_path("#{feed_onestop_id}.html")
         if File.exist?(log_file_path)
           FileUtils.rm log_file_path
         end
         if File.exist?(validation_report_path)
           FileUtils.rm validation_report_path
         end
-        
+
         # Validate and import feed
         begin
           logger.info "3. Validating feed: #{feed_onestop_id}"
@@ -38,7 +38,11 @@ class FeedEaterWorker
           run_python('./lib/feedeater/post.py', "--log #{log_file_path} #{feed_onestop_id}")
           logger.info "5. Creating GTFS artifact: #{feed_onestop_id}"
           run_python('./lib/feedeater/artifact.py', "--log #{log_file_path} #{feed_onestop_id}")
-          # TODO: upload GTFS artifact to S3
+          if Figaro.env.upload_feed_eater_artifacts_to_s3.present? &&
+             Figaro.env.upload_feed_eater_artifacts_to_s3 == 'true'
+            logger.info "6. Enqueuing a job to upload artifacts to S3 for: #{feed_onestop_id}"
+            UploadFeedEaterArtifactsToS3Worker.perform_async(feed_onestop_id)
+          end
         rescue Exception => e
           # NOTE: we're catching all exceptions, including Interrupt, SignalException, and SyntaxError
           exception_log = "\n#{e}\n#{e.backtrace}\n"
@@ -78,7 +82,7 @@ class FeedEaterWorker
     raise "Error running Python #{file} #{args}" if !success
   end
 
-  def artifact_file_path(name)
+  def self.artifact_file_path(name)
     File.join(Figaro.env.transitland_feed_data_path, name)
   end
 end
