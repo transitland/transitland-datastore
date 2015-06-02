@@ -25,10 +25,16 @@ class TyrService
 
     if response.body.blank?
       raise Error.new('Tyr returned an empty response')
-    else
+    elsif [401, 403].include?(response.status)
+      raise Error.new('Tyr request was unauthorized. Is TYR_AUTH_TOKEN set?')
+    elsif response.status == 504
+      raise Error.new('Request to Tyr timed out. Is it running?')
+    elsif response.status == 200
       raw_json = response.body
       parsed_json = JSON.parse(raw_json)
       parsed_json.map(&:deep_symbolize_keys)
+    else
+      raise Error.new("Tyr returns an unexpected error\n#{response.body}")
     end
   end
 
