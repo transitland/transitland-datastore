@@ -213,20 +213,13 @@ describe Changeset do
             onestopId: 's-9q8yt4b-1AvHoS',
             name: '1st Ave. & Holloway Street',
           }
-        },
-        {
-          action: 'createUpdate',
-          stop: {
-            onestopId: 's-9q8yt4b-2AvHoS',
-            name: '2nd Ave. & Holloway Street'
-          }
         }
       ]
     })
     allow(ConflateStopsWithOsmWorker).to receive(:perform_async) { true }
-    # WARNING: we're expecting certain IDs in the database. This might
+    # WARNING: we're expecting certain a ID in the database. This might
     # not be the case if the test suite is run in parallel.
-    expect(ConflateStopsWithOsmWorker).to receive(:perform_async).with([2, 1])
+    expect(ConflateStopsWithOsmWorker).to receive(:perform_async).with([1])
     changeset.apply!
   end
 end
