@@ -202,4 +202,31 @@ describe Changeset do
   context 'revert' do
     pending 'write some specs'
   end
+
+  it 'will conflate stops with OSM after the DB transaction is complete' do
+    allow(Figaro.env).to receive(:auto_conflate_stops_with_osm) { 'true' }
+    changeset = create(:changeset, payload: {
+      changes: [
+        {
+          action: 'createUpdate',
+          stop: {
+            onestopId: 's-9q8yt4b-1AvHoS',
+            name: '1st Ave. & Holloway Street',
+          }
+        },
+        {
+          action: 'createUpdate',
+          stop: {
+            onestopId: 's-9q8yt4b-2AvHoS',
+            name: '2nd Ave. & Holloway Street'
+          }
+        }
+      ]
+    })
+    allow(ConflateStopsWithOsmWorker).to receive(:perform_async) { true }
+    # WARNING: we're expecting certain IDs in the database. This might
+    # not be the case if the test suite is run in parallel.
+    expect(ConflateStopsWithOsmWorker).to receive(:perform_async).with([2, 1])
+    changeset.apply!
+  end
 end
