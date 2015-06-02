@@ -17,10 +17,10 @@ class TyrService
     response = connection.get('/locate') do |req|
       json_payload = {
         locations: locations,
-        costing: costing,
-        api_key: Figaro.env.tyr_auth_token
+        costing: costing
       }
       req.params['json'] = JSON.dump(json_payload)
+      req.params['api_key'] = Figaro.env.tyr_auth_token
     end
 
     if response.body.blank?
