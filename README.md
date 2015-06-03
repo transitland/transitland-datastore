@@ -5,7 +5,7 @@
 
 A community-run and -edited timetable and map of public transit service around the world.
 
-Integrates with the [Onestop ID Registry](https://github.com/transitland/onestop-id-registry).
+Integrates with the [Transitland Feed Registry](https://github.com/transitland/transitland-feed-registry).
 
 Behind the scenes: a Ruby on Rails web service (backed by Postgres/PostGIS), along with an asynchronous Sidekiq queue (backed by Resque) that runs Ruby and Python data-ingestion libraries.
 
@@ -13,7 +13,7 @@ For more information about the overall process, see [Transitland: How it Works](
 
 ## Data Model
 
-Every entity has a globally unique Onestop ID (from the [Onestop ID Registry](https://github.com/transit-land/onestop-id-registry)). Entities include:
+Every entity has a globally unique [Onestop ID](https://github.com/transitland/onestop-id-scheme). Entities include:
 
 * `Feed`
 * `Operator`
@@ -87,8 +87,8 @@ Example URL  | Parameters
 `GET /api/v1/stops?lon=-121.977772198&lat=37.413530093&r=100` | `lon` is longitude; `lat` is latitude; `r` is radius of search in meters (if not specified, defaults to 100 meters)
 `GET /api/v1/stops?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
 `GET /api/v1/stops?servedBy=o-9q9-BART,r-9q8y-richmond~dalycity~millbrae` | `servedBy` can be any number of Onestop ID's for operators and routes
-`GET /api/v1/stops?tag_key=wheelchair_accessible` | find all stops that have a tag of `tag_key` with any value
-`GET /api/v1/stops?tag_key=wheelchair_accessible&tag_value=yes` | find all stops that have a tag of `tag_key` and a value of `tag_value`
+`GET /api/v1/stops?tag_key=wheelchair_boarding` | find all stops that have a tag of `tag_key` with any value
+`GET /api/v1/stops?tag_key=wheelchair_boarding&tag_value=1` | find all stops that have a tag of `tag_key` and a value of `tag_value`
 `GET /api/v1/operators` | none required
 `GET /api/v1/operators?identifer=SFMUNI` | `identifier` can be any type of operator identifier
 `GET /api/v1/operators?lon=-121.977772198&lat=37.413530093&r=100` | `lon` is longitude; `lat` is latitude; `r` is radius of search in meters (if not specified, defaults to 100 meters)
@@ -117,9 +117,9 @@ Format:
 - by default, responses are paginated JSON
 - specify `.geojson` instead for GeoJSON on some endpoints. For example: `/api/v1/stops.geojson?bbox=-122.4183,37.7758,-122.4120,37.7858`
 
-## Running the Onestop "feed eater" pipeline
+## Running the FeedEater pipeline
 
-This asynchronous background worker will import feeds specified in the [Onestop ID Registry](https://github.com/transitland/onestop-id-registry).
+This asynchronous background worker will import feeds specified in the [Transitland Feed Registry](https://github.com/transitland/transitland-feed-registry).
 
 To enqueue a worker from the command line:
 

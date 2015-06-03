@@ -114,11 +114,18 @@ class Changeset < ActiveRecord::Base
             end
           end
           self.update(applied: true, applied_at: Time.now)
-          return true
         rescue
           raise Changeset::Error.new(self, $!.message, $!.backtrace)
         end
       end
+      # Now that the transaction is complete and has been committed,
+      # we can do some async tasks like conflate stops with OSM.
+      if Figaro.env.auto_conflate_stops_with_osm.present? &&
+         Figaro.env.auto_conflate_stops_with_osm == 'true' &&
+         self.stops_created_or_updated.count > 0
+        ConflateStopsWithOsmWorker.perform_async(self.stops_created_or_updated.map(&:id))
+      end
+      true
     end
   end
 

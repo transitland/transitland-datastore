@@ -153,7 +153,11 @@ class Stop < BaseStop
   end
 
   def queue_conflate_with_osm
-    if self.geometry_changed?
+    if self.geometry_changed? && ActiveRecord::Base.connection.open_transactions == 0
+      # Don't conflate if we're in a database transaction--the async
+      # worker wont' be able to find the stop in the database yet.
+      # For stops created by changesets, see the end of the
+      # Changeset.apply! method (app/model/changeset.rb:122)
       ConflateStopsWithOsmWorker.perform_async([self.id])
     end
   end
