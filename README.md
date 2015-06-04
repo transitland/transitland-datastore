@@ -118,7 +118,7 @@ Pagination for JSON endpoints:
 
 Format:
 - by default, responses are paginated JSON
-- specify `.geojson` instead for GeoJSON on some endpoints. For example: `/api/v1/stops.geojson?bbox=-122.4183,37.7758,-122.4120,37.7858`
+- specify `.geojson` instead for GeoJSON on some endpoints. For example: `/api/v1/stops.geojson?bbox=-122.4183,37.7758,-122.4120,37.7858` and `/api/v1/routes.geojson?operatedBy=o-9q9-bayarearapidtransit`
 
 ## Running the FeedEater pipeline
 
