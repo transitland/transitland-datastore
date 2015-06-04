@@ -1,4 +1,5 @@
 class Api::V1::RoutesController < Api::V1::BaseApiController
+  include Geojson
   include JsonCollectionPagination
   include DownloadableCsv
 
@@ -38,6 +39,9 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
           params[:offset],
           per_page
         )
+      end
+      format.geojson do
+        render json: Geojson.from_entity_collection(@routes)
       end
       format.csv do
         return_downloadable_csv(@routes, 'routes')
