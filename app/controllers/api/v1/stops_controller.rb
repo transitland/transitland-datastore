@@ -10,6 +10,8 @@ class Api::V1::StopsController < Api::V1::BaseApiController
 
     if params[:identifier].present?
       @stops = @stops.with_identifier_or_name(params[:identifier])
+    elsif params[:identifier_starts_with].present?
+      @stops = @stops.with_identifer_starting_with(params[:identifier_starts_with])
     end
     if params[:servedBy].present?
       @stops = @stops.served_by(params[:servedBy].split(','))
