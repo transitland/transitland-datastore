@@ -3,6 +3,7 @@ Sidekiq::Testing.fake!
 
 describe FeedEaterWorker do
   feedids = ['f-9q9-caltrain', 'f-9q9-bayarearapidtransit']
+  feeds = feedids.map {|feedid| Feed.new(onestop_id:feedid)}    
 
   it 'can take a one feed_onestop_id' do
     allow(FeedEaterWorker).to receive(:perform_async) { true }
@@ -17,8 +18,6 @@ describe FeedEaterWorker do
   end
 
   it 'spawns child jobs' do
-    feedids = ['f-9q9-caltrain', 'f-9q9-bayarearapidtransit']
-    feeds = feedids.map {|feedid| Feed.new(onestop_id:feedid)}    
     allow(Feed).to receive(:update_feeds_from_feed_registry) { true }
     allow(Feed).to receive(:where) { feeds }
     expect {
