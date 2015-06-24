@@ -23,8 +23,10 @@ describe FeedEaterFeedWorker do
   end
     
   it 'creates FeedImport record' do
+    allow(Figaro.env).to receive(:transitland_feed_data_path) { 'abcd' }
     allow(Feed).to receive(:find_by) { @feeds.first }
     allow_any_instance_of(Feed).to receive(:fetch_and_check_for_updated_version) { true }
+    allow_any_instance_of(Feed).to receive(:file_sha1_hash) { 'abcd1234' }
     allow_any_instance_of(FeedEaterFeedWorker).to receive(:run_python) { false }
     FeedEaterFeedWorker.perform_async(@feedids.first)
     # Check we created a FeedImport record
