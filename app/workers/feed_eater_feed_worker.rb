@@ -6,7 +6,6 @@ class FeedEaterFeedWorker
 
   def perform(feed_onestop_id)
     # Download the feed
-    puts "feed_onestop_id: #{feed_onestop_id}"
     feed = Feed.find_by(onestop_id: feed_onestop_id)
     logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Downloading #{feed.url}"
     updated = feed.fetch_and_check_for_updated_version
