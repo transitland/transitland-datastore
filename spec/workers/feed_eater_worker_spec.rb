@@ -1,6 +1,3 @@
-require 'sidekiq/testing'
-Sidekiq::Testing.fake!
-
 describe FeedEaterWorker do
   before(:each) do
     @feedids = ['f-9q9-caltrain', 'f-9q9-bayarearapidtransit']
