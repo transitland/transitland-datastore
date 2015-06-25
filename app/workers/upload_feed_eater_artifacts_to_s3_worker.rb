@@ -25,7 +25,7 @@ class UploadFeedEaterArtifactsToS3Worker
       logger.info "S3 bucket: #{Figaro.env.artifact_upload_s3_bucket}"
 
       ['.html', '.zip', '.artifact.zip', '.log'].each do |file_extension|
-        local_file_path = FeedEaterWorker.artifact_file_path(feed_onestop_id + file_extension)
+        local_file_path = FeedEaterFeedWorker.artifact_file_path(feed_onestop_id + file_extension)
         remote_file_path = ARTIFACT_UPLOAD_S3_DIRECTORY + feed_onestop_id + file_extension
 
         logger.info "Uploading #{local_file_path} to S3"
