@@ -9,9 +9,7 @@ class FeedEaterWorker
       logger.info "FeedEaterWorker: Enqueue #{feed.onestop_id}"
       FeedEaterFeedWorker.perform_async(feed.onestop_id)
     end
-
     logger.info 'FeedEaterWorker: Done.'
-
   end
 
   private
