@@ -34,8 +34,6 @@ class FeedEaterFeedWorker < FeedEaterWorker
         log_file_path,
         feed_onestop_id
       )
-      logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Enqueue artifact job"
-      GtfsFeedArtifactWorker.perform_async(feed_onestop_id)
     rescue Exception => e
       # NOTE: we're catching all exceptions, including Interrupt,
       #   SignalException, and SyntaxError
@@ -46,6 +44,10 @@ class FeedEaterFeedWorker < FeedEaterWorker
     else
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Saving successful import"
       feed.has_been_fetched_and_imported!(on_feed_import: feed_import)
+      if Figaro.env.auto_conflate_stops_with_osm == 'true'
+        logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Enqueue artifact job"
+        GtfsFeedArtifactWorker.perform_async(feed_onestop_id)
+      end
     ensure
       # Cleanup
       import_log = ''
