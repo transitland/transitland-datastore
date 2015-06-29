@@ -28,7 +28,7 @@ class FeedEaterArtifact(task.FeedEaterTask):
         continue
       match = sorted(found, key=lambda x:x.data['updated_at'])[0]
       onestop_id = match.onestop()
-      osm_way_id = match.data.get('osm_way_id')
+      osm_way_id = match.tag('osm_way_id')
       self.log("  onestop_id: %s, osm_way_id: %s"%(onestop_id, osm_way_id))
       stop.set('onestop_id', onestop_id)
       stop.set('osm_way_id', osm_way_id)
