@@ -4,7 +4,7 @@ class FeedEaterFeedWorker < FeedEaterWorker
     feed = Feed.find_by(onestop_id: feed_onestop_id)
     logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Downloading #{feed.url}"
     updated = feed.fetch_and_check_for_updated_version
-    # return unless updated
+    return unless updated
 
     # Clear out old log files
     log_file_path = artifact_file_path("#{feed_onestop_id}.log")
@@ -28,12 +28,12 @@ class FeedEaterFeedWorker < FeedEaterWorker
         feed_onestop_id
       )
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Uploading feed"
-      # run_python(
-      #   './lib/feedeater/post.py',
-      #   '--log',
-      #   log_file_path,
-      #   feed_onestop_id
-      # )
+      run_python(
+        './lib/feedeater/post.py',
+        '--log',
+        log_file_path,
+        feed_onestop_id
+      )
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Enqueue artifact job"
       GtfsFeedArtifactWorker.perform_async(feed_onestop_id)
     rescue Exception => e
