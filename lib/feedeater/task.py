@@ -19,6 +19,7 @@ class FeedEaterTask(object):
       apitoken=None,
       debug=None,
       log=None,
+      quiet=None,
       **kwargs
     ):
     self.filename = filename
@@ -30,13 +31,15 @@ class FeedEaterTask(object):
       apitoken=apitoken,
       debug=debug
     )
-    self.logger = self._log_init(logfile=log, debug=debug)
+    self.logger = self._log_init(logfile=log, debug=debug, quiet=quiet)
 
-  def _log_init(self, logfile=None, debug=False):
+  def _log_init(self, logfile=None, debug=False, quiet=False):
     fmt = '[%(asctime)s] %(message)s'
     datefmt = '%Y-%m-%d %H:%M:%S'
     logger = logging.getLogger(str(id(self)))
-    if debug:
+    if quiet:
+      logger.setLevel(100)
+    elif debug:
       logger.setLevel(logging.DEBUG)
     else:
       logger.setLevel(logging.INFO)
@@ -52,12 +55,13 @@ class FeedEaterTask(object):
 
   @classmethod
   def from_args(cls):
-    parser = cls().parser()
+    parser = cls.parser()
     args = parser.parse_args()
     return cls(**vars(args))
 
-  def parser(self):
-    parser = argparse.ArgumentParser(description=self.__doc__)
+  @classmethod
+  def parser(cls):
+    parser = argparse.ArgumentParser(description=cls.__doc__)
     parser.add_argument(
       'feedid',
       help='Feed IDs'
@@ -94,6 +98,11 @@ class FeedEaterTask(object):
     parser.add_argument(
       '--log',
       help='Log file'
+    )
+    parser.add_argument(
+      '--quiet',
+      action='store_true',
+      help='Quiet; no log output'
     )
     return parser
 
