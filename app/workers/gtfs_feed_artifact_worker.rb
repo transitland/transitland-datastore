@@ -9,10 +9,10 @@ class GtfsFeedArtifactWorker < FeedEaterWorker
     missing = Stop.with_identifer_starting_with(prefix).select { |x| x.tags['osm_way_id'].nil? }
 
     if attempts > MAX_ATTEMPTS
-      logger.info "Missing #{missing.length} osm_way_ids. #{attempts} attempts: aborting"
+      logger.info "GtfsFeedArtifactWorker #{feed_onestop_id}: Missing #{missing.length} osm_way_ids. #{attempts} attempts, aborting"
       return
     elsif missing.any?
-      logger.info "Missing #{missing.length} osm_way_ids. #{attempts} attempts: trying again"
+      logger.info "GtfsFeedArtifactWorker #{feed_onestop_id}: Missing #{missing.length} osm_way_ids. #{attempts} attempts, trying again"
       GtfsFeedArtifactWorker.perform_in(WAIT_TIME, feed_onestop_id, attempts+1)
       return
     end
@@ -20,6 +20,7 @@ class GtfsFeedArtifactWorker < FeedEaterWorker
     logger.info "GtfsFeedArtifactWorker #{feed_onestop_id}: Creating GTFS artifacts"
     run_python(
       './lib/feedeater/artifact.py',
+      '--quiet',
       feed_onestop_id
     )
 
