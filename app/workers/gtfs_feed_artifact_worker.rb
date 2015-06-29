@@ -1,10 +1,13 @@
 class GtfsFeedArtifactWorker < FeedEaterWorker
 
-  MAX_ATTEMPTS = 5
+  MAX_ATTEMPTS = 10
   WAIT_TIME = 10.minutes
 
   def perform(feed_onestop_id, attempts=1)
     logger.info "GtfsFeedArtifactWorker #{feed_onestop_id}: Verifying osm_way_ids"
+    # TODO: Ian: Note, this fetches all prefix'd Stops, then filters locally.
+    # This is because we cannot easily query a NULL in the hstore tags.
+    # This will be revisited when osm_way_id is part of the model, not tags.
     prefix = "gtfs://#{feed_onestop_id}/"
     missing = Stop.with_identifer_starting_with(prefix).select { |x| x.tags['osm_way_id'].nil? }
 
