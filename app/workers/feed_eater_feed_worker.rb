@@ -68,5 +68,8 @@ class FeedEaterFeedWorker < FeedEaterWorker
         validation_report: validation_report
       )
     end
+
+    logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Done."
+
   end
 end

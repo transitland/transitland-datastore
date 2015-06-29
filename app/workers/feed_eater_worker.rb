@@ -6,8 +6,12 @@ class FeedEaterWorker
     Feed.update_feeds_from_feed_registry
     feeds = feed_onestop_ids.length > 0 ? Feed.where(onestop_id: feed_onestop_ids) : Feed.where('')
     feeds.each do |feed|
+      logger.info "FeedEaterWorker: Enqueue #{feed.onestop_id}"
       FeedEaterFeedWorker.perform_async(feed.onestop_id)
     end
+
+    logger.info 'FeedEaterWorker: Done.'
+
   end
 
   private

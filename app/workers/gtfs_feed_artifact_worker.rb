@@ -29,5 +29,7 @@ class GtfsFeedArtifactWorker < FeedEaterWorker
       UploadFeedEaterArtifactsToS3Worker.perform_async(feed_onestop_id)
     end
 
+    logger.info "GtfsFeedArtifactWorker #{feed_onestop_id}: Done."
+
   end
 end
