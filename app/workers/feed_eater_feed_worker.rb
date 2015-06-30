@@ -1,9 +1,4 @@
-class FeedEaterFeedWorker
-  include Sidekiq::Worker
-
-  PYTHON = './virtualenv/bin/python'
-  FEEDVALIDATOR = './virtualenv/bin/feedvalidator.py'
-
+class FeedEaterFeedWorker < FeedEaterWorker
   def perform(feed_onestop_id)
     # Download the feed
     feed = Feed.find_by(onestop_id: feed_onestop_id)
@@ -12,8 +7,8 @@ class FeedEaterFeedWorker
     return unless updated
 
     # Clear out old log files
-    log_file_path = FeedEaterFeedWorker.artifact_file_path("#{feed_onestop_id}.log")
-    validation_report_path = FeedEaterFeedWorker.artifact_file_path("#{feed_onestop_id}.html")
+    log_file_path = artifact_file_path("#{feed_onestop_id}.log")
+    validation_report_path = artifact_file_path("#{feed_onestop_id}.html")
     FileUtils.rm(log_file_path) if File.exist?(log_file_path)
     FileUtils.rm(validation_report_path) if File.exist?(validation_report_path)
 
@@ -23,16 +18,22 @@ class FeedEaterFeedWorker
     # Validate and import feed
     begin
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Validating feed"
-      run_python('./lib/feedeater/validate.py', "--feedvalidator #{FEEDVALIDATOR} --log #{log_file_path} #{feed_onestop_id}")
+      feedvalidator = Figaro.env.feedvalidator_path || './virtualenv/bin/python'
+      run_python(
+        './lib/feedeater/validate.py',
+        '--feedvalidator',
+        feedvalidator,
+        '--log',
+        log_file_path,
+        feed_onestop_id
+      )
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Uploading feed"
-      run_python('./lib/feedeater/post.py', "--log #{log_file_path} #{feed_onestop_id}")
-      logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Creating GTFS artifact"
-      run_python('./lib/feedeater/artifact.py', "--log #{log_file_path} #{feed_onestop_id}")
-      if Figaro.env.upload_feed_eater_artifacts_to_s3.present? &&
-         Figaro.env.upload_feed_eater_artifacts_to_s3 == 'true'
-        logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Enqueuing a job to upload artifacts to S3"
-        UploadFeedEaterArtifactsToS3Worker.perform_async(feed_onestop_id)
-      end
+      run_python(
+        './lib/feedeater/post.py',
+        '--log',
+        log_file_path,
+        feed_onestop_id
+      )
     rescue Exception => e
       # NOTE: we're catching all exceptions, including Interrupt,
       #   SignalException, and SyntaxError
@@ -43,6 +44,10 @@ class FeedEaterFeedWorker
     else
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Saving successful import"
       feed.has_been_fetched_and_imported!(on_feed_import: feed_import)
+      if Figaro.env.auto_conflate_stops_with_osm == 'true'
+        logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Enqueue artifact job"
+        GtfsFeedArtifactWorker.perform_async(feed_onestop_id)
+      end
     ensure
       # Cleanup
       import_log = ''
@@ -63,16 +68,8 @@ class FeedEaterFeedWorker
         validation_report: validation_report
       )
     end
-  end
 
-  private
+    logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Done."
 
-  def run_python(file, args)
-    success = system("#{PYTHON} #{file} #{args}")
-    raise "Error running Python #{file} #{args}" if !success
-  end
-
-  def self.artifact_file_path(name)
-    File.join(Figaro.env.transitland_feed_data_path, name)
   end
 end
