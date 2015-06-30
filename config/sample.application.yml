@@ -1,6 +1,6 @@
 TRANSITLAND_DATASTORE_AUTH_TOKEN: iamallowedtotouchthis
-SIDEKIQ_DASHBOARD_USERNAME: onlyneedonproduction
-SIDEKIQ_DASHBOARD_PASSWORD: onlyneedonproduction
+ADMIN_USERNAME: onlyneedonproduction
+ADMIN_PASSWORD: onlyneedonproduction
 TRANSITLAND_FEED_REGISTRY_PATH: <%= Rails.root.join('tmp', 'transitland-feed-registry') %>
 TRANSITLAND_FEED_DATA_PATH: <%= Rails.root.join('tmp', 'transitland-feed-data') %>
 TRANSITLAND_DATASTORE_HOST: http://localhost:3000
