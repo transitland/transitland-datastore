@@ -38,6 +38,7 @@ Multiple `StationEgress` and `StationPlatforms` can be combined to model more co
      | |    |- identifiers                                 |               network
      | |    |- tags                                        |
      | +----|- station_id                                  |
+     |      |- geometry                                    |
      |      +----------------------------------------------+
      |
      |      +-------------------------------------+
@@ -50,6 +51,8 @@ Multiple `StationEgress` and `StationPlatforms` can be combined to model more co
      +------|- station_id                         |
             |- geometry                           |                 and other service/schedule
             +-------------------------------------+                 models in Datastore
+
+edit using http://stable.ascii-flow.appspot.com/
 ````
 
 ## Using Onestop IDs to Refer to Egresses and Platforms
