@@ -1,0 +1,16 @@
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h3 class="panel-title">Reset Datastore</h3>
+  </div>
+  <div class="panel-body">
+    <%= form_tag({controller: :dashboard, action: :reset }, method: :post, html: { class: 'form' }) do %>
+      <%= check_box_tag(:clear_enqueued_jobs, 1, true) %>
+      <%= label_tag(:clear_enqueued_jobs, 'Clear enqueued jobs (not already executing)') %>
+
+      <%= check_box_tag(:truncate_database, 1, true) %>
+      <%= label_tag(:truncate_database, 'Truncate database') %>
+
+      <%= submit_tag('Reset', class: 'btn btn-danger') %>
+    <% end %>
+  </div>
+</div>

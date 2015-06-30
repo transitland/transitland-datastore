@@ -1,10 +1,3 @@
-require 'sidekiq/web'
-
-# Sidekiq dashboard HTTP basic auth
-Sidekiq::Web.use Rack::Auth::Basic do |username, password|
-  username == Figaro.env.sidekiq_dashboard_username && password == Figaro.env.sidekiq_dashboard_password
-end if Rails.env.production? || Rails.env.staging?
-
 # host, protocol, port for full URLs
 if Figaro.env.transitland_datastore_host.present?
   default_url_options = {
@@ -45,5 +38,5 @@ Rails.application.routes.draw do
     match '*unmatched_route', :to => 'v1/base_api#raise_not_found!', via: :all
   end
 
-  mount Sidekiq::Web => '/worker_dashboard'
+  mount DatastoreAdmin::Engine => '/admin'
 end
