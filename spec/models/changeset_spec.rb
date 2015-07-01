@@ -18,11 +18,25 @@ describe Changeset do
   end
 
   context 'payload' do
-    # it 'must contain at least one change' do
-    #   changeset = build(:changeset, payload: { changes: [] })
-    #   expect(changeset.valid?).to be false
-    #   expect(changeset.errors.messages[:payload][0]).to include "The property '#/changes' did not contain a minimum number of items 1"
-    # end
+    it 'may contain empty changes' do
+      changeset = build(:changeset, payload: { changes: [] })
+      expect(changeset.valid?).to be true
+    end
+
+    it 'can append a payload' do
+      changeset = build(:changeset, payload: { changes: [] })
+      change = {
+        action: 'createUpdate',
+        stop: {
+          onestopId: 's-9q8yt4b-1AvHoS',
+          name: '1st Ave. & Holloway St.'
+        }          
+      }
+      expect(changeset.payload['changes'].length).to be 0
+      changeset.append_change(change)
+      expect(changeset.send('validate_payload')).to be true
+      expect(changeset.payload['changes'].length).to be 1
+    end
 
     it 'can contain a stop creation/update' do
       changeset = build(:changeset, payload: {
