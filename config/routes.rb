@@ -32,6 +32,7 @@ Rails.application.routes.draw do
           post 'check'
           post 'apply'
           post 'revert'
+          post 'append'
         end
       end
       resources :stops, only: [:index, :show]
