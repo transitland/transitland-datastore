@@ -55,6 +55,7 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
 
   def append
     @changeset.append_change(change_params)
+    @changeset.save!
     render json: @changeset
   end
 
