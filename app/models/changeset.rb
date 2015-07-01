@@ -143,6 +143,7 @@ class Changeset < ActiveRecord::Base
   end
 
   def append_change(change)
+    payload['changes'] ||= []
     payload['changes'].push(change)
     self.update(payload: payload)
   end
