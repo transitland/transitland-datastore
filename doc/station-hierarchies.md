@@ -26,30 +26,30 @@ Multiple `StationEgress` and `StationPlatforms` can be combined to model more co
    |- name                             |
    |- identifiers                      |
    |- tags                             |
-   |- geometry                         |
+   |- geometry (point or poly)         |
    +-----------------------------------+
      ^ ^
      | |    +----------------------------------------------+
      | |    |StationEgress                                 |
      | |    |----------------------------------------------|
      | |    |- onestop_id "s-9q8yy-Civic~Center>8th~Market"|
-     | |    |- connected_osm_way_ids                       |-------------> OpenStreetMap
+     | |    |- connected_osm_way_id                        |-------------> OpenStreetMap
      | |    |- name                                        |               pedestrian
      | |    |- identifiers                                 |               network
      | |    |- tags                                        |
      | +----|- station_id                                  |
-     |      |- geometry                                    |
+     |      |- geometry (point)                            |
      |      +----------------------------------------------+
      |
      |      +-------------------------------------+
      |      |StationPlatform                      |
      |      |-------------------------------------|
      |      |- onestop_id "s-9q8yy-Civic~Center<2"|
-     |      |- name                               |<--------------+ OperatorServingPlatform
+     |      |- name                               |<--------------+ OperatorServingStationPlatform
      |      |- identifiers                        |
-     |      |- tags                               |<--------------+ RouteServingPlatform
+     |      |- tags                               |<--------------+ RouteServingStationPlatform
      +------|- station_id                         |
-            |- geometry                           |                 and other service/schedule
+            |- geometry (point or poly)           |                 and other service/schedule
             +-------------------------------------+                 models in Datastore
 
 edit using http://stable.ascii-flow.appspot.com/
