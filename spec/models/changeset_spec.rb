@@ -18,11 +18,11 @@ describe Changeset do
   end
 
   context 'payload' do
-    it 'must contain at least one change' do
-      changeset = build(:changeset, payload: { changes: [] })
-      expect(changeset.valid?).to be false
-      expect(changeset.errors.messages[:payload][0]).to include "The property '#/changes' did not contain a minimum number of items 1"
-    end
+    # it 'must contain at least one change' do
+    #   changeset = build(:changeset, payload: { changes: [] })
+    #   expect(changeset.valid?).to be false
+    #   expect(changeset.errors.messages[:payload][0]).to include "The property '#/changes' did not contain a minimum number of items 1"
+    # end
 
     it 'can contain a stop creation/update' do
       changeset = build(:changeset, payload: {
