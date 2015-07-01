@@ -2,8 +2,8 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   include JsonCollectionPagination
   include DownloadableCsv
 
-  before_filter :require_api_auth_token, only: [:create, :update, :check, :apply, :revert]
-  before_action :set_changeset, only: [:show, :update, :check, :apply, :revert]
+  before_filter :require_api_auth_token, only: [:create, :update, :check, :apply, :revert, :append]
+  before_action :set_changeset, only: [:show, :update, :check, :apply, :revert, :append]
 
   def index
     @changesets = Changeset.where('')
@@ -53,6 +53,12 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
     end
   end
 
+  def append
+    @changeset.append_change(change_params)
+    @changeset.save!
+    render json: @changeset
+  end
+
   def show
     render json: @changeset
   end
@@ -82,4 +88,9 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   def changeset_params
     params.require(:changeset).permit! # TODO: permit specific params
   end
+
+  def change_params
+    params.require(:change).permit!
+  end
+
 end

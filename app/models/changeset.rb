@@ -142,11 +142,17 @@ class Changeset < ActiveRecord::Base
     # TODO: write it
   end
 
+  def append_change(change)
+    payload['changes'] ||= []
+    payload['changes'].push(change)
+  end
+
   private
 
   def set_default_values
     if self.new_record?
       self.applied ||= false
+      self.payload ||= {changes:[]}
     end
   end
 
