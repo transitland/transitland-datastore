@@ -21,7 +21,8 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
           @feeds,
           Proc.new { |params| api_v1_feeds_url(params) },
           params[:offset],
-          per_page
+          per_page,
+          params.slice(:tag_key, :tag_value)
         )
       end
       format.csv do
