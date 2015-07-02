@@ -16,7 +16,5 @@ Gem::Specification.new do |s|
 
   s.files = Dir['{app,config,db,lib}/**/*', 'MIT-LICENSE', 'Rakefile', 'README.rdoc']
 
-  s.add_dependency 'sass-rails'
-  s.add_dependency 'bootstrap-sass', '~> 3.3'
   s.add_dependency 'sinatra' # for Sidekiq dashboard
 end
