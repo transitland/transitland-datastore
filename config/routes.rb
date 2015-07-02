@@ -39,7 +39,5 @@ Rails.application.routes.draw do
     match '*unmatched_route', :to => 'v1/base_api#raise_not_found!', via: :all
   end
 
-  # NOTE: we're also nesting all assets under /admin
-  # see config/initializers/assets.rb
   mount DatastoreAdmin::Engine => '/admin'
 end
