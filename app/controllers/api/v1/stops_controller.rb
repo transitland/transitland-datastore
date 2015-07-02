@@ -44,7 +44,8 @@ class Api::V1::StopsController < Api::V1::BaseApiController
           @stops,
           Proc.new { |params| api_v1_stops_url(params) },
           params[:offset],
-          per_page
+          per_page,
+          params.slice(:identifier, :identifier_starts_with, :servedBy, :lat, :lon, :r, :bbox, :onestop_id, :tag_key, :tag_value)
         )
       end
       format.geojson do

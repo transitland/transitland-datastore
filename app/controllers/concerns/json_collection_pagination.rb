@@ -1,7 +1,7 @@
 module JsonCollectionPagination
   extend ActiveSupport::Concern
 
-  def paginated_json_collection(collection, path_helper, offset, per_page = 50)
+  def paginated_json_collection(collection, path_helper, offset, per_page = 50, params)
     if offset.blank?
       offset = 0
     else
@@ -13,8 +13,14 @@ module JsonCollectionPagination
         offset: offset,
         per_page: per_page
     }
-    meta[:next] = path_helper.call(offset: offset + per_page, per_page: per_page) if is_there_a_next_page?(total, offset, per_page)
-    meta[:prev] = path_helper.call(offset: offset - per_page, per_page: per_page) if is_there_a_prev_page?(total, offset, per_page)
+
+    if is_there_a_next_page?(total, offset, per_page)
+      meta[:next] = path_helper.call(params.merge({ offset: offset + per_page, per_page: per_page }))
+    end
+    if is_there_a_prev_page?(total, offset, per_page)
+      meta[:prev] = path_helper.call(params.merge({ offset: offset - per_page, per_page: per_page }))
+    end
+
     { json: collection.offset(offset).limit(per_page), meta: meta }
   end
 

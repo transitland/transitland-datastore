@@ -14,7 +14,7 @@ describe JsonCollectionPagination do
       collection = instance_double("FakeModel", count: 3)
       collection.stub_chain(:offset, :limit).and_return([1, 2, 3])
       expect(
-        object.send(:paginated_json_collection, collection, path_helper, 0, 50)
+        object.send(:paginated_json_collection, collection, path_helper, 0, 50, {})
       ).to eq({
         json: [1, 2, 3],
         meta: {
@@ -29,7 +29,7 @@ describe JsonCollectionPagination do
       collection = instance_double("FakeModel", count: 100)
       collection.stub_chain(:offset, :limit).and_return([1, 2, 3])
       expect(
-        object.send(:paginated_json_collection, collection, path_helper, 40, 40)
+        object.send(:paginated_json_collection, collection, path_helper, 40, 40, {})
       ).to eq({
         json: [1, 2, 3],
         meta: {

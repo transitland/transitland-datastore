@@ -37,7 +37,8 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
           @routes,
           Proc.new { |params| api_v1_routes_url(params) },
           params[:offset],
-          per_page
+          per_page,
+          params.slice(:identifier, :identifier_starts_with, :operatedBy, :bbox, :onestop_id, :tag_key, :tag_value)
         )
       end
       format.geojson do

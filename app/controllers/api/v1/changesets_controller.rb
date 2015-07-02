@@ -16,7 +16,8 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
           @changesets,
           Proc.new { |params| api_v1_changesets_url(params) },
           params[:offset],
-          per_page
+          per_page,
+          {}
         )
       end
       format.csv do
