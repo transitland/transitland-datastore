@@ -26,8 +26,6 @@ class Changeset < ActiveRecord::Base
 
   include CanBeSerializedToCsv
 
-  include HasAJsonPayload
-
   has_many :stops_created_or_updated, class_name: 'Stop', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :stops_destroyed, class_name: 'OldStop', foreign_key: 'destroyed_in_changeset_id'
 
@@ -42,6 +40,8 @@ class Changeset < ActiveRecord::Base
 
   has_many :routes_serving_stop_created_or_updated, class_name: 'RouteServingStop', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :routes_serving_stop_destroyed, class_name: 'OldRouteServingStop', foreign_key: 'destroyed_in_changeset_id'
+
+  has_many :change_payloads
 
   def entities_created_or_updated
     # NOTE: this is probably evaluating the SQL queries, rather than merging together ARel relations
@@ -65,8 +65,7 @@ class Changeset < ActiveRecord::Base
   end
 
   after_initialize :set_default_values
-
-  validate :validate_payload
+  # before_save :create_change_payloads
 
   onestop_id_format_proc = -> (onestop_id, expected_entity_type) do
     is_a_valid_onestop_id, onestop_id_errors = OnestopId.validate_onestop_id_string(onestop_id, expected_entity_type: expected_entity_type)
@@ -102,16 +101,8 @@ class Changeset < ActiveRecord::Base
     else
       Changeset.transaction do
         begin
-          payload_as_ruby_hash[:changes].each do |change|
-            if change[:stop].present?
-              Stop.apply_change(changeset: self, attrs: change[:stop], action: change[:action])
-            end
-            if change[:operator].present?
-              Operator.apply_change(changeset: self, attrs: change[:operator], action: change[:action])
-            end
-            if change[:route].present?
-              Route.apply_change(changeset: self, attrs: change[:route], action: change[:action])
-            end
+          change_payloads.each do |change_payload|
+            change_payload.apply!
           end
           self.update(applied: true, applied_at: Time.now)
         rescue
@@ -142,9 +133,12 @@ class Changeset < ActiveRecord::Base
     # TODO: write it
   end
 
-  def append_change(change)
-    payload['changes'] ||= []
-    payload['changes'].push(change)
+  def append(changeset)
+    change_payloads.build payload: changeset
+  end
+
+  def payload=(changeset)
+    append changeset
   end
 
   private
@@ -152,23 +146,6 @@ class Changeset < ActiveRecord::Base
   def set_default_values
     if self.new_record?
       self.applied ||= false
-      self.payload ||= {changes:[]}
-    end
-  end
-
-  def validate_payload
-    payload_validation_errors = JSON::Validator.fully_validate(
-      File.join(__dir__, 'json_schemas', 'changeset.json'),
-      self.payload,
-      errors_as_objects: true
-    )
-    if payload_validation_errors.length > 0
-      payload_validation_errors.each do |error|
-        errors.add(:payload, error[:message])
-      end
-      false
-    else
-      true
     end
   end
 

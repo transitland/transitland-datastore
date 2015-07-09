@@ -55,7 +55,7 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   end
 
   def append
-    @changeset.append_change(change_params)
+    @changeset.append(params)
     @changeset.save!
     render json: @changeset
   end
@@ -89,9 +89,9 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   def changeset_params
     params.require(:changeset).permit! # TODO: permit specific params
   end
-
+  
   def change_params
-    params.require(:change).permit!
+    params.require(:changes) # TODO: permit specific params
   end
 
 end
