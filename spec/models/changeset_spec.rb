@@ -18,24 +18,27 @@ describe Changeset do
   end
 
   context 'payload' do
-    it 'may contain empty changes' do
+    it 'may not contain empty changes' do
       changeset = build(:changeset, payload: { changes: [] })
-      expect(changeset.valid?).to be true
+      expect(changeset.valid?).to be false
     end
 
     it 'can append a payload' do
-      changeset = build(:changeset, payload: { changes: [] })
+      changeset = build(:changeset)
       change = {
-        action: 'createUpdate',
-        stop: {
-          onestopId: 's-9q8yt4b-1AvHoS',
-          name: '1st Ave. & Holloway St.'
-        }          
+        changes: [
+          {
+            action: "createUpdate",
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              name: '1st Ave. & Holloway St.'
+            }
+          }
+        ]
       }
-      expect(changeset.payload['changes'].length).to be 0
-      changeset.append_change(change)
-      expect(changeset.send('validate_payload')).to be true
-      expect(changeset.payload['changes'].length).to be 1
+      expect(changeset.change_payloads.count).equal?(0)
+      changeset.append(change)
+      expect(changeset.change_payloads.count).equal?(1)
     end
 
     it 'can contain a stop creation/update' do
@@ -61,6 +64,17 @@ describe Changeset do
             operator: {
               onestopId: '9q8yt4b-1AvHoS'
             }
+          }
+        ]
+      })
+      expect(changeset.valid?).to be false
+    end
+
+    it 'must include a schema valid payload' do
+      changeset = build(:changeset, payload: {
+        changes: [
+          {
+            asd: "xyz"
           }
         ]
       })
