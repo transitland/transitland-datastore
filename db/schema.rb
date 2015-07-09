@@ -11,12 +11,23 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150529220919) do
+ActiveRecord::Schema.define(version: 20150708221436) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "postgis"
   enable_extension "hstore"
+
+  create_table "change_payloads", force: :cascade do |t|
+    t.json     "payload"
+    t.integer  "changeset_id"
+    t.string   "action"
+    t.string   "type"
+    t.datetime "created_at",   null: false
+    t.datetime "updated_at",   null: false
+  end
+
+  add_index "change_payloads", ["changeset_id"], name: "index_change_payloads_on_changeset_id", using: :btree
 
   create_table "changesets", force: :cascade do |t|
     t.text     "notes"
@@ -237,4 +248,5 @@ ActiveRecord::Schema.define(version: 20150529220919) do
   add_index "old_stops", ["destroyed_in_changeset_id"], name: "stops_d_in_changeset_id_index", using: :btree
   add_index "old_stops", ["identifiers"], name: "index_old_stops_on_identifiers", using: :gin
 
+  add_foreign_key "change_payloads", "changesets"
 end
