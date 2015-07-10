@@ -15,12 +15,19 @@
 #  index_change_payloads_on_changeset_id  (changeset_id)
 #
 
-# FactoryGirl.define do
-#   factory :change_payload do
-#     payload ""
-# changeset nil
-# action "MyString"
-# type ""
-#   end
-#
-# end
+FactoryGirl.define do
+  factory :change_payload do
+    payload {
+      {
+        changes: [
+          {
+            action: "createUpdate",
+            stop: {
+              onestopId: Faker::OnestopId.stop
+            }
+          }
+        ]
+      }
+    }
+  end
+end
