@@ -91,7 +91,7 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   end
   
   def change_params
-    params.require(:changes) # TODO: permit specific params
+    params.require(:change).permit! # TODO: permit specific params
   end
 
 end
