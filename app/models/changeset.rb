@@ -41,7 +41,7 @@ class Changeset < ActiveRecord::Base
   has_many :routes_serving_stop_created_or_updated, class_name: 'RouteServingStop', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :routes_serving_stop_destroyed, class_name: 'OldRouteServingStop', foreign_key: 'destroyed_in_changeset_id'
 
-  has_many :change_payloads
+  has_many :change_payloads, dependent: :destroy
 
   after_initialize :set_default_values
 
@@ -93,6 +93,8 @@ class Changeset < ActiveRecord::Base
             change_payload.apply!
           end
           self.update(applied: true, applied_at: Time.now)
+          # Destroy change payloads
+          change_payloads.destroy_all
         rescue
           raise Changeset::Error.new(self, $!.message, $!.backtrace)
         end
