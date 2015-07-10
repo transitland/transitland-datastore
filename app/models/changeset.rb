@@ -43,6 +43,8 @@ class Changeset < ActiveRecord::Base
 
   has_many :change_payloads
 
+  after_initialize :set_default_values
+
   def entities_created_or_updated
     # NOTE: this is probably evaluating the SQL queries, rather than merging together ARel relations
     # in Rails 5, there will be an ActiveRecord::Relation.or() operator to use instead here
@@ -54,6 +56,7 @@ class Changeset < ActiveRecord::Base
       routes_serving_stop_created_or_updated
     )
   end
+
   def entities_destroyed
     (
       stops_destroyed +
@@ -63,21 +66,6 @@ class Changeset < ActiveRecord::Base
       routes_serving_stop_destroyed
     )
   end
-
-  after_initialize :set_default_values
-  # before_save :create_change_payloads
-
-  onestop_id_format_proc = -> (onestop_id, expected_entity_type) do
-    is_a_valid_onestop_id, onestop_id_errors = OnestopId.validate_onestop_id_string(onestop_id, expected_entity_type: expected_entity_type)
-    raise JSON::Schema::CustomFormatError.new(onestop_id_errors.join(', ')) if !is_a_valid_onestop_id
-  end
-  JSON::Validator.schema_reader = JSON::Schema::Reader.new(accept_uri: false, accept_file: true)
-  JSON::Validator.register_format_validator('operator-onestop-id', -> (onestop_id) {
-    onestop_id_format_proc.call(onestop_id, 'operator')
-  })
-  JSON::Validator.register_format_validator('stop-onestop-id', -> (onestop_id) {
-    onestop_id_format_proc.call(onestop_id, 'stop')
-  })
 
   def trial_succeeds?
     trial_succeeds = false
