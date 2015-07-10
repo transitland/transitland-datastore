@@ -1,6 +1,7 @@
 describe Api::V1::ChangesetsController do
   before(:each) do
     allow(Figaro.env).to receive(:transitland_datastore_auth_token) { 'THISISANAPIKEY' }
+    @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANAPIKEY'
   end
 
   context 'GET index' do
@@ -21,22 +22,27 @@ describe Api::V1::ChangesetsController do
       expect_json({
         id: Changeset.last.id,
         applied: false,
-        payload: -> (payload) { payload[:changes].count == Changeset.last.payload_as_ruby_hash[:changes].count },
         applied_at: nil
       })
     end
   end
 
   context 'POST create' do
-    it 'should be able to create a Changeset with a valid payload' do
-      @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANAPIKEY'
+    it 'should be able to create a Changeset with an empty payload' do
       post :create, changeset: FactoryGirl.attributes_for(:changeset)
       expect(response.status).to eq 200
       expect(Changeset.count).to eq 1
+      expect(ChangePayload.count).to eq 0
     end
 
+    it 'should be able to create a Changeset with a valid payload' do
+      post :create, changeset: FactoryGirl.attributes_for(:changeset_with_payload)
+      expect(response.status).to eq 200
+      expect(Changeset.count).to eq 1
+      expect(ChangePayload.count).to eq 1
+    end
+    
     it 'should fail to create a Changeset with an invalid payload' do
-      @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANAPIKEY'
       post :create, changeset: {
         changes: []
       }
@@ -45,6 +51,7 @@ describe Api::V1::ChangesetsController do
     end
 
     it 'should fail when API auth token is not provided' do
+      @request.env['HTTP_AUTHORIZATION'] = nil
       post :create, changeset: {
         changes: []
       }
@@ -52,8 +59,7 @@ describe Api::V1::ChangesetsController do
     end
 
     it 'should be able to instantly create and apply a Changeset with a valid payload' do
-      @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANAPIKEY'
-      attrs = FactoryGirl.attributes_for(:changeset)
+      attrs = FactoryGirl.attributes_for(:changeset_with_payload)
       attrs[:whenToApply] = 'instantlyIfClean'
       post :create, changeset: attrs
       expect(Changeset.count).to eq 1
@@ -62,11 +68,20 @@ describe Api::V1::ChangesetsController do
     end
   end
 
-  context 'POST update' do
-    before(:each) do
-      @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANAPIKEY'
+  context 'POST append' do
+    it 'should be able to append a change payload to a Changeset' do
+      changeset = create(:changeset)
+      change = FactoryGirl.attributes_for(:change_payload)
+      expect(Changeset.count).to eq 1
+      expect(ChangePayload.count).to eq 0
+      post :append, id: changeset.id, change: change
+      expect(response.status).to eq 200
+      expect(Changeset.count).to eq 1
+      expect(ChangePayload.count).to eq 1    
     end
+  end
 
+  context 'POST update' do
     it "should be able to update a Changeset that hasn't yet been applied" do
       changeset = create(:changeset)
       post :update, id: changeset.id, changeset: {
@@ -98,10 +113,6 @@ describe Api::V1::ChangesetsController do
   end
 
   context 'POST check' do
-    before(:each) do
-      @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANAPIKEY'
-    end
-
     it 'should be able to identify a Changeset that will apply cleanly' do
       changeset = create(:changeset)
       post :check, id: changeset.id
@@ -125,10 +136,6 @@ describe Api::V1::ChangesetsController do
   end
 
   context 'POST apply' do
-    before(:each) do
-      @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANAPIKEY'
-    end
-
     it 'should be able to apply a clean Changeset' do
       changeset = create(:changeset, payload: {
         changes: [
