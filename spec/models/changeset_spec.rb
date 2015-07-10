@@ -17,83 +17,22 @@ describe Changeset do
     expect(Changeset.exists?(changeset.id)).to be true
   end
 
-  context 'payload' do
-    it 'may not contain empty changes' do
-      changeset = build(:changeset, payload: { changes: [] })
-      expect(changeset.valid?).to be false
-    end
-
-    it 'can append a payload' do
-      changeset = build(:changeset)
-      change = {
-        changes: [
-          {
-            action: "createUpdate",
-            stop: {
-              onestopId: 's-9q8yt4b-1AvHoS',
-              name: '1st Ave. & Holloway St.'
-            }
+  it 'can append a payload' do
+    changeset = build(:changeset)
+    payload = {
+      changes: [
+        {
+          action: "createUpdate",
+          stop: {
+            onestopId: 's-9q8yt4b-1AvHoS',
+            name: '1st Ave. & Holloway St.'
           }
-        ]
-      }
-      expect(changeset.change_payloads.count).equal?(0)
-      changeset.append(change)
-      expect(changeset.change_payloads.count).equal?(1)
-    end
-
-    it 'can contain a stop creation/update' do
-      changeset = build(:changeset, payload: {
-        changes: [
-          {
-            action: "createUpdate",
-            stop: {
-              onestopId: 's-9q8yt4b-1AvHoS',
-              name: '1st Ave. & Holloway St.'
-            }
-          }
-        ]
-      })
-      expect(changeset.valid?).to be true
-    end
-
-    it 'must include valid Onestop IDs' do
-      changeset = build(:changeset, payload: {
-        changes: [
-          {
-            action: "destroy",
-            operator: {
-              onestopId: '9q8yt4b-1AvHoS'
-            }
-          }
-        ]
-      })
-      expect(changeset.valid?).to be false
-    end
-
-    it 'must include a schema valid payload' do
-      changeset = build(:changeset, payload: {
-        changes: [
-          {
-            asd: "xyz"
-          }
-        ]
-      })
-      expect(changeset.valid?).to be false
-    end
-
-    it 'can contain a stop destruction' do
-      changeset = build(:changeset, payload: {
-        changes: [
-          {
-            action: "destroy",
-            stop: {
-              onestopId: 's-9q8yt4b-1AvHoS'
-            }
-          }
-        ]
-      })
-      expect(changeset.valid?).to be true
-    end
+        }
+      ]
+    }
+    expect(changeset.change_payloads.count).equal?(0)
+    changeset.append(payload)
+    expect(changeset.change_payloads.count).equal?(1)
   end
 
   context 'can be applied' do
@@ -187,6 +126,15 @@ describe Changeset do
       expect(Stop.count).to eq 0
       expect(OldStop.count).to eq 2
       expect(Stop.find_by_onestop_id('s-9q8yt4b-1AvHoS')).to be_nil
+    end
+    
+    it 'deletes payloads after applying' do
+      payload_ids = @changeset1.change_payload_ids
+      expect(payload_ids.length).to eq 1
+      @changeset1.apply!
+      payload_ids.each do |i|
+        expect(ChangePayload.find_by(id: i)).to be_nil
+      end
     end
 
     it 'to create and remove a relationship' do
