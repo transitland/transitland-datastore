@@ -6,7 +6,6 @@
 #  notes      :text
 #  applied    :boolean
 #  applied_at :datetime
-#  payload    :json
 #  created_at :datetime
 #  updated_at :datetime
 #

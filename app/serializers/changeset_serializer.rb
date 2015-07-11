@@ -6,7 +6,6 @@
 #  notes      :text
 #  applied    :boolean
 #  applied_at :datetime
-#  payload    :json
 #  created_at :datetime
 #  updated_at :datetime
 #
@@ -16,7 +15,12 @@ class ChangesetSerializer < ApplicationSerializer
              :notes,
              :applied,
              :applied_at,
-             :payload,
              :created_at,
-             :updated_at
+             :updated_at,
+             :payload
+  
+   def payload
+     {changes: object.change_payloads.map {|x| x.payload_as_ruby_hash[:changes]}}
+   end
+
 end
