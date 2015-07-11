@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150708221436) do
+ActiveRecord::Schema.define(version: 20150711003625) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -21,8 +21,6 @@ ActiveRecord::Schema.define(version: 20150708221436) do
   create_table "change_payloads", force: :cascade do |t|
     t.json     "payload"
     t.integer  "changeset_id"
-    t.string   "action"
-    t.string   "type"
     t.datetime "created_at",   null: false
     t.datetime "updated_at",   null: false
   end
@@ -33,7 +31,6 @@ ActiveRecord::Schema.define(version: 20150708221436) do
     t.text     "notes"
     t.boolean  "applied"
     t.datetime "applied_at"
-    t.json     "payload"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

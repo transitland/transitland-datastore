@@ -4,15 +4,13 @@
 #
 #  id           :integer          not null, primary key
 #  payload      :json
-#  change_payload_id :integer
-#  action       :string
-#  type         :string
+#  changeset_id :integer
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
 #
 # Indexes
 #
-#  index_change_payloads_on_change_payload_id  (change_payload_id)
+#  index_change_payloads_on_changeset_id  (changeset_id)
 #
 
 # require 'rails_helper'

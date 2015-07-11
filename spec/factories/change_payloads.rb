@@ -5,8 +5,6 @@
 #  id           :integer          not null, primary key
 #  payload      :json
 #  changeset_id :integer
-#  action       :string
-#  type         :string
 #  created_at   :datetime         not null
 #  updated_at   :datetime         not null
 #
