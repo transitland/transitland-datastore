@@ -5,7 +5,7 @@
   "properties": {
     "changes": {
       "type": "array",
-      "minItems": 0,
+      "minItems": 1,
       "uniqueItems": true,
       "items": {
         "type": "object",

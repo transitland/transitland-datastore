@@ -55,9 +55,13 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   end
 
   def append
-    @changeset.append_change(change_params)
-    @changeset.save!
-    render json: @changeset
+    if @changeset.applied
+      raise Changeset::Error.new(@changeset, 'cannot update a Changeset that has already been applied')
+    else
+      @changeset.append(params)
+      @changeset.save!
+      render json: @changeset
+    end
   end
 
   def show
@@ -89,9 +93,9 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   def changeset_params
     params.require(:changeset).permit! # TODO: permit specific params
   end
-
+  
   def change_params
-    params.require(:change).permit!
+    params.require(:change).permit! # TODO: permit specific params
   end
 
 end
