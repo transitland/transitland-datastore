@@ -8,30 +8,38 @@ To create, check, and apply a changeset, you can either do each step as a separa
 
 ### Step by Step
 
-1. Create a changeset: `POST /api/v1/changesets` with JSON like this in the request body:
+1. Create an empty changeset: `POST /api/v1/changesets` with JSON like this in the request body:
 
   ````json
   {
     "changeset": {
-      "payload": {
-        "changes": [
-          {
-            "action": "createUpdate",
-            "stop": {
-              "onestopId": "s-9q8yt4b-1AvHoS",
-              "name": "1st Ave. & Holloway Street"
-            }
-          }
-        ]
-      },
+      "payload": {},
       "notes": "In this changeset, we are creating or editing a stop. If a stop with this Onestop ID already exists, we'll just update its name. If it does not already exist, we will create it."
     }
   }
   ````
+			
+2. In the response, you'll get an ID for the changeset.
 
-2. In the response, you'll get an ID for the changeset
-3. Check that the changeset can be cleanly applied to the database: `POST /api/v1/changesets/143/check` (assuming that the ID you got back in Step 2 is `143`)
-4. Apply the changeset: `POST /api/v1/changesets/143/apply` making sure to include an [API Auth Key](../readme.md#api-authentication).
+3. Add changes to a changeset using the 'POST /api/v1/changesets/143/append' endpoint (assuming that the ID you got back in Step 2 is `143`):
+	
+	````json
+		{
+      "changes": [
+        {
+          "action": "createUpdate",
+          "stop": {
+            "onestopId": "s-9q8yt4b-1AvHoS",
+            "name": "1st Ave. & Holloway Street"
+          }
+        }
+      ]
+		}
+	````
+
+4. Check that the changeset can be cleanly applied to the database: `POST /api/v1/changesets/143/check` 
+
+5. Apply the changeset: `POST /api/v1/changesets/143/apply` making sure to include an [API Auth Key](../readme.md#api-authentication).
 
 ### All in One Go
 
