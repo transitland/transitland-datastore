@@ -11,6 +11,7 @@ module DatastoreAdmin
       # NOTE: don't truncate schema_migrations or spatial_ref_sys
       sql = "
         TRUNCATE changesets,
+                 change_payloads,
                  current_operators,
                  current_operators_serving_stop,
                  current_routes,
@@ -25,6 +26,7 @@ module DatastoreAdmin
                  old_stops;
 
         ALTER SEQUENCE changesets_id_seq RESTART;
+        ALTER SEQUENCE change_payloads_id_seq RESTART;
         ALTER SEQUENCE current_operators_id_seq RESTART;
         ALTER SEQUENCE current_operators_serving_stop_id_seq RESTART;
         ALTER SEQUENCE current_routes_id_seq RESTART;
