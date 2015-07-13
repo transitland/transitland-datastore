@@ -1,6 +1,14 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.2.1'
+gem 'rails', '4.2.3'
+
+# Transitland Datastore components
+path 'components' do
+  gem 'datastore_admin'
+end
+
+# external Transitland libraries
+gem 'transitland_client', github: 'transitland/transitland-ruby-client', tag: 'v0.0.6', require: 'transitland_client'
 
 # process runner
 gem 'foreman', group: :development
@@ -15,7 +23,6 @@ gem 'redis-rails'
 
 # background processing
 gem 'sidekiq'
-gem 'sinatra', require: nil # for Sidekiq dashboard
 gem 'whenever', require: false # to manage crontab
 
 # data model
@@ -25,9 +32,6 @@ gem 'gtfs'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 gem 'json-schema'
-
-# Transitland libraries
-gem 'transitland_client', github: 'transitland/transitland-ruby-client', tag: 'v0.0.6', require: 'transitland_client'
 
 # authentication and authorization
 gem 'rack-cors', require: 'rack/cors'

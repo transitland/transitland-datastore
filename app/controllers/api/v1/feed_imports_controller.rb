@@ -15,7 +15,8 @@ class Api::V1::FeedImportsController < Api::V1::BaseApiController
           @feed_imports,
           Proc.new { |params| api_v1_feed_feed_imports_url(params) },
           params[:offset],
-          per_page
+          per_page,
+          {}
         )
       end
       format.csv do

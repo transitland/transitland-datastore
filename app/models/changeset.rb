@@ -6,7 +6,6 @@
 #  notes      :text
 #  applied    :boolean
 #  applied_at :datetime
-#  payload    :json
 #  created_at :datetime
 #  updated_at :datetime
 #
@@ -26,8 +25,6 @@ class Changeset < ActiveRecord::Base
 
   include CanBeSerializedToCsv
 
-  include HasAJsonPayload
-
   has_many :stops_created_or_updated, class_name: 'Stop', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :stops_destroyed, class_name: 'OldStop', foreign_key: 'destroyed_in_changeset_id'
 
@@ -43,6 +40,10 @@ class Changeset < ActiveRecord::Base
   has_many :routes_serving_stop_created_or_updated, class_name: 'RouteServingStop', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :routes_serving_stop_destroyed, class_name: 'OldRouteServingStop', foreign_key: 'destroyed_in_changeset_id'
 
+  has_many :change_payloads, dependent: :destroy
+
+  after_initialize :set_default_values
+
   def entities_created_or_updated
     # NOTE: this is probably evaluating the SQL queries, rather than merging together ARel relations
     # in Rails 5, there will be an ActiveRecord::Relation.or() operator to use instead here
@@ -54,6 +55,7 @@ class Changeset < ActiveRecord::Base
       routes_serving_stop_created_or_updated
     )
   end
+
   def entities_destroyed
     (
       stops_destroyed +
@@ -63,22 +65,6 @@ class Changeset < ActiveRecord::Base
       routes_serving_stop_destroyed
     )
   end
-
-  after_initialize :set_default_values
-
-  validate :validate_payload
-
-  onestop_id_format_proc = -> (onestop_id, expected_entity_type) do
-    is_a_valid_onestop_id, onestop_id_errors = OnestopId.validate_onestop_id_string(onestop_id, expected_entity_type: expected_entity_type)
-    raise JSON::Schema::CustomFormatError.new(onestop_id_errors.join(', ')) if !is_a_valid_onestop_id
-  end
-  JSON::Validator.schema_reader = JSON::Schema::Reader.new(accept_uri: false, accept_file: true)
-  JSON::Validator.register_format_validator('operator-onestop-id', -> (onestop_id) {
-    onestop_id_format_proc.call(onestop_id, 'operator')
-  })
-  JSON::Validator.register_format_validator('stop-onestop-id', -> (onestop_id) {
-    onestop_id_format_proc.call(onestop_id, 'stop')
-  })
 
   def trial_succeeds?
     trial_succeeds = false
@@ -102,18 +88,12 @@ class Changeset < ActiveRecord::Base
     else
       Changeset.transaction do
         begin
-          payload_as_ruby_hash[:changes].each do |change|
-            if change[:stop].present?
-              Stop.apply_change(changeset: self, attrs: change[:stop], action: change[:action])
-            end
-            if change[:operator].present?
-              Operator.apply_change(changeset: self, attrs: change[:operator], action: change[:action])
-            end
-            if change[:route].present?
-              Route.apply_change(changeset: self, attrs: change[:route], action: change[:action])
-            end
+          change_payloads.each do |change_payload|
+            change_payload.apply!
           end
           self.update(applied: true, applied_at: Time.now)
+          # Destroy change payloads
+          change_payloads.destroy_all
         rescue
           raise Changeset::Error.new(self, $!.message, $!.backtrace)
         end
@@ -142,27 +122,19 @@ class Changeset < ActiveRecord::Base
     # TODO: write it
   end
 
+  def append(changeset)
+    change_payloads.build payload: changeset
+  end
+
+  def payload=(changeset)
+    append changeset
+  end
+
   private
 
   def set_default_values
     if self.new_record?
       self.applied ||= false
-    end
-  end
-
-  def validate_payload
-    payload_validation_errors = JSON::Validator.fully_validate(
-      File.join(__dir__, 'json_schemas', 'changeset.json'),
-      self.payload,
-      errors_as_objects: true
-    )
-    if payload_validation_errors.length > 0
-      payload_validation_errors.each do |error|
-        errors.add(:payload, error[:message])
-      end
-      false
-    else
-      true
     end
   end
 
