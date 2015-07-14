@@ -95,6 +95,8 @@ class Changeset < ActiveRecord::Base
           # Destroy change payloads
           change_payloads.destroy_all
         rescue
+          logger.error "Error applying Changeset #{self.id}: #{$!.message}"
+          logger.error $!.backtrace
           raise Changeset::Error.new(self, $!.message, $!.backtrace)
         end
       end

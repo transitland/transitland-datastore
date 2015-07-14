@@ -42,5 +42,9 @@ module DatastoreAdmin
       "
       ActiveRecord::Base.connection.execute(sql)
     end
+
+    def self.clear_data_directory
+      FileUtils.rm_rf Dir.glob("#{Figaro.env.transitland_feed_data_path}/*")
+    end
   end
 end

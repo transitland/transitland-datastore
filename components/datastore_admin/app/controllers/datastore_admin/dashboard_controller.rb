@@ -8,12 +8,14 @@ module DatastoreAdmin
       begin
         ResetDatastore.clear_enqueued_jobs if params[:clear_enqueued_jobs]
         ResetDatastore.truncate_database if params[:truncate_database]
+        ResetDatastore.clear_data_directory if params[:clear_data_directory]
       rescue
         flash[:error] = $!.message
       else
         messages = []
         messages << 'Successfully cleared enqueued jobs.' if params[:clear_enqueued_jobs]
         messages << 'Successfully truncated database.' if params[:truncate_database]
+        messages << 'Successfully cleared data directory.' if params[:clear_data_directory]
         if messages.size > 0
           flash[:success] = messages.join(' ')
         else
