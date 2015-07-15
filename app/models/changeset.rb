@@ -40,7 +40,7 @@ class Changeset < ActiveRecord::Base
   has_many :routes_serving_stop_created_or_updated, class_name: 'RouteServingStop', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :routes_serving_stop_destroyed, class_name: 'OldRouteServingStop', foreign_key: 'destroyed_in_changeset_id'
 
-  has_many :change_payloads, -> { order "created_at" }, dependent: :destroy
+  has_many :change_payloads, -> { order "created_at ASC" }, dependent: :destroy
 
   after_initialize :set_default_values
 
