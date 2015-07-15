@@ -33,6 +33,23 @@ describe Changeset do
     changeset.append(payload)
     expect(changeset.change_payloads.count).equal?(1)
   end
+  
+  it 'sorts payloads by created_at' do
+    changeset = create(:changeset)
+    10.times {
+      payload = build(:change_payload)
+      changeset.append(payload.payload)
+      changeset.save!
+    }
+    # Manually set created_at on the last payload to be earlier
+    last_change = changeset.change_payloads.last
+    last_change.created_at = "1970-01-01 00:00:00"
+    last_change.save!    
+    # Compare association order vs manual sorted order
+    changes_order = changeset.change_payloads.map(&:id)
+    changes_expect = Changeset.last.change_payloads.sort_by {|x|x.created_at}.map(&:id)
+    changes_order.zip(changes_expect).each {|a,b| assert a == b}    
+  end
 
   context 'can be applied' do
     before(:each) do
