@@ -50,5 +50,4 @@ class FeedEaterArtifact(task.FeedEaterTask):
     self.log("Finished!")
 
 if __name__ == "__main__":
-  task = FeedEaterArtifact.from_args()
-  task.run()
+  FeedEaterArtifact.run_from_args()
