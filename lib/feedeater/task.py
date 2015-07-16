@@ -28,12 +28,13 @@ class FeedEaterTask(object):
     self.feedid = feedid
     self.registry = transitland.registry.FeedRegistry(path=registry)
     self.workdir = workdir or os.path.join(self.registry.path, 'data')
+    self.logger = self._log_init(logfile=log, debug=debug, quiet=quiet)
     self.datastore = transitland.datastore.Datastore(
       host,
       apitoken=apitoken,
-      debug=debug
+      debug=debug,
+      log=self.log
     )
-    self.logger = self._log_init(logfile=log, debug=debug, quiet=quiet)
 
   def _log_init(self, logfile=None, debug=False, quiet=False):
     fmt = '[%(asctime)s] %(message)s'
