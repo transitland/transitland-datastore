@@ -60,7 +60,7 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
     else
       @changeset.append(params)
       @changeset.save!
-      render json: @changeset
+      render json: { appended: true }
     end
   end
 
