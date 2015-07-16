@@ -7,6 +7,7 @@ import traceback
 
 import transitland.registry
 import transitland.datastore
+import transitland.errors
 import logging
 
 class FeedEaterTask(object):
@@ -65,6 +66,13 @@ class FeedEaterTask(object):
     task = cls.from_args()
     try:
       task.run()
+    except transitland.errors.DatastoreError, e:
+      task.log("Uncaught Datastore Error")
+      task.log("Reason: %s"%e.message)
+      task.log("Response code: %s"%e.response_code)
+      task.log("Response body:")
+      task.log(e.response_body)
+      raise e
     except Exception, e:
       task.log("Uncaught exception:")
       task.log(traceback.format_exc())
