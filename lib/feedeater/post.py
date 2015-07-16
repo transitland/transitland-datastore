@@ -31,10 +31,9 @@ class FeedEaterPost(task.FeedEaterTask):
       self.datastore_merge(stop)
       
     # Post changesets.
-    for operator in feed.operators():
-      self.log("Updating operator: %s"%operator.onestop())
-      self.update_operator(operator)
-      self.log("Done")      
+    self.log("Updating feed: %s"%feed.onestop())
+    self.update_feed(feed)
+    self.log("Done")      
     self.log("Finished!")
   
   def datastore_merge(self, entity, threshold=0.5):
@@ -59,12 +58,12 @@ class FeedEaterPost(task.FeedEaterTask):
     else:
       self.log(" -> No match above threshold %0.2f"%threshold)
     return entity
-  
-  def update_operator(self, operator):
-    entities = []
-    entities.append(operator)
-    entities += list(operator.stops())
-    entities += list(operator.routes())
+
+  def update_feed(self, feed):
+    entities = set()
+    entities |= feed.operators()
+    entities |= feed.routes()
+    entities |= feed.stops()
     self.datastore.update_entities(entities)
      
 if __name__ == "__main__":
