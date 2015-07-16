@@ -44,5 +44,4 @@ class FeedEaterValidate(task.FeedEaterTask):
     self.log("Finished!")
 
 if __name__ == "__main__":
-  task = FeedEaterValidate.from_args()
-  task.run()
+  FeedEaterValidate.run_from_args()

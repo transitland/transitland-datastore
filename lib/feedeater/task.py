@@ -3,6 +3,7 @@ import sys
 import os
 import argparse
 import logging
+import traceback
 
 import transitland.registry
 import transitland.datastore
@@ -58,6 +59,16 @@ class FeedEaterTask(object):
     parser = cls.parser()
     args = parser.parse_args()
     return cls(**vars(args))
+    
+  @classmethod
+  def run_from_args(cls):
+    task = cls.from_args()
+    try:
+      task.run()
+    except Exception, e:
+      task.log("Uncaught exception:")
+      task.log(traceback.format_exc())
+      raise e
 
   @classmethod
   def parser(cls):
@@ -113,8 +124,9 @@ class FeedEaterTask(object):
     # '[%s] %s'%(self.feedid, msg)
     self.logger.info(msg)
 
+
   def run(self):
     pass
 
 if __name__ == "__main__":
-  task = FeedEaterTask.from_args()
+  FeedEaterTask.run_from_args()

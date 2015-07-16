@@ -68,5 +68,4 @@ class FeedEaterPost(task.FeedEaterTask):
     self.datastore.update_entities(entities)
      
 if __name__ == "__main__":
-  task = FeedEaterPost.from_args()
-  task.run()
+  FeedEaterPost.run_from_args()
