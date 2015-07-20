@@ -1,4 +1,8 @@
 class FeedEaterFeedWorker < FeedEaterWorker
+  sidekiq_options unique: true,
+                  unique_job_expiration: 60 * 60, # 1 hour
+                  log_duplicate_payload: true
+
   def perform(feed_onestop_id)
     # Download the feed
     feed = Feed.find_by(onestop_id: feed_onestop_id)

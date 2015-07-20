@@ -3,9 +3,11 @@ import sys
 import os
 import argparse
 import logging
+import traceback
 
 import transitland.registry
 import transitland.datastore
+import transitland.errors
 import logging
 
 class FeedEaterTask(object):
@@ -26,12 +28,13 @@ class FeedEaterTask(object):
     self.feedid = feedid
     self.registry = transitland.registry.FeedRegistry(path=registry)
     self.workdir = workdir or os.path.join(self.registry.path, 'data')
+    self.logger = self._log_init(logfile=log, debug=debug, quiet=quiet)
     self.datastore = transitland.datastore.Datastore(
       host,
       apitoken=apitoken,
-      debug=debug
+      debug=debug,
+      log=self.log
     )
-    self.logger = self._log_init(logfile=log, debug=debug, quiet=quiet)
 
   def _log_init(self, logfile=None, debug=False, quiet=False):
     fmt = '[%(asctime)s] %(message)s'
@@ -58,6 +61,23 @@ class FeedEaterTask(object):
     parser = cls.parser()
     args = parser.parse_args()
     return cls(**vars(args))
+    
+  @classmethod
+  def run_from_args(cls):
+    task = cls.from_args()
+    try:
+      task.run()
+    except transitland.errors.DatastoreError, e:
+      task.log("Uncaught Datastore Error")
+      task.log("Reason: %s"%e.message)
+      task.log("Response code: %s"%e.response_code)
+      task.log("Response body:")
+      task.log(e.response_body)
+      raise e
+    except Exception, e:
+      task.log("Uncaught exception:")
+      task.log(traceback.format_exc())
+      raise e
 
   @classmethod
   def parser(cls):
@@ -113,8 +133,9 @@ class FeedEaterTask(object):
     # '[%s] %s'%(self.feedid, msg)
     self.logger.info(msg)
 
+
   def run(self):
     pass
 
 if __name__ == "__main__":
-  task = FeedEaterTask.from_args()
+  FeedEaterTask.run_from_args()

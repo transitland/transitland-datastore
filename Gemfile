@@ -23,6 +23,7 @@ gem 'redis-rails'
 
 # background processing
 gem 'sidekiq'
+gem 'sidekiq-unique-jobs'
 gem 'whenever', require: false # to manage crontab
 
 # data model
@@ -65,6 +66,7 @@ gem 'rspec-rails', group: [:development, :test]
 gem 'vcr', group: :test
 gem 'webmock', group: :test
 gem 'airborne', group: :test
+gem 'mock_redis', group: :test # used by sidekiq-unique-jobs
 
 # deployment and monitoring
 gem 'aws-sdk', group: [:staging, :production]
