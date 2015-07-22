@@ -5,7 +5,7 @@ class CreateScheduleStopPairs < ActiveRecord::Migration
       t.references :origin, class_name: "Stop", index: true
       t.references :destination, class_name: "Stop", index: true
       t.references :route, index: true
-      t.string :trip
+      t.string :trip, index: true
 
       # Changeset
       t.references :created_or_updated_in_changeset, index: { name: 'c_ssp_cu_in_changeset' }
@@ -31,7 +31,7 @@ class CreateScheduleStopPairs < ActiveRecord::Migration
       t.references :origin, class_name: "Stop", index: { name: 'o_ssp_origin' }, polymorphic: true
       t.references :destination, class_name: "Stop", index: { name: 'o_ssp_destination' }, polymorphic: true
       t.references :route, index: { name: 'o_ssp_route'}, polymorphic: true
-      t.string :trip
+      t.string :trip, index: { name: 'o_ssp_trip' }
 
       t.references :current, index: true
       t.references :created_or_updated_in_changeset, index: { name: 'o_ssp_cu_in_changeset' }
@@ -51,6 +51,8 @@ class CreateScheduleStopPairs < ActiveRecord::Migration
 
       t.timestamps null: false
     end
+
+    add_index :current_schedule_stop_pairs, [:origin_id, :destination_id, :route_id, :trip], unique: true, name: 'c_ssp_origin_id_and_destination_id_and_route_id_and_trip'
 
   end
 end

@@ -24,10 +24,12 @@
 #
 # Indexes
 #
-#  c_ssp_cu_in_changeset                                (created_or_updated_in_changeset_id)
-#  index_current_schedule_stop_pairs_on_destination_id  (destination_id)
-#  index_current_schedule_stop_pairs_on_origin_id       (origin_id)
-#  index_current_schedule_stop_pairs_on_route_id        (route_id)
+#  c_ssp_cu_in_changeset                                     (created_or_updated_in_changeset_id)
+#  c_ssp_origin_id_and_destination_id_and_route_id_and_trip  (origin_id,destination_id,route_id,trip) UNIQUE
+#  index_current_schedule_stop_pairs_on_destination_id       (destination_id)
+#  index_current_schedule_stop_pairs_on_origin_id            (origin_id)
+#  index_current_schedule_stop_pairs_on_route_id             (route_id)
+#  index_current_schedule_stop_pairs_on_trip                 (trip)
 #
 
 RSpec.describe ScheduleStopPair, type: :model do
