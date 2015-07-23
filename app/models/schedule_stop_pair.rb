@@ -73,8 +73,6 @@ class ScheduleStopPair < BaseScheduleStopPair
       origin = Stop.find_by_onestop_id!(attrs[:origin_onestop_id])
       destination = Stop.find_by_onestop_id!(attrs[:destination_onestop_id])
       route = Route.find_by_onestop_id!(attrs[:route_onestop_id])
-      puts "route:"
-      puts route
       find_by(origin: origin, destination: destination, route: route, trip: attrs[:trip])
     else
       raise ArgumentError.new("Required arguments: #{missing.join(', ')}")
