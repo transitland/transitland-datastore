@@ -34,7 +34,10 @@
                 "$ref": "./route.json"
               }
             }
-          }
+          },
+					{
+						"required": ["schedule_stop_pair"]
+					}
         ],
         "properties": {
           "action": {
