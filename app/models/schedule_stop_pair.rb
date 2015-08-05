@@ -18,22 +18,34 @@
 #  frequency_end_time                 :string
 #  frequency_headway_seconds          :string
 #  tags                               :hstore
-#  calendar                           :hstore
+#  service_start_date                 :string
+#  service_end_date                   :string
+#  service_sunday                     :boolean
+#  service_monday                     :boolean
+#  service_tuesday                    :boolean
+#  service_wednesday                  :boolean
+#  service_thursday                   :boolean
+#  service_friday                     :boolean
+#  service_saturday                   :boolean
+#  service_added                      :string           default([]), is an Array
+#  service_except                     :string           default([]), is an Array
 #  created_at                         :datetime         not null
 #  updated_at                         :datetime         not null
 #
 # Indexes
 #
-#  c_ssp_cu_in_changeset                                     (created_or_updated_in_changeset_id)
-#  c_ssp_origin_id_and_destination_id_and_route_id_and_trip  (origin_id,destination_id,route_id,trip) UNIQUE
-#  index_current_schedule_stop_pairs_on_destination_id       (destination_id)
-#  index_current_schedule_stop_pairs_on_origin_id            (origin_id)
-#  index_current_schedule_stop_pairs_on_route_id             (route_id)
-#  index_current_schedule_stop_pairs_on_trip                 (trip)
+#  c_ssp_cu_in_changeset     (created_or_updated_in_changeset_id)
+#  c_ssp_destination         (destination_id)
+#  c_ssp_origin              (origin_id)
+#  c_ssp_route               (route_id)
+#  c_ssp_service_end_date    (service_end_date)
+#  c_ssp_service_start_date  (service_start_date)
+#  c_ssp_trip                (trip)
 #
 
 class BaseScheduleStopPair < ActiveRecord::Base
   self.abstract_class = true
+  PER_PAGE = 50
 end
 
 class ScheduleStopPair < BaseScheduleStopPair
@@ -44,21 +56,23 @@ class ScheduleStopPair < BaseScheduleStopPair
   belongs_to :destination, class_name: "Stop"
   belongs_to :route
 
+  # Required relations and attributes
   validates :route, presence: true
   validates :destination, presence: true
   validates :route, presence: true
   validates :trip, presence: true
 
+  # Handle mapping from onestop_id to id
   def route_onestop_id=(value)
-    self.route = Route.find_by(onestop_id: value)
+    self.route_id = Route.where(onestop_id: value).pluck(:id).first
   end
 
   def origin_onestop_id=(value)
-    self.origin = Stop.find_by(onestop_id: value)
+    self.origin_id = Stop.where(onestop_id: value).pluck(:id).first
   end
  
   def destination_onestop_id=(value)
-    self.destination = Stop.find_by(onestop_id: value)
+    self.destination_id = Stop.where(onestop_id: value).pluck(:id).first
   end
 
   # Tracked by changeset
@@ -68,15 +82,9 @@ class ScheduleStopPair < BaseScheduleStopPair
     virtual_attributes: [:origin_onestop_id, :destination_onestop_id, :route_onestop_id]
   })
   def self.find_by_attributes(attrs = {})
-    missing = [:origin_onestop_id, :destination_onestop_id, :route_onestop_id, :trip] - attrs.keys
-    if missing.empty?
-      origin = Stop.find_by_onestop_id!(attrs[:origin_onestop_id])
-      destination = Stop.find_by_onestop_id!(attrs[:destination_onestop_id])
-      route = Route.find_by_onestop_id!(attrs[:route_onestop_id])
-      find_by(origin: origin, destination: destination, route: route, trip: attrs[:trip])
-    else
-      raise ArgumentError.new("Required arguments: #{missing.join(', ')}")
-    end
+    if attrs[:id].present?
+      find(attrs[:id])
+    end    
   end
 end
 
