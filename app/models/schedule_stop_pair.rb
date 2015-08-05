@@ -61,6 +61,13 @@ class ScheduleStopPair < BaseScheduleStopPair
   validates :destination, presence: true
   validates :route, presence: true
   validates :trip, presence: true
+  
+  # Check date ranges
+  before_validation :set_service_range
+  validates :service_start_date, presence: true
+  validates :service_end_date, presence: true
+  validate :validate_service_added_range
+  validate :validate_service_except_range
 
   # Handle mapping from onestop_id to id
   def route_onestop_id=(value)
@@ -74,6 +81,9 @@ class ScheduleStopPair < BaseScheduleStopPair
   def destination_onestop_id=(value)
     self.destination_id = Stop.where(onestop_id: value).pluck(:id).first
   end
+  
+  def service_on_date?(value)
+  end
 
   # Tracked by changeset
   include CurrentTrackedByChangeset
@@ -86,6 +96,36 @@ class ScheduleStopPair < BaseScheduleStopPair
       find(attrs[:id])
     end    
   end
+  
+  private
+  
+  # Set a service range from service_added, service_except
+  def set_service_range
+    if service_start_date.nil?
+      self.service_start_date = [service_except.min, service_added.min].min
+    end
+    if service_end_date.nil?
+      self.service_end_date = [service_except.max, service_added.max].max
+    end
+    true
+  end
+  
+  # Require service_added dates to be in service range
+  def validate_service_added_range
+    invalid = service_added.reject {|x| (service_start_date <= x) && (service_end_date >= x)}
+    if !invalid.empty?
+      errors.add(:service_added, "service_added date must be within service_start_date, service_end_date range")
+    end
+  end
+  
+  # Require service_except dates to be in service range
+  def validate_service_except_range
+    invalid = service_except.reject {|x| (service_start_date <= x) && (service_end_date >= x)}
+    if !invalid.empty?
+      errors.add(:service_except, "service_except date must be within service_start_date, service_end_date range")
+    end
+  end
+  
 end
 
 class OldScheduleStopPair < BaseScheduleStopPair
