@@ -11,7 +11,7 @@ class Api::V1::SchedulesController < Api::V1::BaseApiController
       date = Date.parse(params[:date])
       d = date.strftime('%Y%m%d')
       dw = date.strftime("%A").downcase
-      @ssps = @ssps.where("(service_start_date < ? AND service_end_date > ?) AND (service_#{dw} = true OR ? = ANY(service_added)) AND NOT (? = ANY(service_except))", d, d, d, d)
+      @ssps = @ssps.where("(service_start_date <= ? AND service_end_date >= ?) AND (service_#{dw} = true OR ? = ANY(service_added)) AND NOT (? = ANY(service_except))", d, d, d, d)
     end
     
     # Service between stops
