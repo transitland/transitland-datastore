@@ -2,10 +2,10 @@ class CreateScheduleStopPairs < ActiveRecord::Migration
   def change
     create_table :current_schedule_stop_pairs do |t|
       # Compound key
-      t.references :origin, class_name: "Stop", index: true
-      t.references :destination, class_name: "Stop", index: true
-      t.references :route, index: true
-      t.string :trip, index: true
+      t.references :origin, class_name: "Stop", index: { name: 'c_ssp_origin' }
+      t.references :destination, class_name: "Stop", index: { name: 'c_ssp_destination' }
+      t.references :route, index: { name: 'c_ssp_route' }
+      t.string :trip, index: { name: 'c_ssp_trip' }
 
       # Changeset
       t.references :created_or_updated_in_changeset, index: { name: 'c_ssp_cu_in_changeset' }
@@ -21,8 +21,20 @@ class CreateScheduleStopPairs < ActiveRecord::Migration
       t.string :frequency_end_time
       t.string :frequency_headway_seconds      
       t.hstore :tags
-      t.hstore :calendar
-
+      
+      # Calendar
+      t.string :service_start_date, index: { name: 'c_ssp_service_start_date' }
+      t.string :service_end_date, index: { name: 'c_ssp_service_end_date' }
+      t.boolean :service_sunday
+      t.boolean :service_monday
+      t.boolean :service_tuesday
+      t.boolean :service_wednesday
+      t.boolean :service_thursday
+      t.boolean :service_friday
+      t.boolean :service_saturday
+      t.string :service_added, array: true, default: []
+      t.string :service_except, array: true, default: []
+      
       t.timestamps null: false
     end
 
@@ -47,12 +59,20 @@ class CreateScheduleStopPairs < ActiveRecord::Migration
       t.string :frequency_end_time
       t.string :frequency_headway_seconds
       t.hstore :tags
-      t.hstore :calendar
+
+      t.string :service_start_date, index: { name: 'o_ssp_service_start_date' }
+      t.string :service_end_date, index: { name: 'o_ssp_service_end_date' }
+      t.boolean :service_sunday
+      t.boolean :service_monday
+      t.boolean :service_tuesday
+      t.boolean :service_wednesday
+      t.boolean :service_thursday
+      t.boolean :service_friday
+      t.boolean :service_saturday
+      t.string :service_added, array: true, default: []      
+      t.string :service_except, array: true, default: []
 
       t.timestamps null: false
     end
-
-    add_index :current_schedule_stop_pairs, [:origin_id, :destination_id, :route_id, :trip], unique: true, name: 'c_ssp_origin_id_and_destination_id_and_route_id_and_trip'
-
   end
 end

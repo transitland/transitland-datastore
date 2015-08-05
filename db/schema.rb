@@ -115,17 +115,28 @@ ActiveRecord::Schema.define(version: 20150715070212) do
     t.string   "frequency_end_time"
     t.string   "frequency_headway_seconds"
     t.hstore   "tags"
-    t.hstore   "calendar"
-    t.datetime "created_at",                         null: false
-    t.datetime "updated_at",                         null: false
+    t.string   "service_start_date"
+    t.string   "service_end_date"
+    t.boolean  "service_sunday"
+    t.boolean  "service_monday"
+    t.boolean  "service_tuesday"
+    t.boolean  "service_wednesday"
+    t.boolean  "service_thursday"
+    t.boolean  "service_friday"
+    t.boolean  "service_saturday"
+    t.string   "service_added",                      default: [],              array: true
+    t.string   "service_except",                     default: [],              array: true
+    t.datetime "created_at",                                      null: false
+    t.datetime "updated_at",                                      null: false
   end
 
   add_index "current_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "c_ssp_cu_in_changeset", using: :btree
-  add_index "current_schedule_stop_pairs", ["destination_id"], name: "index_current_schedule_stop_pairs_on_destination_id", using: :btree
-  add_index "current_schedule_stop_pairs", ["origin_id", "destination_id", "route_id", "trip"], name: "c_ssp_origin_id_and_destination_id_and_route_id_and_trip", unique: true, using: :btree
-  add_index "current_schedule_stop_pairs", ["origin_id"], name: "index_current_schedule_stop_pairs_on_origin_id", using: :btree
-  add_index "current_schedule_stop_pairs", ["route_id"], name: "index_current_schedule_stop_pairs_on_route_id", using: :btree
-  add_index "current_schedule_stop_pairs", ["trip"], name: "index_current_schedule_stop_pairs_on_trip", using: :btree
+  add_index "current_schedule_stop_pairs", ["destination_id"], name: "c_ssp_destination", using: :btree
+  add_index "current_schedule_stop_pairs", ["origin_id"], name: "c_ssp_origin", using: :btree
+  add_index "current_schedule_stop_pairs", ["route_id"], name: "c_ssp_route", using: :btree
+  add_index "current_schedule_stop_pairs", ["service_end_date"], name: "c_ssp_service_end_date", using: :btree
+  add_index "current_schedule_stop_pairs", ["service_start_date"], name: "c_ssp_service_start_date", using: :btree
+  add_index "current_schedule_stop_pairs", ["trip"], name: "c_ssp_trip", using: :btree
 
   create_table "current_stops", force: :cascade do |t|
     t.string    "onestop_id"
@@ -275,9 +286,19 @@ ActiveRecord::Schema.define(version: 20150715070212) do
     t.string   "frequency_end_time"
     t.string   "frequency_headway_seconds"
     t.hstore   "tags"
-    t.hstore   "calendar"
-    t.datetime "created_at",                         null: false
-    t.datetime "updated_at",                         null: false
+    t.string   "service_start_date"
+    t.string   "service_end_date"
+    t.boolean  "service_sunday"
+    t.boolean  "service_monday"
+    t.boolean  "service_tuesday"
+    t.boolean  "service_wednesday"
+    t.boolean  "service_thursday"
+    t.boolean  "service_friday"
+    t.boolean  "service_saturday"
+    t.string   "service_added",                      default: [],              array: true
+    t.string   "service_except",                     default: [],              array: true
+    t.datetime "created_at",                                      null: false
+    t.datetime "updated_at",                                      null: false
   end
 
   add_index "old_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "o_ssp_cu_in_changeset", using: :btree
@@ -286,6 +307,8 @@ ActiveRecord::Schema.define(version: 20150715070212) do
   add_index "old_schedule_stop_pairs", ["destroyed_in_changeset_id"], name: "o_ssp_d_in_changeset", using: :btree
   add_index "old_schedule_stop_pairs", ["origin_type", "origin_id"], name: "o_ssp_origin", using: :btree
   add_index "old_schedule_stop_pairs", ["route_type", "route_id"], name: "o_ssp_route", using: :btree
+  add_index "old_schedule_stop_pairs", ["service_end_date"], name: "o_ssp_service_end_date", using: :btree
+  add_index "old_schedule_stop_pairs", ["service_start_date"], name: "o_ssp_service_start_date", using: :btree
   add_index "old_schedule_stop_pairs", ["trip"], name: "o_ssp_trip", using: :btree
 
   create_table "old_stops", force: :cascade do |t|

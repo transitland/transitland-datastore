@@ -18,18 +18,29 @@
 #  frequency_end_time                 :string
 #  frequency_headway_seconds          :string
 #  tags                               :hstore
-#  calendar                           :hstore
+#  service_start_date                 :string
+#  service_end_date                   :string
+#  service_sunday                     :boolean
+#  service_monday                     :boolean
+#  service_tuesday                    :boolean
+#  service_wednesday                  :boolean
+#  service_thursday                   :boolean
+#  service_friday                     :boolean
+#  service_saturday                   :boolean
+#  service_added                      :string           default([]), is an Array
+#  service_except                     :string           default([]), is an Array
 #  created_at                         :datetime         not null
 #  updated_at                         :datetime         not null
 #
 # Indexes
 #
-#  c_ssp_cu_in_changeset                                     (created_or_updated_in_changeset_id)
-#  c_ssp_origin_id_and_destination_id_and_route_id_and_trip  (origin_id,destination_id,route_id,trip) UNIQUE
-#  index_current_schedule_stop_pairs_on_destination_id       (destination_id)
-#  index_current_schedule_stop_pairs_on_origin_id            (origin_id)
-#  index_current_schedule_stop_pairs_on_route_id             (route_id)
-#  index_current_schedule_stop_pairs_on_trip                 (trip)
+#  c_ssp_cu_in_changeset     (created_or_updated_in_changeset_id)
+#  c_ssp_destination         (destination_id)
+#  c_ssp_origin              (origin_id)
+#  c_ssp_route               (route_id)
+#  c_ssp_service_end_date    (service_end_date)
+#  c_ssp_service_start_date  (service_start_date)
+#  c_ssp_trip                (trip)
 #
 
 RSpec.describe ScheduleStopPair, type: :model do
