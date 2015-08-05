@@ -55,8 +55,18 @@ FactoryGirl.define do
     origin_departure_time "10:00:10"
     destination_arrival_time "10:10:00"
     destination_departure_time "10:10:10"
+    service_start_date "20000101"
+    service_end_date "21000101"
+    service_added ["20150101", "20150102"]
+    service_except ["20150103", "20150104"]
+    service_sunday false
+    service_monday true
+    service_tuesday true
+    service_wednesday true
+    service_thursday true
+    service_friday true
+    service_saturday false
     # tags ""
-    # calendar ""
   end
 
 end
