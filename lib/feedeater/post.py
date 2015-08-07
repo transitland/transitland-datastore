@@ -14,6 +14,7 @@ import util
 DOW = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
 
 def id_map(entities, key):
+  """Map GTFS Entity IDs to Onestop IDs."""
   ret = {}
   for entity in entities:
     t = getattr(entity, '_tl_ref', None)
@@ -22,14 +23,17 @@ def id_map(entities, key):
   return ret
 
 def to_date(v):
+  """GTFS date string to ISO date string."""
   return datetime.datetime.strptime(v, '%Y%m%d').date().isoformat()
 
 def to_bool(v):
+  """GTFS 0/1/empty to true/false"""
   if v:
     return bool(int(v))
   return False
 
 def make_service(cal=None):
+  """TL ScheduleStopPair from GTFS calendar."""
   cal = cal or {}
   return {
     'service_start_date': to_date(cal.get('start_date')),
@@ -40,6 +44,7 @@ def make_service(cal=None):
   }
 
 def make_calendar(gtfs_feed):
+  """Create TL ScheduleStopPairs from GTFS calendar & calendar_dates."""
   ret = {}
   for i in gtfs_feed.read('calendar'):
     sid = i.get('service_id')
@@ -55,6 +60,7 @@ def make_calendar(gtfs_feed):
   return ret
 
 def make_ssp(gtfs_feed):
+  """Generator for TL ScheduleStopPairs from GTFS feed."""
   # Load calendar data
   cals = make_calendar(gtfs_feed)
   # Map gtfs ids to onestop ids
@@ -87,6 +93,7 @@ def make_ssp(gtfs_feed):
         yield ssp
      
 def change_entity(entity, action='createUpdate'):
+  """Return an entity formatted as a Change."""
   # Wrap entity in change
   onestop_types = {
     's': 'stop',
@@ -117,6 +124,7 @@ def change_entity(entity, action='createUpdate'):
   }
 
 def change_ssp(entity, action='createUpdate'):
+  """Return an SSP formatted as a Change."""
   # Wrap SSP in change
   return {
     'action': action,
@@ -124,6 +132,7 @@ def change_ssp(entity, action='createUpdate'):
   }
 
 class FeedEaterPost(task.FeedEaterTask):
+  """FeedEater Task to upload a GTFS feed as a Changeset."""
   BATCHSIZE = 1000
 
   def __init__(self, *args, **kwargs):
@@ -183,6 +192,7 @@ class FeedEaterPost(task.FeedEaterTask):
     self.log("Finished!")
 
   def _merge_stop(self, entity, threshold=0.5):
+    """Search for an existing TLDS Stop."""
     self.log("Looking for entity: %s"%entity.onestop())
     search_entities = self.datastore.stops(point=entity.point(), radius=100)
     s = similarity.MatchEntities(entity, search_entities)
@@ -206,6 +216,7 @@ class FeedEaterPost(task.FeedEaterTask):
     return entity
 
   def _append_batch(self, entities, changeset_id, changefunc, batchsize=1000, word='entities'):
+    """Append entities to a Changeset as a batch."""
     batch = []
     for entity in entities:
       batch.append(changefunc(entity))
