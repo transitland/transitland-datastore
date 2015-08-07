@@ -1,42 +1,188 @@
 """Datastore Updater."""
 import os
+import time
+import json
+import datetime
 
 import mzgtfs.feed
-import transitland.entities
 
 import similarity
 import task
 import util
 
+# ISO Weekdays
+DOW = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+
+def id_map(entities, key):
+  ret = {}
+  for entity in entities:
+    t = getattr(entity, '_tl_ref', None)
+    if t:
+      ret[entity.get(key)] = t.onestop()
+  return ret
+
+def to_date(v):
+  return datetime.datetime.strptime(v, '%Y%m%d').date().isoformat()
+
+def to_bool(v):
+  if v:
+    return bool(int(v))
+  return False
+
+def make_service(cal=None):
+  cal = cal or {}
+  return {
+    'service_start_date': to_date(cal.get('start_date')),
+    'service_end_date': to_date(cal.get('end_date')),
+    'service_days_of_week': [to_bool(cal.get(i)) for i in DOW],
+    'service_added': [],
+    'service_except': []
+  }
+
+def make_calendar(gtfs_feed):
+  ret = {}
+  for i in gtfs_feed.read('calendar'):
+    sid = i.get('service_id')
+    ret[sid] = make_service(i)
+  for i in gtfs_feed.read('calendar_dates'):
+    sid = i.get('service_id')
+    if sid not in ret:
+      ret[sid] = make_service()
+    if i.get('exception_type') == '1':
+      ret[sid]['service_added'].append(to_date(i.get('date')))
+    else:
+      ret[sid]['service_except'].append(to_date(i.get('date')))
+  return ret
+
+def make_ssp(gtfs_feed):
+  # Load calendar data
+  cals = make_calendar(gtfs_feed)
+  # Map gtfs ids to onestop ids
+  agency_id_map = id_map(gtfs_feed.agencies(), 'agency_id')
+  route_id_map = id_map(gtfs_feed.routes(), 'route_id')
+  stop_id_map = id_map(gtfs_feed.stops(), 'stop_id')
+  # Load step edges
+  for origin_stop in gtfs_feed.stops():
+    for origin_stoptime in origin_stop.parents():
+      for trip in origin_stoptime.parents():
+        seq = trip.stop_sequence()
+        pos = seq.index(origin_stoptime)
+        if pos+1 >= len(seq):
+          continue
+        destination_stoptime = seq[pos+1]
+        destination_stop = list(destination_stoptime.children())[0]
+        route = list(trip.parents())[0]
+        cal = cals[trip.get('service_id')]
+        ssp = {
+          'origin_onestop_id': stop_id_map[origin_stop.id()],
+          'destination_onestop_id': stop_id_map[destination_stop.id()],
+          'route_onestop_id': route_id_map[route.id()],
+          'trip': trip.id(),
+          'origin_arrival_time': str(origin_stoptime.arrive()),
+          'origin_departure_time': str(origin_stoptime.depart()),
+          'destination_arrival_time': str(destination_stoptime.arrive()),
+          'destination_departure_time': str(destination_stoptime.depart())
+        }
+        ssp.update(cal)
+        yield ssp
+     
+def change_entity(entity, action='createUpdate'):
+  # Wrap entity in change
+  onestop_types = {
+    's': 'stop',
+    'r': 'route',
+    'o': 'operator',
+    't': 'schedule_stop_pair'
+  }
+  keys = [
+    'onestopId',
+    'name',
+    'geometry',
+    'tags',
+    'identifiers',
+    'operatedBy',
+    'servedBy'
+  ]
+  # 
+  data = entity.json()
+  change = {}
+  for key in keys:
+    if key in data:
+      change[key] = data.get(key)
+  if 'identifiers' in keys:
+      change['identifiedBy'] = change.pop('identifiers')
+  return {
+    'action': action,
+    onestop_types[entity.onestop_type]: change
+  }
+
+def change_ssp(entity, action='createUpdate'):
+  # Wrap SSP in change
+  return {
+    'action': action,
+    'schedule_stop_pair': entity
+  }
+
 class FeedEaterPost(task.FeedEaterTask):
+  BATCHSIZE = 1000
+
+  def __init__(self, *args, **kwargs):
+    super(FeedEaterPost, self).__init__(*args, **kwargs)
+    self.schedule_stop_pairs = kwargs.get('schedule_stop_pairs')
+
+  @classmethod
+  def parser(cls):
+    parser = super(FeedEaterPost, cls).parser()
+    parser.add_argument(
+      '--schedule_stop_pairs',
+      action='store_true'
+    )
+    return parser
+
   def run(self):
     # Update datastore.
     self.log("===== Feed: %s ====="%self.feedid)
     feed = self.registry.feed(self.feedid)
     filename = self.filename or os.path.join(self.workdir, '%s.zip'%feed.onestop())
     self.log("Opening: %s"%filename)
-    gtfsfeed = mzgtfs.feed.Feed(filename)
+    gtfs_feed = mzgtfs.feed.Feed(filename)
     self.log("Creating Onestop Entities")
-    feed.load_gtfs(gtfsfeed, populate=False)
+    gtfs_feed.preload()
+    feed.load_gtfs(gtfs_feed, populate=False)
     if not feed.operators():
       self.log("No matching operators specified in the feed registry entry. Nothing to do.")
       return
 
-    # Similarity search.
+    # Precalculate all Onestop IDs
     for o in feed.operators():
       o._cache_onestop()
 
     # Compare against datastore entities and merge if possible.
     for stop in feed.stops():
-      self.datastore_merge(stop)
+      self._merge_stop(stop)
       
-    # Post changesets.
+    # Upload changeset.
     self.log("Updating feed: %s"%feed.onestop())
-    self.update_feed(feed)
-    self.log("Done")      
+
+    # Create empty changeset
+    changeset = self.datastore.postjson('/api/v1/changesets', {"changeset": {"payload": {}}} )
+    changeset_id = changeset['id']
+    self.log("Changeset ID: %s"%changeset_id)
+    
+    # Append each entity
+    self._append_batch(feed.operators(), changeset_id, change_entity)  
+    self._append_batch(feed.routes(), changeset_id, change_entity)  
+    self._append_batch(feed.stops(), changeset_id, change_entity)  
+    if self.schedule_stop_pairs:
+      self._append_batch(make_ssp(gtfs_feed), changeset_id, change_ssp)
+
+    # Apply changeset
+    self.log("Applying changeset...")
+    self.datastore.postjson('/api/v1/changesets/%s/apply'%changeset_id)
+    self.log("  -> ok")
     self.log("Finished!")
-  
-  def datastore_merge(self, entity, threshold=0.5):
+
+  def _merge_stop(self, entity, threshold=0.5):
     self.log("Looking for entity: %s"%entity.onestop())
     search_entities = self.datastore.stops(point=entity.point(), radius=100)
     s = similarity.MatchEntities(entity, search_entities)
@@ -59,12 +205,17 @@ class FeedEaterPost(task.FeedEaterTask):
       self.log(" -> No match above threshold %0.2f"%threshold)
     return entity
 
-  def update_feed(self, feed):
-    entities = set()
-    entities |= feed.operators()
-    entities |= feed.routes()
-    entities |= feed.stops()
-    self.datastore.update_entities(entities)
-     
+  def _append_batch(self, entities, changeset_id, changefunc, batchsize=1000, word='entities'):
+    batch = []
+    for entity in entities:
+      batch.append(changefunc(entity))
+      if len(batch) == batchsize:
+        self.log("  batch of %s %s"%(len(batch), word))
+        self.datastore.postjson('/api/v1/changesets/%s/append'%changeset_id, {'changes':batch})
+        batch = []
+    if batch:
+      self.log("  batch of %s %s"%(len(batch), word))
+      self.datastore.postjson('/api/v1/changesets/%s/append'%changeset_id, {'changes':batch})
+
 if __name__ == "__main__":
   FeedEaterPost.run_from_args()
