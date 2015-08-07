@@ -18,17 +18,11 @@
 #  frequency_end_time                 :string
 #  frequency_headway_seconds          :string
 #  tags                               :hstore
-#  service_start_date                 :string
-#  service_end_date                   :string
-#  service_sunday                     :boolean
-#  service_monday                     :boolean
-#  service_tuesday                    :boolean
-#  service_wednesday                  :boolean
-#  service_thursday                   :boolean
-#  service_friday                     :boolean
-#  service_saturday                   :boolean
-#  service_added                      :string           default([]), is an Array
-#  service_except                     :string           default([]), is an Array
+#  service_start_date                 :date
+#  service_end_date                   :date
+#  service_added_dates                :date             default([]), is an Array
+#  service_except_dates               :date             default([]), is an Array
+#  service_days_of_week               :boolean          default([]), is an Array
 #  created_at                         :datetime         not null
 #  updated_at                         :datetime         not null
 #
@@ -66,8 +60,24 @@ class ScheduleStopPair < BaseScheduleStopPair
   before_validation :set_service_range
   validates :service_start_date, presence: true
   validates :service_end_date, presence: true
-  validate :validate_service_added_range
-  validate :validate_service_except_range
+  validate :validate_service_added_dates_range
+  validate :validate_service_except_dates_range
+
+  # Scopes
+  # Service active on a particular date
+  scope :where_service_on_date, -> (date) {
+    date = date.is_a?(Date) ? date : Date.parse(date)
+    # ISO week day is Monday = 1, Sunday = 7; Postgres arrays are indexed at 1
+    where("(service_start_date <= ? AND service_end_date >= ?) AND (true = service_days_of_week[?] OR ? = ANY(service_added_dates)) AND NOT (? = ANY(service_except_dates))", date, date, date.cwday, date, date)
+  }
+  
+  # Service trips_out in a bbox
+  scope :where_origin_bbox, -> (bbox) {
+    bbox_coordinates = bbox.split(',')
+    # assert params[:bbox].split(',').length == 4
+    stops = Stop.where{geometry.op('&&', st_makeenvelope(bbox_coordinates[0], bbox_coordinates[1], bbox_coordinates[2], bbox_coordinates[3], Stop::GEOFACTORY.srid))}
+    where(origin_id: stops.ids)      
+  }
 
   # Handle mapping from onestop_id to id
   def route_onestop_id=(value)
@@ -82,7 +92,19 @@ class ScheduleStopPair < BaseScheduleStopPair
     self.destination_id = Stop.where(onestop_id: value).pluck(:id).first
   end
   
-  def service_on_date?(value)
+  def service_on_date?(date)
+    date = Date.parse(date) unless date.is_a?(Date)
+    # the -1 is because ISO week day is Monday = 1, Sunday = 7
+    (service_start_date <= date) && (service_end_date >= date) && (service_days_of_week[date.cwday-1] == true || service_added_dates.include?(date)) && (!service_except_dates.include?(date))
+  end
+
+  # Service exceptions
+  def service_except_dates=(dates)
+    super(dates.map { |x| x.is_a?(Date) ? x : Date.parse(x) }.uniq)
+  end
+
+  def service_added_dates=(dates)
+    super(dates.map { |x| x.is_a?(Date) ? x : Date.parse(x) }.uniq)
   end
 
   # Tracked by changeset
@@ -99,30 +121,30 @@ class ScheduleStopPair < BaseScheduleStopPair
   
   private
   
-  # Set a service range from service_added, service_except
+  # Set a service range from service_added_dates, service_except_dates
   def set_service_range
     if service_start_date.nil?
-      self.service_start_date = [service_except.min, service_added.min].min
+      self.service_start_date = [service_except_dates.min, service_added_dates.min].min
     end
     if service_end_date.nil?
-      self.service_end_date = [service_except.max, service_added.max].max
+      self.service_end_date = [service_except_dates.max, service_added_dates.max].max
     end
     true
   end
   
-  # Require service_added dates to be in service range
-  def validate_service_added_range
-    invalid = service_added.reject {|x| (service_start_date <= x) && (service_end_date >= x)}
+  # Require service_added_dates to be in service range
+  def validate_service_added_dates_range
+    invalid = service_added_dates.reject {|x| (service_start_date <= x) && (service_end_date >= x)}
     if !invalid.empty?
-      errors.add(:service_added, "service_added date must be within service_start_date, service_end_date range")
+      errors.add(:service_added_dates, "service_added_dates must be within service_start_date, service_end_date range")
     end
   end
   
-  # Require service_except dates to be in service range
-  def validate_service_except_range
-    invalid = service_except.reject {|x| (service_start_date <= x) && (service_end_date >= x)}
+  # Require service_except_dates to be in service range
+  def validate_service_except_dates_range
+    invalid = service_except_dates.reject {|x| (service_start_date <= x) && (service_end_date >= x)}
     if !invalid.empty?
-      errors.add(:service_except, "service_except date must be within service_start_date, service_end_date range")
+      errors.add(:service_except_dates, "service_except_dates must be within service_start_date, service_end_date range")
     end
   end
   

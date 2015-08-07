@@ -18,17 +18,11 @@
 #  frequency_end_time                 :string
 #  frequency_headway_seconds          :string
 #  tags                               :hstore
-#  service_start_date                 :string
-#  service_end_date                   :string
-#  service_sunday                     :boolean
-#  service_monday                     :boolean
-#  service_tuesday                    :boolean
-#  service_wednesday                  :boolean
-#  service_thursday                   :boolean
-#  service_friday                     :boolean
-#  service_saturday                   :boolean
-#  service_added                      :string           default([]), is an Array
-#  service_except                     :string           default([]), is an Array
+#  service_start_date                 :date
+#  service_end_date                   :date
+#  service_added_dates                :date             default([]), is an Array
+#  service_except_dates               :date             default([]), is an Array
+#  service_days_of_week               :boolean          default([]), is an Array
 #  created_at                         :datetime         not null
 #  updated_at                         :datetime         not null
 #
@@ -55,18 +49,11 @@ FactoryGirl.define do
     origin_departure_time "10:00:10"
     destination_arrival_time "10:10:00"
     destination_departure_time "10:10:10"
-    service_start_date "20000101"
-    service_end_date "21000101"
-    service_added ["20150101", "20150102"]
-    service_except ["20150103", "20150104"]
-    service_sunday false
-    service_monday true
-    service_tuesday true
-    service_wednesday true
-    service_thursday true
-    service_friday true
-    service_saturday false
-    # tags ""
+    service_start_date "2000-01-01"
+    service_end_date "2100-01-01"
+    service_added_dates [] 
+    service_except_dates []
+    service_days_of_week [true, true, true, true, true, false, false] # M - F
   end
 
 end
