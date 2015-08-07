@@ -6,42 +6,35 @@ This is an evolving document describing the Schedule query parameters and respon
 
 ## From an origin
 /api/v1/schedules?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation
-(248)
 
 ## To a destination
 /api/v1/schedules?destination_onestop_id=s-9q8vzhbggj-millbraecaltrainstation
-(218)
 
 ## On a date
-/api/v1/schedules?date=20150805
-(1383)
+/api/v1/schedules?date=2015-08-05
 
 ## On a route
 /api/v1/schedules?route_onestop_id=r-9q9-local
-(3242)
 
 ## Edges originating for all stops in a bounding box
 /api/v1/schedules?bbox=-122.4131,37.7136,-122.3789,30.8065
-(4661)
 
 # Combining query parameters
 
 ## For a stop on a date
-/api/v1/schedules?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&date=20150805
-(46, verified)
+/api/v1/schedules?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&date=2015-08-05
+
 ## ... on a route
-/api/v1/schedules?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&date=20150805&route_onestop_id=r-9q9j-bullet
-(11, verified)
+/api/v1/schedules?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&date=2015-08-05&route_onestop_id=r-9q9j-bullet
 
 ## For a given stop pair
 /api/v1/schedules?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&destination_onestop_id=s-9q8vzhbggj-millbraecaltrainstation
-(10)
+
 ## ... on a date
-/api/v1/schedules?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&destination_onestop_id=s-9q8vzhbggj-millbraecaltrainstation&date=20150805
-(6, verified)
+/api/v1/schedules?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&destination_onestop_id=s-9q8vzhbggj-millbraecaltrainstation&date=2015-08-05
+
 ## ... on in a route
-/api/v1/schedules?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&destination_onestop_id=s-9q8vzhbggj-millbraecaltrainstation&date=20150805&route_onestop_id=r-9q9j-bullet
-(6, verified)
+/api/v1/schedules?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&destination_onestop_id=s-9q8vzhbggj-millbraecaltrainstation&date=2015-08-05&route_onestop_id=r-9q9j-bullet
 
 # Response format
 
