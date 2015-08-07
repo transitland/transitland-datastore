@@ -23,17 +23,11 @@ class CreateScheduleStopPairs < ActiveRecord::Migration
       t.hstore :tags
       
       # Calendar
-      t.string :service_start_date, index: { name: 'c_ssp_service_start_date' }
-      t.string :service_end_date, index: { name: 'c_ssp_service_end_date' }
-      t.boolean :service_sunday
-      t.boolean :service_monday
-      t.boolean :service_tuesday
-      t.boolean :service_wednesday
-      t.boolean :service_thursday
-      t.boolean :service_friday
-      t.boolean :service_saturday
-      t.string :service_added, array: true, default: []
-      t.string :service_except, array: true, default: []
+      t.date :service_start_date, index: { name: 'c_ssp_service_start_date' }
+      t.date :service_end_date, index: { name: 'c_ssp_service_end_date' }
+      t.date :service_added_dates, array: true, default: []
+      t.date :service_except_dates, array: true, default: []
+      t.boolean :service_days_of_week, array: true, default: []
       
       t.timestamps null: false
     end
@@ -60,17 +54,11 @@ class CreateScheduleStopPairs < ActiveRecord::Migration
       t.string :frequency_headway_seconds
       t.hstore :tags
 
-      t.string :service_start_date, index: { name: 'o_ssp_service_start_date' }
-      t.string :service_end_date, index: { name: 'o_ssp_service_end_date' }
-      t.boolean :service_sunday
-      t.boolean :service_monday
-      t.boolean :service_tuesday
-      t.boolean :service_wednesday
-      t.boolean :service_thursday
-      t.boolean :service_friday
-      t.boolean :service_saturday
-      t.string :service_added, array: true, default: []      
-      t.string :service_except, array: true, default: []
+      t.date :service_start_date, index: { name: 'o_ssp_service_start_date' }
+      t.date :service_end_date, index: { name: 'o_ssp_service_end_date' }
+      t.date :service_added_dates, array: true, default: []
+      t.date :service_except_dates, array: true, default: []
+      t.boolean :service_days_of_week, array: true, default: []
 
       t.timestamps null: false
     end

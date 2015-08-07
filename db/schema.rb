@@ -115,17 +115,11 @@ ActiveRecord::Schema.define(version: 20150715070212) do
     t.string   "frequency_end_time"
     t.string   "frequency_headway_seconds"
     t.hstore   "tags"
-    t.string   "service_start_date"
-    t.string   "service_end_date"
-    t.boolean  "service_sunday"
-    t.boolean  "service_monday"
-    t.boolean  "service_tuesday"
-    t.boolean  "service_wednesday"
-    t.boolean  "service_thursday"
-    t.boolean  "service_friday"
-    t.boolean  "service_saturday"
-    t.string   "service_added",                      default: [],              array: true
-    t.string   "service_except",                     default: [],              array: true
+    t.date     "service_start_date"
+    t.date     "service_end_date"
+    t.date     "service_added_dates",                default: [],              array: true
+    t.date     "service_except_dates",               default: [],              array: true
+    t.boolean  "service_days_of_week",               default: [],              array: true
     t.datetime "created_at",                                      null: false
     t.datetime "updated_at",                                      null: false
   end
@@ -286,17 +280,11 @@ ActiveRecord::Schema.define(version: 20150715070212) do
     t.string   "frequency_end_time"
     t.string   "frequency_headway_seconds"
     t.hstore   "tags"
-    t.string   "service_start_date"
-    t.string   "service_end_date"
-    t.boolean  "service_sunday"
-    t.boolean  "service_monday"
-    t.boolean  "service_tuesday"
-    t.boolean  "service_wednesday"
-    t.boolean  "service_thursday"
-    t.boolean  "service_friday"
-    t.boolean  "service_saturday"
-    t.string   "service_added",                      default: [],              array: true
-    t.string   "service_except",                     default: [],              array: true
+    t.date     "service_start_date"
+    t.date     "service_end_date"
+    t.date     "service_added_dates",                default: [],              array: true
+    t.date     "service_except_dates",               default: [],              array: true
+    t.boolean  "service_days_of_week",               default: [],              array: true
     t.datetime "created_at",                                      null: false
     t.datetime "updated_at",                                      null: false
   end
