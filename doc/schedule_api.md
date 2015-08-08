@@ -5,50 +5,50 @@ This is an evolving document describing the Schedule query parameters and respon
 # Query parameters
 
 ## From an origin
-/api/v1/schedules?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation
+/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation
 
 ## To a destination
-/api/v1/schedules?destination_onestop_id=s-9q8vzhbggj-millbraecaltrainstation
+/api/v1/schedule_stop_pairs?destination_onestop_id=s-9q8vzhbggj-millbraecaltrainstation
 
 ## On a date
-/api/v1/schedules?date=2015-08-05
+/api/v1/schedule_stop_pairs?date=2015-08-05
 
 ## On a route
-/api/v1/schedules?route_onestop_id=r-9q9-local
+/api/v1/schedule_stop_pairs?route_onestop_id=r-9q9-local
 
 ## Edges originating for all stops in a bounding box
-/api/v1/schedules?bbox=-122.4131,37.7136,-122.3789,30.8065
+/api/v1/schedule_stop_pairs?bbox=-122.4131,37.7136,-122.3789,30.8065
 
 # Combining query parameters
 
 ## For a stop on a date
-/api/v1/schedules?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&date=2015-08-05
+/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&date=2015-08-05
 
 ## ... on a route
-/api/v1/schedules?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&date=2015-08-05&route_onestop_id=r-9q9j-bullet
+/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&date=2015-08-05&route_onestop_id=r-9q9j-bullet
 
 ## For a given stop pair
-/api/v1/schedules?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&destination_onestop_id=s-9q8vzhbggj-millbraecaltrainstation
+/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&destination_onestop_id=s-9q8vzhbggj-millbraecaltrainstation
 
 ## ... on a date
-/api/v1/schedules?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&destination_onestop_id=s-9q8vzhbggj-millbraecaltrainstation&date=2015-08-05
+/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&destination_onestop_id=s-9q8vzhbggj-millbraecaltrainstation&date=2015-08-05
 
 ## ... on in a route
-/api/v1/schedules?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&destination_onestop_id=s-9q8vzhbggj-millbraecaltrainstation&date=2015-08-05&route_onestop_id=r-9q9j-bullet
+/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&destination_onestop_id=s-9q8vzhbggj-millbraecaltrainstation&date=2015-08-05&route_onestop_id=r-9q9j-bullet
 
 # Response format
 
-/api/v1/schedules?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&per_page=1
+/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&per_page=1
 
 ````json
 {
     "meta": {
-        "next": "http://localhost:3000/api/v1/schedules?offset=1&per_page=1",
+        "next": "http://localhost:3000/api/v1/schedule_stop_pairs?offset=1&per_page=1",
         "offset": 0,
         "per_page": 1,
         "total": 6
     },
-    "schedules": [
+    "schedule_stop_pairs": [
         {
             "origin_onestop_id": "s-9q8yyugptw-sanfranciscocaltrainstation",
             "origin_arrival_time": "17:33:00",

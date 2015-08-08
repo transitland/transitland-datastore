@@ -1,4 +1,4 @@
-class Api::V1::SchedulesController < Api::V1::BaseApiController
+class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
   include Geojson
   include JsonCollectionPagination
   include DownloadableCsv
@@ -35,7 +35,7 @@ class Api::V1::SchedulesController < Api::V1::BaseApiController
       format.json do
         render paginated_json_collection(
           @ssps,
-          Proc.new { |params| api_v1_schedules_url(params) },
+          Proc.new { |params| api_v1_schedule_stop_pairs_url(params) },
           params[:offset],
           per_page,
           params.slice(:service_start_date, :service_end_date)
