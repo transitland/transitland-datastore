@@ -36,11 +36,11 @@ def make_service(cal=None):
   """TL ScheduleStopPair from GTFS calendar."""
   cal = cal or {}
   return {
-    'service_start_date': to_date(cal.get('start_date')),
-    'service_end_date': to_date(cal.get('end_date')),
-    'service_days_of_week': [to_bool(cal.get(i)) for i in DOW],
-    'service_added': [],
-    'service_except': []
+    'serviceStartDate': to_date(cal.get('start_date')),
+    'serviceEndDate': to_date(cal.get('end_date')),
+    'serviceDaysOfWeek': [to_bool(cal.get(i)) for i in DOW],
+    'serviceAdded': [],
+    'serviceExcept': []
   }
 
 def make_calendar(gtfs_feed):
@@ -54,9 +54,9 @@ def make_calendar(gtfs_feed):
     if sid not in ret:
       ret[sid] = make_service()
     if i.get('exception_type') == '1':
-      ret[sid]['service_added'].append(to_date(i.get('date')))
+      ret[sid]['serviceAdded'].append(to_date(i.get('date')))
     else:
-      ret[sid]['service_except'].append(to_date(i.get('date')))
+      ret[sid]['serviceExcept'].append(to_date(i.get('date')))
   return ret
 
 def make_ssp(gtfs_feed):
@@ -80,14 +80,14 @@ def make_ssp(gtfs_feed):
         route = list(trip.parents())[0]
         cal = cals[trip.get('service_id')]
         ssp = {
-          'origin_onestop_id': stop_id_map[origin_stop.id()],
-          'destination_onestop_id': stop_id_map[destination_stop.id()],
-          'route_onestop_id': route_id_map[route.id()],
+          'originOnestopId': stop_id_map[origin_stop.id()],
+          'destinationOnestopId': stop_id_map[destination_stop.id()],
+          'routeOnestopId': route_id_map[route.id()],
           'trip': trip.id(),
-          'origin_arrival_time': str(origin_stoptime.arrive()),
-          'origin_departure_time': str(origin_stoptime.depart()),
-          'destination_arrival_time': str(destination_stoptime.arrive()),
-          'destination_departure_time': str(destination_stoptime.depart())
+          'originArrivalTime': str(origin_stoptime.arrive()),
+          'originDepartureTime': str(origin_stoptime.depart()),
+          'destinationArrivalTime': str(destination_stoptime.arrive()),
+          'destinationDepartureTime': str(destination_stoptime.depart())
         }
         ssp.update(cal)
         yield ssp
@@ -99,7 +99,7 @@ def change_entity(entity, action='createUpdate'):
     's': 'stop',
     'r': 'route',
     'o': 'operator',
-    't': 'schedule_stop_pair'
+    't': 'scheduleStopPair'
   }
   keys = [
     'onestopId',
@@ -128,7 +128,7 @@ def change_ssp(entity, action='createUpdate'):
   # Wrap SSP in change
   return {
     'action': action,
-    'schedule_stop_pair': entity
+    'scheduleStopPair': entity
   }
 
 class FeedEaterPost(task.FeedEaterTask):

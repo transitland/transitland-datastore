@@ -36,7 +36,7 @@
             }
           },
 					{
-						"required": ["schedule_stop_pair"]
+						"required": ["scheduleStopPair"]
 					}
         ],
         "properties": {

@@ -141,9 +141,9 @@ Here's an example [changeset](changesets.md):
     Operator-->Route
     Route-.->RouteServingStop
     RouteServingStop-.->StopA
-    Route-->RouteTripConnectingStopPair
-    RouteTripConnectingStopPair--> StopA
-    RouteTripConnectingStopPair--> StopB
+    Route-->ScheduleStopPair
+    ScheduleStopPair--> StopA
+    ScheduleStopPair--> StopB
     classDef outOfFocus fill:#fff,stroke:#ccc,stroke-width:4px
     class OperatorServingStop,RouteServingStop outOfFocus
 </div>
@@ -187,20 +187,26 @@ Here's an example [changeset](changesets.md):
         },
         {
           "action": "createUpdate",
-          "routeTripConnectingStopPair": {
-              "originStop": "s-9q8yy-powellst",
-              "destinationStop": "s-9q8yy-civiccenter~unplaza",
-              "route": "r-9q9-pittsburg~baypoint~sfia~millbrae",
-              "frequencyBlockStartTime": "07:00",
-              "frequencyBlockEndTime": "10:00",
-              "frequencyBlockHeadwaySeconds": "600",
-              "tags": "",
-              "calendar": {
-                "startDate": "2015-01-01",
-                "endDate": "2015-12-31",
-                "daysOfWeek": [0,1,2,3,4],
-                "exceptionDates": ["2015-12-25"]
-              }
+          "scheduleStopPair": {
+              "originOnestopId": "s-9q8yy-powellst",
+              "destinationOnestopId": "s-9q8yy-civiccenter~unplaza",
+              "routeOnestopId": "r-9q9-pittsburg~baypoint~sfia~millbrae",
+              "frequencyStartTime": "07:00",
+              "frequencyEndTime": "10:00",
+              "frequencyHeadwaySeconds": "600",
+	            "serviceAddedDates": [],
+	            "serviceDaysOfWeek": [
+	                true,
+	                true,
+	                true,
+	                true,
+	                true,
+	                false,
+	                false
+	            ],
+	            "serviceEndDate": "2024-10-04",
+	            "serviceExceptDates": [],
+	            "serviceStartDate": "2015-04-27",
           }
         }
       ]
@@ -220,9 +226,9 @@ Here's an example [changeset](changesets.md):
     Operator-->Route
     Route-.->RouteServingStop
     RouteServingStop-.->StopA
-    Route-->RouteTripConnectingStopPair
-    RouteTripConnectingStopPair--> StopA
-    RouteTripConnectingStopPair--> StopB
+    Route-->ScheduleStopPair
+    ScheduleStopPair--> StopA
+    ScheduleStopPair--> StopB
     classDef outOfFocus fill:#fff,stroke:#ccc,stroke-width:4px
     class OperatorServingStop,RouteServingStop outOfFocus
 </div>
@@ -264,21 +270,26 @@ Here's an example [changeset](changesets.md):
         },
         {
           "action": "createUpdate",
-          "routeTripConnectingStopPair": {
-              "originStop": "s-9q8yy-powellst",
-              "destinationStop": "s-9q8yy-civiccenter~unplaza",
-              "route": "r-9q9-pittsburg~baypoint~sfia~millbrae",
-              "originArrivalTime": "TIME",
-              "originDepartureTime": "TIME",
-              "destinationArrivalTime": "TIME",
-              "destinationDepartureTime": "TIME",
-              "tags": "",
-              "calendar": {
-                "startDate": "DATE",
-                "endDate": "DATE",
-                "daysOfWeek": ["INT"],
-                "exceptionDates": ["DATE"]
-              }
+          "scheduleStopPair": {
+              "originOnestopId": "s-9q8yy-powellst",
+              "destinationOnestopId": "s-9q8yy-civiccenter~unplaza",
+              "routeOnestopId": "r-9q9-pittsburg~baypoint~sfia~millbrae",
+	            "destinationArrivalTime": "18:49:00",
+	            "destinationDepartureTime": "18:49:00",
+	            "originArrivalTime": "18:33:00",	            "originDepartureTime": "18:33:00",
+	            "serviceAddedDates": [],
+	            "serviceDaysOfWeek": [
+	                true,
+	                true,
+	                true,
+	                true,
+	                true,
+	                false,
+	                false
+	            ],
+	            "serviceEndDate": "2024-10-04",
+	            "serviceExceptDates": [],
+	            "serviceStartDate": "2015-04-27",
           }
         }
       ]
