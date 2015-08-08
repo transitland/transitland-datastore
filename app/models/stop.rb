@@ -95,12 +95,21 @@ class Stop < BaseStop
     return true
   end
 
+  # Operators serving this stop
   has_many :operators_serving_stop
   has_many :operators, through: :operators_serving_stop
 
+  # Routes serving this stop
   has_many :routes_serving_stop
   has_many :routes, through: :routes_serving_stop
 
+  # Scheduled trips
+  has_many :trips_out, class_name: ScheduleStopPair, foreign_key: "origin_id"
+  has_many :trips_in, class_name: ScheduleStopPair, foreign_key: "destination_id"
+  has_many :stops_out, through: :trips_out, source: :destination
+  has_many :stops_in, through: :trips_in, source: :origin
+
+  # Add service from an Operator or Route
   scope :served_by, -> (onestop_ids_and_models) {
     operators = []
     routes = []

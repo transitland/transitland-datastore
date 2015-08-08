@@ -46,6 +46,9 @@ class ChangePayload < ActiveRecord::Base
       if change[:route].present?
         Route.apply_change(changeset: changeset, attrs: change[:route], action: change[:action])
       end
+      if change[:schedule_stop_pair].present?
+        ScheduleStopPair.apply_change(changeset: changeset, attrs: change[:schedule_stop_pair], action: change[:action])
+      end
     end
   end
 

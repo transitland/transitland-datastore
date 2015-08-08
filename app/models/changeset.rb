@@ -42,6 +42,9 @@ class Changeset < ActiveRecord::Base
 
   has_many :change_payloads, -> { order "created_at ASC" }, dependent: :destroy
 
+  has_many :schedule_stop_pairs_created_or_updated, class_name: 'ScheduleStopPair', foreign_key: 'created_or_updated_in_changeset_id'
+  has_many :schedule_stop_pairs_destroyed, class_name: 'OldScheduleStopPair', foreign_key: 'destroyed_in_changeset_id'
+
   after_initialize :set_default_values
 
   def entities_created_or_updated

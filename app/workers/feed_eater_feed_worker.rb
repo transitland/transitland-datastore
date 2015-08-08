@@ -36,6 +36,7 @@ class FeedEaterFeedWorker < FeedEaterWorker
         './lib/feedeater/post.py',
         '--log',
         log_file_path,
+        '--schedule_stop_pairs',
         feed_onestop_id
       )
     rescue Exception => e

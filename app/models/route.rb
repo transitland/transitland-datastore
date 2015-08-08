@@ -101,6 +101,7 @@ class Route < BaseRoute
 
   has_many :routes_serving_stop
   has_many :stops, through: :routes_serving_stop
+  has_many :schedule_stop_pairs
   belongs_to :operator
 
   validates :name, presence: true
