@@ -10,6 +10,10 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     if params[:date].present?
       @ssps = @ssps.where_service_on_date(params[:date])
     end
+
+    if params[:service_from_date].present?
+      @ssps = @ssps.where_service_from_date(params[:service_from_date])
+    end
     
     # Service between stops
     if params[:origin_onestop_id].present?

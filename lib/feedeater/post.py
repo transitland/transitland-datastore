@@ -32,6 +32,20 @@ def to_bool(v):
     return bool(int(v))
   return False
 
+def to_int(v):
+  """GTFS string to int"""
+  try:
+    return int(v)
+  except (ValueError, TypeError), e:
+    return None
+
+def to_float(v):
+  """GTFS string to float"""
+  try:
+    return float(v)
+  except (ValueError, TypeError), e:
+    return None
+
 def make_service(cal=None):
   """TL ScheduleStopPair from GTFS calendar."""
   cal = cal or {}
@@ -80,14 +94,27 @@ def make_ssp(gtfs_feed):
         route = list(trip.parents())[0]
         cal = cals[trip.get('service_id')]
         ssp = {
+          # origin
           'originOnestopId': stop_id_map[origin_stop.id()],
-          'destinationOnestopId': stop_id_map[destination_stop.id()],
-          'routeOnestopId': route_id_map[route.id()],
-          'trip': trip.id(),
           'originArrivalTime': str(origin_stoptime.arrive()),
           'originDepartureTime': str(origin_stoptime.depart()),
+          # destination
+          'destinationOnestopId': stop_id_map[destination_stop.id()],
           'destinationArrivalTime': str(destination_stoptime.arrive()),
-          'destinationDepartureTime': str(destination_stoptime.depart())
+          'destinationDepartureTime': str(destination_stoptime.depart()),
+          # route
+          'routeOnestopId': route_id_map[route.id()],        
+          # trip
+          'trip': trip.id(),
+          'tripHeadsign': origin_stoptime.get('stop_headsign') or trip.get('trip_headsign'),
+          'tripShortName': trip.get('trip_short_name'),
+          'wheelchairAccessible': to_int(trip.get('wheelchair_accessible')),
+          'bikesAllowed': to_int(trip.get('bikes_allowed')),
+          # stoptime
+          'dropOffType': to_int(origin_stoptime.get('drop_off_type')),
+          'pickupType': to_int(origin_stoptime.get('pickup_type')),
+          'timepoint': to_int(origin_stoptime.get('timepoint')),
+          'shapeDistTraveled': to_float(origin_stoptime.get('shape_dist_traveled')),
         }
         ssp.update(cal)
         yield ssp

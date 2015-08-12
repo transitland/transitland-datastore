@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150715070212) do
+ActiveRecord::Schema.define(version: 20150811234133) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -122,6 +122,14 @@ ActiveRecord::Schema.define(version: 20150715070212) do
     t.boolean  "service_days_of_week",               default: [],              array: true
     t.datetime "created_at",                                      null: false
     t.datetime "updated_at",                                      null: false
+    t.string   "block_id"
+    t.string   "trip_short_name"
+    t.integer  "wheelchair_accessible"
+    t.integer  "bikes_allowed"
+    t.integer  "pickup_type"
+    t.integer  "drop_off_type"
+    t.integer  "timepoint"
+    t.float    "shape_dist_traveled"
   end
 
   add_index "current_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "c_ssp_cu_in_changeset", using: :btree
@@ -287,6 +295,14 @@ ActiveRecord::Schema.define(version: 20150715070212) do
     t.boolean  "service_days_of_week",               default: [],              array: true
     t.datetime "created_at",                                      null: false
     t.datetime "updated_at",                                      null: false
+    t.string   "block_id"
+    t.string   "trip_short_name"
+    t.integer  "wheelchair_accessible"
+    t.integer  "bikes_allowed"
+    t.integer  "pickup_type"
+    t.integer  "drop_off_type"
+    t.integer  "timepoint"
+    t.float    "shape_dist_traveled"
   end
 
   add_index "old_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "o_ssp_cu_in_changeset", using: :btree
