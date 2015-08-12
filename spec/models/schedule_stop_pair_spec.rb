@@ -121,7 +121,7 @@ RSpec.describe ScheduleStopPair, type: :model do
   end
 
   context 'scopes' do
-    it 'where_service_on_date' do
+    it 'where service on date' do
       expect_start = Date.new(2015, 01, 01)
       expect_end = Date.new(2016, 01, 01)
       expect_dow = [true, true, true, true, true, false, false]
@@ -130,6 +130,20 @@ RSpec.describe ScheduleStopPair, type: :model do
       create(:schedule_stop_pair, service_start_date: expect_start, service_end_date: expect_end, service_days_of_week: expect_dow)
       expect(ScheduleStopPair.where_service_on_date(expect_service).count).to eq(1)
       expect(ScheduleStopPair.where_service_on_date(expect_none).count).to eq(0)
+    end
+    
+    it 'where service from date' do
+      expect_start = Date.new(2016, 01, 01)
+      expect_end0 = Date.new(2014, 01, 01)
+      expect_end1 = Date.new(2015, 01, 01)
+      expect_end2 = Date.new(2015, 06, 01)
+      expect_end3 = Date.new(2016, 01, 01)
+      create(:schedule_stop_pair, service_start_date: expect_start, service_end_date: expect_end1)
+      create(:schedule_stop_pair, service_start_date: expect_start, service_end_date: expect_end2)
+      expect(ScheduleStopPair.where_service_from_date(expect_end0).count).to eq(2)
+      expect(ScheduleStopPair.where_service_from_date(expect_end1).count).to eq(2)
+      expect(ScheduleStopPair.where_service_from_date(expect_end2).count).to eq(1)
+      expect(ScheduleStopPair.where_service_from_date(expect_end3).count).to eq(0)
     end
     
   end
