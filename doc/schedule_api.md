@@ -53,27 +53,27 @@ This is an evolving document describing the Schedule query parameters and respon
     },
     "schedule_stop_pairs": [
 				{
-					origin_onestop_id: "s-9q8yyugptw-sanfranciscocaltrainstation",
-					origin_arrival_time: "14:53:00",
-					origin_departure_time: "14:53:00",
-					destination_onestop_id: "s-9q8yw8y448-bayshorecaltrainstation",
-					destination_arrival_time: "15:13:00",
-					destination_departure_time: "15:13:00",
-					route_onestop_id: "r-9q8yw-sx",
-					trip: "8447926-ME01-Calshut-Sunday-50",
-					trip_headsign: "Bayshore",
-					block_id: null,
-					trip_short_name: "222885",
-					wheelchair_accessible: null,
-					bikes_allowed: null,
-					pick_up_type: null,
-					drop_off_type: null,
-					timepoint: null,
-					service_start_date: "2015-06-07",
-					service_end_date: "2015-06-07",
-					service_added_dates: [ ],
-					service_except_dates: [ ],
-					service_days_of_week: [
+					"origin_onestop_id": "s-9q8yyugptw-sanfranciscocaltrainstation",
+					"origin_arrival_time": "14:53:00",
+					"origin_departure_time": "14:53:00",
+					"destination_onestop_id": "s-9q8yw8y448-bayshorecaltrainstation",
+					"destination_arrival_time": "15:13:00",
+					"destination_departure_time": "15:13:00",
+					"route_onestop_id": "r-9q8yw-sx",
+					"trip": "8447926-ME01-Calshut-Sunday-50",
+					"trip_headsign": "Bayshore",
+					"block_id": null,
+					"trip_short_name": "222885",
+					"wheelchair_accessible": null,
+					"bikes_allowed": null,
+					"pickup_type": null,
+					"drop_off_type": null,
+					"timepoint": null,
+					"service_start_date": "2015-06-07",
+					"service_end_date": "2015-06-07",
+					"service_added_dates": [ ],
+					"service_except_dates": [ ],
+					"service_days_of_week": [
 						false,
 						false,
 						false,
@@ -82,8 +82,8 @@ This is an evolving document describing the Schedule query parameters and respon
 						false,
 						true
 					],
-					created_at: "2015-08-11T23:57:20.529Z",
-					updated_at: "2015-08-11T23:57:20.529Z"
+					"created_at": "2015-08-11T23:57:20.529Z",
+					"updated_at": "2015-08-11T23:57:20.529Z"
 				}
     ]
 }
@@ -100,16 +100,15 @@ The response will contain an array of schedules. Each schedule represents an edg
  * route_onestop_id: Route ID for destination
  * trip: A text label for a sequence of edges
  * trip_headsign: A human friendly description of the ultimate destination
- * block_id: 
- * trip_short_name: 
- * wheelchair_accessible:
- * bikes_allowed: 
- * pick_up_type:
- * drop_off_type:
- * timepoint:
  * service_start_date: Date service begins
  * service_end_date: Date service ends
  * service_added_dates: Array of additional dates service is scheduled
  * service_except_dates: Array of dates service is NOT scheduled (Holidays, etc.)
  * service_days_of_week: Scheduled service, in ISO order (Monday -> Sunday)
-
+ * block_id: A block of trips made by the same vehicle
+ * trip_short_name: A commonly known human-readable trip identifier, e.g. a train number
+ * wheelchair_accessible: Wheelchair accessibility
+ * bikes_allowed: Bike accessible
+ * pickup_type: Stop regularity for picking up passengers
+ * drop_off_type: Stop regularity for dropping off passengers
+ * timepoint: Exact or interpolated arrival & departure times
