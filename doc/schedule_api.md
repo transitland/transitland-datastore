@@ -19,6 +19,9 @@ This is an evolving document describing the Schedule query parameters and respon
 ## Edges originating for all stops in a bounding box
 /api/v1/schedule_stop_pairs?bbox=-122.4131,37.7136,-122.3789,30.8065
 
+## Current, and future, service from a starting date
+/api/v1/schedule_stop_pairs?service_from_date=2015-08-05
+
 # Combining query parameters
 
 ## For a stop on a date

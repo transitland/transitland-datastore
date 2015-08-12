@@ -72,13 +72,19 @@ class ScheduleStopPair < BaseScheduleStopPair
   validate :validate_service_except_dates_range
 
   # Scopes
-  # Service active on a particular date
+  # Service active on a date
   scope :where_service_on_date, -> (date) {
     date = date.is_a?(Date) ? date : Date.parse(date)
     # ISO week day is Monday = 1, Sunday = 7; Postgres arrays are indexed at 1
     where("(service_start_date <= ? AND service_end_date >= ?) AND (true = service_days_of_week[?] OR ? = ANY(service_added_dates)) AND NOT (? = ANY(service_except_dates))", date, date, date.cwday, date, date)
   }
-  
+
+  # Current service, and future service, active from a date
+  scope :where_service_from_date, -> (date) {
+    date = date.is_a?(Date) ? date : Date.parse(date)
+    where("service_end_date >= ?", date)
+  }
+
   # Service trips_out in a bbox
   scope :where_origin_bbox, -> (bbox) {
     bbox_coordinates = bbox.split(',')
@@ -86,6 +92,7 @@ class ScheduleStopPair < BaseScheduleStopPair
     stops = Stop.where{geometry.op('&&', st_makeenvelope(bbox_coordinates[0], bbox_coordinates[1], bbox_coordinates[2], bbox_coordinates[3], Stop::GEOFACTORY.srid))}
     where(origin_id: stops.ids)      
   }
+
 
   # Handle mapping from onestop_id to id
   def route_onestop_id=(value)
