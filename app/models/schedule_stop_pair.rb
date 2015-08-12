@@ -25,6 +25,14 @@
 #  service_days_of_week               :boolean          default([]), is an Array
 #  created_at                         :datetime         not null
 #  updated_at                         :datetime         not null
+#  block_id                           :string
+#  trip_short_name                    :string
+#  wheelchair_accessible              :integer
+#  bikes_allowed                      :integer
+#  pickup_type                        :integer
+#  drop_off_type                      :integer
+#  timepoint                          :integer
+#  shape_dist_traveled                :float
 #
 # Indexes
 #
