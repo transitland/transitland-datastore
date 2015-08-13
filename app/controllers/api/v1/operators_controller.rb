@@ -30,6 +30,9 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
     elsif params[:tag_key].present?
       @operators = @operators.with_tag(params[:tag_key])
     end
+    if params[:updated_since].present?
+      @operators = @operators.updated_since(params[:updated_since])
+    end
 
     per_page = params[:per_page].blank? ? Operator::PER_PAGE : params[:per_page].to_i
 

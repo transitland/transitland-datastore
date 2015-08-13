@@ -28,6 +28,9 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     elsif params[:tag_key].present?
       @routes = @routes.with_tag(params[:tag_key])
     end
+    if params[:updated_since].present?
+      @routes = @routes.updated_since(params[:updated_since])
+    end
 
     per_page = params[:per_page].blank? ? Route::PER_PAGE : params[:per_page].to_i
 
