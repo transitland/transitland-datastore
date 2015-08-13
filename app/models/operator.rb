@@ -19,6 +19,7 @@
 #  index_current_operators_on_identifiers  (identifiers)
 #  index_current_operators_on_onestop_id   (onestop_id) UNIQUE
 #  index_current_operators_on_tags         (tags)
+#  index_current_operators_on_updated_at   (updated_at)
 #
 
 class BaseOperator < ActiveRecord::Base
@@ -36,6 +37,7 @@ class Operator < BaseOperator
   include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
   include HasTags
+  include UpdatedSince
 
   include CanBeSerializedToCsv
   def self.csv_column_names
