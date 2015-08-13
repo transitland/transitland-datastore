@@ -141,6 +141,7 @@ ActiveRecord::Schema.define(version: 20150812235057) do
   add_index "current_schedule_stop_pairs", ["service_end_date"], name: "c_ssp_service_end_date", using: :btree
   add_index "current_schedule_stop_pairs", ["service_start_date"], name: "c_ssp_service_start_date", using: :btree
   add_index "current_schedule_stop_pairs", ["trip"], name: "c_ssp_trip", using: :btree
+  add_index "current_schedule_stop_pairs", ["updated_at"], name: "index_current_schedule_stop_pairs_on_updated_at", using: :btree
 
   create_table "current_stops", force: :cascade do |t|
     t.string    "onestop_id"
