@@ -20,6 +20,7 @@
 #  index_current_routes_on_identifiers  (identifiers)
 #  index_current_routes_on_operator_id  (operator_id)
 #  index_current_routes_on_tags         (tags)
+#  index_current_routes_on_updated_at   (updated_at)
 #
 
 class BaseRoute < ActiveRecord::Base
@@ -37,6 +38,7 @@ class Route < BaseRoute
   include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
   include HasTags
+  include UpdatedSince
 
   include CanBeSerializedToCsv
   def self.csv_column_names

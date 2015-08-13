@@ -33,6 +33,9 @@ class Api::V1::StopsController < Api::V1::BaseApiController
     elsif params[:tag_key].present?
       @stops = @stops.with_tag(params[:tag_key])
     end
+    if params[:updated_since].present?
+      @stops = @stops.updated_since(params[:updated_since])
+    end
 
     @stops = @stops.includes{[operators_serving_stop, operators_serving_stop.operator]} # TODO: check performance against eager_load, joins, etc.
 

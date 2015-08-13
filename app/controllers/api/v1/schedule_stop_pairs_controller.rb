@@ -32,6 +32,11 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     if params[:bbox].present?
       @ssps = @ssps.where_origin_bbox(params[:bbox])
     end
+    
+    # Edges updated since
+    if params[:updated_since].present?
+      @ssps = @ssps.updated_since(params[:updated_since])
+    end
 
     per_page = params[:per_page].blank? ? ScheduleStopPair::PER_PAGE : params[:per_page].to_i
 

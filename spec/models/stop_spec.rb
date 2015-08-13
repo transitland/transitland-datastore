@@ -19,6 +19,7 @@
 #  index_current_stops_on_identifiers  (identifiers)
 #  index_current_stops_on_onestop_id   (onestop_id)
 #  index_current_stops_on_tags         (tags)
+#  index_current_stops_on_updated_at   (updated_at)
 #
 
 describe Stop do
