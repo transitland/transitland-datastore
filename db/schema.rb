@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150811234133) do
+ActiveRecord::Schema.define(version: 20150812235057) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -51,6 +51,7 @@ ActiveRecord::Schema.define(version: 20150811234133) do
   add_index "current_operators", ["identifiers"], name: "index_current_operators_on_identifiers", using: :gin
   add_index "current_operators", ["onestop_id"], name: "index_current_operators_on_onestop_id", unique: true, using: :btree
   add_index "current_operators", ["tags"], name: "index_current_operators_on_tags", using: :btree
+  add_index "current_operators", ["updated_at"], name: "index_current_operators_on_updated_at", using: :btree
 
   create_table "current_operators_serving_stop", force: :cascade do |t|
     t.integer  "stop_id",                            null: false
@@ -84,6 +85,7 @@ ActiveRecord::Schema.define(version: 20150811234133) do
   add_index "current_routes", ["identifiers"], name: "index_current_routes_on_identifiers", using: :gin
   add_index "current_routes", ["operator_id"], name: "index_current_routes_on_operator_id", using: :btree
   add_index "current_routes", ["tags"], name: "index_current_routes_on_tags", using: :btree
+  add_index "current_routes", ["updated_at"], name: "index_current_routes_on_updated_at", using: :btree
 
   create_table "current_routes_serving_stop", force: :cascade do |t|
     t.integer  "route_id"
@@ -156,6 +158,7 @@ ActiveRecord::Schema.define(version: 20150811234133) do
   add_index "current_stops", ["identifiers"], name: "index_current_stops_on_identifiers", using: :gin
   add_index "current_stops", ["onestop_id"], name: "index_current_stops_on_onestop_id", using: :btree
   add_index "current_stops", ["tags"], name: "index_current_stops_on_tags", using: :btree
+  add_index "current_stops", ["updated_at"], name: "index_current_stops_on_updated_at", using: :btree
 
   create_table "feed_imports", force: :cascade do |t|
     t.integer  "feed_id"
