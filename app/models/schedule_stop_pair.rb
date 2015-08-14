@@ -33,6 +33,8 @@
 #  drop_off_type                      :integer
 #  timepoint                          :integer
 #  shape_dist_traveled                :float
+#  origin_timezone                    :string
+#  destination_timezone               :string
 #
 # Indexes
 #
