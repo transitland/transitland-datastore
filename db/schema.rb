@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150812235057) do
+ActiveRecord::Schema.define(version: 20150814191424) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -45,6 +45,7 @@ ActiveRecord::Schema.define(version: 20150812235057) do
     t.integer   "created_or_updated_in_changeset_id"
     t.integer   "version"
     t.string    "identifiers",                                                                                    default: [], array: true
+    t.string    "timezone"
   end
 
   add_index "current_operators", ["created_or_updated_in_changeset_id"], name: "#c_operators_cu_in_changeset_id_index", using: :btree
@@ -132,6 +133,8 @@ ActiveRecord::Schema.define(version: 20150812235057) do
     t.integer  "drop_off_type"
     t.integer  "timepoint"
     t.float    "shape_dist_traveled"
+    t.string   "origin_timezone"
+    t.string   "destination_timezone"
   end
 
   add_index "current_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "c_ssp_cu_in_changeset", using: :btree
@@ -153,6 +156,7 @@ ActiveRecord::Schema.define(version: 20150812235057) do
     t.integer   "created_or_updated_in_changeset_id"
     t.integer   "version"
     t.string    "identifiers",                                                                                    default: [], array: true
+    t.string    "timezone"
   end
 
   add_index "current_stops", ["created_or_updated_in_changeset_id"], name: "#c_stops_cu_in_changeset_id_index", using: :btree
@@ -202,6 +206,7 @@ ActiveRecord::Schema.define(version: 20150812235057) do
     t.integer   "current_id"
     t.integer   "version"
     t.string    "identifiers",                                                                                    default: [], array: true
+    t.string    "timezone"
   end
 
   add_index "old_operators", ["created_or_updated_in_changeset_id"], name: "o_operators_cu_in_changeset_id_index", using: :btree
@@ -307,6 +312,8 @@ ActiveRecord::Schema.define(version: 20150812235057) do
     t.integer  "drop_off_type"
     t.integer  "timepoint"
     t.float    "shape_dist_traveled"
+    t.string   "origin_timezone"
+    t.string   "destination_timezone"
   end
 
   add_index "old_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "o_ssp_cu_in_changeset", using: :btree
@@ -331,6 +338,7 @@ ActiveRecord::Schema.define(version: 20150812235057) do
     t.integer   "current_id"
     t.integer   "version"
     t.string    "identifiers",                                                                                    default: [], array: true
+    t.string    "timezone"
   end
 
   add_index "old_stops", ["created_or_updated_in_changeset_id"], name: "o_stops_cu_in_changeset_id_index", using: :btree
