@@ -257,12 +257,10 @@ class FeedEaterPost(task.FeedEaterTask):
       batch.append(changefunc(entity))
       if len(batch) == batchsize:
         self.log("  batch of %s %s"%(len(batch), word))
-        print batch
         self.datastore.postjson('/api/v1/changesets/%s/append'%changeset_id, {'changes':batch})
         batch = []
     if batch:
       self.log("  batch of %s %s"%(len(batch), word))
-      print batch
       self.datastore.postjson('/api/v1/changesets/%s/append'%changeset_id, {'changes':batch})
 
 if __name__ == "__main__":
