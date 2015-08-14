@@ -78,9 +78,9 @@ def make_ssp(gtfs_feed):
   # Load calendar data
   cals = make_calendar(gtfs_feed)
   # Map gtfs ids to onestop ids
-  agency_id_map = id_map(gtfs_feed.agencies(), 'agency_id')
-  route_id_map = id_map(gtfs_feed.routes(), 'route_id')
-  stop_id_map = id_map(gtfs_feed.stops(), 'stop_id')
+  # agency_id_map = id_map(gtfs_feed.agencies(), 'agency_id')
+  # route_id_map = id_map(gtfs_feed.routes(), 'route_id')
+  # stop_id_map = id_map(gtfs_feed.stops(), 'stop_id')
   # Load step edges
   for origin_stop in gtfs_feed.stops():
     for origin_stoptime in origin_stop.parents():
@@ -91,19 +91,26 @@ def make_ssp(gtfs_feed):
           continue
         destination_stoptime = seq[pos+1]
         destination_stop = list(destination_stoptime.children())[0]
-        route = list(trip.parents())[0]
+        route = list(trip.parents())[0]          
+        # Reference to TL Entity
+        origin_tl = origin_stop._tl_ref
+        destination_tl = destination_stop._tl_ref
+        # 
+        # Calendar
         cal = cals[trip.get('service_id')]
         ssp = {
           # origin
-          'originOnestopId': stop_id_map[origin_stop.id()],
+          'originOnestopId': origin_tl.onestop(),
+          'originTimezone': origin_tl.find_timezone(),
           'originArrivalTime': str(origin_stoptime.arrive()),
           'originDepartureTime': str(origin_stoptime.depart()),
           # destination
-          'destinationOnestopId': stop_id_map[destination_stop.id()],
+          'destinationOnestopId': destination_tl.onestop(),
+          'destinationTimezone': destination_tl.find_timezone(),
           'destinationArrivalTime': str(destination_stoptime.arrive()),
           'destinationDepartureTime': str(destination_stoptime.depart()),
           # route
-          'routeOnestopId': route_id_map[route.id()],        
+          'routeOnestopId': route._tl_ref.onestop(),
           # trip
           'trip': trip.id(),
           'tripHeadsign': origin_stoptime.get('stop_headsign') or trip.get('trip_headsign'),
@@ -135,7 +142,8 @@ def change_entity(entity, action='createUpdate'):
     'tags',
     'identifiers',
     'operatedBy',
-    'servedBy'
+    'servedBy',
+    'timezone',
   ]
   # 
   data = entity.json()

@@ -1,3 +1,3 @@
 -e git+https://github.com/transitland/mapzen-gtfs.git@v0.10.4#egg=mzgtfs
--e git+https://github.com/transitland/transitland-python-client.git@2186ec7829efb5f81ee5557352656784fdc8ab3e#egg=transitland
+-e git+https://github.com/transitland/transitland-python-client.git@21016139759d2e45424b508e0b2a8ee4c84b60ff#egg=transitland
 transitfeed>=1.2.14

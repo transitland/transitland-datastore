@@ -33,6 +33,8 @@
 #  drop_off_type                      :integer
 #  timepoint                          :integer
 #  shape_dist_traveled                :float
+#  origin_timezone                    :string
+#  destination_timezone               :string
 #
 # Indexes
 #
@@ -50,6 +52,8 @@ class ScheduleStopPairSerializer < ApplicationSerializer
   attributes :origin_onestop_id,
              :destination_onestop_id,
              :route_onestop_id,
+             :origin_timezone,
+             :destination_timezone,
              :trip,
              :trip_headsign,
              :block_id,
