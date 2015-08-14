@@ -12,6 +12,7 @@
 #  created_or_updated_in_changeset_id :integer
 #  version                            :integer
 #  identifiers                        :string           default([]), is an Array
+#  timezone                           :string
 #
 # Indexes
 #
@@ -27,6 +28,7 @@ class StopSerializer < CurrentEntitySerializer
              :geometry,
              :name,
              :tags,
+             :timezone,
              :created_at,
              :updated_at
 
