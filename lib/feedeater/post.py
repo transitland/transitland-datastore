@@ -101,12 +101,12 @@ def make_ssp(gtfs_feed):
         ssp = {
           # origin
           'originOnestopId': origin_tl.onestop(),
-          'originTimezone': origin_tl.find_timezone(),
+          'originTimezone': origin_tl.get_timezone(),
           'originArrivalTime': str(origin_stoptime.arrive()),
           'originDepartureTime': str(origin_stoptime.depart()),
           # destination
           'destinationOnestopId': destination_tl.onestop(),
-          'destinationTimezone': destination_tl.find_timezone(),
+          'destinationTimezone': destination_tl.get_timezone(),
           'destinationArrivalTime': str(destination_stoptime.arrive()),
           'destinationDepartureTime': str(destination_stoptime.depart()),
           # route
