@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150814191424) do
+ActiveRecord::Schema.define(version: 20150817150332) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -46,6 +46,11 @@ ActiveRecord::Schema.define(version: 20150814191424) do
     t.integer   "version"
     t.string    "identifiers",                                                                                    default: [], array: true
     t.string    "timezone"
+    t.string    "short_name"
+    t.string    "website"
+    t.string    "country"
+    t.string    "state"
+    t.string    "metro"
   end
 
   add_index "current_operators", ["created_or_updated_in_changeset_id"], name: "#c_operators_cu_in_changeset_id_index", using: :btree
@@ -183,12 +188,17 @@ ActiveRecord::Schema.define(version: 20150814191424) do
     t.string   "url"
     t.string   "feed_format"
     t.hstore   "tags"
-    t.string   "operator_onestop_ids_in_feed", default: [], array: true
+    t.string   "operator_onestop_ids_in_feed",    default: [], array: true
     t.string   "last_sha1"
     t.datetime "last_fetched_at"
     t.datetime "last_imported_at"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "license_name"
+    t.string   "license_url"
+    t.string   "license_use_without_attribution"
+    t.string   "license_create_derived_product"
+    t.string   "license_redistribute"
   end
 
   add_index "feeds", ["onestop_id"], name: "index_feeds_on_onestop_id", using: :btree
@@ -207,6 +217,11 @@ ActiveRecord::Schema.define(version: 20150814191424) do
     t.integer   "version"
     t.string    "identifiers",                                                                                    default: [], array: true
     t.string    "timezone"
+    t.string    "short_name"
+    t.string    "website"
+    t.string    "country"
+    t.string    "state"
+    t.string    "metro"
   end
 
   add_index "old_operators", ["created_or_updated_in_changeset_id"], name: "o_operators_cu_in_changeset_id_index", using: :btree

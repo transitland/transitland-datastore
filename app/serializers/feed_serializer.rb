@@ -2,17 +2,22 @@
 #
 # Table name: feeds
 #
-#  id                           :integer          not null, primary key
-#  onestop_id                   :string
-#  url                          :string
-#  feed_format                  :string
-#  tags                         :hstore
-#  operator_onestop_ids_in_feed :string           default([]), is an Array
-#  last_sha1                    :string
-#  last_fetched_at              :datetime
-#  last_imported_at             :datetime
-#  created_at                   :datetime
-#  updated_at                   :datetime
+#  id                              :integer          not null, primary key
+#  onestop_id                      :string
+#  url                             :string
+#  feed_format                     :string
+#  tags                            :hstore
+#  operator_onestop_ids_in_feed    :string           default([]), is an Array
+#  last_sha1                       :string
+#  last_fetched_at                 :datetime
+#  last_imported_at                :datetime
+#  created_at                      :datetime
+#  updated_at                      :datetime
+#  license_name                    :string
+#  license_url                     :string
+#  license_use_without_attribution :string
+#  license_create_derived_product  :string
+#  license_redistribute            :string
 #
 # Indexes
 #
@@ -26,6 +31,11 @@ class FeedSerializer < ApplicationSerializer
              :feed_format,
              :operator_onestop_ids_in_feed,
              :tags,
+             :license_name,
+             :license_url,
+             :license_use_without_attribution,
+             :license_create_derived_product,
+             :license_redistribute,
              :last_sha1,
              :last_fetched_at,
              :last_imported_at,
