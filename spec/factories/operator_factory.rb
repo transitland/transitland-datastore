@@ -13,6 +13,11 @@
 #  version                            :integer
 #  identifiers                        :string           default([]), is an Array
 #  timezone                           :string
+#  short_name                         :string
+#  website                            :string
+#  country                            :string
+#  state                              :string
+#  metro                              :string
 #
 # Indexes
 #

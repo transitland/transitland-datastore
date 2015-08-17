@@ -13,6 +13,11 @@
 #  version                            :integer
 #  identifiers                        :string           default([]), is an Array
 #  timezone                           :string
+#  short_name                         :string
+#  website                            :string
+#  country                            :string
+#  state                              :string
+#  metro                              :string
 #
 # Indexes
 #
@@ -29,6 +34,8 @@ class BaseOperator < ActiveRecord::Base
   PER_PAGE = 50
 
   attr_accessor :serves, :does_not_serve
+
+  validates :website, format: { with: URI.regexp }, if: Proc.new { |operator| operator.website.present? }
 end
 
 class Operator < BaseOperator

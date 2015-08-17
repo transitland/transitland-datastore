@@ -13,6 +13,11 @@
 #  version                            :integer
 #  identifiers                        :string           default([]), is an Array
 #  timezone                           :string
+#  short_name                         :string
+#  website                            :string
+#  country                            :string
+#  state                              :string
+#  metro                              :string
 #
 # Indexes
 #
@@ -25,9 +30,14 @@
 
 class OperatorSerializer < CurrentEntitySerializer
   attributes :name,
+             :short_name,
              :onestop_id,
              :geometry,
              :tags,
+             :website,
+             :country,
+             :state,
+             :metro,
              :timezone,
              :created_at,
              :updated_at

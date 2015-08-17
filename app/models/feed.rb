@@ -2,17 +2,22 @@
 #
 # Table name: feeds
 #
-#  id                           :integer          not null, primary key
-#  onestop_id                   :string
-#  url                          :string
-#  feed_format                  :string
-#  tags                         :hstore
-#  operator_onestop_ids_in_feed :string           default([]), is an Array
-#  last_sha1                    :string
-#  last_fetched_at              :datetime
-#  last_imported_at             :datetime
-#  created_at                   :datetime
-#  updated_at                   :datetime
+#  id                              :integer          not null, primary key
+#  onestop_id                      :string
+#  url                             :string
+#  feed_format                     :string
+#  tags                            :hstore
+#  operator_onestop_ids_in_feed    :string           default([]), is an Array
+#  last_sha1                       :string
+#  last_fetched_at                 :datetime
+#  last_imported_at                :datetime
+#  created_at                      :datetime
+#  updated_at                      :datetime
+#  license_name                    :string
+#  license_url                     :string
+#  license_use_without_attribution :string
+#  license_create_derived_product  :string
+#  license_redistribute            :string
 #
 # Indexes
 #
@@ -32,6 +37,15 @@ class Feed < ActiveRecord::Base
 
   validates :url, presence: true
   validates :url, format: { with: URI.regexp }, if: Proc.new { |feed| feed.url.present? }
+  validates :license_url, format: { with: URI.regexp }, if: Proc.new { |feed| feed.license_url.present? }
+
+  extend Enumerize
+  enumerize :feed_format, in: [:gtfs]
+  enumerize :license_use_without_attribution, in: [:yes, :no, :unknown]
+  enumerize :license_create_derived_product, in: [:yes, :no, :unknown]
+  enumerize :license_redistribute, in: [:yes, :no, :unknown]
+
+  after_initialize :set_default_values
 
   def fetch_and_check_for_updated_version
     begin
@@ -100,5 +114,16 @@ class Feed < ActiveRecord::Base
       feeds_with_updated_versions << feed if is_updated_version
     end
     feeds_with_updated_versions
+  end
+
+  private
+
+  def set_default_values
+    if self.new_record?
+      self.feed_format ||= 'gtfs'
+      self.license_use_without_attribution ||= 'unknown'
+      self.license_create_derived_product ||= 'unknown'
+      self.license_redistribute ||= 'unknown'
+    end
   end
 end
