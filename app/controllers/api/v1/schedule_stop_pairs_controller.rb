@@ -14,7 +14,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     if params[:service_from_date].present?
       @ssps = @ssps.where_service_from_date(params[:service_from_date])
     end
-    
+
     # Service between stops
     if params[:origin_onestop_id].present?
       @ssps = @ssps.where(origin_id: Stop.find_by!(onestop_id: params[:origin_onestop_id]).id)
@@ -22,7 +22,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     if params[:destination_onestop_id].present?
       @ssps = @ssps.where(destination_id: Stop.find_by!(onestop_id: params[:destination_onestop_id]).id)
     end
-    
+
     # Service on a route
     if params[:route_onestop_id].present?
       @ssps = @ssps.where(route_id: Route.find_by!(onestop_id: params[:route_onestop_id]).id)
@@ -32,7 +32,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     if params[:bbox].present?
       @ssps = @ssps.where_origin_bbox(params[:bbox])
     end
-    
+
     # Edges updated since
     if params[:updated_since].present?
       @ssps = @ssps.updated_since(params[:updated_since])
@@ -47,7 +47,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
           Proc.new { |params| api_v1_schedule_stop_pairs_url(params) },
           params[:offset],
           per_page,
-          params.slice(:service_start_date, :service_end_date)
+          params.slice(:date, :service_from_date, :origin_onestop_id, :destination_onestop_id, :route_onestop_id, :bbox, :updated_since)
         )
       end
       format.geojson do
@@ -61,7 +61,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
   end
 
   def frequency
-    
+
   end
 
 end
