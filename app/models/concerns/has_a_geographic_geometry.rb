@@ -32,16 +32,14 @@ module HasAGeographicGeometry
     if wkt.respond_to?(:lat) && wkt.respond_to?(:lon)
       lat = wkt.lat
       lon = wkt.lon
-    elsif wkt.respond_to?(:centroid)
-      # TODO: fix this
-      lat = nil
-      lon = nil
-      # centroid = wkt.centroid
-      # lat = centroid.lat
-      # lon = centroid.lon
     else
-      lat = nil
-      lon = nil
+      projected_geometry = RGeo::Feature.cast(wkt,
+        factory: RGeo::Geographic.simple_mercator_factory,
+        project: true
+      )
+      centroid = projected_geometry.centroid
+      lat = centroid.lat
+      lon = centroid.lon
     end
     {
       lon: lon,
