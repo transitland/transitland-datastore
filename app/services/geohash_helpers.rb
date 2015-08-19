@@ -39,7 +39,7 @@ module GeohashHelpers
   end
   
   def self.neighbors(geohash)
-    return {
+    {
       n:  adjacent(geohash, :n),
       ne: adjacent(adjacent(geohash, :n), :e),
       e:  adjacent(geohash, :e),
