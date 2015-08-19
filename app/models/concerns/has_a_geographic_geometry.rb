@@ -2,8 +2,7 @@ module HasAGeographicGeometry
   extend ActiveSupport::Concern
 
   included do
-    GEOFACTORY = RGeo::Geographic.simple_mercator_factory #(srid: 4326) # TODO: double check this
-    set_rgeo_factory_for_column :geometry, GEOFACTORY
+    GEOFACTORY ||= RGeo::Geographic.spherical_factory(srid: 4326)
   end
 
   def geometry=(incoming_geometry)
