@@ -73,19 +73,7 @@ describe GeohashHelpers do
   end
 
   it 'neighbors' do
-    test = '9p'
-    # expect = {
-    #   s: '9n',
-    #   e: '9r',
-    #   w: '8z',
-    #   nw: 'bb',
-    #   sw: '8y',
-    #   ne: 'c2',
-    #   se: '9q',
-    #   n: 'c0',
-    #   c:'9p'
-    # }
-    result = GeohashHelpers.neighbors(test)
+    result = GeohashHelpers.neighbors('9p')
     expect(result[:n]).to eq('c0')
     expect(result[:ne]).to eq('c2')
     expect(result[:e]).to eq('9r')
