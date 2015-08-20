@@ -88,5 +88,18 @@ describe GeohashHelpers do
   it 'fit' do
     expect(GeohashHelpers.fit(test_geometries)).to eq('9q9')
   end
-
+  
+  it 'expand' do
+    # geohash 9q9
+    bbox = GeohashHelpers.expand('9q9')
+    # ne = 9qf, -119.53125 39.375
+    max_point = GeohashHelpers.decode_bbox('9qf').max_point
+    # sw = 9q2
+    min_point = GeohashHelpers.decode_bbox('9q2').min_point
+    expect(bbox.max_point).to eq(max_point)
+    expect(bbox.min_point).to eq(min_point)
+    expect(bbox.contains?(max_point)).to be true
+    expect(bbox.contains?(min_point)).to be true    
+  end
+  
 end

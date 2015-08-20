@@ -11,6 +11,14 @@ module GeohashHelpers
     GEOFACTORY.point(p[1], p[0])
   end
   
+  def self.decode_bbox(geohash)
+    p = GeoHash.decode_bbox(geohash)
+    RGeo::Cartesian::BoundingBox.create_from_points(
+      GEOFACTORY.point(p[0][1], p[0][0]),
+      GEOFACTORY.point(p[1][1], p[1][0])
+    )
+  end
+  
   def self.adjacent(geohash, direction)
     # Based on an MIT licensed implementation by Chris Veness from:
     #   http://www.movable-type.co.uk/scripts/geohash.html
@@ -73,6 +81,15 @@ module GeohashHelpers
       end
     end
     g[0..-2]    
+  end
+  
+  def self.expand(geohash)
+    # Return a bounding box for the geohash+neighbors.
+    neighborhood = neighbors(geohash)
+    RGeo::Cartesian::BoundingBox.create_from_points(
+      decode_bbox(neighborhood[:ne]).max_point,
+      decode_bbox(neighborhood[:sw]).min_point
+    )
   end
   
 end
