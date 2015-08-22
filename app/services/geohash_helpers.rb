@@ -3,15 +3,18 @@ module GeohashHelpers
   BASESEQUENCE = '0123456789bcdefghjkmnpqrstuvwxyz'    
 
   def self.encode(geometry, precision=10)
+    # Encode a RGeo point to a geohash.
     GeoHash.encode(geometry.lat, geometry.lon, precision)
   end
     
   def self.decode(geohash, decimals=5)
+    # Decode a geohash to an RGeo point.
     p = GeoHash.decode(geohash, decimals)
     GEOFACTORY.point(p[1], p[0])
   end
   
   def self.decode_bbox(geohash)
+    # Decode a geohash to an RGeo bounding box.
     p = GeoHash.decode_bbox(geohash)
     RGeo::Cartesian::BoundingBox.create_from_points(
       GEOFACTORY.point(p[0][1], p[0][0]),
@@ -20,11 +23,11 @@ module GeohashHelpers
   end
   
   def self.adjacent(geohash, direction)
+    # Return the neighboring geohash in a given n,s,e,w direction.
     # Based on an MIT licensed implementation by Chris Veness from:
     #   http://www.movable-type.co.uk/scripts/geohash.html
     # Ported from Python implementation in mapzen-geohash.
-    # assert direction in 'nsew', "Invalid direction: %s"%direction
-    # assert geohash, "Invalid geohash: %s"%geohash
+    raise ArgumentError.new('Invalid direction') unless [:n,:s,:e,:w].include?(direction)
     neighbor = {
       n: [ 'p0r21436x8zb9dcf5h7kjnmqesgutwvy', 'bc01fg45238967deuvhjyznpkmstqrwx' ],
       s: [ '14365h7k9dcfesgujnmqp0r2twvyx8zb', '238967debc01fg45kmstqrwxuvhjyznp' ],
@@ -59,6 +62,15 @@ module GeohashHelpers
       c:  geohash
     }
   end
+
+  def self.neighbors_bbox(geohash)
+    # Return a bounding box for the geohash+neighbors.
+    neighborhood = neighbors(geohash)
+    RGeo::Cartesian::BoundingBox.create_from_points(
+      decode_bbox(neighborhood[:ne]).max_point,
+      decode_bbox(neighborhood[:sw]).min_point
+    )
+  end
   
   def self.centroid(geometries)
     # Simple geometric average of geometries
@@ -82,14 +94,5 @@ module GeohashHelpers
     end
     g[0..-2]    
   end
-  
-  def self.expand(geohash)
-    # Return a bounding box for the geohash+neighbors.
-    neighborhood = neighbors(geohash)
-    RGeo::Cartesian::BoundingBox.create_from_points(
-      decode_bbox(neighborhood[:ne]).max_point,
-      decode_bbox(neighborhood[:sw]).min_point
-    )
-  end
-  
+    
 end

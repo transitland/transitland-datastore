@@ -71,6 +71,12 @@ describe GeohashHelpers do
     expect(GeohashHelpers.adjacent('9p', :w)).to eq('8z')
     expect(GeohashHelpers.adjacent('9p', :n)).to eq('c0')    
   end
+  
+  it 'adjacent requires valid direction' do
+    expect {
+      GeohashHelpers.adjacent('9p', :x)
+    }.to raise_error(ArgumentError)
+  end
 
   it 'neighbors' do
     result = GeohashHelpers.neighbors('9p')
@@ -89,9 +95,9 @@ describe GeohashHelpers do
     expect(GeohashHelpers.fit(test_geometries)).to eq('9q9')
   end
   
-  it 'expand' do
+  it 'neighbors_bbox' do
     # geohash 9q9
-    bbox = GeohashHelpers.expand('9q9')
+    bbox = GeohashHelpers.neighbors_bbox('9q9')
     # ne = 9qf, -119.53125 39.375
     max_point = GeohashHelpers.decode_bbox('9qf').max_point
     # sw = 9q2
