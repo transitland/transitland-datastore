@@ -7,7 +7,6 @@
 #  url                                :string
 #  feed_format                        :string
 #  tags                               :hstore
-#  last_sha1                          :string
 #  last_fetched_at                    :datetime
 #  last_imported_at                   :datetime
 #  license_name                       :string
@@ -26,7 +25,6 @@
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
 #
 
-
 class FeedSerializer < ApplicationSerializer
   attributes :onestop_id,
              :url,
@@ -38,7 +36,6 @@ class FeedSerializer < ApplicationSerializer
              :license_use_without_attribution,
              :license_create_derived_product,
              :license_redistribute,
-             :last_sha1,
              :last_fetched_at,
              :last_imported_at,
              :created_at,

@@ -1,24 +1,22 @@
 # == Schema Information
 #
-# Table name: feed_imports
+# Table name: feed_version_imports
 #
 #  id                :integer          not null, primary key
-#  feed_id           :integer
-#  success           :boolean
-#  sha1              :string
-#  import_log        :text
-#  validation_report :text
+#  feed_version_id   :integer
 #  created_at        :datetime
 #  updated_at        :datetime
+#  success           :boolean
+#  import_log        :text
 #  exception_log     :text
+#  validation_report :text
 #
 # Indexes
 #
-#  index_feed_imports_on_created_at  (created_at)
-#  index_feed_imports_on_feed_id     (feed_id)
+#  index_feed_version_imports_on_feed_version_id  (feed_version_id)
 #
 
-class FeedImportSerializer < ApplicationSerializer
+class FeedVersionImportSerializer < ApplicationSerializer
   attributes :feed_onestop_id,
              :feed_url,
              :success,

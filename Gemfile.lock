@@ -118,6 +118,10 @@ GEM
       timers (>= 4.1.1)
     choice (0.2.0)
     chronic (0.10.2)
+    climate_control (0.0.3)
+      activesupport (>= 3.0)
+    cocaine (0.5.7)
+      climate_control (>= 0.0.3, < 1.0)
     coderay (1.1.0)
     coercible (1.0.0)
       descendants_tracker (~> 0.0.1)
@@ -170,6 +174,7 @@ GEM
       mime-types (>= 1.16, < 3)
     method_source (0.8.2)
     mime-types (2.6.2)
+    mimemagic (0.3.0)
     mini_portile (0.6.2)
     minitest (5.8.1)
     mock_redis (0.15.3)
@@ -188,6 +193,12 @@ GEM
       omniauth (~> 1.0)
     omniauth-osm (0.3.2)
       omniauth-oauth (~> 1.0)
+    paperclip (4.3.1)
+      activemodel (>= 3.2.0)
+      activesupport (>= 3.2.0)
+      cocaine (~> 0.5.5)
+      mime-types
+      mimemagic (= 0.3.0)
     pg (0.18.3)
     polyamorous (1.1.0)
       activerecord (>= 3.0)
@@ -385,6 +396,7 @@ DEPENDENCIES
   oj
   omniauth
   omniauth-osm
+  paperclip
   pg
   pry-byebug
   pry-rails

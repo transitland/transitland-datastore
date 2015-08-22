@@ -51,6 +51,9 @@ gem 'oj'
 # consuming other APIs
 gem 'faraday'
 
+# file attachments
+gem 'paperclip'
+
 # development tools
 gem 'better_errors', group: :development
 gem 'binding_of_caller', group: :development

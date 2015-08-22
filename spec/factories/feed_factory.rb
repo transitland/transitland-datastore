@@ -7,7 +7,6 @@
 #  url                                :string
 #  feed_format                        :string
 #  tags                               :hstore
-#  last_sha1                          :string
 #  last_fetched_at                    :datetime
 #  last_imported_at                   :datetime
 #  license_name                       :string
@@ -25,7 +24,6 @@
 #
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
 #
-
 
 FactoryGirl.define do
   factory :feed do

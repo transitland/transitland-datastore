@@ -7,7 +7,6 @@
 #  url                                :string
 #  feed_format                        :string
 #  tags                               :hstore
-#  last_sha1                          :string
 #  last_fetched_at                    :datetime
 #  last_imported_at                   :datetime
 #  license_name                       :string
@@ -26,12 +25,13 @@
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
 #
 
-require 'open-uri'
-
 class BaseFeed < ActiveRecord::Base
   self.abstract_class = true
 
   PER_PAGE = 50
+
+  has_many :feed_versions, dependent: :destroy
+  has_many :feed_version_imports
 
   extend Enumerize
   enumerize :feed_format, in: [:gtfs]
@@ -130,18 +130,19 @@ class Feed < BaseFeed
   def fetch_and_check_for_updated_version
     begin
       logger.info "Fetching feed #{onestop_id} from #{url}"
-      File.open(file_path, 'wb') do |file|
-        open(url) do |resp|
-          file.write(resp.read)
-        end
+      begin
+        feed_version = self.feed_versions.create(file: self.url)
+      rescue OpenURI::HTTPError => ex
+        logger.info 'Error downloading #{url}'
+        false
       end
 
-      if last_sha1 == file_sha1_hash
-        logger.info "File downloaded from #{url} has same sha1 hash as last imported version"
-        false
-      else
+      if feed_version.persisted?
         logger.info "File downloaded from #{url} has a new sha1 hash"
         true
+      else
+        logger.info "File downloaded from #{url} has same sha1 hash as last imported version (or another error fetching file)"
+        false
       end
     rescue
       logger.error "Error fetching feed ##{onestop_id}"
@@ -149,14 +150,6 @@ class Feed < BaseFeed
       logger.error $!.backtrace
       false
     end
-  end
-
-  def file_path
-    File.join(Figaro.env.transitland_feed_data_path, "#{onestop_id}.zip")
-  end
-
-  def file_sha1_hash
-    Digest::SHA1.file(file_path).hexdigest
   end
 
   def self.fetch_and_check_for_updated_version(feed_onestop_ids = [])
