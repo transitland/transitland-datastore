@@ -49,4 +49,26 @@ class FeedVersion < ActiveRecord::Base
     self.earliest_calendar_date ||= gtfs_file.calendars.map {|c| c.start_date}.min
     self.latest_calendar_date   ||= gtfs_file.calendars.map {|c| c.end_date}.max
   end
+
+  def read_gtfs_feed_info
+    temp_file_path = file.queued_for_write[:original].path
+    gtfs_file = GTFS::Source.build(temp_file_path, {strict: false})
+    begin
+      if gtfs_file.feed_infos.count > 0
+        feed_info = gtfs_file.feed_infos[0]
+        feed_version_tags = {
+          feed_publisher_name: feed_info.publisher_name,
+          feed_publisher_url:  feed_info.publisher_url,
+          feed_lang:           feed_info.lang,
+          feed_start_date:     feed_info.start_date,
+          feed_end_date:       feed_info.end_date,
+          feed_version:        feed_info.version
+        }
+        feed_version_tags.delete_if { |k, v| v.blank? }
+        self.tags = feed_version_tags
+      end
+    rescue GTFS::InvalidSourceException
+      return
+    end
+  end
 end
