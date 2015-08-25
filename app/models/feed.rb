@@ -132,9 +132,10 @@ class Feed < BaseFeed
       logger.info "Fetching feed #{onestop_id} from #{url}"
       begin
         feed_version = self.feed_versions.create(file: self.url)
-      rescue OpenURI::HTTPError => ex
-        logger.info 'Error downloading #{url}'
-        false
+      rescue OpenURI::HTTPError => exception
+        logger.error "Error downloading #{url}: #{exception}"
+        logger.error exception.backtrace
+        return false
       end
 
       if feed_version.persisted?
