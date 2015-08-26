@@ -58,6 +58,10 @@ class OnestopId
       self
     end
   end
+  
+  def to_s
+    [@entity_prefix, @geohash, @name].join(COMPONENT_SEPARATOR)
+  end
 
   def self.validate_onestop_id_string(onestop_id, expected_entity_type: nil)
     errors = []
