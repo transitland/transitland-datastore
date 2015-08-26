@@ -157,6 +157,28 @@ class Stop < BaseStop
     joins{operators_serving_stop.operator}.where{operators_serving_stop.operator_id == operator.id}
   }
 
+  def self.find_by_similarity(point, name, radius=100, threshold=0.75)
+    # Similarity search. Returns a score,stop tuple or nil.
+    # Class method, like other find_by methods.
+    where { 
+      # Find stops within radius
+      st_dwithin(geometry, point, radius) 
+    }.map { |stop| 
+      # TODO: instance method, compare against a second instance?
+      # Inverse distance in km
+      score_geom = 1 / (point.distance(stop[:geometry]) / 1000.0 + 1)
+      # Levenshtein distance as ratio of name length
+      score_text = 1 - (Text::Levenshtein.distance(stop.name, name) / [stop.name.size, name.size].max.to_f)
+      # Weighted average
+      [        
+        (score_geom * 0.5) + (score_text * 0.5),
+        stop
+      ]
+    }.select { |score,stop| 
+      score >= threshold 
+    }.sort.last
+  end
+
   before_save :clean_attributes
 
   if Figaro.env.auto_conflate_stops_with_osm.present? &&
@@ -188,6 +210,27 @@ class Stop < BaseStop
       stop_tags[:osm_way_id] = way_id
       update(tags: stop_tags)
     end
+  end
+  
+  include FromGTFS
+  def self.from_gtfs(entity)
+    # GTFS Constructor
+    point = GEOFACTORY.point(entity.lon, entity.lat)
+    geohash = GeohashHelpers.encode(point, precision=10)
+    onestop_id = OnestopId.new(
+      entity_prefix: 's', 
+      geohash: geohash, 
+      name: 'test'
+    )
+    stop = Stop.new(
+      name: entity.name, 
+      identifiers: [entity.id],
+      onestop_id: onestop_id.to_s,
+      timezone: entity.timezone,
+      geometry: point.to_s
+    ) 
+    # Copy over GTFS attributes to tags
+    stop
   end
 
   private
