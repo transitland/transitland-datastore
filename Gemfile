@@ -34,6 +34,9 @@ gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 gem 'json-schema'
 
+# text matching
+gem 'text'
+
 # authentication and authorization
 gem 'rack-cors', require: 'rack/cors'
 gem 'omniauth'
