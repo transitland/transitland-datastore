@@ -126,22 +126,22 @@ class GTFSGraph
 
     # Operators
     operators = []
-    @gtfs_by_id[:agencies].each do |k,e|
+    @feed.operators_in_feed.each do |oif| 
+      e = @gtfs_by_id[:agencies][oif['gtfs_agency_id']]
+      next unless e
       # Find: (child gtfs routes) to (tl routes)
       routes = children(e).map { |i| @gtfs_tl[i] }.flatten
       # Find: (tl routes) to (serves tl stops)
       stops = routes.map { |r| @tl_serves[r] }.reduce(:+)
-      # TODO:
-      # if feed.operators_in_feed.key?(e.id)
-      #  set onestop id manually
-      # end
       o = Operator.from_gtfs(e, stops, routes)
+      # Override Operator onestop_id
+      o.onestop_id = oif['onestop_id']
+      # Add identifiers
       tl_add_identifiers(o, e)
       tl_add_serves(o, routes)
+      # Add to found operators
       operators << o
-      # puts "Operator: #{o.onestop_id} / Name: #{o.name}"
     end
-    
     # Return operators
     operators
   end
@@ -166,9 +166,9 @@ class GTFSGraph
               operator: {
                 onestopId: entity.onestop_id,
                 name: entity.name,
-                identifiedBy: @tl_gtfs[entity].map(&:id),
+                identifiedBy: @tl_gtfs[entity].map { |i| "gtfs://#{@feed.onestop_id}/o/#{i.id}"},
+                geometry: entity.geometry,
                 tags: entity.tags || {}
-                # geometry: entity.geometry,
               }
             }
           }        
@@ -187,7 +187,7 @@ class GTFSGraph
               stop: {
                 onestopId: entity.onestop_id,
                 name: entity.name,
-                identifiedBy: @tl_gtfs[entity].map(&:id),
+                identifiedBy: @tl_gtfs[entity].map { |i| "gtfs://#{@feed.onestop_id}/s/#{i.id}"},
                 geometry: entity.geometry,
                 tags: entity.tags || {}
               }
@@ -208,7 +208,7 @@ class GTFSGraph
               route: {
                 onestopId: entity.onestop_id,
                 name: entity.name,
-                identifiedBy: @tl_gtfs[entity].map(&:id),
+                identifiedBy: @tl_gtfs[entity].map { |i| "gtfs://#{@feed.onestop_id}/r/#{i.id}"},
                 operatedBy: @tl_served_by[entity].map(&:onestop_id).first,
                 serves: @tl_serves[entity].map(&:onestop_id),
                 tags: entity.tags || {},
@@ -425,8 +425,10 @@ end
 
 
 if __FILE__ == $0
+  Feed.update_feeds_from_feed_registry
+  feed = Feed.find_by!(onestop_id: 'f-9q9-caltrain')
   filename = ARGV[0] || 'tmp/transitland-feed-data/f-9q9-caltrain.zip'
-  graph = GTFSGraph.new(filename)
+  graph = GTFSGraph.new(filename, feed)
   graph.load_graph
   operators = graph.load_tl
   graph.create_changeset operators
