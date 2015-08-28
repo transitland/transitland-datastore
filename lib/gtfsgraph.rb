@@ -1,6 +1,3 @@
-require 'gtfs'
-require 'Set'
-
 class GTFSGraph
   
   DAYS_OF_WEEK = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
