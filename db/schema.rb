@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150817150332) do
+ActiveRecord::Schema.define(version: 20150828192208) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -188,7 +188,6 @@ ActiveRecord::Schema.define(version: 20150817150332) do
     t.string   "url"
     t.string   "feed_format"
     t.hstore   "tags"
-    t.string   "operator_onestop_ids_in_feed",    default: [], array: true
     t.string   "last_sha1"
     t.datetime "last_fetched_at"
     t.datetime "last_imported_at"
@@ -199,6 +198,7 @@ ActiveRecord::Schema.define(version: 20150817150332) do
     t.string   "license_use_without_attribution"
     t.string   "license_create_derived_product"
     t.string   "license_redistribute"
+    t.hstore   "operators_in_feed",               array: true
   end
 
   add_index "feeds", ["onestop_id"], name: "index_feeds_on_onestop_id", using: :btree
