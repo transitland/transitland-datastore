@@ -1,7 +1,7 @@
 require 'gtfs'
 require 'Set'
 
-ActiveRecord::Base.logger = Logger.new(STDOUT)
+# ActiveRecord::Base.logger = Logger.new(STDOUT)
 
 class GTFSGraph
   
@@ -119,6 +119,7 @@ class GTFSGraph
   end
   
   def create_changeset(operators)
+    chunksize = 10
     operators = operators
     routes = operators.map { |i| @tl_serves[i] }.reduce(:+)
     stops = routes.map { |i| @tl_serves[i] }.reduce(:+)
@@ -127,74 +128,76 @@ class GTFSGraph
     changeset = Changeset.create()
     
     # Operators
-    ChangePayload.create!(
-      changeset: changeset, 
-      payload: {
-        changes: operators.map { |entity| 
-          {
-            action: action,
-            operator: {
-              onestopId: entity.onestop_id,
-              name: entity.name,
-              identifiedBy: @tl_gtfs[entity].map(&:id),
-              # geometry: entity.geometry,
-              # tags: entity.tags
+    operators.each_slice(chunksize).each do |chunk| 
+      ChangePayload.create!(
+        changeset: changeset, 
+        payload: {
+          changes: chunk.map { |entity| 
+            {
+              action: action,
+              operator: {
+                onestopId: entity.onestop_id,
+                name: entity.name,
+                identifiedBy: @tl_gtfs[entity].map(&:id),
+                # geometry: entity.geometry,
+                # tags: entity.tags
+              }
             }
-          }
-        }        
-      }
-    )
+          }        
+        }
+      )
+    end
 
     # Stops
-    ChangePayload.create!(
-      changeset: changeset, 
-      payload: {
-        changes: stops.map { |entity| 
-          {
-            action: action,
-            stop: {
-              onestopId: entity.onestop_id,
-              name: entity.name,
-              identifiedBy: @tl_gtfs[entity].map(&:id),
-              geometry: entity.geometry,
-              # tags: entity.tags
+    stops.each_slice(chunksize).each do |chunk|
+      ChangePayload.create!(
+        changeset: changeset, 
+        payload: {
+          changes: stops.map { |entity| 
+            {
+              action: action,
+              stop: {
+                onestopId: entity.onestop_id,
+                name: entity.name,
+                identifiedBy: @tl_gtfs[entity].map(&:id),
+                geometry: entity.geometry,
+                # tags: entity.tags
+              }
             }
-          }
-        }        
-      }
-    )
-
-    # Routes
-    ChangePayload.create!(
-      changeset: changeset, 
-      payload: {
-        changes: routes.map { |entity| 
-          {
-            action: action,
-            route: {
-              onestopId: entity.onestop_id,
-              name: entity.name,
-              identifiedBy: @tl_gtfs[entity].map(&:id),
-              operatedBy: @tl_served_by[entity].map(&:onestop_id).first,
-              serves: @tl_serves[entity].map(&:onestop_id),
-              # geometry: entity.geometry,
-              # tags: entity.tags
-            }
-          }
-        }        
-      }
-    )
-
-    changeset.apply!
-
-    return
-    
-    trip_chunks(1000).each do |trips|
-      puts "Trip chunk size: #{trips.size}"
-      # stop_pairs(trips) do |ssp|
-      #   puts ssp.inspect
-      # end
+          }        
+        }
+      )
     end
+    
+    # Routes
+    routes.each_slice(chunksize).each do |chunk|
+      ChangePayload.create!(
+        changeset: changeset, 
+        payload: {
+          changes: routes.map { |entity| 
+            {
+              action: action,
+              route: {
+                onestopId: entity.onestop_id,
+                name: entity.name,
+                identifiedBy: @tl_gtfs[entity].map(&:id),
+                operatedBy: @tl_served_by[entity].map(&:onestop_id).first,
+                serves: @tl_serves[entity].map(&:onestop_id),
+                # geometry: entity.geometry,
+                # tags: entity.tags
+              }
+            }
+          }        
+        }
+      )
+    end
+
+    trip_chunks(chunksize) do |trips|
+      puts "Trip chunk size: #{trips.size}"
+      ssps = stop_pairs(trips).to_a
+      puts "ssps: #{ssps.size}"
+    end
+    # changeset.apply!
     
   end
   
@@ -283,19 +286,18 @@ class GTFSGraph
     total = 0
     # Reverse sort trips
     trips = @trip_counter.sort_by { |k,v| -v }
-    trips.each do | k,v |
+    trips.each do |k,v|
       # puts "Current: #{current}, adding: #{v}"
       # puts "  total: #{total}, ret size: #{ret.size}"
       chunk << k
       current += v
       total += v
       if current > batchsize
-        ret.push(chunk)
+        yield chunk
         chunk = []
         current = 0
       end
     end
-    ret
   end
   
   def stop_pairs(trips)
