@@ -6,13 +6,13 @@ module HasAGeographicGeometry
 
     def self.convex_hull(entities, as: :geojson, projected: false)
       projected_geometries = entities.map { |e| e.geometry(as: :wkt, projected: true)}
-      geometry_collection = RGeo::Geographic.simple_mercator_factory.collection(projected_geometries)
+      geometry_collection = RGeo::Geographic.simple_mercator_factory.projection_factory.collection(projected_geometries)
       convex_hull = geometry_collection.convex_hull
 
       if projected == false
         convex_hull = RGeo::Feature.cast(convex_hull,
           factory: RGeo::Geographic.spherical_factory(srid: 4326),
-          project: false
+          project: true
         )
       end
 
@@ -42,8 +42,9 @@ module HasAGeographicGeometry
     rgeo_geometry = self.send(:read_attribute, :geometry)
 
     if projected
-      rgeo_geometry = RGeo::Feature.cast(rgeo_geometry,
-        factory: RGeo::Geographic.simple_mercator_factory,
+      rgeo_geometry = RGeo::Feature.cast(
+        rgeo_geometry,
+        factory: RGeo::Geographic.simple_mercator_factory.projection_factory,
         project: true
       )
     end
