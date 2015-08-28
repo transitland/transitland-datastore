@@ -38,7 +38,7 @@ end
 class Stop < BaseStop
   self.table_name_prefix = 'current_'
   
-  GEOHASH_PRECISION = 5
+  GEOHASH_PRECISION = 10
 
   include HasAOnestopId
   include IsAnEntityWithIdentifiers
@@ -168,14 +168,11 @@ class Stop < BaseStop
     # Similarity search. Returns a score,stop tuple or nil.
     other = Stop.new(name: name, geometry: point.to_s)
     # Class method, like other find_by methods.
-    where { 
-      # Find stops within radius
-      st_dwithin(geometry, point, radius) 
-    }.map { |stop| 
-      [stop.similarity(other), stop]
-    }.select { |score,stop| 
-      score >= threshold 
-    }.sort.last
+    where { st_dwithin(geometry, point, radius) 
+    }.map { |stop|  [stop, stop.similarity(other)]
+    }.select { |stop, score|  score >= threshold 
+    }.sort_by { |stop, score| score 
+    }.last
   end
   
   def similarity(other)
