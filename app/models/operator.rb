@@ -70,7 +70,7 @@ class Operator < BaseOperator
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
-    virtual_attributes: [:serves, :does_not_serve, :identified_by, :not_identified_by]
+    virtual_attributes: [:serves, :does_not_serve, :identified_by, :not_identified_by, :imported_from_feed_onestop_id]
   })
   def self.after_create_making_history(created_model, changeset)
     OperatorRouteStopRelationship.manage_multiple(
@@ -102,6 +102,10 @@ class Operator < BaseOperator
     end
     return true
   end
+    
+  def imported_from_feed_onestop_id=(value)
+    self.feed = Feed.find_by!(onestop_id: value)
+  end
 
   has_many :operators_serving_stop
   has_many :stops, through: :operators_serving_stop
@@ -130,11 +134,12 @@ class Operator < BaseOperator
     operator[:geometry] = geometry
     # Copy over GTFS attributes to tags
     operator.tags ||= {}
-    operator.tags[:agency_url] = entity.url
     operator.tags[:agency_phone] = entity.phone
     operator.tags[:agency_lang] = entity.lang
     operator.tags[:agency_fare_url] = entity.fare_url
     operator.tags[:agency_id] = entity.id
+    operator.timezone = entity.timezone
+    operator.website = entity.url
     operator
   end
   

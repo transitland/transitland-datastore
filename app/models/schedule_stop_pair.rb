@@ -136,12 +136,16 @@ class ScheduleStopPair < BaseScheduleStopPair
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :relationship,
-    virtual_attributes: [:origin_onestop_id, :destination_onestop_id, :route_onestop_id]
+    virtual_attributes: [:origin_onestop_id, :destination_onestop_id, :route_onestop_id, :imported_from_feed_onestop_id]
   })
   def self.find_by_attributes(attrs = {})
     if attrs[:id].present?
       find(attrs[:id])
     end
+  end
+  
+  def imported_from_feed_onestop_id=(value)
+    self.feed = Feed.find_by!(onestop_id: value)
   end
 
   private

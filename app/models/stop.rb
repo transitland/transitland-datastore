@@ -71,7 +71,7 @@ class Stop < BaseStop
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
-    virtual_attributes: [:served_by, :not_served_by, :identified_by, :not_identified_by]
+    virtual_attributes: [:served_by, :not_served_by, :identified_by, :not_identified_by, :imported_from_feed_onestop_id]
   })
   def self.after_create_making_history(created_model, changeset)
     OperatorRouteStopRelationship.manage_multiple(
@@ -102,6 +102,10 @@ class Stop < BaseStop
       route_serving_stop.destroy_making_history(changeset: changeset)
     end
     return true
+  end
+  
+  def imported_from_feed_onestop_id=(value)
+    self.feed = Feed.find_by!(onestop_id: value)
   end
 
   # Operators serving this stop
@@ -235,7 +239,6 @@ class Stop < BaseStop
     stop = Stop.new(
       name: entity.name, 
       onestop_id: onestop_id.to_s,
-      timezone: entity.timezone,
       identifiers: [entity.id],
       geometry: point.to_s
     ) 
@@ -245,6 +248,7 @@ class Stop < BaseStop
     stop.tags[:stop_desc] = entity.desc
     stop.tags[:stop_url] = entity.url
     stop.tags[:zone_id] = entity.zone_id
+    stop.timezone = entity.timezone
     stop
   end
   
