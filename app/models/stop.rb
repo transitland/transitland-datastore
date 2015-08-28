@@ -239,6 +239,11 @@ class Stop < BaseStop
       geometry: point.to_s
     ) 
     # Copy over GTFS attributes to tags
+    stop.tags ||= {}
+    stop.tags[:wheelchair_boarding] = entity.wheelchair_boarding
+    stop.tags[:stop_desc] = entity.desc
+    stop.tags[:stop_url] = entity.url
+    stop.tags[:zone_id] = entity.zone_id
     stop
   end
   
