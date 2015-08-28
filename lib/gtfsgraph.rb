@@ -220,20 +220,20 @@ class GTFSGraph
       )
     end
 
-    # trip_chunks(chunksize) do |trips|
-    #   ssps = stop_pairs(trips)
-    #   ChangePayload.create!(
-    #     changeset: changeset,
-    #     payload: {
-    #       changes: ssps.map { |entity|
-    #         {
-    #           action: action,
-    #           scheduleStopPair: entity
-    #         }
-    #       }
-    #     }
-    #   )
-    # end
+    trip_chunks(chunksize) do |trips|
+      ssps = stop_pairs(trips)
+      ChangePayload.create!(
+        changeset: changeset,
+        payload: {
+          changes: ssps.map { |entity|
+            {
+              action: action,
+              scheduleStopPair: entity
+            }
+          }
+        }
+      )
+    end
     
     # Apply changeset
     changeset.apply!
