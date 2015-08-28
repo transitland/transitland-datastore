@@ -157,30 +157,35 @@ class Stop < BaseStop
     joins{operators_serving_stop.operator}.where{operators_serving_stop.operator_id == operator.id}
   }
 
+  # Similarity search 
   def self.find_by_similarity(point, name, radius=100, threshold=0.75)
     # Similarity search. Returns a score,stop tuple or nil.
+    other = Stop.new(name: name, geometry: point.to_s)
     # Class method, like other find_by methods.
     where { 
       # Find stops within radius
       st_dwithin(geometry, point, radius) 
     }.map { |stop| 
-      # TODO: instance method, compare against a second instance?
-      # Inverse distance in km
-      score_geom = 1 / (point.distance(stop[:geometry]) / 1000.0 + 1)
-      # Levenshtein distance as ratio of name length
-      score_text = 1 - (Text::Levenshtein.distance(stop.name, name) / [stop.name.size, name.size].max.to_f)
-      # Weighted average
-      [        
-        (score_geom * 0.5) + (score_text * 0.5),
-        stop
-      ]
+      [stop.similarity(other), stop]
     }.select { |score,stop| 
       score >= threshold 
     }.sort.last
   end
+  
+  def similarity(other)
+    # TODO: instance method, compare against a second instance?
+    # Inverse distance in km
+    score_geom = 1 / (self[:geometry].distance(other[:geometry]) / 1000.0 + 1)
+    # Levenshtein distance as ratio of name length
+    score_text = 1 - (Text::Levenshtein.distance(self.name, other.name) / [self.name.size, other.name.size].max.to_f)
+    # Weighted average
+    (score_geom * 0.5) + (score_text * 0.5)
+  end
 
+  # Before save
   before_save :clean_attributes
 
+  # Conflate with OSM
   if Figaro.env.auto_conflate_stops_with_osm.present? &&
      Figaro.env.auto_conflate_stops_with_osm == 'true'
     after_save :queue_conflate_with_osm
@@ -212,27 +217,29 @@ class Stop < BaseStop
     end
   end
   
+  
+  ##### FromGTFS ####
   include FromGTFS
   def self.from_gtfs(entity)
     # GTFS Constructor
-    point = GEOFACTORY.point(entity.lon, entity.lat)
+    point = Stop::GEOFACTORY.point(entity.lon, entity.lat)
     geohash = GeohashHelpers.encode(point, precision=10)
     onestop_id = OnestopId.new(
       entity_prefix: 's', 
       geohash: geohash, 
-      name: 'test'
+      name: entity.name.downcase.gsub(/\W+/, '')
     )
     stop = Stop.new(
       name: entity.name, 
-      identifiers: [entity.id],
       onestop_id: onestop_id.to_s,
       timezone: entity.timezone,
+      identifiers: [entity.id],
       geometry: point.to_s
     ) 
     # Copy over GTFS attributes to tags
     stop
   end
-
+  
   private
 
   def clean_attributes
