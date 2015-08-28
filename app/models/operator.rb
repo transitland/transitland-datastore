@@ -18,10 +18,12 @@
 #  country                            :string
 #  state                              :string
 #  metro                              :string
+#  feed_id                            :integer
 #
 # Indexes
 #
 #  #c_operators_cu_in_changeset_id_index   (created_or_updated_in_changeset_id)
+#  index_current_operators_on_feed_id      (feed_id)
 #  index_current_operators_on_identifiers  (identifiers)
 #  index_current_operators_on_onestop_id   (onestop_id) UNIQUE
 #  index_current_operators_on_tags         (tags)
@@ -34,6 +36,8 @@ class BaseOperator < ActiveRecord::Base
   PER_PAGE = 50
 
   attr_accessor :serves, :does_not_serve
+
+  belongs_to :feed
 
   validates :website, format: { with: URI.regexp }, if: Proc.new { |operator| operator.website.present? }
 end

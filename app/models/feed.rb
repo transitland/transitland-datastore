@@ -35,6 +35,11 @@ class Feed < ActiveRecord::Base
 
   has_many :feed_imports, -> { order 'created_at DESC' }, dependent: :destroy
 
+  has_many :operators
+  has_many :stops
+  has_many :routes
+  has_many :schedule_stop_pairs
+
   validates :url, presence: true
   validates :url, format: { with: URI.regexp }, if: Proc.new { |feed| feed.url.present? }
   validates :license_url, format: { with: URI.regexp }, if: Proc.new { |feed| feed.license_url.present? }

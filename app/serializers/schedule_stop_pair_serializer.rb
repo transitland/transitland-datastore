@@ -35,6 +35,7 @@
 #  shape_dist_traveled                :float
 #  origin_timezone                    :string
 #  destination_timezone               :string
+#  feed_id                            :integer
 #
 # Indexes
 #
@@ -45,6 +46,7 @@
 #  c_ssp_service_end_date                           (service_end_date)
 #  c_ssp_service_start_date                         (service_start_date)
 #  c_ssp_trip                                       (trip)
+#  index_current_schedule_stop_pairs_on_feed_id     (feed_id)
 #  index_current_schedule_stop_pairs_on_updated_at  (updated_at)
 #
 
