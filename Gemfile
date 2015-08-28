@@ -18,7 +18,7 @@ gem 'figaro'
 
 # data stores
 gem 'pg'
-gem 'activerecord-postgis-adapter', '3.0.0.beta4'
+gem 'activerecord-postgis-adapter', '3.0.0'
 gem 'redis-rails'
 
 # background processing

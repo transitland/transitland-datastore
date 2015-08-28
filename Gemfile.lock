@@ -47,9 +47,9 @@ GEM
       activemodel (= 4.2.3)
       activesupport (= 4.2.3)
       arel (~> 6.0)
-    activerecord-postgis-adapter (3.0.0.beta4)
+    activerecord-postgis-adapter (3.0.0)
       activerecord (~> 4.2)
-      rgeo-activerecord (~> 2.1)
+      rgeo-activerecord (~> 4.0)
     activesupport (4.2.3)
       i18n (~> 0.7)
       json (~> 1.7, >= 1.7.7)
@@ -241,7 +241,7 @@ GEM
       mime-types (>= 1.16, < 3.0)
       netrc (~> 0.7)
     rgeo (0.3.20)
-    rgeo-activerecord (2.1.1)
+    rgeo-activerecord (4.0.0)
       activerecord (~> 4.2)
       rgeo (~> 0.3)
     rgeo-geojson (0.3.1)
@@ -334,7 +334,7 @@ PLATFORMS
 
 DEPENDENCIES
   active_model_serializers (= 0.9.3)
-  activerecord-postgis-adapter (= 3.0.0.beta4)
+  activerecord-postgis-adapter (= 3.0.0)
   airborne
   annotate
   aws-sdk
