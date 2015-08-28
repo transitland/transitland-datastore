@@ -58,6 +58,10 @@ describe Stop do
       stop = create(:stop, geometry: { type: 'Point', coordinates: [-122.433416, 37.732525] })
       expect(stop.geometry(as: :wkt).to_s).to eq('POINT (-122.433416 37.732525)')
     end
+
+    it 'can provide a centroid when geometry is a polygon' do
+      # TODO: rewrite this functionality
+    end
   end
 
   context 'served_by' do
