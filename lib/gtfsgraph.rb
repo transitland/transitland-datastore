@@ -1,6 +1,7 @@
 class GTFSGraph
   
   DAYS_OF_WEEK = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+  CHUNKSIZE = 1000
   
   def initialize(filename, feed=nil)
     # GTFS Graph / TransitLand wrapper
@@ -14,6 +15,8 @@ class GTFSGraph
     # TL <-> GTFS mapping; One to many
     @tl_gtfs = Hash.new { |h,k| h[k] = Set.new }
     @gtfs_tl = {}
+    # TL Indexed by Onestop ID
+    @tl_by_onestop_id = {}
 
     # TODO: Move these to GTFS Library...
     # GTFS entities indexed by type and id
@@ -82,6 +85,7 @@ class GTFSGraph
 
   def load_tl
     # Clear
+    @tl_by_onestop_id.clear
     @tl_gtfs.clear
     @tl_served_by.clear
     @tl_serves.clear
@@ -93,34 +97,51 @@ class GTFSGraph
     @gtfs_by_id[:stops].each do |k,e|
       stations[stop(e.parent_station || e.id)] << e
     end
-    # puts "Stops: #{@gtfs_by_id[:stops].size} / Merged: #{stations.size}" 
     
     # Merge station/platforms with Datastore Stops.
     stations.each do |station,platforms|
-      stop = Stop.from_gtfs(station) # used for find_by
-      score, stop = Stop.find_by_similarity(stop[:geometry], stop.name, radius=1000, threshold=0.6)
+      # Temp stop to get geometry and name.
+      stop = Stop.from_gtfs(station) 
+      # Search by similarity
+      stop, score = Stop.find_by_similarity(stop[:geometry], stop.name, radius=1000, threshold=0.6)
+      # ... or create stop from GTFS
       stop ||= Stop.from_gtfs(station)
+      # ... check if Stop exists, or another local Stop, or new.
+      stop = Stop.find_by(onestop_id: stop.onestop_id) || @tl_by_onestop_id[stop.onestop_id] || stop      
+      # Add identifiers and references
       tl_add_identifiers(stop, [station]+platforms)
-      # puts "Stop: #{stop.onestop_id} / Name: #{station.name}"
-      # puts "  Score: #{score} / Found: #{stop.name}"
+      # Cache stop
+      @tl_by_onestop_id[stop.onestop_id] = stop
+      # debug "Stop: #{stop.onestop_id} / Name: #{station.name}"
+      # debug "  Score: #{score} / Found: #{stop.name}"
     end
     
     # Routes
     @gtfs_by_id[:routes].each do |k,e|
       # Find: (child gtfs trips) to (child gtfs stops) to (tl stops)
       stops = children(e).map { |i| children(i) }.flatten.uniq.map { |i| @gtfs_tl[i] }
-      r = Route.from_gtfs(e, stops)
-      # Find all shapes...
-      r[:geometry] = Route::GEOFACTORY.multi_line_string(
+      # Find all unique shapes, and build geometry.
+      geometry = Route::GEOFACTORY.multi_line_string(
         children(e).map { |i| i.shape_id }.uniq.map { |i| @shape_by_id[i] }
       )
-      tl_add_identifiers(r, e)
-      tl_add_serves(r, stops)
-      # puts "Route: #{r.onestop_id} / Name: #{r.name}"
+      # Search by similarity
+      # TODO: route similarity... 
+      # ... or create route from GTFS
+      route = Route.from_gtfs(e, stops)
+      # ... check if Route exists, or another local Route, or new.
+      route = Route.find_by(onestop_id: route.onestop_id) || @tl_by_onestop_id[route.onestop_id] || route
+      # Set geometry
+      route[:geometry] = geometry
+      # Add identifiers and references
+      tl_add_identifiers(route, e)
+      tl_add_serves(route, stops)
+      # Cache route
+      @tl_by_onestop_id[route.onestop_id] = route
+      # debug "Route: #{route.onestop_id} / Name: #{route.name}"
     end
 
     # Operators
-    operators = []
+    operators = Set.new
     @feed.operators_in_feed.each do |oif| 
       e = @gtfs_by_id[:agencies][oif['gtfs_agency_id']]
       next unless e
@@ -128,21 +149,26 @@ class GTFSGraph
       routes = children(e).map { |i| @gtfs_tl[i] }.flatten
       # Find: (tl routes) to (serves tl stops)
       stops = routes.map { |r| @tl_serves[r] }.reduce(:+)
-      o = Operator.from_gtfs(e, stops, routes)
-      # Override Operator onestop_id
-      o.onestop_id = oif['onestop_id']
+      # Search by similarity
+      # --- done for operators ---
+      # ... or create Operator from GTFS
+      operator = Operator.from_gtfs(e, stops, routes)      
+      operator.onestop_id = oif['onestop_id'] # Override Onestop ID
+      # ... or check if Operator exists, or another local Operator, or new.
+      operator = Operator.find_by(onestop_id: operator.onestop_id) || @tl_by_onestop_id[operator.onestop_id] || operator      
       # Add identifiers
-      tl_add_identifiers(o, e)
-      tl_add_serves(o, routes)
+      tl_add_identifiers(operator, e)
+      tl_add_serves(operator, routes)
+      # Cache Operator
+      @tl_by_onestop_id[operator.onestop_id] = operator
       # Add to found operators
-      operators << o
+      operators << operator
     end
     # Return operators
     operators
   end
   
   def create_changeset(operators)
-    chunksize = 1000
     operators = operators
     routes = operators.map { |i| @tl_serves[i] }.reduce(:+)
     stops = routes.map { |i| @tl_serves[i] }.reduce(:+)
@@ -151,7 +177,8 @@ class GTFSGraph
     changeset = Changeset.create()
     
     # Operators
-    operators.each_slice(chunksize).each do |chunk| 
+    operators.each_slice(CHUNKSIZE).each do |chunk|
+      debug "Operators: #{chunk.size}"
       ChangePayload.create!(
         changeset: changeset, 
         payload: {
@@ -172,11 +199,12 @@ class GTFSGraph
     end
 
     # Stops
-    stops.each_slice(chunksize).each do |chunk|
+    stops.each_slice(CHUNKSIZE).each do |chunk|
+      debug "Stops: #{stops.size}"
       ChangePayload.create!(
         changeset: changeset, 
         payload: {
-          changes: stops.map { |entity| 
+          changes: chunk.map { |entity| 
             {
               action: action,
               stop: {
@@ -193,17 +221,18 @@ class GTFSGraph
     end
 
     # Routes
-    routes.each_slice(chunksize).each do |chunk|
+    routes.each_slice(CHUNKSIZE).each do |chunk|
+      debug "Routes: #{routes.size}"
       ChangePayload.create!(
         changeset: changeset, 
         payload: {
-          changes: routes.map { |entity| 
+          changes: chunk.map { |entity| 
             {
               action: action,
               route: {
                 onestopId: entity.onestop_id,
                 name: entity.name,
-                identifiedBy: @tl_gtfs[entity].map { |i| "gtfs://#{@feed.onestop_id}/r/#{i.id}"},
+                identifiedBy: @tl_gtfs[entity].map { |i| "gtfs://#{@feed.onestop_id}/r/#{i.id}" },
                 operatedBy: @tl_served_by[entity].map(&:onestop_id).first,
                 serves: @tl_serves[entity].map(&:onestop_id),
                 tags: entity.tags || {},
@@ -215,12 +244,14 @@ class GTFSGraph
       )
     end
 
-    trip_chunks(chunksize) do |trips|
-      ssps = stop_pairs(trips)
+    trip_chunks(CHUNKSIZE) do |trips|
+      debug "Trip chunk: #{trips.size} trips"
+      chunk = stop_pairs(trips)
+      debug "  Stop pairs: #{chunk.size}"
       ChangePayload.create!(
         changeset: changeset,
         payload: {
-          changes: ssps.map { |entity|
+          changes: chunk.map { |entity|
             {
               action: action,
               scheduleStopPair: entity
@@ -231,8 +262,8 @@ class GTFSGraph
     end
     
     # Apply changeset
-    changeset.apply!
-    
+    puts "Apply"
+    changeset.apply!    
   end
   
   def agency(id)
@@ -256,6 +287,10 @@ class GTFSGraph
   end
     
   private
+  
+  def debug(msg)
+    puts msg
+  end
   
   def parents(entity, depth=1)
     # Return the parents of an entity
@@ -317,8 +352,8 @@ class GTFSGraph
     # Reverse sort trips
     trips = @trip_counter.sort_by { |k,v| -v }
     trips.each do |k,v|
-      # puts "Current: #{current}, adding: #{v}"
-      # puts "  total: #{total}, ret size: #{ret.size}"
+      # debug "Current: #{current}, adding: #{v}"
+      # debug "  total: #{total}, ret size: #{ret.size}"
       chunk << k
       current += v
       total += v
@@ -420,10 +455,12 @@ end
 
 
 if __FILE__ == $0
-  ActiveRecord::Base.logger = Logger.new(STDOUT)
+  # ActiveRecord::Base.logger = Logger.new(STDOUT)
+  feedid = ARGV[0] || 'f-9q9-caltrain'
+  filename = ARGV[1] || "tmp/transitland-feed-data/#{feedid}.zip"
+  ######
   Feed.update_feeds_from_feed_registry
-  feed = Feed.find_by!(onestop_id: 'f-9q9-caltrain')
-  filename = ARGV[0] || 'tmp/transitland-feed-data/f-9q9-caltrain.zip'
+  feed = Feed.find_by!(onestop_id: feedid)
   graph = GTFSGraph.new(filename, feed)
   graph.load_graph
   operators = graph.load_tl
