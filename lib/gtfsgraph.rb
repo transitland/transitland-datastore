@@ -1,8 +1,6 @@
 require 'gtfs'
 require 'Set'
 
-ActiveRecord::Base.logger = Logger.new(STDOUT)
-
 class GTFSGraph
   
   DAYS_OF_WEEK = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
@@ -425,6 +423,7 @@ end
 
 
 if __FILE__ == $0
+  ActiveRecord::Base.logger = Logger.new(STDOUT)
   Feed.update_feeds_from_feed_registry
   feed = Feed.find_by!(onestop_id: 'f-9q9-caltrain')
   filename = ARGV[0] || 'tmp/transitland-feed-data/f-9q9-caltrain.zip'
