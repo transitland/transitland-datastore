@@ -112,6 +112,7 @@ class Operator < BaseOperator
   def self.from_gtfs(entity, stops, routes)
     # GTFS Constructor
     geohash = GeohashHelpers.fit(stops.map { |i| i[:geometry] })
+    geometry = Operator.convex_hull(stops, as: :wkt, projected: true)
     onestop_id = OnestopId.new(
       entity_prefix: 'o', 
       geohash: geohash, 
@@ -120,9 +121,9 @@ class Operator < BaseOperator
     operator = Operator.new(
       name: entity.name, 
       onestop_id: onestop_id.to_s,
-      # identifiers: [entity.id],
-      # geometry: 
+      identifiers: [entity.id]
     ) 
+    operator[:geometry] = geometry
     # Copy over GTFS attributes to tags
     operator.tags ||= {}
     operator.tags[:agency_url] = entity.url
