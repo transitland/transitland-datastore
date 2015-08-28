@@ -118,6 +118,28 @@ class Route < BaseRoute
       raise ArgumentError.new('must provide an Operator model or a Onestop ID')
     end
   }
+
+  ##### FromGTFS ####
+  include FromGTFS
+  def self.from_gtfs(entity, stops)
+    # GTFS Constructor
+    geohash = GeohashHelpers.fit(stops.map { |i| i[:geometry] })
+    name = entity.short_name || entity.long_name
+    onestop_id = OnestopId.new(
+      entity_prefix: 'r',
+      geohash: geohash,
+      name: name.downcase.gsub(/\W+/, '')
+    )
+    route = Route.new(
+      name: name,
+      onestop_id: onestop_id.to_s,
+      identifiers: [entity.id],
+      # geometry: 
+    )
+    # Copy over GTFS attributes to tags
+    route
+  end
+  
 end
 
 class OldRoute < BaseRoute
