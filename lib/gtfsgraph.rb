@@ -108,6 +108,8 @@ class GTFSGraph
       stop ||= Stop.from_gtfs(station)
       # ... check if Stop exists, or another local Stop, or new.
       stop = Stop.find_by(onestop_id: stop.onestop_id) || @tl_by_onestop_id[stop.onestop_id] || stop      
+      # TODO: Stop Timezone
+      # stop.timezone = 
       # Add identifiers and references
       tl_add_identifiers(stop, [station]+platforms)
       # Cache stop
@@ -189,6 +191,7 @@ class GTFSGraph
                 onestopId: entity.onestop_id,
                 name: entity.name,
                 identifiedBy: @tl_gtfs[entity].map { |i| "gtfs://#{@feed.onestop_id}/o/#{i.id}"},
+                importedFromFeedOnestopId: @feed.onestop_id,
                 geometry: entity.geometry,
                 tags: entity.tags || {}
               }
@@ -211,6 +214,7 @@ class GTFSGraph
                 onestopId: entity.onestop_id,
                 name: entity.name,
                 identifiedBy: @tl_gtfs[entity].map { |i| "gtfs://#{@feed.onestop_id}/s/#{i.id}"},
+                importedFromFeedOnestopId: @feed.onestop_id,
                 geometry: entity.geometry,
                 tags: entity.tags || {}
               }
@@ -233,6 +237,7 @@ class GTFSGraph
                 onestopId: entity.onestop_id,
                 name: entity.name,
                 identifiedBy: @tl_gtfs[entity].map { |i| "gtfs://#{@feed.onestop_id}/r/#{i.id}" },
+                importedFromFeedOnestopId: @feed.onestop_id,
                 operatedBy: @tl_served_by[entity].map(&:onestop_id).first,
                 serves: @tl_serves[entity].map(&:onestop_id),
                 tags: entity.tags || {},
@@ -422,7 +427,8 @@ class GTFSGraph
       drop_off_type: origin.drop_off_type.to_i,
       pickup_type: origin.pickup_type.to_i,
       # timepoint: origin.timepoint.to_i,
-      shape_dist_traveled: origin.shape_dist_traveled.to_f
+      shape_dist_traveled: origin.shape_dist_traveled.to_f,
+      importedFromFeedOnestopId: @feed.onestop_id,      
     }
     ssp.update(@service_by_id[trip.service_id])
     ssp
