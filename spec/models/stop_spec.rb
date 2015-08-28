@@ -62,6 +62,27 @@ describe Stop do
     it 'can provide a centroid when geometry is a polygon' do
       # TODO: rewrite this functionality
     end
+
+    it 'can compute a convex hull around multiple stops' do
+      # using similar points to http://turfjs.org/static/docs/module-turf_convex.html
+      s1 = build(:stop, geometry: { type: 'Point', coordinates: [10.195312, 43.755225] })
+      s2 = build(:stop, geometry: { type: 'Point', coordinates: [10.404052, 43.8424511] })
+      s3 = build(:stop, geometry: { type: 'Point', coordinates: [10.579833, 43.659924] })
+      s4 = build(:stop, geometry: { type: 'Point', coordinates: [10.360107, 43.516688] })
+      s5 = build(:stop, geometry: { type: 'Point', coordinates: [10.14038, 43.588348] })
+      s6 = build(:stop, geometry: { type: 'Point', coordinates: [10.255312, 43.605225] })
+      s7 = build(:stop, geometry: { type: 'Point', coordinates: [10.394439, 43.902839] })
+
+      unprojected_convex_hull = Stop.convex_hull([s1,s2,s3,s4,s5,s6,s7], as: :wkt)
+      expect(unprojected_convex_hull.exterior_ring.num_points).to eq 6
+
+      projected_convex_hull = Stop.convex_hull([s1,s2,s3,s4,s5,s6,s7], as: :wkt, projected: true)
+      [s1,s2,s3,s4,s5,s6,s7].each do |stop|
+        touches = stop.geometry(as: :wkt, projected: true).touches?(projected_convex_hull)
+        within = stop.geometry(as: :wkt, projected: true).within?(projected_convex_hull)
+        expect(touches || within).to eq true
+      end
+    end
   end
 
   context 'served_by' do
