@@ -106,6 +106,27 @@ class Operator < BaseOperator
   has_many :routes_serving_stop, through: :routes
 
   validates :name, presence: true
+  
+  ##### FromGTFS ####
+  include FromGTFS
+  def self.from_gtfs(entity, stops, routes)
+    # GTFS Constructor
+    geohash = GeohashHelpers.fit(stops.map { |i| i[:geometry] })
+    onestop_id = OnestopId.new(
+      entity_prefix: 'o', 
+      geohash: geohash, 
+      name: entity.name.downcase.gsub(/\W+/, '')
+    )
+    operator = Operator.new(
+      name: entity.name, 
+      onestop_id: onestop_id.to_s,
+      # identifiers: [entity.id],
+      # geometry: 
+    ) 
+    # Copy over GTFS attributes to tags
+    operator
+  end
+  
 end
 
 class OldOperator < BaseOperator
