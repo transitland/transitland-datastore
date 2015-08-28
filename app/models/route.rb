@@ -137,6 +137,14 @@ class Route < BaseRoute
       # geometry: 
     )
     # Copy over GTFS attributes to tags
+    vehicles = ['tram', 'metro', 'rail', 'bus', 'ferry', 'cablecar', 'gondola', 'funicalar']
+    route.tags ||= {}
+    route.tags[:vehicle_type] = vehicles[entity.type.to_i]
+    route.tags[:route_long_name] = entity.long_name
+    route.tags[:route_desc] = entity.desc
+    route.tags[:route_url] = entity.url
+    route.tags[:route_color] = entity.color
+    route.tags[:route_text_color] = entity.text_color
     route
   end
   
