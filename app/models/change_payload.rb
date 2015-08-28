@@ -34,6 +34,9 @@ class ChangePayload < ActiveRecord::Base
   JSON::Validator.register_format_validator('stop-onestop-id', -> (onestop_id) {
     onestop_id_format_proc.call(onestop_id, 'stop')
   })
+  JSON::Validator.register_format_validator('feed-onestop-id', -> (onestop_id) {
+    onestop_id_format_proc.call(onestop_id, 'feed')
+  })  
 
   def apply!
     (payload_as_ruby_hash[:changes] || []).each do |change|
