@@ -124,6 +124,12 @@ class Operator < BaseOperator
       # geometry: 
     ) 
     # Copy over GTFS attributes to tags
+    operator.tags ||= {}
+    operator.tags[:agency_url] = entity.url
+    operator.tags[:agency_phone] = entity.phone
+    operator.tags[:agency_lang] = entity.lang
+    operator.tags[:agency_fare_url] = entity.fare_url
+    operator.tags[:agency_id] = entity.id
     operator
   end
   
