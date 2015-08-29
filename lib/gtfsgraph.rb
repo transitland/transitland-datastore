@@ -41,7 +41,7 @@ class GTFSGraph
     @trip_counter.clear
     
     # Load GTFS agencies, routes, stops, trips
-    debug "  agencies, routes, stops, trips"
+    debug "  core"
     @gtfs.agencies.each { |e| @gtfs_by_id[:agencies][e.id] = e }
     @gtfs.routes.each { |e| @gtfs_by_id[:routes][e.id] = e }
     @gtfs.stops.each { |e| @gtfs_by_id[:stops][e.id] = e }
@@ -124,8 +124,8 @@ class GTFSGraph
       tl_add_identifiers(stop, [station]+platforms)
       # Cache stop
       @tl_by_onestop_id[stop.onestop_id] = stop
-      # debug "Stop: #{stop.onestop_id} / Name: #{station.name}"
-      # debug "  Score: #{score} / Found: #{stop.name}"
+      debug "    #{stop.onestop_id}: #{stop.name}"
+      #debug "   search: #{station.name} = #{'%0.2f'%score.to_f}"
     end
     
     # Routes
@@ -133,6 +133,8 @@ class GTFSGraph
     @gtfs_by_id[:routes].each do |k,e|
       # Find: (child gtfs trips) to (child gtfs stops) to (tl stops)
       stops = children(e).map { |i| children(i) }.flatten.uniq.map { |i| @gtfs_tl[i] }
+      # Skip Route if no Stops
+      next if stops.empty?
       # Find all unique shapes, and build geometry.
       geometry = Route::GEOFACTORY.multi_line_string(
         children(e).map { |i| i.shape_id }.uniq.map { |i| @shape_by_id[i] }
@@ -150,7 +152,7 @@ class GTFSGraph
       tl_add_serves(route, stops)
       # Cache route
       @tl_by_onestop_id[route.onestop_id] = route
-      # debug "Route: #{route.onestop_id} / Name: #{route.name}"
+      debug "    #{route.onestop_id}: #{route.name}"
     end
 
     # Operators
@@ -158,13 +160,14 @@ class GTFSGraph
     operators = Set.new
     @feed.operators_in_feed.each do |oif| 
       e = @gtfs_by_id[:agencies][oif['gtfs_agency_id']]
+      # Skip Operator if not found
       next unless e
       # Find: (child gtfs routes) to (tl routes)
-      routes = children(e).map { |i| @gtfs_tl[i] }.flatten
+      routes = children(e).map { |i| @gtfs_tl[i] }.select { |i| i }.flatten
       # Find: (tl routes) to (serves tl stops)
       stops = routes.map { |r| @tl_serves[r] }.reduce(:+)
       # Search by similarity
-      # --- done for operators ---
+      # --- skip ---
       # ... or create Operator from GTFS
       operator = Operator.from_gtfs(e, stops, routes)      
       operator.onestop_id = oif['onestop_id'] # Override Onestop ID
@@ -177,6 +180,7 @@ class GTFSGraph
       @tl_by_onestop_id[operator.onestop_id] = operator
       # Add to found operators
       operators << operator
+      debug "    #{operator.onestop_id}: #{operator.name}"
     end
     # Return operators
     operators
@@ -239,7 +243,7 @@ class GTFSGraph
 
     # Routes
     routes.each_slice(CHUNKSIZE).each do |chunk|
-      debug "  soutes: #{routes.size}"
+      debug "  routes: #{routes.size}"
       ChangePayload.create!(
         changeset: changeset, 
         payload: {
@@ -262,10 +266,11 @@ class GTFSGraph
       )
     end
 
+    counter = 0
     trip_chunks(CHUNKSIZE) do |trips|
-      debug "  trip chunk: #{trips.size} trips"
+      counter += trips.size
       chunk = stop_pairs(trips)
-      debug "    stop pairs: #{chunk.size}"
+      debug "  trips #{counter} / #{@trip_counter.size}: #{chunk.size} stop pairs"
       ChangePayload.create!(
         changeset: changeset,
         payload: {
@@ -370,24 +375,20 @@ class GTFSGraph
   
   def trip_chunks(batchsize=1000)
     # Return chunks of trips containing approx. batchsize stop_times.
-    ret = []
-    chunk = []
-    current = 0
-    total = 0
     # Reverse sort trips
     trips = @trip_counter.sort_by { |k,v| -v }
+    chunk = []
+    current = 0
     trips.each do |k,v|
-      # debug "Current: #{current}, adding: #{v}"
-      # debug "  total: #{total}, ret size: #{ret.size}"
-      chunk << k
-      current += v
-      total += v
-      if current > batchsize
+      if current+v > batchsize
         yield chunk
         chunk = []
         current = 0
       end
+      chunk << k
+      current += v
     end
+    yield chunk
   end
   
   def stop_pairs(trips)
