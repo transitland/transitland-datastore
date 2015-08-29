@@ -294,7 +294,13 @@ class GTFSGraph
   private
   
   def debug(msg)
-    puts msg
+    if Sidekiq::Logging.logger
+      Sidekiq::Logging.logger.info msg
+    elsif Rails.logger
+      Rails.logger.info msg
+    else
+      puts msg
+    end
   end
   
   def parents(entity, depth=1)
