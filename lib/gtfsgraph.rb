@@ -163,7 +163,7 @@ class GTFSGraph
       # Skip Operator if not found
       next unless e
       # Find: (child gtfs routes) to (tl routes)
-      routes = children(e).map { |i| @gtfs_tl[i] }.select { |i| i }.flatten
+      routes = children(e).map { |i| @gtfs_tl[i] }.compact.flatten
       # Find: (tl routes) to (serves tl stops)
       stops = routes.map { |r| @tl_serves[r] }.reduce(:+)
       # Search by similarity
