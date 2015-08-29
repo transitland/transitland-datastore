@@ -13,10 +13,12 @@
 #  version                            :integer
 #  identifiers                        :string           default([]), is an Array
 #  timezone                           :string
+#  feed_id                            :integer
 #
 # Indexes
 #
 #  #c_stops_cu_in_changeset_id_index   (created_or_updated_in_changeset_id)
+#  index_current_stops_on_feed_id      (feed_id)
 #  index_current_stops_on_identifiers  (identifiers)
 #  index_current_stops_on_onestop_id   (onestop_id)
 #  index_current_stops_on_tags         (tags)
@@ -28,11 +30,15 @@ class BaseStop < ActiveRecord::Base
 
   PER_PAGE = 50
 
+  belongs_to :feed
+
   attr_accessor :served_by, :not_served_by
 end
 
 class Stop < BaseStop
   self.table_name_prefix = 'current_'
+  
+  GEOHASH_PRECISION = 10
 
   include HasAOnestopId
   include IsAnEntityWithIdentifiers
@@ -65,7 +71,7 @@ class Stop < BaseStop
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
-    virtual_attributes: [:served_by, :not_served_by, :identified_by, :not_identified_by]
+    virtual_attributes: [:served_by, :not_served_by, :identified_by, :not_identified_by, :imported_from_feed_onestop_id]
   })
   def self.after_create_making_history(created_model, changeset)
     OperatorRouteStopRelationship.manage_multiple(
@@ -96,6 +102,10 @@ class Stop < BaseStop
       route_serving_stop.destroy_making_history(changeset: changeset)
     end
     return true
+  end
+  
+  def imported_from_feed_onestop_id=(value)
+    self.feed = Feed.find_by!(onestop_id: value)
   end
 
   # Operators serving this stop
@@ -157,8 +167,32 @@ class Stop < BaseStop
     joins{operators_serving_stop.operator}.where{operators_serving_stop.operator_id == operator.id}
   }
 
+  # Similarity search 
+  def self.find_by_similarity(point, name, radius=100, threshold=0.75)
+    # Similarity search. Returns a score,stop tuple or nil.
+    other = Stop.new(name: name, geometry: point.to_s)
+    # Class method, like other find_by methods.
+    where { st_dwithin(geometry, point, radius) 
+    }.map { |stop|  [stop, stop.similarity(other)]
+    }.select { |stop, score|  score >= threshold 
+    }.sort_by { |stop, score| score 
+    }.last
+  end
+  
+  def similarity(other)
+    # TODO: instance method, compare against a second instance?
+    # Inverse distance in km
+    score_geom = 1 / (self[:geometry].distance(other[:geometry]) / 1000.0 + 1)
+    # Levenshtein distance as ratio of name length
+    score_text = 1 - (Text::Levenshtein.distance(self.name, other.name) / [self.name.size, other.name.size].max.to_f)
+    # Weighted average
+    (score_geom * 0.5) + (score_text * 0.5)
+  end
+
+  # Before save
   before_save :clean_attributes
 
+  # Conflate with OSM
   if Figaro.env.auto_conflate_stops_with_osm.present? &&
      Figaro.env.auto_conflate_stops_with_osm == 'true'
     after_save :queue_conflate_with_osm
@@ -189,7 +223,35 @@ class Stop < BaseStop
       update(tags: stop_tags)
     end
   end
-
+  
+  
+  ##### FromGTFS ####
+  include FromGTFS
+  def self.from_gtfs(entity)
+    # GTFS Constructor
+    point = Stop::GEOFACTORY.point(entity.lon, entity.lat)
+    geohash = GeohashHelpers.encode(point, precision=GEOHASH_PRECISION)
+    onestop_id = OnestopId.new(
+      entity_prefix: 's', 
+      geohash: geohash, 
+      name: entity.name.downcase.gsub(/\W+/, '')
+    )
+    stop = Stop.new(
+      name: entity.name, 
+      onestop_id: onestop_id.to_s,
+      identifiers: [entity.id],
+      geometry: point.to_s
+    ) 
+    # Copy over GTFS attributes to tags
+    stop.tags ||= {}
+    stop.tags[:wheelchair_boarding] = entity.wheelchair_boarding
+    stop.tags[:stop_desc] = entity.desc
+    stop.tags[:stop_url] = entity.url
+    stop.tags[:zone_id] = entity.zone_id
+    stop.timezone = entity.timezone
+    stop
+  end
+  
   private
 
   def clean_attributes

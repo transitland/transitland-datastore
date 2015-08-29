@@ -35,6 +35,7 @@
 #  shape_dist_traveled                :float
 #  origin_timezone                    :string
 #  destination_timezone               :string
+#  feed_id                            :integer
 #
 # Indexes
 #
@@ -45,12 +46,15 @@
 #  c_ssp_service_end_date                           (service_end_date)
 #  c_ssp_service_start_date                         (service_start_date)
 #  c_ssp_trip                                       (trip)
+#  index_current_schedule_stop_pairs_on_feed_id     (feed_id)
 #  index_current_schedule_stop_pairs_on_updated_at  (updated_at)
 #
 
 class BaseScheduleStopPair < ActiveRecord::Base
   self.abstract_class = true
   PER_PAGE = 50
+
+  belongs_to :feed
 end
 
 class ScheduleStopPair < BaseScheduleStopPair
@@ -66,7 +70,7 @@ class ScheduleStopPair < BaseScheduleStopPair
   validates :destination, presence: true
   validates :route, presence: true
   validates :trip, presence: true
-  
+
   # Check date ranges
   before_validation :set_service_range
   validates :service_start_date, presence: true
@@ -96,7 +100,7 @@ class ScheduleStopPair < BaseScheduleStopPair
     bbox_coordinates = bbox.split(',')
     # assert params[:bbox].split(',').length == 4
     stops = Stop.where{geometry.op('&&', st_makeenvelope(bbox_coordinates[0], bbox_coordinates[1], bbox_coordinates[2], bbox_coordinates[3], Stop::GEOFACTORY.srid))}
-    where(origin_id: stops.ids)      
+    where(origin_id: stops.ids)
   }
 
 
@@ -108,11 +112,11 @@ class ScheduleStopPair < BaseScheduleStopPair
   def origin_onestop_id=(value)
     self.origin_id = Stop.where(onestop_id: value).pluck(:id).first
   end
- 
+
   def destination_onestop_id=(value)
     self.destination_id = Stop.where(onestop_id: value).pluck(:id).first
   end
-  
+
   def service_on_date?(date)
     date = Date.parse(date) unless date.is_a?(Date)
     # the -1 is because ISO week day is Monday = 1, Sunday = 7
@@ -132,16 +136,20 @@ class ScheduleStopPair < BaseScheduleStopPair
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :relationship,
-    virtual_attributes: [:origin_onestop_id, :destination_onestop_id, :route_onestop_id]
+    virtual_attributes: [:origin_onestop_id, :destination_onestop_id, :route_onestop_id, :imported_from_feed_onestop_id]
   })
   def self.find_by_attributes(attrs = {})
     if attrs[:id].present?
       find(attrs[:id])
-    end    
+    end
   end
   
+  def imported_from_feed_onestop_id=(value)
+    self.feed = Feed.find_by!(onestop_id: value)
+  end
+
   private
-  
+
   # Set a service range from service_added_dates, service_except_dates
   def set_service_range
     if service_start_date.nil?
@@ -152,7 +160,7 @@ class ScheduleStopPair < BaseScheduleStopPair
     end
     true
   end
-  
+
   # Require service_added_dates to be in service range
   def validate_service_added_dates_range
     invalid = service_added_dates.reject {|x| (service_start_date <= x) && (service_end_date >= x)}
@@ -160,7 +168,7 @@ class ScheduleStopPair < BaseScheduleStopPair
       errors.add(:service_added_dates, "service_added_dates must be within service_start_date, service_end_date range")
     end
   end
-  
+
   # Require service_except_dates to be in service range
   def validate_service_except_dates_range
     invalid = service_except_dates.reject {|x| (service_start_date <= x) && (service_end_date >= x)}
@@ -168,7 +176,7 @@ class ScheduleStopPair < BaseScheduleStopPair
       errors.add(:service_except_dates, "service_except_dates must be within service_start_date, service_end_date range")
     end
   end
-  
+
 end
 
 class OldScheduleStopPair < BaseScheduleStopPair

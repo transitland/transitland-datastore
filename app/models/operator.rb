@@ -18,10 +18,12 @@
 #  country                            :string
 #  state                              :string
 #  metro                              :string
+#  feed_id                            :integer
 #
 # Indexes
 #
 #  #c_operators_cu_in_changeset_id_index   (created_or_updated_in_changeset_id)
+#  index_current_operators_on_feed_id      (feed_id)
 #  index_current_operators_on_identifiers  (identifiers)
 #  index_current_operators_on_onestop_id   (onestop_id) UNIQUE
 #  index_current_operators_on_tags         (tags)
@@ -34,6 +36,8 @@ class BaseOperator < ActiveRecord::Base
   PER_PAGE = 50
 
   attr_accessor :serves, :does_not_serve
+
+  belongs_to :feed
 
   validates :website, format: { with: URI.regexp }, if: Proc.new { |operator| operator.website.present? }
 end
@@ -66,7 +70,7 @@ class Operator < BaseOperator
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
-    virtual_attributes: [:serves, :does_not_serve, :identified_by, :not_identified_by]
+    virtual_attributes: [:serves, :does_not_serve, :identified_by, :not_identified_by, :imported_from_feed_onestop_id]
   })
   def self.after_create_making_history(created_model, changeset)
     OperatorRouteStopRelationship.manage_multiple(
@@ -98,6 +102,10 @@ class Operator < BaseOperator
     end
     return true
   end
+    
+  def imported_from_feed_onestop_id=(value)
+    self.feed = Feed.find_by!(onestop_id: value)
+  end
 
   has_many :operators_serving_stop
   has_many :stops, through: :operators_serving_stop
@@ -106,6 +114,35 @@ class Operator < BaseOperator
   has_many :routes_serving_stop, through: :routes
 
   validates :name, presence: true
+  
+  ##### FromGTFS ####
+  include FromGTFS
+  def self.from_gtfs(entity, stops, routes)
+    # GTFS Constructor
+    geohash = GeohashHelpers.fit(stops.map { |i| i[:geometry] })
+    geometry = Operator.convex_hull(stops, as: :wkt, projected: false)
+    onestop_id = OnestopId.new(
+      entity_prefix: 'o', 
+      geohash: geohash, 
+      name: entity.name.downcase.gsub(/\W+/, '')
+    )
+    operator = Operator.new(
+      name: entity.name, 
+      onestop_id: onestop_id.to_s,
+      identifiers: [entity.id]
+    ) 
+    operator[:geometry] = geometry
+    # Copy over GTFS attributes to tags
+    operator.tags ||= {}
+    operator.tags[:agency_phone] = entity.phone
+    operator.tags[:agency_lang] = entity.lang
+    operator.tags[:agency_fare_url] = entity.fare_url
+    operator.tags[:agency_id] = entity.id
+    operator.timezone = entity.timezone
+    operator.website = entity.url
+    operator
+  end
+  
 end
 
 class OldOperator < BaseOperator

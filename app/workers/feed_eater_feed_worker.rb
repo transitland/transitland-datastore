@@ -1,3 +1,5 @@
+require 'gtfsgraph'
+
 class FeedEaterFeedWorker < FeedEaterWorker
   sidekiq_options unique: true,
                   unique_job_expiration: 60 * 60, # 1 hour
@@ -11,6 +13,7 @@ class FeedEaterFeedWorker < FeedEaterWorker
     return unless updated
 
     # Clear out old log files
+    gtfs_file_path = artifact_file_path("#{feed_onestop_id}.zip")
     log_file_path = artifact_file_path("#{feed_onestop_id}.log")
     validation_report_path = artifact_file_path("#{feed_onestop_id}.html")
     FileUtils.rm(log_file_path) if File.exist?(log_file_path)
@@ -32,13 +35,11 @@ class FeedEaterFeedWorker < FeedEaterWorker
         feed_onestop_id
       )
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Uploading feed"
-      run_python(
-        './lib/feedeater/post.py',
-        '--log',
-        log_file_path,
-        '--schedule_stop_pairs',
-        feed_onestop_id
-      )
+      # Load the GTFS Graph
+      graph = GTFSGraph.new(gtfs_file_path, feed)
+      graph.load_gtfs
+      operators = graph.load_tl
+      graph.create_changeset operators
     rescue Exception => e
       # NOTE: we're catching all exceptions, including Interrupt,
       #   SignalException, and SyntaxError

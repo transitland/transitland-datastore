@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150817150332) do
+ActiveRecord::Schema.define(version: 20150828194958) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -51,9 +51,11 @@ ActiveRecord::Schema.define(version: 20150817150332) do
     t.string    "country"
     t.string    "state"
     t.string    "metro"
+    t.integer   "feed_id"
   end
 
   add_index "current_operators", ["created_or_updated_in_changeset_id"], name: "#c_operators_cu_in_changeset_id_index", using: :btree
+  add_index "current_operators", ["feed_id"], name: "index_current_operators_on_feed_id", using: :btree
   add_index "current_operators", ["identifiers"], name: "index_current_operators_on_identifiers", using: :gin
   add_index "current_operators", ["onestop_id"], name: "index_current_operators_on_onestop_id", unique: true, using: :btree
   add_index "current_operators", ["tags"], name: "index_current_operators_on_tags", using: :btree
@@ -85,9 +87,11 @@ ActiveRecord::Schema.define(version: 20150817150332) do
     t.datetime  "updated_at"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.string    "identifiers",                                                                                    default: [], array: true
+    t.integer   "feed_id"
   end
 
   add_index "current_routes", ["created_or_updated_in_changeset_id"], name: "c_route_cu_in_changeset", using: :btree
+  add_index "current_routes", ["feed_id"], name: "index_current_routes_on_feed_id", using: :btree
   add_index "current_routes", ["identifiers"], name: "index_current_routes_on_identifiers", using: :gin
   add_index "current_routes", ["operator_id"], name: "index_current_routes_on_operator_id", using: :btree
   add_index "current_routes", ["tags"], name: "index_current_routes_on_tags", using: :btree
@@ -140,10 +144,12 @@ ActiveRecord::Schema.define(version: 20150817150332) do
     t.float    "shape_dist_traveled"
     t.string   "origin_timezone"
     t.string   "destination_timezone"
+    t.integer  "feed_id"
   end
 
   add_index "current_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "c_ssp_cu_in_changeset", using: :btree
   add_index "current_schedule_stop_pairs", ["destination_id"], name: "c_ssp_destination", using: :btree
+  add_index "current_schedule_stop_pairs", ["feed_id"], name: "index_current_schedule_stop_pairs_on_feed_id", using: :btree
   add_index "current_schedule_stop_pairs", ["origin_id"], name: "c_ssp_origin", using: :btree
   add_index "current_schedule_stop_pairs", ["route_id"], name: "c_ssp_route", using: :btree
   add_index "current_schedule_stop_pairs", ["service_end_date"], name: "c_ssp_service_end_date", using: :btree
@@ -162,9 +168,11 @@ ActiveRecord::Schema.define(version: 20150817150332) do
     t.integer   "version"
     t.string    "identifiers",                                                                                    default: [], array: true
     t.string    "timezone"
+    t.integer   "feed_id"
   end
 
   add_index "current_stops", ["created_or_updated_in_changeset_id"], name: "#c_stops_cu_in_changeset_id_index", using: :btree
+  add_index "current_stops", ["feed_id"], name: "index_current_stops_on_feed_id", using: :btree
   add_index "current_stops", ["identifiers"], name: "index_current_stops_on_identifiers", using: :gin
   add_index "current_stops", ["onestop_id"], name: "index_current_stops_on_onestop_id", using: :btree
   add_index "current_stops", ["tags"], name: "index_current_stops_on_tags", using: :btree
@@ -188,7 +196,6 @@ ActiveRecord::Schema.define(version: 20150817150332) do
     t.string   "url"
     t.string   "feed_format"
     t.hstore   "tags"
-    t.string   "operator_onestop_ids_in_feed",    default: [], array: true
     t.string   "last_sha1"
     t.datetime "last_fetched_at"
     t.datetime "last_imported_at"
@@ -199,6 +206,7 @@ ActiveRecord::Schema.define(version: 20150817150332) do
     t.string   "license_use_without_attribution"
     t.string   "license_create_derived_product"
     t.string   "license_redistribute"
+    t.hstore   "operators_in_feed",               array: true
   end
 
   add_index "feeds", ["onestop_id"], name: "index_feeds_on_onestop_id", using: :btree
@@ -222,11 +230,13 @@ ActiveRecord::Schema.define(version: 20150817150332) do
     t.string    "country"
     t.string    "state"
     t.string    "metro"
+    t.integer   "feed_id"
   end
 
   add_index "old_operators", ["created_or_updated_in_changeset_id"], name: "o_operators_cu_in_changeset_id_index", using: :btree
   add_index "old_operators", ["current_id"], name: "index_old_operators_on_current_id", using: :btree
   add_index "old_operators", ["destroyed_in_changeset_id"], name: "operators_d_in_changeset_id_index", using: :btree
+  add_index "old_operators", ["feed_id"], name: "index_old_operators_on_feed_id", using: :btree
   add_index "old_operators", ["identifiers"], name: "index_old_operators_on_identifiers", using: :gin
 
   create_table "old_operators_serving_stop", force: :cascade do |t|
@@ -263,11 +273,13 @@ ActiveRecord::Schema.define(version: 20150817150332) do
     t.datetime  "updated_at"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.string    "identifiers",                                                                                    default: [], array: true
+    t.integer   "feed_id"
   end
 
   add_index "old_routes", ["created_or_updated_in_changeset_id"], name: "o_route_cu_in_changeset", using: :btree
   add_index "old_routes", ["current_id"], name: "index_old_routes_on_current_id", using: :btree
   add_index "old_routes", ["destroyed_in_changeset_id"], name: "o_route_d_in_changeset", using: :btree
+  add_index "old_routes", ["feed_id"], name: "index_old_routes_on_feed_id", using: :btree
   add_index "old_routes", ["identifiers"], name: "index_old_routes_on_identifiers", using: :gin
   add_index "old_routes", ["operator_type", "operator_id"], name: "index_old_routes_on_operator_type_and_operator_id", using: :btree
 
@@ -329,12 +341,14 @@ ActiveRecord::Schema.define(version: 20150817150332) do
     t.float    "shape_dist_traveled"
     t.string   "origin_timezone"
     t.string   "destination_timezone"
+    t.integer  "feed_id"
   end
 
   add_index "old_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "o_ssp_cu_in_changeset", using: :btree
   add_index "old_schedule_stop_pairs", ["current_id"], name: "index_old_schedule_stop_pairs_on_current_id", using: :btree
   add_index "old_schedule_stop_pairs", ["destination_type", "destination_id"], name: "o_ssp_destination", using: :btree
   add_index "old_schedule_stop_pairs", ["destroyed_in_changeset_id"], name: "o_ssp_d_in_changeset", using: :btree
+  add_index "old_schedule_stop_pairs", ["feed_id"], name: "index_old_schedule_stop_pairs_on_feed_id", using: :btree
   add_index "old_schedule_stop_pairs", ["origin_type", "origin_id"], name: "o_ssp_origin", using: :btree
   add_index "old_schedule_stop_pairs", ["route_type", "route_id"], name: "o_ssp_route", using: :btree
   add_index "old_schedule_stop_pairs", ["service_end_date"], name: "o_ssp_service_end_date", using: :btree
@@ -354,11 +368,13 @@ ActiveRecord::Schema.define(version: 20150817150332) do
     t.integer   "version"
     t.string    "identifiers",                                                                                    default: [], array: true
     t.string    "timezone"
+    t.integer   "feed_id"
   end
 
   add_index "old_stops", ["created_or_updated_in_changeset_id"], name: "o_stops_cu_in_changeset_id_index", using: :btree
   add_index "old_stops", ["current_id"], name: "index_old_stops_on_current_id", using: :btree
   add_index "old_stops", ["destroyed_in_changeset_id"], name: "stops_d_in_changeset_id_index", using: :btree
+  add_index "old_stops", ["feed_id"], name: "index_old_stops_on_feed_id", using: :btree
   add_index "old_stops", ["identifiers"], name: "index_old_stops_on_identifiers", using: :gin
 
   add_foreign_key "change_payloads", "changesets"

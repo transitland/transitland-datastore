@@ -40,6 +40,10 @@
         "type": "string",
         "format": "operator-onestop-id"
       }
-    }
+    },
+		"imported_from_feed_onestop_id": {
+      "type": "string",
+      "format": "feed-onestop-id"			
+		}
   }
 }
