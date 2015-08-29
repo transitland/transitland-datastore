@@ -32,7 +32,8 @@ class GTFSGraph
     @trip_counter = Hash.new { |h,k| h[k] = 0 }
   end
   
-  def load_graph
+  def load_gtfs
+    debug "Load GTFS"
     # Clear
     @gtfs_by_id.clear
     @gtfs_parents.clear
@@ -40,16 +41,19 @@ class GTFSGraph
     @trip_counter.clear
     
     # Load GTFS agencies, routes, stops, trips
+    debug "  agencies, routes, stops, trips"
     @gtfs.agencies.each { |e| @gtfs_by_id[:agencies][e.id] = e }
     @gtfs.routes.each { |e| @gtfs_by_id[:routes][e.id] = e }
     @gtfs.stops.each { |e| @gtfs_by_id[:stops][e.id] = e }
     @gtfs.trips.each { |e| @gtfs_by_id[:trips][e.id] = e }
 
     # Load service periods
+    debug "  calendars"
     @gtfs.calendars.each { |e| make_service(e) }    
     @gtfs.calendar_dates.each { |e| make_service(e) }
 
     # Load shapes.
+    debug "  shapes"
     shapes_merge = Hash.new { |h,k| h[k] = [] }
     @gtfs.shapes.each { |e| shapes_merge[e.id] << e }
     shapes_merge.each { |k,v| 
@@ -60,7 +64,9 @@ class GTFSGraph
       )
     }
     
-    # Set default agency
+    # Create relationships
+    debug "  relationships"
+    # Set default agency    
     default_agency = @gtfs_by_id[:agencies].first[1].id    
     # Add routes to agencies
     @gtfs_by_id[:routes].each do |k,e| 
@@ -75,6 +81,7 @@ class GTFSGraph
     end
 
     # Associate routes with stops; count stop_times by trip
+    debug "  stop_times counter"
     @gtfs.stop_times.each do |e| 
       trip = self.trip(e.trip_id)
       stop = self.stop(e.stop_id)      
@@ -84,6 +91,7 @@ class GTFSGraph
   end
 
   def load_tl
+    debug "Load TL"
     # Clear
     @tl_by_onestop_id.clear
     @tl_gtfs.clear
@@ -92,6 +100,7 @@ class GTFSGraph
     @gtfs_tl.clear
     
     # Build TL Entities
+    debug "  merge stations"
     # Merge child stations into parents.
     stations = Hash.new { |h,k| h[k] = [] }
     @gtfs_by_id[:stops].each do |k,e|
@@ -99,6 +108,7 @@ class GTFSGraph
     end
     
     # Merge station/platforms with Datastore Stops.
+    debug "  stops"
     stations.each do |station,platforms|
       # Temp stop to get geometry and name.
       stop = Stop.from_gtfs(station) 
@@ -119,6 +129,7 @@ class GTFSGraph
     end
     
     # Routes
+    debug "  routes"
     @gtfs_by_id[:routes].each do |k,e|
       # Find: (child gtfs trips) to (child gtfs stops) to (tl stops)
       stops = children(e).map { |i| children(i) }.flatten.uniq.map { |i| @gtfs_tl[i] }
@@ -143,6 +154,7 @@ class GTFSGraph
     end
 
     # Operators
+    debug "  operators"
     operators = Set.new
     @feed.operators_in_feed.each do |oif| 
       e = @gtfs_by_id[:agencies][oif['gtfs_agency_id']]
@@ -171,6 +183,7 @@ class GTFSGraph
   end
   
   def create_changeset(operators)
+    debug "Create Changeset"
     operators = operators
     routes = operators.map { |i| @tl_serves[i] }.reduce(:+)
     stops = routes.map { |i| @tl_serves[i] }.reduce(:+)
@@ -180,7 +193,7 @@ class GTFSGraph
     
     # Operators
     operators.each_slice(CHUNKSIZE).each do |chunk|
-      debug "Operators: #{chunk.size}"
+      debug "  operators: #{chunk.size}"
       ChangePayload.create!(
         changeset: changeset, 
         payload: {
@@ -203,7 +216,7 @@ class GTFSGraph
 
     # Stops
     stops.each_slice(CHUNKSIZE).each do |chunk|
-      debug "Stops: #{stops.size}"
+      debug "  stops: #{stops.size}"
       ChangePayload.create!(
         changeset: changeset, 
         payload: {
@@ -226,7 +239,7 @@ class GTFSGraph
 
     # Routes
     routes.each_slice(CHUNKSIZE).each do |chunk|
-      debug "Routes: #{routes.size}"
+      debug "  soutes: #{routes.size}"
       ChangePayload.create!(
         changeset: changeset, 
         payload: {
@@ -250,9 +263,9 @@ class GTFSGraph
     end
 
     trip_chunks(CHUNKSIZE) do |trips|
-      debug "Trip chunk: #{trips.size} trips"
+      debug "  trip chunk: #{trips.size} trips"
       chunk = stop_pairs(trips)
-      debug "  Stop pairs: #{chunk.size}"
+      debug "    stop pairs: #{chunk.size}"
       ChangePayload.create!(
         changeset: changeset,
         payload: {
@@ -267,8 +280,9 @@ class GTFSGraph
     end
     
     # Apply changeset
-    puts "Apply"
+    debug "  changeset apply"
     changeset.apply!    
+    debug "  changeset apply done"
   end
   
   def agency(id)
@@ -474,7 +488,7 @@ if __FILE__ == $0
   Feed.update_feeds_from_feed_registry
   feed = Feed.find_by!(onestop_id: feedid)
   graph = GTFSGraph.new(filename, feed)
-  graph.load_graph
+  graph.load_gtfs
   operators = graph.load_tl
   graph.create_changeset operators
 end

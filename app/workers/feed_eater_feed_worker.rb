@@ -37,7 +37,7 @@ class FeedEaterFeedWorker < FeedEaterWorker
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Uploading feed"
       # Load the GTFS Graph
       graph = GTFSGraph.new(gtfs_file_path, feed)
-      graph.load_graph
+      graph.load_gtfs
       operators = graph.load_tl
       graph.create_changeset operators
     rescue Exception => e
