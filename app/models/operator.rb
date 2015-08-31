@@ -117,7 +117,7 @@ class Operator < BaseOperator
   
   ##### FromGTFS ####
   include FromGTFS
-  def self.from_gtfs(entity, stops, routes)
+  def self.from_gtfs(entity, stops)
     # GTFS Constructor
     geohash = GeohashHelpers.fit(stops.map { |i| i[:geometry] })
     geometry = Operator.convex_hull(stops, as: :wkt, projected: false)
