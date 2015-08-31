@@ -24,6 +24,7 @@ gem 'redis-rails'
 # background processing
 gem 'sidekiq'
 gem 'sidekiq-unique-jobs'
+gem 'celluloid', '0.16.0' # unpeg when new sidekiq released: https://github.com/mperham/sidekiq/issues/2397
 gem 'whenever', require: false # to manage crontab
 
 # data model
