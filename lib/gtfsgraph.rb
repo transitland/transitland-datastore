@@ -214,7 +214,7 @@ class GTFSGraph
     changeset = Changeset.create()
     
     # Operators
-    if level >= 0
+    if import_level >= 0
       operators.each_slice(CHUNKSIZE).each do |chunk|
         debug "  operators: #{chunk.size}"
         ChangePayload.create!(
@@ -232,7 +232,7 @@ class GTFSGraph
     end
 
     # Stops
-    if level >= 1
+    if import_level >= 1
       stops.each_slice(CHUNKSIZE).each do |chunk|
         debug "  stops: #{chunk.size}"
         ChangePayload.create!(
@@ -265,7 +265,7 @@ class GTFSGraph
       end
     end
 
-    if level >= 2
+    if import_level >= 2
       counter = 0
       trip_chunks(CHUNKSIZE) do |trips|
         counter += trips.size
