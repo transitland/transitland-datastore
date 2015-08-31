@@ -134,6 +134,11 @@ To enqueue a worker from the command line:
   - to load one specified feed: `bundle exec rake enqueue_feed_eater_worker[f-9q9-bayarearapidtransit]`
   - to load a few specified feeds: `bundle exec rake enqueue_feed_eater_worker['f-9q9-actransit f-c23-kingcounty']`
 
+By default, FeedEater will only import the operator from the specified feed(s). To import stops, routes, and schedule-stop-pairs, specify:
+
+- operator with stops and routes `bundle exec rake enqueue_feed_eater_worker[f-9q9-bayarearapidtransit, 1]`
+- operator with stops, routes, and schedule-stop-pairs `bundle exec rake enqueue_feed_eater_worker[f-9q9-bayarearapidtransit, 2]`
+
 To enqueue a worker from an endpoint:
 
     POST /api/v1/webhooks/feed_eater
