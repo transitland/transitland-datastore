@@ -205,7 +205,7 @@ class GTFSGraph
     operators
   end
   
-  def create_changeset(operators, level=0)
+  def create_changeset(operators, import_level=0)
     debug "Create Changeset"
     operators = operators
     routes = operators.map { |i| @tl_serves[i] }.reduce(Set.new, :+)
@@ -495,6 +495,6 @@ if __FILE__ == $0
   graph = GTFSGraph.new(filename, feed)
   graph.load_gtfs
   operators = graph.load_tl
-  graph.create_changeset(operators, level=1)
+  graph.create_changeset(operators, import_level=1)
 end
 
