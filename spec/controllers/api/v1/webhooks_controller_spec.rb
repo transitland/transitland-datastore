@@ -14,15 +14,22 @@ describe Api::V1::WebhooksController do
 
     it 'can take a single feed Onestop ID' do
       allow(FeedEaterWorker).to receive(:perform_async) { true }
-      expect(FeedEaterWorker).to receive(:perform_async).with(['f-9q9-bayarearapidtransit'])
+      expect(FeedEaterWorker).to receive(:perform_async).with(['f-9q9-bayarearapidtransit'], 0)
       post :feed_eater, feed_onestop_ids: 'f-9q9-bayarearapidtransit'
       expect_json({ code: 200, errors: [] })
     end
 
     it 'can take multiple feed Onestop IDs' do
       allow(FeedEaterWorker).to receive(:perform_async) { true }
-      expect(FeedEaterWorker).to receive(:perform_async).with(['f-9q9-bayarearapidtransit', 'f-9q9-actransit'])
+      expect(FeedEaterWorker).to receive(:perform_async).with(['f-9q9-bayarearapidtransit', 'f-9q9-actransit'], 0)
       post :feed_eater, feed_onestop_ids: 'f-9q9-bayarearapidtransit,f-9q9-actransit'
+      expect_json({ code: 200, errors: [] })
+    end
+
+    it 'can specify an import level' do
+      allow(FeedEaterWorker).to receive(:perform_async) { true }
+      expect(FeedEaterWorker).to receive(:perform_async).with(['f-9q9-bayarearapidtransit'], 2)
+      post :feed_eater, feed_onestop_ids: 'f-9q9-bayarearapidtransit', import_level: 2
       expect_json({ code: 200, errors: [] })
     end
   end
