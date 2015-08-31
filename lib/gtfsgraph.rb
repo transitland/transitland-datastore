@@ -33,6 +33,8 @@ class GTFSGraph
   end
   
   def load_gtfs
+    # Load core GTFS entities and build relationships
+    # TODO: Move this code and related attributes to GTFS wrapper.
     debug "Load GTFS"
     # Clear
     @gtfs_by_id.clear
@@ -70,21 +72,21 @@ class GTFSGraph
     default_agency = @gtfs_by_id[:agencies].first[1].id    
     # Add routes to agencies
     @gtfs_by_id[:routes].each do |k,e| 
-      agency = self.agency(e.agency_id || default_agency)
+      agency = @gtfs_by_id[:agencies][e.agency_id || default_agency]
       gtfs_pclink(agency, e)
     end
 
     # Add trips to routes
     @gtfs_by_id[:trips].each do |k,e| 
-      route = self.route(e.route_id)
+      route = @gtfs_by_id[:routes][e.route_id]
       gtfs_pclink(route, e)
     end
 
     # Associate routes with stops; count stop_times by trip
     debug "  stop_times counter"
     @gtfs.stop_times.each do |e| 
-      trip = self.trip(e.trip_id)
-      stop = self.stop(e.stop_id)      
+      trip = @gtfs_by_id[:trips][e.trip_id]
+      stop = @gtfs_by_id[:stops][e.stop_id]
       @trip_counter[trip] += 1
       gtfs_pclink(trip, stop)
     end
@@ -104,7 +106,7 @@ class GTFSGraph
     # Merge child stations into parents.
     stations = Hash.new { |h,k| h[k] = [] }
     @gtfs_by_id[:stops].each do |k,e|
-      stations[stop(e.parent_station || e.id)] << e
+      stations[@gtfs_by_id[:stops][e.parent_station || e.id]] << e
     end
     
     # Merge station/platforms with Datastore Stops.
@@ -124,20 +126,30 @@ class GTFSGraph
       tl_add_identifiers(stop, [station]+platforms)
       # Cache stop
       @tl_by_onestop_id[stop.onestop_id] = stop
-      debug "    #{stop.onestop_id}: #{stop.name}"
-      #debug "   search: #{station.name} = #{'%0.2f'%score.to_f}"
+      if score
+        debug "    #{stop.onestop_id}: #{stop.name} (search: #{station.name} = #{'%0.2f'%score.to_f})"
+      else
+        debug "    #{stop.onestop_id}: #{stop.name}"
+      end
     end
     
     # Routes
     debug "  routes"
     @gtfs_by_id[:routes].each do |k,e|
       # Find: (child gtfs trips) to (child gtfs stops) to (tl stops)
-      stops = children(e).map { |i| children(i) }.flatten.uniq.map { |i| @gtfs_tl[i] }
+      stops = @gtfs_children[e]
+        .map { |i| @gtfs_children[i] }
+        .reduce(Set.new, :+)
+        .map { |i| @gtfs_tl[i] }
+        .to_set
       # Skip Route if no Stops
       next if stops.empty?
       # Find all unique shapes, and build geometry.
       geometry = Route::GEOFACTORY.multi_line_string(
-        children(e).map { |i| i.shape_id }.uniq.map { |i| @shape_by_id[i] }
+        @gtfs_children[e]
+          .map { |i| i.shape_id }
+          .uniq
+          .map { |i| @shape_by_id[i] }
       )
       # Search by similarity
       # TODO: route similarity... 
@@ -163,16 +175,23 @@ class GTFSGraph
       # Skip Operator if not found
       next unless e
       # Find: (child gtfs routes) to (tl routes)
-      routes = children(e).map { |i| @gtfs_tl[i] }.compact.flatten
+      #   note: .compact because some gtfs routes are skipped.
+      routes = @gtfs_children[e]
+        .map { |i| @gtfs_tl[i] }
+        .compact
+        .to_set
       # Find: (tl routes) to (serves tl stops)
-      stops = routes.map { |r| @tl_serves[r] }.reduce(:+)
-      # Search by similarity
-      # --- skip ---
-      # ... or create Operator from GTFS
-      operator = Operator.from_gtfs(e, stops, routes)      
+      stops = routes
+        .map { |r| @tl_serves[r] }
+        .reduce(Set.new, :+)
+      # Create Operator from GTFS
+      operator = Operator.from_gtfs(e, stops)
       operator.onestop_id = oif['onestop_id'] # Override Onestop ID
+      operator_original = operator # for merging geometry
       # ... or check if Operator exists, or another local Operator, or new.
-      operator = Operator.find_by(onestop_id: operator.onestop_id) || @tl_by_onestop_id[operator.onestop_id] || operator      
+      operator = Operator.find_by(onestop_id: operator.onestop_id) || @tl_by_onestop_id[operator.onestop_id] || operator    
+      # Merge convex hulls
+      operator[:geometry] = Operator.convex_hull([operator, operator_original], as: :wkt, projected: false)
       # Add identifiers
       tl_add_identifiers(operator, e)
       tl_add_serves(operator, routes)
@@ -186,133 +205,98 @@ class GTFSGraph
     operators
   end
   
-  def create_changeset(operators)
+  def create_changeset(operators, level=0)
     debug "Create Changeset"
     operators = operators
-    routes = operators.map { |i| @tl_serves[i] }.reduce(:+)
-    stops = routes.map { |i| @tl_serves[i] }.reduce(:+)
+    routes = operators.map { |i| @tl_serves[i] }.reduce(Set.new, :+)
+    stops = routes.map { |i| @tl_serves[i] }.reduce(Set.new, :+)
     action = 'createUpdate'
-
     changeset = Changeset.create()
     
     # Operators
-    operators.each_slice(CHUNKSIZE).each do |chunk|
-      debug "  operators: #{chunk.size}"
-      ChangePayload.create!(
-        changeset: changeset, 
-        payload: {
-          changes: chunk.map { |entity| 
-            {
-              action: action,
-              operator: {
-                onestopId: entity.onestop_id,
-                name: entity.name,
-                identifiedBy: @tl_gtfs[entity].map { |i| "gtfs://#{@feed.onestop_id}/o/#{i.id}"},
-                importedFromFeedOnestopId: @feed.onestop_id,
-                geometry: entity.geometry,
-                tags: entity.tags || {}
+    if level >= 0
+      operators.each_slice(CHUNKSIZE).each do |chunk|
+        debug "  operators: #{chunk.size}"
+        ChangePayload.create!(
+          changeset: changeset, 
+          payload: {
+            changes: chunk.map { |entity| 
+              {
+                action: action,
+                operator: make_change_operator(entity)
               }
-            }
-          }        
-        }
-      )
+            }        
+          }
+        )
+      end
     end
 
     # Stops
-    stops.each_slice(CHUNKSIZE).each do |chunk|
-      debug "  stops: #{stops.size}"
-      ChangePayload.create!(
-        changeset: changeset, 
-        payload: {
-          changes: chunk.map { |entity| 
-            {
-              action: action,
-              stop: {
-                onestopId: entity.onestop_id,
-                name: entity.name,
-                identifiedBy: @tl_gtfs[entity].map { |i| "gtfs://#{@feed.onestop_id}/s/#{i.id}"},
-                importedFromFeedOnestopId: @feed.onestop_id,
-                geometry: entity.geometry,
-                tags: entity.tags || {}
+    if level >= 1
+      stops.each_slice(CHUNKSIZE).each do |chunk|
+        debug "  stops: #{chunk.size}"
+        ChangePayload.create!(
+          changeset: changeset, 
+          payload: {
+            changes: chunk.map { |entity| 
+              {
+                action: action,
+                stop: make_change_stop(entity)
               }
-            }
-          }        
-        }
-      )
+            }        
+          }
+        )
+      end
+    
+      # Routes
+      routes.each_slice(CHUNKSIZE).each do |chunk|
+        debug "  routes: #{chunk.size}"
+        ChangePayload.create!(
+          changeset: changeset, 
+          payload: {
+            changes: chunk.map { |entity| 
+              {
+                action: action,
+                route: make_change_route(entity)
+              }
+            }        
+          }
+        )
+      end
     end
 
-    # Routes
-    routes.each_slice(CHUNKSIZE).each do |chunk|
-      debug "  routes: #{routes.size}"
-      ChangePayload.create!(
-        changeset: changeset, 
-        payload: {
-          changes: chunk.map { |entity| 
-            {
-              action: action,
-              route: {
-                onestopId: entity.onestop_id,
-                name: entity.name,
-                identifiedBy: @tl_gtfs[entity].map { |i| "gtfs://#{@feed.onestop_id}/r/#{i.id}" },
-                importedFromFeedOnestopId: @feed.onestop_id,
-                operatedBy: @tl_served_by[entity].map(&:onestop_id).first,
-                serves: @tl_serves[entity].map(&:onestop_id),
-                tags: entity.tags || {},
-                geometry: entity.geometry,
+    if level >= 2
+      counter = 0
+      trip_chunks(CHUNKSIZE) do |trips|
+        counter += trips.size
+        chunk = stop_pairs(trips)
+        debug "  trips #{counter} / #{@trip_counter.size}: #{chunk.size} stop pairs"
+        ChangePayload.create!(
+          changeset: changeset,
+          payload: {
+            changes: chunk.map { |entity|
+              {
+                action: action,
+                scheduleStopPair: entity
               }
-            }
-          }        
-        }
-      )
-    end
-
-    counter = 0
-    trip_chunks(CHUNKSIZE) do |trips|
-      counter += trips.size
-      chunk = stop_pairs(trips)
-      debug "  trips #{counter} / #{@trip_counter.size}: #{chunk.size} stop pairs"
-      ChangePayload.create!(
-        changeset: changeset,
-        payload: {
-          changes: chunk.map { |entity|
-            {
-              action: action,
-              scheduleStopPair: entity
             }
           }
-        }
-      )
+        )
+      end
     end
-    
+
     # Apply changeset
     debug "  changeset apply"
     changeset.apply!    
     debug "  changeset apply done"
   end
   
-  def agency(id)
-    # Return an agency by agency_id
-    @gtfs_by_id[:agencies][id]
-  end
-
-  def route(id)
-    # Return a route by route_id
-    @gtfs_by_id[:routes][id]
-  end
-
-  def stop(id)
-    # Return a stop by stop_id
-    @gtfs_by_id[:stops][id]
-  end
-
-  def trip(id)
-    # Return a trip by trip_id
-    @gtfs_by_id[:trips][id]
-  end
-    
+  ##### GTFS by ID #####
+  
   private
   
   def debug(msg)
+    # Debug logging
     if Sidekiq::Logging.logger
       Sidekiq::Logging.logger.info msg
     elsif Rails.logger
@@ -322,36 +306,8 @@ class GTFSGraph
     end
   end
   
-  def parents(entity, depth=1)
-    # Return the parents of an entity
-    bfs(entity, @gtfs_parents, depth=depth)
-  end
-
-  def children(entity, depth=1)
-    # Return the children of an entity
-    bfs(entity, @gtfs_children, depth=depth)
-  end
-
-  def bfs(current, graph, depth=1)
-    # Breadth first search, to a maximum depth.
-    visited = []
-    queue = []
-    queue << current
-    (0..depth-1).each do |level|
-      tovisit = []
-      while queue.any?
-        current = queue.shift
-        graph[current].each do |adjacent|
-          next if visited.include?(adjacent)
-          tovisit << adjacent
-          visited << adjacent
-        end
-      end
-      queue = tovisit
-    end
-    visited
-  end
-
+  ##### Relationships between entities #####
+  
   def gtfs_pclink(parent, child)
     @gtfs_children[parent].add(child)
     @gtfs_parents[child].add(parent)
@@ -372,6 +328,8 @@ class GTFSGraph
       @tl_served_by[entity].add(tl)
     end
   end
+  
+  ##### Trip pairs and stop chunks #####
   
   def trip_chunks(batchsize=1000)
     # Return chunks of trips containing approx. batchsize stop_times.
@@ -408,7 +366,7 @@ class GTFSGraph
     # Process each trip
     trip_ids_stop_times.each do |trip_id, stop_times|
       # Get trip and route entities
-      trip = trip(trip_id)
+      trip = @gtfs_by_id[:trips][trip_id]
       # Sort stop_times by stop_sequence
       stop_times = stop_times.sort_by { |x| x.stop_sequence.to_i }
       # Zip edges
@@ -420,68 +378,114 @@ class GTFSGraph
     ret
   end
   
-  def make_ssp(trip, origin, destination)
-    # Generate an edge between an origin and destination for a given route/trip
-    route = @gtfs_tl[route(trip.route_id)]
-    origin_stop = @gtfs_tl[stop(origin.stop_id)]
-    destination_stop = @gtfs_tl[stop(destination.stop_id)]
-    ssp = {
-      # Origin
-      origin_onestop_id: origin_stop.onestop_id,
-      origin_timezone: origin_stop.timezone,
-      origin_arrival_time: origin.arrival_time,
-      origin_departure_time: origin.departure_time,
-      # Destination
-      destination_onestop_id: destination_stop.onestop_id,
-      destination_timezone: destination_stop.timezone,
-      destination_arrival_time: destination.arrival_time,
-      destination_departure_time: destination.departure_time,
-      # Route
-      route_onestop_id: route.onestop_id,
-      # Trip
-      trip: trip.id,
-      trip_headsign: (origin.stop_headsign || trip.headsign),
-      trip_short_name: trip.short_name,
-      wheelchair_accessible: trip.wheelchair_accessible.to_i,
-      # bikes_allowed: trip.bikes_allowed.to_i,
-      # Stop Time
-      drop_off_type: origin.drop_off_type.to_i,
-      pickup_type: origin.pickup_type.to_i,
-      # timepoint: origin.timepoint.to_i,
-      shape_dist_traveled: origin.shape_dist_traveled.to_f,
-      importedFromFeedOnestopId: @feed.onestop_id,      
+  ##### Create change payloads ######
+  
+  def make_change_operator(entity)
+    {
+      onestopId: entity.onestop_id,
+      name: entity.name,
+      identifiedBy: @tl_gtfs[entity].map { |i| "gtfs://#{@feed.onestop_id}/o/#{i.id}"},
+      importedFromFeedOnestopId: @feed.onestop_id,
+      geometry: entity.geometry,
+      tags: entity.tags || {}
     }
-    ssp.update(@service_by_id[trip.service_id])
-    ssp
   end
   
+  def make_change_stop(entity)
+    {
+      onestopId: entity.onestop_id,
+      name: entity.name,
+      identifiedBy: @tl_gtfs[entity].map { |i| "gtfs://#{@feed.onestop_id}/s/#{i.id}"},
+      importedFromFeedOnestopId: @feed.onestop_id,
+      geometry: entity.geometry,
+      tags: entity.tags || {}
+    }
+  end
+  
+  def make_change_route(entity)
+    {
+      onestopId: entity.onestop_id,
+      name: entity.name,
+      identifiedBy: @tl_gtfs[entity].map { |i| "gtfs://#{@feed.onestop_id}/r/#{i.id}" },
+      importedFromFeedOnestopId: @feed.onestop_id,
+      operatedBy: @tl_served_by[entity].map(&:onestop_id).first,
+      serves: @tl_serves[entity].map(&:onestop_id),
+      tags: entity.tags || {},
+      geometry: entity.geometry,
+    }
+  end
+  
+  def make_ssp(trip, origin, destination)
+    # Generate an edge between an origin and destination for a given route/trip
+    route = @gtfs_tl[@gtfs_by_id[:routes][trip.route_id]]
+    origin_stop = @gtfs_tl[@gtfs_by_id[:stops][origin.stop_id]]
+    destination_stop = @gtfs_tl[@gtfs_by_id[:stops][destination.stop_id]]
+    ssp = {
+      # Origin
+      originOnestopId: origin_stop.onestop_id,
+      originTimezone: origin_stop.timezone,
+      originArrivalTime: origin.arrival_time,
+      originDepartureTime: origin.departure_time,
+      # Destination
+      destinationOnestopId: destination_stop.onestop_id,
+      destinationTimezone: destination_stop.timezone,
+      destinationArrivalTime: destination.arrival_time,
+      destinationDepartureTime: destination.departure_time,
+      # Route
+      routeOnestopId: route.onestop_id,
+      # Trip
+      trip: trip.id,
+      tripHeadsign: (origin.stop_headsign || trip.headsign),
+      tripShortName: trip.short_name,
+      wheelchairAccessible: trip.wheelchair_accessible.to_i,
+      # bikes_allowed: trip.bikes_allowed.to_i,
+      # Stop Time
+      dropOffType: origin.drop_off_type.to_i,
+      pickupType: origin.pickup_type.to_i,
+      # timepoint: origin.timepoint.to_i,
+      shapeDistTraveled: origin.shape_dist_traveled.to_f,
+      importedFromFeedOnestopId: @feed.onestop_id,      
+    }
+    # Raise Exception if service_id not found.
+    ssp.update(@service_by_id.fetch(trip.service_id))
+    ssp
+  end
 
   def make_service(entity)
+    # Turn calendar.txt & calendar_dates.txt into hashes; copied into SSPs
     # Note: String.to_date is Rails, not plain Ruby.
     service = @service_by_id[entity.service_id]
+    # Default service
     service ||= {
-      service_start_date: entity.start_date.to_date,
-      service_end_date: entity.end_date.to_date,
-      service_days_of_week: DAYS_OF_WEEK.map { |i| !entity.send(i).to_i.zero? },
-      service_added: [],
-      service_except: []
+      serviceStartDate: nil,
+      serviceEndDate: nil,
+      serviceDaysOfWeek: [false] * 7,
+      serviceAdded: [],
+      serviceExcept: []
     }
-    date = entity.date rescue nil
-    if date
+    # calendar: add in start_date, end_date, days of week
+    (service[:serviceStartDate] = entity.start_date.to_date) if entity.respond_to?(:start_date)
+    (service[:serviceEndDate] = entity.end_date.to_date) if entity.respond_to?(:end_date)
+    if entity.respond_to?(:monday)
+      service[:serviceDaysOfWeek] = DAYS_OF_WEEK.map { |i| !entity.send(i).to_i.zero? }
+    end
+    # calendar_dates: add service exception dates.
+    if entity.respond_to?(:date)
       if entity.exception_type.to_i == 1
-        service[:service_added] << date.to_date
+        service[:serviceAdded] << entity.date.to_date
       else
-        service[:service_except] << date.to_date
-      end
+        service[:serviceExcept] << entity.date.to_date
+      end      
     end
     @service_by_id[entity.service_id] = service
     service
   end
-    
 end
 
 
 if __FILE__ == $0
+  # --debug
+  # --noschedule
   # ActiveRecord::Base.logger = Logger.new(STDOUT)
   feedid = ARGV[0] || 'f-9q9-caltrain'
   filename = ARGV[1] || "tmp/transitland-feed-data/#{feedid}.zip"
@@ -491,6 +495,6 @@ if __FILE__ == $0
   graph = GTFSGraph.new(filename, feed)
   graph.load_gtfs
   operators = graph.load_tl
-  graph.create_changeset operators
+  graph.create_changeset(operators, level=1)
 end
 
