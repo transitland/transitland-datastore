@@ -35,10 +35,11 @@ class Feed < ActiveRecord::Base
 
   has_many :feed_imports, -> { order 'created_at DESC' }, dependent: :destroy
 
-  has_many :operators
-  has_many :stops
-  has_many :routes
-  has_many :schedule_stop_pairs
+  has_many :entities_imported_from_feed
+  has_many :operators, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'
+  has_many :stops, through: :entities_imported_from_feed, source: :entity, source_type: 'Stop'
+  has_many :routes, through: :entities_imported_from_feed, source: :entity, source_type: 'Route'
+  has_many :schedule_stop_pairs, through: :entities_imported_from_feed, source: :entity, source_type: 'ScheduleStopPair'
 
   validates :url, presence: true
   validates :url, format: { with: URI.regexp }, if: Proc.new { |feed| feed.url.present? }

@@ -1,8 +1,8 @@
 class EntitySerializer < ApplicationSerializer
   attributes :identifiers,
-             :imported_from_feed_onestop_id
+             :imported_from_feed_onestop_ids
 
-  def imported_from_feed_onestop_id
-    object.feed.try(:onestop_id)
+  def imported_from_feed_onestop_ids
+    object.feeds.map(&:onestop_id)
   end
 end
