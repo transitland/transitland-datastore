@@ -3,7 +3,8 @@ class Api::V1::WebhooksController < Api::V1::BaseApiController
 
   def feed_eater
     feed_onestop_ids = params[:feed_onestop_ids].try(:split, ',') || []
-    feed_eater_worker = FeedEaterWorker.perform_async(feed_onestop_ids)
+    import_level = params[:import_level].present? ? params[:import_level].to_i : 0
+    feed_eater_worker = FeedEaterWorker.perform_async(feed_onestop_ids, import_level)
     if feed_eater_worker
       render json: {
         code: 200,

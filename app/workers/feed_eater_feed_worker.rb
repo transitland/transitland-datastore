@@ -5,7 +5,7 @@ class FeedEaterFeedWorker < FeedEaterWorker
                   unique_job_expiration: 60 * 60, # 1 hour
                   log_duplicate_payload: true
 
-  def perform(feed_onestop_id)
+  def perform(feed_onestop_id, import_level=0)
     # Download the feed
     feed = Feed.find_by(onestop_id: feed_onestop_id)
     logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Downloading #{feed.url}"
@@ -39,7 +39,8 @@ class FeedEaterFeedWorker < FeedEaterWorker
       graph = GTFSGraph.new(gtfs_file_path, feed)
       graph.load_gtfs
       operators = graph.load_tl
-      graph.create_changeset operators
+      logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Creating changeset at import level #{import_level}"
+      graph.create_changeset operators, import_level
     rescue Exception => e
       # NOTE: we're catching all exceptions, including Interrupt,
       #   SignalException, and SyntaxError
