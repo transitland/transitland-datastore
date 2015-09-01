@@ -206,6 +206,7 @@ class GTFSGraph
   end
   
   def create_changeset(operators, import_level=0)
+    raise ArgumentError.new('import_level must be 0, 1, or 2.') unless (0..2).include?(import_level)
     debug "Create Changeset"
     operators = operators
     routes = operators.map { |i| @tl_serves[i] }.reduce(Set.new, :+)
