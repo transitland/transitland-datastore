@@ -35,7 +35,6 @@
 #  shape_dist_traveled                :float
 #  origin_timezone                    :string
 #  destination_timezone               :string
-#  feed_id                            :integer
 #
 # Indexes
 #
@@ -46,7 +45,6 @@
 #  c_ssp_service_end_date                           (service_end_date)
 #  c_ssp_service_start_date                         (service_start_date)
 #  c_ssp_trip                                       (trip)
-#  index_current_schedule_stop_pairs_on_feed_id     (feed_id)
 #  index_current_schedule_stop_pairs_on_updated_at  (updated_at)
 #
 
@@ -54,7 +52,8 @@ class BaseScheduleStopPair < ActiveRecord::Base
   self.abstract_class = true
   PER_PAGE = 50
 
-  belongs_to :feed
+  has_many :entities_imported_from_feed, as: :entity
+  has_many :feeds, through: :entities_imported_from_feed
 end
 
 class ScheduleStopPair < BaseScheduleStopPair
@@ -143,9 +142,9 @@ class ScheduleStopPair < BaseScheduleStopPair
       find(attrs[:id])
     end
   end
-  
+
   def imported_from_feed_onestop_id=(value)
-    self.feed = Feed.find_by!(onestop_id: value)
+    self.feeds << Feed.find_by!(onestop_id: value)
   end
 
   private

@@ -13,12 +13,10 @@
 #  version                            :integer
 #  identifiers                        :string           default([]), is an Array
 #  timezone                           :string
-#  feed_id                            :integer
 #
 # Indexes
 #
 #  #c_stops_cu_in_changeset_id_index   (created_or_updated_in_changeset_id)
-#  index_current_stops_on_feed_id      (feed_id)
 #  index_current_stops_on_identifiers  (identifiers)
 #  index_current_stops_on_onestop_id   (onestop_id)
 #  index_current_stops_on_tags         (tags)
