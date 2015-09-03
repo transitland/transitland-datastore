@@ -36,7 +36,8 @@ module Faker
     end
 
     def self.fake_geohash
-      SecureRandom.urlsafe_base64(16).gsub(/[-_]/,'')[0..rand(2...5)].downcase
+      geohash_base32 = '0123456789bcdefghjkmnpqrstuvwxyz'
+      (2..rand(3..5)).map { |i| geohash_base32[SecureRandom.random_number(32)] }.join('')
     end
 
     def self.fake_name(entity_prefix)
