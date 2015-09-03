@@ -16,47 +16,31 @@ class OnestopId
   }
   MODEL_TO_PREFIX = PREFIX_TO_MODEL.invert
   COMPONENT_SEPARATOR = '-'
+  GEOHASH_FILTER = /[^0123456789bcdefghjkmnpqrstuvwxyz]/
+  NAME_TILDE = /[\-\:\&\@\/]/
+  NAME_FILTER = /[^a-zA-Z\d\@\~]/
 
   attr_accessor :entity_prefix, :geohash, :name
 
   def initialize(string: nil, entity_prefix: nil, geohash: nil, name: nil)
-    errors = []
-
     if string && string.length > 0
-      is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string(string)
-      if is_a_valid_onestop_id
-        @entity_prefix = string.split(COMPONENT_SEPARATOR)[0]
-        @geohash = string.split(COMPONENT_SEPARATOR)[1]
-        @name = string.split(COMPONENT_SEPARATOR)[2]
-        self
-      else
-        raise ArgumentError.new(errors.join(', '))
-      end
+      @entity_prefix = string.split(COMPONENT_SEPARATOR)[0]
+      @geohash = string.split(COMPONENT_SEPARATOR)[1]
+      @name = string.split(COMPONENT_SEPARATOR)[2]
     elsif entity_prefix && geohash && name
-      if OnestopId.valid_component?(:entity_prefix, entity_prefix)
-        @entity_prefix = entity_prefix
-      else
-        errors << 'invalid entity prefix'
-      end
-      if OnestopId.valid_component?(:geohash, geohash)
-        @geohash = geohash
-      else
-        errors << 'invalid geohash'
-      end
-      if OnestopId.valid_component?(:name, name)
-        @name = name
-      else
-        errors << 'invalid name'
-      end
+      # Filter geohash and name; validate later
+      @entity_prefix = entity_prefix
+      @geohash = geohash_filter(geohash)
+      @name = name_filter(name)
     else
-      errors << 'either a string or entity/geohash/name must be specified'
+      raise ArgumentError.new('either a string or entity/geohash/name must be specified')
     end
-
-    if errors.length > 0
+    # Check valid OnestopID
+    is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string(self.to_s)
+    if !is_a_valid_onestop_id
       raise ArgumentError.new(errors.join(', '))
-    else
-      self
     end
+    self
   end
   
   def to_s
@@ -98,15 +82,23 @@ class OnestopId
 
   private
 
+  def name_filter(value)
+    value.downcase.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')
+  end
+  
+  def geohash_filter(value)
+    value.downcase.gsub(GEOHASH_FILTER, '')
+  end
+
   def self.valid_component?(component, value)
     return false if !value || value.length == 0
     case component
     when :entity_prefix
       ENTITY_TO_PREFIX.values.include?(value)
     when :geohash
-      !(value =~ /[^a-z\d]/)
+      !(value =~ GEOHASH_FILTER)
     when :name
-      !(value =~ /[^a-zA-Z\d\@\~]/)
+      !(value =~ NAME_FILTER)
     else
       false
     end
