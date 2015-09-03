@@ -231,9 +231,9 @@ class Stop < BaseStop
     point = Stop::GEOFACTORY.point(entity.lon, entity.lat)
     geohash = GeohashHelpers.encode(point, precision=GEOHASH_PRECISION)
     onestop_id = OnestopId.new(
-      entity_prefix: 's',
-      geohash: geohash,
-      name: entity.name.downcase.gsub(/\W+/, '')
+      entity_prefix: 's', 
+      geohash: geohash, 
+      name: entity.name
     )
     stop = Stop.new(
       name: entity.name,

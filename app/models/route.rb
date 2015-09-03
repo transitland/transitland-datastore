@@ -135,7 +135,7 @@ class Route < BaseRoute
     onestop_id = OnestopId.new(
       entity_prefix: 'r',
       geohash: geohash,
-      name: name.downcase.gsub(/\W+/, '')
+      name: name
     )
     route = Route.new(
       name: name,

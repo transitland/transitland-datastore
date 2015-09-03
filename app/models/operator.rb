@@ -121,9 +121,9 @@ class Operator < BaseOperator
     geohash = GeohashHelpers.fit(stops.map { |i| i[:geometry] })
     geometry = Operator.convex_hull(stops, as: :wkt, projected: false)
     onestop_id = OnestopId.new(
-      entity_prefix: 'o',
-      geohash: geohash,
-      name: entity.name.downcase.gsub(/\W+/, '')
+      entity_prefix: 'o', 
+      geohash: geohash, 
+      name: entity.name
     )
     operator = Operator.new(
       name: entity.name,
