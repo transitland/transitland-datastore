@@ -1,9 +1,9 @@
 GIT
   remote: git://github.com/transitland/transitland-ruby-client.git
-  revision: b19aa39775a6f6b54527096aa26763b9d7e3f802
-  tag: v0.0.6
+  revision: 3adc5991adcee9f41f862ebc30524ce204e42157
+  tag: v0.0.7
   specs:
-    transitland_client (0.0.6)
+    transitland_client (0.0.7)
       git (~> 1.2)
       virtus (~> 1.0)
 
