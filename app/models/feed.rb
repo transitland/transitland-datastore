@@ -114,6 +114,11 @@ class Feed < ActiveRecord::Base
       end
       feed.feed_format = feed_in_registry.feed_format
       feed.tags = feed_in_registry.tags
+      feed.license_name = feed_in_registry.license['name'] if feed_in_registry.license.has_key?('name')
+      feed.license_url = feed_in_registry.license['url'] if feed_in_registry.license.has_key?('url')
+      feed.license_use_without_attribution = feed_in_registry.license['useWithoutAttribution'] if feed_in_registry.license.has_key?('useWithoutAttribution')
+      feed.license_create_derived_product = feed_in_registry.license['createDerivedProduct'] if feed_in_registry.license.has_key?('createDerivedProduct')
+      feed.license_redistribute = feed_in_registry.license['redistribute'] if feed_in_registry.license.has_key?('redistribute')
       feed.save!
     end
   end
