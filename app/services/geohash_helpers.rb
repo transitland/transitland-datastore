@@ -27,6 +27,7 @@ module GeohashHelpers
     # Based on an MIT licensed implementation by Chris Veness from:
     #   http://www.movable-type.co.uk/scripts/geohash.html
     # Ported from Python implementation in mapzen-geohash.
+    raise ArgumentError.new('Empty geohash') if geohash.blank?
     raise ArgumentError.new('Invalid direction') unless [:n,:s,:e,:w].include?(direction)
     neighbor = {
       n: [ 'p0r21436x8zb9dcf5h7kjnmqesgutwvy', 'bc01fg45238967deuvhjyznpkmstqrwx' ],
@@ -43,7 +44,7 @@ module GeohashHelpers
     last = geohash[-1]
     parent = geohash[0..-2]
     t = geohash.length % 2
-    if (border[direction][t].include?(last) &! parent.nil?)
+    if (border[direction][t].include?(last) &! parent.empty?)
       parent = adjacent(parent, direction)
     end
     parent + BASESEQUENCE[neighbor[direction][t].index(last)]
