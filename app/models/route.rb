@@ -131,7 +131,9 @@ class Route < BaseRoute
   def self.from_gtfs(entity, stops)
     # GTFS Constructor
     geohash = GeohashHelpers.fit(stops.map { |i| i[:geometry] })
-    name = entity.short_name || entity.long_name
+    name = [entity.short_name, entity.long_name, entity.id, "unknown"]
+      .select(&:present?)
+      .first    
     onestop_id = OnestopId.new(
       entity_prefix: 'r',
       geohash: geohash,

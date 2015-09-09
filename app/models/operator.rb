@@ -120,13 +120,16 @@ class Operator < BaseOperator
     # GTFS Constructor
     geohash = GeohashHelpers.fit(stops.map { |i| i[:geometry] })
     geometry = Operator.convex_hull(stops, as: :wkt, projected: false)
+    name = [entity.name, entity.id, "unknown"]
+      .select(&:present?)
+      .first    
     onestop_id = OnestopId.new(
       entity_prefix: 'o', 
       geohash: geohash, 
-      name: entity.name
+      name: name
     )
     operator = Operator.new(
-      name: entity.name,
+      name: name,
       onestop_id: onestop_id.to_s,
       identifiers: [entity.id]
     )

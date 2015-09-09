@@ -230,13 +230,16 @@ class Stop < BaseStop
     # GTFS Constructor
     point = Stop::GEOFACTORY.point(entity.lon, entity.lat)
     geohash = GeohashHelpers.encode(point, precision=GEOHASH_PRECISION)
+    name = [entity.name, entity.id, "unknown"]
+      .select(&:present?)
+      .first    
     onestop_id = OnestopId.new(
       entity_prefix: 's', 
       geohash: geohash, 
-      name: entity.name
+      name: name
     )
     stop = Stop.new(
-      name: entity.name,
+      name: name,
       onestop_id: onestop_id.to_s,
       identifiers: [entity.id],
       geometry: point.to_s
