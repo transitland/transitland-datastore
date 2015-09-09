@@ -106,7 +106,7 @@ class GTFSGraph
     # Merge child stations into parents.
     stations = Hash.new { |h,k| h[k] = [] }
     @gtfs_by_id[:stops].each do |k,e|
-      stations[@gtfs_by_id[:stops][e.parent_station || e.id]] << e
+      stations[@gtfs_by_id[:stops][e.parent_station] || e] << e
     end
     
     # Merge station/platforms with Datastore Stops.
