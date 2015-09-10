@@ -465,8 +465,8 @@ class GTFSGraph
       serviceExcept: []
     }
     # check if we're calendar.txt, ...
-    service[:serviceStartDate] = entity.try(:start_date).try(:to_date)
-    service[:serviceEndDate] = entity.try(:end_date).try(:to_date)
+    service[:serviceStartDate] ||= entity.try(:start_date).try(:to_date)
+    service[:serviceEndDate] ||= entity.try(:end_date).try(:to_date)
     if entity.respond_to?(:monday)
       service[:serviceDaysOfWeek] = DAYS_OF_WEEK.map { |i| !entity.send(i).to_i.zero? }
     end
@@ -485,17 +485,15 @@ end
 
 
 if __FILE__ == $0
-  # --debug
-  # --noschedule
-  # ActiveRecord::Base.logger = Logger.new(STDOUT)
   feedid = ARGV[0] || 'f-9q9-caltrain'
-  filename = ARGV[1] || "tmp/transitland-feed-data/#{feedid}.zip"
+  filename = "tmp/transitland-feed-data/#{feedid}.zip"
+  import_level = (ARGV[1] || 1).to_i
   ######
   Feed.update_feeds_from_feed_registry
   feed = Feed.find_by!(onestop_id: feedid)
   graph = GTFSGraph.new(filename, feed)
   graph.load_gtfs
   operators = graph.load_tl
-  graph.create_changeset(operators, import_level=1)
+  graph.create_changeset(operators, import_level=import_level)
 end
 
