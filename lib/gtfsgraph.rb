@@ -1,6 +1,6 @@
 class GTFSGraph
   
-  DAYS_OF_WEEK = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']
+  DAYS_OF_WEEK = [:monday, :tuesday, :wednesday, :thursday, :friday, :saturday, :sunday]
   CHUNKSIZE = 1000
   
   def initialize(filename, feed=nil)
@@ -464,13 +464,13 @@ class GTFSGraph
       serviceAdded: [],
       serviceExcept: []
     }
-    # calendar: add in start_date, end_date, days of week
-    (service[:serviceStartDate] = entity.start_date.to_date) if entity.respond_to?(:start_date)
-    (service[:serviceEndDate] = entity.end_date.to_date) if entity.respond_to?(:end_date)
+    # check if we're calendar.txt, ...
+    service[:serviceStartDate] = entity.try(:start_date).try(:to_date)
+    service[:serviceEndDate] = entity.try(:end_date).try(:to_date)
     if entity.respond_to?(:monday)
       service[:serviceDaysOfWeek] = DAYS_OF_WEEK.map { |i| !entity.send(i).to_i.zero? }
     end
-    # calendar_dates: add service exception dates.
+    # or calendar_dates.txt
     if entity.respond_to?(:date)
       if entity.exception_type.to_i == 1
         service[:serviceAdded] << entity.date.to_date
