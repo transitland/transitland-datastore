@@ -130,6 +130,7 @@ class Route < BaseRoute
   include FromGTFS
   def self.from_gtfs(entity, stops)
     # GTFS Constructor
+    raise ArgumentError.new('Need at least one Stop') if stops.empty?
     geohash = GeohashHelpers.fit(stops.map { |i| i[:geometry] })
     name = [entity.short_name, entity.long_name, entity.id, "unknown"]
       .select(&:present?)

@@ -118,6 +118,7 @@ class Operator < BaseOperator
   include FromGTFS
   def self.from_gtfs(entity, stops)
     # GTFS Constructor
+    raise ArgumentError.new('Need at least one Stop') if stops.empty?
     geohash = GeohashHelpers.fit(stops.map { |i| i[:geometry] })
     geometry = Operator.convex_hull(stops, as: :wkt, projected: false)
     name = [entity.name, entity.id, "unknown"]
