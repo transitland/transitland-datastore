@@ -96,10 +96,8 @@ class ScheduleStopPair < BaseScheduleStopPair
 
   # Service trips_out in a bbox
   scope :where_origin_bbox, -> (bbox) {
-    bbox_coordinates = bbox.split(',')
-    # assert params[:bbox].split(',').length == 4
-    stops = Stop.where{geometry.op('&&', st_makeenvelope(bbox_coordinates[0], bbox_coordinates[1], bbox_coordinates[2], bbox_coordinates[3], Stop::GEOFACTORY.srid))}
-    where(origin_id: stops.ids)
+    stops = Stop.within_bbox(bbox_coordinates)
+    where(origin: stops)
   }
 
 

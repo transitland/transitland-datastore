@@ -18,9 +18,8 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
       r = params[:r] || 100 # meters TODO: move this to a more logical place
       @operators = @operators.where{st_dwithin(geometry, point, r)}.order{st_distance(geometry, point)}
     end
-    if params[:bbox].present? && params[:bbox].split(',').length == 4
-      bbox_coordinates = params[:bbox].split(',')
-      @operators = @operators.where{geometry.op('&&', st_makeenvelope(bbox_coordinates[0], bbox_coordinates[1], bbox_coordinates[2], bbox_coordinates[3], Operator::GEOFACTORY.srid))}
+    if params[:bbox].present?
+      @operators = @operators.within_bbox(bbox_coordinates)
     end
     if params[:onestop_id].present?
       @operators = @operators.where(onestop_id: params[:onestop_id])

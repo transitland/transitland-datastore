@@ -4,6 +4,16 @@ module HasAGeographicGeometry
   included do
     GEOFACTORY ||= RGeo::Geographic.spherical_factory(srid: 4326)
 
+    scope :within_bbox, -> (bbox_coordinates) {
+      if bbox_coordinates.is_a?(String)
+        bbox_coordinates = bbox_coordinates.split(',').map(&:strip)
+      end
+      if bbox_coordinates.length != 4
+        raise ArgumentError.new('must specify bbox coordinates')
+      end
+      where{st_intersects(geometry, st_makeenvelope(bbox_coordinates[0], bbox_coordinates[1], bbox_coordinates[2], bbox_coordinates[3], GEOFACTORY.srid))}
+    }
+
     def self.convex_hull(entities, as: :geojson, projected: false)
       projected_geometries = entities.map { |e| e.geometry(as: :wkt, projected: true)}
       geometry_collection = RGeo::Geographic.simple_mercator_factory.projection_factory.collection(projected_geometries)

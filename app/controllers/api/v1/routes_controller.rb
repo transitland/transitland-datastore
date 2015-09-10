@@ -16,9 +16,9 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     if params[:operatedBy].present?
       @routes = @routes.operated_by(params[:operatedBy])
     end
-    if params[:bbox].present? && params[:bbox].split(',').length == 4
+    if params[:bbox].present?
       bbox_coordinates = params[:bbox].split(',')
-      @routes = @routes.where{geometry.op('&&', st_makeenvelope(bbox_coordinates[0], bbox_coordinates[1], bbox_coordinates[2], bbox_coordinates[3], Route::GEOFACTORY.srid))}
+      @routes = @routes.within_bbox(bbox_coordinates)
     end
     if params[:onestop_id].present?
       @routes = @routes.where(onestop_id: params[:onestop_id])
