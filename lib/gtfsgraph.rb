@@ -465,8 +465,8 @@ class GTFSGraph
       serviceExcept: []
     }
     # check if we're calendar.txt, ...
-    service[:serviceStartDate] = entity.try(:start_date).try(:to_date)
-    service[:serviceEndDate] = entity.try(:end_date).try(:to_date)
+    service[:serviceStartDate] ||= entity.try(:start_date).try(:to_date)
+    service[:serviceEndDate] ||= entity.try(:end_date).try(:to_date)
     if entity.respond_to?(:monday)
       service[:serviceDaysOfWeek] = DAYS_OF_WEEK.map { |i| !entity.send(i).to_i.zero? }
     end
