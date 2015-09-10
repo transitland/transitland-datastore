@@ -56,6 +56,8 @@ gem 'binding_of_caller', group: :development
 gem 'byebug', group: [:development, :test]
 gem 'pry-byebug', group: [:development, :test]
 gem 'pry-rails', group: [:development, :test]
+gem 'pry-rescue', group: [:development, :test]
+gem 'pry-stack_explorer', group: [:development, :test]
 
 # code coverage and documentation
 gem 'rails-erd', group: :development

@@ -138,6 +138,7 @@ GEM
       domain_name (~> 0.5)
     i18n (0.7.0)
     ice_nine (0.11.1)
+    interception (0.5)
     jmespath (1.0.2)
       multi_json (~> 1.0)
     json (1.8.3)
@@ -180,6 +181,12 @@ GEM
       pry (~> 0.10)
     pry-rails (0.3.4)
       pry (>= 0.9.10)
+    pry-rescue (1.4.2)
+      interception (>= 0.5)
+      pry
+    pry-stack_explorer (0.4.9.2)
+      binding_of_caller (>= 0.7)
+      pry (>= 0.9.11)
     rack (1.6.4)
     rack-cors (0.4.0)
     rack-protection (1.5.3)
@@ -361,6 +368,8 @@ DEPENDENCIES
   pg
   pry-byebug
   pry-rails
+  pry-rescue
+  pry-stack_explorer
   rack-cors
   rails (= 4.2.3)
   rails-erd
