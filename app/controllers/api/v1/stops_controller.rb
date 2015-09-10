@@ -22,8 +22,7 @@ class Api::V1::StopsController < Api::V1::BaseApiController
       @stops = @stops.where{st_dwithin(geometry, point, r)}.order{st_distance(geometry, point)}
     end
     if params[:bbox].present?
-      bbox_coordinates = params[:bbox].split(',')
-      @stops = @stops.within_bbox(bbox_coordinates)
+      @stops = @stops.within_bbox(params[:bbox])
     end
     if params[:onestop_id].present?
       @stops = @stops.where(onestop_id: params[:onestop_id])
