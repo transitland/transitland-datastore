@@ -78,6 +78,11 @@ describe GeohashHelpers do
     }.to raise_error(ArgumentError)
   end
 
+  it 'neighbors wrap around' do
+    expect(GeohashHelpers.adjacent('c', :n)).to eq('1')
+    expect(GeohashHelpers.adjacent('1', :s)).to eq('c')
+  end
+
   it 'neighbors' do
     result = GeohashHelpers.neighbors('9p')
     expect(result[:n]).to eq('c0')
