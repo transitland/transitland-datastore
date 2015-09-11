@@ -303,7 +303,11 @@ class GTFSGraph
   private
   
   def make_identifier(entity_prefix, entity)
-    IDENTIFIER_TEMPLATE.expand(feed_onestop_id: @feed.onestop_id, entity_prefix: entity_prefix, entity_id: entity.id).to_s
+    IDENTIFIER_TEMPLATE.expand(
+      feed_onestop_id: @feed.onestop_id, 
+      entity_prefix: entity_prefix, 
+      entity_id: entity.id
+    ).to_s
   end
 
   def debug(msg)
