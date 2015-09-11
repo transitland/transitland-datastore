@@ -463,8 +463,8 @@ class GTFSGraph
       serviceStartDate: nil,
       serviceEndDate: nil,
       serviceDaysOfWeek: [false] * 7,
-      serviceAdded: [],
-      serviceExcept: []
+      serviceAddedDates: [],
+      serviceExceptDates: []
     }
     # check if we're calendar.txt, ...
     service[:serviceStartDate] ||= entity.try(:start_date).try(:to_date)
@@ -475,9 +475,9 @@ class GTFSGraph
     # or calendar_dates.txt
     if entity.respond_to?(:date)
       if entity.exception_type.to_i == 1
-        service[:serviceAdded] << entity.date.to_date
+        service[:serviceAddedDates] << entity.date.to_date
       else
-        service[:serviceExcept] << entity.date.to_date
+        service[:serviceExceptDates] << entity.date.to_date
       end      
     end
     @service_by_id[entity.service_id] = service
