@@ -1,8 +1,9 @@
 class GTFSGraph
   
   DAYS_OF_WEEK = [:monday, :tuesday, :wednesday, :thursday, :friday, :saturday, :sunday]
-  CHUNKSIZE = 1000
-  
+  CHANGE_PAYLOAD_MAX_ENTITIES = 1_000
+  STOP_TIMES_MAX_LOAD = 1_000_000
+    
   def initialize(filename, feed=nil)
     # GTFS Graph / TransitLand wrapper
     @filename = filename
@@ -34,7 +35,6 @@ class GTFSGraph
   
   def load_gtfs
     # Load core GTFS entities and build relationships
-    # TODO: Move this code and related attributes to GTFS wrapper.
     debug "Load GTFS"
     # Clear
     @gtfs_by_id.clear
@@ -43,21 +43,22 @@ class GTFSGraph
     @trip_counter.clear
     
     # Load GTFS agencies, routes, stops, trips
+    # Use .each_entity instead of .entity.each; faster, skip caching.
     debug "  core"
-    @gtfs.agencies.each { |e| @gtfs_by_id[:agencies][e.id] = e }
-    @gtfs.routes.each { |e| @gtfs_by_id[:routes][e.id] = e }
-    @gtfs.stops.each { |e| @gtfs_by_id[:stops][e.id] = e }
-    @gtfs.trips.each { |e| @gtfs_by_id[:trips][e.id] = e }
+    @gtfs.each_agency { |e| @gtfs_by_id[:agencies][e.id] = e }
+    @gtfs.each_route { |e| @gtfs_by_id[:routes][e.id] = e }
+    @gtfs.each_stop { |e| @gtfs_by_id[:stops][e.id] = e }
+    @gtfs.each_trip { |e| @gtfs_by_id[:trips][e.id] = e }
 
     # Load service periods
     debug "  calendars"
-    @gtfs.calendars.each { |e| make_service(e) }    
-    @gtfs.calendar_dates.each { |e| make_service(e) }
+    @gtfs.each_calendar { |e| make_service(e) } rescue debug "  warning: no calendar.txt"
+    @gtfs.each_calendar_date { |e| make_service(e) } rescue debug "  warning: no calendar_dates.txt"
 
     # Load shapes.
     debug "  shapes"
     shapes_merge = Hash.new { |h,k| h[k] = [] }
-    @gtfs.shapes.each { |e| shapes_merge[e.id] << e }
+    @gtfs.each_shape { |e| shapes_merge[e.id] << e }
     shapes_merge.each { |k,v| 
       @shape_by_id[k] = Route::GEOFACTORY.line_string(
         v
@@ -84,7 +85,7 @@ class GTFSGraph
 
     # Associate routes with stops; count stop_times by trip
     debug "  stop_times counter"
-    @gtfs.stop_times.each do |e| 
+    @gtfs.each_stop_time do |e| 
       trip = @gtfs_by_id[:trips][e.trip_id]
       stop = @gtfs_by_id[:stops][e.stop_id]
       @trip_counter[trip] += 1
@@ -206,6 +207,7 @@ class GTFSGraph
   end
   
   def create_changeset(operators, import_level=0)
+    raise ArgumentError.new('At least one operator required') if operators.empty?
     raise ArgumentError.new('import_level must be 0, 1, or 2.') unless (0..2).include?(import_level)
     debug "Create Changeset"
     operators = operators
@@ -216,7 +218,7 @@ class GTFSGraph
     
     # Operators
     if import_level >= 0
-      operators.each_slice(CHUNKSIZE).each do |chunk|
+      operators.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
         debug "  operators: #{chunk.size}"
         ChangePayload.create!(
           changeset: changeset, 
@@ -234,7 +236,7 @@ class GTFSGraph
 
     # Stops
     if import_level >= 1
-      stops.each_slice(CHUNKSIZE).each do |chunk|
+      stops.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
         debug "  stops: #{chunk.size}"
         ChangePayload.create!(
           changeset: changeset, 
@@ -250,7 +252,7 @@ class GTFSGraph
       end
     
       # Routes
-      routes.each_slice(CHUNKSIZE).each do |chunk|
+      routes.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
         debug "  routes: #{chunk.size}"
         ChangePayload.create!(
           changeset: changeset, 
@@ -268,21 +270,22 @@ class GTFSGraph
 
     if import_level >= 2
       counter = 0
-      trip_chunks(CHUNKSIZE) do |trips|
-        counter += trips.size
-        chunk = stop_pairs(trips)
-        debug "  trips #{counter} / #{@trip_counter.size}: #{chunk.size} stop pairs"
-        ChangePayload.create!(
-          changeset: changeset,
-          payload: {
-            changes: chunk.map { |entity|
-              {
-                action: action,
-                scheduleStopPair: entity
+      trip_chunks(STOP_TIMES_MAX_LOAD) do |trip_chunk|
+        counter += trip_chunk.size
+        stop_pairs(trip_chunk).each_slice(CHANGE_PAYLOAD_MAX_ENTITIES) do |chunk|
+          debug "  trips #{counter} / #{@trip_counter.size}: #{chunk.size} stop pairs"
+          ChangePayload.create!(
+            changeset: changeset,
+            payload: {
+              changes: chunk.map { |entity|
+                {
+                  action: action,
+                  scheduleStopPair: entity
+                }
               }
             }
-          }
-        )
+          )
+        end
       end
     end
 
@@ -290,7 +293,7 @@ class GTFSGraph
     debug "  changeset apply"
     changeset.apply!    
     debug "  changeset apply done"
-  end
+  end  
   
   ##### GTFS by ID #####
   
@@ -332,7 +335,7 @@ class GTFSGraph
   
   ##### Trip pairs and stop chunks #####
   
-  def trip_chunks(batchsize=1000)
+  def trip_chunks(batchsize)
     # Return chunks of trips containing approx. batchsize stop_times.
     # Reverse sort trips
     trips = @trip_counter.sort_by { |k,v| -v }
@@ -359,7 +362,7 @@ class GTFSGraph
 
     # Sub graph mapping trip IDs to stop_times
     trip_ids_stop_times = Hash.new {|h,k| h[k] = []}
-    @gtfs.stop_times.each do |stop_time|
+    @gtfs.each_stop_time do |stop_time|
       next unless trip_ids.include?(stop_time.trip_id)
       trip_ids_stop_times[stop_time.trip_id] << stop_time
     end 
@@ -461,8 +464,8 @@ class GTFSGraph
       serviceStartDate: nil,
       serviceEndDate: nil,
       serviceDaysOfWeek: [false] * 7,
-      serviceAdded: [],
-      serviceExcept: []
+      serviceAddedDates: [],
+      serviceExceptDates: []
     }
     # check if we're calendar.txt, ...
     service[:serviceStartDate] ||= entity.try(:start_date).try(:to_date)
@@ -473,16 +476,15 @@ class GTFSGraph
     # or calendar_dates.txt
     if entity.respond_to?(:date)
       if entity.exception_type.to_i == 1
-        service[:serviceAdded] << entity.date.to_date
+        service[:serviceAddedDates] << entity.date.to_date
       else
-        service[:serviceExcept] << entity.date.to_date
+        service[:serviceExceptDates] << entity.date.to_date
       end      
     end
     @service_by_id[entity.service_id] = service
     service
   end
 end
-
 
 if __FILE__ == $0
   feedid = ARGV[0] || 'f-9q9-caltrain'
@@ -496,4 +498,3 @@ if __FILE__ == $0
   operators = graph.load_tl
   graph.create_changeset(operators, import_level=import_level)
 end
-
