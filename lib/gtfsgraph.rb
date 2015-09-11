@@ -1,8 +1,11 @@
+require 'addressable/template'
+
 class GTFSGraph
   
   DAYS_OF_WEEK = [:monday, :tuesday, :wednesday, :thursday, :friday, :saturday, :sunday]
   CHANGE_PAYLOAD_MAX_ENTITIES = 1_000
   STOP_TIMES_MAX_LOAD = 1_000_000
+  IDENTIFIER_TEMPLATE = Addressable::Template.new("gtfs://{feed_onestop_id}/{entity_prefix}/{entity_id}")
     
   def initialize(filename, feed=nil)
     # GTFS Graph / TransitLand wrapper
@@ -299,6 +302,10 @@ class GTFSGraph
   
   private
   
+  def make_identifier(entity_prefix, entity)
+    IDENTIFIER_TEMPLATE.expand(feed_onestop_id: @feed.onestop_id, entity_prefix: entity_prefix, entity_id: entity.id).to_s
+  end
+
   def debug(msg)
     # Debug logging
     if Sidekiq::Logging.logger
@@ -388,7 +395,7 @@ class GTFSGraph
     {
       onestopId: entity.onestop_id,
       name: entity.name,
-      identifiedBy: @tl_gtfs[entity].map { |i| "gtfs://#{@feed.onestop_id}/o/#{i.id}"},
+      identifiedBy: @tl_gtfs[entity].map { |i| make_identifier('o', i)},
       importedFromFeedOnestopId: @feed.onestop_id,
       geometry: entity.geometry,
       tags: entity.tags || {}
@@ -399,7 +406,7 @@ class GTFSGraph
     {
       onestopId: entity.onestop_id,
       name: entity.name,
-      identifiedBy: @tl_gtfs[entity].map { |i| "gtfs://#{@feed.onestop_id}/s/#{i.id}"},
+      identifiedBy: @tl_gtfs[entity].map { |i| make_identifier('s', i)},
       importedFromFeedOnestopId: @feed.onestop_id,
       geometry: entity.geometry,
       tags: entity.tags || {}
@@ -410,7 +417,7 @@ class GTFSGraph
     {
       onestopId: entity.onestop_id,
       name: entity.name,
-      identifiedBy: @tl_gtfs[entity].map { |i| "gtfs://#{@feed.onestop_id}/r/#{i.id}" },
+      identifiedBy: @tl_gtfs[entity].map { |i| make_identifier('r', i)},
       importedFromFeedOnestopId: @feed.onestop_id,
       operatedBy: @tl_served_by[entity].map(&:onestop_id).first,
       serves: @tl_serves[entity].map(&:onestop_id),
