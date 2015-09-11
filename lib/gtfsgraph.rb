@@ -1,9 +1,9 @@
 class GTFSGraph
   
   DAYS_OF_WEEK = [:monday, :tuesday, :wednesday, :thursday, :friday, :saturday, :sunday]
-  CHUNKSIZE = 1_000
-  STOPTIMESSIZE = 1_000_000
-  
+  CHANGE_PAYLOAD_MAX_ENTITIES = 1_000
+  STOP_TIMES_MAX_LOAD = 1_000_000
+    
   def initialize(filename, feed=nil)
     # GTFS Graph / TransitLand wrapper
     @filename = filename
@@ -218,7 +218,7 @@ class GTFSGraph
     
     # Operators
     if import_level >= 0
-      operators.each_slice(CHUNKSIZE).each do |chunk|
+      operators.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
         debug "  operators: #{chunk.size}"
         ChangePayload.create!(
           changeset: changeset, 
@@ -236,7 +236,7 @@ class GTFSGraph
 
     # Stops
     if import_level >= 1
-      stops.each_slice(CHUNKSIZE).each do |chunk|
+      stops.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
         debug "  stops: #{chunk.size}"
         ChangePayload.create!(
           changeset: changeset, 
@@ -252,7 +252,7 @@ class GTFSGraph
       end
     
       # Routes
-      routes.each_slice(CHUNKSIZE).each do |chunk|
+      routes.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
         debug "  routes: #{chunk.size}"
         ChangePayload.create!(
           changeset: changeset, 
@@ -270,9 +270,9 @@ class GTFSGraph
 
     if import_level >= 2
       counter = 0
-      trip_chunks(STOPTIMESSIZE) do |trip_chunk|
+      trip_chunks(STOP_TIMES_MAX_LOAD) do |trip_chunk|
         counter += trip_chunk.size
-        stop_pairs(trip_chunk).each_slice(CHUNKSIZE) do |chunk|
+        stop_pairs(trip_chunk).each_slice(CHANGE_PAYLOAD_MAX_ENTITIES) do |chunk|
           debug "  trips #{counter} / #{@trip_counter.size}: #{chunk.size} stop pairs"
           ChangePayload.create!(
             changeset: changeset,
@@ -335,7 +335,7 @@ class GTFSGraph
   
   ##### Trip pairs and stop chunks #####
   
-  def trip_chunks(batchsize=1000)
+  def trip_chunks(batchsize)
     # Return chunks of trips containing approx. batchsize stop_times.
     # Reverse sort trips
     trips = @trip_counter.sort_by { |k,v| -v }
