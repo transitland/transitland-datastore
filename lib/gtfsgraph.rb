@@ -1,7 +1,8 @@
 class GTFSGraph
   
   DAYS_OF_WEEK = [:monday, :tuesday, :wednesday, :thursday, :friday, :saturday, :sunday]
-  CHUNKSIZE = 1000
+  CHUNKSIZE = 1_000
+  STOPTIMESSIZE = 1_000_000
   
   def initialize(filename, feed=nil)
     # GTFS Graph / TransitLand wrapper
@@ -34,7 +35,6 @@ class GTFSGraph
   
   def load_gtfs
     # Load core GTFS entities and build relationships
-    # TODO: Move this code and related attributes to GTFS wrapper.
     debug "Load GTFS"
     # Clear
     @gtfs_by_id.clear
@@ -43,21 +43,22 @@ class GTFSGraph
     @trip_counter.clear
     
     # Load GTFS agencies, routes, stops, trips
+    # Use .each_entity instead of .entity.each; faster, skip caching.
     debug "  core"
-    @gtfs.agencies.each { |e| @gtfs_by_id[:agencies][e.id] = e }
-    @gtfs.routes.each { |e| @gtfs_by_id[:routes][e.id] = e }
-    @gtfs.stops.each { |e| @gtfs_by_id[:stops][e.id] = e }
-    @gtfs.trips.each { |e| @gtfs_by_id[:trips][e.id] = e }
+    @gtfs.each_agency { |e| @gtfs_by_id[:agencies][e.id] = e }
+    @gtfs.each_route { |e| @gtfs_by_id[:routes][e.id] = e }
+    @gtfs.each_stop { |e| @gtfs_by_id[:stops][e.id] = e }
+    @gtfs.each_trip { |e| @gtfs_by_id[:trips][e.id] = e }
 
     # Load service periods
     debug "  calendars"
-    @gtfs.calendars.each { |e| make_service(e) }    
-    @gtfs.calendar_dates.each { |e| make_service(e) }
+    @gtfs.each_calendar { |e| make_service(e) }    
+    @gtfs.each_calendar_date { |e| make_service(e) }
 
     # Load shapes.
     debug "  shapes"
     shapes_merge = Hash.new { |h,k| h[k] = [] }
-    @gtfs.shapes.each { |e| shapes_merge[e.id] << e }
+    @gtfs.each_shape { |e| shapes_merge[e.id] << e }
     shapes_merge.each { |k,v| 
       @shape_by_id[k] = Route::GEOFACTORY.line_string(
         v
@@ -84,7 +85,7 @@ class GTFSGraph
 
     # Associate routes with stops; count stop_times by trip
     debug "  stop_times counter"
-    @gtfs.stop_times.each do |e| 
+    @gtfs.each_stop_time do |e| 
       trip = @gtfs_by_id[:trips][e.trip_id]
       stop = @gtfs_by_id[:stops][e.stop_id]
       @trip_counter[trip] += 1
@@ -268,21 +269,22 @@ class GTFSGraph
 
     if import_level >= 2
       counter = 0
-      trip_chunks(CHUNKSIZE) do |trips|
-        counter += trips.size
-        chunk = stop_pairs(trips)
-        debug "  trips #{counter} / #{@trip_counter.size}: #{chunk.size} stop pairs"
-        ChangePayload.create!(
-          changeset: changeset,
-          payload: {
-            changes: chunk.map { |entity|
-              {
-                action: action,
-                scheduleStopPair: entity
+      trip_chunks(STOPTIMESSIZE) do |trip_chunk|
+        counter += trip_chunk.size
+        stop_pairs(trip_chunk).each_slice(CHUNKSIZE) do |chunk|
+          debug "  trips #{counter} / #{@trip_counter.size}: #{chunk.size} stop pairs"
+          ChangePayload.create!(
+            changeset: changeset,
+            payload: {
+              changes: chunk.map { |entity|
+                {
+                  action: action,
+                  scheduleStopPair: entity
+                }
               }
             }
-          }
-        )
+          )
+        end
       end
     end
 
@@ -290,7 +292,7 @@ class GTFSGraph
     debug "  changeset apply"
     changeset.apply!    
     debug "  changeset apply done"
-  end
+  end  
   
   ##### GTFS by ID #####
   
@@ -483,7 +485,6 @@ class GTFSGraph
   end
 end
 
-
 if __FILE__ == $0
   feedid = ARGV[0] || 'f-9q9-caltrain'
   filename = "tmp/transitland-feed-data/#{feedid}.zip"
@@ -496,4 +497,3 @@ if __FILE__ == $0
   operators = graph.load_tl
   graph.create_changeset(operators, import_level=import_level)
 end
-
