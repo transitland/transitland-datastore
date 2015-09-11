@@ -91,6 +91,12 @@ describe Stop do
       expect(Stop.within_bbox('-122.0,37.25,-121.75,37.5')).to match_array([santa_clara])
       expect(Stop.within_bbox('-122.25,37.25,-122.0,37.5')).to match_array([mountain_view])
     end
+
+    it 'fails gracefully when ill-formed bounding box is provided' do
+      expect { Stop.within_bbox('-122.25,37.25,-122.0') }.to raise_error(ArgumentError)
+      expect { Stop.within_bbox() }.to raise_error(ArgumentError)
+      expect { Stop.within_bbox([-122.25,37.25,-122.0]) }.to raise_error(ArgumentError)
+    end
   end
 
   context 'served_by' do
