@@ -65,7 +65,7 @@ class ScheduleStopPair < BaseScheduleStopPair
   belongs_to :route
 
   # Required relations and attributes
-  validates :route, presence: true
+  validates :origin, presence: true
   validates :destination, presence: true
   validates :route, presence: true
   validates :trip, presence: true
