@@ -362,7 +362,7 @@ class GTFSGraph
 
     # Sub graph mapping trip IDs to stop_times
     trip_ids_stop_times = Hash.new {|h,k| h[k] = []}
-    @gtfs.stop_times.each do |stop_time|
+    @gtfs.each_stop_time do |stop_time|
       next unless trip_ids.include?(stop_time.trip_id)
       trip_ids_stop_times[stop_time.trip_id] << stop_time
     end 
