@@ -96,7 +96,7 @@ class ScheduleStopPair < BaseScheduleStopPair
 
   # Service trips_out in a bbox
   scope :where_origin_bbox, -> (bbox) {
-    stops = Stop.within_bbox(bbox_coordinates)
+    stops = Stop.within_bbox(bbox)
     where(origin: stops)
   }
 
