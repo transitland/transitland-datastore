@@ -8,7 +8,7 @@ module HasAFeed
   
   def imported_from_feed_onestop_id=(value)
     feed = Feed.find_by!(onestop_id: value)
-    self.feeds << feed unless self.feeds.exists?(feed)
+    self.feeds << feed unless self.feeds.exists?(feed.id)
   end
   
 end
