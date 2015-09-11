@@ -52,8 +52,8 @@ class GTFSGraph
 
     # Load service periods
     debug "  calendars"
-    @gtfs.each_calendar { |e| make_service(e) }    
-    @gtfs.each_calendar_date { |e| make_service(e) }
+    @gtfs.each_calendar { |e| make_service(e) } rescue debug "  warning: no calendar.txt"
+    @gtfs.each_calendar_date { |e| make_service(e) } rescue debug "  warning: no calendar_dates.txt"
 
     # Load shapes.
     debug "  shapes"
@@ -207,6 +207,7 @@ class GTFSGraph
   end
   
   def create_changeset(operators, import_level=0)
+    raise ArgumentError.new('At least one operator required') if operators.empty?
     raise ArgumentError.new('import_level must be 0, 1, or 2.') unless (0..2).include?(import_level)
     debug "Create Changeset"
     operators = operators
