@@ -218,8 +218,10 @@ class GTFSGraph
     
     # Operators
     if import_level >= 0
+      counter = 0
       operators.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
-        debug "  operators: #{chunk.size}"
+        debug "  operators: #{counter} - #{counter+chunk.size} of #{operators.size}"
+        counter += chunk.size
         ChangePayload.create!(
           changeset: changeset, 
           payload: {
@@ -236,8 +238,10 @@ class GTFSGraph
 
     # Stops
     if import_level >= 1
+      counter = 0
       stops.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
-        debug "  stops: #{chunk.size}"
+        debug "  stops: #{counter} - #{counter+chunk.size} of #{stops.size}"
+        counter += chunk.size
         ChangePayload.create!(
           changeset: changeset, 
           payload: {
@@ -252,8 +256,10 @@ class GTFSGraph
       end
     
       # Routes
+      counter = 0
       routes.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
-        debug "  routes: #{chunk.size}"
+        debug "  routes: #{counter} - #{counter+chunk.size} of #{routes.size}"
+        counter += chunk.size
         ChangePayload.create!(
           changeset: changeset, 
           payload: {
@@ -269,15 +275,22 @@ class GTFSGraph
     end
 
     if import_level >= 2
-      counter = 0
+      trip_counter = 0
+      trip_total = @trip_counter.size
+      ssp_counter = 0
+      ssp_total = @trip_counter.values.sum - trip_total
+
       trip_chunks(STOP_TIMES_MAX_LOAD) do |trip_chunk|
-        counter += trip_chunk.size
-        stop_pairs(trip_chunk).each_slice(CHANGE_PAYLOAD_MAX_ENTITIES) do |chunk|
-          debug "  trips #{counter} / #{@trip_counter.size}: #{chunk.size} stop pairs"
+        debug "  trips: #{trip_counter} - #{trip_counter+trip_chunk.size} of #{trip_total}"
+        trip_counter += trip_chunk.size
+        ssps = stop_pairs(trip_chunk)
+        ssps.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES) do |ssp_chunk|
+          debug "    ssps: #{ssp_counter} - #{ssp_counter+ssp_chunk.size} of #{ssp_total}"
+          ssp_counter += ssp_chunk.size
           ChangePayload.create!(
             changeset: changeset,
             payload: {
-              changes: chunk.map { |entity|
+              changes: ssp_chunk.map { |entity|
                 {
                   action: action,
                   scheduleStopPair: entity
