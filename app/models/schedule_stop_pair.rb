@@ -51,9 +51,7 @@
 class BaseScheduleStopPair < ActiveRecord::Base
   self.abstract_class = true
   PER_PAGE = 50
-
-  has_many :entities_imported_from_feed, as: :entity
-  has_many :feeds, through: :entities_imported_from_feed
+  include HasAFeed
 end
 
 class ScheduleStopPair < BaseScheduleStopPair
@@ -100,7 +98,6 @@ class ScheduleStopPair < BaseScheduleStopPair
     where(origin: stops)
   }
 
-
   # Handle mapping from onestop_id to id
   def route_onestop_id=(value)
     self.route_id = Route.where(onestop_id: value).pluck(:id).first
@@ -139,10 +136,6 @@ class ScheduleStopPair < BaseScheduleStopPair
     if attrs[:id].present?
       find(attrs[:id])
     end
-  end
-
-  def imported_from_feed_onestop_id=(value)
-    self.feeds << Feed.find_by!(onestop_id: value)
   end
 
   private

@@ -28,8 +28,7 @@ class BaseStop < ActiveRecord::Base
 
   PER_PAGE = 50
 
-  has_many :entities_imported_from_feed, as: :entity
-  has_many :feeds, through: :entities_imported_from_feed
+  include HasAFeed
 
   attr_accessor :served_by, :not_served_by
 end
@@ -101,10 +100,6 @@ class Stop < BaseStop
       route_serving_stop.destroy_making_history(changeset: changeset)
     end
     return true
-  end
-
-  def imported_from_feed_onestop_id=(value)
-    self.feeds << Feed.find_by!(onestop_id: value)
   end
 
   # Operators serving this stop

@@ -35,8 +35,7 @@ class BaseOperator < ActiveRecord::Base
 
   attr_accessor :serves, :does_not_serve
 
-  has_many :entities_imported_from_feed, as: :entity
-  has_many :feeds, through: :entities_imported_from_feed
+  include HasAFeed
 
   validates :website, format: { with: URI.regexp }, if: Proc.new { |operator| operator.website.present? }
 end
@@ -100,10 +99,6 @@ class Operator < BaseOperator
       route_serving_stop.destroy_making_history(changeset: changeset)
     end
     return true
-  end
-
-  def imported_from_feed_onestop_id=(value)
-    self.feeds << Feed.find_by!(onestop_id: value)
   end
 
   has_many :operators_serving_stop

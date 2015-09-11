@@ -42,4 +42,31 @@ describe Operator do
     expect(Operator.with_identifier('SFMTA')).to be_empty
     expect(Operator.with_identifier_or_name('SFMTA')).to match_array([sfmta])
   end
+  
+  it 'HasAFeed imported_from_feed_onestop_id' do
+    feed = create(:feed)
+    bart = build(:operator, name: 'BART', identifiers: ['Bay Area Rapid Transit'])
+    bart.imported_from_feed_onestop_id = feed.onestop_id
+    bart.save!
+    expect(bart.feeds).to match_array([feed])
+  end
+
+  it 'HasAFeed imported_from_feed_onestop_id requires valid feed onestop_id' do
+    bart = build(:operator, name: 'BART', identifiers: ['Bay Area Rapid Transit'])
+    expect {
+      bart.imported_from_feed_onestop_id = 'f-9q9-unknown'
+    }.to raise_error(ActiveRecord::RecordNotFound)
+  end
+
+  it 'HasAFeed imported_from_feed_onestop_id no duplicates' do
+    feed = create(:feed)
+    bart = build(:operator, name: 'BART', identifiers: ['Bay Area Rapid Transit'])
+    bart.imported_from_feed_onestop_id = feed.onestop_id
+    bart.save!
+    expect(bart.feeds).to match_array([feed])
+    bart.imported_from_feed_onestop_id = feed.onestop_id
+    bart.save!
+    expect(bart.feeds).to match_array([feed])
+  end
+  
 end
