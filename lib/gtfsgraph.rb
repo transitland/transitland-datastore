@@ -52,8 +52,8 @@ class GTFSGraph
 
     # Load service periods
     debug "  calendars"
-    @gtfs.each_calendar { |e| make_service(e) } rescue debug "  warning: no calendar.txt"
-    @gtfs.each_calendar_date { |e| make_service(e) } rescue debug "  warning: no calendar_dates.txt"
+    @gtfs.each_calendar { |e| make_service_calendar(e) } rescue debug "  warning: no calendar.txt"
+    @gtfs.each_calendar_date { |e| make_service_calendar_dates(e) } rescue debug "  warning: no calendar_dates.txt"
 
     # Load shapes.
     debug "  shapes"
@@ -467,36 +467,48 @@ class GTFSGraph
     ssp.update(@service_by_id.fetch(trip.service_id))
     ssp
   end
-
-  def make_service(entity)
-    # Turn calendar.txt & calendar_dates.txt into hashes; copied into SSPs
-    # Note: String.to_date is Rails, not plain Ruby.
-    service = @service_by_id[entity.service_id]
-    # Default service
-    service ||= {
+  
+  def make_service_default
+    {
       serviceStartDate: nil,
       serviceEndDate: nil,
       serviceDaysOfWeek: [false] * 7,
       serviceAddedDates: [],
       serviceExceptDates: []
     }
-    # check if we're calendar.txt, ...
-    service[:serviceStartDate] ||= entity.try(:start_date).try(:to_date)
-    service[:serviceEndDate] ||= entity.try(:end_date).try(:to_date)
-    if entity.respond_to?(:monday)
-      service[:serviceDaysOfWeek] = DAYS_OF_WEEK.map { |i| !entity.send(i).to_i.zero? }
+  end
+  
+  def make_service_calendar(entity)
+    # calendar.txt
+    service = @service_by_id[entity.service_id] || make_service_default
+    service[:serviceStartDate] = entity.try(:start_date).try(:to_date)
+    service[:serviceEndDate] = entity.try(:end_date).try(:to_date)
+    service[:serviceDaysOfWeek] = DAYS_OF_WEEK.map { |i| !entity.send(i).to_i.zero? }
+    @service_by_id[entity.service_id] = service
+  end
+  
+  def make_service_calendar_dates(entity)
+    # calendar_dates.txt      
+    service = @service_by_id[entity.service_id] || make_service_default
+    # Check bounds
+    service_start_date = service[:serviceStartDate]
+    service_end_date = service[:serviceEndDate]
+    date = entity.try(:date).try(:to_date)
+    if service_start_date && service_end_date
+      # Set date to nil if date is outside bounds, if they exist.
+      date = date.between?(service_start_date, service_end_date) ? date : nil        
     end
-    # or calendar_dates.txt
-    if entity.respond_to?(:date)
-      if entity.exception_type.to_i == 1
-        service[:serviceAddedDates] << entity.date.to_date
-      else
-        service[:serviceExceptDates] << entity.date.to_date
-      end      
+    if date.nil?
+      # do nothing
+    elsif entity.exception_type.to_i == 1
+      service[:serviceAddedDates] << date
+    elsif entity.exception_type.to_i == 2
+      service[:serviceExceptDates] << date
+    else
+      # unknown exception type
     end
     @service_by_id[entity.service_id] = service
-    service
-  end
+  end  
 end
 
 if __FILE__ == $0
