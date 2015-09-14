@@ -12,41 +12,37 @@ class FeedEaterFeedWorker < FeedEaterWorker
     updated = feed.fetch_and_check_for_updated_version
     return unless updated
 
-    # Clear out old log files
-    gtfs_file_path = artifact_file_path("#{feed_onestop_id}.zip")
-    log_file_path = artifact_file_path("#{feed_onestop_id}.log")
-    validation_report_path = artifact_file_path("#{feed_onestop_id}.html")
-    FileUtils.rm(log_file_path) if File.exist?(log_file_path)
-    FileUtils.rm(validation_report_path) if File.exist?(validation_report_path)
-
     # Create import record
     feed_import = FeedImport.create(feed: feed)
 
-    # Validate and import feed
-    begin
+    # Validate
+    feedvalidator = Figaro.env.feedvalidator_path
+    if feedvalidator
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Validating feed"
-      feedvalidator = Figaro.env.feedvalidator_path || './virtualenv/bin/python'
-      run_python(
-        './lib/feedeater/validate.py',
-        '--feedvalidator',
+      validation_report = IO.popen([
         feedvalidator,
-        '--log',
-        log_file_path,
-        feed_onestop_id
-      )
-      logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Uploading feed"
-      # Load the GTFS Graph
-      graph = GTFSGraph.new(gtfs_file_path, feed)
+        '-n',
+        '--output=CONSOLE',
+        feed.file_path
+      ]).read
+      feed_import.update(validation_report)
+    end
+
+    # Import feed
+    import_log = ''
+    begin
+      logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Importing feed at import level #{import_level}"
+      graph = GTFSGraph.new(feed.file_path, feed)
       graph.load_gtfs
       operators = graph.load_tl
-      logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Creating changeset at import level #{import_level}"
       graph.create_changeset operators, import_level
     rescue Exception => e
       # NOTE: we're catching all exceptions, including Interrupt,
       #   SignalException, and SyntaxError
       exception_log = "\n#{e}\n#{e.backtrace}\n"
       logger.error exception_log
-      feed_import.update(success: false)
+      import_log << exception_log
+      feed_import.update(success: false, import_log: exception_log)
       Raven.capture_exception(e) if defined?(Raven)
     else
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Saving successful import"
@@ -56,27 +52,12 @@ class FeedEaterFeedWorker < FeedEaterWorker
         GtfsFeedArtifactWorker.perform_async(feed_onestop_id)
       end
     ensure
-      # Cleanup
-      import_log = ''
-      if File.exist?(log_file_path)
-        import_log = File.open(log_file_path, 'r').read
-      end
-      if exception_log.present?
-        import_log << exception_log
-      end
-      validation_report = nil
-      if File.exist?(validation_report_path)
-        validation_report = File.open(validation_report_path, 'r').read
-      end
       # Save logs and reports
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Saving log & report"
-      feed_import.update(
-        import_log: import_log,
-        validation_report: validation_report
-      )
+      feed_import.update(import_log: import_log)
     end
 
+    # Done
     logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Done."
-
   end
 end
