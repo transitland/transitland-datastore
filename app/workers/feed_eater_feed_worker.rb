@@ -47,10 +47,6 @@ class FeedEaterFeedWorker < FeedEaterWorker
     else
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Saving successful import"
       feed.has_been_fetched_and_imported!(on_feed_import: feed_import)
-      if Figaro.env.auto_conflate_stops_with_osm == 'true'
-        logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Enqueue artifact job"
-        GtfsFeedArtifactWorker.perform_async(feed_onestop_id)
-      end
     ensure
       # Save logs and reports
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Saving log & report"
