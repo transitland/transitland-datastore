@@ -1,4 +1,5 @@
 # TODO: move this out to a "onestop-id-registry-ruby-wrapper" library
+require 'addressable/template'
 
 class OnestopId
   ENTITY_TO_PREFIX = {
@@ -19,6 +20,7 @@ class OnestopId
   GEOHASH_FILTER = /[^0123456789bcdefghjkmnpqrstuvwxyz]/
   NAME_TILDE = /[\-\:\&\@\/]/
   NAME_FILTER = /[^a-zA-Z\d\@\~]/
+  IDENTIFIER_TEMPLATE = Addressable::Template.new("gtfs://{feed_onestop_id}/{entity_prefix}/{entity_id}")
 
   attr_accessor :entity_prefix, :geohash, :name
 
@@ -45,6 +47,14 @@ class OnestopId
   
   def to_s
     [@entity_prefix, @geohash, @name].join(COMPONENT_SEPARATOR)
+  end
+  
+  def self.create_identifier(feed, entity_prefix, entity_id)
+    IDENTIFIER_TEMPLATE.expand(
+      feed_onestop_id: feed.onestop_id, 
+      entity_prefix: entity_prefix, 
+      entity_id: entity_id
+    ).to_s
   end
 
   def self.validate_onestop_id_string(onestop_id, expected_entity_type: nil)
