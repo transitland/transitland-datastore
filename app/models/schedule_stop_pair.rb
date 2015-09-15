@@ -70,10 +70,8 @@ class ScheduleStopPair < BaseScheduleStopPair
 
   # Check date ranges
   before_validation :set_service_range
-  validates :service_start_date, presence: true
-  validates :service_end_date, presence: true
-  validate :validate_service_added_dates_range
-  validate :validate_service_except_dates_range
+  validate :validate_service_range
+  validate :validate_service_exceptions
 
   # Add scope for updated_since
   include UpdatedSince
@@ -114,7 +112,7 @@ class ScheduleStopPair < BaseScheduleStopPair
   def service_on_date?(date)
     date = Date.parse(date) unless date.is_a?(Date)
     # the -1 is because ISO week day is Monday = 1, Sunday = 7
-    (service_start_date <= date) && (service_end_date >= date) && (service_days_of_week[date.cwday-1] == true || service_added_dates.include?(date)) && (!service_except_dates.include?(date))
+    date.between?(service_start_date, service_end_date) && (service_days_of_week[date.cwday-1] == true || service_added_dates.include?(date)) && (!service_except_dates.include?(date))
   end
 
   # Service exceptions
@@ -142,27 +140,26 @@ class ScheduleStopPair < BaseScheduleStopPair
 
   # Set a service range from service_added_dates, service_except_dates
   def set_service_range
-    if service_start_date.nil?
-      self.service_start_date = [service_except_dates.min, service_added_dates.min].min
-    end
-    if service_end_date.nil?
-      self.service_end_date = [service_except_dates.max, service_added_dates.max].max
-    end
+    self.service_start_date ||= (service_except_dates + service_added_dates).min
+    self.service_end_date ||= (service_except_dates + service_added_dates).max
     true
+  end
+  
+  # Make sure service_start_date < service_end_date
+  def validate_service_range
+    errors.add(:service_start_date, "service_start_date required") unless service_start_date
+    errors.add(:service_end_date, "service_end_date required") unless service_end_date
+    if service_start_date && service_end_date
+      errors.add(:service_start_date, "service_start_date begins after service_end_date") if service_start_date > service_end_date
+    end
   end
 
   # Require service_added_dates to be in service range
-  def validate_service_added_dates_range
-    invalid = service_added_dates.reject {|x| (service_start_date <= x) && (service_end_date >= x)}
-    if !invalid.empty?
+  def validate_service_exceptions
+    if !service_added_dates.reject { |x| x.between?(service_start_date, service_end_date)}.empty?
       errors.add(:service_added_dates, "service_added_dates must be within service_start_date, service_end_date range")
     end
-  end
-
-  # Require service_except_dates to be in service range
-  def validate_service_except_dates_range
-    invalid = service_except_dates.reject {|x| (service_start_date <= x) && (service_end_date >= x)}
-    if !invalid.empty?
+    if !service_except_dates.reject { |x| x.between?(service_start_date, service_end_date)}.empty?
       errors.add(:service_except_dates, "service_except_dates must be within service_start_date, service_end_date range")
     end
   end
