@@ -25,7 +25,7 @@ class FeedEaterFeedWorker < FeedEaterWorker
         '--output=CONSOLE',
         feed.file_path
       ]).read
-      feed_import.update(validation_report)
+      feed_import.update(validation_report: validation_report)
     end
 
     # Import feed
