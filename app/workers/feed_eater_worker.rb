@@ -14,10 +14,4 @@ class FeedEaterWorker
 
   private
 
-  def artifact_file_path(name)
-    path = Figaro.env.transitland_feed_data_path
-    raise "Must specify TRANSITLAND_FEED_DATA_PATH" if !path
-    File.join(path, name)
-  end
-
 end
