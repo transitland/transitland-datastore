@@ -28,7 +28,7 @@ class BaseStop < ActiveRecord::Base
 
   PER_PAGE = 50
 
-  include HasAFeed
+  include IsAnEntityImportedFromFeeds
 
   attr_accessor :served_by, :not_served_by
 end

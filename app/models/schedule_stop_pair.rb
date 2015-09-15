@@ -51,7 +51,7 @@
 class BaseScheduleStopPair < ActiveRecord::Base
   self.abstract_class = true
   PER_PAGE = 50
-  include HasAFeed
+  include IsAnEntityImportedFromFeeds
 end
 
 class ScheduleStopPair < BaseScheduleStopPair

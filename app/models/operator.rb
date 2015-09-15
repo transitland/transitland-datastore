@@ -35,7 +35,7 @@ class BaseOperator < ActiveRecord::Base
 
   attr_accessor :serves, :does_not_serve
 
-  include HasAFeed
+  include IsAnEntityImportedFromFeeds
 
   validates :website, format: { with: URI.regexp }, if: Proc.new { |operator| operator.website.present? }
 end
