@@ -5,6 +5,8 @@ class FeedEaterFeedWorker < FeedEaterWorker
                   unique_job_expiration: 60 * 60, # 1 hour
                   log_duplicate_payload: true
 
+  FEEDVALIDATOR_PATH = './virtualenv/bin/feedvalidator.py'
+
   def perform(feed_onestop_id, import_level=0)
     # Download the feed
     feed = Feed.find_by(onestop_id: feed_onestop_id)
@@ -16,11 +18,10 @@ class FeedEaterFeedWorker < FeedEaterWorker
     feed_import = FeedImport.create(feed: feed)
 
     # Validate
-    feedvalidator = Figaro.env.feedvalidator_path
-    if feedvalidator
+    unless Figaro.env.feedvalidator_skip.present?
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Validating feed"
       validation_report = IO.popen([
-        feedvalidator,
+        FEEDVALIDATOR_PATH,
         '-n',
         '--output=CONSOLE',
         feed.file_path
@@ -29,7 +30,6 @@ class FeedEaterFeedWorker < FeedEaterWorker
     end
 
     # Import feed
-    import_log = ''
     begin
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Importing feed at import level #{import_level}"
       graph = GTFSGraph.new(feed.file_path, feed)
@@ -41,8 +41,7 @@ class FeedEaterFeedWorker < FeedEaterWorker
       #   SignalException, and SyntaxError
       exception_log = "\n#{e}\n#{e.backtrace}\n"
       logger.error exception_log
-      import_log << exception_log
-      feed_import.update(success: false, import_log: exception_log)
+      feed_import.update(success: false, exception_log: exception_log)
       Raven.capture_exception(e) if defined?(Raven)
     else
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Saving successful import"
@@ -50,7 +49,7 @@ class FeedEaterFeedWorker < FeedEaterWorker
     ensure
       # Save logs and reports
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Saving log & report"
-      feed_import.update(import_log: import_log)
+      feed_import.update(import_log: graph.import_log)
     end
 
     # Done
