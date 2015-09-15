@@ -10,6 +10,7 @@
 #  validation_report :text
 #  created_at        :datetime
 #  updated_at        :datetime
+#  exception_log     :text
 #
 # Indexes
 #
