@@ -49,9 +49,9 @@ class OnestopId
     [@entity_prefix, @geohash, @name].join(COMPONENT_SEPARATOR)
   end
   
-  def self.create_identifier(feed, entity_prefix, entity_id)
+  def self.create_identifier(feed_onestop_id, entity_prefix, entity_id)
     IDENTIFIER_TEMPLATE.expand(
-      feed_onestop_id: feed.onestop_id, 
+      feed_onestop_id: feed_onestop_id, 
       entity_prefix: entity_prefix, 
       entity_id: entity_id
     ).to_s

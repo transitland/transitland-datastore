@@ -44,7 +44,7 @@ class GtfsFeedArtifactWorker < FeedEaterWorker
     reader.each do |row|
       # Find a Stop for this gtfs stop.
       stop_id = row[column]
-      identifier = OnestopId::create_identifier(feed, 's', stop_id)
+      identifier = OnestopId::create_identifier(feed.onestop_id, 's', stop_id)
       found = Stop.with_identifier(identifier).first      
       row << found.onestop_id
       row << found.tags['osm_way_id']

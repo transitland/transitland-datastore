@@ -401,7 +401,7 @@ class GTFSGraph
     {
       onestopId: entity.onestop_id,
       name: entity.name,
-      identifiedBy: @tl_gtfs[entity].map { |i| OnestopId::create_identifier(@feed, 'o', i.id)},
+      identifiedBy: @tl_gtfs[entity].map { |i| OnestopId::create_identifier(@feed.onestop_id, 'o', i.id)},
       importedFromFeedOnestopId: @feed.onestop_id,
       geometry: entity.geometry,
       tags: entity.tags || {}
@@ -412,7 +412,7 @@ class GTFSGraph
     {
       onestopId: entity.onestop_id,
       name: entity.name,
-      identifiedBy: @tl_gtfs[entity].map { |i| OnestopId::create_identifier(@feed, 's', i.id)},
+      identifiedBy: @tl_gtfs[entity].map { |i| OnestopId::create_identifier(@feed.onestop_id, 's', i.id)},
       importedFromFeedOnestopId: @feed.onestop_id,
       geometry: entity.geometry,
       tags: entity.tags || {}
@@ -423,7 +423,7 @@ class GTFSGraph
     {
       onestopId: entity.onestop_id,
       name: entity.name,
-      identifiedBy: @tl_gtfs[entity].map { |i| OnestopId::create_identifier(@feed, 'r', i.id)},
+      identifiedBy: @tl_gtfs[entity].map { |i| OnestopId::create_identifier(@feed.onestop_id, 'r', i.id)},
       importedFromFeedOnestopId: @feed.onestop_id,
       operatedBy: @tl_served_by[entity].map(&:onestop_id).first,
       serves: @tl_serves[entity].map(&:onestop_id),
