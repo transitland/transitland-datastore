@@ -24,7 +24,6 @@ describe FeedEaterFeedWorker do
     allow(Feed).to receive(:find_by) { @feeds.first }
     allow_any_instance_of(Feed).to receive(:fetch_and_check_for_updated_version) { true }
     allow_any_instance_of(Feed).to receive(:file_sha1_hash) { 'abcd' }
-    allow_any_instance_of(FeedEaterFeedWorker).to receive(:run_python) { false }
     FeedEaterFeedWorker.perform_async(@feedids.first)
     # Check we created a FeedImport record
     expect {
