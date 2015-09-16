@@ -44,7 +44,7 @@ class FeedEaterFeedWorker < FeedEaterWorker
       #   SignalException, and SyntaxError
       exception_log = "\n#{e}\n#{e.backtrace}\n"
       logger.error exception_log
-      feed_import.update(success: false)
+      feed_import.update(success: false, exception_log: exception_log)
       Raven.capture_exception(e) if defined?(Raven)
     else
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Saving successful import"

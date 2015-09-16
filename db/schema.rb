@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150914222951) do
+ActiveRecord::Schema.define(version: 20150915001512) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -224,6 +224,7 @@ ActiveRecord::Schema.define(version: 20150914222951) do
     t.text     "validation_report"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.text     "exception_log"
   end
 
   add_index "feed_imports", ["created_at"], name: "index_feed_imports_on_created_at", using: :btree
