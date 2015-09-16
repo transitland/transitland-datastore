@@ -1,17 +1,15 @@
-require 'addressable/template'
-
 class GTFSGraph
   
   DAYS_OF_WEEK = [:monday, :tuesday, :wednesday, :thursday, :friday, :saturday, :sunday]
   CHANGE_PAYLOAD_MAX_ENTITIES = 1_000
   STOP_TIMES_MAX_LOAD = 1_000_000
-  IDENTIFIER_TEMPLATE = Addressable::Template.new("gtfs://{feed_onestop_id}/{entity_prefix}/{entity_id}")
     
   def initialize(filename, feed=nil)
     # GTFS Graph / TransitLand wrapper
     @filename = filename
     @feed = feed
     @gtfs = GTFS::Source.build(filename, {strict: false})
+    @log = []
 
     # TL Entity relationships: Many to many
     @tl_served_by = Hash.new { |h,k| h[k] = Set.new }
@@ -38,7 +36,7 @@ class GTFSGraph
   
   def load_gtfs
     # Load core GTFS entities and build relationships
-    debug "Load GTFS"
+    log "Load GTFS"
     # Clear
     @gtfs_by_id.clear
     @gtfs_parents.clear
@@ -47,19 +45,19 @@ class GTFSGraph
     
     # Load GTFS agencies, routes, stops, trips
     # Use .each_entity instead of .entity.each; faster, skip caching.
-    debug "  core"
+    log "  core"
     @gtfs.each_agency { |e| @gtfs_by_id[:agencies][e.id] = e }
     @gtfs.each_route { |e| @gtfs_by_id[:routes][e.id] = e }
     @gtfs.each_stop { |e| @gtfs_by_id[:stops][e.id] = e }
     @gtfs.each_trip { |e| @gtfs_by_id[:trips][e.id] = e }
 
     # Load service periods
-    debug "  calendars"
-    @gtfs.each_calendar { |e| make_service_calendar(e) } rescue debug "  warning: no calendar.txt"
-    @gtfs.each_calendar_date { |e| make_service_calendar_dates(e) } rescue debug "  warning: no calendar_dates.txt"
+    log "  calendars"
+    @gtfs.each_calendar { |e| make_service_calendar(e) } rescue log "  warning: no calendar.txt"
+    @gtfs.each_calendar_date { |e| make_service_calendar_dates(e) } rescue log "  warning: no calendar_dates.txt"
 
     # Load shapes.
-    debug "  shapes"
+    log "  shapes"
     shapes_merge = Hash.new { |h,k| h[k] = [] }
     @gtfs.each_shape { |e| shapes_merge[e.id] << e }
     shapes_merge.each { |k,v| 
@@ -71,7 +69,7 @@ class GTFSGraph
     }
     
     # Create relationships
-    debug "  relationships"
+    log "  relationships"
     # Set default agency    
     default_agency = @gtfs_by_id[:agencies].first[1].id    
     # Add routes to agencies
@@ -87,7 +85,7 @@ class GTFSGraph
     end
 
     # Associate routes with stops; count stop_times by trip
-    debug "  stop_times counter"
+    log "  stop_times counter"
     @gtfs.each_stop_time do |e| 
       trip = @gtfs_by_id[:trips][e.trip_id]
       stop = @gtfs_by_id[:stops][e.stop_id]
@@ -97,7 +95,7 @@ class GTFSGraph
   end
 
   def load_tl
-    debug "Load TL"
+    log "Load TL"
     # Clear
     @tl_by_onestop_id.clear
     @tl_gtfs.clear
@@ -106,7 +104,7 @@ class GTFSGraph
     @gtfs_tl.clear
     
     # Build TL Entities
-    debug "  merge stations"
+    log "  merge stations"
     # Merge child stations into parents.
     stations = Hash.new { |h,k| h[k] = [] }
     @gtfs_by_id[:stops].each do |k,e|
@@ -114,7 +112,7 @@ class GTFSGraph
     end
     
     # Merge station/platforms with Datastore Stops.
-    debug "  stops"
+    log "  stops"
     stations.each do |station,platforms|
       # Temp stop to get geometry and name.
       stop = Stop.from_gtfs(station) 
@@ -131,14 +129,14 @@ class GTFSGraph
       # Cache stop
       @tl_by_onestop_id[stop.onestop_id] = stop
       if score
-        debug "    #{stop.onestop_id}: #{stop.name} (search: #{station.name} = #{'%0.2f'%score.to_f})"
+        log "    #{stop.onestop_id}: #{stop.name} (search: #{station.name} = #{'%0.2f'%score.to_f})"
       else
-        debug "    #{stop.onestop_id}: #{stop.name}"
+        log "    #{stop.onestop_id}: #{stop.name}"
       end
     end
     
     # Routes
-    debug "  routes"
+    log "  routes"
     @gtfs_by_id[:routes].each do |k,e|
       # Find: (child gtfs trips) to (child gtfs stops) to (tl stops)
       stops = @gtfs_children[e]
@@ -168,11 +166,11 @@ class GTFSGraph
       tl_add_serves(route, stops)
       # Cache route
       @tl_by_onestop_id[route.onestop_id] = route
-      debug "    #{route.onestop_id}: #{route.name}"
+      log "    #{route.onestop_id}: #{route.name}"
     end
 
     # Operators
-    debug "  operators"
+    log "  operators"
     operators = Set.new
     @feed.operators_in_feed.each do |oif| 
       e = @gtfs_by_id[:agencies][oif['gtfs_agency_id']]
@@ -203,7 +201,7 @@ class GTFSGraph
       @tl_by_onestop_id[operator.onestop_id] = operator
       # Add to found operators
       operators << operator
-      debug "    #{operator.onestop_id}: #{operator.name}"
+      log "    #{operator.onestop_id}: #{operator.name}"
     end
     # Return operators
     operators
@@ -212,7 +210,7 @@ class GTFSGraph
   def create_changeset(operators, import_level=0)
     raise ArgumentError.new('At least one operator required') if operators.empty?
     raise ArgumentError.new('import_level must be 0, 1, or 2.') unless (0..2).include?(import_level)
-    debug "Create Changeset"
+    log "Create Changeset"
     operators = operators
     routes = operators.map { |i| @tl_serves[i] }.reduce(Set.new, :+)
     stops = routes.map { |i| @tl_serves[i] }.reduce(Set.new, :+)
@@ -223,7 +221,7 @@ class GTFSGraph
     if import_level >= 0
       counter = 0
       operators.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
-        debug "  operators: #{counter} - #{counter+chunk.size} of #{operators.size}"
+        log "  operators: #{counter} - #{counter+chunk.size} of #{operators.size}"
         counter += chunk.size
         ChangePayload.create!(
           changeset: changeset, 
@@ -243,7 +241,7 @@ class GTFSGraph
     if import_level >= 1
       counter = 0
       stops.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
-        debug "  stops: #{counter} - #{counter+chunk.size} of #{stops.size}"
+        log "  stops: #{counter} - #{counter+chunk.size} of #{stops.size}"
         counter += chunk.size
         ChangePayload.create!(
           changeset: changeset, 
@@ -261,7 +259,7 @@ class GTFSGraph
       # Routes
       counter = 0
       routes.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
-        debug "  routes: #{counter} - #{counter+chunk.size} of #{routes.size}"
+        log "  routes: #{counter} - #{counter+chunk.size} of #{routes.size}"
         counter += chunk.size
         ChangePayload.create!(
           changeset: changeset, 
@@ -284,11 +282,11 @@ class GTFSGraph
       ssp_total = @trip_counter.values.sum - trip_total
 
       trip_chunks(STOP_TIMES_MAX_LOAD) do |trip_chunk|
-        debug "  trips: #{trip_counter} - #{trip_counter+trip_chunk.size} of #{trip_total}"
+        log "  trips: #{trip_counter} - #{trip_counter+trip_chunk.size} of #{trip_total}"
         trip_counter += trip_chunk.size
         ssps = stop_pairs(trip_chunk)
         ssps.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES) do |ssp_chunk|
-          debug "    ssps: #{ssp_counter} - #{ssp_counter+ssp_chunk.size} of #{ssp_total}"
+          log "    ssps: #{ssp_counter} - #{ssp_counter+ssp_chunk.size} of #{ssp_total}"
           ssp_counter += ssp_chunk.size
           ChangePayload.create!(
             changeset: changeset,
@@ -306,25 +304,21 @@ class GTFSGraph
     end
 
     # Apply changeset
-    debug "  changeset apply"
+    log "  changeset apply"
     changeset.apply!    
-    debug "  changeset apply done"
+    log "  changeset apply done"
   end  
+  
+  def import_log
+    @log.join('\n')
+  end
   
   ##### GTFS by ID #####
   
   private
   
-  def make_identifier(entity_prefix, entity)
-    IDENTIFIER_TEMPLATE.expand(
-      feed_onestop_id: @feed.onestop_id, 
-      entity_prefix: entity_prefix, 
-      entity_id: entity.id
-    ).to_s
-  end
-
-  def debug(msg)
-    # Debug logging
+  def log(msg)
+    @log << msg
     if Sidekiq::Logging.logger
       Sidekiq::Logging.logger.info msg
     elsif Rails.logger
@@ -412,7 +406,7 @@ class GTFSGraph
     {
       onestopId: entity.onestop_id,
       name: entity.name,
-      identifiedBy: @tl_gtfs[entity].map { |i| make_identifier('o', i)},
+      identifiedBy: @tl_gtfs[entity].map { |i| OnestopId::create_identifier(@feed.onestop_id, 'o', i.id)},
       importedFromFeedOnestopId: @feed.onestop_id,
       geometry: entity.geometry,
       tags: entity.tags || {}
@@ -423,7 +417,7 @@ class GTFSGraph
     {
       onestopId: entity.onestop_id,
       name: entity.name,
-      identifiedBy: @tl_gtfs[entity].map { |i| make_identifier('s', i)},
+      identifiedBy: @tl_gtfs[entity].map { |i| OnestopId::create_identifier(@feed.onestop_id, 's', i.id)},
       importedFromFeedOnestopId: @feed.onestop_id,
       geometry: entity.geometry,
       tags: entity.tags || {}
@@ -434,7 +428,7 @@ class GTFSGraph
     {
       onestopId: entity.onestop_id,
       name: entity.name,
-      identifiedBy: @tl_gtfs[entity].map { |i| make_identifier('r', i)},
+      identifiedBy: @tl_gtfs[entity].map { |i| OnestopId::create_identifier(@feed.onestop_id, 'r', i.id)},
       importedFromFeedOnestopId: @feed.onestop_id,
       operatedBy: @tl_served_by[entity].map(&:onestop_id).first,
       serves: @tl_serves[entity].map(&:onestop_id),
