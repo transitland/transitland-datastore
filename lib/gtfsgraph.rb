@@ -194,6 +194,8 @@ class GTFSGraph
       operator = Operator.find_by(onestop_id: operator.onestop_id) || @tl_by_onestop_id[operator.onestop_id] || operator
       # Merge convex hulls
       operator[:geometry] = Operator.convex_hull([operator, operator_original], as: :wkt, projected: false)
+      # Copy Operator timezone to fill missing Stop timezones
+      stops.each { |stop| stop.timezone ||= operator.timezone }
       # Add identifiers
       tl_add_identifiers(operator, e)
       tl_add_serves(operator, routes)
@@ -409,7 +411,9 @@ class GTFSGraph
       identifiedBy: @tl_gtfs[entity].map { |i| OnestopId::create_identifier(@feed.onestop_id, 'o', i.id)},
       importedFromFeedOnestopId: @feed.onestop_id,
       geometry: entity.geometry,
-      tags: entity.tags || {}
+      tags: entity.tags || {},
+      timezone: entity.timezone,
+      website: entity.website
     }
   end
 
@@ -420,7 +424,8 @@ class GTFSGraph
       identifiedBy: @tl_gtfs[entity].map { |i| OnestopId::create_identifier(@feed.onestop_id, 's', i.id)},
       importedFromFeedOnestopId: @feed.onestop_id,
       geometry: entity.geometry,
-      tags: entity.tags || {}
+      tags: entity.tags || {},
+      timezone: entity.timezone
     }
   end
 
@@ -433,7 +438,7 @@ class GTFSGraph
       operatedBy: @tl_served_by[entity].map(&:onestop_id).first,
       serves: @tl_serves[entity].map(&:onestop_id),
       tags: entity.tags || {},
-      geometry: entity.geometry,
+      geometry: entity.geometry
     }
   end
 
