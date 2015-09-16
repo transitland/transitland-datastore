@@ -18,7 +18,8 @@ class FeedEaterFeedWorker < FeedEaterWorker
     feed_import = FeedImport.create(feed: feed)
 
     # Validate
-    unless Figaro.env.feedvalidator_skip.present?
+    unless Figaro.env.run_google_feedvalidator.present? &&
+           Figaro.env.run_google_feedvalidator == 'false'
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Validating feed"
       validation_report = IO.popen([
         FEEDVALIDATOR_PATH,
