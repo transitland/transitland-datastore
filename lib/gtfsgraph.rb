@@ -413,6 +413,7 @@ class GTFSGraph
       geometry: entity.geometry,
       tags: entity.tags || {},
       timezone: entity.timezone,
+      website: entity.website
     }
   end
 
