@@ -310,7 +310,7 @@ class GTFSGraph
   end
 
   def import_log
-    @log.join('\n')
+    @log.join("\n")
   end
 
   ##### GTFS by ID #####
