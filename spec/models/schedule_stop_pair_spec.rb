@@ -136,17 +136,16 @@ RSpec.describe ScheduleStopPair, type: :model do
     end
     
     it 'where service from date' do
-      expect_start = Date.new(2016, 01, 01)
+      expect_start = Date.new(2013, 01, 01)
       expect_end0 = Date.new(2014, 01, 01)
       expect_end1 = Date.new(2015, 01, 01)
-      expect_end2 = Date.new(2015, 06, 01)
-      expect_end3 = Date.new(2016, 01, 01)
+      expect_end2 = Date.new(2016, 01, 01)
+      create(:schedule_stop_pair, service_start_date: expect_start, service_end_date: expect_end0)
       create(:schedule_stop_pair, service_start_date: expect_start, service_end_date: expect_end1)
-      create(:schedule_stop_pair, service_start_date: expect_start, service_end_date: expect_end2)
+      expect(ScheduleStopPair.where_service_from_date(expect_start).count).to eq(2)
       expect(ScheduleStopPair.where_service_from_date(expect_end0).count).to eq(2)
-      expect(ScheduleStopPair.where_service_from_date(expect_end1).count).to eq(2)
-      expect(ScheduleStopPair.where_service_from_date(expect_end2).count).to eq(1)
-      expect(ScheduleStopPair.where_service_from_date(expect_end3).count).to eq(0)
+      expect(ScheduleStopPair.where_service_from_date(expect_end1).count).to eq(1)
+      expect(ScheduleStopPair.where_service_from_date(expect_end2).count).to eq(0)
     end
     
   end

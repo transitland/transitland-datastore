@@ -5,6 +5,8 @@ class FeedEaterFeedWorker < FeedEaterWorker
                   unique_job_expiration: 60 * 60, # 1 hour
                   log_duplicate_payload: true
 
+  FEEDVALIDATOR_PATH = './virtualenv/bin/feedvalidator.py'
+
   def perform(feed_onestop_id, import_level=0)
     # Download the feed
     feed = Feed.find_by(onestop_id: feed_onestop_id)
@@ -12,35 +14,31 @@ class FeedEaterFeedWorker < FeedEaterWorker
     updated = feed.fetch_and_check_for_updated_version
     return unless updated
 
-    # Clear out old log files
-    gtfs_file_path = artifact_file_path("#{feed_onestop_id}.zip")
-    log_file_path = artifact_file_path("#{feed_onestop_id}.log")
-    validation_report_path = artifact_file_path("#{feed_onestop_id}.html")
-    FileUtils.rm(log_file_path) if File.exist?(log_file_path)
-    FileUtils.rm(validation_report_path) if File.exist?(validation_report_path)
-
     # Create import record
     feed_import = FeedImport.create(feed: feed)
 
-    # Validate and import feed
-    begin
+    # Validate
+    unless Figaro.env.run_google_feedvalidator.present? &&
+           Figaro.env.run_google_feedvalidator == 'false'
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Validating feed"
-      feedvalidator = Figaro.env.feedvalidator_path || './virtualenv/bin/python'
-      run_python(
-        './lib/feedeater/validate.py',
-        '--feedvalidator',
-        feedvalidator,
-        '--log',
-        log_file_path,
-        feed_onestop_id
-      )
-      logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Uploading feed"
-      # Load the GTFS Graph
-      graph = GTFSGraph.new(gtfs_file_path, feed)
+      validation_report = IO.popen([
+        FEEDVALIDATOR_PATH,
+        '-n',
+        '--output=CONSOLE',
+        feed.file_path
+      ]).read
+      feed_import.update(validation_report: validation_report)
+    end
+
+    # Import feed
+    logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Importing feed at import level #{import_level}"
+    import_log = ''
+    begin
+      graph = GTFSGraph.new(feed.file_path, feed)
       graph.load_gtfs
       operators = graph.load_tl
-      logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Creating changeset at import level #{import_level}"
       graph.create_changeset operators, import_level
+      import_log = graph.import_log
     rescue Exception => e
       # NOTE: we're catching all exceptions, including Interrupt,
       #   SignalException, and SyntaxError
@@ -51,32 +49,18 @@ class FeedEaterFeedWorker < FeedEaterWorker
     else
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Saving successful import"
       feed.has_been_fetched_and_imported!(on_feed_import: feed_import)
-      if Figaro.env.auto_conflate_stops_with_osm == 'true'
+      if Figaro.env.create_feed_eater_artifacts == 'true' &&
+         Figaro.env.auto_conflate_stops_with_osm == 'true'
         logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Enqueue artifact job"
         GtfsFeedArtifactWorker.perform_async(feed_onestop_id)
       end
     ensure
-      # Cleanup
-      import_log = ''
-      if File.exist?(log_file_path)
-        import_log = File.open(log_file_path, 'r').read
-      end
-      if exception_log.present?
-        import_log << exception_log
-      end
-      validation_report = nil
-      if File.exist?(validation_report_path)
-        validation_report = File.open(validation_report_path, 'r').read
-      end
       # Save logs and reports
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Saving log & report"
-      feed_import.update(
-        import_log: import_log,
-        validation_report: validation_report
-      )
+      feed_import.update(import_log: import_log)
     end
 
+    # Done
     logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Done."
-
   end
 end
