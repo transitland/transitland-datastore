@@ -30,12 +30,14 @@ class FeedEaterFeedWorker < FeedEaterWorker
     end
 
     # Import feed
+    logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Importing feed at import level #{import_level}"
+    import_log = ''
     begin
-      logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Importing feed at import level #{import_level}"
       graph = GTFSGraph.new(feed.file_path, feed)
       graph.load_gtfs
       operators = graph.load_tl
       graph.create_changeset operators, import_level
+      import_log = graph.import_log
     rescue Exception => e
       # NOTE: we're catching all exceptions, including Interrupt,
       #   SignalException, and SyntaxError
@@ -49,7 +51,7 @@ class FeedEaterFeedWorker < FeedEaterWorker
     ensure
       # Save logs and reports
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Saving log & report"
-      feed_import.update(import_log: graph.import_log)
+      feed_import.update(import_log: import_log)
     end
 
     # Done
