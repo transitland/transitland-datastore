@@ -174,8 +174,8 @@ class GTFSGraph
     # Operators
     debug "  operators"
     operators = Set.new
-    @feed.operators_in_feed.each do |oif| 
-      e = @gtfs_by_id[:agencies][oif['gtfs_agency_id']]
+    @feed.operators_in_feed.each do |oif|
+      e = @gtfs_by_id[:agencies][oif.gtfs_agency_id]
       # Skip Operator if not found
       next unless e
       # Find: (child gtfs routes) to (tl routes)
@@ -527,7 +527,6 @@ if __FILE__ == $0
   filename = "tmp/transitland-feed-data/#{feedid}.zip"
   import_level = (ARGV[1] || 1).to_i
   ######
-  Feed.update_feeds_from_feed_registry
   feed = Feed.find_by!(onestop_id: feedid)
   graph = GTFSGraph.new(filename, feed)
   graph.load_gtfs

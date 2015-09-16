@@ -25,6 +25,12 @@ class Changeset < ActiveRecord::Base
 
   include CanBeSerializedToCsv
 
+  has_many :feeds_created_or_updated, class_name: 'Feed', foreign_key: 'created_or_updated_in_changeset_id'
+  has_many :feeds_destroyed, class_name: 'OldFeed', foreign_key: 'destroyed_in_changeset_id'
+
+  has_many :operators_in_feed_created_or_updated, class_name: 'OperatorInFeed', foreign_key: 'created_or_updated_in_changeset_id'
+  has_many :operators_in_feed_destroyed, class_name: 'OldOperatorInFeed', foreign_key: 'destroyed_in_changeset_id'
+
   has_many :stops_created_or_updated, class_name: 'Stop', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :stops_destroyed, class_name: 'OldStop', foreign_key: 'destroyed_in_changeset_id'
 
@@ -51,6 +57,8 @@ class Changeset < ActiveRecord::Base
     # NOTE: this is probably evaluating the SQL queries, rather than merging together ARel relations
     # in Rails 5, there will be an ActiveRecord::Relation.or() operator to use instead here
     (
+      feeds_created_or_updated +
+      operators_in_feed_created_or_updated +
       stops_created_or_updated +
       operators_created_or_updated +
       routes_created_or_updated +
@@ -61,6 +69,8 @@ class Changeset < ActiveRecord::Base
 
   def entities_destroyed
     (
+      feeds_destroyed +
+      operators_in_feed_destroyed +
       stops_destroyed +
       operators_destroyed +
       routes_destroyed +

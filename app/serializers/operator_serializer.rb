@@ -41,4 +41,6 @@ class OperatorSerializer < CurrentEntitySerializer
              :timezone,
              :created_at,
              :updated_at
+
+  has_many :operators_in_feed
 end

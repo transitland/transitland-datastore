@@ -101,6 +101,9 @@ class Operator < BaseOperator
     return true
   end
 
+  has_many :operators_in_feed
+  has_many :feeds, through: :operators_in_feed
+
   has_many :operators_serving_stop
   has_many :stops, through: :operators_serving_stop
 

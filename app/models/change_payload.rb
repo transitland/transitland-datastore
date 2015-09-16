@@ -36,10 +36,13 @@ class ChangePayload < ActiveRecord::Base
   })
   JSON::Validator.register_format_validator('feed-onestop-id', -> (onestop_id) {
     onestop_id_format_proc.call(onestop_id, 'feed')
-  })  
+  })
 
   def apply!
     (payload_as_ruby_hash[:changes] || []).each do |change|
+      if change[:feed].present?
+        Feed.apply_change(changeset: changeset, attrs: change[:feed], action: change[:action])
+      end
       if change[:stop].present?
         Stop.apply_change(changeset: changeset, attrs: change[:stop], action: change[:action])
       end
