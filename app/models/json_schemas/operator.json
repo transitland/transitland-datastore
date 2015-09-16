@@ -41,9 +41,12 @@
         "format": "stop-onestop-id"
       }
     },
-		"imported_from_feed_onestop_id": {
+    "imported_from_feed_onestop_id": {
       "type": "string",
-      "format": "feed-onestop-id"			
-		}
+      "format": "feed-onestop-id"
+    },
+    "website": {
+      "type": "string"
+    }
   }
 }
