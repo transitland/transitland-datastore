@@ -188,7 +188,7 @@ class GTFSGraph
         .reduce(Set.new, :+)
       # Create Operator from GTFS
       operator = Operator.from_gtfs(e, stops)
-      operator.onestop_id = oif['onestop_id'] # Override Onestop ID
+      operator.onestop_id = oif.operator.onestop_id # Override Onestop ID
       operator_original = operator # for merging geometry
       # ... or check if Operator exists, or another local Operator, or new.
       operator = Operator.find_by(onestop_id: operator.onestop_id) || @tl_by_onestop_id[operator.onestop_id] || operator
