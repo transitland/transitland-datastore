@@ -25,7 +25,7 @@ namespace :db do
     end
 
     task :feeds_and_operators_from_transitland, [:base_url] => [:environment] do |t, args|
-      puts 'get feeds from https://transit.land/api/v1/feeds'
+      # TODO: fetch from canonical server
     end
   end
 end
