@@ -1,0 +1,48 @@
+{
+  "changeset": {
+    "whenToApply": "instantlyIfClean",
+    "payload": {
+      "changes": [
+        {
+          "action": "createUpdate",
+          "operator": {
+            "onestopId": "o-dr5r-path",
+            "name": "Port Authority Trans-Hudson",
+            "short_name": "PATH",
+            "identifiedBy": ["usntd://2075"],
+            "country": "United States",
+            "state": "New York",
+            "metro": "New York City",
+            "timezone": "America/New_York",
+            "website": "http://www.panynj.gov/",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [[[-74.1649,40.7343],[-74.0112,40.7118],[-73.9876,40.7484],[-73.9885,40.7495],[-74.1559,40.7395],[-74.1649,40.7343]]]
+            }
+          }
+        },
+        {
+          "action": "createUpdate",
+          "feed": {
+            "onestopId": "f-dr5r-panynjpath",
+            "url": "http://data.trilliumtransit.com/gtfs/path-nj-us/path-nj-us.zip",
+            "tags": {
+              "downloadPageUrl": "http://www.panynj.gov/path/developers.html"
+            },
+            "licenseUrl": "http://www.panynj.gov/path/developers.html",
+            "licenseUseWithoutAttribution": "yes",
+            "licenseCreateDerivedProduct": "yes",
+            "licenseRedistribute": "no",
+            "includesOperators": [
+              {
+                "gtfsAgencyId": "151",
+                "operatorOnestopId": "o-dr5r-path"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "notes": "In this changeset, we're creating a PATH operator and feed, and we're associating them with each other."
+  }
+}
