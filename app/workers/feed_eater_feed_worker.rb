@@ -55,7 +55,6 @@ class FeedEaterFeedWorker < FeedEaterWorker
       end
     ensure
       # Save logs and reports
-      # binding.pry
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Saving log & report"
       feed_import.update(import_log: graph.try(:import_log))
     end
