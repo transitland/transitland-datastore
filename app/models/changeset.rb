@@ -19,6 +19,10 @@ class Changeset < ActiveRecord::Base
       @message = message
       @backtrace = backtrace
     end
+
+    def to_s
+      "Changeset::Error #{@message}"
+    end
   end
 
   PER_PAGE = 50
