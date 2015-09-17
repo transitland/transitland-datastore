@@ -8,4 +8,15 @@ module GTFS
       self.new(attr_hash)
     end
   end
+
+  module Model
+    module ClassMethods
+      def each(filename)
+        CSV.foreach(filename, :headers => true, :encoding => 'bom|utf-8') do |row|
+          yield parse_model(row.to_hash)
+        end
+      end
+    end
+  end
+
 end
