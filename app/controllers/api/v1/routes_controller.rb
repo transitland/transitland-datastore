@@ -11,7 +11,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     if params[:identifier].present?
       @routes = @routes.with_identifier_or_name(params[:identifier])
     elsif params[:identifier_starts_with].present?
-      @routes = @routes.with_identifer_starting_with(params[:identifier_starts_with])
+      @routes = @routes.with_identifier_starting_with(params[:identifier_starts_with])
     end
     if params[:operatedBy].present?
       @routes = @routes.operated_by(params[:operatedBy])
