@@ -2,24 +2,25 @@ require 'gtfsgraph'
 
 def load_feed(import_level=1)
   # Rails.root
-  @path = 'spec/support/example_gtfs_archives/f-9q9-caltrain.zip'
-  @feed = create(:feed_caltrain)
-  graph = GTFSGraph.new(File.join(Rails.root, @path), @feed)
+  path = 'spec/support/example_gtfs_archives/f-9q9-caltrain.zip'
+  feed = create(:feed_caltrain)
+  graph = GTFSGraph.new(File.join(Rails.root, path), feed)
   graph.load_gtfs
   operators = graph.load_tl
   graph.create_changeset(operators, import_level)
+  feed
 end
 
 describe GTFSGraph do
 
   context 'can apply level 0 and 1 changesets' do
 
-    before(:each) { load_feed(1) }
+    before(:each) { @feed = load_feed(1) }
 
     it 'created a known Operator' do
       expect(@feed.operators.count).to eq(1)
       o = @feed.operators.find_by(onestop_id: 'o-9q9-caltrain')
-      expect(o).to be
+      expect(o).to be_truthy
       expect(o.name).to eq('Caltrain')
       expect(o.onestop_id).to eq('o-9q9-caltrain')
       expect(o.geometry).to be
@@ -31,7 +32,7 @@ describe GTFSGraph do
     it 'created known Routes' do
       expect(@feed.routes.count).to eq(5)
       r = @feed.routes.find_by(onestop_id: 'r-9q9j-bullet')
-      expect(r).to be
+      expect(r).to be_truthy
       expect(r.name).to eq('Bullet')
       expect(r.onestop_id).to eq('r-9q9j-bullet')
       # expect(r.identifiers).to match_array(["gtfs://f-9q9-caltrain/r/bullet"])
@@ -43,7 +44,7 @@ describe GTFSGraph do
     it 'created known Stops' do
       expect(@feed.stops.count).to eq(31)
       s = @feed.stops.find_by(onestop_id: 's-9q9k659e3r-sanjosecaltrainstation')
-      expect(s).to be
+      expect(s).to be_truthy
       expect(s.name).to eq('San Jose Caltrain Station')
       expect(s.onestop_id).to eq('s-9q9k659e3r-sanjosecaltrainstation')
       # expect(s.tags['']) # no tags
@@ -60,7 +61,7 @@ describe GTFSGraph do
 
   context 'can apply a level 2 changeset' do
 
-    before(:each) { load_feed(2) }
+    before(:each) { @feed = load_feed(2) }
 
     it 'created known ScheduleStopPairs' do
       expect(@feed.schedule_stop_pairs.count).to eq(4661) # EXACTLY.
@@ -83,7 +84,7 @@ describe GTFSGraph do
       )
       expect(found.count).to eq(1)
       s = found.first
-      expect(s).to be
+      expect(s).to be_truthy
       expect(s.origin).to eq(origin)
       expect(s.destination).to eq(destination)
       expect(s.route).to eq(route)
