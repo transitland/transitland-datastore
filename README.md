@@ -84,23 +84,23 @@ Example URL  | Parameters
 `POST /api/v1/changesets/1/revert` | ([secured](#api-authentication))
 `GET /api/v1/onestop_id/o-9q8y-SFMTA` | final part of the path can be a Onestop ID for any type of entity (for example, a stop or an operator)
 `GET /api/v1/stops` | none required
-`GET /api/v1/stops?identifer=4973` | `identifier` can be any type of stop identifier
-`GET /api/v1/stops?identifer_starts_with=gtfs://f-9q9` | `identifer_starts_with` can be any type of stop identifier fragment
+`GET /api/v1/stops?identifier=4973` | `identifier` can be any type of stop identifier
+`GET /api/v1/stops?identifier_starts_with=gtfs://f-9q9` | `identifier_starts_with` can be any type of stop identifier fragment
 `GET /api/v1/stops?lon=-121.977772198&lat=37.413530093&r=100` | `lon` is longitude; `lat` is latitude; `r` is radius of search in meters (if not specified, defaults to 100 meters)
 `GET /api/v1/stops?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
 `GET /api/v1/stops?servedBy=o-9q9-BART,r-9q8y-richmond~dalycity~millbrae` | `servedBy` can be any number of Onestop ID's for operators and routes
 `GET /api/v1/stops?tag_key=wheelchair_boarding` | find all stops that have a tag of `tag_key` with any value
 `GET /api/v1/stops?tag_key=wheelchair_boarding&tag_value=1` | find all stops that have a tag of `tag_key` and a value of `tag_value`
 `GET /api/v1/operators` | none required
-`GET /api/v1/operators?identifer=SFMUNI` | `identifier` can be any type of operator identifier
-`GET /api/v1/operators?identifer_starts_with=gtfs://f-9q9` | `identifer_starts_with` can be any type of operator identifier fragment
+`GET /api/v1/operators?identifier=SFMUNI` | `identifier` can be any type of operator identifier
+`GET /api/v1/operators?identifier_starts_with=gtfs://f-9q9` | `identifier_starts_with` can be any type of operator identifier fragment
 `GET /api/v1/operators?lon=-121.977772198&lat=37.413530093&r=100` | `lon` is longitude; `lat` is latitude; `r` is radius of search in meters (if not specified, defaults to 100 meters)
 `GET /api/v1/operators?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
 `GET /api/v1/operators?tag_key=agency_timezone` | find all operators that have a tag of `tag_key` with any value
 `GET /api/v1/operators?tag_key=agency_timezone&tag_value=America/Los_Angeles` | find all operators that have a tag of `tag_key` and a value of `tag_value`
 `GET /api/v1/routes` | none required
-`GET /api/v1/routes?identifer=19X` | `identifier` can be any type of route identifier
-`GET /api/v1/routes?identifer_starts_with=gtfs://f-9q9` | `identifer_starts_with` can be any type of route identifier fragment
+`GET /api/v1/routes?identifier=19X` | `identifier` can be any type of route identifier
+`GET /api/v1/routes?identifier_starts_with=gtfs://f-9q9` | `identifier_starts_with` can be any type of route identifier fragment
 `GET /api/v1/routes?operatedBy=o-9q9-BART` | `operatedBy` is a Onestop ID for an operator/agency
 `GET /api/v1/routes?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
 `GET /api/v1/routes?tag_key=vehicle_type` | find all routes that have a tag of `tag_key` with any value
@@ -112,6 +112,9 @@ Example URL  | Parameters
 `GET /api/v1/feeds?tag_key=license&tag_value=Creative%20Commons%20Attribution%203.0%20Unported%20License` | find all feeds that have a tag of `tag_key` and a value of `tag_value`
 `GET /api/v1/feeds/f-9q9-bayarearapidtransit` | none required
 `GET /api/v1/feeds/f-9q9-bayarearapidtransit/feed_imports` | none required
+`GET /api/v1/schedule_stop_pairs` | Find all [Schedule Stop Pairs](doc/schedule_api.md)
+`GET /api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation` | Find all Schedule Stop Pairs from origin
+`GET /api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&date=2015-08-05` | Find all Schedule Stop Pairs from origin on date
 
 Pagination for JSON endpoints:
 - `?offset=50` is the index of the first entity to be displayed (starts with 0)
@@ -130,6 +133,11 @@ To enqueue a worker from the command line:
   - to load all feeds: `bundle exec rake enqueue_feed_eater_worker`
   - to load one specified feed: `bundle exec rake enqueue_feed_eater_worker[f-9q9-bayarearapidtransit]`
   - to load a few specified feeds: `bundle exec rake enqueue_feed_eater_worker['f-9q9-actransit f-c23-kingcounty']`
+
+By default, FeedEater will only import the operator from the specified feed(s). To import stops, routes, and schedule-stop-pairs, specify:
+
+- operator with stops and routes `bundle exec rake enqueue_feed_eater_worker[f-9q9-bayarearapidtransit, 1]`
+- operator with stops, routes, and schedule-stop-pairs `bundle exec rake enqueue_feed_eater_worker[f-9q9-bayarearapidtransit, 2]`
 
 To enqueue a worker from an endpoint:
 

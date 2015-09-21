@@ -2,8 +2,37 @@ module HasAGeographicGeometry
   extend ActiveSupport::Concern
 
   included do
-    GEOFACTORY = RGeo::Geographic.simple_mercator_factory #(srid: 4326) # TODO: double check this
-    set_rgeo_factory_for_column :geometry, GEOFACTORY
+    GEOFACTORY ||= RGeo::Geographic.spherical_factory(srid: 4326)
+
+    scope :within_bbox, -> (bbox_coordinates) {
+      if bbox_coordinates.is_a?(String)
+        bbox_coordinates = bbox_coordinates.split(',').map(&:strip)
+      end
+      if bbox_coordinates.length != 4
+        raise ArgumentError.new('must specify bbox coordinates')
+      end
+      where{st_intersects(geometry, st_makeenvelope(bbox_coordinates[0], bbox_coordinates[1], bbox_coordinates[2], bbox_coordinates[3], GEOFACTORY.srid))}
+    }
+
+    def self.convex_hull(entities, as: :geojson, projected: false)
+      projected_geometries = entities.map { |e| e.geometry(as: :wkt, projected: true)}
+      geometry_collection = RGeo::Geographic.simple_mercator_factory.projection_factory.collection(projected_geometries)
+      convex_hull = geometry_collection.convex_hull
+
+      if projected == false
+        convex_hull = RGeo::Feature.cast(convex_hull,
+          factory: RGeo::Geographic.spherical_factory(srid: 4326),
+          project: true
+        )
+      end
+
+      case as
+      when :wkt
+        return convex_hull
+      when :geojson
+        return RGeo::GeoJSON.encode(convex_hull).try(:symbolize_keys)
+      end
+    end
   end
 
   def geometry=(incoming_geometry)
@@ -19,12 +48,22 @@ module HasAGeographicGeometry
     end
   end
 
-  def geometry(as: :geojson)
+  def geometry(as: :geojson, projected: false)
+    rgeo_geometry = self.send(:read_attribute, :geometry)
+
+    if projected
+      rgeo_geometry = RGeo::Feature.cast(
+        rgeo_geometry,
+        factory: RGeo::Geographic.simple_mercator_factory.projection_factory,
+        project: true
+      )
+    end
+
     case as
     when :wkt
-      return self.send(:read_attribute, :geometry)
+      return rgeo_geometry
      when :geojson
-      return RGeo::GeoJSON.encode(self.send(:read_attribute, :geometry)).try(:symbolize_keys)
+      return RGeo::GeoJSON.encode(rgeo_geometry).try(:symbolize_keys)
     end
   end
 

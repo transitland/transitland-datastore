@@ -12,6 +12,12 @@
 #  created_or_updated_in_changeset_id :integer
 #  version                            :integer
 #  identifiers                        :string           default([]), is an Array
+#  timezone                           :string
+#  short_name                         :string
+#  website                            :string
+#  country                            :string
+#  state                              :string
+#  metro                              :string
 #
 # Indexes
 #
@@ -19,6 +25,7 @@
 #  index_current_operators_on_identifiers  (identifiers)
 #  index_current_operators_on_onestop_id   (onestop_id) UNIQUE
 #  index_current_operators_on_tags         (tags)
+#  index_current_operators_on_updated_at   (updated_at)
 #
 
 class BaseOperator < ActiveRecord::Base
@@ -27,6 +34,10 @@ class BaseOperator < ActiveRecord::Base
   PER_PAGE = 50
 
   attr_accessor :serves, :does_not_serve
+
+  include HasAFeed
+
+  validates :website, format: { with: URI.regexp }, if: Proc.new { |operator| operator.website.present? }
 end
 
 class Operator < BaseOperator
@@ -36,6 +47,7 @@ class Operator < BaseOperator
   include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
   include HasTags
+  include UpdatedSince
 
   include CanBeSerializedToCsv
   def self.csv_column_names
@@ -56,7 +68,7 @@ class Operator < BaseOperator
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
-    virtual_attributes: [:serves, :does_not_serve, :identified_by, :not_identified_by]
+    virtual_attributes: [:serves, :does_not_serve, :identified_by, :not_identified_by, :imported_from_feed_onestop_id]
   })
   def self.after_create_making_history(created_model, changeset)
     OperatorRouteStopRelationship.manage_multiple(
@@ -96,6 +108,39 @@ class Operator < BaseOperator
   has_many :routes_serving_stop, through: :routes
 
   validates :name, presence: true
+
+  ##### FromGTFS ####
+  include FromGTFS
+  def self.from_gtfs(entity, stops)
+    # GTFS Constructor
+    raise ArgumentError.new('Need at least one Stop') if stops.empty?
+    geohash = GeohashHelpers.fit(stops.map { |i| i[:geometry] })
+    geometry = Operator.convex_hull(stops, as: :wkt, projected: false)
+    name = [entity.name, entity.id, "unknown"]
+      .select(&:present?)
+      .first    
+    onestop_id = OnestopId.new(
+      entity_prefix: 'o', 
+      geohash: geohash, 
+      name: name
+    )
+    operator = Operator.new(
+      name: name,
+      onestop_id: onestop_id.to_s,
+      identifiers: [entity.id]
+    )
+    operator[:geometry] = geometry
+    # Copy over GTFS attributes to tags
+    operator.tags ||= {}
+    operator.tags[:agency_phone] = entity.phone
+    operator.tags[:agency_lang] = entity.lang
+    operator.tags[:agency_fare_url] = entity.fare_url
+    operator.tags[:agency_id] = entity.id
+    operator.timezone = entity.timezone
+    operator.website = entity.url
+    operator
+  end
+
 end
 
 class OldOperator < BaseOperator

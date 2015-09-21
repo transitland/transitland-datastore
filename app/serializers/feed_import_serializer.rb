@@ -10,6 +10,7 @@
 #  validation_report :text
 #  created_at        :datetime
 #  updated_at        :datetime
+#  exception_log     :text
 #
 # Indexes
 #
@@ -23,6 +24,7 @@ class FeedImportSerializer < ApplicationSerializer
              :success,
              :sha1,
              :import_log,
+             :exception_log,
              :validation_report,
              :created_at,
              :updated_at

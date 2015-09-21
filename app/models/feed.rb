@@ -2,17 +2,22 @@
 #
 # Table name: feeds
 #
-#  id                           :integer          not null, primary key
-#  onestop_id                   :string
-#  url                          :string
-#  feed_format                  :string
-#  tags                         :hstore
-#  operator_onestop_ids_in_feed :string           default([]), is an Array
-#  last_sha1                    :string
-#  last_fetched_at              :datetime
-#  last_imported_at             :datetime
-#  created_at                   :datetime
-#  updated_at                   :datetime
+#  id                              :integer          not null, primary key
+#  onestop_id                      :string
+#  url                             :string
+#  feed_format                     :string
+#  tags                            :hstore
+#  last_sha1                       :string
+#  last_fetched_at                 :datetime
+#  last_imported_at                :datetime
+#  created_at                      :datetime
+#  updated_at                      :datetime
+#  license_name                    :string
+#  license_url                     :string
+#  license_use_without_attribution :string
+#  license_create_derived_product  :string
+#  license_redistribute            :string
+#  operators_in_feed               :hstore           is an Array
 #
 # Indexes
 #
@@ -30,8 +35,23 @@ class Feed < ActiveRecord::Base
 
   has_many :feed_imports, -> { order 'created_at DESC' }, dependent: :destroy
 
+  has_many :entities_imported_from_feed
+  has_many :operators, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'
+  has_many :stops, through: :entities_imported_from_feed, source: :entity, source_type: 'Stop'
+  has_many :routes, through: :entities_imported_from_feed, source: :entity, source_type: 'Route'
+  has_many :schedule_stop_pairs, through: :entities_imported_from_feed, source: :entity, source_type: 'ScheduleStopPair'
+
   validates :url, presence: true
   validates :url, format: { with: URI.regexp }, if: Proc.new { |feed| feed.url.present? }
+  validates :license_url, format: { with: URI.regexp }, if: Proc.new { |feed| feed.license_url.present? }
+
+  extend Enumerize
+  enumerize :feed_format, in: [:gtfs]
+  enumerize :license_use_without_attribution, in: [:yes, :no, :unknown]
+  enumerize :license_create_derived_product, in: [:yes, :no, :unknown]
+  enumerize :license_redistribute, in: [:yes, :no, :unknown]
+
+  after_initialize :set_default_values
 
   def fetch_and_check_for_updated_version
     begin
@@ -85,9 +105,20 @@ class Feed < ActiveRecord::Base
     TransitlandClient::Entities::Feed.all.each do |feed_in_registry|
       feed = Feed.find_or_create_by(onestop_id: feed_in_registry.onestop_id)
       feed.url = feed_in_registry.url
-      feed.operator_onestop_ids_in_feed = feed_in_registry.operators_in_feed.map(&:operator_onestop_id)
+      feed.operators_in_feed = feed_in_registry.operators_in_feed.map do |operator_in_feed|
+        {
+          gtfs_agency_id: operator_in_feed.gtfs_agency_id,
+          onestop_id: operator_in_feed.operator_onestop_id,
+          # identifiers: operator_in_feed.identifiers
+        }
+      end
       feed.feed_format = feed_in_registry.feed_format
       feed.tags = feed_in_registry.tags
+      feed.license_name = feed_in_registry.license['name'] if feed_in_registry.license.has_key?('name')
+      feed.license_url = feed_in_registry.license['url'] if feed_in_registry.license.has_key?('url')
+      feed.license_use_without_attribution = feed_in_registry.license['useWithoutAttribution'] if feed_in_registry.license.has_key?('useWithoutAttribution')
+      feed.license_create_derived_product = feed_in_registry.license['createDerivedProduct'] if feed_in_registry.license.has_key?('createDerivedProduct')
+      feed.license_redistribute = feed_in_registry.license['redistribute'] if feed_in_registry.license.has_key?('redistribute')
       feed.save!
     end
   end
@@ -100,5 +131,16 @@ class Feed < ActiveRecord::Base
       feeds_with_updated_versions << feed if is_updated_version
     end
     feeds_with_updated_versions
+  end
+
+  private
+
+  def set_default_values
+    if self.new_record?
+      self.feed_format ||= 'gtfs'
+      self.license_use_without_attribution ||= 'unknown'
+      self.license_create_derived_product ||= 'unknown'
+      self.license_redistribute ||= 'unknown'
+    end
   end
 end

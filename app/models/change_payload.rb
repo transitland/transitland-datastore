@@ -34,6 +34,9 @@ class ChangePayload < ActiveRecord::Base
   JSON::Validator.register_format_validator('stop-onestop-id', -> (onestop_id) {
     onestop_id_format_proc.call(onestop_id, 'stop')
   })
+  JSON::Validator.register_format_validator('feed-onestop-id', -> (onestop_id) {
+    onestop_id_format_proc.call(onestop_id, 'feed')
+  })  
 
   def apply!
     (payload_as_ruby_hash[:changes] || []).each do |change|
@@ -45,6 +48,9 @@ class ChangePayload < ActiveRecord::Base
       end
       if change[:route].present?
         Route.apply_change(changeset: changeset, attrs: change[:route], action: change[:action])
+      end
+      if change[:schedule_stop_pair].present?
+        ScheduleStopPair.apply_change(changeset: changeset, attrs: change[:schedule_stop_pair], action: change[:action])
       end
     end
   end

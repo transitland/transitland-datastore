@@ -8,7 +8,7 @@ path 'components' do
 end
 
 # external Transitland libraries
-gem 'transitland_client', github: 'transitland/transitland-ruby-client', tag: 'v0.0.6', require: 'transitland_client'
+gem 'transitland_client', github: 'transitland/transitland-ruby-client', tag: 'v0.0.7', require: 'transitland_client'
 
 # process runner
 gem 'foreman', group: :development
@@ -18,12 +18,13 @@ gem 'figaro'
 
 # data stores
 gem 'pg'
-gem 'activerecord-postgis-adapter', '3.0.0.beta4'
+gem 'activerecord-postgis-adapter', '3.0.0'
 gem 'redis-rails'
 
 # background processing
 gem 'sidekiq'
 gem 'sidekiq-unique-jobs'
+gem 'celluloid', '0.16.0' # unpeg when new sidekiq released: https://github.com/mperham/sidekiq/issues/2397
 gem 'whenever', require: false # to manage crontab
 
 # data model
@@ -33,6 +34,9 @@ gem 'gtfs'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 gem 'json-schema'
+
+# text matching
+gem 'text'
 
 # authentication and authorization
 gem 'rack-cors', require: 'rack/cors'
@@ -52,6 +56,8 @@ gem 'binding_of_caller', group: :development
 gem 'byebug', group: [:development, :test]
 gem 'pry-byebug', group: [:development, :test]
 gem 'pry-rails', group: [:development, :test]
+gem 'pry-rescue', group: [:development, :test]
+gem 'pry-stack_explorer', group: [:development, :test]
 
 # code coverage and documentation
 gem 'rails-erd', group: :development

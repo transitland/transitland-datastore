@@ -19,6 +19,10 @@ class Changeset < ActiveRecord::Base
       @message = message
       @backtrace = backtrace
     end
+
+    def to_s
+      "Changeset::Error #{@message}"
+    end
   end
 
   PER_PAGE = 50
@@ -41,6 +45,9 @@ class Changeset < ActiveRecord::Base
   has_many :routes_serving_stop_destroyed, class_name: 'OldRouteServingStop', foreign_key: 'destroyed_in_changeset_id'
 
   has_many :change_payloads, -> { order "created_at ASC" }, dependent: :destroy
+
+  has_many :schedule_stop_pairs_created_or_updated, class_name: 'ScheduleStopPair', foreign_key: 'created_or_updated_in_changeset_id'
+  has_many :schedule_stop_pairs_destroyed, class_name: 'OldScheduleStopPair', foreign_key: 'destroyed_in_changeset_id'
 
   after_initialize :set_default_values
 

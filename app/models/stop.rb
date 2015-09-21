@@ -12,6 +12,7 @@
 #  created_or_updated_in_changeset_id :integer
 #  version                            :integer
 #  identifiers                        :string           default([]), is an Array
+#  timezone                           :string
 #
 # Indexes
 #
@@ -19,6 +20,7 @@
 #  index_current_stops_on_identifiers  (identifiers)
 #  index_current_stops_on_onestop_id   (onestop_id)
 #  index_current_stops_on_tags         (tags)
+#  index_current_stops_on_updated_at   (updated_at)
 #
 
 class BaseStop < ActiveRecord::Base
@@ -26,16 +28,21 @@ class BaseStop < ActiveRecord::Base
 
   PER_PAGE = 50
 
+  include HasAFeed
+
   attr_accessor :served_by, :not_served_by
 end
 
 class Stop < BaseStop
   self.table_name_prefix = 'current_'
 
+  GEOHASH_PRECISION = 10
+
   include HasAOnestopId
   include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
   include HasTags
+  include UpdatedSince
 
   include CanBeSerializedToCsv
   def self.csv_column_names
@@ -62,7 +69,7 @@ class Stop < BaseStop
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
-    virtual_attributes: [:served_by, :not_served_by, :identified_by, :not_identified_by]
+    virtual_attributes: [:served_by, :not_served_by, :identified_by, :not_identified_by, :imported_from_feed_onestop_id]
   })
   def self.after_create_making_history(created_model, changeset)
     OperatorRouteStopRelationship.manage_multiple(
@@ -95,12 +102,21 @@ class Stop < BaseStop
     return true
   end
 
+  # Operators serving this stop
   has_many :operators_serving_stop
   has_many :operators, through: :operators_serving_stop
 
+  # Routes serving this stop
   has_many :routes_serving_stop
   has_many :routes, through: :routes_serving_stop
 
+  # Scheduled trips
+  has_many :trips_out, class_name: ScheduleStopPair, foreign_key: "origin_id"
+  has_many :trips_in, class_name: ScheduleStopPair, foreign_key: "destination_id"
+  has_many :stops_out, through: :trips_out, source: :destination
+  has_many :stops_in, through: :trips_in, source: :origin
+
+  # Add service from an Operator or Route
   scope :served_by, -> (onestop_ids_and_models) {
     operators = []
     routes = []
@@ -145,8 +161,32 @@ class Stop < BaseStop
     joins{operators_serving_stop.operator}.where{operators_serving_stop.operator_id == operator.id}
   }
 
+  # Similarity search
+  def self.find_by_similarity(point, name, radius=100, threshold=0.75)
+    # Similarity search. Returns a score,stop tuple or nil.
+    other = Stop.new(name: name, geometry: point.to_s)
+    # Class method, like other find_by methods.
+    where { st_dwithin(geometry, point, radius)
+    }.map { |stop|  [stop, stop.similarity(other)]
+    }.select { |stop, score|  score >= threshold
+    }.sort_by { |stop, score| score
+    }.last
+  end
+
+  def similarity(other)
+    # TODO: instance method, compare against a second instance?
+    # Inverse distance in km
+    score_geom = 1 / (self[:geometry].distance(other[:geometry]) / 1000.0 + 1)
+    # Levenshtein distance as ratio of name length
+    score_text = 1 - (Text::Levenshtein.distance(self.name, other.name) / [self.name.size, other.name.size].max.to_f)
+    # Weighted average
+    (score_geom * 0.5) + (score_text * 0.5)
+  end
+
+  # Before save
   before_save :clean_attributes
 
+  # Conflate with OSM
   if Figaro.env.auto_conflate_stops_with_osm.present? &&
      Figaro.env.auto_conflate_stops_with_osm == 'true'
     after_save :queue_conflate_with_osm
@@ -176,6 +216,37 @@ class Stop < BaseStop
       stop_tags[:osm_way_id] = way_id
       update(tags: stop_tags)
     end
+  end
+
+
+  ##### FromGTFS ####
+  include FromGTFS
+  def self.from_gtfs(entity)
+    # GTFS Constructor
+    point = Stop::GEOFACTORY.point(entity.lon, entity.lat)
+    geohash = GeohashHelpers.encode(point, precision=GEOHASH_PRECISION)
+    name = [entity.name, entity.id, "unknown"]
+      .select(&:present?)
+      .first    
+    onestop_id = OnestopId.new(
+      entity_prefix: 's', 
+      geohash: geohash, 
+      name: name
+    )
+    stop = Stop.new(
+      name: name,
+      onestop_id: onestop_id.to_s,
+      identifiers: [entity.id],
+      geometry: point.to_s
+    )
+    # Copy over GTFS attributes to tags
+    stop.tags ||= {}
+    stop.tags[:wheelchair_boarding] = entity.wheelchair_boarding
+    stop.tags[:stop_desc] = entity.desc
+    stop.tags[:stop_url] = entity.url
+    stop.tags[:zone_id] = entity.zone_id
+    stop.timezone = entity.timezone
+    stop
   end
 
   private

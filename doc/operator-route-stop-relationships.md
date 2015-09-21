@@ -12,10 +12,6 @@ Resolution | Geographic Scale of Connectivity | Temporal Scale of Service
 [R3](#r3) | ++ route line | + headway
 [R4](#r4) | ++ route line | ++ arrival/departure time
 
-R4 is equivalent to GTFS.
-
-<p style="color: red;">WARNING/TODO: R3 and R4 have not yet been finalized or implemented.</p>
-
 <a name="r1"></a>
 ## R1: an operator serves a stop
 
@@ -136,42 +132,169 @@ Here's an example [changeset](changesets.md):
 ````
 
 <a name="r3"></a>
-## R3: frequency/headway at which a route serves a stop
-
-<p style="color: red;">WARNING/TODO: R3 has not yet been finalized or implemented.</p>
+## R3: frequency/headway at which a route connects two stops
 
 <div class="mermaid">
   graph LR
     Operator-.->OperatorServingStop
-    OperatorServingStop-.->Stop
+    OperatorServingStop-.->StopA
     Operator-->Route
     Route-.->RouteServingStop
-    RouteServingStop-.->Stop
-    Route-->RouteFrequency
-    RouteFrequency-->RouteFrequencyServingStop
-    RouteFrequencyServingStop-->Stop
+    RouteServingStop-.->StopA
+    Route-->ScheduleStopPair
+    ScheduleStopPair--> StopA
+    ScheduleStopPair--> StopB
     classDef outOfFocus fill:#fff,stroke:#ccc,stroke-width:4px
     class OperatorServingStop,RouteServingStop outOfFocus
 </div>
 
 <a name="r4"></a>
-## R4: exact arrival/depature times at which a route serves a stop
 
-<p style="color: red;">WARNING/TODO: R4 has not yet been finalized or implemented.</p>
+````json
+{
+  "changeset": {
+    "whenToApply": "instantlyIfClean",
+    "payload": {
+      "changes": [
+        {
+          "action": "createUpdate",
+          "stop": {
+            "onestopId": "s-9q8yy-civiccenter~unplaza",
+            "name": "Civic Center/UN Plaza"
+          }
+        },
+        {
+          "action": "createUpdate",
+          "stop": {
+            "onestopId": "s-9q8yy-powellst",
+            "name": "Powell St"
+          }
+        },
+        {
+          "action": "createUpdate",
+          "operator": {
+            "onestopId": "o-9q9-bart",
+            "name": "Bay Area Rapid Transit"
+          }
+        },
+        {
+          "action": "createUpdate",
+          "route": {
+            "onestopId": "r-9q9-pittsburg~baypoint~sfia~millbrae",
+            "name": "Pittsburg/Bay Point - SFIA/Millbrae",
+            "operatedBy": "o-9q9-bart"
+          }
+        },
+        {
+          "action": "createUpdate",
+          "scheduleStopPair": {
+              "originOnestopId": "s-9q8yy-powellst",
+              "destinationOnestopId": "s-9q8yy-civiccenter~unplaza",
+              "routeOnestopId": "r-9q9-pittsburg~baypoint~sfia~millbrae",
+              "frequencyStartTime": "07:00",
+              "frequencyEndTime": "10:00",
+              "frequencyHeadwaySeconds": "600",
+	            "serviceAddedDates": [],
+	            "serviceDaysOfWeek": [
+	                true,
+	                true,
+	                true,
+	                true,
+	                true,
+	                false,
+	                false
+	            ],
+	            "serviceEndDate": "2024-10-04",
+	            "serviceExceptDates": [],
+	            "serviceStartDate": "2015-04-27",
+          }
+        }
+      ]
+    },
+    "notes": "In this changeset, we are creating/editing an operator, a route, and two stops. We're scheduled a trip from one of those stops to the other."
+  }
+}
+````
+
+
+## R4: exact arrival/depature times at which a route serves a stop
 
 <div class="mermaid">
   graph LR
     Operator-.->OperatorServingStop
-    OperatorServingStop-.->Stop
+    OperatorServingStop-.->StopA
     Operator-->Route
     Route-.->RouteServingStop
-    RouteServingStop-.->Stop
-    Route-->RouteFrequency
-    RouteFrequency-.->RouteFrequencyServingStop
-    RouteFrequencyServingStop-.->Stop
-    RouteFrequency-->Trip
-    Trip-->StopTime
-    StopTime-->Stop
+    RouteServingStop-.->StopA
+    Route-->ScheduleStopPair
+    ScheduleStopPair--> StopA
+    ScheduleStopPair--> StopB
     classDef outOfFocus fill:#fff,stroke:#ccc,stroke-width:4px
-    class OperatorServingStop,RouteServingStop,RouteFrequencyServingStop outOfFocus
+    class OperatorServingStop,RouteServingStop outOfFocus
 </div>
+
+````json
+{
+  "changeset": {
+    "whenToApply": "instantlyIfClean",
+    "payload": {
+      "changes": [
+        {
+          "action": "createUpdate",
+          "stop": {
+            "onestopId": "s-9q8yy-civiccenter~unplaza",
+            "name": "Civic Center/UN Plaza"
+          }
+        },
+        {
+          "action": "createUpdate",
+          "stop": {
+            "onestopId": "s-9q8yy-powellst",
+            "name": "Powell St"
+          }
+        },
+        {
+          "action": "createUpdate",
+          "operator": {
+            "onestopId": "o-9q9-bart",
+            "name": "Bay Area Rapid Transit"
+          }
+        },
+        {
+          "action": "createUpdate",
+          "route": {
+            "onestopId": "r-9q9-pittsburg~baypoint~sfia~millbrae",
+            "name": "Pittsburg/Bay Point - SFIA/Millbrae",
+            "operatedBy": "o-9q9-bart"
+          }
+        },
+        {
+          "action": "createUpdate",
+          "scheduleStopPair": {
+              "originOnestopId": "s-9q8yy-powellst",
+              "destinationOnestopId": "s-9q8yy-civiccenter~unplaza",
+              "routeOnestopId": "r-9q9-pittsburg~baypoint~sfia~millbrae",
+	            "destinationArrivalTime": "18:49:00",
+	            "destinationDepartureTime": "18:49:00",
+	            "originArrivalTime": "18:33:00",	            "originDepartureTime": "18:33:00",
+	            "serviceAddedDates": [],
+	            "serviceDaysOfWeek": [
+	                true,
+	                true,
+	                true,
+	                true,
+	                true,
+	                false,
+	                false
+	            ],
+	            "serviceEndDate": "2024-10-04",
+	            "serviceExceptDates": [],
+	            "serviceStartDate": "2015-04-27",
+          }
+        }
+      ]
+    },
+    "notes": "In this changeset, we are creating/editing an operator, a route, and two stops. We're scheduled a trip from one of those stops to the other."
+  }
+}
+````

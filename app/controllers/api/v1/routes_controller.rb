@@ -11,14 +11,13 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     if params[:identifier].present?
       @routes = @routes.with_identifier_or_name(params[:identifier])
     elsif params[:identifier_starts_with].present?
-      @routes = @routes.with_identifer_starting_with(params[:identifier_starts_with])
+      @routes = @routes.with_identifier_starting_with(params[:identifier_starts_with])
     end
     if params[:operatedBy].present?
       @routes = @routes.operated_by(params[:operatedBy])
     end
-    if params[:bbox].present? && params[:bbox].split(',').length == 4
-      bbox_coordinates = params[:bbox].split(',')
-      @routes = @routes.where{geometry.op('&&', st_makeenvelope(bbox_coordinates[0], bbox_coordinates[1], bbox_coordinates[2], bbox_coordinates[3], Route::GEOFACTORY.srid))}
+    if params[:bbox].present?
+      @routes = @routes.within_bbox(params[:bbox])
     end
     if params[:onestop_id].present?
       @routes = @routes.where(onestop_id: params[:onestop_id])
@@ -27,6 +26,9 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
       @routes = @routes.with_tag_equals(params[:tag_key], params[:tag_value])
     elsif params[:tag_key].present?
       @routes = @routes.with_tag(params[:tag_key])
+    end
+    if params[:updated_since].present?
+      @routes = @routes.updated_since(params[:updated_since])
     end
 
     per_page = params[:per_page].blank? ? Route::PER_PAGE : params[:per_page].to_i

@@ -20,12 +20,15 @@
 #  index_current_routes_on_identifiers  (identifiers)
 #  index_current_routes_on_operator_id  (operator_id)
 #  index_current_routes_on_tags         (tags)
+#  index_current_routes_on_updated_at   (updated_at)
 #
 
 class BaseRoute < ActiveRecord::Base
   self.abstract_class = true
 
   PER_PAGE = 50
+
+  include HasAFeed
 
   attr_accessor :serves, :does_not_serve, :operated_by
 end
@@ -37,6 +40,7 @@ class Route < BaseRoute
   include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
   include HasTags
+  include UpdatedSince
 
   include CanBeSerializedToCsv
   def self.csv_column_names
@@ -60,7 +64,7 @@ class Route < BaseRoute
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
-    virtual_attributes: [:serves, :does_not_serve, :operated_by, :identified_by, :not_identified_by]
+    virtual_attributes: [:serves, :does_not_serve, :operated_by, :identified_by, :not_identified_by, :imported_from_feed_onestop_id]
   })
   def self.before_create_making_history(new_model, changeset)
     operator = Operator.find_by_onestop_id!(new_model.operated_by)
@@ -101,6 +105,7 @@ class Route < BaseRoute
 
   has_many :routes_serving_stop
   has_many :stops, through: :routes_serving_stop
+  has_many :schedule_stop_pairs
   belongs_to :operator
 
   validates :name, presence: true
@@ -115,6 +120,39 @@ class Route < BaseRoute
       raise ArgumentError.new('must provide an Operator model or a Onestop ID')
     end
   }
+
+  ##### FromGTFS ####
+  include FromGTFS
+  def self.from_gtfs(entity, stops)
+    # GTFS Constructor
+    raise ArgumentError.new('Need at least one Stop') if stops.empty?
+    geohash = GeohashHelpers.fit(stops.map { |i| i[:geometry] })
+    name = [entity.short_name, entity.long_name, entity.id, "unknown"]
+      .select(&:present?)
+      .first    
+    onestop_id = OnestopId.new(
+      entity_prefix: 'r',
+      geohash: geohash,
+      name: name
+    )
+    route = Route.new(
+      name: name,
+      onestop_id: onestop_id.to_s,
+      identifiers: [entity.id],
+      # geometry:
+    )
+    # Copy over GTFS attributes to tags
+    vehicles = ['tram', 'metro', 'rail', 'bus', 'ferry', 'cablecar', 'gondola', 'funicalar']
+    route.tags ||= {}
+    route.tags[:vehicle_type] = vehicles[entity.type.to_i]
+    route.tags[:route_long_name] = entity.long_name
+    route.tags[:route_desc] = entity.desc
+    route.tags[:route_url] = entity.url
+    route.tags[:route_color] = entity.color
+    route.tags[:route_text_color] = entity.text_color
+    route
+  end
+
 end
 
 class OldRoute < BaseRoute

@@ -9,6 +9,24 @@ describe OnestopId do
     }.to raise_error(ArgumentError)
   end
 
+  context 'create' do
+    it 'filters geohashes' do
+      expect(
+        OnestopId.new(entity_prefix: 's', geohash: 'a9q9', name: 'test').to_s
+      ).to eq('s-9q9-test')
+    end
+    it 'filters names' do
+      expect(
+        OnestopId.new(entity_prefix: 's', geohash: '9q9', name: 'Foo Bar!').to_s
+      ).to eq('s-9q9-foobar')
+    end
+    it 'filters names at' do
+      expect(
+        OnestopId.new(entity_prefix: 's', geohash: '9q9', name: 'foo@bar').to_s
+      ).to eq('s-9q9-foo~bar')
+    end    
+  end
+
   context 'validation' do
     it 'must not be blank' do
       is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string('')

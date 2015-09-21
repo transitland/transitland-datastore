@@ -12,6 +12,12 @@
 #  created_or_updated_in_changeset_id :integer
 #  version                            :integer
 #  identifiers                        :string           default([]), is an Array
+#  timezone                           :string
+#  short_name                         :string
+#  website                            :string
+#  country                            :string
+#  state                              :string
+#  metro                              :string
 #
 # Indexes
 #
@@ -19,6 +25,7 @@
 #  index_current_operators_on_identifiers  (identifiers)
 #  index_current_operators_on_onestop_id   (onestop_id) UNIQUE
 #  index_current_operators_on_tags         (tags)
+#  index_current_operators_on_updated_at   (updated_at)
 #
 
 FactoryGirl.define do

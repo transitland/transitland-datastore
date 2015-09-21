@@ -12,6 +12,12 @@
 #  created_or_updated_in_changeset_id :integer
 #  version                            :integer
 #  identifiers                        :string           default([]), is an Array
+#  timezone                           :string
+#  short_name                         :string
+#  website                            :string
+#  country                            :string
+#  state                              :string
+#  metro                              :string
 #
 # Indexes
 #
@@ -19,6 +25,7 @@
 #  index_current_operators_on_identifiers  (identifiers)
 #  index_current_operators_on_onestop_id   (onestop_id) UNIQUE
 #  index_current_operators_on_tags         (tags)
+#  index_current_operators_on_updated_at   (updated_at)
 #
 
 describe Operator do
@@ -35,4 +42,31 @@ describe Operator do
     expect(Operator.with_identifier('SFMTA')).to be_empty
     expect(Operator.with_identifier_or_name('SFMTA')).to match_array([sfmta])
   end
+  
+  it 'HasAFeed imported_from_feed_onestop_id' do
+    feed = create(:feed)
+    bart = build(:operator, name: 'BART', identifiers: ['Bay Area Rapid Transit'])
+    bart.imported_from_feed_onestop_id = feed.onestop_id
+    bart.save!
+    expect(bart.feeds).to match_array([feed])
+  end
+
+  it 'HasAFeed imported_from_feed_onestop_id requires valid feed onestop_id' do
+    bart = build(:operator, name: 'BART', identifiers: ['Bay Area Rapid Transit'])
+    expect {
+      bart.imported_from_feed_onestop_id = 'f-9q9-unknown'
+    }.to raise_error(ActiveRecord::RecordNotFound)
+  end
+
+  it 'HasAFeed imported_from_feed_onestop_id no duplicates' do
+    feed = create(:feed)
+    bart = build(:operator, name: 'BART', identifiers: ['Bay Area Rapid Transit'])
+    bart.imported_from_feed_onestop_id = feed.onestop_id
+    bart.save!
+    expect(bart.feeds).to match_array([feed])
+    bart.imported_from_feed_onestop_id = feed.onestop_id
+    bart.save!
+    expect(bart.feeds).to match_array([feed])
+  end
+  
 end

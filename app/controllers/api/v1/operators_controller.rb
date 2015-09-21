@@ -11,16 +11,15 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
     if params[:identifier].present?
       @operators = @operators.with_identifier_or_name(params[:identifier])
     elsif params[:identifier_starts_with].present?
-      @operators = @operators.with_identifer_starting_with(params[:identifier_starts_with])
+      @operators = @operators.with_identifier_starting_with(params[:identifier_starts_with])
     end
     if [params[:lat], params[:lon]].map(&:present?).all?
       point = Operator::GEOFACTORY.point(params[:lon], params[:lat])
       r = params[:r] || 100 # meters TODO: move this to a more logical place
       @operators = @operators.where{st_dwithin(geometry, point, r)}.order{st_distance(geometry, point)}
     end
-    if params[:bbox].present? && params[:bbox].split(',').length == 4
-      bbox_coordinates = params[:bbox].split(',')
-      @operators = @operators.where{geometry.op('&&', st_makeenvelope(bbox_coordinates[0], bbox_coordinates[1], bbox_coordinates[2], bbox_coordinates[3], Operator::GEOFACTORY.srid))}
+    if params[:bbox].present?
+      @operators = @operators.within_bbox(params[:bbox])
     end
     if params[:onestop_id].present?
       @operators = @operators.where(onestop_id: params[:onestop_id])
@@ -29,6 +28,9 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
       @operators = @operators.with_tag_equals(params[:tag_key], params[:tag_value])
     elsif params[:tag_key].present?
       @operators = @operators.with_tag(params[:tag_key])
+    end
+    if params[:updated_since].present?
+      @operators = @operators.updated_since(params[:updated_since])
     end
 
     per_page = params[:per_page].blank? ? Operator::PER_PAGE : params[:per_page].to_i

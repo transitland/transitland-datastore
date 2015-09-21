@@ -11,7 +11,7 @@ class Api::V1::StopsController < Api::V1::BaseApiController
     if params[:identifier].present?
       @stops = @stops.with_identifier_or_name(params[:identifier])
     elsif params[:identifier_starts_with].present?
-      @stops = @stops.with_identifer_starting_with(params[:identifier_starts_with])
+      @stops = @stops.with_identifier_starting_with(params[:identifier_starts_with])
     end
     if params[:servedBy].present?
       @stops = @stops.served_by(params[:servedBy].split(','))
@@ -21,9 +21,8 @@ class Api::V1::StopsController < Api::V1::BaseApiController
       r = params[:r] || 100 # meters TODO: move this to a more logical place
       @stops = @stops.where{st_dwithin(geometry, point, r)}.order{st_distance(geometry, point)}
     end
-    if params[:bbox].present? && params[:bbox].split(',').length == 4
-      bbox_coordinates = params[:bbox].split(',')
-      @stops = @stops.where{geometry.op('&&', st_makeenvelope(bbox_coordinates[0], bbox_coordinates[1], bbox_coordinates[2], bbox_coordinates[3], Stop::GEOFACTORY.srid))}
+    if params[:bbox].present?
+      @stops = @stops.within_bbox(params[:bbox])
     end
     if params[:onestop_id].present?
       @stops = @stops.where(onestop_id: params[:onestop_id])
@@ -32,6 +31,9 @@ class Api::V1::StopsController < Api::V1::BaseApiController
       @stops = @stops.with_tag_equals(params[:tag_key], params[:tag_value])
     elsif params[:tag_key].present?
       @stops = @stops.with_tag(params[:tag_key])
+    end
+    if params[:updated_since].present?
+      @stops = @stops.updated_since(params[:updated_since])
     end
 
     @stops = @stops.includes{[operators_serving_stop, operators_serving_stop.operator]} # TODO: check performance against eager_load, joins, etc.
