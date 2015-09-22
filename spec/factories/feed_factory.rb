@@ -30,4 +30,16 @@ FactoryGirl.define do
     url { 'http://www.ridemetro.org/News/Downloads/DataFiles/google_transit.zip' }
     onestop_id { Faker::OnestopId.feed }
   end
+
+  factory :feed_caltrain, class: Feed do
+    onestop_id { 'f-9q9-caltrain' }
+    url { 'http://www.caltrain.com/Assets/GTFS/caltrain/GTFS-Caltrain-Devs.zip' }
+    operators_in_feed [
+      {
+        onestop_id: "o-9q9-caltrain",
+        gtfs_agency_id: "caltrain-ca-us"
+      }
+    ]
+  end
+
 end

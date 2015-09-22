@@ -73,8 +73,8 @@ describe IsAnEntityWithIdentifiers do
       sfmta2 = create(:stop, geometry: 'POINT(-122.405021 37.708997)', name: 'Bay Shore Blvd & Sunnydale Ave', identifiers: ['gtfs://f-9q8y-sanfranciscomunicipaltransportationagency/s/7398'])
       bart = create(:stop, geometry: 'POINT(-122.353165 37.936887)', name: 'Richmond', identifiers: ['gtfs://f-9q9-bayarearapidtransit/s/RICH'])
 
-      expect(Stop.with_identifer_starting_with('gtfs://f-9q8y-sanfranciscomunicipaltransportationagency/s/')).to match_array([sfmta1, sfmta2])
-      expect(Stop.with_identifer_starting_with('gtfs://')).to match_array([sfmta1, sfmta2, bart])
+      expect(Stop.with_identifier_starting_with('gtfs://f-9q8y-sanfranciscomunicipaltransportationagency/s/')).to match_array([sfmta1, sfmta2])
+      expect(Stop.with_identifier_starting_with('gtfs://')).to match_array([sfmta1, sfmta2, bart])
     end
   end
 end

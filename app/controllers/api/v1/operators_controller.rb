@@ -11,7 +11,7 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
     if params[:identifier].present?
       @operators = @operators.with_identifier_or_name(params[:identifier])
     elsif params[:identifier_starts_with].present?
-      @operators = @operators.with_identifer_starting_with(params[:identifier_starts_with])
+      @operators = @operators.with_identifier_starting_with(params[:identifier_starts_with])
     end
     if [params[:lat], params[:lon]].map(&:present?).all?
       point = Operator::GEOFACTORY.point(params[:lon], params[:lat])
