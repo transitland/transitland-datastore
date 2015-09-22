@@ -184,6 +184,7 @@ class Feed < BaseFeed
 
   def set_default_values
     if self.new_record?
+      self.tags ||= {}
       self.feed_format ||= 'gtfs'
       self.license_use_without_attribution ||= 'unknown'
       self.license_create_derived_product ||= 'unknown'

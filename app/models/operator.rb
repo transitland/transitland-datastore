@@ -101,6 +101,8 @@ class Operator < BaseOperator
     return true
   end
 
+  after_initialize :set_default_values
+
   has_many :operators_in_feed
   has_many :feeds, through: :operators_in_feed
 
@@ -121,10 +123,10 @@ class Operator < BaseOperator
     geometry = Operator.convex_hull(stops, as: :wkt, projected: false)
     name = [entity.name, entity.id, "unknown"]
       .select(&:present?)
-      .first    
+      .first
     onestop_id = OnestopId.new(
-      entity_prefix: 'o', 
-      geohash: geohash, 
+      entity_prefix: 'o',
+      geohash: geohash,
       name: name
     )
     operator = Operator.new(
@@ -142,6 +144,15 @@ class Operator < BaseOperator
     operator.timezone = entity.timezone
     operator.website = entity.url
     operator
+  end
+
+  private
+
+  def set_default_values
+    if self.new_record?
+      self.tags ||= {}
+      self.identifiers ||= []
+    end
   end
 
 end
