@@ -1,1 +1,2 @@
-transitfeed>=1.2.14
+-e git+https://github.com/google/transitfeed.git@23e953749e4024130db102d30b2088e9bfae0e3b#egg=transitfeed
+pytz
