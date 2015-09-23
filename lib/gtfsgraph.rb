@@ -33,8 +33,8 @@ class GTFSGraph
     log "  merge stations"
     # Merge child stations into parents.
     stations = Hash.new { |h,k| h[k] = [] }
-    @gtfs_by_id[:stops].each do |k,e|
-      stations[@gtfs_by_id[:stops][e.parent_station] || e] << e
+    @gtfs.stops.each do |e|
+      stations[@gtfs.find_stop(e.parent_station) || e] << e
     end
 
     # Merge station/platforms with Datastore Stops.
@@ -63,24 +63,25 @@ class GTFSGraph
 
     # Routes
     log "  routes"
-    @gtfs_by_id[:routes].each do |k,e|
+    @gtfs.routes.each do |e|
       # Find: (child gtfs trips) to (child gtfs stops) to (tl stops)
-      stops = @gtfs_children[e]
-        .map { |i| @gtfs_children[i] }
+      stops = @gtfs.children(e)
+        .map { |i| @gtfs.children(i) }
         .reduce(Set.new, :+)
         .map { |i| @gtfs_tl[i] }
         .to_set
       # Skip Route if no Stops
       next if stops.empty?
-      # Find all unique shapes, and build geometry.
+      # Find all uniq shape_ids of trip_ids, and build geometry.
       geometry = Route::GEOFACTORY.multi_line_string(
-        @gtfs_children[e]
-          .map { |i| i.shape_id }
+        @gtfs
+          .children(e)
+          .map(&:shape_id)
           .uniq
-          .map { |i| @shape_by_id[i] }
+          .map { |shape_id| @gtfs.shape_line(shape_id) }
+          .map { |coords| Route::GEOFACTORY.line_string( coords.map { |lon, lat| Route::GEOFACTORY.point(lon, lat) } ) }
       )
       # Search by similarity
-      # TODO: route similarity...
       # ... or create route from GTFS
       route = Route.from_gtfs(e, stops)
       # ... check if Route exists, or another local Route, or new.
@@ -99,12 +100,12 @@ class GTFSGraph
     log "  operators"
     operators = Set.new
     @feed.operators_in_feed.each do |oif|
-      e = @gtfs_by_id[:agencies][oif['gtfs_agency_id']]
+      e = @gtfs.find_agency(oif['gtfs_agency_id'])
       # Skip Operator if not found
       next unless e
       # Find: (child gtfs routes) to (tl routes)
       #   note: .compact because some gtfs routes are skipped.
-      routes = @gtfs_children[e]
+      routes = @gtfs.children(e)
         .map { |i| @gtfs_tl[i] }
         .compact
         .to_set
@@ -432,7 +433,6 @@ if __FILE__ == $0
   Feed.update_feeds_from_feed_registry
   feed = Feed.find_by!(onestop_id: feedid)
   graph = GTFSGraph.new(filename, feed)
-  graph.load_gtfs
   operators = graph.load_tl
   graph.create_changeset(operators, import_level=import_level)
 end
