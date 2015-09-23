@@ -6,7 +6,6 @@ class GTFSGraph
 
   def initialize(filename, feed=nil)
     # GTFS Graph / TransitLand wrapper
-    @filename = filename
     @feed = feed
     @gtfs = GTFS::Source.build(filename, {strict: false})
     @log = []
@@ -19,79 +18,6 @@ class GTFSGraph
     @gtfs_tl = {}
     # TL Indexed by Onestop ID
     @tl_by_onestop_id = {}
-
-    # TODO: Move these to GTFS Library...
-    # GTFS entities indexed by type and id
-    @gtfs_by_id = Hash.new { |h,k| h[k] = {} }
-    # GTFS Entity relationships: Many to many
-    @gtfs_parents = Hash.new { |h,k| h[k] = Set.new }
-    @gtfs_children = Hash.new { |h,k| h[k] = Set.new }
-    # Shapes
-    @shape_by_id = {}
-    # Service dates
-    @service_by_id = {}
-    # Trip stop counters; used for batching stop_times
-    @trip_counter = Hash.new { |h,k| h[k] = 0 }
-  end
-
-  def load_gtfs
-    # Load core GTFS entities and build relationships
-    log "Load GTFS"
-    # Clear
-    @gtfs_by_id.clear
-    @gtfs_parents.clear
-    @gtfs_children.clear
-    @trip_counter.clear
-
-    # Load GTFS agencies, routes, stops, trips
-    # Use .each_entity instead of .entity.each; faster, skip caching.
-    log "  core"
-    @gtfs.each_agency { |e| @gtfs_by_id[:agencies][e.id] = e }
-    @gtfs.each_route { |e| @gtfs_by_id[:routes][e.id] = e }
-    @gtfs.each_stop { |e| @gtfs_by_id[:stops][e.id] = e }
-    @gtfs.each_trip { |e| @gtfs_by_id[:trips][e.id] = e }
-
-    # Load service periods
-    log "  calendars"
-    @gtfs.each_calendar { |e| make_service_calendar(e) } rescue log "  warning: no calendar.txt"
-    @gtfs.each_calendar_date { |e| make_service_calendar_dates(e) } rescue log "  warning: no calendar_dates.txt"
-
-    # Load shapes.
-    log "  shapes"
-    shapes_merge = Hash.new { |h,k| h[k] = [] }
-    @gtfs.each_shape { |e| shapes_merge[e.id] << e }
-    shapes_merge.each { |k,v|
-      @shape_by_id[k] = Route::GEOFACTORY.line_string(
-        v
-          .sort_by { |i| i.pt_sequence.to_i }
-          .map { |i| Route::GEOFACTORY.point(i.pt_lon, i.pt_lat) }
-      )
-    }
-
-    # Create relationships
-    log "  relationships"
-    # Set default agency
-    default_agency = @gtfs_by_id[:agencies].first[1].id
-    # Add routes to agencies
-    @gtfs_by_id[:routes].each do |k,e|
-      agency = @gtfs_by_id[:agencies][e.agency_id || default_agency]
-      gtfs_pclink(agency, e)
-    end
-
-    # Add trips to routes
-    @gtfs_by_id[:trips].each do |k,e|
-      route = @gtfs_by_id[:routes][e.route_id]
-      gtfs_pclink(route, e)
-    end
-
-    # Associate routes with stops; count stop_times by trip
-    log "  stop_times counter"
-    @gtfs.each_stop_time do |e|
-      trip = @gtfs_by_id[:trips][e.trip_id]
-      stop = @gtfs_by_id[:stops][e.stop_id]
-      @trip_counter[trip] += 1
-      gtfs_pclink(trip, stop)
-    end
   end
 
   def load_tl
@@ -332,11 +258,6 @@ class GTFSGraph
 
   ##### Relationships between entities #####
 
-  def gtfs_pclink(parent, child)
-    @gtfs_children[parent].add(child)
-    @gtfs_parents[child].add(parent)
-  end
-
   def tl_add_identifiers(tl, gtfs_entities)
     # Associate TL entity with one or more GTFS entities.
     Array(gtfs_entities).each do |entity|
@@ -354,24 +275,6 @@ class GTFSGraph
   end
 
   ##### Trip pairs and stop chunks #####
-
-  def trip_chunks(batchsize)
-    # Return chunks of trips containing approx. batchsize stop_times.
-    # Reverse sort trips
-    trips = @trip_counter.sort_by { |k,v| -v }
-    chunk = []
-    current = 0
-    trips.each do |k,v|
-      if current+v > batchsize
-        yield chunk
-        chunk = []
-        current = 0
-      end
-      chunk << k
-      current += v
-    end
-    yield chunk
-  end
 
   def stop_pairs(trips)
     # Return all the ScheduleStopPairs for a set of trips
