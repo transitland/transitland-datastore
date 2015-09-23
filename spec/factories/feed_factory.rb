@@ -29,17 +29,27 @@ FactoryGirl.define do
   factory :feed do
     url { 'http://www.ridemetro.org/News/Downloads/DataFiles/google_transit.zip' }
     onestop_id { Faker::OnestopId.feed }
+    version 1
   end
 
   factory :feed_caltrain, class: Feed do
     onestop_id { 'f-9q9-caltrain' }
     url { 'http://www.caltrain.com/Assets/GTFS/caltrain/GTFS-Caltrain-Devs.zip' }
-    operators_in_feed [
-      {
-        onestop_id: "o-9q9-caltrain",
-        gtfs_agency_id: "caltrain-ca-us"
-      }
-    ]
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Caltrain',
+        onestop_id: 'o-9q9-caltrain',
+        timezone: 'America/Los_Angeles',
+        website: 'http://www.caltrain.com',
+        version: 1
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: 'caltrain-ca-us'
+      )
+    end
   end
 
 end
