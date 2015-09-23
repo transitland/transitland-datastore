@@ -21,14 +21,23 @@ class GTFSGraph
   end
 
   def load_tl
-    log "Load TL"
     # Clear
     @tl_by_onestop_id.clear
     @tl_gtfs.clear
     @tl_served_by.clear
     @tl_serves.clear
     @gtfs_tl.clear
+    # Load GTFS
+    log "Load GTFS"
+    @gtfs.load_graph
+    # Load TL
+    log "Load TL"
+    self.load_tl_stops
+    self.load_tl_routes
+    self.load_tl_operators
+  end
 
+  def load_tl_stops
     # Build TL Entities
     log "  merge stations"
     # Merge child stations into parents.
@@ -36,7 +45,6 @@ class GTFSGraph
     @gtfs.stops.each do |e|
       stations[@gtfs.find_stop(e.parent_station) || e] << e
     end
-
     # Merge station/platforms with Datastore Stops.
     log "  stops"
     stations.each do |station,platforms|
@@ -60,7 +68,9 @@ class GTFSGraph
         log "    #{stop.onestop_id}: #{stop.name}"
       end
     end
+  end
 
+  def load_tl_routes
     # Routes
     log "  routes"
     @gtfs.routes.each do |e|
@@ -95,7 +105,9 @@ class GTFSGraph
       @tl_by_onestop_id[route.onestop_id] = route
       log "    #{route.onestop_id}: #{route.name}"
     end
+  end
 
+  def load_tl_operators
     # Operators
     log "  operators"
     operators = Set.new
