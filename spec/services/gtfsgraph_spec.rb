@@ -1,7 +1,6 @@
 require 'gtfsgraph'
 
 def load_feed(import_level=1)
-  # Rails.root
   path = 'spec/support/example_gtfs_archives/f-9q9-caltrain.zip'
   feed = create(:feed_caltrain)
   graph = GTFSGraph.new(File.join(Rails.root, path), feed)
