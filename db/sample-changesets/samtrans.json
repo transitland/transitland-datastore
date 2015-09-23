@@ -25,11 +25,11 @@
           "action": "createUpdate",
           "feed": {
             "onestopId": "f-9q8-samtrans",
-            "url": "http://www.samtrans.org/sfc/servlet.shepherd/document/download/069A0000001NUea",
+            "url": "http://www.samtrans.com/Assets/GTFS/samtrans/SamTrans-GTFS.zip",
             "tags": {
               "downloadPageUrl": "http://www.samtrans.com/Developer/DLA-PP-SamTrans.html?IsSubmitted=True"
             },
-            "licenseUrl": "http://www.samtrans.com/Assets/GTFS/samtrans/SamTrans-GTFS.zip",
+            "licenseUrl": "http://www.samtrans.com/Developer/DLA-PP-SamTrans.html",
             "licenseUseWithoutAttribution": "yes",
             "licenseCreateDerivedProduct": "unknown",
             "licenseRedistribute": "yes",
