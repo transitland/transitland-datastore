@@ -223,14 +223,14 @@ class Stop < BaseStop
   include FromGTFS
   def self.from_gtfs(entity)
     # GTFS Constructor
-    point = Stop::GEOFACTORY.point(entity.lon, entity.lat)
+    point = Stop::GEOFACTORY.point(entity.stop_lon, entity.stop_lat)
     geohash = GeohashHelpers.encode(point, precision=GEOHASH_PRECISION)
     name = [entity.name, entity.id, "unknown"]
       .select(&:present?)
-      .first    
+      .first
     onestop_id = OnestopId.new(
-      entity_prefix: 's', 
-      geohash: geohash, 
+      entity_prefix: 's',
+      geohash: geohash,
       name: name
     )
     stop = Stop.new(
@@ -242,10 +242,10 @@ class Stop < BaseStop
     # Copy over GTFS attributes to tags
     stop.tags ||= {}
     stop.tags[:wheelchair_boarding] = entity.wheelchair_boarding
-    stop.tags[:stop_desc] = entity.desc
-    stop.tags[:stop_url] = entity.url
+    stop.tags[:stop_desc] = entity.stop_desc
+    stop.tags[:stop_url] = entity.stop_url
     stop.tags[:zone_id] = entity.zone_id
-    stop.timezone = entity.timezone
+    stop.timezone = entity.stop_timezone
     stop
   end
 
