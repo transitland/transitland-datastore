@@ -116,12 +116,12 @@ class Operator < BaseOperator
     raise ArgumentError.new('Need at least one Stop') if stops.empty?
     geohash = GeohashHelpers.fit(stops.map { |i| i[:geometry] })
     geometry = Operator.convex_hull(stops, as: :wkt, projected: false)
-    name = [entity.name, entity.id, "unknown"]
+    name = [entity.agency_name, entity.id, "unknown"]
       .select(&:present?)
-      .first    
+      .first
     onestop_id = OnestopId.new(
-      entity_prefix: 'o', 
-      geohash: geohash, 
+      entity_prefix: 'o',
+      geohash: geohash,
       name: name
     )
     operator = Operator.new(
@@ -132,12 +132,12 @@ class Operator < BaseOperator
     operator[:geometry] = geometry
     # Copy over GTFS attributes to tags
     operator.tags ||= {}
-    operator.tags[:agency_phone] = entity.phone
-    operator.tags[:agency_lang] = entity.lang
-    operator.tags[:agency_fare_url] = entity.fare_url
+    operator.tags[:agency_phone] = entity.agency_phone
+    operator.tags[:agency_lang] = entity.agency_lang
+    operator.tags[:agency_fare_url] = entity.agency_fare_url
     operator.tags[:agency_id] = entity.id
-    operator.timezone = entity.timezone
-    operator.website = entity.url
+    operator.timezone = entity.agency_timezone
+    operator.website = entity.agency_url
     operator
   end
 
