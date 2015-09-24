@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150915001511) do
+ActiveRecord::Schema.define(version: 20150915001512) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -34,6 +34,27 @@ ActiveRecord::Schema.define(version: 20150915001511) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  create_table "current_feeds", force: :cascade do |t|
+    t.string   "onestop_id"
+    t.string   "url"
+    t.string   "feed_format"
+    t.hstore   "tags"
+    t.string   "last_sha1"
+    t.datetime "last_fetched_at"
+    t.datetime "last_imported_at"
+    t.string   "license_name"
+    t.string   "license_url"
+    t.string   "license_use_without_attribution"
+    t.string   "license_create_derived_product"
+    t.string   "license_redistribute"
+    t.integer  "version"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "created_or_updated_in_changeset_id"
+  end
+
+  add_index "current_feeds", ["created_or_updated_in_changeset_id"], name: "index_current_feeds_on_created_or_updated_in_changeset_id", using: :btree
 
   create_table "current_operators", force: :cascade do |t|
     t.string    "name"
@@ -58,6 +79,20 @@ ActiveRecord::Schema.define(version: 20150915001511) do
   add_index "current_operators", ["onestop_id"], name: "index_current_operators_on_onestop_id", unique: true, using: :btree
   add_index "current_operators", ["tags"], name: "index_current_operators_on_tags", using: :btree
   add_index "current_operators", ["updated_at"], name: "index_current_operators_on_updated_at", using: :btree
+
+  create_table "current_operators_in_feed", force: :cascade do |t|
+    t.string   "gtfs_agency_id"
+    t.integer  "version"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "operator_id"
+    t.integer  "feed_id"
+    t.integer  "created_or_updated_in_changeset_id"
+  end
+
+  add_index "current_operators_in_feed", ["created_or_updated_in_changeset_id"], name: "current_oif", using: :btree
+  add_index "current_operators_in_feed", ["feed_id"], name: "index_current_operators_in_feed_on_feed_id", using: :btree
+  add_index "current_operators_in_feed", ["operator_id"], name: "index_current_operators_in_feed_on_operator_id", using: :btree
 
   create_table "current_operators_serving_stop", force: :cascade do |t|
     t.integer  "stop_id",                            null: false
@@ -195,7 +230,7 @@ ActiveRecord::Schema.define(version: 20150915001511) do
   add_index "feed_imports", ["created_at"], name: "index_feed_imports_on_created_at", using: :btree
   add_index "feed_imports", ["feed_id"], name: "index_feed_imports_on_feed_id", using: :btree
 
-  create_table "feeds", force: :cascade do |t|
+  create_table "old_feeds", force: :cascade do |t|
     t.string   "onestop_id"
     t.string   "url"
     t.string   "feed_format"
@@ -203,18 +238,22 @@ ActiveRecord::Schema.define(version: 20150915001511) do
     t.string   "last_sha1"
     t.datetime "last_fetched_at"
     t.datetime "last_imported_at"
-    t.datetime "created_at"
-    t.datetime "updated_at"
     t.string   "license_name"
     t.string   "license_url"
     t.string   "license_use_without_attribution"
     t.string   "license_create_derived_product"
     t.string   "license_redistribute"
-    t.hstore   "operators_in_feed",               array: true
+    t.integer  "version"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "current_id"
+    t.integer  "created_or_updated_in_changeset_id"
+    t.integer  "destroyed_in_changeset_id"
   end
 
-  add_index "feeds", ["onestop_id"], name: "index_feeds_on_onestop_id", using: :btree
-  add_index "feeds", ["tags"], name: "index_feeds_on_tags", using: :btree
+  add_index "old_feeds", ["created_or_updated_in_changeset_id"], name: "index_old_feeds_on_created_or_updated_in_changeset_id", using: :btree
+  add_index "old_feeds", ["current_id"], name: "index_old_feeds_on_current_id", using: :btree
+  add_index "old_feeds", ["destroyed_in_changeset_id"], name: "index_old_feeds_on_destroyed_in_changeset_id", using: :btree
 
   create_table "old_operators", force: :cascade do |t|
     t.string    "name"
@@ -240,6 +279,26 @@ ActiveRecord::Schema.define(version: 20150915001511) do
   add_index "old_operators", ["current_id"], name: "index_old_operators_on_current_id", using: :btree
   add_index "old_operators", ["destroyed_in_changeset_id"], name: "operators_d_in_changeset_id_index", using: :btree
   add_index "old_operators", ["identifiers"], name: "index_old_operators_on_identifiers", using: :gin
+
+  create_table "old_operators_in_feed", force: :cascade do |t|
+    t.string   "gtfs_agency_id"
+    t.integer  "version"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "operator_id"
+    t.string   "operator_type"
+    t.integer  "feed_id"
+    t.string   "feed_type"
+    t.integer  "current_id"
+    t.integer  "created_or_updated_in_changeset_id"
+    t.integer  "destroyed_in_changeset_id"
+  end
+
+  add_index "old_operators_in_feed", ["created_or_updated_in_changeset_id"], name: "old_oif", using: :btree
+  add_index "old_operators_in_feed", ["current_id"], name: "index_old_operators_in_feed_on_current_id", using: :btree
+  add_index "old_operators_in_feed", ["destroyed_in_changeset_id"], name: "index_old_operators_in_feed_on_destroyed_in_changeset_id", using: :btree
+  add_index "old_operators_in_feed", ["feed_type", "feed_id"], name: "index_old_operators_in_feed_on_feed_type_and_feed_id", using: :btree
+  add_index "old_operators_in_feed", ["operator_type", "operator_id"], name: "index_old_operators_in_feed_on_operator_type_and_operator_id", using: :btree
 
   create_table "old_operators_serving_stop", force: :cascade do |t|
     t.integer  "stop_id"

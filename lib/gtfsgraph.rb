@@ -110,7 +110,7 @@ class GTFSGraph
     log "  operators"
     operators = Set.new
     @feed.operators_in_feed.each do |oif|
-      e = @gtfs.agency(oif['gtfs_agency_id'])
+      e = @gtfs.agency(oif.gtfs_agency_id)
       # Skip Operator if not found
       next unless e
       # Find: (child gtfs routes) to (tl routes)
@@ -125,7 +125,7 @@ class GTFSGraph
         .reduce(Set.new, :+)
       # Create Operator from GTFS
       operator = Operator.from_gtfs(e, stops)
-      operator.onestop_id = oif['onestop_id'] # Override Onestop ID
+      operator.onestop_id = oif.operator.onestop_id # Override Onestop ID
       operator_original = operator # for merging geometry
       # ... or check if Operator exists, or another local Operator, or new.
       operator = Operator.find_by(onestop_id: operator.onestop_id) || @tl_by_onestop_id[operator.onestop_id] || operator
@@ -369,7 +369,6 @@ if __FILE__ == $0
   feedid = ARGV[0] || 'f-9q9-caltrain'
   filename = "tmp/transitland-feed-data/#{feedid}.zip"
   import_level = (ARGV[1] || 1).to_i
-  Feed.update_feeds_from_feed_registry
   feed = Feed.find_by!(onestop_id: feedid)
   graph = GTFSGraph.new(filename, feed)
   operators = graph.load_tl

@@ -28,7 +28,7 @@ class BaseRoute < ActiveRecord::Base
 
   PER_PAGE = 50
 
-  include HasAFeed
+  include IsAnEntityImportedFromFeeds
 
   attr_accessor :serves, :does_not_serve, :operated_by
 end

@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Transitland Datastore Feed",
+  "type": "object",
+  "required": ["onestopId"],
+  "properties": {
+    "onestopId": {
+      "type": "string",
+      "format": "feed-onestop-id"
+    },
+    "name": { "type": "string" },
+    "tags": { "type": "object" },
+    "url": { "type": "string" },
+    "feedFormat": { "type": "string" },
+    "licenseName": { "type": "string" },
+    "licenseUrl": { "type": "string" },
+    "licenseUseWithoutAttribution": { "type": "string" },
+    "licenseCreateDerivedProduct": { "type": "string" },
+    "licenseRedistribute": { "type": "string" },
+    "includesOperators": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": ["operatorOnestopId", "gtfsAgencyId"],
+        "operatorOnestopId": {
+          "type": "string",
+          "format": "operator-onestop-id"
+        },
+        "gtfsAgencyId": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

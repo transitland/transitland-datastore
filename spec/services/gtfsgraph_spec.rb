@@ -28,8 +28,8 @@ describe GTFSGraph do
     end
 
     it 'created known Routes' do
-      expect(@feed.routes.count).to eq(5)
-      r = @feed.routes.find_by(onestop_id: 'r-9q9j-bullet')
+      expect(@feed.imported_routes.count).to eq(5)
+      r = @feed.imported_routes.find_by(onestop_id: 'r-9q9j-bullet')
       expect(r).to be_truthy
       expect(r.name).to eq('Bullet')
       expect(r.onestop_id).to eq('r-9q9j-bullet')
@@ -40,8 +40,8 @@ describe GTFSGraph do
     end
 
     it 'created known Stops' do
-      expect(@feed.stops.count).to eq(31)
-      s = @feed.stops.find_by(onestop_id: 's-9q9k659e3r-sanjosecaltrainstation')
+      expect(@feed.imported_stops.count).to eq(31)
+      s = @feed.imported_stops.find_by(onestop_id: 's-9q9k659e3r-sanjosecaltrainstation')
       expect(s).to be_truthy
       expect(s.name).to eq('San Jose Caltrain Station')
       expect(s.onestop_id).to eq('s-9q9k659e3r-sanjosecaltrainstation')
@@ -62,19 +62,19 @@ describe GTFSGraph do
     before(:each) { @feed = load_feed(2) }
 
     it 'created known ScheduleStopPairs' do
-      expect(@feed.schedule_stop_pairs.count).to eq(4661) # EXACTLY.
+      expect(@feed.imported_schedule_stop_pairs.count).to eq(4661) # EXACTLY.
       # Find a UNIQUE SSP, by origin, destination, route, trip.
-      origin = @feed.stops.find_by!(
+      origin = @feed.imported_stops.find_by!(
         onestop_id: 's-9q8yyugptw-sanfranciscocaltrainstation'
       )
-      destination = @feed.stops.find_by!(
+      destination = @feed.imported_stops.find_by!(
         onestop_id: 's-9q8yycs6ku-22ndstreetcaltrainstation'
       )
-      route = @feed.routes.find_by!(
+      route = @feed.imported_routes.find_by!(
         onestop_id: 'r-9q9-local'
       )
       trip = '6507770-CT-14OCT-Caltrain-Saturday-02'
-      found = @feed.schedule_stop_pairs.where(
+      found = @feed.imported_schedule_stop_pairs.where(
         origin: origin,
         destination: destination,
         route: route,

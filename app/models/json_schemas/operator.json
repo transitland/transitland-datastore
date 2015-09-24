@@ -9,6 +9,11 @@
       "format": "operator-onestop-id"
     },
     "name": { "type": "string" },
+    "short_name": { "type": "string" },
+    "country": { "type": "string" },
+    "state": { "type": "string" },
+    "metro": { "type": "string" },
+    "timezone": { "type": "string" },
     "tags": { "type": "object" },
     "geometry": { "type": "object" },
     "identifiedBy": {

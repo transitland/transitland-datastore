@@ -3,6 +3,6 @@ class EntitySerializer < ApplicationSerializer
              :imported_from_feed_onestop_ids
 
   def imported_from_feed_onestop_ids
-    object.feeds.map(&:onestop_id)
+    object.imported_from_feeds.map(&:onestop_id)
   end
 end

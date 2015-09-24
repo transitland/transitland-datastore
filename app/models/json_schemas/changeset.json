@@ -12,6 +12,14 @@
         "required": ["action"],
         "oneOf": [
           {
+            "required": ["feed"],
+            "properties": {
+              "feed": {
+                "$ref": "./feed.json"
+              }
+            }
+          },
+          {
             "required": ["stop"],
             "properties": {
               "stop": {

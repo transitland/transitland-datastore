@@ -35,7 +35,7 @@ class BaseOperator < ActiveRecord::Base
 
   attr_accessor :serves, :does_not_serve
 
-  include HasAFeed
+  include IsAnEntityImportedFromFeeds
 
   validates :website, format: { with: URI.regexp }, if: Proc.new { |operator| operator.website.present? }
 end
@@ -101,6 +101,11 @@ class Operator < BaseOperator
     return true
   end
 
+  after_initialize :set_default_values
+
+  has_many :operators_in_feed
+  has_many :feeds, through: :operators_in_feed
+
   has_many :operators_serving_stop
   has_many :stops, through: :operators_serving_stop
 
@@ -139,6 +144,15 @@ class Operator < BaseOperator
     operator.timezone = entity.agency_timezone
     operator.website = entity.agency_url
     operator
+  end
+
+  private
+
+  def set_default_values
+    if self.new_record?
+      self.tags ||= {}
+      self.identifiers ||= []
+    end
   end
 
 end

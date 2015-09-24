@@ -1,0 +1,45 @@
+{
+  "changeset": {
+    "whenToApply": "instantlyIfClean",
+    "payload": {
+      "changes": [
+        {
+          "action": "createUpdate",
+          "operator": {
+            "onestopId": "o-9q9-bart",
+            "name": "Bay Area Rapid Transit",
+            "short_name": "BART",
+            "identifiedBy": ["usntd://9003"],
+            "country": "United States",
+            "state": "California",
+            "metro": "San Francisco Bay Area",
+            "timezone": "America/Los_Angeles",
+            "website": "http://www.bart.gov/",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [[[-121.56649700000001,37.00360599999999],[-122.23195700000001,37.48541199999998],[-122.38665999999999,37.599786999999985],[-122.412018,37.63110599999998],[-122.39432299999996,37.77643899999997],[-121.65072100000002,37.12908099999998],[-121.61080899999999,37.085774999999984],[-121.56649700000001,37.00360599999999]]]
+            }
+          }
+        },
+        {
+          "action": "createUpdate",
+          "feed": {
+            "onestopId": "f-9q9-bart",
+            "url": "http://www.bart.gov/dev/schedules/google_transit.zip",
+            "licenseUrl": "http://www.bart.gov/schedules/developers/developer--agreement",
+            "licenseUseWithoutAttribution": "yes",
+            "licenseCreateDerivedProduct": "unknown",
+            "licenseRedistribute": "yes",
+            "includesOperators": [
+              {
+                "gtfsAgencyId": "BART",
+                "operatorOnestopId": "o-9q9-bart"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "notes": "In this changeset, we're creating a BART operator and feed, and we're associating them with each other."
+  }
+}

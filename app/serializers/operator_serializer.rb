@@ -40,5 +40,10 @@ class OperatorSerializer < CurrentEntitySerializer
              :metro,
              :timezone,
              :created_at,
-             :updated_at
+             :updated_at,
+             :represented_in_feed_onestop_ids
+
+  def represented_in_feed_onestop_ids
+    object.feeds.map(&:onestop_id)
+  end
 end
