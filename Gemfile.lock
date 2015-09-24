@@ -1,4 +1,14 @@
 GIT
+  remote: git://github.com/transitland/gtfs.git
+  revision: 21453060861b955ca63a06aec12fba34f677dfa3
+  tag: v1.0.0rc1
+  specs:
+    gtfs (0.2.5)
+      multi_json
+      rake
+      rubyzip (~> 1.1)
+
+GIT
   remote: git://github.com/transitland/transitland-ruby-client.git
   revision: 3adc5991adcee9f41f862ebc30524ce204e42157
   tag: v0.0.7
@@ -10,7 +20,7 @@ GIT
 PATH
   remote: components
   specs:
-    datastore_admin (0.0.1)
+    datastore_admin (1.0.0rc2)
       sinatra
 
 GEM
@@ -128,10 +138,6 @@ GEM
     git (1.2.9.1)
     globalid (0.3.6)
       activesupport (>= 4.1.0)
-    gtfs (0.2.4)
-      multi_json
-      rake
-      rubyzip (~> 1.1)
     hashie (3.4.2)
     hitimes (1.2.2)
     http-cookie (1.0.2)
@@ -359,7 +365,7 @@ DEPENDENCIES
   ffaker
   figaro
   foreman
-  gtfs
+  gtfs!
   json-schema
   mock_redis
   oj
