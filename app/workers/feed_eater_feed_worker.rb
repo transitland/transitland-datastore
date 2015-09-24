@@ -35,7 +35,6 @@ class FeedEaterFeedWorker < FeedEaterWorker
     graph = nil
     begin
       graph = GTFSGraph.new(feed.file_path, feed)
-      graph.load_gtfs
       operators = graph.load_tl
       graph.create_changeset operators, import_level
     rescue Exception => e

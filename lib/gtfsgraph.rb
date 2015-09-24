@@ -1,16 +1,13 @@
 class GTFSGraph
 
-  DAYS_OF_WEEK = [:monday, :tuesday, :wednesday, :thursday, :friday, :saturday, :sunday]
   CHANGE_PAYLOAD_MAX_ENTITIES = 1_000
   STOP_TIMES_MAX_LOAD = 1_000_000
 
   def initialize(filename, feed=nil)
     # GTFS Graph / TransitLand wrapper
-    @filename = filename
     @feed = feed
     @gtfs = GTFS::Source.build(filename, {strict: false})
     @log = []
-
     # TL Entity relationships: Many to many
     @tl_served_by = Hash.new { |h,k| h[k] = Set.new }
     @tl_serves = Hash.new { |h,k| h[k] = Set.new }
@@ -19,98 +16,33 @@ class GTFSGraph
     @gtfs_tl = {}
     # TL Indexed by Onestop ID
     @tl_by_onestop_id = {}
-
-    # TODO: Move these to GTFS Library...
-    # GTFS entities indexed by type and id
-    @gtfs_by_id = Hash.new { |h,k| h[k] = {} }
-    # GTFS Entity relationships: Many to many
-    @gtfs_parents = Hash.new { |h,k| h[k] = Set.new }
-    @gtfs_children = Hash.new { |h,k| h[k] = Set.new }
-    # Shapes
-    @shape_by_id = {}
-    # Service dates
-    @service_by_id = {}
-    # Trip stop counters; used for batching stop_times
-    @trip_counter = Hash.new { |h,k| h[k] = 0 }
-  end
-
-  def load_gtfs
-    # Load core GTFS entities and build relationships
-    log "Load GTFS"
-    # Clear
-    @gtfs_by_id.clear
-    @gtfs_parents.clear
-    @gtfs_children.clear
-    @trip_counter.clear
-
-    # Load GTFS agencies, routes, stops, trips
-    # Use .each_entity instead of .entity.each; faster, skip caching.
-    log "  core"
-    @gtfs.each_agency { |e| @gtfs_by_id[:agencies][e.id] = e }
-    @gtfs.each_route { |e| @gtfs_by_id[:routes][e.id] = e }
-    @gtfs.each_stop { |e| @gtfs_by_id[:stops][e.id] = e }
-    @gtfs.each_trip { |e| @gtfs_by_id[:trips][e.id] = e }
-
-    # Load service periods
-    log "  calendars"
-    @gtfs.each_calendar { |e| make_service_calendar(e) } rescue log "  warning: no calendar.txt"
-    @gtfs.each_calendar_date { |e| make_service_calendar_dates(e) } rescue log "  warning: no calendar_dates.txt"
-
-    # Load shapes.
-    log "  shapes"
-    shapes_merge = Hash.new { |h,k| h[k] = [] }
-    @gtfs.each_shape { |e| shapes_merge[e.id] << e }
-    shapes_merge.each { |k,v|
-      @shape_by_id[k] = Route::GEOFACTORY.line_string(
-        v
-          .sort_by { |i| i.pt_sequence.to_i }
-          .map { |i| Route::GEOFACTORY.point(i.pt_lon, i.pt_lat) }
-      )
-    }
-
-    # Create relationships
-    log "  relationships"
-    # Set default agency
-    default_agency = @gtfs_by_id[:agencies].first[1].id
-    # Add routes to agencies
-    @gtfs_by_id[:routes].each do |k,e|
-      agency = @gtfs_by_id[:agencies][e.agency_id || default_agency]
-      gtfs_pclink(agency, e)
-    end
-
-    # Add trips to routes
-    @gtfs_by_id[:trips].each do |k,e|
-      route = @gtfs_by_id[:routes][e.route_id]
-      gtfs_pclink(route, e)
-    end
-
-    # Associate routes with stops; count stop_times by trip
-    log "  stop_times counter"
-    @gtfs.each_stop_time do |e|
-      trip = @gtfs_by_id[:trips][e.trip_id]
-      stop = @gtfs_by_id[:stops][e.stop_id]
-      @trip_counter[trip] += 1
-      gtfs_pclink(trip, stop)
-    end
   end
 
   def load_tl
-    log "Load TL"
     # Clear
     @tl_by_onestop_id.clear
     @tl_gtfs.clear
     @tl_served_by.clear
     @tl_serves.clear
     @gtfs_tl.clear
+    # Load GTFS
+    log "Load GTFS"
+    @gtfs.load_graph
+    # Load TL
+    log "Load TL"
+    self.load_tl_stops
+    self.load_tl_routes
+    self.load_tl_operators
+  end
 
+  def load_tl_stops
     # Build TL Entities
     log "  merge stations"
     # Merge child stations into parents.
     stations = Hash.new { |h,k| h[k] = [] }
-    @gtfs_by_id[:stops].each do |k,e|
-      stations[@gtfs_by_id[:stops][e.parent_station] || e] << e
+    @gtfs.stops.each do |e|
+      stations[@gtfs.stop(e.parent_station) || e] << e
     end
-
     # Merge station/platforms with Datastore Stops.
     log "  stops"
     stations.each do |station,platforms|
@@ -134,27 +66,30 @@ class GTFSGraph
         log "    #{stop.onestop_id}: #{stop.name}"
       end
     end
+  end
 
+  def load_tl_routes
     # Routes
     log "  routes"
-    @gtfs_by_id[:routes].each do |k,e|
+    @gtfs.routes.each do |e|
       # Find: (child gtfs trips) to (child gtfs stops) to (tl stops)
-      stops = @gtfs_children[e]
-        .map { |i| @gtfs_children[i] }
+      stops = @gtfs.children(e)
+        .map { |i| @gtfs.children(i) }
         .reduce(Set.new, :+)
         .map { |i| @gtfs_tl[i] }
         .to_set
       # Skip Route if no Stops
       next if stops.empty?
-      # Find all unique shapes, and build geometry.
+      # Find all uniq shape_ids of trip_ids, and build geometry.
       geometry = Route::GEOFACTORY.multi_line_string(
-        @gtfs_children[e]
-          .map { |i| i.shape_id }
+        @gtfs
+          .children(e)
+          .map(&:shape_id)
           .uniq
-          .map { |i| @shape_by_id[i] }
+          .map { |shape_id| @gtfs.shape_line(shape_id) }
+          .map { |coords| Route::GEOFACTORY.line_string( coords.map { |lon, lat| Route::GEOFACTORY.point(lon, lat) } ) }
       )
       # Search by similarity
-      # TODO: route similarity...
       # ... or create route from GTFS
       route = Route.from_gtfs(e, stops)
       # ... check if Route exists, or another local Route, or new.
@@ -168,17 +103,19 @@ class GTFSGraph
       @tl_by_onestop_id[route.onestop_id] = route
       log "    #{route.onestop_id}: #{route.name}"
     end
+  end
 
+  def load_tl_operators
     # Operators
     log "  operators"
     operators = Set.new
     @feed.operators_in_feed.each do |oif|
-      e = @gtfs_by_id[:agencies][oif.gtfs_agency_id]
+      e = @gtfs.agency(oif.gtfs_agency_id)
       # Skip Operator if not found
       next unless e
       # Find: (child gtfs routes) to (tl routes)
       #   note: .compact because some gtfs routes are skipped.
-      routes = @gtfs_children[e]
+      routes = @gtfs.children(e)
         .map { |i| @gtfs_tl[i] }
         .compact
         .to_set
@@ -279,21 +216,19 @@ class GTFSGraph
 
     if import_level >= 2
       trip_counter = 0
-      trip_total = @trip_counter.size
       ssp_counter = 0
-      ssp_total = @trip_counter.values.sum - trip_total
-
-      trip_chunks(STOP_TIMES_MAX_LOAD) do |trip_chunk|
-        log "  trips: #{trip_counter} - #{trip_counter+trip_chunk.size} of #{trip_total}"
+      @gtfs.trip_chunks(STOP_TIMES_MAX_LOAD) do |trip_chunk|
+        log "  trips: #{trip_counter} - #{trip_counter+trip_chunk.size}"
         trip_counter += trip_chunk.size
-        ssps = stop_pairs(trip_chunk)
-        ssps.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES) do |ssp_chunk|
-          log "    ssps: #{ssp_counter} - #{ssp_counter+ssp_chunk.size} of #{ssp_total}"
+        ssp_chunk = []
+        @gtfs.stop_time_pairs(trip_chunk) { |route,trip,origin,destination| ssp_chunk << make_ssp(route,trip,origin,destination) }
+        ssp_chunk.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES) do |chunk|
+          log "    ssps: #{ssp_counter} - #{ssp_counter+ssp_chunk.size}"
           ssp_counter += ssp_chunk.size
           ChangePayload.create!(
             changeset: changeset,
             payload: {
-              changes: ssp_chunk.map { |entity|
+              changes: chunk.map { |entity|
                 {
                   action: action,
                   scheduleStopPair: entity
@@ -332,11 +267,6 @@ class GTFSGraph
 
   ##### Relationships between entities #####
 
-  def gtfs_pclink(parent, child)
-    @gtfs_children[parent].add(child)
-    @gtfs_parents[child].add(parent)
-  end
-
   def tl_add_identifiers(tl, gtfs_entities)
     # Associate TL entity with one or more GTFS entities.
     Array(gtfs_entities).each do |entity|
@@ -351,55 +281,6 @@ class GTFSGraph
       @tl_serves[tl].add(entity)
       @tl_served_by[entity].add(tl)
     end
-  end
-
-  ##### Trip pairs and stop chunks #####
-
-  def trip_chunks(batchsize)
-    # Return chunks of trips containing approx. batchsize stop_times.
-    # Reverse sort trips
-    trips = @trip_counter.sort_by { |k,v| -v }
-    chunk = []
-    current = 0
-    trips.each do |k,v|
-      if current+v > batchsize
-        yield chunk
-        chunk = []
-        current = 0
-      end
-      chunk << k
-      current += v
-    end
-    yield chunk
-  end
-
-  def stop_pairs(trips)
-    # Return all the ScheduleStopPairs for a set of trips
-    # TODO: Lazy enumerator
-    ret = []
-    # Trip IDs
-    trip_ids = Set.new trips.map(&:id)
-
-    # Sub graph mapping trip IDs to stop_times
-    trip_ids_stop_times = Hash.new {|h,k| h[k] = []}
-    @gtfs.each_stop_time do |stop_time|
-      next unless trip_ids.include?(stop_time.trip_id)
-      trip_ids_stop_times[stop_time.trip_id] << stop_time
-    end
-
-    # Process each trip
-    trip_ids_stop_times.each do |trip_id, stop_times|
-      # Get trip and route entities
-      trip = @gtfs_by_id[:trips][trip_id]
-      # Sort stop_times by stop_sequence
-      stop_times = stop_times.sort_by { |x| x.stop_sequence.to_i }
-      # Zip edges
-      stop_times[0..-2].zip(stop_times[1..-1]).each do |origin,destination|
-        # Yield edge
-        ret << make_ssp(trip, origin, destination)
-      end
-    end
-    ret
   end
 
   ##### Create change payloads ######
@@ -442,11 +323,12 @@ class GTFSGraph
     }
   end
 
-  def make_ssp(trip, origin, destination)
+  def make_ssp(route, trip, origin, destination)
     # Generate an edge between an origin and destination for a given route/trip
-    route = @gtfs_tl[@gtfs_by_id[:routes][trip.route_id]]
-    origin_stop = @gtfs_tl[@gtfs_by_id[:stops][origin.stop_id]]
-    destination_stop = @gtfs_tl[@gtfs_by_id[:stops][destination.stop_id]]
+    route = @gtfs_tl[route]
+    origin_stop = @gtfs_tl[@gtfs.stop(origin.stop_id)]
+    destination_stop = @gtfs_tl[@gtfs.stop(destination.stop_id)]
+    service_period = @gtfs.service_period(trip.service_id)
     ssp = {
       # Origin
       originOnestopId: origin_stop.onestop_id,
@@ -462,8 +344,8 @@ class GTFSGraph
       routeOnestopId: route.onestop_id,
       # Trip
       trip: trip.id,
-      tripHeadsign: (origin.stop_headsign || trip.headsign),
-      tripShortName: trip.short_name,
+      tripHeadsign: (origin.stop_headsign || trip.trip_headsign),
+      tripShortName: trip.trip_short_name,
       wheelchairAccessible: trip.wheelchair_accessible.to_i,
       # bikes_allowed: trip.bikes_allowed.to_i,
       # Stop Time
@@ -472,52 +354,14 @@ class GTFSGraph
       # timepoint: origin.timepoint.to_i,
       shapeDistTraveled: origin.shape_dist_traveled.to_f,
       importedFromFeedOnestopId: @feed.onestop_id,
+      # service period
+      serviceStartDate: service_period.start_date,
+      serviceEndDate: service_period.end_date,
+      serviceDaysOfWeek: service_period.iso_service_weekdays,
+      serviceAddedDates: service_period.added_dates,
+      serviceExceptDates: service_period.except_dates
     }
-    # Raise Exception if service_id not found.
-    ssp.update(@service_by_id.fetch(trip.service_id))
     ssp
-  end
-
-  def make_service_default
-    {
-      serviceStartDate: nil,
-      serviceEndDate: nil,
-      serviceDaysOfWeek: [false] * 7,
-      serviceAddedDates: [],
-      serviceExceptDates: []
-    }
-  end
-
-  def make_service_calendar(entity)
-    # calendar.txt
-    service = @service_by_id[entity.service_id] || make_service_default
-    service[:serviceStartDate] = entity.try(:start_date).try(:to_date)
-    service[:serviceEndDate] = entity.try(:end_date).try(:to_date)
-    service[:serviceDaysOfWeek] = DAYS_OF_WEEK.map { |i| !entity.send(i).to_i.zero? }
-    @service_by_id[entity.service_id] = service
-  end
-
-  def make_service_calendar_dates(entity)
-    # calendar_dates.txt
-    service = @service_by_id[entity.service_id] || make_service_default
-    # Check bounds
-    service_start_date = service[:serviceStartDate]
-    service_end_date = service[:serviceEndDate]
-    date = entity.try(:date).try(:to_date)
-    if service_start_date && service_end_date
-      # Set date to nil if date is outside bounds, if they exist.
-      date = date.between?(service_start_date, service_end_date) ? date : nil
-    end
-    if date.nil?
-      # do nothing
-    elsif entity.exception_type.to_i == 1
-      service[:serviceAddedDates] << date
-    elsif entity.exception_type.to_i == 2
-      service[:serviceExceptDates] << date
-    else
-      # unknown exception type
-    end
-    @service_by_id[entity.service_id] = service
   end
 end
 
@@ -525,10 +369,8 @@ if __FILE__ == $0
   feedid = ARGV[0] || 'f-9q9-caltrain'
   filename = "tmp/transitland-feed-data/#{feedid}.zip"
   import_level = (ARGV[1] || 1).to_i
-  ######
   feed = Feed.find_by!(onestop_id: feedid)
   graph = GTFSGraph.new(filename, feed)
-  graph.load_gtfs
   operators = graph.load_tl
   graph.create_changeset(operators, import_level=import_level)
 end
