@@ -116,7 +116,7 @@ class Operator < BaseOperator
     raise ArgumentError.new('Need at least one Stop') if stops.empty?
     geohash = GeohashHelpers.fit(stops.map { |i| i[:geometry] })
     geometry = Operator.convex_hull(stops, as: :wkt, projected: false)
-    name = [entity.name, entity.id, "unknown"]
+    name = [entity.agency_name, entity.id, "unknown"]
       .select(&:present?)
       .first
     onestop_id = OnestopId.new(
