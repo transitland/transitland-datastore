@@ -1,6 +1,5 @@
 class GTFSGraph
 
-  DAYS_OF_WEEK = [:monday, :tuesday, :wednesday, :thursday, :friday, :saturday, :sunday]
   CHANGE_PAYLOAD_MAX_ENTITIES = 1_000
   STOP_TIMES_MAX_LOAD = 1_000_000
 
@@ -9,7 +8,6 @@ class GTFSGraph
     @feed = feed
     @gtfs = GTFS::Source.build(filename, {strict: false})
     @log = []
-
     # TL Entity relationships: Many to many
     @tl_served_by = Hash.new { |h,k| h[k] = Set.new }
     @tl_serves = Hash.new { |h,k| h[k] = Set.new }
@@ -43,7 +41,7 @@ class GTFSGraph
     # Merge child stations into parents.
     stations = Hash.new { |h,k| h[k] = [] }
     @gtfs.stops.each do |e|
-      stations[@gtfs.find_stop(e.parent_station) || e] << e
+      stations[@gtfs.stop(e.parent_station) || e] << e
     end
     # Merge station/platforms with Datastore Stops.
     log "  stops"
@@ -112,7 +110,7 @@ class GTFSGraph
     log "  operators"
     operators = Set.new
     @feed.operators_in_feed.each do |oif|
-      e = @gtfs.find_agency(oif['gtfs_agency_id'])
+      e = @gtfs.agency(oif['gtfs_agency_id'])
       # Skip Operator if not found
       next unless e
       # Find: (child gtfs routes) to (tl routes)
@@ -218,21 +216,19 @@ class GTFSGraph
 
     if import_level >= 2
       trip_counter = 0
-      trip_total = @trip_counter.size
       ssp_counter = 0
-      ssp_total = @trip_counter.values.sum - trip_total
-
-      trip_chunks(STOP_TIMES_MAX_LOAD) do |trip_chunk|
-        log "  trips: #{trip_counter} - #{trip_counter+trip_chunk.size} of #{trip_total}"
+      @gtfs.trip_chunks(STOP_TIMES_MAX_LOAD) do |trip_chunk|
+        log "  trips: #{trip_counter} - #{trip_counter+trip_chunk.size}"
         trip_counter += trip_chunk.size
-        ssps = stop_pairs(trip_chunk)
-        ssps.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES) do |ssp_chunk|
-          log "    ssps: #{ssp_counter} - #{ssp_counter+ssp_chunk.size} of #{ssp_total}"
+        ssp_chunk = []
+        @gtfs.stop_time_pairs(trip_chunk) { |route,trip,origin,destination| ssp_chunk << make_ssp(route,trip,origin,destination) }
+        ssp_chunk.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES) do |chunk|
+          log "    ssps: #{ssp_counter} - #{ssp_counter+ssp_chunk.size}"
           ssp_counter += ssp_chunk.size
           ChangePayload.create!(
             changeset: changeset,
             payload: {
-              changes: ssp_chunk.map { |entity|
+              changes: chunk.map { |entity|
                 {
                   action: action,
                   scheduleStopPair: entity
@@ -287,37 +283,6 @@ class GTFSGraph
     end
   end
 
-  ##### Trip pairs and stop chunks #####
-
-  def stop_pairs(trips)
-    # Return all the ScheduleStopPairs for a set of trips
-    # TODO: Lazy enumerator
-    ret = []
-    # Trip IDs
-    trip_ids = Set.new trips.map(&:id)
-
-    # Sub graph mapping trip IDs to stop_times
-    trip_ids_stop_times = Hash.new {|h,k| h[k] = []}
-    @gtfs.each_stop_time do |stop_time|
-      next unless trip_ids.include?(stop_time.trip_id)
-      trip_ids_stop_times[stop_time.trip_id] << stop_time
-    end
-
-    # Process each trip
-    trip_ids_stop_times.each do |trip_id, stop_times|
-      # Get trip and route entities
-      trip = @gtfs_by_id[:trips][trip_id]
-      # Sort stop_times by stop_sequence
-      stop_times = stop_times.sort_by { |x| x.stop_sequence.to_i }
-      # Zip edges
-      stop_times[0..-2].zip(stop_times[1..-1]).each do |origin,destination|
-        # Yield edge
-        ret << make_ssp(trip, origin, destination)
-      end
-    end
-    ret
-  end
-
   ##### Create change payloads ######
 
   def make_change_operator(entity)
@@ -358,11 +323,12 @@ class GTFSGraph
     }
   end
 
-  def make_ssp(trip, origin, destination)
+  def make_ssp(route, trip, origin, destination)
     # Generate an edge between an origin and destination for a given route/trip
-    route = @gtfs_tl[@gtfs_by_id[:routes][trip.route_id]]
-    origin_stop = @gtfs_tl[@gtfs_by_id[:stops][origin.stop_id]]
-    destination_stop = @gtfs_tl[@gtfs_by_id[:stops][destination.stop_id]]
+    route = @gtfs_tl[route]
+    origin_stop = @gtfs_tl[@gtfs.stop(origin.stop_id)]
+    destination_stop = @gtfs_tl[@gtfs.stop(destination.stop_id)]
+    service_period = @gtfs.service_period(trip.service_id)
     ssp = {
       # Origin
       originOnestopId: origin_stop.onestop_id,
@@ -378,8 +344,8 @@ class GTFSGraph
       routeOnestopId: route.onestop_id,
       # Trip
       trip: trip.id,
-      tripHeadsign: (origin.stop_headsign || trip.headsign),
-      tripShortName: trip.short_name,
+      tripHeadsign: (origin.stop_headsign || trip.trip_headsign),
+      tripShortName: trip.trip_short_name,
       wheelchairAccessible: trip.wheelchair_accessible.to_i,
       # bikes_allowed: trip.bikes_allowed.to_i,
       # Stop Time
@@ -388,52 +354,14 @@ class GTFSGraph
       # timepoint: origin.timepoint.to_i,
       shapeDistTraveled: origin.shape_dist_traveled.to_f,
       importedFromFeedOnestopId: @feed.onestop_id,
+      # service period
+      serviceStartDate: service_period.start_date,
+      serviceEndDate: service_period.end_date,
+      serviceDaysOfWeek: service_period.iso_service_weekdays,
+      serviceAddedDates: service_period.added_dates,
+      serviceExceptDates: service_period.except_dates
     }
-    # Raise Exception if service_id not found.
-    ssp.update(@service_by_id.fetch(trip.service_id))
     ssp
-  end
-
-  def make_service_default
-    {
-      serviceStartDate: nil,
-      serviceEndDate: nil,
-      serviceDaysOfWeek: [false] * 7,
-      serviceAddedDates: [],
-      serviceExceptDates: []
-    }
-  end
-
-  def make_service_calendar(entity)
-    # calendar.txt
-    service = @service_by_id[entity.service_id] || make_service_default
-    service[:serviceStartDate] = entity.try(:start_date).try(:to_date)
-    service[:serviceEndDate] = entity.try(:end_date).try(:to_date)
-    service[:serviceDaysOfWeek] = DAYS_OF_WEEK.map { |i| !entity.send(i).to_i.zero? }
-    @service_by_id[entity.service_id] = service
-  end
-
-  def make_service_calendar_dates(entity)
-    # calendar_dates.txt
-    service = @service_by_id[entity.service_id] || make_service_default
-    # Check bounds
-    service_start_date = service[:serviceStartDate]
-    service_end_date = service[:serviceEndDate]
-    date = entity.try(:date).try(:to_date)
-    if service_start_date && service_end_date
-      # Set date to nil if date is outside bounds, if they exist.
-      date = date.between?(service_start_date, service_end_date) ? date : nil
-    end
-    if date.nil?
-      # do nothing
-    elsif entity.exception_type.to_i == 1
-      service[:serviceAddedDates] << date
-    elsif entity.exception_type.to_i == 2
-      service[:serviceExceptDates] << date
-    else
-      # unknown exception type
-    end
-    @service_by_id[entity.service_id] = service
   end
 end
 
@@ -441,7 +369,6 @@ if __FILE__ == $0
   feedid = ARGV[0] || 'f-9q9-caltrain'
   filename = "tmp/transitland-feed-data/#{feedid}.zip"
   import_level = (ARGV[1] || 1).to_i
-  ######
   Feed.update_feeds_from_feed_registry
   feed = Feed.find_by!(onestop_id: feedid)
   graph = GTFSGraph.new(filename, feed)
