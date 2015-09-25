@@ -19,17 +19,20 @@
 #  created_at                         :datetime
 #  updated_at                         :datetime
 #  created_or_updated_in_changeset_id :integer
+#  geometry                           :geography({:srid geometry, 4326
 #
 # Indexes
 #
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
 #
 
+
 class FeedSerializer < ApplicationSerializer
   attributes :onestop_id,
              :url,
              :feed_format,
              :tags,
+             :geometry,
              :license_name,
              :license_url,
              :license_use_without_attribution,
