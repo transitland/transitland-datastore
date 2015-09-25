@@ -16,12 +16,21 @@ describe ConflateStopsWithOsmWorker do
           way_id: 8917801,
           correlated_lat: 37.775692
         }]
+      },
+      {
+        input_lon: -122.396431,
+        input_lat: 37.793152,
+        ways: [{
+          correlated_lon: -122.413601,
+          way_id: 8917802,
+          correlated_lat: 37.775692
+        }]
       }
     ])
     worker = ConflateStopsWithOsmWorker.new
     worker.perform([@bosworth_diamond.id, @metro_embarcadero.id])
     expect(@bosworth_diamond.reload.tags).to eq({ 'osm_way_id' => '8917801' })
-    expect(@metro_embarcadero.reload.tags).to eq({ 'osm_way_id' => '8917801' })
+    expect(@metro_embarcadero.reload.tags).to eq({ 'osm_way_id' => '8917802' })
     expect(@glen_park.reload.tags).to be_blank
     expect(@gilman_paul_3rd.reload.tags).to be_blank
   end

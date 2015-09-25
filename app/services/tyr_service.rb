@@ -9,6 +9,7 @@ class TyrService
   include Singleton
 
   BASE_URL = Figaro.env.tyr_host || 'https://valhalla.mapzen.com'
+  MAX_LOCATIONS_PER_REQUEST = 100
 
   class Error < StandardError
   end
