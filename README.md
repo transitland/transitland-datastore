@@ -110,6 +110,7 @@ Example URL  | Parameters
 `GET /api/v1/feeds` | none required
 `GET /api/v1/feeds?tag_key=license` | find all feeds that have a tag of `tag_key` with any value
 `GET /api/v1/feeds?tag_key=license&tag_value=Creative%20Commons%20Attribution%203.0%20Unported%20License` | find all feeds that have a tag of `tag_key` and a value of `tag_value`
+`GET /api/v1/feeds?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
 `GET /api/v1/feeds/f-9q9-bayarearapidtransit` | none required
 `GET /api/v1/feeds/f-9q9-bayarearapidtransit/feed_imports` | none required
 `GET /api/v1/schedule_stop_pairs` | Find all [Schedule Stop Pairs](doc/schedule_api.md)

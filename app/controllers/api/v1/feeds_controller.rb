@@ -12,6 +12,8 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
       @feeds = @feeds.with_tag_equals(params[:tag_key], params[:tag_value])
     elsif params[:tag_key].present?
       @feeds = @feeds.with_tag(params[:tag_key])
+    elsif params[:bbox].present?
+      @feeds = @feeds.within_bbox(params[:bbox])
     end
 
     per_page = params[:per_page].blank? ? Feed::PER_PAGE : params[:per_page].to_i
