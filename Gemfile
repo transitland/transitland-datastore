@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.2.3'
+gem 'rails', '4.2.4'
 
 # Transitland Datastore components
 path 'components' do
@@ -25,7 +25,7 @@ gem 'redis-rails'
 gem 'sidekiq'
 gem 'sidekiq-unique-jobs'
 gem 'sidekiq-limit_fetch'
-gem 'celluloid', '0.16.0' # unpeg when new sidekiq released: https://github.com/mperham/sidekiq/issues/2397
+gem 'celluloid'
 gem 'whenever', require: false # to manage crontab
 
 # data model
