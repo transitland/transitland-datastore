@@ -80,12 +80,13 @@ class GTFSGraph
         .to_set
       # Skip Route if no Stops
       next if stops.empty?
-      # Find all uniq shape_ids of trip_ids, and build geometry.
+      # Find uniq shape_ids of trip_ids, filter missing shapes, build geometry.
       geometry = Route::GEOFACTORY.multi_line_string(
         @gtfs
           .children(e)
           .map(&:shape_id)
           .uniq
+          .compact
           .map { |shape_id| @gtfs.shape_line(shape_id) }
           .map { |coords| Route::GEOFACTORY.line_string( coords.map { |lon, lat| Route::GEOFACTORY.point(lon, lat) } ) }
       )
