@@ -12,8 +12,8 @@ module Geojson
         updated_at: entity.updated_at,
         tags: entity.tags
       }
-      properties[:name] = entity.name if entity.try(:name)
-      properties[:identifiers] = entity.identifiers if entity.try(:identifiers)
+      (properties[:name] = entity.name) if entity.try(:name)
+      (properties[:identifiers] = entity.identifiers) if entity.try(:identifiers)
       factory.feature(
         entity.geometry(as: :wkt),
         entity.onestop_id,
