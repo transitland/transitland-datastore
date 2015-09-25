@@ -6,16 +6,18 @@ module Geojson
     # https://github.com/glenrobertson/leaflet-tilelayer-geojson
     factory = RGeo::GeoJSON::EntityFactory.instance
     features = entities.map do |entity|
+      next if entity.geometry.blank?
+      properties = {
+        created_at: entity.created_at,
+        updated_at: entity.updated_at,
+        tags: entity.tags
+      }
+      properties[:name] = entity.name if entity.try(:name)
+      properties[:identifiers] = entity.identifiers if entity.try(:identifiers)
       factory.feature(
         entity.geometry(as: :wkt),
         entity.onestop_id,
-        {
-          name: entity.name,
-          created_at: entity.created_at,
-          updated_at: entity.updated_at,
-          tags: entity.tags,
-          identifiers: entity.identifiers
-        }
+        properties
       )
     end
     RGeo::GeoJSON.encode(factory.feature_collection(features))
