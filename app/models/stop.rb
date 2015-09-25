@@ -205,16 +205,11 @@ class Stop < BaseStop
   def self.conflate_with_osm(stops)
     stops.in_groups_of(TyrService::MAX_LOCATIONS_PER_REQUEST, false).each do |group|
       Stop.transaction do
-        locations = []
-        # stop_lookup_hash = []
-        group.each do |stop|
-          location = {
+        locations = group.map do |stop|
+          {
             lat: stop.geometry(as: :wkt).lat,
             lon: stop.geometry(as: :wkt).lon
           }
-          locations << location
-          # location[:stop] = stop
-          # stop_lookup_hash << location
         end
         tyr_locate_response = TyrService.locate(locations: locations)
         group.each_with_index do |stop, index|
