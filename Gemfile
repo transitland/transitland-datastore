@@ -24,6 +24,7 @@ gem 'redis-rails'
 # background processing
 gem 'sidekiq'
 gem 'sidekiq-unique-jobs'
+gem 'sidekiq-limit_fetch'
 gem 'celluloid'
 gem 'whenever', require: false # to manage crontab
 

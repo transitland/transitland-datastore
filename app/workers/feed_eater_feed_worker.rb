@@ -3,7 +3,8 @@ require 'gtfsgraph'
 class FeedEaterFeedWorker < FeedEaterWorker
   sidekiq_options unique: true,
                   unique_job_expiration: 60 * 60, # 1 hour
-                  log_duplicate_payload: true
+                  log_duplicate_payload: true,
+                  queue: :feed_eater_feed
 
   FEEDVALIDATOR_PATH = './virtualenv/bin/feedvalidator.py'
 
