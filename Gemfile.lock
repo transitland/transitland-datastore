@@ -292,6 +292,8 @@ GEM
       json (~> 1.0)
       redis (~> 3.2, >= 3.2.1)
       redis-namespace (~> 1.5, >= 1.5.2)
+    sidekiq-limit_fetch (2.4.2)
+      sidekiq (>= 2.6.5, < 4.0)
     sidekiq-unique-jobs (3.0.14)
       sidekiq (>= 2.6)
     simplecov (0.10.0)
@@ -384,6 +386,7 @@ DEPENDENCIES
   rspec-rails
   sentry-raven
   sidekiq
+  sidekiq-limit_fetch
   sidekiq-unique-jobs
   simplecov
   squeel

@@ -1,6 +1,11 @@
 ---
 :concurrency: 5
 staging:
-  :concurrency: 10
+  :concurrency: 20
 production:
-  :concurrency: 10
+  :concurrency: 20
+:limits:
+  feed_eater_feed: 1
+:queues:
+  - feed_eater_feed
+  - default
