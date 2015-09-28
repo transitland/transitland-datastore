@@ -190,6 +190,7 @@ class Feed < BaseFeed
     end
     stop_features = Stop::GEOFACTORY.collection(stop_points)
     bounding_box = RGeo::Cartesian::BoundingBox.create_from_geometry(stop_features)
+    # TODO: Feed geometry should be written through a changeset. Refactor!
     self.geometry = bounding_box.to_geometry
     self.save!
   end
