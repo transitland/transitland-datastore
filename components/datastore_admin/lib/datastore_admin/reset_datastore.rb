@@ -13,6 +13,7 @@ module DatastoreAdmin
         TRUNCATE changesets,
                  change_payloads,
                  current_feeds,
+                 current_operators_in_feed,
                  current_operators,
                  current_operators_serving_stop,
                  current_routes,
@@ -23,6 +24,7 @@ module DatastoreAdmin
                  feed_imports,
                  entities_imported_from_feed,
                  old_feeds,
+                 old_operators_in_feed,
                  old_operators,
                  old_operators_serving_stop,
                  old_routes,
@@ -32,6 +34,7 @@ module DatastoreAdmin
         ALTER SEQUENCE changesets_id_seq RESTART;
         ALTER SEQUENCE change_payloads_id_seq RESTART;
         ALTER SEQUENCE current_feeds_id_seq RESTART;
+        ALTER SEQUENCE current_operators_in_feed_id_seq RESTART;
         ALTER SEQUENCE current_operators_id_seq RESTART;
         ALTER SEQUENCE current_operators_serving_stop_id_seq RESTART;
         ALTER SEQUENCE current_routes_id_seq RESTART;
@@ -41,6 +44,7 @@ module DatastoreAdmin
         ALTER SEQUENCE feed_imports_id_seq RESTART;
         ALTER SEQUENCE entities_imported_from_feed_id_seq RESTART;
         ALTER SEQUENCE old_feeds_id_seq RESTART;
+        ALTER SEQUENCE old_operators_in_feed_id_seq RESTART;
         ALTER SEQUENCE old_operators_id_seq RESTART;
         ALTER SEQUENCE old_operators_serving_stop_id_seq RESTART;
         ALTER SEQUENCE old_routes_id_seq RESTART;
