@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150915001512) do
+ActiveRecord::Schema.define(version: 20150923173046) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -36,22 +36,23 @@ ActiveRecord::Schema.define(version: 20150915001512) do
   end
 
   create_table "current_feeds", force: :cascade do |t|
-    t.string   "onestop_id"
-    t.string   "url"
-    t.string   "feed_format"
-    t.hstore   "tags"
-    t.string   "last_sha1"
-    t.datetime "last_fetched_at"
-    t.datetime "last_imported_at"
-    t.string   "license_name"
-    t.string   "license_url"
-    t.string   "license_use_without_attribution"
-    t.string   "license_create_derived_product"
-    t.string   "license_redistribute"
-    t.integer  "version"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.integer  "created_or_updated_in_changeset_id"
+    t.string    "onestop_id"
+    t.string    "url"
+    t.string    "feed_format"
+    t.hstore    "tags"
+    t.string    "last_sha1"
+    t.datetime  "last_fetched_at"
+    t.datetime  "last_imported_at"
+    t.string    "license_name"
+    t.string    "license_url"
+    t.string    "license_use_without_attribution"
+    t.string    "license_create_derived_product"
+    t.string    "license_redistribute"
+    t.integer   "version"
+    t.datetime  "created_at"
+    t.datetime  "updated_at"
+    t.integer   "created_or_updated_in_changeset_id"
+    t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
   end
 
   add_index "current_feeds", ["created_or_updated_in_changeset_id"], name: "index_current_feeds_on_created_or_updated_in_changeset_id", using: :btree
@@ -231,24 +232,25 @@ ActiveRecord::Schema.define(version: 20150915001512) do
   add_index "feed_imports", ["feed_id"], name: "index_feed_imports_on_feed_id", using: :btree
 
   create_table "old_feeds", force: :cascade do |t|
-    t.string   "onestop_id"
-    t.string   "url"
-    t.string   "feed_format"
-    t.hstore   "tags"
-    t.string   "last_sha1"
-    t.datetime "last_fetched_at"
-    t.datetime "last_imported_at"
-    t.string   "license_name"
-    t.string   "license_url"
-    t.string   "license_use_without_attribution"
-    t.string   "license_create_derived_product"
-    t.string   "license_redistribute"
-    t.integer  "version"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.integer  "current_id"
-    t.integer  "created_or_updated_in_changeset_id"
-    t.integer  "destroyed_in_changeset_id"
+    t.string    "onestop_id"
+    t.string    "url"
+    t.string    "feed_format"
+    t.hstore    "tags"
+    t.string    "last_sha1"
+    t.datetime  "last_fetched_at"
+    t.datetime  "last_imported_at"
+    t.string    "license_name"
+    t.string    "license_url"
+    t.string    "license_use_without_attribution"
+    t.string    "license_create_derived_product"
+    t.string    "license_redistribute"
+    t.integer   "version"
+    t.datetime  "created_at"
+    t.datetime  "updated_at"
+    t.integer   "current_id"
+    t.integer   "created_or_updated_in_changeset_id"
+    t.integer   "destroyed_in_changeset_id"
+    t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
   end
 
   add_index "old_feeds", ["created_or_updated_in_changeset_id"], name: "index_old_feeds_on_created_or_updated_in_changeset_id", using: :btree

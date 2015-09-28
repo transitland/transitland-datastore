@@ -19,11 +19,13 @@
 #  created_at                         :datetime
 #  updated_at                         :datetime
 #  created_or_updated_in_changeset_id :integer
+#  geometry                           :geography({:srid geometry, 4326
 #
 # Indexes
 #
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
 #
+
 
 FactoryGirl.define do
   factory :feed do

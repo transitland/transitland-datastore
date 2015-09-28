@@ -19,6 +19,7 @@
 #  created_at                         :datetime
 #  updated_at                         :datetime
 #  created_or_updated_in_changeset_id :integer
+#  geometry                           :geography({:srid geometry, 4326
 #
 # Indexes
 #
@@ -51,6 +52,7 @@ class Feed < BaseFeed
   include HasAOnestopId
   include HasTags
   include UpdatedSince
+  include HasAGeographicGeometry
 
   has_many :operators_in_feed
   has_many :operators, through: :operators_in_feed
@@ -178,6 +180,19 @@ class Feed < BaseFeed
       feeds_with_updated_versions << feed if is_updated_version
     end
     feeds_with_updated_versions
+  end
+
+  def set_bounding_box_from_gtfs_stops
+    gtfs = GTFS::Source.build(file_path, {strict: false})
+    stop_points = []
+    gtfs.each_stop do |stop|
+      stop_points << Stop::GEOFACTORY.point(stop.stop_lon, stop.stop_lat)
+    end
+    stop_features = Stop::GEOFACTORY.collection(stop_points)
+    bounding_box = RGeo::Cartesian::BoundingBox.create_from_geometry(stop_features)
+    # TODO: Feed geometry should be written through a changeset. Refactor!
+    self.geometry = bounding_box.to_geometry
+    self.save!
   end
 
   private

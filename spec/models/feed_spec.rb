@@ -19,11 +19,13 @@
 #  created_at                         :datetime
 #  updated_at                         :datetime
 #  created_or_updated_in_changeset_id :integer
+#  geometry                           :geography({:srid geometry, 4326
 #
 # Indexes
 #
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
 #
+
 
 describe Feed do
   context 'changesets' do
@@ -184,5 +186,38 @@ describe Feed do
       expect(OldFeed.first.old_operators_in_feed.first.operator).to eq Operator.first
       # TODO: figure out why this isn't working: expect(OldFeed.first.operators.first).to eq Operator.first
     end
+  end
+
+  it 'gets a bounding box around all its stops' do
+    feed = create(:feed_caltrain)
+    allow(feed).to receive(:file_path) { 'spec/support/example_gtfs_archives/f-9q9-caltrain.zip' }
+    feed.set_bounding_box_from_gtfs_stops
+    expect(feed.geometry).to eq({
+      type: 'Polygon',
+      coordinates: [
+        [
+          [
+            -122.412076,
+            37.003485
+          ],
+          [
+            -121.566088,
+            37.003485
+          ],
+          [
+            -121.566088,
+            37.776439
+          ],
+          [
+            -122.412076,
+            37.776439
+          ],
+          [
+            -122.412076,
+            37.003485
+          ]
+        ]
+      ]
+    })
   end
 end

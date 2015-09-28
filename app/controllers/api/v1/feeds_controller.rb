@@ -1,4 +1,5 @@
 class Api::V1::FeedsController < Api::V1::BaseApiController
+  include Geojson
   include JsonCollectionPagination
   include DownloadableCsv
 
@@ -11,6 +12,8 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
       @feeds = @feeds.with_tag_equals(params[:tag_key], params[:tag_value])
     elsif params[:tag_key].present?
       @feeds = @feeds.with_tag(params[:tag_key])
+    elsif params[:bbox].present?
+      @feeds = @feeds.within_bbox(params[:bbox])
     end
 
     per_page = params[:per_page].blank? ? Feed::PER_PAGE : params[:per_page].to_i
@@ -24,6 +27,9 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
           per_page,
           params.slice(:tag_key, :tag_value)
         )
+      end
+      format.geojson do
+        render json: Geojson.from_entity_collection(@feeds)
       end
       format.csv do
         return_downloadable_csv(@feeds, 'feeds')
