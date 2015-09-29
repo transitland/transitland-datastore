@@ -63,13 +63,20 @@ class ScheduleStopPair < BaseScheduleStopPair
   belongs_to :route
 
   # Required relations and attributes
-  validates :origin, presence: true
-  validates :destination, presence: true
-  validates :route, presence: true
-  validates :trip, presence: true
-
-  # Check date ranges
   before_validation :set_service_range
+  validates :origin,
+            :destination,
+            :route,
+            :trip,
+            :origin_timezone,
+            :destination_timezone,
+            :origin_arrival_time,
+            :origin_departure_time,
+            :destination_arrival_time,
+            :destination_departure_time,
+            :service_start_date,
+            :service_end_date,
+            presence: true
   validate :validate_service_range
   validate :validate_service_exceptions
 
@@ -178,11 +185,9 @@ class ScheduleStopPair < BaseScheduleStopPair
     self.service_end_date ||= (service_except_dates + service_added_dates).max
     true
   end
-  
+
   # Make sure service_start_date < service_end_date
   def validate_service_range
-    errors.add(:service_start_date, "service_start_date required") unless service_start_date
-    errors.add(:service_end_date, "service_end_date required") unless service_end_date
     if service_start_date && service_end_date
       errors.add(:service_start_date, "service_start_date begins after service_end_date") if service_start_date > service_end_date
     end
@@ -197,7 +202,6 @@ class ScheduleStopPair < BaseScheduleStopPair
       errors.add(:service_except_dates, "service_except_dates must be within service_start_date, service_end_date range")
     end
   end
-
 end
 
 class OldScheduleStopPair < BaseScheduleStopPair
