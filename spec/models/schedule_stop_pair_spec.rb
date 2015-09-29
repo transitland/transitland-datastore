@@ -182,18 +182,22 @@ RSpec.describe ScheduleStopPair, type: :model do
       expect(ssp.service_on_date?(expect_none)).to be false
     end
 
-    it 'service exceptions must be in service range' do
+    it 'service exceptions outside service_range will be filtered' do
       expect_start = Date.new(2015, 01, 01)
       expect_end = Date.new(2016, 01, 01)
-      expect_fail = Date.new(2020, 01, 01)
-      ssp = build(:schedule_stop_pair, service_start_date: expect_start, service_end_date: expect_end)
-      expect(ssp.valid?).to be true    
-      ssp.service_added_dates = [expect_fail]
-      ssp.service_except_dates = []
-      expect(ssp.valid?).to be false
-      ssp.service_added_dates = []
-      ssp.service_except_dates = [expect_fail]
-      expect(ssp.valid?).to be false
+      expect_unfiltered = Date.new(2015, 06, 01)
+      expect_filtered = Date.new(2020, 01, 01)
+      # Added
+      ssp = build(
+        :schedule_stop_pair,
+        service_start_date: expect_start,
+        service_end_date: expect_end,
+        service_added_dates: [expect_unfiltered, expect_filtered],
+        service_except_dates: [expect_unfiltered, expect_filtered]
+      )
+      expect(ssp.valid?).to be true
+      expect(ssp.service_added_dates).to match_array([expect_unfiltered])
+      expect(ssp.service_except_dates).to match_array([expect_unfiltered])
     end
   end
 
