@@ -387,6 +387,7 @@ class GTFSGraph
       trip_headsign: (origin.stop_headsign || trip.trip_headsign),
       trip_short_name: trip.trip_short_name,
       wheelchair_accessible: trip.wheelchair_accessible.to_i,
+      bikes_allowed: trip.bikes_allowed.to_i,
       # Stop Time
       drop_off_type: origin.drop_off_type.to_i,
       pickup_type: origin.pickup_type.to_i,
