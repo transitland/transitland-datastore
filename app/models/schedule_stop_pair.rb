@@ -169,6 +169,15 @@ class ScheduleStopPair < BaseScheduleStopPair
     duration = window_end - window_start
     step = duration / group.size.to_f
     current = window_start
+    # puts "  ============================"
+    # puts "  group: #{group.size}"
+    # puts "  window_start: #{window_start}"
+    # puts "  window_end: #{window_end}"
+    # puts "  duration: #{duration}"
+    # puts "  step: #{step}"
+    # group.each do |g|
+    #   puts "    oa: #{g.origin_arrival_time} od: #{g.origin_departure_time} --> da: #{g.destination_arrival_time} dd: #{g.destination_departure_time}"
+    # end
     group[0..-2].zip(group[1..-1]) do |a,b|
       current += step
       t = GTFS::WideTime.new(current.to_i).to_s
@@ -177,6 +186,10 @@ class ScheduleStopPair < BaseScheduleStopPair
       b.origin_arrival_time = t
       b.origin_departure_time = t
     end
+    # puts "  ~~ interpolated ~~"
+    # group.each do |g|
+    #   puts "    oa: #{g.origin_arrival_time} od: #{g.origin_departure_time} --> da: #{g.destination_arrival_time} dd: #{g.destination_departure_time}"
+    # end
   end
 
   # Set a service range from service_added_dates, service_except_dates
