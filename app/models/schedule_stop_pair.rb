@@ -136,7 +136,41 @@ class ScheduleStopPair < BaseScheduleStopPair
     end
   end
 
+  # Interpolate
+  def self.interpolate(ssps, method=:linear)
+    groups = []
+    group = []
+    ssps.each do |ssp|
+      group << ssp
+      if ssp.destination_arrival_time
+        groups << group if group.size > 1
+        group = []
+      end
+    end
+    if method == :linear
+      groups.each { |group| self.interpolate_linear(group) }
+    else
+      raise ArgumentError.new("Unknown interpolation method: #{method}")
+    end
+  end
+
   private
+
+  def self.interpolate_linear(group)
+    window_start = GTFS::WideTime.parse(group.first.origin_departure_time).to_seconds
+    window_end = GTFS::WideTime.parse(group.last.destination_arrival_time).to_seconds
+    duration = window_end - window_start
+    step = duration / group.size.to_f
+    current = window_start
+    group[0..-2].zip(group[1..-1]) do |a,b|
+      current += step
+      t = GTFS::WideTime.new(current.to_i).to_s
+      a.destination_arrival_time = t
+      a.destination_departure_time = t
+      b.origin_arrival_time = t
+      b.origin_departure_time = t
+    end
+  end
 
   # Set a service range from service_added_dates, service_except_dates
   def set_service_range
