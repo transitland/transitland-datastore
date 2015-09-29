@@ -63,7 +63,7 @@ class ScheduleStopPair < BaseScheduleStopPair
   belongs_to :route
 
   # Required relations and attributes
-  before_validation :set_service_range
+  before_validation :filter_service_range
   validates :origin,
             :destination,
             :route,
@@ -209,10 +209,16 @@ class ScheduleStopPair < BaseScheduleStopPair
   end
 
   # Set a service range from service_added_dates, service_except_dates
-  def set_service_range
+  def expand_service_range
     self.service_start_date ||= (service_except_dates + service_added_dates).min
     self.service_end_date ||= (service_except_dates + service_added_dates).max
     true
+  end
+
+  def filter_service_range
+    expand_service_range
+    self.service_added_dates = service_added_dates.select { |x| x.between?(service_start_date, service_end_date)}.sort
+    self.service_except_dates = service_except_dates.select { |x| x.between?(service_start_date, service_end_date)}.sort
   end
 
   # Make sure service_start_date < service_end_date
