@@ -1,9 +1,9 @@
 GIT
   remote: git://github.com/transitland/gtfs.git
-  revision: 7ebe6ce14b9432bd201e00397fd7bcab1eb3f417
-  tag: v1.0.0rc2
+  revision: 5d42132041168eae862f3610dac524d448c9ae3e
+  tag: v1.0.0rc3
   specs:
-    gtfs (1.0.0rc2)
+    gtfs (1.0.0rc3)
       multi_json
       rake
       rubyzip (~> 1.1)
