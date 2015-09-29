@@ -373,19 +373,19 @@ class GTFSGraph
       # Origin
       origin: origin_stop,
       origin_timezone: origin_stop.timezone,
-      origin_arrival_time: origin.arrival_time,
-      origin_departure_time: origin.departure_time,
+      origin_arrival_time: origin.arrival_time.presence,
+      origin_departure_time: origin.departure_time.presence,
       # Destination
       destination: destination_stop,
       destination_timezone: destination_stop.timezone,
-      destination_arrival_time: destination.arrival_time,
-      destination_departure_time: destination.departure_time,
+      destination_arrival_time: destination.arrival_time.presence,
+      destination_departure_time: destination.departure_time.presence,
       # Route
       route: route,
       # Trip
-      trip: trip.id,
-      trip_headsign: (origin.stop_headsign || trip.trip_headsign),
-      trip_short_name: trip.trip_short_name,
+      trip: trip.id.presence,
+      trip_headsign: (origin.stop_headsign || trip.trip_headsign).presence,
+      trip_short_name: trip.trip_short_name.presence,
       wheelchair_accessible: trip.wheelchair_accessible.to_i,
       bikes_allowed: trip.bikes_allowed.to_i,
       # Stop Time
