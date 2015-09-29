@@ -195,5 +195,47 @@ RSpec.describe ScheduleStopPair, type: :model do
       ssp.service_except_dates = [expect_fail]
       expect(ssp.valid?).to be false
     end
-  end  
+  end
+
+  context 'ssp interpolation' do
+    it 'raises unknown interpolation method' do
+      expect { ScheduleStopPair.interpolate([], :unknown) }.to raise_error(ArgumentError)
+    end
+
+    it 'linear interpolation' do
+      ssps = []
+      ssps << build(
+        :schedule_stop_pair,
+        origin_arrival_time: '10:00:00',
+        origin_departure_time: '10:10:00',
+        destination_arrival_time: nil,
+        destination_departure_time: nil
+      )
+      3.times.each do |i|
+        ssps << build(
+          :schedule_stop_pair,
+          origin_arrival_time: nil,
+          origin_departure_time: nil,
+          destination_arrival_time: nil,
+          destination_departure_time: nil
+        )
+      end
+      ssps << build(
+        :schedule_stop_pair,
+        origin_arrival_time: nil,
+        origin_departure_time: nil,
+        destination_arrival_time: '10:40:00',
+        destination_departure_time: '10:50:00'
+      )
+      ScheduleStopPair.interpolate(ssps, :linear)
+      expect(ssps[0].destination_arrival_time).to eq('10:16:00')
+      expect(ssps[1].origin_departure_time).to eq('10:16:00')
+      expect(ssps[1].destination_arrival_time).to eq('10:22:00')
+      expect(ssps[2].origin_departure_time).to eq('10:22:00')
+      expect(ssps[2].destination_arrival_time).to eq('10:28:00')
+      expect(ssps[3].origin_arrival_time).to eq('10:28:00')
+      expect(ssps[3].destination_arrival_time).to eq('10:34:00')
+      expect(ssps[4].origin_departure_time).to eq('10:34:00')
+    end
+  end
 end
