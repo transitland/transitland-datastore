@@ -223,20 +223,21 @@ class GTFSGraph
         trip_counter += trip_chunk.size
         ssp_chunk = []
         @gtfs.trip_stop_times(trip_chunk) do |trip,stop_times|
+          log "    trip id: #{trip.trip_id}, stop_times: #{stop_times.size}"
           route = @gtfs.route(trip.route_id)
-          ssps = []
+          # Create SSPs for all stop_time edges
+          ssp_trip = []
           stop_times[0..-2].zip(stop_times[1..-1]).each do |origin,destination|
-            ssp = make_ssp(route,trip,origin,destination)
-            ssps << ssp
+            ssp_trip << make_ssp(route,trip,origin,destination)
           end
           # Interpolate stop_times
-          ScheduleStopPair.interpolate(ssps)
+          ScheduleStopPair.interpolate(ssp_trip)
           # Add to chunk
-          ssp_chunk += ssps
+          ssp_chunk += ssp_trip
         end
         # Create changeset
         ssp_chunk.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES) do |chunk|
-          log "    ssps: #{ssp_counter} - #{ssp_counter+ssp_chunk.size}"
+          log "    ssp changes: #{ssp_counter} - #{ssp_counter+ssp_chunk.size}"
           ssp_counter += ssp_chunk.size
           ChangePayload.create!(
             changeset: changeset,
@@ -404,6 +405,7 @@ class GTFSGraph
 end
 
 if __FILE__ == $0
+  # ActiveRecord::Base.logger = Logger.new(STDOUT)
   feedid = ARGV[0] || 'f-9q9-caltrain'
   filename = "tmp/transitland-feed-data/#{feedid}.zip"
   import_level = (ARGV[1] || 1).to_i
