@@ -131,6 +131,22 @@ class ScheduleStopPair < BaseScheduleStopPair
     super(dates.map { |x| x.is_a?(Date) ? x : Date.parse(x) }.uniq)
   end
 
+  def origin_arrival_time=(value)
+    super(GTFS::WideTime.parse(value))
+  end
+
+  def origin_departure_time=(value)
+    super(GTFS::WideTime.parse(value))
+  end
+
+  def destination_arrival_time=(value)
+    super(GTFS::WideTime.parse(value))
+  end
+
+  def destination_departure_time=(value)
+    super(GTFS::WideTime.parse(value))
+  end
+
   # Tracked by changeset
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
