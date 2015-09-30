@@ -55,6 +55,22 @@ class BaseScheduleStopPair < ActiveRecord::Base
   self.abstract_class = true
   PER_PAGE = 50
   include IsAnEntityImportedFromFeeds
+
+  extend Enumerize
+  enumerize :origin_timepoint_source, in: [
+      :gtfs_exact,
+      :gtfs_interpolated,
+      :transitland_interpolated_linear,
+      :transitland_interpolated_geometric,
+      :transitland_interpolated_shape
+    ]
+  enumerize :destination_timepoint_source, in: [
+      :gtfs_exact,
+      :gtfs_interpolated,
+      :transitland_interpolated_linear,
+      :transitland_interpolated_geometric,
+      :transitland_interpolated_shape
+    ]
 end
 
 class ScheduleStopPair < BaseScheduleStopPair
