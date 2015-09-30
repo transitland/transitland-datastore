@@ -55,7 +55,7 @@ RSpec.describe ScheduleStopPair, type: :model do
   let(:stop1) {create(:stop)}
   let(:stop2) {create(:stop)}
   let(:route) {create(:route)}
-  
+
   context 'has stops' do
     it 'has two stops' do
       ssp = create(:schedule_stop_pair)
@@ -82,7 +82,7 @@ RSpec.describe ScheduleStopPair, type: :model do
       expect(destination.stops_in).to match_array([origin])
       expect(destination.stops_out).to be_empty
     end
-  
+
     it 'allows many stop-stop through associations' do
       ssp1 = create(:schedule_stop_pair, origin: stop1, destination: stop2)
       ssp2 = create(:schedule_stop_pair, origin: stop1, destination: stop2)
@@ -90,7 +90,7 @@ RSpec.describe ScheduleStopPair, type: :model do
       expect(stop2.trips_in).to match_array([ssp1, ssp2])
     end
   end
-  
+
   context 'changeset' do
     it 'has a changeset' do
       ssp = create(:schedule_stop_pair)
@@ -111,7 +111,7 @@ RSpec.describe ScheduleStopPair, type: :model do
             schedule_stop_pair: ssp_attr
           }
         ]
-      }    
+      }
       changeset = create(:changeset)
       changeset.append(payload)
       changeset.apply!
@@ -137,7 +137,7 @@ RSpec.describe ScheduleStopPair, type: :model do
       expect(ScheduleStopPair.where_service_on_date(expect_service).count).to eq(1)
       expect(ScheduleStopPair.where_service_on_date(expect_none).count).to eq(0)
     end
-    
+
     it 'where service from date' do
       expect_start = Date.new(2013, 01, 01)
       expect_end0 = Date.new(2014, 01, 01)
@@ -150,7 +150,7 @@ RSpec.describe ScheduleStopPair, type: :model do
       expect(ScheduleStopPair.where_service_from_date(expect_end1).count).to eq(1)
       expect(ScheduleStopPair.where_service_from_date(expect_end2).count).to eq(0)
     end
-    
+
   end
 
   context 'service dates' do
@@ -162,9 +162,9 @@ RSpec.describe ScheduleStopPair, type: :model do
     it 'must have service_end_date' do
       ssp = build(:schedule_stop_pair, service_end_date: nil, service_added_dates: [], service_except_dates: [])
       ssp.service_end_date = nil
-      expect(ssp.valid?).to be false      
+      expect(ssp.valid?).to be false
     end
-    
+
     it 'may set service range from service_added_dates and service_except_dates' do
       expect_start = Date.new(2015, 01, 01)
       expect_end = Date.new(2016, 01, 01)
@@ -243,6 +243,13 @@ RSpec.describe ScheduleStopPair, type: :model do
       expect(ssps[3].origin_arrival_time).to eq('10:28:00')
       expect(ssps[3].destination_arrival_time).to eq('10:34:00')
       expect(ssps[4].origin_departure_time).to eq('10:34:00')
+      # Check window
+      expect(ssps[1].window_start).to eq(ssps[0].origin_departure_time)
+      expect(ssps[1].window_end).to eq(ssps[4].destination_arrival_time)
+      # Check interpolation method
+      expect(ssps[0].origin_timepoint_source).to eq('gtfs_exact')
+      expect(ssps[0].destination_timepoint_source).to eq('transitland_interpolated_linear')
+      expect(ssps[4].destination_timepoint_source).to eq('gtfs_exact')
     end
   end
 end
