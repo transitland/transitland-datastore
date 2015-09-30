@@ -1,7 +1,7 @@
 class GTFSGraph
 
   CHANGE_PAYLOAD_MAX_ENTITIES = 1_000
-  STOP_TIMES_MAX_LOAD = 1_000_000
+  STOP_TIMES_MAX_LOAD = 100_000
 
   def initialize(filename, feed=nil)
     # GTFS Graph / TransitLand wrapper
@@ -222,17 +222,30 @@ class GTFSGraph
         log "  trips: #{trip_counter} - #{trip_counter+trip_chunk.size}"
         trip_counter += trip_chunk.size
         ssp_chunk = []
-        @gtfs.stop_time_pairs(trip_chunk) { |route,trip,origin,destination| ssp_chunk << make_ssp(route,trip,origin,destination) }
+        @gtfs.trip_stop_times(trip_chunk) do |trip,stop_times|
+          log "    trip id: #{trip.trip_id}, stop_times: #{stop_times.size}"
+          route = @gtfs.route(trip.route_id)
+          # Create SSPs for all stop_time edges
+          ssp_trip = []
+          stop_times[0..-2].zip(stop_times[1..-1]).each do |origin,destination|
+            ssp_trip << make_ssp(route,trip,origin,destination)
+          end
+          # Interpolate stop_times
+          ScheduleStopPair.interpolate(ssp_trip)
+          # Add to chunk
+          ssp_chunk += ssp_trip
+        end
+        # Create changeset
         ssp_chunk.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES) do |chunk|
-          log "    ssps: #{ssp_counter} - #{ssp_counter+ssp_chunk.size}"
-          ssp_counter += ssp_chunk.size
+          log "    ssp changes: #{ssp_counter} - #{ssp_counter+chunk.size}"
+          ssp_counter += chunk.size
           ChangePayload.create!(
             changeset: changeset,
             payload: {
               changes: chunk.map { |entity|
                 {
                   action: action,
-                  scheduleStopPair: entity
+                  scheduleStopPair: make_change_ssp(entity)
                 }
               }
             }
@@ -324,49 +337,78 @@ class GTFSGraph
     }
   end
 
+  def make_change_ssp(entity)
+    {
+      imported_from_feed_onestop_id: @feed.onestop_id,
+      originOnestopId: entity.origin.onestop_id,
+      originTimezone: entity.origin_timezone,
+      originArrivalTime: entity.origin_arrival_time,
+      originDepartureTime: entity.origin_departure_time,
+      destinationOnestopId: entity.destination.onestop_id,
+      destinationTimezone: entity.destination_timezone,
+      destinationArrivalTime: entity.destination_arrival_time,
+      destinationDepartureTime: entity.destination_departure_time,
+      routeOnestopId: entity.route.onestop_id,
+      trip: entity.trip,
+      tripHeadsign: entity.trip_headsign,
+      tripShortName: entity.trip_short_name,
+      wheelchairAccessible: entity.wheelchair_accessible,
+      dropOffType: entity.drop_off_type,
+      pickupType: entity.pickup_type,
+      shapeDistTraveled: entity.shape_dist_traveled,
+      serviceStartDate: entity.service_start_date,
+      serviceEndDate: entity.service_end_date,
+      serviceDaysOfWeek: entity.service_days_of_week,
+      serviceAddedDates: entity.service_added_dates,
+      serviceExceptDates: entity.service_except_dates,
+      windowStart: entity.window_start,
+      windowEnd: entity.window_end,
+      originTimepointSource: entity.origin_timepoint_source,
+      destinationTimepointSource: entity.destination_timepoint_source
+    }
+  end
+
   def make_ssp(route, trip, origin, destination)
     # Generate an edge between an origin and destination for a given route/trip
     route = @gtfs_tl[route]
     origin_stop = @gtfs_tl[@gtfs.stop(origin.stop_id)]
     destination_stop = @gtfs_tl[@gtfs.stop(destination.stop_id)]
     service_period = @gtfs.service_period(trip.service_id)
-    ssp = {
+    ScheduleStopPair.new(
       # Origin
-      originOnestopId: origin_stop.onestop_id,
-      originTimezone: origin_stop.timezone,
-      originArrivalTime: origin.arrival_time,
-      originDepartureTime: origin.departure_time,
+      origin: origin_stop,
+      origin_timezone: origin_stop.timezone,
+      origin_arrival_time: origin.arrival_time.presence,
+      origin_departure_time: origin.departure_time.presence,
       # Destination
-      destinationOnestopId: destination_stop.onestop_id,
-      destinationTimezone: destination_stop.timezone,
-      destinationArrivalTime: destination.arrival_time,
-      destinationDepartureTime: destination.departure_time,
+      destination: destination_stop,
+      destination_timezone: destination_stop.timezone,
+      destination_arrival_time: destination.arrival_time.presence,
+      destination_departure_time: destination.departure_time.presence,
       # Route
-      routeOnestopId: route.onestop_id,
+      route: route,
       # Trip
-      trip: trip.id,
-      tripHeadsign: (origin.stop_headsign || trip.trip_headsign),
-      tripShortName: trip.trip_short_name,
-      wheelchairAccessible: trip.wheelchair_accessible.to_i,
-      # bikes_allowed: trip.bikes_allowed.to_i,
+      trip: trip.id.presence,
+      trip_headsign: (origin.stop_headsign || trip.trip_headsign).presence,
+      trip_short_name: trip.trip_short_name.presence,
+      wheelchair_accessible: trip.wheelchair_accessible.to_i,
+      bikes_allowed: trip.bikes_allowed.to_i,
       # Stop Time
-      dropOffType: origin.drop_off_type.to_i,
-      pickupType: origin.pickup_type.to_i,
-      # timepoint: origin.timepoint.to_i,
-      shapeDistTraveled: origin.shape_dist_traveled.to_f,
-      importedFromFeedOnestopId: @feed.onestop_id,
+      drop_off_type: origin.drop_off_type.to_i,
+      pickup_type: origin.pickup_type.to_i,
+      shape_dist_traveled: origin.shape_dist_traveled.to_f,
       # service period
-      serviceStartDate: service_period.start_date,
-      serviceEndDate: service_period.end_date,
-      serviceDaysOfWeek: service_period.iso_service_weekdays,
-      serviceAddedDates: service_period.added_dates,
-      serviceExceptDates: service_period.except_dates
-    }
-    ssp
+      service_start_date: service_period.start_date,
+      service_end_date: service_period.end_date,
+      service_days_of_week: service_period.iso_service_weekdays,
+      service_added_dates: service_period.added_dates,
+      service_except_dates: service_period.except_dates
+    )
   end
 end
 
 if __FILE__ == $0
+  # ActiveRecord::Base.logger = Logger.new(STDOUT)
   feedid = ARGV[0] || 'f-9q9-caltrain'
   filename = "tmp/transitland-feed-data/#{feedid}.zip"
   import_level = (ARGV[1] || 1).to_i

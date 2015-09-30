@@ -31,10 +31,13 @@
 #  bikes_allowed                      :integer
 #  pickup_type                        :integer
 #  drop_off_type                      :integer
-#  timepoint                          :integer
 #  shape_dist_traveled                :float
 #  origin_timezone                    :string
 #  destination_timezone               :string
+#  window_start                       :string
+#  window_end                         :string
+#  origin_timepoint_source            :string
+#  destination_timepoint_source       :string
 #
 # Indexes
 #
@@ -62,7 +65,6 @@ class ScheduleStopPairSerializer < ApplicationSerializer
              :bikes_allowed,
              :pickup_type,
              :drop_off_type,
-             :timepoint,
              :shape_dist_traveled,
              :origin_arrival_time,
              :origin_departure_time,
@@ -73,17 +75,21 @@ class ScheduleStopPairSerializer < ApplicationSerializer
              :service_added_dates,
              :service_except_dates,
              :service_days_of_week,
+             :window_start,
+             :window_end,
+             :origin_timepoint_source,
+             :destination_timepoint_source,
              :created_at,
              :updated_at
 
   def origin_onestop_id
     object.origin.try(:onestop_id)
   end
-  
+
   def destination_onestop_id
     object.destination.try(:onestop_id)
   end
-  
+
   def route_onestop_id
     object.route.try(:onestop_id)
   end

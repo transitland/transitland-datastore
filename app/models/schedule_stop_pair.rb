@@ -31,10 +31,13 @@
 #  bikes_allowed                      :integer
 #  pickup_type                        :integer
 #  drop_off_type                      :integer
-#  timepoint                          :integer
 #  shape_dist_traveled                :float
 #  origin_timezone                    :string
 #  destination_timezone               :string
+#  window_start                       :string
+#  window_end                         :string
+#  origin_timepoint_source            :string
+#  destination_timepoint_source       :string
 #
 # Indexes
 #
@@ -52,6 +55,22 @@ class BaseScheduleStopPair < ActiveRecord::Base
   self.abstract_class = true
   PER_PAGE = 50
   include IsAnEntityImportedFromFeeds
+
+  extend Enumerize
+  enumerize :origin_timepoint_source, in: [
+      :gtfs_exact,
+      :gtfs_interpolated,
+      :transitland_interpolated_linear,
+      :transitland_interpolated_geometric,
+      :transitland_interpolated_shape
+    ]
+  enumerize :destination_timepoint_source, in: [
+      :gtfs_exact,
+      :gtfs_interpolated,
+      :transitland_interpolated_linear,
+      :transitland_interpolated_geometric,
+      :transitland_interpolated_shape
+    ]
 end
 
 class ScheduleStopPair < BaseScheduleStopPair
@@ -63,13 +82,20 @@ class ScheduleStopPair < BaseScheduleStopPair
   belongs_to :route
 
   # Required relations and attributes
-  validates :origin, presence: true
-  validates :destination, presence: true
-  validates :route, presence: true
-  validates :trip, presence: true
-
-  # Check date ranges
-  before_validation :set_service_range
+  before_validation :filter_service_range
+  validates :origin,
+            :destination,
+            :route,
+            :trip,
+            :origin_timezone,
+            :destination_timezone,
+            :origin_arrival_time,
+            :origin_departure_time,
+            :destination_arrival_time,
+            :destination_departure_time,
+            :service_start_date,
+            :service_end_date,
+            presence: true
   validate :validate_service_range
   validate :validate_service_exceptions
 
@@ -124,6 +150,22 @@ class ScheduleStopPair < BaseScheduleStopPair
     super(dates.map { |x| x.is_a?(Date) ? x : Date.parse(x) }.uniq)
   end
 
+  def origin_arrival_time=(value)
+    super(GTFS::WideTime.parse(value))
+  end
+
+  def origin_departure_time=(value)
+    super(GTFS::WideTime.parse(value))
+  end
+
+  def destination_arrival_time=(value)
+    super(GTFS::WideTime.parse(value))
+  end
+
+  def destination_departure_time=(value)
+    super(GTFS::WideTime.parse(value))
+  end
+
   # Tracked by changeset
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
@@ -136,19 +178,73 @@ class ScheduleStopPair < BaseScheduleStopPair
     end
   end
 
+  # Interpolate
+  def self.interpolate(ssps, method=:linear)
+    groups = []
+    group = []
+    ssps.each do |ssp|
+      group << ssp
+      if ssp.destination_arrival_time
+        groups << group
+        group = []
+      end
+    end
+    if method == :linear
+      groups.each { |group| self.interpolate_linear(group) }
+    else
+      raise ArgumentError.new("Unknown interpolation method: #{method}")
+    end
+  end
+
   private
 
+  def self.interpolate_linear(group)
+    window_start = GTFS::WideTime.parse(group.first.origin_departure_time)
+    window_end = GTFS::WideTime.parse(group.last.destination_arrival_time)
+    duration = window_end.to_seconds - window_start.to_seconds
+    step = duration / group.size.to_f
+    current = window_start.to_seconds
+    # Set first/last stop
+    group.first.origin_timepoint_source = :gtfs_exact
+    group.first.window_start = window_start
+    group.first.window_end = window_end
+    group.last.destination_timepoint_source = :gtfs_exact
+    group.last.window_start = window_start
+    group.last.window_end = window_end
+    # Interpolate
+    group[0..-2].zip(group[1..-1]) do |a,b|
+      current += step
+      t = GTFS::WideTime.new(current.to_i).to_s
+      #
+      a.window_start = window_start
+      a.window_end = window_end
+      a.destination_arrival_time = t
+      a.destination_departure_time = t
+      a.destination_timepoint_source = :transitland_interpolated_linear
+      # Next stop
+      b.window_start = window_start
+      b.window_end = window_end
+      b.origin_arrival_time = t
+      b.origin_departure_time = t
+      b.origin_timepoint_source = :transitland_interpolated_linear
+    end
+  end
+
   # Set a service range from service_added_dates, service_except_dates
-  def set_service_range
+  def expand_service_range
     self.service_start_date ||= (service_except_dates + service_added_dates).min
     self.service_end_date ||= (service_except_dates + service_added_dates).max
     true
   end
-  
+
+  def filter_service_range
+    expand_service_range
+    self.service_added_dates = service_added_dates.select { |x| x.between?(service_start_date, service_end_date)}.sort
+    self.service_except_dates = service_except_dates.select { |x| x.between?(service_start_date, service_end_date)}.sort
+  end
+
   # Make sure service_start_date < service_end_date
   def validate_service_range
-    errors.add(:service_start_date, "service_start_date required") unless service_start_date
-    errors.add(:service_end_date, "service_end_date required") unless service_end_date
     if service_start_date && service_end_date
       errors.add(:service_start_date, "service_start_date begins after service_end_date") if service_start_date > service_end_date
     end
@@ -163,7 +259,6 @@ class ScheduleStopPair < BaseScheduleStopPair
       errors.add(:service_except_dates, "service_except_dates must be within service_start_date, service_end_date range")
     end
   end
-
 end
 
 class OldScheduleStopPair < BaseScheduleStopPair
