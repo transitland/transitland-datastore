@@ -185,7 +185,7 @@ class ScheduleStopPair < BaseScheduleStopPair
     ssps.each do |ssp|
       group << ssp
       if ssp.destination_arrival_time
-        groups << group # if group.size > 1
+        groups << group
         group = []
       end
     end
