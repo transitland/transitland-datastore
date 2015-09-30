@@ -360,7 +360,11 @@ class GTFSGraph
       serviceEndDate: entity.service_end_date,
       serviceDaysOfWeek: entity.service_days_of_week,
       serviceAddedDates: entity.service_added_dates,
-      serviceExceptDates: entity.service_except_dates
+      serviceExceptDates: entity.service_except_dates,
+      windowStart: entity.window_start,
+      windowEnd: entity.window_end,
+      originTimepointSource: entity.origin_timepoint_source,
+      destinationTimepointSource: entity.destination_timepoint_source
     }
   end
 
