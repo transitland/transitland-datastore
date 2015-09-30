@@ -185,7 +185,7 @@ class ScheduleStopPair < BaseScheduleStopPair
     ssps.each do |ssp|
       group << ssp
       if ssp.destination_arrival_time
-        groups << group if group.size > 1
+        groups << group # if group.size > 1
         group = []
       end
     end
@@ -199,32 +199,35 @@ class ScheduleStopPair < BaseScheduleStopPair
   private
 
   def self.interpolate_linear(group)
-    window_start = GTFS::WideTime.parse(group.first.origin_departure_time).to_seconds
-    window_end = GTFS::WideTime.parse(group.last.destination_arrival_time).to_seconds
-    duration = window_end - window_start
+    window_start = GTFS::WideTime.parse(group.first.origin_departure_time)
+    window_end = GTFS::WideTime.parse(group.last.destination_arrival_time)
+    duration = window_end.to_seconds - window_start.to_seconds
     step = duration / group.size.to_f
-    current = window_start
-    # puts "  ============================"
-    # puts "  group: #{group.size}"
-    # puts "  window_start: #{window_start}"
-    # puts "  window_end: #{window_end}"
-    # puts "  duration: #{duration}"
-    # puts "  step: #{step}"
-    # group.each do |g|
-    #   puts "    oa: #{g.origin_arrival_time} od: #{g.origin_departure_time} --> da: #{g.destination_arrival_time} dd: #{g.destination_departure_time}"
-    # end
+    current = window_start.to_seconds
+    # Set first/last stop
+    group.first.origin_timepoint_source = :gtfs_exact
+    group.first.window_start = window_start
+    group.first.window_end = window_end
+    group.last.destination_timepoint_source = :gtfs_exact
+    group.last.window_start = window_start
+    group.last.window_end = window_end
+    # Interpolate
     group[0..-2].zip(group[1..-1]) do |a,b|
       current += step
       t = GTFS::WideTime.new(current.to_i).to_s
+      #
+      a.window_start = window_start
+      a.window_end = window_end
       a.destination_arrival_time = t
       a.destination_departure_time = t
+      a.destination_timepoint_source = :transitland_interpolated_linear
+      # Next stop
+      b.window_start = window_start
+      b.window_end = window_end
       b.origin_arrival_time = t
       b.origin_departure_time = t
+      b.origin_timepoint_source = :transitland_interpolated_linear
     end
-    # puts "  ~~ interpolated ~~"
-    # group.each do |g|
-    #   puts "    oa: #{g.origin_arrival_time} od: #{g.origin_departure_time} --> da: #{g.destination_arrival_time} dd: #{g.destination_departure_time}"
-    # end
   end
 
   # Set a service range from service_added_dates, service_except_dates
