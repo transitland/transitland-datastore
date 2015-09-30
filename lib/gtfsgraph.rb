@@ -154,67 +154,17 @@ class GTFSGraph
     operators = operators
     routes = operators.map { |i| @tl_serves[i] }.reduce(Set.new, :+)
     stops = routes.map { |i| @tl_serves[i] }.reduce(Set.new, :+)
-    action = 'createUpdate'
     changeset = Changeset.create()
-
-    # Operators
     if import_level >= 0
-      counter = 0
-      operators.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
-        log "  operators: #{counter} - #{counter+chunk.size} of #{operators.size}"
-        counter += chunk.size
-        ChangePayload.create!(
-          changeset: changeset,
-          payload: {
-            changes: chunk.map { |entity|
-              {
-                action: action,
-                operator: make_change_operator(entity)
-              }
-            }
-          }
-        )
-      end
+      log "  operators: #{operators.size}"
+      self.create_change_payloads(changeset, 'operator', operators.map { |e| make_change_operator(e) })
     end
-
-    # Stops
     if import_level >= 1
-      counter = 0
-      stops.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
-        log "  stops: #{counter} - #{counter+chunk.size} of #{stops.size}"
-        counter += chunk.size
-        ChangePayload.create!(
-          changeset: changeset,
-          payload: {
-            changes: chunk.map { |entity|
-              {
-                action: action,
-                stop: make_change_stop(entity)
-              }
-            }
-          }
-        )
-      end
-
-      # Routes
-      counter = 0
-      routes.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
-        log "  routes: #{counter} - #{counter+chunk.size} of #{routes.size}"
-        counter += chunk.size
-        ChangePayload.create!(
-          changeset: changeset,
-          payload: {
-            changes: chunk.map { |entity|
-              {
-                action: action,
-                route: make_change_route(entity)
-              }
-            }
-          }
-        )
-      end
+      log "  stops: #{stops.size}"
+      self.create_change_payloads(changeset, 'stop', stops.map { |e| make_change_stop(e) })
+      log "  routes: #{routes.size}"
+      self.create_change_payloads(changeset, 'route', routes.map { |e| make_change_route(e) })
     end
-
     if import_level >= 2
       trip_counter = 0
       ssp_counter = 0
@@ -237,27 +187,36 @@ class GTFSGraph
         end
         # Create changeset
         ssp_chunk.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES) do |chunk|
-          log "    ssp changes: #{ssp_counter} - #{ssp_counter+chunk.size}"
-          ssp_counter += chunk.size
-          ChangePayload.create!(
-            changeset: changeset,
-            payload: {
-              changes: chunk.map { |entity|
-                {
-                  action: action,
-                  scheduleStopPair: make_change_ssp(entity)
-                }
-              }
-            }
-          )
+          log "    ssps: #{ssp_counter} - #{ssp_counter+ssp_chunk.size}"
+          ssp_counter += ssp_chunk.size
+          self.create_change_payloads(changeset, 'scheduleStopPair', chunk.map { |e| make_change_ssp(e) })
         end
       end
     end
-
     # Apply changeset
     log "  changeset apply"
     changeset.apply!
     log "  changeset apply done"
+  end
+
+  def create_change_payloads(changeset, entity_type, entities)
+    # Operators
+    counter = 0
+    entities.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
+      counter += chunk.size
+      changes = chunk.map do |entity|
+        change = {}
+        change['action'] = 'createUpdate'
+        change[entity_type] = entity
+        change
+      end
+      ChangePayload.create!(
+        changeset: changeset,
+        payload: {
+          changes: changes
+        }
+      )
+    end
   end
 
   def import_log
