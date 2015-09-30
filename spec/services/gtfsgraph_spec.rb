@@ -107,8 +107,10 @@ describe GTFSGraph do
       expect(s.service_except_dates.map(&:to_s)).to contain_exactly('2015-06-06', '2015-07-04')
       expect(s.service_start_date.to_s).to eq('2015-05-02')
       expect(s.service_end_date.to_s).to eq('2024-10-05')
+      expect(s.origin_timepoint_source).to eq('gtfs_exact')
+      expect(s.destination_timepoint_source).to eq('gtfs_exact')
+      expect(s.window_start).to eq('08:15:00')
+      expect(s.window_end).to eq('08:20:00')
     end
-
   end
-
 end
