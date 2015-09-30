@@ -1,7 +1,7 @@
 class GTFSGraph
 
   CHANGE_PAYLOAD_MAX_ENTITIES = 1_000
-  STOP_TIMES_MAX_LOAD = 1_000_000
+  STOP_TIMES_MAX_LOAD = 100_000
 
   def initialize(filename, feed=nil)
     # GTFS Graph / TransitLand wrapper
@@ -237,8 +237,8 @@ class GTFSGraph
         end
         # Create changeset
         ssp_chunk.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES) do |chunk|
-          log "    ssp changes: #{ssp_counter} - #{ssp_counter+ssp_chunk.size}"
-          ssp_counter += ssp_chunk.size
+          log "    ssp changes: #{ssp_counter} - #{ssp_counter+chunk.size}"
+          ssp_counter += chunk.size
           ChangePayload.create!(
             changeset: changeset,
             payload: {
@@ -392,7 +392,6 @@ class GTFSGraph
       # Stop Time
       drop_off_type: origin.drop_off_type.to_i,
       pickup_type: origin.pickup_type.to_i,
-      # timepoint: origin.timepoint.to_i,
       shape_dist_traveled: origin.shape_dist_traveled.to_f,
       # service period
       service_start_date: service_period.start_date,
