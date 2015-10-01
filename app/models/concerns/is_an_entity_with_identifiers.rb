@@ -14,6 +14,16 @@ module IsAnEntityWithIdentifiers
     end
   end
 
+  def add_identifier(identifier)
+    self.identified_by ||= []
+    self.identified_by << identifier
+  end
+
+  def remove_identifier(identifier)
+    self.not_identified_by ||= []
+    self.not_identified_by << identifier
+  end
+
   def before_update_making_history(changeset)
     current_identifiers = self.identifiers.try(:dup) || []
     identifiers_to_add = self.try(:identified_by) || []
