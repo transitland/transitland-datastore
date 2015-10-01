@@ -20,10 +20,8 @@ module IsAnEntityWithIdentifiers
       self.class.name.downcase.first,
       entity_id
     )
-    puts "adding identifier: #{identifier}"
     self.identified_by ||= []
     self.identified_by << identifier
-    puts "identified_by: #{self.identified_by}"
   end
 
   def remove_identifier(identifier:nil, feed_onestop_id:nil, entity_id:nil)
