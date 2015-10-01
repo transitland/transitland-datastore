@@ -12,7 +12,6 @@ class GTFSGraph
     @tl_served_by = Hash.new { |h,k| h[k] = Set.new }
     @tl_serves = Hash.new { |h,k| h[k] = Set.new }
     # TL <-> GTFS mapping; One to many
-    @tl_gtfs = Hash.new { |h,k| h[k] = Set.new }
     @gtfs_tl = {}
     # TL Indexed by Onestop ID
     @tl_by_onestop_id = {}
@@ -21,7 +20,6 @@ class GTFSGraph
   def load_tl
     # Clear
     @tl_by_onestop_id.clear
-    @tl_gtfs.clear
     @tl_served_by.clear
     @tl_serves.clear
     @gtfs_tl.clear
@@ -36,7 +34,7 @@ class GTFSGraph
   end
 
   def load_tl_stops
-    # Build TL Entities
+    # Stops
     log "  merge stations"
     # Merge child stations into parents.
     stations = Hash.new { |h,k| h[k] = [] }
@@ -54,8 +52,6 @@ class GTFSGraph
       stop ||= Stop.from_gtfs(station)
       # ... check if Stop exists, or another local Stop, or new.
       stop = Stop.find_by(onestop_id: stop.onestop_id) || @tl_by_onestop_id[stop.onestop_id] || stop
-      # TODO: Stop Timezone
-      # stop.timezone =
       # Add identifiers and references
       tl_add_identifiers(stop, [station]+platforms)
       # Cache stop
@@ -243,7 +239,13 @@ class GTFSGraph
   def tl_add_identifiers(tl, gtfs_entities)
     # Associate TL entity with one or more GTFS entities.
     Array(gtfs_entities).each do |entity|
-      @tl_gtfs[tl].add(entity)
+      tl.add_identifier(
+        OnestopId::create_identifier(
+          @feed.onestop_id,
+          tl.class.name.downcase.first,
+          entity.id
+        )
+      )
       @gtfs_tl[entity] = tl
     end
   end
@@ -262,7 +264,7 @@ class GTFSGraph
     {
       onestopId: entity.onestop_id,
       name: entity.name,
-      identifiedBy: @tl_gtfs[entity].map { |i| OnestopId::create_identifier(@feed.onestop_id, 'o', i.id)},
+      identifiedBy: entity.identified_by.uniq,
       importedFromFeedOnestopId: @feed.onestop_id,
       geometry: entity.geometry,
       tags: entity.tags || {},
@@ -275,7 +277,7 @@ class GTFSGraph
     {
       onestopId: entity.onestop_id,
       name: entity.name,
-      identifiedBy: @tl_gtfs[entity].map { |i| OnestopId::create_identifier(@feed.onestop_id, 's', i.id)},
+      identifiedBy: entity.identified_by.uniq,
       importedFromFeedOnestopId: @feed.onestop_id,
       geometry: entity.geometry,
       tags: entity.tags || {},
@@ -287,7 +289,7 @@ class GTFSGraph
     {
       onestopId: entity.onestop_id,
       name: entity.name,
-      identifiedBy: @tl_gtfs[entity].map { |i| OnestopId::create_identifier(@feed.onestop_id, 'r', i.id)},
+      identifiedBy: entity.identified_by.uniq,
       importedFromFeedOnestopId: @feed.onestop_id,
       operatedBy: @tl_served_by[entity].map(&:onestop_id).first,
       serves: @tl_serves[entity].map(&:onestop_id),
