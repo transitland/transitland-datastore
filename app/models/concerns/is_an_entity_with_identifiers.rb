@@ -14,12 +14,24 @@ module IsAnEntityWithIdentifiers
     end
   end
 
-  def add_identifier(identifier)
+  def add_identifier(identifier:nil, feed_onestop_id:nil, entity_id:nil)
+    identifier ||= OnestopId::create_identifier(
+      feed_onestop_id,
+      self.class.name.downcase.first,
+      entity_id
+    )
+    puts "adding identifier: #{identifier}"
     self.identified_by ||= []
     self.identified_by << identifier
+    puts "identified_by: #{self.identified_by}"
   end
 
-  def remove_identifier(identifier)
+  def remove_identifier(identifier:nil, feed_onestop_id:nil, entity_id:nil)
+    identifier ||= OnestopId::create_identifier(
+      feed_onestop_id,
+      self.class.name.downcase.first,
+      entity_id
+    )
     self.not_identified_by ||= []
     self.not_identified_by << identifier
   end
