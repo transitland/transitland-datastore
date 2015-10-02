@@ -67,7 +67,7 @@ class Route < BaseRoute
     virtual_attributes: [:serves, :does_not_serve, :operated_by, :identified_by, :not_identified_by, :imported_from_feed_onestop_id]
   })
 
-  # NOTE: this is a temporary fix to run both the following `before_create_making_history` changeset
+  # FIXME: this is a temporary fix to run both the following `before_create_making_history` changeset
   # callback as well as the callback of the same name that is included from IsAnEntityWithIdentifiers
   class << Route
     alias_method :existing_before_create_making_history, :before_create_making_history
