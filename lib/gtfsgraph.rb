@@ -157,6 +157,11 @@ class GTFSGraph
     action = 'createUpdate'
     changeset = Changeset.create()
 
+    # Update Feed Bounding Box
+    log "  updating feed bounding box"
+    @feed.set_bounding_box_from_stops(stops)
+    @feed.save!
+
     # Operators
     if import_level >= 0
       counter = 0
