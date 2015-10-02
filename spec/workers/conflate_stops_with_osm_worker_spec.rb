@@ -17,15 +17,15 @@ describe ConflateStopsWithOsmWorker do
             correlated_lon: -122.413601,
             way_id: 8917801,
             correlated_lat: 37.775692,
-            side_of_street: "right",
-            percent_along: .63
+            side_of_street: 'right',
+            percent_along: 0.63
           },
           {
             correlated_lon: -122.413601,
             way_id: 8917801,
             correlated_lat: 37.775692,
-            side_of_street: "left",
-            percent_along: .37
+            side_of_street: 'left',
+            percent_along: 0.37
           }
         ]
       },
@@ -38,15 +38,15 @@ describe ConflateStopsWithOsmWorker do
             correlated_lon: -122.413601,
             way_id: 8917802,
             correlated_lat: 37.775692
-            side_of_street: "right",
-            percent_along: .82
+            side_of_street: 'right',
+            percent_along: 0.82
           },
           {
             correlated_lon: -122.413601,
             way_id: 8917802,
             correlated_lat: 37.775692
-            side_of_street: "left",
-            percent_along: .18
+            side_of_street: 'left',
+            percent_along: 0.18
           }
         ]
       }
