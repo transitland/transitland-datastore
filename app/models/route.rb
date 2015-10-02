@@ -66,10 +66,16 @@ class Route < BaseRoute
     kind_of_model_tracked: :onestop_entity,
     virtual_attributes: [:serves, :does_not_serve, :operated_by, :identified_by, :not_identified_by, :imported_from_feed_onestop_id]
   })
+
+  # NOTE: this is a temporary fix to run both the following `before_create_making_history` changeset
+  # callback as well as the callback of the same name that is included from IsAnEntityWithIdentifiers
+  class << Route
+    alias_method :existing_before_create_making_history, :before_create_making_history
+  end
   def self.before_create_making_history(new_model, changeset)
     operator = Operator.find_by_onestop_id!(new_model.operated_by)
     new_model.operator = operator
-    super(new_model, changeset)
+    self.existing_before_create_making_history(new_model, changeset)
   end
   def self.after_create_making_history(created_model, changeset)
     OperatorRouteStopRelationship.manage_multiple(
