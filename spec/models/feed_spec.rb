@@ -189,33 +189,22 @@ describe Feed do
   end
 
   it 'gets a bounding box around all its stops' do
-    feed = create(:feed_caltrain)
-    allow(feed).to receive(:file_path) { 'spec/support/example_gtfs_archives/f-9q9-caltrain.zip' }
-    feed.set_bounding_box_from_gtfs_stops
-    expect(feed.geometry).to eq({
-      type: 'Polygon',
+    feed = build(:feed)
+    stops = []
+    stops << build(:stop, geometry: "POINT (-121.902181 37.329392)")
+    stops << build(:stop, geometry: "POINT (-122.030742 37.378427)")
+    stops << build(:stop, geometry: "POINT (-122.076327 37.393879)")
+    stops << build(:stop, geometry: "POINT (-122.1649 37.44307)")
+    feed.set_bounding_box_from_stops(stops)
+    expect(feed.geometry(as: :geojson)).to eq({
+      type: "Polygon",
       coordinates: [
         [
-          [
-            -122.412076,
-            37.003485
-          ],
-          [
-            -121.566088,
-            37.003485
-          ],
-          [
-            -121.566088,
-            37.776439
-          ],
-          [
-            -122.412076,
-            37.776439
-          ],
-          [
-            -122.412076,
-            37.003485
-          ]
+          [-122.1649, 37.329392],
+          [-121.902181, 37.329392],
+          [-121.902181, 37.44307],
+          [-122.1649, 37.44307],
+          [-122.1649, 37.329392]
         ]
       ]
     })
