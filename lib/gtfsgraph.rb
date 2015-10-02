@@ -160,6 +160,7 @@ class GTFSGraph
     # Update Feed Bounding Box
     log "  updating feed bounding box"
     @feed.set_bounding_box_from_stops(stops)
+    # FIXME: Run through changeset
     @feed.save!
 
     # Operators
