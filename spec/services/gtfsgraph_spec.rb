@@ -33,7 +33,7 @@ describe GTFSGraph do
       expect(r).to be_truthy
       expect(r.name).to eq('Bullet')
       expect(r.onestop_id).to eq('r-9q9j-bullet')
-      # expect(r.identifiers).to match_array(["gtfs://f-9q9-caltrain/r/bullet"])
+      expect(r.identifiers).to match_array(["gtfs://f-9q9-caltrain/r/Bu-121"])
       expect(r.tags['vehicle_type']).to eq('rail')
       expect(r.tags['route_long_name']).to eq('Bullet')
       expect(r.geometry).to be
