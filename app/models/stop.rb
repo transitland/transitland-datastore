@@ -213,7 +213,7 @@ class Stop < BaseStop
         end
         tyr_locate_response = TyrService.locate(locations: locations)
         group.each_with_index do |stop, index|
-          way_id = tyr_locate_response[index][:ways][0][:way_id]
+          way_id = tyr_locate_response[index][:edges][0][:way_id]
           stop_tags = stop.tags.try(:clone) || {}
           stop_tags[:osm_way_id] = way_id
           stop.update(tags: stop_tags)
