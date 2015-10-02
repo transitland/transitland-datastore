@@ -37,14 +37,14 @@ describe ConflateStopsWithOsmWorker do
           {
             correlated_lon: -122.413601,
             way_id: 8917802,
-            correlated_lat: 37.775692
+            correlated_lat: 37.775692,
             side_of_street: 'right',
             percent_along: 0.82
           },
           {
             correlated_lon: -122.413601,
             way_id: 8917802,
-            correlated_lat: 37.775692
+            correlated_lat: 37.775692,
             side_of_street: 'left',
             percent_along: 0.18
           }
