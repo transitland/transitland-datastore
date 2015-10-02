@@ -44,7 +44,7 @@ http_interactions:
       - keep-alive
     body:
       encoding: UTF-8
-      string: '[{"input_lon":-122.413605,"ways":[{"correlated_lon":-122.413605,"way_id":8917801,"correlated_lat":37.775692}],"input_lat":37.775692}]'
+      string: '[{"input_lon":-122.413605,"node":null,"edges":[{"way_id":8917801,"correlated_lat":37.775589,"side_of_street":"left","percent_along":0.39047,"correlated_lon":-122.413521},{"way_id":8917801,"correlated_lat":37.775589,"side_of_street":"right","percent_along":0.60953,"correlated_lon":-122.413521}],"input_lat":37.775692}]'
     http_version:
   recorded_at: Thu, 28 May 2015 18:45:11 GMT
 recorded_with: VCR 2.9.3
