@@ -418,6 +418,7 @@ if __FILE__ == $0
   filename = "tmp/transitland-feed-data/#{feedid}.zip"
   import_level = (ARGV[1] || 1).to_i
   feed = Feed.find_by!(onestop_id: feedid)
+  feed.fetch_and_check_for_updated_version unless File.exists?(filename)
   graph = GTFSGraph.new(filename, feed)
   operators = graph.load_tl
   graph.create_changeset(operators, import_level=import_level)
