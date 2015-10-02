@@ -31,9 +31,6 @@ class FeedEaterFeedWorker < FeedEaterWorker
       feed_import.update(validation_report: validation_report)
     end
 
-    # Set feed bounding box
-    feed.set_bounding_box_from_gtfs_stops
-
     # Import feed
     logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Importing feed at import level #{import_level}"
     graph = nil

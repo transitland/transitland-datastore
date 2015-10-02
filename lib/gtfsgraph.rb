@@ -157,6 +157,12 @@ class GTFSGraph
     action = 'createUpdate'
     changeset = Changeset.create()
 
+    # Update Feed Bounding Box
+    log "  updating feed bounding box"
+    @feed.set_bounding_box_from_stops(stops)
+    # FIXME: Run through changeset
+    @feed.save!
+
     # Operators
     if import_level >= 0
       counter = 0
@@ -413,6 +419,7 @@ if __FILE__ == $0
   filename = "tmp/transitland-feed-data/#{feedid}.zip"
   import_level = (ARGV[1] || 1).to_i
   feed = Feed.find_by!(onestop_id: feedid)
+  feed.fetch_and_check_for_updated_version unless File.exists?(filename)
   graph = GTFSGraph.new(filename, feed)
   operators = graph.load_tl
   graph.create_changeset(operators, import_level=import_level)
