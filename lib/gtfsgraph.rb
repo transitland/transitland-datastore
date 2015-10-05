@@ -144,6 +144,7 @@ class GTFSGraph
 
   def ssp_perform_async(trip_ids, agency_map, route_map, stop_map)
     @gtfs_to_onestop_id.clear
+    # Populate GTFS entity to Onestop ID maps
     agency_map.each do |agency_id,onestop_id|
       @gtfs_to_onestop_id[@gtfs.agency(agency_id)] = onestop_id
     end
@@ -153,6 +154,7 @@ class GTFSGraph
     stop_map.each do |stop_id,onestop_id|
       @gtfs_to_onestop_id[@gtfs.stop(stop_id)] = onestop_id
     end
+    # Create SSPs
     trips = trip_ids.map { |trip_id| @gtfs.trip(trip_id) }
     changeset = Changeset.create()
     create_change_ssps(changeset, trips)
