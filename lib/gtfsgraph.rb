@@ -11,7 +11,7 @@ class GTFSGraph
     # GTFS entity to Transitland entity
     @gtfs_tl = {}
     # TL Indexed by Onestop ID
-    @tl_by_onestop_id = {}
+    @onestop_id_to_entity = {}
   end
 
   def load_gtfs
@@ -43,14 +43,13 @@ class GTFSGraph
       # ... or create stop from GTFS
       stop ||= Stop.from_gtfs(station)
       # ... check if Stop exists, or another local Stop, or new.
-      stop = Stop.find_by(onestop_id: stop.onestop_id) || @tl_by_onestop_id[stop.onestop_id] || stop
+      stop = find_by_entity(stop)
       # Add identifiers and references
       ([station]+platforms).each do |e|
         stop.add_identifier(make_entity_identifier('s', e))
         @gtfs_tl[e] = stop
       end
       # Cache stop
-      @tl_by_onestop_id[stop.onestop_id] = stop
       if score
         log "    #{stop.onestop_id}: #{stop.name} (search: #{station.name} = #{'%0.2f'%score.to_f})"
       else
@@ -85,7 +84,7 @@ class GTFSGraph
       # ... or create route from GTFS
       route = Route.from_gtfs(entity, stops)
       # ... check if Route exists, or another local Route, or new.
-      route = Route.find_by(onestop_id: route.onestop_id) || @tl_by_onestop_id[route.onestop_id] || route
+      route = find_by_entity(route)
       # Set geometry
       route[:geometry] = geometry
       # Add references and identifiers
@@ -93,8 +92,6 @@ class GTFSGraph
       route.serves |= stops
       route.add_identifier(make_entity_identifier('r', entity))
       @gtfs_tl[entity] = route
-      # Cache route
-      @tl_by_onestop_id[route.onestop_id] = route
       log "    #{route.onestop_id}: #{route.name}"
     end
   end
@@ -122,7 +119,7 @@ class GTFSGraph
       operator.onestop_id = oif.operator.onestop_id # Override Onestop ID
       operator_original = operator # for merging geometry
       # ... or check if Operator exists, or another local Operator, or new.
-      operator = Operator.find_by(onestop_id: operator.onestop_id) || @tl_by_onestop_id[operator.onestop_id] || operator
+      operator = find_by_entity(operator)
       # Merge convex hulls
       operator[:geometry] = Operator.convex_hull([operator, operator_original], as: :wkt, projected: false)
       # Copy Operator timezone to fill missing Stop timezones
@@ -134,7 +131,6 @@ class GTFSGraph
       operator.add_identifier(make_entity_identifier('a', entity))
       @gtfs_tl[entity] = operator
       # Cache Operator
-      @tl_by_onestop_id[operator.onestop_id] = operator
       # Add to found operators
       operators << operator
       log "    #{operator.onestop_id}: #{operator.name}"
@@ -272,6 +268,20 @@ class GTFSGraph
 
   def make_entity_identifier(entity_type, entity)
     OnestopId::create_identifier(
+  def find_by_entity(entity)
+    onestop_id = entity.onestop_id
+    entity = @onestop_id_to_entity[onestop_id] || OnestopIdService.find(onestop_id) || entity
+    @onestop_id_to_entity[onestop_id] = entity
+    entity
+  end
+
+  def find_by_onestop_id(onestop_id)
+    # Find and cache a Transitland Entity by Onestop ID
+    entity = @onestop_id_to_entity[onestop_id] || OnestopIdService.find(onestop_id)
+    @onestop_id_to_entity[onestop_id] = entity
+    entity
+  end
+
       @feed.onestop_id,
       entity_type,
       entity.id
