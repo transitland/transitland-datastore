@@ -169,13 +169,13 @@ class GTFSGraph
     changeset = Changeset.create()
     if import_level >= 0
       log "  operators: #{operators.size}"
-      self.create_change_payloads(changeset, 'operator', operators.map { |e| make_change_operator(e) })
+      create_change_payloads(changeset, 'operator', operators.map { |e| make_change_operator(e) })
     end
     if import_level >= 1
       log "  stops: #{stops.size}"
-      self.create_change_payloads(changeset, 'stop', stops.map { |e| make_change_stop(e) })
+      create_change_payloads(changeset, 'stop', stops.map { |e| make_change_stop(e) })
       log "  routes: #{routes.size}"
-      self.create_change_payloads(changeset, 'route', routes.map { |e| make_change_route(e) })
+      create_change_payloads(changeset, 'route', routes.map { |e| make_change_route(e) })
     end
     if import_level >= 2
       @gtfs.trip_chunks(STOP_TIMES_MAX_LOAD) { |trips| create_change_ssps(changeset, trips) }
@@ -204,31 +204,13 @@ class GTFSGraph
       if ssps.size >= CHANGE_PAYLOAD_MAX_ENTITIES
         log  "    ssps: #{total} - #{total+ssps.size}"
         total += ssps.size
-        self.create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) })
+        create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) })
         ssps = []
       end
     end
     if ssps.size > 0
       log  "    ssps: #{total} - #{total+ssps.size}"
-      self.create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) })
-    end
-  end
-
-  def create_change_payloads(changeset, entity_type, entities)
-    # Operators
-    entities.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
-      changes = chunk.map do |entity|
-        change = {}
-        change['action'] = 'createUpdate'
-        change[entity_type] = entity
-        change
-      end
-      ChangePayload.create!(
-        changeset: changeset,
-        payload: {
-          changes: changes
-        }
-      )
+      create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) })
     end
   end
 
@@ -294,6 +276,24 @@ class GTFSGraph
   end
 
   ##### Create change payloads ######
+
+  def create_change_payloads(changeset, entity_type, entities)
+    # Operators
+    entities.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
+      changes = chunk.map do |entity|
+        change = {}
+        change['action'] = 'createUpdate'
+        change[entity_type] = entity
+        change
+      end
+      ChangePayload.create!(
+        changeset: changeset,
+        payload: {
+          changes: changes
+        }
+      )
+    end
+  end
 
   def make_change_operator(entity)
     {
