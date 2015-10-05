@@ -8,8 +8,8 @@ class GTFSGraph
     @feed = feed
     @gtfs = GTFS::Source.build(filename, {strict: false})
     @log = []
-    # GTFS entity to Transitland entity
-    @gtfs_tl = {}
+    # GTFS entity to Onestop ID
+    @gtfs_to_onestop_id = {}
     # TL Indexed by Onestop ID
     @onestop_id_to_entity = {}
   end
@@ -63,7 +63,7 @@ class GTFSGraph
       stops = @gtfs.children(entity)
         .map { |trip| @gtfs.children(trip) }
         .reduce(Set.new, :+)
-        .map { |stop| @gtfs_tl[stop] }
+        .map { |stop| find_by_gtfs_entity(stop) }
         .to_set
       # Skip Route if no Stops
       next if stops.empty?
@@ -103,7 +103,7 @@ class GTFSGraph
       # Find: (child gtfs routes) to (tl routes)
       #   note: .compact because some gtfs routes are skipped.
       routes = @gtfs.children(entity)
-        .map { |route| @gtfs_tl[route] }
+        .map { |route| find_by_gtfs_entity(route) }
         .compact
         .to_set
       # Find: (tl routes) to (serves tl stops)
@@ -134,19 +134,8 @@ class GTFSGraph
     operators
   end
 
-  def make_identifier_map
-    agency_map = {}
-    route_map = {}
-    stop_map = {}
-    @gtfs.agencies.each { |e| (agency_map[e.id] = @gtfs_tl[e].onestop_id) if @gtfs_tl[e]}
-    @gtfs.routes.each   { |e| (route_map[e.id]  = @gtfs_tl[e].onestop_id) if @gtfs_tl[e]}
-    @gtfs.stops.each    { |e| (stop_map[e.id]   = @gtfs_tl[e].onestop_id) if @gtfs_tl[e]}
-    [agency_map, route_map, stop_map]
-  end
-
   def ssp_schedule_async
-    agency_map, route_map, stop_map = self.make_identifier_map
-    @gtfs_tl.clear
+    agency_map, route_map, stop_map = make_gtfs_id_map
     @gtfs.trip_chunks(STOP_TIMES_MAX_LOAD) do |trips|
       trip_ids = trips.map(&:id)
       yield trip_ids, agency_map, route_map, stop_map
@@ -154,14 +143,15 @@ class GTFSGraph
   end
 
   def ssp_perform_async(trip_ids, agency_map, route_map, stop_map)
+    @gtfs_to_onestop_id.clear
     agency_map.each do |agency_id,onestop_id|
-      @gtfs_tl[@gtfs.agency(agency_id)] = Operator.find_by(onestop_id: onestop_id)
+      @gtfs_to_onestop_id[@gtfs.agency(agency_id)] = onestop_id
     end
     route_map.each do |route_id,onestop_id|
-      @gtfs_tl[@gtfs.route(route_id)] = Route.find_by(onestop_id: onestop_id)
+      @gtfs_to_onestop_id[@gtfs.route(route_id)] = onestop_id
     end
     stop_map.each do |stop_id,onestop_id|
-      @gtfs_tl[@gtfs.stop(stop_id)] = Stop.find_by(onestop_id: onestop_id)
+      @gtfs_to_onestop_id[@gtfs.stop(stop_id)] = onestop_id
     end
     trips = trip_ids.map { |trip_id| @gtfs.trip(trip_id) }
     changeset = Changeset.create()
@@ -246,7 +236,7 @@ class GTFSGraph
     @log.join("\n")
   end
 
-  ##### GTFS by ID #####
+  ##### Private methods #####
 
   private
 
@@ -261,8 +251,12 @@ class GTFSGraph
     end
   end
 
-  def make_entity_identifier(entity_type, entity)
-    OnestopId::create_identifier(
+  ##### Find TL Entities #####
+
+  def find_by_gtfs_entity(entity)
+    find_by_onestop_id(@gtfs_to_onestop_id[entity])
+  end
+
   def find_by_entity(entity)
     onestop_id = entity.onestop_id
     entity = @onestop_id_to_entity[onestop_id] || OnestopIdService.find(onestop_id) || entity
@@ -288,6 +282,15 @@ class GTFSGraph
     tl_entity.add_identifier(identifier)
     @gtfs_to_onestop_id[gtfs_entity] = tl_entity.onestop_id
   end
+
+  def make_gtfs_id_map
+    agency_map = {}
+    route_map = {}
+    stop_map = {}
+    @gtfs.agencies.each { |e| agency_map[e.id] = @gtfs_to_onestop_id[e]}
+    @gtfs.routes.each   { |e| route_map[e.id]  = @gtfs_to_onestop_id[e]}
+    @gtfs.stops.each    { |e| stop_map[e.id]   = @gtfs_to_onestop_id[e]}
+    [agency_map, route_map, stop_map]
   end
 
   ##### Create change payloads ######
@@ -363,9 +366,9 @@ class GTFSGraph
 
   def make_ssp(route, trip, origin, destination)
     # Generate an edge between an origin and destination for a given route/trip
-    route = @gtfs_tl[route]
-    origin_stop = @gtfs_tl[@gtfs.stop(origin.stop_id)]
-    destination_stop = @gtfs_tl[@gtfs.stop(destination.stop_id)]
+    route = find_by_gtfs_entity(route)
+    origin_stop = find_by_gtfs_entity(@gtfs.stop(origin.stop_id))
+    destination_stop = find_by_gtfs_entity(@gtfs.stop(destination.stop_id))
     service_period = @gtfs.service_period(trip.service_id)
     ScheduleStopPair.new(
       # Origin
