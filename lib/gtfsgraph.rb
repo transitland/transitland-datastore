@@ -140,6 +140,41 @@ class GTFSGraph
     operators
   end
 
+  def make_identifier_map
+    agency_map = {}
+    route_map = {}
+    stop_map = {}
+    @gtfs.agencies.each { |e| (agency_map[e.id] = @gtfs_tl[e].onestop_id) if @gtfs_tl[e]}
+    @gtfs.routes.each   { |e| (route_map[e.id]  = @gtfs_tl[e].onestop_id) if @gtfs_tl[e]}
+    @gtfs.stops.each    { |e| (stop_map[e.id]   = @gtfs_tl[e].onestop_id) if @gtfs_tl[e]}
+    [agency_map, route_map, stop_map]
+  end
+
+  def ssp_schedule_async
+    agency_map, route_map, stop_map = self.make_identifier_map
+    @gtfs_tl.clear
+    @gtfs.trip_chunks(STOP_TIMES_MAX_LOAD) do |trips|
+      trip_ids = trips.map(&:id)
+      yield trip_ids, agency_map, route_map, stop_map
+    end
+  end
+
+  def ssp_perform_async(trip_ids, agency_map, route_map, stop_map)
+    agency_map.each do |agency_id,onestop_id|
+      @gtfs_tl[@gtfs.agency(agency_id)] = Operator.find_by(onestop_id: onestop_id)
+    end
+    route_map.each do |route_id,onestop_id|
+      @gtfs_tl[@gtfs.route(route_id)] = Route.find_by(onestop_id: onestop_id)
+    end
+    stop_map.each do |stop_id,onestop_id|
+      @gtfs_tl[@gtfs.stop(stop_id)] = Stop.find_by(onestop_id: onestop_id)
+    end
+    trips = trip_ids.map { |trip_id| @gtfs.trip(trip_id) }
+    changeset = Changeset.create()
+    create_change_ssps(changeset, trips)
+    changeset.apply!
+  end
+
   def create_changeset(operators, import_level=0)
     raise ArgumentError.new('At least one operator required') if operators.empty?
     raise ArgumentError.new('import_level must be 0, 1, or 2.') unless (0..2).include?(import_level)
