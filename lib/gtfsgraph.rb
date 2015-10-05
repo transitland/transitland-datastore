@@ -194,37 +194,40 @@ class GTFSGraph
       self.create_change_payloads(changeset, 'route', routes.map { |e| make_change_route(e) })
     end
     if import_level >= 2
-      trip_counter = 0
-      ssp_counter = 0
-      @gtfs.trip_chunks(STOP_TIMES_MAX_LOAD) do |trip_chunk|
-        log "  trips: #{trip_counter} - #{trip_counter+trip_chunk.size}"
-        trip_counter += trip_chunk.size
-        ssp_chunk = []
-        @gtfs.trip_stop_times(trip_chunk) do |trip,stop_times|
-          log "    trip id: #{trip.trip_id}, stop_times: #{stop_times.size}"
-          route = @gtfs.route(trip.route_id)
-          # Create SSPs for all stop_time edges
-          ssp_trip = []
-          stop_times[0..-2].zip(stop_times[1..-1]).each do |origin,destination|
-            ssp_trip << make_ssp(route,trip,origin,destination)
-          end
-          # Interpolate stop_times
-          ScheduleStopPair.interpolate(ssp_trip)
-          # Add to chunk
-          ssp_chunk += ssp_trip
-        end
-        # Create changeset
-        ssp_chunk.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES) do |chunk|
-          log "    ssps: #{ssp_counter} - #{ssp_counter+ssp_chunk.size}"
-          ssp_counter += ssp_chunk.size
-          self.create_change_payloads(changeset, 'scheduleStopPair', chunk.map { |e| make_change_ssp(e) })
-        end
-      end
+      @gtfs.trip_chunks(STOP_TIMES_MAX_LOAD) { |trips| create_change_ssps(changeset, trips) }
     end
     # Apply changeset
     log "  changeset apply"
     changeset.apply!
     log "  changeset apply done"
+  end
+
+  def create_change_ssps(changeset, trips)
+    total = 0
+    ssps = []
+    @gtfs.trip_stop_times(trips) do |trip,stop_times|
+      log "    trip id: #{trip.trip_id}, stop_times: #{stop_times.size}"
+      route = @gtfs.route(trip.route_id)
+      # Create SSPs for all stop_time edges
+      ssp_trip = []
+      stop_times[0..-2].zip(stop_times[1..-1]).each do |origin,destination|
+        ssp_trip << make_ssp(route, trip, origin, destination)
+      end
+      # Interpolate stop_times
+      ScheduleStopPair.interpolate(ssp_trip)
+      # Add to chunk
+      ssps += ssp_trip
+      if ssps.size >= CHANGE_PAYLOAD_MAX_ENTITIES
+        log  "    ssps: #{total} - #{total+ssps.size}"
+        total += ssps.size
+        self.create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) })
+        ssps = []
+      end
+    end
+    if ssps.size > 0
+      log  "    ssps: #{total} - #{total+ssps.size}"
+      self.create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) })
+    end
   end
 
   def create_change_payloads(changeset, entity_type, entities)
