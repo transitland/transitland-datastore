@@ -43,7 +43,7 @@ class GTFSGraph
       stop = Stop.find_by(onestop_id: stop.onestop_id) || @tl_by_onestop_id[stop.onestop_id] || stop
       # Add identifiers and references
       ([station]+platforms).each do |e|
-        stop.add_identifier(feed_onestop_id:@feed.onestop_id, entity_id:e.id)
+        stop.add_identifier(make_entity_identifier('s', e))
         @gtfs_tl[e] = stop
       end
       # Cache stop
@@ -88,7 +88,7 @@ class GTFSGraph
       # Add references and identifiers
       route.serves ||= Set.new
       route.serves |= stops
-      route.add_identifier(feed_onestop_id:@feed.onestop_id, entity_id:entity.id)
+      route.add_identifier(make_entity_identifier('r', entity))
       @gtfs_tl[entity] = route
       # Cache route
       @tl_by_onestop_id[route.onestop_id] = route
@@ -128,7 +128,7 @@ class GTFSGraph
       routes.each { |route| route.operator = operator }
       operator.serves ||= Set.new
       operator.serves |= routes
-      operator.add_identifier(feed_onestop_id:@feed.onestop_id, entity_id:entity.id)
+      operator.add_identifier(make_entity_identifier('a', entity))
       @gtfs_tl[entity] = operator
       # Cache Operator
       @tl_by_onestop_id[operator.onestop_id] = operator
@@ -229,6 +229,14 @@ class GTFSGraph
     else
       puts msg
     end
+  end
+
+  def make_entity_identifier(entity_type, entity)
+    OnestopId::create_identifier(
+      @feed.onestop_id,
+      entity_type,
+      entity.id
+    )
   end
 
   ##### Create change payloads ######
