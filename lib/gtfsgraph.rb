@@ -235,9 +235,7 @@ class GTFSGraph
 
   def create_change_payloads(changeset, entity_type, entities)
     # Operators
-    counter = 0
     entities.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
-      counter += chunk.size
       changes = chunk.map do |entity|
         change = {}
         change['action'] = 'createUpdate'
