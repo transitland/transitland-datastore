@@ -14,9 +14,12 @@ class GTFSGraph
     @tl_by_onestop_id = {}
   end
 
-  def load_tl
+  def load_gtfs
     log "Load GTFS"
     @gtfs.load_graph
+  end
+
+  def load_tl
     log "Load TL"
     self.load_tl_stops
     self.load_tl_routes
@@ -393,7 +396,13 @@ if __FILE__ == $0
   filename = "tmp/transitland-feed-data/#{feedid}.zip"
   import_level = (ARGV[1] || 1).to_i
   feed = Feed.find_by!(onestop_id: feedid)
+  feed.fetch_and_check_for_updated_version
   graph = GTFSGraph.new(filename, feed)
+  graph.load_gtfs
   operators = graph.load_tl
   graph.create_changeset(operators, import_level=import_level)
+  graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map|
+    graph.ssp_perform_async(trip_ids, agency_map, route_map, stop_map)
+    # FeedEaterScheduleWorker.perform_async(feed.onestop_id, trip_ids, agency_map, route_map, stop_map)
+  end
 end
