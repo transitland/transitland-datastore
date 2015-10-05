@@ -45,10 +45,7 @@ class GTFSGraph
       # ... check if Stop exists, or another local Stop, or new.
       stop = find_by_entity(stop)
       # Add identifiers and references
-      ([station]+platforms).each do |e|
-        stop.add_identifier(make_entity_identifier('s', e))
-        @gtfs_tl[e] = stop
-      end
+      ([station]+platforms).each { |e| add_identifier(stop, 's', e) }
       # Cache stop
       if score
         log "    #{stop.onestop_id}: #{stop.name} (search: #{station.name} = #{'%0.2f'%score.to_f})"
@@ -90,8 +87,7 @@ class GTFSGraph
       # Add references and identifiers
       route.serves ||= Set.new
       route.serves |= stops
-      route.add_identifier(make_entity_identifier('r', entity))
-      @gtfs_tl[entity] = route
+      add_identifier(route, 'r', entity)
       log "    #{route.onestop_id}: #{route.name}"
     end
   end
@@ -128,8 +124,7 @@ class GTFSGraph
       routes.each { |route| route.operator = operator }
       operator.serves ||= Set.new
       operator.serves |= routes
-      operator.add_identifier(make_entity_identifier('a', entity))
-      @gtfs_tl[entity] = operator
+      add_identifier(operator, 'o', entity)
       # Cache Operator
       # Add to found operators
       operators << operator
@@ -282,10 +277,17 @@ class GTFSGraph
     entity
   end
 
+  ##### Identifiers #####
+
+  def add_identifier(tl_entity, prefix, gtfs_entity)
+    identifier = OnestopId::create_identifier(
       @feed.onestop_id,
-      entity_type,
-      entity.id
+      prefix,
+      gtfs_entity.id
     )
+    tl_entity.add_identifier(identifier)
+    @gtfs_to_onestop_id[gtfs_entity] = tl_entity.onestop_id
+  end
   end
 
   ##### Create change payloads ######
