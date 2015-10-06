@@ -411,16 +411,16 @@ end
 
 if __FILE__ == $0
   # ActiveRecord::Base.logger = Logger.new(STDOUT)
-  feedid = ARGV[0] || 'f-9q9-caltrain'
-  filename = "tmp/transitland-feed-data/#{feedid}.zip"
+  feed_onestop_id = ARGV[0] || 'f-9q9-caltrain'
+  filename = "tmp/transitland-feed-data/#{feed_onestop_id}.zip"
   import_level = (ARGV[1] || 1).to_i
-  feed = Feed.find_by!(onestop_id: feedid)
-  feed.fetch_and_check_for_updated_version
-  graph = GTFSGraph.new(filename, feed)
+  # FeedEaterFeedWorker.new.perform(feed_onestop_id, import_level)
+  feed = Feed.find_by!(onestop_id: feed_onestop_id)
+  graph = GTFSGraph.new(feed.file_path, feed)
   graph.create_change_osr(import_level)
-  graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map|
-    # graph.ssp_perform_async(trip_ids, agency_map, route_map, stop_map)
-    # FeedEaterScheduleWorker.perform_async(feed.onestop_id, trip_ids, agency_map, route_map, stop_map)
-    FeedEaterScheduleWorker.new.perform(feed.onestop_id, trip_ids, agency_map, route_map, stop_map)
+  if import_level >= 2
+    graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map|
+      graph.ssp_perform_async(trip_ids, agency_map, route_map, stop_map)
+    end
   end
 end
