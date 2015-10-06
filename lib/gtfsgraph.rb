@@ -139,7 +139,7 @@ class GTFSGraph
       ([station]+platforms).each { |e| add_identifier(stop, 's', e) }
       # Cache stop
       if score
-        log "    #{stop.onestop_id}: #{stop.name} (search: #{station.name} = #{'%0.2f'%score.to_f})"
+        log "    #{stop.onestop_id}: #{stop.name} (search: #{station.stop_name} = #{'%0.2f'%score.to_f})"
       else
         log "    #{stop.onestop_id}: #{stop.name}"
       end
