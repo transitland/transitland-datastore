@@ -5,6 +5,11 @@ def load_feed(import_level=1)
   feed = create(:feed_caltrain)
   graph = GTFSGraph.new(File.join(Rails.root, path), feed)
   graph.create_change_osr(import_level)
+  if import_level >= 2
+    graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map|
+      graph.ssp_perform_async(trip_ids, agency_map, route_map, stop_map)
+    end
+  end
   feed
 end
 

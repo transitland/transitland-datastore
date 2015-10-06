@@ -40,6 +40,11 @@ class FeedEaterFeedWorker < FeedEaterWorker
     begin
       graph = GTFSGraph.new(feed.file_path, feed)
       graph.create_change_osr(import_level)
+      if import_level >= 2
+        graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map|
+          FeedEaterScheduleWorker.perform_async(feed.onestop_id, trip_ids, agency_map, route_map, stop_map)
+        end
+      end
     rescue Exception => e
       # NOTE: we're catching all exceptions, including Interrupt,
       #   SignalException, and SyntaxError
