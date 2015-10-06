@@ -32,7 +32,7 @@
             "licenseUrl": "http://www.panynj.gov/path/developers.html",
             "licenseUseWithoutAttribution": "yes",
             "licenseCreateDerivedProduct": "yes",
-            "licenseRedistribute": "no",
+            "licenseRedistribute": "unknown",
             "includesOperators": [
               {
                 "gtfsAgencyId": "151",

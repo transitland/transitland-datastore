@@ -26,7 +26,7 @@
           "feed": {
             "onestopId": "f-9q9-bart",
             "url": "http://www.bart.gov/dev/schedules/google_transit.zip",
-            "licenseUrl": "http://www.bart.gov/schedules/developers/developer--agreement",
+            "licenseUrl": "http://www.bart.gov/schedules/developers/developer-license-agreement",
             "licenseUseWithoutAttribution": "yes",
             "licenseCreateDerivedProduct": "unknown",
             "licenseRedistribute": "yes",

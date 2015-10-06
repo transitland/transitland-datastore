@@ -28,7 +28,7 @@
             "url": "http://www.actransit.org/wp-content/uploads/gtfsdec072014b.zip",
             "licenseName": "Creative Commons Attribution 3.0 Unported License",
             "licenseUrl": "http://www.actransit.org/data-terms-and-conditions/",
-            "licenseUseWithoutAttribution": "yes",
+            "licenseUseWithoutAttribution": "no",
             "licenseCreateDerivedProduct": "yes",
             "licenseRedistribute": "yes",
             "includesOperators": [
