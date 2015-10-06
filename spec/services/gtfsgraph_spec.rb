@@ -6,7 +6,7 @@ def load_feed(import_level=1)
   graph = GTFSGraph.new(File.join(Rails.root, path), feed)
   graph.load_gtfs
   operators = graph.load_tl
-  graph.create_changeset(operators, import_level)
+  graph.create_change_osr(operators, import_level)
   feed
 end
 

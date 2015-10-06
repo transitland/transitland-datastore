@@ -41,7 +41,7 @@ class FeedEaterFeedWorker < FeedEaterWorker
       graph = GTFSGraph.new(feed.file_path, feed)
       graph.load_gtfs
       operators = graph.load_tl
-      graph.create_changeset(operators, import_level)
+      graph.create_change_osr(operators, import_level)
     rescue Exception => e
       # NOTE: we're catching all exceptions, including Interrupt,
       #   SignalException, and SyntaxError

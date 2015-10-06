@@ -53,7 +53,7 @@ class GTFSGraph
     changeset.apply!
   end
 
-  def create_changeset(operators, import_level=0)
+  def create_change_osr(operators, import_level=0)
     raise ArgumentError.new('At least one operator required') if operators.nil? || operators.empty?
     raise ArgumentError.new('import_level must be 0, 1, or 2.') unless (0..2).include?(import_level)
     log "Create Changeset"
@@ -421,7 +421,7 @@ if __FILE__ == $0
   graph = GTFSGraph.new(filename, feed)
   graph.load_gtfs
   operators = graph.load_tl
-  graph.create_changeset(operators, import_level=import_level)
+  graph.create_change_osr(operators, import_level=import_level)
   graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map|
     graph.ssp_perform_async(trip_ids, agency_map, route_map, stop_map)
     # FeedEaterScheduleWorker.perform_async(feed.onestop_id, trip_ids, agency_map, route_map, stop_map)
