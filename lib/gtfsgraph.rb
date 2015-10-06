@@ -21,10 +21,117 @@ class GTFSGraph
 
   def load_tl
     log "Load TL"
-    self.load_tl_stops
-    self.load_tl_routes
-    self.load_tl_operators
+    load_tl_stops
+    load_tl_routes
+    load_tl_operators
   end
+
+  def ssp_schedule_async
+    agency_map, route_map, stop_map = make_gtfs_id_map
+    @gtfs.trip_chunks(STOP_TIMES_MAX_LOAD) do |trips|
+      trip_ids = trips.map(&:id)
+      yield trip_ids, agency_map, route_map, stop_map
+    end
+  end
+
+  def ssp_perform_async(trip_ids, agency_map, route_map, stop_map)
+    @gtfs_to_onestop_id.clear
+    # Populate GTFS entity to Onestop ID maps
+    agency_map.each do |agency_id,onestop_id|
+      @gtfs_to_onestop_id[@gtfs.agency(agency_id)] = onestop_id
+    end
+    route_map.each do |route_id,onestop_id|
+      @gtfs_to_onestop_id[@gtfs.route(route_id)] = onestop_id
+    end
+    stop_map.each do |stop_id,onestop_id|
+      @gtfs_to_onestop_id[@gtfs.stop(stop_id)] = onestop_id
+    end
+    # Create SSPs
+    trips = trip_ids.map { |trip_id| @gtfs.trip(trip_id) }
+    changeset = Changeset.create()
+    create_change_ssps(changeset, trips)
+    changeset.apply!
+  end
+
+  def create_changeset(operators, import_level=0)
+    raise ArgumentError.new('At least one operator required') if operators.nil? || operators.empty?
+    raise ArgumentError.new('import_level must be 0, 1, or 2.') unless (0..2).include?(import_level)
+    log "Create Changeset"
+    operators = operators
+    routes = operators.map { |operator| operator.serves }.reduce(Set.new, :+)
+    stops = routes.map { |route| route.serves }.reduce(Set.new, :+)
+    changeset = Changeset.create()
+    if import_level >= 0
+      log "  operators: #{operators.size}"
+      create_change_payloads(changeset, 'operator', operators.map { |e| make_change_operator(e) })
+    end
+    if import_level >= 1
+      log "  stops: #{stops.size}"
+      create_change_payloads(changeset, 'stop', stops.map { |e| make_change_stop(e) })
+      log "  routes: #{routes.size}"
+      create_change_payloads(changeset, 'route', routes.map { |e| make_change_route(e) })
+    end
+    if import_level >= 2
+      @gtfs.trip_chunks(STOP_TIMES_MAX_LOAD) { |trips| create_change_ssps(changeset, trips) }
+    end
+    # Apply changeset
+    log "  changeset apply"
+    changeset.apply!
+    log "  changeset apply done"
+  end
+
+  def create_change_ssps(changeset, trips)
+    total = 0
+    ssps = []
+    @gtfs.trip_stop_times(trips) do |trip,stop_times|
+      log "    trip id: #{trip.trip_id}, stop_times: #{stop_times.size}"
+      route = @gtfs.route(trip.route_id)
+      # Create SSPs for all stop_time edges
+      ssp_trip = []
+      stop_times[0..-2].zip(stop_times[1..-1]).each do |origin,destination|
+        ssp_trip << make_ssp(route, trip, origin, destination)
+      end
+      # Interpolate stop_times
+      ScheduleStopPair.interpolate(ssp_trip)
+      # Add to chunk
+      ssps += ssp_trip
+      # If chunk is big enough, create change payloads.
+      if ssps.size >= CHANGE_PAYLOAD_MAX_ENTITIES
+        log  "    ssps: #{total} - #{total+ssps.size}"
+        total += ssps.size
+        create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) })
+        ssps = []
+      end
+    end
+    # Create any remaining change payloads.
+    if ssps.size > 0
+      log  "    ssps: #{total} - #{total+ssps.size}"
+      create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) })
+    end
+  end
+
+  def import_log
+    @log.join("\n")
+  end
+
+  ##### Private methods #####
+
+  private
+
+  ##### Logging #####
+
+  def log(msg)
+    @log << msg
+    if Sidekiq::Logging.logger
+      Sidekiq::Logging.logger.info msg
+    elsif Rails.logger
+      Rails.logger.info msg
+    else
+      puts msg
+    end
+  end
+
+  ##### Create TL Entities #####
 
   def load_tl_stops
     # Merge child stations into parents.
@@ -132,107 +239,6 @@ class GTFSGraph
     end
     # Return operators
     operators
-  end
-
-  def ssp_schedule_async
-    agency_map, route_map, stop_map = make_gtfs_id_map
-    @gtfs.trip_chunks(STOP_TIMES_MAX_LOAD) do |trips|
-      trip_ids = trips.map(&:id)
-      yield trip_ids, agency_map, route_map, stop_map
-    end
-  end
-
-  def ssp_perform_async(trip_ids, agency_map, route_map, stop_map)
-    @gtfs_to_onestop_id.clear
-    # Populate GTFS entity to Onestop ID maps
-    agency_map.each do |agency_id,onestop_id|
-      @gtfs_to_onestop_id[@gtfs.agency(agency_id)] = onestop_id
-    end
-    route_map.each do |route_id,onestop_id|
-      @gtfs_to_onestop_id[@gtfs.route(route_id)] = onestop_id
-    end
-    stop_map.each do |stop_id,onestop_id|
-      @gtfs_to_onestop_id[@gtfs.stop(stop_id)] = onestop_id
-    end
-    # Create SSPs
-    trips = trip_ids.map { |trip_id| @gtfs.trip(trip_id) }
-    changeset = Changeset.create()
-    create_change_ssps(changeset, trips)
-    changeset.apply!
-  end
-
-  def create_changeset(operators, import_level=0)
-    raise ArgumentError.new('At least one operator required') if operators.nil? || operators.empty?
-    raise ArgumentError.new('import_level must be 0, 1, or 2.') unless (0..2).include?(import_level)
-    log "Create Changeset"
-    operators = operators
-    routes = operators.map { |operator| operator.serves }.reduce(Set.new, :+)
-    stops = routes.map { |route| route.serves }.reduce(Set.new, :+)
-    changeset = Changeset.create()
-    if import_level >= 0
-      log "  operators: #{operators.size}"
-      create_change_payloads(changeset, 'operator', operators.map { |e| make_change_operator(e) })
-    end
-    if import_level >= 1
-      log "  stops: #{stops.size}"
-      create_change_payloads(changeset, 'stop', stops.map { |e| make_change_stop(e) })
-      log "  routes: #{routes.size}"
-      create_change_payloads(changeset, 'route', routes.map { |e| make_change_route(e) })
-    end
-    if import_level >= 2
-      @gtfs.trip_chunks(STOP_TIMES_MAX_LOAD) { |trips| create_change_ssps(changeset, trips) }
-    end
-    # Apply changeset
-    log "  changeset apply"
-    changeset.apply!
-    log "  changeset apply done"
-  end
-
-  def create_change_ssps(changeset, trips)
-    total = 0
-    ssps = []
-    @gtfs.trip_stop_times(trips) do |trip,stop_times|
-      log "    trip id: #{trip.trip_id}, stop_times: #{stop_times.size}"
-      route = @gtfs.route(trip.route_id)
-      # Create SSPs for all stop_time edges
-      ssp_trip = []
-      stop_times[0..-2].zip(stop_times[1..-1]).each do |origin,destination|
-        ssp_trip << make_ssp(route, trip, origin, destination)
-      end
-      # Interpolate stop_times
-      ScheduleStopPair.interpolate(ssp_trip)
-      # Add to chunk
-      ssps += ssp_trip
-      if ssps.size >= CHANGE_PAYLOAD_MAX_ENTITIES
-        log  "    ssps: #{total} - #{total+ssps.size}"
-        total += ssps.size
-        create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) })
-        ssps = []
-      end
-    end
-    if ssps.size > 0
-      log  "    ssps: #{total} - #{total+ssps.size}"
-      create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) })
-    end
-  end
-
-  def import_log
-    @log.join("\n")
-  end
-
-  ##### Private methods #####
-
-  private
-
-  def log(msg)
-    @log << msg
-    if Sidekiq::Logging.logger
-      Sidekiq::Logging.logger.info msg
-    elsif Rails.logger
-      Rails.logger.info msg
-    else
-      puts msg
-    end
   end
 
   ##### Find TL Entities #####
