@@ -60,9 +60,6 @@ class GTFSGraph
       log "  routes: #{routes.size}"
       create_change_payloads(changeset, 'route', routes.map { |e| make_change_route(e) })
     end
-    if import_level >= 2
-      @gtfs.trip_chunks(STOP_TIMES_MAX_LOAD) { |trips| create_change_ssps(changeset, trips) }
-    end
     # Apply changeset
     log "  changeset apply"
     changeset.apply!
