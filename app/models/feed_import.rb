@@ -22,6 +22,7 @@ class FeedImport < ActiveRecord::Base
   PER_PAGE = 1
 
   belongs_to :feed
+  has_many :feed_schedule_imports
 
   validates :feed, presence: true
 end

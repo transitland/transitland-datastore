@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150930002948) do
+ActiveRecord::Schema.define(version: 20151007004337) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -234,6 +234,17 @@ ActiveRecord::Schema.define(version: 20150930002948) do
   add_index "feed_imports", ["created_at"], name: "index_feed_imports_on_created_at", using: :btree
   add_index "feed_imports", ["feed_id"], name: "index_feed_imports_on_feed_id", using: :btree
 
+  create_table "feed_schedule_imports", force: :cascade do |t|
+    t.boolean  "success"
+    t.text     "import_log"
+    t.text     "exception_log"
+    t.integer  "feed_import_id"
+    t.datetime "created_at",     null: false
+    t.datetime "updated_at",     null: false
+  end
+
+  add_index "feed_schedule_imports", ["feed_import_id"], name: "index_feed_schedule_imports_on_feed_import_id", using: :btree
+
   create_table "old_feeds", force: :cascade do |t|
     t.string    "onestop_id"
     t.string    "url"
@@ -441,4 +452,5 @@ ActiveRecord::Schema.define(version: 20150930002948) do
   add_index "old_stops", ["identifiers"], name: "index_old_stops_on_identifiers", using: :gin
 
   add_foreign_key "change_payloads", "changesets"
+  add_foreign_key "feed_schedule_imports", "feed_imports"
 end
