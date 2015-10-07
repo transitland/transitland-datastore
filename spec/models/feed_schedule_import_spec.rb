@@ -15,8 +15,6 @@
 #  index_feed_schedule_imports_on_feed_import_id  (feed_import_id)
 #
 
-require 'rails_helper'
-
 RSpec.describe FeedScheduleImport, type: :model do
   pending "add some examples to (or delete) #{__FILE__}"
 end
