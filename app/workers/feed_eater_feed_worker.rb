@@ -42,7 +42,7 @@ class FeedEaterFeedWorker < FeedEaterWorker
       graph.create_change_osr(import_level)
       if import_level >= 2
         graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map|
-          FeedEaterScheduleWorker.perform_async(feed.onestop_id, trip_ids, agency_map, route_map, stop_map)
+          FeedEaterScheduleWorker.perform_async(feed.onestop_id, feed_import.id, trip_ids, agency_map, route_map, stop_map)
         end
       end
     rescue Exception => e
