@@ -54,7 +54,7 @@ describe TyrService do
       expect(response).to eq [
         {
           input_lon: -122.413605,
-          node: null,
+          node: nil,
           edges: [
           {
              way_id: 8917801,
@@ -74,7 +74,7 @@ describe TyrService do
           input_lat: 37.775692
         },{
           input_lon: -73.990471,
-          node: null,
+          node: nil,
           edges: [
           {
              way_id: 5671311,
