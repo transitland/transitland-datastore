@@ -4,7 +4,7 @@ class CreateFeedScheduleImports < ActiveRecord::Migration
       t.boolean :success
       t.text :import_log
       t.text :exception_log
-      t.references :feed_import, index: true, foreign_key: true
+      t.references :feed_import, index: true
 
       t.timestamps null: false
     end
