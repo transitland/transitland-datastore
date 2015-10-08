@@ -22,6 +22,7 @@ module DatastoreAdmin
                  current_schedule_stop_pairs,
                  old_schedule_stop_pairs,
                  feed_imports,
+                 feed_schedule_imports,
                  entities_imported_from_feed,
                  old_feeds,
                  old_operators_in_feed,
@@ -42,6 +43,7 @@ module DatastoreAdmin
         ALTER SEQUENCE current_stops_id_seq RESTART;
         ALTER SEQUENCE current_schedule_stop_pairs_id_seq RESTART;
         ALTER SEQUENCE feed_imports_id_seq RESTART;
+        ALTER SEQUENCE feed_schedule_imports_id_seq RESTART;
         ALTER SEQUENCE entities_imported_from_feed_id_seq RESTART;
         ALTER SEQUENCE old_feeds_id_seq RESTART;
         ALTER SEQUENCE old_operators_in_feed_id_seq RESTART;

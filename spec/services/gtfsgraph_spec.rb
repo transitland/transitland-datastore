@@ -4,8 +4,12 @@ def load_feed(import_level=1)
   path = 'spec/support/example_gtfs_archives/f-9q9-caltrain.zip'
   feed = create(:feed_caltrain)
   graph = GTFSGraph.new(File.join(Rails.root, path), feed)
-  operators = graph.load_tl
-  graph.create_changeset(operators, import_level)
+  graph.create_change_osr(import_level)
+  if import_level >= 2
+    graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map|
+      graph.ssp_perform_async(trip_ids, agency_map, route_map, stop_map)
+    end
+  end
   feed
 end
 

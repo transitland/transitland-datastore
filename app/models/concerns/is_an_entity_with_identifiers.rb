@@ -14,18 +14,24 @@ module IsAnEntityWithIdentifiers
     end
   end
 
+  def add_identifier(identifier)
+    self.identified_by ||= []
+    self.identified_by << identifier
+  end
+
+  def remove_identifier(identifier)
+    self.not_identified_by ||= []
+    self.not_identified_by << identifier
+  end
+
   def before_update_making_history(changeset)
     current_identifiers = self.identifiers.try(:dup) || []
     identifiers_to_add = self.try(:identified_by) || []
     identifiers_to_remove = self.try(:not_identified_by) || []
-
     current_identifiers += identifiers_to_add if identifiers_to_add.length > 0
     current_identifiers -= identifiers_to_remove if identifiers_to_remove.length > 0
-
     current_identifiers.uniq!
-
     self.identifiers = current_identifiers
-
     true
   end
 end

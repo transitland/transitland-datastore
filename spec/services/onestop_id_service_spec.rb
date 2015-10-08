@@ -25,4 +25,13 @@ describe OnestopIdService do
       }.to raise_error ActiveRecord::RecordNotFound
     end
   end
+
+  context 'find' do
+    it 'returns nil when nothing found with that OnestopID' do
+      expect(OnestopIdService.find('s-b3-FakeSt')).to be_nil
+    end
+  end
+
+
+
 end

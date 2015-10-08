@@ -18,24 +18,9 @@
 #  index_feed_imports_on_feed_id     (feed_id)
 #
 
-class FeedImportSerializer < ApplicationSerializer
-  attributes :feed_onestop_id,
-             :feed_url,
-             :success,
-             :sha1,
-             :import_log,
-             :exception_log,
-             :validation_report,
-             :created_at,
-             :updated_at
-
-  has_many :feed_schedule_imports
-
-  def feed_onestop_id
-    object.feed.onestop_id
-  end
-
-  def feed_url
-    api_v1_feed_url(object.feed.onestop_id)
+FactoryGirl.define do
+  factory :feed_import do
+    feed
+    sha1 "deadbeef"
   end
 end

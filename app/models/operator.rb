@@ -132,7 +132,6 @@ class Operator < BaseOperator
     operator = Operator.new(
       name: name,
       onestop_id: onestop_id.to_s,
-      identifiers: [entity.id]
     )
     operator[:geometry] = geometry
     # Copy over GTFS attributes to tags

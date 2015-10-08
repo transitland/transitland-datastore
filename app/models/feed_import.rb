@@ -22,6 +22,23 @@ class FeedImport < ActiveRecord::Base
   PER_PAGE = 1
 
   belongs_to :feed
+  has_many :feed_schedule_imports, dependent: :destroy
 
   validates :feed, presence: true
+
+  def failed(exception_log)
+    self.update(
+      success: false,
+      exception_log: exception_log
+    )
+  end
+
+  def succeeded
+    self.update(success: true)
+    self.feed.update(
+      last_fetched_at: self.created_at,
+      last_imported_at: self.updated_at,
+      last_sha1: self.sha1
+    )
+  end
 end

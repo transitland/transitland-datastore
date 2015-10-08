@@ -144,7 +144,6 @@ class Route < BaseRoute
     route = Route.new(
       name: name,
       onestop_id: onestop_id.to_s,
-      identifiers: [entity.id],
       # geometry:
     )
     # Copy over GTFS attributes to tags
