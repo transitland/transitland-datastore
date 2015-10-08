@@ -31,10 +31,13 @@
 #  bikes_allowed                      :integer
 #  pickup_type                        :integer
 #  drop_off_type                      :integer
-#  timepoint                          :integer
 #  shape_dist_traveled                :float
 #  origin_timezone                    :string
 #  destination_timezone               :string
+#  window_start                       :string
+#  window_end                         :string
+#  origin_timepoint_source            :string
+#  destination_timepoint_source       :string
 #
 # Indexes
 #
@@ -52,7 +55,7 @@ RSpec.describe ScheduleStopPair, type: :model do
   let(:stop1) {create(:stop)}
   let(:stop2) {create(:stop)}
   let(:route) {create(:route)}
-  
+
   context 'has stops' do
     it 'has two stops' do
       ssp = create(:schedule_stop_pair)
@@ -79,7 +82,7 @@ RSpec.describe ScheduleStopPair, type: :model do
       expect(destination.stops_in).to match_array([origin])
       expect(destination.stops_out).to be_empty
     end
-  
+
     it 'allows many stop-stop through associations' do
       ssp1 = create(:schedule_stop_pair, origin: stop1, destination: stop2)
       ssp2 = create(:schedule_stop_pair, origin: stop1, destination: stop2)
@@ -87,7 +90,7 @@ RSpec.describe ScheduleStopPair, type: :model do
       expect(stop2.trips_in).to match_array([ssp1, ssp2])
     end
   end
-  
+
   context 'changeset' do
     it 'has a changeset' do
       ssp = create(:schedule_stop_pair)
@@ -108,7 +111,7 @@ RSpec.describe ScheduleStopPair, type: :model do
             schedule_stop_pair: ssp_attr
           }
         ]
-      }    
+      }
       changeset = create(:changeset)
       changeset.append(payload)
       changeset.apply!
@@ -134,7 +137,7 @@ RSpec.describe ScheduleStopPair, type: :model do
       expect(ScheduleStopPair.where_service_on_date(expect_service).count).to eq(1)
       expect(ScheduleStopPair.where_service_on_date(expect_none).count).to eq(0)
     end
-    
+
     it 'where service from date' do
       expect_start = Date.new(2013, 01, 01)
       expect_end0 = Date.new(2014, 01, 01)
@@ -147,7 +150,7 @@ RSpec.describe ScheduleStopPair, type: :model do
       expect(ScheduleStopPair.where_service_from_date(expect_end1).count).to eq(1)
       expect(ScheduleStopPair.where_service_from_date(expect_end2).count).to eq(0)
     end
-    
+
   end
 
   context 'service dates' do
@@ -159,9 +162,9 @@ RSpec.describe ScheduleStopPair, type: :model do
     it 'must have service_end_date' do
       ssp = build(:schedule_stop_pair, service_end_date: nil, service_added_dates: [], service_except_dates: [])
       ssp.service_end_date = nil
-      expect(ssp.valid?).to be false      
+      expect(ssp.valid?).to be false
     end
-    
+
     it 'may set service range from service_added_dates and service_except_dates' do
       expect_start = Date.new(2015, 01, 01)
       expect_end = Date.new(2016, 01, 01)
@@ -182,18 +185,71 @@ RSpec.describe ScheduleStopPair, type: :model do
       expect(ssp.service_on_date?(expect_none)).to be false
     end
 
-    it 'service exceptions must be in service range' do
+    it 'service exceptions outside service_range will be filtered' do
       expect_start = Date.new(2015, 01, 01)
       expect_end = Date.new(2016, 01, 01)
-      expect_fail = Date.new(2020, 01, 01)
-      ssp = build(:schedule_stop_pair, service_start_date: expect_start, service_end_date: expect_end)
-      expect(ssp.valid?).to be true    
-      ssp.service_added_dates = [expect_fail]
-      ssp.service_except_dates = []
-      expect(ssp.valid?).to be false
-      ssp.service_added_dates = []
-      ssp.service_except_dates = [expect_fail]
-      expect(ssp.valid?).to be false
+      expect_unfiltered = Date.new(2015, 06, 01)
+      expect_filtered = Date.new(2020, 01, 01)
+      # Added
+      ssp = build(
+        :schedule_stop_pair,
+        service_start_date: expect_start,
+        service_end_date: expect_end,
+        service_added_dates: [expect_unfiltered, expect_filtered],
+        service_except_dates: [expect_unfiltered, expect_filtered]
+      )
+      expect(ssp.valid?).to be true
+      expect(ssp.service_added_dates).to match_array([expect_unfiltered])
+      expect(ssp.service_except_dates).to match_array([expect_unfiltered])
     end
-  end  
+  end
+
+  context 'ssp interpolation' do
+    it 'raises unknown interpolation method' do
+      expect { ScheduleStopPair.interpolate([], :unknown) }.to raise_error(ArgumentError)
+    end
+
+    it 'linear interpolation' do
+      ssps = []
+      ssps << build(
+        :schedule_stop_pair,
+        origin_arrival_time: '10:00:00',
+        origin_departure_time: '10:10:00',
+        destination_arrival_time: nil,
+        destination_departure_time: nil
+      )
+      3.times.each do |i|
+        ssps << build(
+          :schedule_stop_pair,
+          origin_arrival_time: nil,
+          origin_departure_time: nil,
+          destination_arrival_time: nil,
+          destination_departure_time: nil
+        )
+      end
+      ssps << build(
+        :schedule_stop_pair,
+        origin_arrival_time: nil,
+        origin_departure_time: nil,
+        destination_arrival_time: '10:40:00',
+        destination_departure_time: '10:50:00'
+      )
+      ScheduleStopPair.interpolate(ssps, :linear)
+      expect(ssps[0].destination_arrival_time).to eq('10:16:00')
+      expect(ssps[1].origin_departure_time).to eq('10:16:00')
+      expect(ssps[1].destination_arrival_time).to eq('10:22:00')
+      expect(ssps[2].origin_departure_time).to eq('10:22:00')
+      expect(ssps[2].destination_arrival_time).to eq('10:28:00')
+      expect(ssps[3].origin_arrival_time).to eq('10:28:00')
+      expect(ssps[3].destination_arrival_time).to eq('10:34:00')
+      expect(ssps[4].origin_departure_time).to eq('10:34:00')
+      # Check window
+      expect(ssps[1].window_start).to eq(ssps[0].origin_departure_time)
+      expect(ssps[1].window_end).to eq(ssps[4].destination_arrival_time)
+      # Check interpolation method
+      expect(ssps[0].origin_timepoint_source).to eq('gtfs_exact')
+      expect(ssps[0].destination_timepoint_source).to eq('transitland_interpolated_linear')
+      expect(ssps[4].destination_timepoint_source).to eq('gtfs_exact')
+    end
+  end
 end

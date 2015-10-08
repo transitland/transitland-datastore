@@ -1,0 +1,46 @@
+{
+  "changeset": {
+    "whenToApply": "instantlyIfClean",
+    "payload": {
+      "changes": [
+        {
+          "action": "createUpdate",
+          "operator": {
+            "onestopId": "o-9q9-actransit",
+            "name": "Alameda-Contra Costa Transit District",
+            "short_name": "AC Transit",
+            "identifiedBy": ["usntd://9014"],
+            "country": "United States",
+            "state": "California",
+            "metro": "San Francisco Bay Area",
+            "timezone": "America/Los_Angeles",
+            "website": "http://www.actransit.org/",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [[[-122.421947,37.772829],[-122.418206,37.752327],[-122.299818,37.535186],[-122.148715,37.393842],[-122.145893,37.393447],[-121.900157,37.413861],[-121.894138,37.4317],[-121.945377,38.017443],[-122.349579,37.996726],[-122.354525,37.993171],[-122.386786,37.92887],[-122.421947,37.772829]]]
+            }
+          }
+        },
+        {
+          "action": "createUpdate",
+          "feed": {
+            "onestopId": "f-9q9-actransit",
+            "url": "http://www.actransit.org/wp-content/uploads/gtfsdec072014b.zip",
+            "licenseName": "Creative Commons Attribution 3.0 Unported License",
+            "licenseUrl": "http://www.actransit.org/data-terms-and-conditions/",
+            "licenseUseWithoutAttribution": "no",
+            "licenseCreateDerivedProduct": "yes",
+            "licenseRedistribute": "yes",
+            "includesOperators": [
+              {
+                "gtfsAgencyId": "AC Transit",
+                "operatorOnestopId": "o-9q9-actransit"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "notes": "In this changeset, we're creating an AC Transit operator and feed, and we're associating them with each other."
+  }
+}

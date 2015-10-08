@@ -28,7 +28,7 @@ class BaseRoute < ActiveRecord::Base
 
   PER_PAGE = 50
 
-  include HasAFeed
+  include IsAnEntityImportedFromFeeds
 
   attr_accessor :serves, :does_not_serve, :operated_by
 end
@@ -66,10 +66,16 @@ class Route < BaseRoute
     kind_of_model_tracked: :onestop_entity,
     virtual_attributes: [:serves, :does_not_serve, :operated_by, :identified_by, :not_identified_by, :imported_from_feed_onestop_id]
   })
+
+  # FIXME: this is a temporary fix to run both the following `before_create_making_history` changeset
+  # callback as well as the callback of the same name that is included from IsAnEntityWithIdentifiers
+  class << Route
+    alias_method :existing_before_create_making_history, :before_create_making_history
+  end
   def self.before_create_making_history(new_model, changeset)
     operator = Operator.find_by_onestop_id!(new_model.operated_by)
     new_model.operator = operator
-    super(new_model, changeset)
+    self.existing_before_create_making_history(new_model, changeset)
   end
   def self.after_create_making_history(created_model, changeset)
     OperatorRouteStopRelationship.manage_multiple(
@@ -127,9 +133,9 @@ class Route < BaseRoute
     # GTFS Constructor
     raise ArgumentError.new('Need at least one Stop') if stops.empty?
     geohash = GeohashHelpers.fit(stops.map { |i| i[:geometry] })
-    name = [entity.short_name, entity.long_name, entity.id, "unknown"]
+    name = [entity.route_short_name, entity.route_long_name, entity.id, "unknown"]
       .select(&:present?)
-      .first    
+      .first
     onestop_id = OnestopId.new(
       entity_prefix: 'r',
       geohash: geohash,
@@ -144,12 +150,12 @@ class Route < BaseRoute
     # Copy over GTFS attributes to tags
     vehicles = ['tram', 'metro', 'rail', 'bus', 'ferry', 'cablecar', 'gondola', 'funicalar']
     route.tags ||= {}
-    route.tags[:vehicle_type] = vehicles[entity.type.to_i]
-    route.tags[:route_long_name] = entity.long_name
-    route.tags[:route_desc] = entity.desc
-    route.tags[:route_url] = entity.url
-    route.tags[:route_color] = entity.color
-    route.tags[:route_text_color] = entity.text_color
+    route.tags[:vehicle_type] = vehicles[entity.route_type.to_i]
+    route.tags[:route_long_name] = entity.route_long_name
+    route.tags[:route_desc] = entity.route_desc
+    route.tags[:route_url] = entity.route_url
+    route.tags[:route_color] = entity.route_color
+    route.tags[:route_text_color] = entity.route_text_color
     route
   end
 

@@ -1,0 +1,48 @@
+{
+  "changeset": {
+    "whenToApply": "instantlyIfClean",
+    "payload": {
+      "changes": [
+        {
+          "action": "createUpdate",
+          "operator": {
+            "onestopId": "o-9q8y-sfmta",
+            "name": "San Francisco Municipal Transportation Agency",
+            "short_name": "SFMTA",
+            "identifiedBy": ["usntd://9015"],
+            "country": "United States",
+            "state": "California",
+            "metro": "San Francisco Bay Area",
+            "timezone": "America/Los_Angeles",
+            "website": "http://www.sfmta.com/",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [[[-122.53867,37.83238],[-122.506821,37.735482],[-122.500028,37.718996],[-122.499913,37.718738],[-122.49766,37.71677],[-122.485294,37.709312],[-122.48498,37.70913],[-122.469273,37.705764],[-122.413084,37.706296],[-122.39422,37.70898],[-122.392836,37.709804],[-122.365447,37.72792],[-122.36633,37.820001],[-122.371964,37.828311],[-122.373477,37.82982],[-122.48383,37.83592],[-122.50214,37.836443],[-122.53867,37.83238]]]
+            }
+          }
+        },
+        {
+          "action": "createUpdate",
+          "feed": {
+            "onestopId": "f-9q8y-sfmta",
+            "url": "http://archives.sfmta.com/transitdata/google_transit.zip",
+            "tags": {
+              "downloadPageUrl": "https://www.sfmta.com/about-sfmta/reports/gtfs-transit-data"
+            },
+            "licenseUrl": "http://www.sfmta.com/about-sfmta/reports/gtfs-transit-data",
+            "licenseUseWithoutAttribution": "yes",
+            "licenseCreateDerivedProduct": "yes",
+            "licenseRedistribute": "yes",
+            "includesOperators": [
+              {
+                "gtfsAgencyId": "SFMTA",
+                "operatorOnestopId": "o-9q8y-sfmta"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "notes": "In this changeset, we're creating an SFMTA operator and feed, and we're associating them with each other."
+  }
+}

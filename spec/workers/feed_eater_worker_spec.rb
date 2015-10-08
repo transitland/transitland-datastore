@@ -17,7 +17,6 @@ describe FeedEaterWorker do
   end
 
   it 'spawns child jobs' do
-    allow(Feed).to receive(:update_feeds_from_feed_registry) { true }
     allow(Feed).to receive(:where) { @feeds }
     expect {
       FeedEaterWorker.perform_async(@feedids)

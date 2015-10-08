@@ -1,11 +1,9 @@
 require 'gtfsgraph'
 
 def load_feed(import_level=1)
-  # Rails.root
   path = 'spec/support/example_gtfs_archives/f-9q9-caltrain.zip'
   feed = create(:feed_caltrain)
   graph = GTFSGraph.new(File.join(Rails.root, path), feed)
-  graph.load_gtfs
   operators = graph.load_tl
   graph.create_changeset(operators, import_level)
   feed
@@ -16,6 +14,19 @@ describe GTFSGraph do
   context 'can apply level 0 and 1 changesets' do
 
     before(:each) { @feed = load_feed(1) }
+
+    it 'updated feed geometry' do
+      geometry = [
+        [
+          [-122.412018, 37.003606],
+          [-121.566497, 37.003606],
+          [-121.566497, 37.776439],
+          [-122.412018, 37.776439],
+          [-122.412018, 37.003606]
+        ]
+      ]
+      expect(@feed.geometry(as: :geojson)[:coordinates]).to match_array(geometry)
+    end
 
     it 'created a known Operator' do
       expect(@feed.operators.count).to eq(1)
@@ -30,20 +41,20 @@ describe GTFSGraph do
     end
 
     it 'created known Routes' do
-      expect(@feed.routes.count).to eq(5)
-      r = @feed.routes.find_by(onestop_id: 'r-9q9j-bullet')
+      expect(@feed.imported_routes.count).to eq(5)
+      r = @feed.imported_routes.find_by(onestop_id: 'r-9q9j-bullet')
       expect(r).to be_truthy
       expect(r.name).to eq('Bullet')
       expect(r.onestop_id).to eq('r-9q9j-bullet')
-      # expect(r.identifiers).to match_array(["gtfs://f-9q9-caltrain/r/bullet"])
+      expect(r.identifiers).to match_array(["gtfs://f-9q9-caltrain/r/Bu-121"])
       expect(r.tags['vehicle_type']).to eq('rail')
       expect(r.tags['route_long_name']).to eq('Bullet')
       expect(r.geometry).to be
     end
 
     it 'created known Stops' do
-      expect(@feed.stops.count).to eq(31)
-      s = @feed.stops.find_by(onestop_id: 's-9q9k659e3r-sanjosecaltrainstation')
+      expect(@feed.imported_stops.count).to eq(31)
+      s = @feed.imported_stops.find_by(onestop_id: 's-9q9k659e3r-sanjosecaltrainstation')
       expect(s).to be_truthy
       expect(s.name).to eq('San Jose Caltrain Station')
       expect(s.onestop_id).to eq('s-9q9k659e3r-sanjosecaltrainstation')
@@ -64,19 +75,19 @@ describe GTFSGraph do
     before(:each) { @feed = load_feed(2) }
 
     it 'created known ScheduleStopPairs' do
-      expect(@feed.schedule_stop_pairs.count).to eq(4661) # EXACTLY.
+      expect(@feed.imported_schedule_stop_pairs.count).to eq(4661) # EXACTLY.
       # Find a UNIQUE SSP, by origin, destination, route, trip.
-      origin = @feed.stops.find_by!(
+      origin = @feed.imported_stops.find_by!(
         onestop_id: 's-9q8yyugptw-sanfranciscocaltrainstation'
       )
-      destination = @feed.stops.find_by!(
+      destination = @feed.imported_stops.find_by!(
         onestop_id: 's-9q8yycs6ku-22ndstreetcaltrainstation'
       )
-      route = @feed.routes.find_by!(
+      route = @feed.imported_routes.find_by!(
         onestop_id: 'r-9q9-local'
       )
       trip = '6507770-CT-14OCT-Caltrain-Saturday-02'
-      found = @feed.schedule_stop_pairs.where(
+      found = @feed.imported_schedule_stop_pairs.where(
         origin: origin,
         destination: destination,
         route: route,
@@ -94,7 +105,6 @@ describe GTFSGraph do
       expect(s.origin_timezone).to eq('America/Los_Angeles')
       expect(s.destination_timezone).to eq('America/Los_Angeles')
       expect(s.shape_dist_traveled).to eq(0.0)
-      expect(s.timepoint).to be_nil
       expect(s.block_id).to be_nil
       expect(s.wheelchair_accessible).to eq(0)
       expect(s.pickup_type).to eq(0)
@@ -110,8 +120,10 @@ describe GTFSGraph do
       expect(s.service_except_dates.map(&:to_s)).to contain_exactly('2015-06-06', '2015-07-04')
       expect(s.service_start_date.to_s).to eq('2015-05-02')
       expect(s.service_end_date.to_s).to eq('2024-10-05')
+      expect(s.origin_timepoint_source).to eq('gtfs_exact')
+      expect(s.destination_timepoint_source).to eq('gtfs_exact')
+      expect(s.window_start).to eq('08:15:00')
+      expect(s.window_end).to eq('08:20:00')
     end
-
   end
-
 end

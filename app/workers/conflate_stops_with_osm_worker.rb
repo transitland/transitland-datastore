@@ -3,8 +3,6 @@ class ConflateStopsWithOsmWorker
 
   def perform(stop_ids = [])
     stops = Stop.where(id: stop_ids)
-    stops.each do |stop|
-      stop.conflate_with_osm
-    end
+    Stop.conflate_with_osm(stops)
   end
 end

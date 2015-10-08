@@ -1,0 +1,48 @@
+{
+  "changeset": {
+    "whenToApply": "instantlyIfClean",
+    "payload": {
+      "changes": [
+        {
+          "action": "createUpdate",
+          "operator": {
+            "onestopId": "o-dr5r7-nycdot",
+            "name": "New York City Department of Transportation",
+            "short_name": "NYC DOT",
+            "identifiedBy": ["usntd://2082"],
+            "country": "United States",
+            "state": "New York",
+            "metro": "New York City",
+            "timezone": "America/New_York",
+            "website": "http://nyc.gov/dot",
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [[-74.012666,40.70135999999999],[-74.07220099999999,40.64416899999996]]
+            }
+          }
+        },
+        {
+          "action": "createUpdate",
+          "feed": {
+            "onestopId": "f-dr5r7-nycdotsiferry",
+            "url": "http://www.nyc.gov/html/dot/downloads/misc/siferry-gtfs.zip",
+            "tags": {
+              "downloadPageUrl": "http://www.nyc.gov/html/dot/html/about/datafeeds.shtml#ferry"
+            },
+            "licenseUrl": "http://www.nyc.gov/html/dot/html/about/datafeeds.shtml#disclaimer",
+            "licenseUseWithoutAttribution": "no",
+            "licenseCreateDerivedProduct": "unknown",
+            "licenseRedistribute": "unknown",
+            "includesOperators": [
+              {
+                "gtfsAgencyId": "NYC DOT",
+                "operatorOnestopId": "o-dr5r7-nycdot"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "notes": "In this changeset, we're creating an NYC DOT operator and feed, and we're associating them with each other."
+  }
+}

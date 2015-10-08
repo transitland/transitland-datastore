@@ -1,0 +1,48 @@
+{
+  "changeset": {
+    "whenToApply": "instantlyIfClean",
+    "payload": {
+      "changes": [
+        {
+          "action": "createUpdate",
+          "operator": {
+            "onestopId": "o-9q8-samtrans",
+            "name": "San Mateo County Transit District",
+            "short_name": "Samtrans",
+            "identifiedBy": ["usntd://9009"],
+            "country": "United States",
+            "state": "California",
+            "metro": "San Francisco Bay Area",
+            "timezone": "America/Los_Angeles",
+            "website": "http://www.samtrans.com/",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [[[-122.51796,37.53556],[-122.412922,37.259608],[-122.3925,37.2503],[-122.382827,37.251686],[-122.21142,37.36789],[-122.19961,37.37708],[-122.194621,37.381745],[-122.12492,37.45734],[-122.13037,37.47045],[-122.13207,37.47271],[-122.39243,37.79009],[-122.39695,37.790137],[-122.39728,37.7901],[-122.41845,37.77518],[-122.48333,37.72698],[-122.485105,37.724185],[-122.49301,37.68985],[-122.515757,37.569983],[-122.51796,37.53556]]]
+            }
+          }
+        },
+        {
+          "action": "createUpdate",
+          "feed": {
+            "onestopId": "f-9q8-samtrans",
+            "url": "http://www.samtrans.com/Assets/GTFS/samtrans/SamTrans-GTFS.zip",
+            "tags": {
+              "downloadPageUrl": "http://www.samtrans.com/Developer/DLA-PP-SamTrans.html?IsSubmitted=True"
+            },
+            "licenseUrl": "http://www.samtrans.com/Developer/DLA-PP-SamTrans.html",
+            "licenseUseWithoutAttribution": "yes",
+            "licenseCreateDerivedProduct": "unknown",
+            "licenseRedistribute": "yes",
+            "includesOperators": [
+              {
+                "gtfsAgencyId": "samtrans-ca-us",
+                "operatorOnestopId": "o-9q8-samtrans"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "notes": "In this changeset, we're creating a Samtrans operator and feed, and we're associating them with each other."
+  }
+}

@@ -42,8 +42,8 @@ module HasAGeographicGeometry
       geojson_as_string = JSON.dump(incoming_geometry)
       parsed_geojson = RGeo::GeoJSON.decode(geojson_as_string, json_parser: :json)
       self.send(:write_attribute, :geometry, parsed_geojson.as_text)
-    when String
-      # it's WKT
+    else
+      # it's WKT or a RGeo::Geographic feature
       self.send(:write_attribute, :geometry, incoming_geometry)
     end
   end

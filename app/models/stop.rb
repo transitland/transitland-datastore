@@ -28,7 +28,7 @@ class BaseStop < ActiveRecord::Base
 
   PER_PAGE = 50
 
-  include HasAFeed
+  include IsAnEntityImportedFromFeeds
 
   attr_accessor :served_by, :not_served_by
 end
@@ -202,35 +202,38 @@ class Stop < BaseStop
     end
   end
 
-  def conflate_with_osm
-    Stop.transaction do
-      locations = []
-      locations << {
-        lat: geometry(as: :wkt).lat,
-        lon: geometry(as: :wkt).lon
-      }
-      tyr_locate_response = TyrService.locate(locations: locations)
-      way_id = tyr_locate_response[0][:ways][0][:way_id]
-
-      stop_tags = tags.try(:clone) || {}
-      stop_tags[:osm_way_id] = way_id
-      update(tags: stop_tags)
+  def self.conflate_with_osm(stops)
+    stops.in_groups_of(TyrService::MAX_LOCATIONS_PER_REQUEST, false).each do |group|
+      Stop.transaction do
+        locations = group.map do |stop|
+          {
+            lat: stop.geometry(as: :wkt).lat,
+            lon: stop.geometry(as: :wkt).lon
+          }
+        end
+        tyr_locate_response = TyrService.locate(locations: locations)
+        group.each_with_index do |stop, index|
+          way_id = tyr_locate_response[index][:edges][0][:way_id]
+          stop_tags = stop.tags.try(:clone) || {}
+          stop_tags[:osm_way_id] = way_id
+          stop.update(tags: stop_tags)
+        end
+      end
     end
   end
-
 
   ##### FromGTFS ####
   include FromGTFS
   def self.from_gtfs(entity)
     # GTFS Constructor
-    point = Stop::GEOFACTORY.point(entity.lon, entity.lat)
+    point = Stop::GEOFACTORY.point(entity.stop_lon, entity.stop_lat)
     geohash = GeohashHelpers.encode(point, precision=GEOHASH_PRECISION)
-    name = [entity.name, entity.id, "unknown"]
+    name = [entity.stop_name, entity.id, "unknown"]
       .select(&:present?)
-      .first    
+      .first
     onestop_id = OnestopId.new(
-      entity_prefix: 's', 
-      geohash: geohash, 
+      entity_prefix: 's',
+      geohash: geohash,
       name: name
     )
     stop = Stop.new(
@@ -242,10 +245,10 @@ class Stop < BaseStop
     # Copy over GTFS attributes to tags
     stop.tags ||= {}
     stop.tags[:wheelchair_boarding] = entity.wheelchair_boarding
-    stop.tags[:stop_desc] = entity.desc
-    stop.tags[:stop_url] = entity.url
+    stop.tags[:stop_desc] = entity.stop_desc
+    stop.tags[:stop_url] = entity.stop_url
     stop.tags[:zone_id] = entity.zone_id
-    stop.timezone = entity.timezone
+    stop.timezone = entity.stop_timezone
     stop
   end
 

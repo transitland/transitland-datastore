@@ -3,7 +3,7 @@ module CurrentTrackedByChangeset
 
   included do
     belongs_to :created_or_updated_in_changeset, class_name: 'Changeset'
-    has_many :old_versions, -> { order('version DESC') }, class_name: "Old#{self.to_s}"
+    has_many :old_versions, -> { order('version DESC') }, class_name: "Old#{self.to_s}", foreign_key: 'current_id'
 
     attr_accessor :marked_for_destroy_making_history,
                   :old_model_left_after_destroy_making_history
