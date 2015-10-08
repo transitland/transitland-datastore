@@ -27,6 +27,11 @@ class GTFSGraph
     log "Create changeset"
     changeset = Changeset.create()
     log "Create: Operators, Stops, Routes"
+    # Update Feed Bounding Box
+    log "  updating feed bounding box"
+    @feed.set_bounding_box_from_stops(stops)
+    # FIXME: Run through changeset
+    @feed.save!
     if import_level >= 0
       log "  operators: #{operators.size}"
       create_change_payloads(changeset, 'operator', operators.map { |e| make_change_operator(e) })
@@ -225,8 +230,6 @@ class GTFSGraph
     operators
   end
 
-  ##### Find TL Entities #####
-
   def find_by_gtfs_entity(entity)
     find_by_onestop_id(@gtfs_to_onestop_id[entity])
   end
@@ -416,6 +419,7 @@ if __FILE__ == $0
   import_level = (ARGV[1] || 1).to_i
   # FeedEaterFeedWorker.new.perform(feed_onestop_id, import_level)
   feed = Feed.find_by!(onestop_id: feed_onestop_id)
+  feed.fetch_and_check_for_updated_version unless File.exists?(filename)
   graph = GTFSGraph.new(feed.file_path, feed)
   graph.create_change_osr(import_level)
   if import_level >= 2
