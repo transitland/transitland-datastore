@@ -25,4 +25,21 @@ class FeedImport < ActiveRecord::Base
   has_many :feed_schedule_imports
 
   validates :feed, presence: true
+
+  def failed(exception_log)
+    self.update(
+      success: false,
+      exception_log: exception_log
+    )
+  end
+
+  def succeeded
+    self.update(success: true)
+    t = Time.now
+    self.feed.update(
+      last_fetched_at: t,
+      last_imported_at: t,
+      last_sha1: self.sha1
+    )
+  end
 end
