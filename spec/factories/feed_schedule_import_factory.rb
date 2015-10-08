@@ -18,9 +18,6 @@
 FactoryGirl.define do
   factory :feed_schedule_import do
     feed_import
-    success false
-    import_log "MyText"
-    exception_log "MyText"
   end
 
 end

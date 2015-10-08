@@ -21,8 +21,6 @@
 FactoryGirl.define do
   factory :feed_import do
     feed
-    success false
-    import_log "MyText"
-    exception_log "MyText"
+    sha1 "deadbeef"
   end
 end
