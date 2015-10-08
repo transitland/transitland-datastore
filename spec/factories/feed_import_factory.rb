@@ -1,18 +1,21 @@
 # == Schema Information
 #
-# Table name: feed_schedule_imports
+# Table name: feed_imports
 #
-#  id             :integer          not null, primary key
-#  success        :boolean
-#  import_log     :text
-#  exception_log  :text
-#  feed_import_id :integer
-#  created_at     :datetime         not null
-#  updated_at     :datetime         not null
+#  id                :integer          not null, primary key
+#  feed_id           :integer
+#  success           :boolean
+#  sha1              :string
+#  import_log        :text
+#  validation_report :text
+#  created_at        :datetime
+#  updated_at        :datetime
+#  exception_log     :text
 #
 # Indexes
 #
-#  index_feed_schedule_imports_on_feed_import_id  (feed_import_id)
+#  index_feed_imports_on_created_at  (created_at)
+#  index_feed_imports_on_feed_id     (feed_id)
 #
 
 FactoryGirl.define do
