@@ -159,19 +159,6 @@ class Feed < BaseFeed
     Digest::SHA1.file(file_path).hexdigest
   end
 
-  def has_been_fetched_and_imported!(on_feed_import: nil)
-    sha1 = file_sha1_hash
-    update(
-      last_fetched_at: DateTime.now,
-      last_imported_at: DateTime.now,
-      last_sha1: sha1
-    )
-    on_feed_import.update(
-      success: true,
-      sha1: sha1
-    ) if on_feed_import
-  end
-
   def self.fetch_and_check_for_updated_version(feed_onestop_ids = [])
     feeds_with_updated_versions = []
     feeds = feed_onestop_ids.length > 0 ? where(onestop_id: feed_onestop_ids) : where('')
