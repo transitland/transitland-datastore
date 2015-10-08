@@ -35,10 +35,9 @@ class FeedImport < ActiveRecord::Base
 
   def succeeded
     self.update(success: true)
-    t = Time.now
     self.feed.update(
-      last_fetched_at: t,
-      last_imported_at: t,
+      last_fetched_at: self.created_at,
+      last_imported_at: self.updated_at,
       last_sha1: self.sha1
     )
   end
