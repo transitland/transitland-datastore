@@ -29,6 +29,8 @@ class FeedImportSerializer < ApplicationSerializer
              :created_at,
              :updated_at
 
+  has_many :feed_schedule_imports
+
   def feed_onestop_id
     object.feed.onestop_id
   end
