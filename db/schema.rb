@@ -452,5 +452,4 @@ ActiveRecord::Schema.define(version: 20151007004337) do
   add_index "old_stops", ["identifiers"], name: "index_old_stops_on_identifiers", using: :gin
 
   add_foreign_key "change_payloads", "changesets"
-  add_foreign_key "feed_schedule_imports", "feed_imports"
 end
