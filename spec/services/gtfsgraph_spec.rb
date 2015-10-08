@@ -19,6 +19,19 @@ describe GTFSGraph do
 
     before(:each) { @feed = load_feed(1) }
 
+    it 'updated feed geometry' do
+      geometry = [
+        [
+          [-122.412018, 37.003606],
+          [-121.566497, 37.003606],
+          [-121.566497, 37.776439],
+          [-122.412018, 37.776439],
+          [-122.412018, 37.003606]
+        ]
+      ]
+      expect(@feed.geometry(as: :geojson)[:coordinates]).to match_array(geometry)
+    end
+
     it 'created a known Operator' do
       expect(@feed.operators.count).to eq(1)
       o = @feed.operators.find_by(onestop_id: 'o-9q9-caltrain')
@@ -37,7 +50,7 @@ describe GTFSGraph do
       expect(r).to be_truthy
       expect(r.name).to eq('Bullet')
       expect(r.onestop_id).to eq('r-9q9j-bullet')
-      # expect(r.identifiers).to match_array(["gtfs://f-9q9-caltrain/r/bullet"])
+      expect(r.identifiers).to match_array(["gtfs://f-9q9-caltrain/r/Bu-121"])
       expect(r.tags['vehicle_type']).to eq('rail')
       expect(r.tags['route_long_name']).to eq('Bullet')
       expect(r.geometry).to be
