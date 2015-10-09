@@ -38,17 +38,19 @@
 #  window_end                         :string
 #  origin_timepoint_source            :string
 #  destination_timepoint_source       :string
+#  operator_id                        :integer
 #
 # Indexes
 #
-#  c_ssp_cu_in_changeset                            (created_or_updated_in_changeset_id)
-#  c_ssp_destination                                (destination_id)
-#  c_ssp_origin                                     (origin_id)
-#  c_ssp_route                                      (route_id)
-#  c_ssp_service_end_date                           (service_end_date)
-#  c_ssp_service_start_date                         (service_start_date)
-#  c_ssp_trip                                       (trip)
-#  index_current_schedule_stop_pairs_on_updated_at  (updated_at)
+#  c_ssp_cu_in_changeset                             (created_or_updated_in_changeset_id)
+#  c_ssp_destination                                 (destination_id)
+#  c_ssp_origin                                      (origin_id)
+#  c_ssp_route                                       (route_id)
+#  c_ssp_service_end_date                            (service_end_date)
+#  c_ssp_service_start_date                          (service_start_date)
+#  c_ssp_trip                                        (trip)
+#  index_current_schedule_stop_pairs_on_operator_id  (operator_id)
+#  index_current_schedule_stop_pairs_on_updated_at   (updated_at)
 #
 
 class ScheduleStopPairSerializer < ApplicationSerializer
