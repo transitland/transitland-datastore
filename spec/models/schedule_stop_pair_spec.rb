@@ -38,17 +38,19 @@
 #  window_end                         :string
 #  origin_timepoint_source            :string
 #  destination_timepoint_source       :string
+#  operator_id                        :integer
 #
 # Indexes
 #
-#  c_ssp_cu_in_changeset                            (created_or_updated_in_changeset_id)
-#  c_ssp_destination                                (destination_id)
-#  c_ssp_origin                                     (origin_id)
-#  c_ssp_route                                      (route_id)
-#  c_ssp_service_end_date                           (service_end_date)
-#  c_ssp_service_start_date                         (service_start_date)
-#  c_ssp_trip                                       (trip)
-#  index_current_schedule_stop_pairs_on_updated_at  (updated_at)
+#  c_ssp_cu_in_changeset                             (created_or_updated_in_changeset_id)
+#  c_ssp_destination                                 (destination_id)
+#  c_ssp_origin                                      (origin_id)
+#  c_ssp_route                                       (route_id)
+#  c_ssp_service_end_date                            (service_end_date)
+#  c_ssp_service_start_date                          (service_start_date)
+#  c_ssp_trip                                        (trip)
+#  index_current_schedule_stop_pairs_on_operator_id  (operator_id)
+#  index_current_schedule_stop_pairs_on_updated_at   (updated_at)
 #
 
 RSpec.describe ScheduleStopPair, type: :model do
@@ -91,6 +93,21 @@ RSpec.describe ScheduleStopPair, type: :model do
     end
   end
 
+  context 'route and operator set by route_onestop_id=' do
+    it '#route_onestop_id= sets route' do
+      ssp = create(:schedule_stop_pair)
+      ssp.route_onestop_id = route.onestop_id
+      expect(ssp.route).to eq(route)
+    end
+
+    it '#route_onestop_id= sets operator' do
+      ssp = create(:schedule_stop_pair)
+      ssp.route_onestop_id = route.onestop_id
+      expect(ssp.operator).to be_truthy
+      expect(ssp.operator).to eq(route.operator)
+    end
+  end
+
   context 'changeset' do
     it 'has a changeset' do
       ssp = create(:schedule_stop_pair)
@@ -119,6 +136,8 @@ RSpec.describe ScheduleStopPair, type: :model do
       expect(ssp.created_or_updated_in_changeset).to eq changeset
       expect(ssp.origin).to eq stop1
       expect(ssp.destination).to eq stop2
+      expect(ssp.operator).to be_truthy
+      expect(ssp.operator).to eq route.operator
       expect(stop1.trips_out).to match_array([ssp])
       expect(stop2.trips_in).to match_array([ssp])
       expect(stop1.stops_out).to match_array([stop2])
