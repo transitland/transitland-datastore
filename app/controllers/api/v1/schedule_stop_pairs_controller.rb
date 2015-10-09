@@ -33,6 +33,10 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
       @ssps = @ssps.where(route_id: Route.find_by!(onestop_id: params[:route_onestop_id]).id)
     end
 
+    if params[:operator_onestop_id].present?
+      @ssps = @ssps.where(operator: Operator.find_by!(onestop_id: params[:operator_onestop_id]))
+    end
+
     # Stops in a bounding box
     if params[:bbox].present?
       @ssps = @ssps.where_origin_bbox(params[:bbox])
