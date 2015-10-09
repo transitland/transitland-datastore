@@ -23,6 +23,11 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
       @ssps = @ssps.where(destination_id: Stop.find_by!(onestop_id: params[:destination_onestop_id]).id)
     end
 
+    # Service by trip id
+    if params[:trip].present?
+      @ssps = @ssps.where(trip: params[:trip])
+    end
+
     # Service on a route
     if params[:route_onestop_id].present?
       @ssps = @ssps.where(route_id: Route.find_by!(onestop_id: params[:route_onestop_id]).id)
@@ -57,11 +62,5 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
       #   return_downloadable_csv(@ssps, 'ssps')
       # end
     end
-
   end
-
-  def frequency
-
-  end
-
 end
