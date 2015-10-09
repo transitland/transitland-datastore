@@ -112,6 +112,8 @@ class Operator < BaseOperator
   has_many :routes
   has_many :routes_serving_stop, through: :routes
 
+  has_many :schedule_stop_pairs
+
   validates :name, presence: true
 
   ##### FromGTFS ####
