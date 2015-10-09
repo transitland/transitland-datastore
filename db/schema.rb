@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151007004337) do
+ActiveRecord::Schema.define(version: 20151009190325) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -179,10 +179,12 @@ ActiveRecord::Schema.define(version: 20151007004337) do
     t.string   "window_end"
     t.string   "origin_timepoint_source"
     t.string   "destination_timepoint_source"
+    t.integer  "operator_id"
   end
 
   add_index "current_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "c_ssp_cu_in_changeset", using: :btree
   add_index "current_schedule_stop_pairs", ["destination_id"], name: "c_ssp_destination", using: :btree
+  add_index "current_schedule_stop_pairs", ["operator_id"], name: "index_current_schedule_stop_pairs_on_operator_id", using: :btree
   add_index "current_schedule_stop_pairs", ["origin_id"], name: "c_ssp_origin", using: :btree
   add_index "current_schedule_stop_pairs", ["route_id"], name: "c_ssp_route", using: :btree
   add_index "current_schedule_stop_pairs", ["service_end_date"], name: "c_ssp_service_end_date", using: :btree
@@ -419,12 +421,14 @@ ActiveRecord::Schema.define(version: 20151007004337) do
     t.string   "window_end"
     t.string   "origin_timepoint_source"
     t.string   "destination_timepoint_source"
+    t.integer  "operator_id"
   end
 
   add_index "old_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "o_ssp_cu_in_changeset", using: :btree
   add_index "old_schedule_stop_pairs", ["current_id"], name: "index_old_schedule_stop_pairs_on_current_id", using: :btree
   add_index "old_schedule_stop_pairs", ["destination_type", "destination_id"], name: "o_ssp_destination", using: :btree
   add_index "old_schedule_stop_pairs", ["destroyed_in_changeset_id"], name: "o_ssp_d_in_changeset", using: :btree
+  add_index "old_schedule_stop_pairs", ["operator_id"], name: "index_old_schedule_stop_pairs_on_operator_id", using: :btree
   add_index "old_schedule_stop_pairs", ["origin_type", "origin_id"], name: "o_ssp_origin", using: :btree
   add_index "old_schedule_stop_pairs", ["route_type", "route_id"], name: "o_ssp_route", using: :btree
   add_index "old_schedule_stop_pairs", ["service_end_date"], name: "o_ssp_service_end_date", using: :btree
