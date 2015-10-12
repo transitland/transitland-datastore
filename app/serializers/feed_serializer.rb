@@ -44,7 +44,8 @@ class FeedSerializer < ApplicationSerializer
              :created_at,
              :updated_at,
              :feed_imports_count,
-             :feed_imports_url
+             :feed_imports_url,
+             :feed_imports
 
   has_many :operators_in_feed
 
@@ -54,5 +55,9 @@ class FeedSerializer < ApplicationSerializer
 
   def feed_imports_url
     api_v1_feed_feed_imports_url(object.onestop_id)
+  end
+
+  def feed_imports
+    object.feed_imports.map(&:id)
   end
 end

@@ -3,6 +3,7 @@ class Api::V1::FeedImportsController < Api::V1::BaseApiController
   include DownloadableCsv
 
   before_action :set_feed
+  before_action :set_feed_import, only: [:show]
 
   def index
     @feed_imports = @feed.feed_imports
@@ -25,9 +26,17 @@ class Api::V1::FeedImportsController < Api::V1::BaseApiController
     end
   end
 
+  def show
+    render json: @feed_import
+  end
+
   private
 
   def set_feed
     @feed = Feed.find_by(onestop_id: params[:feed_id])
+  end
+
+  def set_feed_import
+    @feed_import = @feed.feed_imports.find(params[:id])
   end
 end

@@ -19,7 +19,8 @@
 #
 
 class FeedImportSerializer < ApplicationSerializer
-  attributes :feed_onestop_id,
+  attributes :id,
+             :feed_onestop_id,
              :feed_url,
              :success,
              :sha1,
