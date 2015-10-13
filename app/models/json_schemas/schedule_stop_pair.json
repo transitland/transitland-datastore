@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Transitland Datastore ScheduleStopPair",
+  "type": "object",
+  "required": [
+    "originOnestopId",
+    "destinationOnestopId",
+    "routeOnestopId",
+    "serviceStartDate",
+    "serviceEndDate"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "originOnestopId": {
+      "type": "string",
+      "format": "stop-onestop-id"
+    },
+    "destinationOnestopId": {
+      "type": "string",
+      "format": "stop-onestop-id"
+    },
+    "routeOnestopId": {
+      "type": "string",
+      "format": "route-onestop-id"
+    },
+    "importedFromFeedOnestopId": {
+      "type": "string",
+      "format": "feed-onestop-id"
+    },
+    "trip": { "type": "string" },
+    "tripHeadsign": { "type": "string" },
+    "tripShortName": { "type": "string" },
+    "blockId": { "type": "string" },
+    "originArrivalTime": { "type": "string" },
+    "originDepartureTime": { "type": "string" },
+    "destinationArrivalTime": { "type": "string" },
+    "destinationDepartureTime": { "type": "string" },
+    "originTimezone": { "type": "string" },
+    "destinationTimezone": { "type": "string" },
+    "windowStart": { "type": "string" },
+    "windowEnd": { "type": "string" },
+    "originTimepointSource": { "type": "string" },
+    "destinationTimepointSource": { "type": "string" },
+    "frequencyStartTime": { "type": "string" },
+    "frequencyEndTime": { "type": "string" },
+    "frequencyHeadwaySeconds": { "type": "string" },
+    "serviceStartDate": { "type": "date" },
+    "serviceEndDate": { "type": "date" },
+    "serviceAddedDates": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "date"
+      }
+    },
+    "serviceExceptDates": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "date"
+      }
+    },
+    "serviceDaysOfWeek": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": {
+        "type": "boolean"
+      }
+    },
+    "wheelchairAccessible": { "type": "integer" },
+    "bikesAllowed": { "type": "integer" },
+    "pickupType": { "type": "integer" },
+    "dropOffType": { "type": "integer" },
+    "shapeDistTraveled": { "type": "number" },
+    "tags": { "type": "object" }
+  }
+}

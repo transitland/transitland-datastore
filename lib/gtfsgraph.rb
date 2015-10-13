@@ -344,7 +344,7 @@ class GTFSGraph
 
   def make_change_ssp(entity)
     {
-      imported_from_feed_onestop_id: @feed.onestop_id,
+      importedFromFeedOnestopId: @feed.onestop_id,
       originOnestopId: entity.origin.onestop_id,
       originTimezone: entity.origin_timezone,
       originArrivalTime: entity.origin_arrival_time,
