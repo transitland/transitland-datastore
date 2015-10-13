@@ -38,17 +38,19 @@
 #  window_end                         :string
 #  origin_timepoint_source            :string
 #  destination_timepoint_source       :string
+#  operator_id                        :integer
 #
 # Indexes
 #
-#  c_ssp_cu_in_changeset                            (created_or_updated_in_changeset_id)
-#  c_ssp_destination                                (destination_id)
-#  c_ssp_origin                                     (origin_id)
-#  c_ssp_route                                      (route_id)
-#  c_ssp_service_end_date                           (service_end_date)
-#  c_ssp_service_start_date                         (service_start_date)
-#  c_ssp_trip                                       (trip)
-#  index_current_schedule_stop_pairs_on_updated_at  (updated_at)
+#  c_ssp_cu_in_changeset                             (created_or_updated_in_changeset_id)
+#  c_ssp_destination                                 (destination_id)
+#  c_ssp_origin                                      (origin_id)
+#  c_ssp_route                                       (route_id)
+#  c_ssp_service_end_date                            (service_end_date)
+#  c_ssp_service_start_date                          (service_start_date)
+#  c_ssp_trip                                        (trip)
+#  index_current_schedule_stop_pairs_on_operator_id  (operator_id)
+#  index_current_schedule_stop_pairs_on_updated_at   (updated_at)
 #
 
 class BaseScheduleStopPair < ActiveRecord::Base
@@ -80,6 +82,7 @@ class ScheduleStopPair < BaseScheduleStopPair
   belongs_to :origin, class_name: "Stop"
   belongs_to :destination, class_name: "Stop"
   belongs_to :route
+  belongs_to :operator
 
   # Required relations and attributes
   before_validation :filter_service_range
@@ -124,15 +127,16 @@ class ScheduleStopPair < BaseScheduleStopPair
 
   # Handle mapping from onestop_id to id
   def route_onestop_id=(value)
-    self.route_id = Route.where(onestop_id: value).pluck(:id).first
+    self.route = Route.find_by!(onestop_id: value)
+    self.operator = route.operator
   end
 
   def origin_onestop_id=(value)
-    self.origin_id = Stop.where(onestop_id: value).pluck(:id).first
+    self.origin = Stop.find_by!(onestop_id: value)
   end
 
   def destination_onestop_id=(value)
-    self.destination_id = Stop.where(onestop_id: value).pluck(:id).first
+    self.destination = Stop.find_by!(onestop_id: value)
   end
 
   def service_on_date?(date)

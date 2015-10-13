@@ -87,9 +87,8 @@ describe GTFSGraph do
       destination = @feed.imported_stops.find_by!(
         onestop_id: 's-9q8yycs6ku-22ndstreetcaltrainstation'
       )
-      route = @feed.imported_routes.find_by!(
-        onestop_id: 'r-9q9-local'
-      )
+      route = @feed.imported_routes.find_by!(onestop_id: 'r-9q9-local')
+      operator = @feed.operators.find_by(onestop_id: 'o-9q9-caltrain')
       trip = '6507770-CT-14OCT-Caltrain-Saturday-02'
       found = @feed.imported_schedule_stop_pairs.where(
         origin: origin,
@@ -103,6 +102,7 @@ describe GTFSGraph do
       expect(s.origin).to eq(origin)
       expect(s.destination).to eq(destination)
       expect(s.route).to eq(route)
+      expect(s.operator).to eq(operator)
       expect(s.trip).to eq(trip)
       expect(s.trip_headsign).to eq('San Jose Caltrain Station')
       expect(s.trip_short_name).to eq('422')

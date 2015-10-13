@@ -49,7 +49,7 @@ For a complete visualization of the Datastore's data model, see [doc/data-model.
 2. Depending upon your needs, you may need to modify your configuration by editing `config/application.yml` and `config/database.yml`.
 
    Note that any values in `config/database.yml` can also be overwritten with environment variables---useful if you're running a production server.
-   
+
    The tokens you specify in `config/application.yml` will be used for [API Authentication](#api-authentication).
 
 3. Create and initialize the database:
@@ -113,9 +113,14 @@ Example URL  | Parameters
 `GET /api/v1/feeds?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
 `GET /api/v1/feeds/f-9q9-bayarearapidtransit` | none required
 `GET /api/v1/feeds/f-9q9-bayarearapidtransit/feed_imports` | none required
-`GET /api/v1/schedule_stop_pairs` | Find all [Schedule Stop Pairs](doc/schedule_api.md)
+`GET /api/v1/schedule_stop_pairs` | Find all [Schedule Stop Pairs](doc/schedule_api.md). All options below can be combined.
 `GET /api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation` | Find all Schedule Stop Pairs from origin
-`GET /api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&date=2015-08-05` | Find all Schedule Stop Pairs from origin on date
+`GET /api/v1/schedule_stop_pairs?destination_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation` | Find all Schedule Stop Pairs to a destination
+`GET /api/v1/schedule_stop_pairs?date=2015-08-05` | Find all Schedule Stop Pairs from origin on date
+`GET /api/v1/schedule_stop_pairs?service_from_date=2015-08-05` | Find all Schedule Stop Pairs in effect from a date
+`GET /api/v1/schedule_stop_pairs?trip=6507768-CT-14OCT-Combo-Weekday-01` | Find all Schedule Stop Pairs by trip identifier
+`GET /api/v1/schedule_stop_pairs?operator_onestop_id=o-9q9-caltrain` | Find all Schedule Stop Pairs from origin on date
+`GET /api/v1/schedule_stop_pairs?bbox=-121.0,35.0,-124.0,37.0` | Find all Schedule Stop Pairs originating within a bounding box
 
 Pagination for JSON endpoints:
 - `?offset=50` is the index of the first entity to be displayed (starts with 0)
@@ -143,7 +148,7 @@ By default, FeedEater will only import the operator from the specified feed(s). 
 To enqueue a worker from an endpoint:
 
     POST /api/v1/webhooks/feed_eater
-    
+
 Note that this endpoint requires [API authentication](#api-authentication).
 
 To check the status of background workers, you can view Sidekiq's dashboard at: `/worker_dashboard`. In production and staging environments, accessing the dashboard will require the user name and password specified in `/config/application.yml` or by environment variable.
