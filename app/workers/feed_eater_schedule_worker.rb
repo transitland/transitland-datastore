@@ -1,6 +1,8 @@
 require 'gtfsgraph'
 
 class FeedEaterScheduleWorker < FeedEaterWorker
+  sidekiq_options queue: :feed_eater_schedule
+
   def perform(feed_onestop_id, feed_schedule_import_id, trip_ids, agency_map, route_map, stop_map)
     logger.info "FeedEaterScheduleWorker #{feed_onestop_id}: Importing #{trip_ids.size} trips"
     feed = Feed.find_by(onestop_id: feed_onestop_id)
