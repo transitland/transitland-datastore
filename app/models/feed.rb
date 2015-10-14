@@ -128,7 +128,7 @@ class Feed < BaseFeed
     return true
   end
 
-  def fetch_and_check_for_updated_version
+  def fetch_check_for_updated_version_and_return_feed_version
     begin
       logger.info "Fetching feed #{onestop_id} from #{url}"
       begin
@@ -136,32 +136,24 @@ class Feed < BaseFeed
       rescue OpenURI::HTTPError => exception
         logger.error "Error downloading #{url}: #{exception}"
         logger.error exception.backtrace
-        return false
+        return nil
       end
 
       if feed_version.persisted?
         logger.info "File downloaded from #{url} has a new sha1 hash"
-        true
+        feed_version
       else
         logger.info "File downloaded from #{url} has same sha1 hash as last imported version (or another error fetching file)"
-        false
+        existing = self.feed_versions.find_by(sha1: feed_version.sha1)
+        self.destroy # don't keep this new FeedVersion record around in memory
+        existing
       end
     rescue
       logger.error "Error fetching feed ##{onestop_id}"
       logger.error $!.message
       logger.error $!.backtrace
-      false
+      nil
     end
-  end
-
-  def self.fetch_and_check_for_updated_version(feed_onestop_ids = [])
-    feeds_with_updated_versions = []
-    feeds = feed_onestop_ids.length > 0 ? where(onestop_id: feed_onestop_ids) : where('')
-    feeds.each do |feed|
-      is_updated_version = feed.fetch_and_check_for_updated_version
-      feeds_with_updated_versions << feed if is_updated_version
-    end
-    feeds_with_updated_versions
   end
 
   def set_bounding_box_from_stops(stops)

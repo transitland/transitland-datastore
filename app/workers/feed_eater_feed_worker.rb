@@ -12,14 +12,11 @@ class FeedEaterFeedWorker < FeedEaterWorker
     # Download the feed
     feed = Feed.find_by(onestop_id: feed_onestop_id)
     logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Downloading #{feed.url}"
-    updated = feed.fetch_and_check_for_updated_version
-    return unless updated
+    feed_version = feed.fetch_check_for_updated_version_and_return_feed_version
+    return unless feed_version.present?
 
     # Create import record
-    feed_import = FeedImport.create(
-      feed: feed,
-      sha1: feed.file_sha1_hash
-    )
+    feed_version_import = feed_version.feed_version_imports.create
 
     # Validate
     unless Figaro.env.run_google_feedvalidator.present? &&
@@ -29,28 +26,28 @@ class FeedEaterFeedWorker < FeedEaterWorker
         FEEDVALIDATOR_PATH,
         '-n',
         '--output=CONSOLE',
-        feed.file_path
+        feed_version.file.path
       ]).read
-      feed_import.update(validation_report: validation_report)
+      feed_version_import.update(validation_report: validation_report)
     end
 
     # Import feed
     logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Importing feed at import level #{import_level}"
     graph = nil
     begin
-      graph = GTFSGraph.new(feed.file_path, feed)
+      graph = GTFSGraph.new(feed_version.file.path, feed)
       graph.create_change_osr(import_level)
       if import_level >= 2
         schedule_jobs = []
         graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map|
           # Create FeedScheduleImport record for FESW job
-          feed_schedule_import = feed_import.feed_schedule_imports.create!
+          feed_schedule_import = feed_version_import.feed_schedule_imports.create!
           # Don't enqueue immediately to avoid races
           schedule_jobs << [feed_schedule_import.id, trip_ids, agency_map, route_map, stop_map]
         end
         schedule_jobs.each do |feed_schedule_import_id, trip_ids, agency_map, route_map, stop_map|
           logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Enqueue schedule job"
-          FeedEaterScheduleWorker.perform_async(feed.onestop_id, feed_schedule_import_id, trip_ids, agency_map, route_map, stop_map)
+          FeedEaterScheduleWorker.perform_async(feed.onestop_id, feed_version.sha1, feed_schedule_import_id, trip_ids, agency_map, route_map, stop_map)
         end
       end
     rescue Exception => e
@@ -59,13 +56,13 @@ class FeedEaterFeedWorker < FeedEaterWorker
       exception_log = "\n#{e}\n#{e.backtrace}\n"
       logger.error exception_log
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Saving failed feed import"
-      feed_import.failed(exception_log: exception_log)
+      feed_version_import.failed(exception_log: exception_log)
       Raven.capture_exception(e) if defined?(Raven)
     else
       # Enqueue FeedEaterScheduleWorker jobs, or save successful import.
       if import_level < 2
         logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Saving successful feed import"
-        feed_import.succeeded
+        feed_version_import.succeeded
       end
       # Enqueue GTFS Artifact Workers (~ Vestigial)
       if Figaro.env.create_feed_eater_artifacts == 'true' &&
@@ -76,7 +73,7 @@ class FeedEaterFeedWorker < FeedEaterWorker
     ensure
       # Save logs and reports
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Saving log"
-      feed_import.update(import_log: graph.try(:import_log))
+      feed_version_import.update(import_log: graph.try(:import_log))
     end
   end
 end

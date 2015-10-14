@@ -3,13 +3,14 @@ require 'gtfsgraph'
 class FeedEaterScheduleWorker < FeedEaterWorker
   sidekiq_options queue: :feed_eater_schedule
 
-  def perform(feed_onestop_id, feed_schedule_import_id, trip_ids, agency_map, route_map, stop_map)
+  def perform(feed_onestop_id, feed_version_sha1, feed_schedule_import_id, trip_ids, agency_map, route_map, stop_map)
     logger.info "FeedEaterScheduleWorker #{feed_onestop_id}: Importing #{trip_ids.size} trips"
     feed = Feed.find_by(onestop_id: feed_onestop_id)
+    feed_version = FeedVersion.find_by(sha1: feed_version_sha1)
     feed_schedule_import = FeedScheduleImport.find(feed_schedule_import_id)
     graph = nil
     begin
-      graph = GTFSGraph.new(feed.file_path, feed)
+      graph = GTFSGraph.new(feed_version.file.path, feed)
       graph.ssp_perform_async(
         trip_ids,
         agency_map,
