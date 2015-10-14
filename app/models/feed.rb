@@ -55,9 +55,10 @@ class Feed < BaseFeed
   include HasAGeographicGeometry
 
   has_many :operators_in_feed
-  has_many :operators, through: :operators_in_feed
+  has_many :operators, through: :operators_in_feed, source_type: 'Feed'
 
-  has_many :feed_imports, -> { order 'created_at DESC' }, dependent: :destroy
+  has_many :feed_versions, dependent: :destroy, as: :feed
+  has_many :feed_version_imports, through: :feed_versions
 
   has_many :entities_imported_from_feed
   has_many :imported_operators, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'

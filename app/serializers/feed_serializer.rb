@@ -40,16 +40,16 @@ class FeedSerializer < ApplicationSerializer
              :last_imported_at,
              :created_at,
              :updated_at,
-             :feed_imports_count,
-             :feed_imports_url
+             :feed_versions_count,
+             :feed_versions_url
 
   has_many :operators_in_feed
 
-  def feed_imports_count
-    object.feed_imports.count
+  def feed_versions_count
+    object.feed_versions.count
   end
 
-  def feed_imports_url
-    api_v1_feed_feed_imports_url(object.onestop_id)
+  def feed_versions_url
+    api_v1_feed_feed_versions_url(object.onestop_id)
   end
 end

@@ -113,7 +113,10 @@ Example URL  | Parameters
 `GET /api/v1/feeds?tag_key=license&tag_value=Creative%20Commons%20Attribution%203.0%20Unported%20License` | find all feeds that have a tag of `tag_key` and a value of `tag_value`
 `GET /api/v1/feeds?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
 `GET /api/v1/feeds/f-9q9-bayarearapidtransit` | none required
-`GET /api/v1/feeds/f-9q9-bayarearapidtransit/feed_imports` | none required
+`GET /api/v1/feeds/f-9q9-bayarearapidtransit/feed_versions` | none required
+`GET /api/v1/feeds/f-9q9-bayarearapidtransit/feed_versions/c06b4b6b40815f27c81b4fcf486ac1fd70ab1966` | none required
+`GET /api/v1/feeds/f-9q9-bayarearapidtransit/feed_versions/c06b4b6b40815f27c81b4fcf486ac1fd70ab1966/feed_version_imports` | none required
+`GET /api/v1/feeds/f-9q9-bayarearapidtransit/feed_versions/c06b4b6b40815f27c81b4fcf486ac1fd70ab1966/feed_version_imports/1` | none required
 `GET /api/v1/schedule_stop_pairs` | Find all [Schedule Stop Pairs](doc/schedule_api.md). All options below can be combined.
 `GET /api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation` | Find all Schedule Stop Pairs from origin
 `GET /api/v1/schedule_stop_pairs?destination_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation` | Find all Schedule Stop Pairs to a destination

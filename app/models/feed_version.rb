@@ -25,6 +25,8 @@
 #
 
 class FeedVersion < ActiveRecord::Base
+  PER_PAGE = 50
+
   belongs_to :feed, polymorphic: true
   has_many :feed_version_imports, dependent: :destroy
 

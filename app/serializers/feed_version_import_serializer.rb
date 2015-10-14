@@ -18,9 +18,10 @@
 
 class FeedVersionImportSerializer < ApplicationSerializer
   attributes :feed_onestop_id,
+             :feed_version_sha1,
              :feed_url,
+             :feed_version_url,
              :success,
-             :sha1,
              :import_log,
              :exception_log,
              :validation_report,
@@ -33,7 +34,15 @@ class FeedVersionImportSerializer < ApplicationSerializer
     object.feed.onestop_id
   end
 
+  def feed_version_sha1
+    object.feed_version.sha1
+  end
+
   def feed_url
     api_v1_feed_url(object.feed.onestop_id)
+  end
+
+  def feed_version_url
+    api_v1_feed_feed_version_url(object.feed.onestop_id, object.feed_version.sha1)
   end
 end
