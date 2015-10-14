@@ -6,8 +6,17 @@
     "originOnestopId",
     "destinationOnestopId",
     "routeOnestopId",
+    "importedFromFeedOnestopId",
+    "originArrivalTime",
+    "originDepartureTime",
+    "destinationArrivalTime",
+    "destinationDepartureTime",
+    "originTimezone",
+    "destinationTimezone",
     "serviceStartDate",
-    "serviceEndDate"
+    "serviceEndDate",
+    "windowStart",
+    "windowEnd"
   ],
   "additionalProperties": false,
   "properties": {
@@ -27,10 +36,6 @@
       "type": "string",
       "format": "feed-onestop-id"
     },
-    "trip": { "type": "string" },
-    "tripHeadsign": { "type": "string" },
-    "tripShortName": { "type": "string" },
-    "blockId": { "type": "string" },
     "originArrivalTime": { "type": "string" },
     "originDepartureTime": { "type": "string" },
     "destinationArrivalTime": { "type": "string" },
@@ -41,23 +46,28 @@
     "windowEnd": { "type": "string" },
     "originTimepointSource": { "type": "string" },
     "destinationTimepointSource": { "type": "string" },
-    "frequencyStartTime": { "type": "string" },
-    "frequencyEndTime": { "type": "string" },
-    "frequencyHeadwaySeconds": { "type": "string" },
-    "serviceStartDate": { "type": "date" },
-    "serviceEndDate": { "type": "date" },
+    "serviceStartDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "serviceEndDate": {
+      "type": "string",
+      "format": "date"
+    },
     "serviceAddedDates": {
       "type": "array",
       "uniqueItems": true,
       "items": {
-        "type": "date"
+        "type": "string",
+        "format": "date"
       }
     },
     "serviceExceptDates": {
       "type": "array",
       "uniqueItems": true,
       "items": {
-        "type": "date"
+        "type": "string",
+        "format": "date"
       }
     },
     "serviceDaysOfWeek": {
@@ -68,11 +78,18 @@
         "type": "boolean"
       }
     },
-    "wheelchairAccessible": { "type": "integer" },
-    "bikesAllowed": { "type": "integer" },
-    "pickupType": { "type": "integer" },
-    "dropOffType": { "type": "integer" },
-    "shapeDistTraveled": { "type": "number" },
+    "trip": { "type": ["string","null"] },
+    "tripHeadsign": { "type": ["string","null"] },
+    "tripShortName": { "type": ["string","null"] },
+    "blockId": { "type": ["string","null"] },
+    "frequencyStartTime": { "type": ["string","null"] },
+    "frequencyEndTime": { "type": ["string","null"] },
+    "frequencyHeadwaySeconds": { "type": ["string","null"] },
+    "wheelchairAccessible": { "type": ["integer","null"] },
+    "bikesAllowed": { "type": ["integer","null"] },
+    "pickupType": { "type": ["integer","null"] },
+    "dropOffType": { "type": ["integer","null"] },
+    "shapeDistTraveled": { "type": ["number","null"] },
     "tags": { "type": "object" }
   }
 }
