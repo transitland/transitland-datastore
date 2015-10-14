@@ -33,7 +33,7 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
   private
 
   def set_feed
-    @feed = Feed.find_by(onestop_id: params[:feed_id])
+    @feed = Feed.find_by!(onestop_id: params[:feed_id])
   end
 
   def set_feed_version

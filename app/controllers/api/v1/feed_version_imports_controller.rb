@@ -15,7 +15,7 @@ class Api::V1::FeedVersionImportsController < Api::V1::BaseApiController
       format.json do
         render paginated_json_collection(
           @feed_version_imports,
-          Proc.new { |params| api_v1_feed_feed_version_imports_url(params) },
+          Proc.new { |params| api_v1_feed_feed_version_feed_version_imports_url(params) },
           params[:offset],
           per_page,
           {}
@@ -34,11 +34,11 @@ class Api::V1::FeedVersionImportsController < Api::V1::BaseApiController
   private
 
   def set_feed
-    @feed = Feed.find_by(onestop_id: params[:feed_id])
+    @feed = Feed.find_by!(onestop_id: params[:feed_id])
   end
 
   def set_feed_version
-    @feed_version = @feed.feed_versions.find_by(sha1: params[:feed_version_id])
+    @feed_version = @feed.feed_versions.find_by!(sha1: params[:feed_version_id])
   end
 
   def set_feed_version_import
