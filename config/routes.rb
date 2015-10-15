@@ -33,7 +33,7 @@ Rails.application.routes.draw do
       resources :routes, only: [:index, :show]
       resources :schedule_stop_pairs, only: [:index, :frequency]
       resources :feeds, only: [:index, :show] do
-        resources :feed_imports, only: [:index]
+        resources :feed_imports, only: [:index, :show]
       end
       post '/webhooks/feed_eater', to: 'webhooks#feed_eater'
     end
