@@ -58,6 +58,7 @@ FactoryGirl.define do
     association :origin, factory: :stop
     association :destination, factory: :stop
     association :route, factory: :route
+    association :operator
     association :created_or_updated_in_changeset, factory: :changeset
     version 1
     trip "1234"
