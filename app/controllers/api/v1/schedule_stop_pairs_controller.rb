@@ -23,12 +23,20 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     end
   end
 
-  def summarize
+  def group_by
+    params[:keys] ||= "origin_onestop_id"
+    keys = params[:keys].split(",")
     edges = {}
-    ssps.find_each do |ssp|
-
+    @ssps.find_each do |ssp|
+      puts ssp.as_json.inspect
+      key = keys.map { |key| ssp.as_json[key] }
+      edges[key] ||= 0
+      edges[key] += 1
     end
+    render json: edges
   end
+
+  private
 
   def set_schedule_stop_pairs
     @ssps = ScheduleStopPair.where('')
