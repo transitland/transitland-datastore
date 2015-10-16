@@ -17,8 +17,8 @@
 #
 
 class FeedVersionImportSerializer < ApplicationSerializer
-  attributes :feed_onestop_id,
-             :feed_version_sha1,
+  attributes :feed,
+             :feed_version,
              :feed_url,
              :feed_version_url,
              :success,
@@ -30,11 +30,11 @@ class FeedVersionImportSerializer < ApplicationSerializer
 
   has_many :feed_schedule_imports
 
-  def feed_onestop_id
+  def feed
     object.feed.onestop_id
   end
 
-  def feed_version_sha1
+  def feed_version
     object.feed_version.sha1
   end
 

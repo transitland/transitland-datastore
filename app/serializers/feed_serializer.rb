@@ -41,7 +41,8 @@ class FeedSerializer < ApplicationSerializer
              :created_at,
              :updated_at,
              :feed_versions_count,
-             :feed_versions_url
+             :feed_versions_url,
+             :feed_versions
 
   has_many :operators_in_feed
 
@@ -51,5 +52,9 @@ class FeedSerializer < ApplicationSerializer
 
   def feed_versions_url
     api_v1_feed_feed_versions_url(object.onestop_id)
+  end
+
+  def feed_versions
+    object.feed_versions.pluck(:sha1)
   end
 end
