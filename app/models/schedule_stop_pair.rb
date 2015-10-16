@@ -89,6 +89,7 @@ class ScheduleStopPair < BaseScheduleStopPair
   validates :origin,
             :destination,
             :route,
+            :operator,
             :trip,
             :origin_timezone,
             :destination_timezone,
