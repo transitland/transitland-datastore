@@ -35,9 +35,7 @@ class FeedVersionImport < ActiveRecord::Base
 
   def succeeded
     self.update(success: true)
-    self.feed.update(
-      last_fetched_at: self.created_at,
-      last_imported_at: self.updated_at
-    )
+    self.feed_version.update(imported_at: self.updated_at)
+    self.feed.update(last_imported_at: self.updated_at)
   end
 end

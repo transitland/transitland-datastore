@@ -34,7 +34,6 @@ describe FeedVersionImport do
     it '#succeeded updates last_imported_at / last_fetched_at of parent feed' do
       feed_version_import = create(:feed_version_import)
       feed_version_import.succeeded
-      expect(feed_version_import.feed.last_fetched_at).to eq(feed_version_import.created_at)
       expect(feed_version_import.feed.last_imported_at).to eq(feed_version_import.updated_at)
     end
   end
