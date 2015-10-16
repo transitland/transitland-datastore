@@ -5,10 +5,7 @@
 #  id                     :integer          not null, primary key
 #  feed_id                :integer
 #  feed_type              :string
-#  file_file_name         :string
-#  file_content_type      :string
-#  file_file_size         :integer
-#  file_updated_at        :datetime
+#  file                   :string
 #  earliest_calendar_date :date
 #  latest_calendar_date   :date
 #  sha1                   :string
@@ -26,7 +23,6 @@
 
 class FeedVersionSerializer < ApplicationSerializer
   attributes :sha1,
-             :file_size,
              :earliest_calendar_date,
              :latest_calendar_date,
              :md5,
@@ -37,10 +33,6 @@ class FeedVersionSerializer < ApplicationSerializer
              :updated_at,
              :feed_version_imports,
              :feed_version_imports_url
-
-  def file_size
-    object.file_file_size
-  end
 
   def feed_version_imports
     object.feed_version_imports.pluck(:id)

@@ -2,7 +2,7 @@ class CreateFeedVersions < ActiveRecord::Migration
   def change
     create_table :feed_versions do |t|
       t.references :feed, index: true, polymorphic: true
-      t.attachment :file
+      t.string :file
       t.date :earliest_calendar_date
       t.date :latest_calendar_date
       t.string :sha1

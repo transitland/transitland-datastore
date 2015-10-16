@@ -419,7 +419,7 @@ if __FILE__ == $0
   import_level = (ARGV[1] || 1).to_i
   # FeedEaterFeedWorker.new.perform(feed_onestop_id, import_level)
   feed = Feed.find_by!(onestop_id: feed_onestop_id)
-  feed.fetch_and_check_for_updated_version unless File.exists?(filename)
+  feed.fetch_and_return_feed_version unless File.exists?(filename)
   graph = GTFSGraph.new(feed.file_path, feed)
   graph.create_change_osr(import_level)
   if import_level >= 2

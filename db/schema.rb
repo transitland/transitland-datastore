@@ -247,10 +247,7 @@ ActiveRecord::Schema.define(version: 20151014010123) do
   create_table "feed_versions", force: :cascade do |t|
     t.integer  "feed_id"
     t.string   "feed_type"
-    t.string   "file_file_name"
-    t.string   "file_content_type"
-    t.integer  "file_file_size"
-    t.datetime "file_updated_at"
+    t.string   "file"
     t.date     "earliest_calendar_date"
     t.date     "latest_calendar_date"
     t.string   "sha1"

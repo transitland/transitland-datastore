@@ -128,19 +128,20 @@ class Feed < BaseFeed
     return true
   end
 
-  def fetch_check_for_updated_version_and_return_feed_version
+  def fetch_and_return_feed_version
     begin
       logger.info "Fetching feed #{onestop_id} from #{url}"
-      begin
-        feed_version = self.feed_versions.create(file: self.url)
-      rescue OpenURI::HTTPError => exception
-        logger.error "Error downloading #{url}: #{exception}"
-        logger.error exception.backtrace
-        return nil
-      end
+      fetched_at = DateTime.now
+
+      # download from URL using Carrierwave
+      feed_version = self.feed_versions.create(
+        remote_file_url: self.url,
+        fetched_at: fetched_at
+      )
 
       if feed_version.persisted?
         logger.info "File downloaded from #{url} has a new sha1 hash"
+        self.update(last_fetched_at: fetched_at)
         feed_version
       else
         logger.info "File downloaded from #{url} has same sha1 hash as last imported version (or another error fetching file)"
@@ -149,7 +150,7 @@ class Feed < BaseFeed
         existing
       end
     rescue
-      logger.error "Error fetching feed ##{onestop_id}"
+      logger.error "Error downloading feed ##{onestop_id} from #{url}: #{exception}"
       logger.error $!.message
       logger.error $!.backtrace
       nil

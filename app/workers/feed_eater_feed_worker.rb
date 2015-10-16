@@ -12,7 +12,7 @@ class FeedEaterFeedWorker < FeedEaterWorker
     # Download the feed
     feed = Feed.find_by(onestop_id: feed_onestop_id)
     logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Downloading #{feed.url}"
-    feed_version = feed.fetch_check_for_updated_version_and_return_feed_version
+    feed_version = feed.fetch_and_return_feed_version
     return unless feed_version.present?
 
     # Create import record

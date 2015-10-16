@@ -52,7 +52,7 @@ gem 'oj'
 gem 'faraday'
 
 # file attachments
-gem 'paperclip'
+gem 'carrierwave'
 
 # development tools
 gem 'better_errors', group: :development

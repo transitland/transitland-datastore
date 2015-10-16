@@ -38,7 +38,6 @@ For a complete visualization of the Datastore's data model, see [doc/data-model.
 
   * `brew install postgis` Postgres database with the [PostGIS extension](http://postgis.net/)
   * `brew install redis` [Redis key-value store](http://redis.io/) (used for the Sidekiq async worker queue)
-  * `brew install imagemagick` required by the [Paperclip gem](https://github.com/thoughtbot/paperclip) that handles file attachments.
   * **optional** `brew install graphviz` Graphviz graph visualization library (used to generate entity-relation diagrams). Only necessary if you'll be adding models and database migrations.
 
 2. Run the Datastore setup script, which will install Ruby gems, install Python packages, and set your local configuration to default values:
