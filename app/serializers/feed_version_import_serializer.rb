@@ -17,7 +17,8 @@
 #
 
 class FeedVersionImportSerializer < ApplicationSerializer
-  attributes :feed,
+  attributes :id,
+             :feed,
              :feed_version,
              :feed_url,
              :feed_version_url,
