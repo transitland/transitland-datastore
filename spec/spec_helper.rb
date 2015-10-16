@@ -38,13 +38,8 @@ RSpec.configure do |config|
 
   config.before(:suite) do
     DatabaseCleaner.strategy = :truncation, { except: ['spatial_ref_sys'] }
-    begin
-      DatabaseCleaner.start
-      Sidekiq::Worker.clear_all
-      FactoryGirl.lint
-    ensure
-      DatabaseCleaner.clean_with :truncation, { except: ['spatial_ref_sys'] }
-    end
+    DatabaseCleaner.start
+    Sidekiq::Worker.clear_all
   end
 
   config.before(:each) do
