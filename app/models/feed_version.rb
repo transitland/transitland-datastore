@@ -59,12 +59,12 @@ class FeedVersion < ActiveRecord::Base
       if gtfs_file.feed_infos.count > 0
         feed_info = gtfs_file.feed_infos[0]
         feed_version_tags = {
-          feed_publisher_name: feed_info.publisher_name,
-          feed_publisher_url:  feed_info.publisher_url,
-          feed_lang:           feed_info.lang,
-          feed_start_date:     feed_info.start_date,
-          feed_end_date:       feed_info.end_date,
-          feed_version:        feed_info.version
+          feed_publisher_name: feed_info.feed_publisher_name,
+          feed_publisher_url:  feed_info.feed_publisher_url,
+          feed_lang:           feed_info.feed_lang,
+          feed_start_date:     feed_info.feed_start_date,
+          feed_end_date:       feed_info.feed_end_date,
+          feed_version:        feed_info.feed_version
         }
         feed_version_tags.delete_if { |k, v| v.blank? }
         self.tags = feed_version_tags
