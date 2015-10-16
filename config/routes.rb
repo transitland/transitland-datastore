@@ -31,7 +31,11 @@ Rails.application.routes.draw do
       resources :stops, only: [:index, :show]
       resources :operators, only: [:index, :show]
       resources :routes, only: [:index, :show]
-      resources :schedule_stop_pairs, only: [:index, :frequency]
+      resources :schedule_stop_pairs, only: [:index] do
+        collection do
+          get :group_by
+        end
+      end
       resources :feeds, only: [:index, :show] do
         resources :feed_imports, only: [:index]
       end
