@@ -336,7 +336,7 @@ class GTFSGraph
       identifiedBy: entity.identified_by.uniq,
       importedFromFeedOnestopId: @feed.onestop_id,
       operatedBy: entity.operator.onestop_id,
-      serves: entity.stops.map(&:onestop_id),
+      serves: entity.serves.map(&:onestop_id),
       tags: entity.tags || {},
       geometry: entity.geometry
     }

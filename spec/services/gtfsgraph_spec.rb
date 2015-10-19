@@ -16,7 +16,6 @@ end
 describe GTFSGraph do
 
   context 'can apply level 0 and 1 changesets' do
-
     before(:each) { @feed = load_feed(1) }
 
     it 'updated feed geometry' do
@@ -71,6 +70,44 @@ describe GTFSGraph do
         "gtfs://f-9q9-caltrain/s/777402"
       )
       expect(s.timezone).to eq('America/Los_Angeles')
+    end
+
+    it 'created known Operator that serves known Routes' do
+      o = @feed.operators.find_by(onestop_id: 'o-9q9-caltrain')
+      expect(o.routes.size).to eq(5)
+      expect(o.routes.map(&:onestop_id)).to contain_exactly(
+        "r-9q9j-bullet",
+        "r-9q9-limited",
+        "r-9q9-local",
+        "r-9q9k6-tamien~sanjosediridoncaltrainshuttle",
+        "r-9q8yw-sx"
+      )
+    end
+
+    it 'created known Operator that serves known Stops' do
+      o = @feed.operators.find_by(onestop_id: 'o-9q9-caltrain')
+      # Just check the number of stops here...
+      expect(o.stops.size).to eq(31)
+    end
+
+    it 'created known Routes that serve known Stops' do
+      r = @feed.imported_routes.find_by(onestop_id: 'r-9q9j-bullet')
+      expect(r.stops.size).to eq(13)
+      expect(r.stops.map(&:onestop_id)).to contain_exactly(
+        "s-9q8vzhbggj-millbraecaltrainstation",
+        "s-9q8yw8y448-bayshorecaltrainstation",
+        "s-9q8yycs6ku-22ndstreetcaltrainstation",
+        "s-9q8yyugptw-sanfranciscocaltrainstation",
+        "s-9q9hwp6epk-mountainviewcaltrainstation",
+        "s-9q9hxhecje-sunnyvalecaltrainstation",
+        "s-9q9j5dmkuu-menloparkcaltrainstation",
+        "s-9q9j6812kg-redwoodcitycaltrainstation",
+        "s-9q9j8rn6tv-sanmateocaltrainstation",
+        "s-9q9j913rf1-hillsdalecaltrainstation",
+        "s-9q9jh061xw-paloaltocaltrainstation",
+        "s-9q9k62qu53-tamiencaltrainstation",
+        "s-9q9k659e3r-sanjosecaltrainstation"
+      )
     end
   end
 
