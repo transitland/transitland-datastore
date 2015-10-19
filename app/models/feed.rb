@@ -55,7 +55,7 @@ class Feed < BaseFeed
   include HasAGeographicGeometry
 
   has_many :operators_in_feed
-  has_many :operators, through: :operators_in_feed, source_type: 'Feed'
+  has_many :operators, through: :operators_in_feed
 
   has_many :feed_versions, dependent: :destroy, as: :feed
   has_many :feed_version_imports, through: :feed_versions
