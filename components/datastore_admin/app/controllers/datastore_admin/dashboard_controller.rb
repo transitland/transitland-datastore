@@ -7,15 +7,15 @@ module DatastoreAdmin
     def reset
       begin
         ResetDatastore.clear_enqueued_jobs if params[:clear_enqueued_jobs]
+        ResetDatastore.destroy_feed_versions if params[:destroy_feed_versions]
         ResetDatastore.truncate_database if params[:truncate_database]
-        ResetDatastore.clear_data_directory if params[:clear_data_directory]
       rescue
         flash[:error] = $!.message
       else
         messages = []
         messages << 'Successfully cleared enqueued jobs.' if params[:clear_enqueued_jobs]
+        messages << 'Successfully destroyed feed versions.' if params[:destroy_feed_versions]
         messages << 'Successfully truncated database.' if params[:truncate_database]
-        messages << 'Successfully cleared data directory.' if params[:clear_data_directory]
         if messages.size > 0
           flash[:success] = messages.join(' ')
         else
