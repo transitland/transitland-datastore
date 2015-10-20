@@ -6,7 +6,7 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
   before_action :set_feed, only: [:show]
 
   def index
-    @feeds = Feed.where('')
+    @feeds = Feed.where('').includes{[operators_in_feed, operators_in_feed.operator]}
 
     if params[:tag_key].present? && params[:tag_value].present?
       @feeds = @feeds.with_tag_equals(params[:tag_key], params[:tag_value])
