@@ -15,6 +15,9 @@ class FeedEaterFeedWorker < FeedEaterWorker
     feed_version = feed.fetch_and_return_feed_version
     return unless feed_version.present?
 
+    # make sure to have local copy of file
+    feed_file_path = feed_version.file.local_path_copying_locally_if_needed
+
     # Create import record
     feed_version_import = feed_version.feed_version_imports.create
 
@@ -26,7 +29,7 @@ class FeedEaterFeedWorker < FeedEaterWorker
         FEEDVALIDATOR_PATH,
         '-n',
         '--output=CONSOLE',
-        feed_version.file.path
+        feed_file_path
       ]).read
       feed_version_import.update(validation_report: validation_report)
     end
@@ -35,7 +38,7 @@ class FeedEaterFeedWorker < FeedEaterWorker
     logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Importing feed at import level #{import_level}"
     graph = nil
     begin
-      graph = GTFSGraph.new(feed_version.file.path, feed)
+      graph = GTFSGraph.new(feed_file_path, feed)
       graph.create_change_osr(import_level)
       if import_level >= 2
         schedule_jobs = []
@@ -71,6 +74,7 @@ class FeedEaterFeedWorker < FeedEaterWorker
         GtfsFeedArtifactWorker.perform_async(feed_onestop_id)
       end
     ensure
+      feed_version.file.remove_any_local_cached_copies
       # Save logs and reports
       logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Saving log"
       feed_version_import.update(import_log: graph.try(:import_log))

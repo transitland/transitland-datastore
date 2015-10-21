@@ -150,7 +150,7 @@ class Feed < BaseFeed
         existing
       end
     rescue
-      logger.error "Error downloading feed ##{onestop_id} from #{url}: #{exception}"
+      logger.error "Error downloading feed ##{onestop_id} from #{url}: #{$!.message}"
       logger.error $!.message
       logger.error $!.backtrace
       nil

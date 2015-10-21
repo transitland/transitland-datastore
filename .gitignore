@@ -43,5 +43,5 @@ __pycache__/
 # Ignore Python virtualenv
 virtualenv/
 
-# Ignore Paperclip attachments
-public/system/*
+# Ignore attachments
+public/uploads/*
