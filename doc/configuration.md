@@ -11,3 +11,5 @@ key | possible values | default | description
 --- | --------------- | ------- | -----------
 `RUN_GOOGLE_FEEDVALIDATOR` | `true`, `false` | `true` | By default, FeedEaterFeedWorker will validate feeds using the [Google transitfeed Python library](https://github.com/google/transitfeed). Set to `false` in order to skip this step.
 `CREATE_FEED_EATER_ARTIFACTS` | `true`, `false` | `false` | If both this key and `AUTO_CONFLATE_STOPS_WITH_OSM` are set to `true`, then enriched GTFS feed archives will be produced after FeedEaterFeedWorker runs. (Enriched feeds include Onestop IDs and OSM way IDs for stops.)
+`ATTACHMENTS_S3_REGION` | [any AWS S3 region](http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region) | `us-east-1` | used for uploading FeedEater artifacts
+`ATTACHMENTS_S3_BUCKET` | name of an AWS S3 bucket | none | used for uploading FeedEater artifacts

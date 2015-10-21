@@ -7,10 +7,10 @@ class UploadFeedEaterArtifactsToS3Worker < FeedEaterWorker
   def perform(feed_onestop_id)
     if feed_onestop_id.blank?
       raise ArgumentError.new('must specify a feed_onestop_id')
-    elsif Figaro.env.artifact_upload_s3_region.blank?
-      raise StandardError.new("must specify ENV['ARTIFACT_UPLOAD_S3_REGION']")
-    elsif Figaro.env.artifact_upload_s3_bucket.blank?
-      raise StandardError.new("must specify ENV['ARTIFACT_UPLOAD_S3_BUCKET']")
+    elsif Figaro.env.attachments_s3_region.blank?
+      raise StandardError.new("must specify ENV['ATTACHMENTS_S3_REGION']")
+    elsif Figaro.env.attachments_s3_bucket.blank?
+      raise StandardError.new("must specify ENV['ATTACHMENTS_S3_BUCKET']")
     elsif Figaro.env.aws_access_key_id.blank?
       raise StandardError.new("must specify ENV['AWS_ACCESS_KEY_ID']")
     elsif Figaro.env.aws_secret_access_key.blank?
@@ -40,7 +40,7 @@ class UploadFeedEaterArtifactsToS3Worker < FeedEaterWorker
   end
 
   def s3_connection
-    @s3 ||= Aws::S3::Resource.new(region: Figaro.env.artifact_upload_s3_region)
+    @s3 ||= Aws::S3::Resource.new(region: Figaro.env.attachments_s3_region)
     @s3
   end
 
