@@ -47,6 +47,13 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
       @ssps = @ssps.updated_since(params[:updated_since])
     end
 
+    @ssps = @ssps.includes{[
+      origin,
+      destination,
+      route,
+      operator
+    ]}
+
     per_page = params[:per_page].blank? ? ScheduleStopPair::PER_PAGE : params[:per_page].to_i
 
     respond_to do |format|
