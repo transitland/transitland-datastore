@@ -42,9 +42,9 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
       @ssps = @ssps.where(destination_id: Stop.find_by!(onestop_id: params[:destination_onestop_id]).id)
     end
     # Departing between...
-    if params[:departing_between].present?
-      t1, t2 = params[:departing_between].split(',')
-      @ssps = @ssps.where_departing_between(t1, t2)
+    if params[:origin_departure_between].present?
+      t1, t2 = params[:origin_departure_between].split(',')
+      @ssps = @ssps.where_origin_departure_between(t1, t2)
     end
     # Service by trip id
     if params[:trip].present?

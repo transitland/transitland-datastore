@@ -114,7 +114,7 @@ class ScheduleStopPair < BaseScheduleStopPair
     where("(service_start_date <= ? AND service_end_date >= ?) AND (true = service_days_of_week[?] OR ? = ANY(service_added_dates)) AND NOT (? = ANY(service_except_dates))", date, date, date.cwday, date, date)
   }
 
-  scope :where_departing_between, -> (time1, time2) {
+  scope :where_origin_departure_between, -> (time1, time2) {
     time1 = (GTFS::WideTime.parse(time1) || '00:00:00').to_s
     time2 = (GTFS::WideTime.parse(time2) || '99:59:59').to_s
     where("origin_departure_time >= ? AND origin_departure_time <= ?", time1, time2)
