@@ -171,6 +171,31 @@ RSpec.describe ScheduleStopPair, type: :model do
       expect(ScheduleStopPair.where_service_from_date(expect_end2).count).to eq(0)
     end
 
+    it 'where origin_departure_between' do
+      create(:schedule_stop_pair, origin_departure_time: '09:00:00')
+      create(:schedule_stop_pair, origin_departure_time: '09:05:00')
+      create(:schedule_stop_pair, origin_departure_time: '09:10:00')
+      expect(ScheduleStopPair.where_origin_departure_between('07:00:00', '08:00:00').count).to eq(0)
+      expect(ScheduleStopPair.where_origin_departure_between('08:00:00', '09:00:00').count).to eq(1)
+      expect(ScheduleStopPair.where_origin_departure_between('09:00:00', '09:00:00').count).to eq(1)
+      expect(ScheduleStopPair.where_origin_departure_between('09:00:00', '09:01:00').count).to eq(1)
+      expect(ScheduleStopPair.where_origin_departure_between('09:00:00', '09:05:00').count).to eq(2)
+      expect(ScheduleStopPair.where_origin_departure_between('09:00:00', '09:10:00').count).to eq(3)
+      expect(ScheduleStopPair.where_origin_departure_between('09:00:00', '10:00:00').count).to eq(3)
+      expect(ScheduleStopPair.where_origin_departure_between('00:00:00', '30:00:00').count).to eq(3)
+    end
+
+    it 'where origin_departure_between parses widetimes' do
+      create(:schedule_stop_pair, origin_departure_time: '09:00:00')
+      expect(ScheduleStopPair.where_origin_departure_between('8', '10').count).to eq(1)
+    end
+
+    it 'where origin_departure_between allows open ended ranges' do
+      create(:schedule_stop_pair, origin_departure_time: '09:00:00')
+      expect(ScheduleStopPair.where_origin_departure_between('08:00:00', nil).count).to eq(1)      
+      expect(ScheduleStopPair.where_origin_departure_between(nil, '10:00:00').count).to eq(1)
+    end
+
   end
 
   context 'service dates' do
