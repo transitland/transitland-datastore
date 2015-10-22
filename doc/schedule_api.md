@@ -1,114 +1,110 @@
-# Schedule API
+# Transitland schedule API
 
-This is an evolving document describing the Schedule query parameters and responses.
+Each ScheduleStopPair represents an edge between two stops, made on a particular route, at a particular time
 
-# Query parameters
+## ScheduleStopPair Data Model
 
-## From an origin
-/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation
+| Attribute                    | Description |
+|------------------------------|-------------|
+| route_onestop_id             | Route Onestop ID |
+| operator_onestop_id          | Operator Onestop ID |
+| origin_onestop_id            | Origin Stop Onestop ID |
+| origin_timezone              | Origin Stop timezone |
+| origin_arrival_time          | Time vehicle arrives at origin from previous stop |
+| origin_departure_time        | Time vehicle leaves origin |
+| origin_timepoint_source      | Timepoint is exact or interpolated |
+| destination_onestop_id       | Destination Stop Onestop ID |
+| destination_timezone         | Destination Stop timezone |
+| destination_arrival_time     | Time vehicle arrives at destination |
+| destination_departure_time   | Time vehicle leaves destination for next stop |
+| destination_timepoint_source | Timepoint is exact or interpolated |
+| window_start                 | The previous known exact timepoint |
+| window_end                   | The next known exact timepoint |
+| trip                         | A text label for a sequence of edges |
+| trip_headsign                | A human friendly description of the ultimate destination |
+| trip_short_name              | A commonly known human-readable trip identifier, e.g. a train number |
+| block_id                     | A block of trips made by the same vehicle |
+| service_start_date           | Date service begins |
+| service_end_date             | Date service ends |
+| service_days_of_week         | Scheduled service, in ISO order (Monday -> Sunday) |
+| service_added_dates          | Array of additional dates service is scheduled |
+| service_except_dates         | Array of dates service is NOT scheduled (Holidays, etc.) |
+| wheelchair_accessible        | Wheelchair accessibility |
+| bikes_allowed                | Bike accessible |
+| drop_off_type                | Regularly scheduled stop for dropping off passengers |
+| pickup_type                  | Regularly scheduled stop for picking up passengers |
 
-## To a destination
-/api/v1/schedule_stop_pairs?destination_onestop_id=s-9q8vzhbggj-millbraecaltrainstation
+## Query parameters
 
-## On a date
-/api/v1/schedule_stop_pairs?date=2015-08-05
+The main ScheduleStopPair API endpoint is [/api/v1/schedule_stop_pairs](http://transit.land/api/v1/schedule_stop_pairs). It accepts the following query parameters, which may be freely combined.
 
-## On a route
-/api/v1/schedule_stop_pairs?route_onestop_id=r-9q9-local
+| Query parameter        | Description |
+|------------------------|-------------|
+| [origin_onestop_id](http://dev.transit.land/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8znb12j1-embarcadero) | Origin Stop |
+| [destination_onestop_id](http://dev.transit.land/api/v1/schedule_stop_pairs?destination_onestop_id=s-9q8yyxq427-montgomeryst) | Destination Stop |
+| [route_onestop_id](http://dev.transit.land/api/v1/schedule_stop_pairs?route_onestop_id=r-9q8y-n) | Route |
+| [operator_onestop_id](http://dev.transit.land/api/v1/schedule_stop_pairs?operator_onestop_id=o-9q9-bart) | Operator |  |
+| [date](http://dev.transit.land/api/v1/schedule_stop_pairs?date=2015-08-21) | Service operates on a date |
+| [service_from_date](http://dev.transit.land/api/v1/schedule_stop_pairs?service_from_date=2015-10-21) | Service operates on a date, or in the future |
+| [origin_departure_between](http://dev.transit.land/api/v1/schedule_stop_pairs?origin_departure_between=09:00:00,09:10:00) | Origin departure time between two times |
+| [trip](http://dev.transit.land/api/v1/schedule_stop_pairs?trip=03SFO11SUN) | Trip identifier |
+| [bbox](http://dev.transit.land/api/v1/schedule_stop_pairs?bbox=-122.4,37.7,-122.4,30.8) | Origin Stop within bounding box |
 
-## Edges originating for all stops in a bounding box
-/api/v1/schedule_stop_pairs?bbox=-122.4131,37.7136,-122.3789,30.8065
-
-## Current, and future, service from a starting date
-/api/v1/schedule_stop_pairs?service_from_date=2015-08-05
-
-# Combining query parameters
-
-## For a stop on a date
-/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&date=2015-08-05
-
-## ... on a route
-/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&date=2015-08-05&route_onestop_id=r-9q9j-bullet
-
-## For a given stop pair
-/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&destination_onestop_id=s-9q8vzhbggj-millbraecaltrainstation
-
-## ... on a date
-/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&destination_onestop_id=s-9q8vzhbggj-millbraecaltrainstation&date=2015-08-05
-
-## ... on in a route
-/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&destination_onestop_id=s-9q8vzhbggj-millbraecaltrainstation&date=2015-08-05&route_onestop_id=r-9q9j-bullet
-
-# Response format
-
-/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&per_page=1
+## Response format
 
 ````json
 {
-    "meta": {
-        "next": "http://localhost:3000/api/v1/schedule_stop_pairs?offset=1&per_page=1",
-        "offset": 0,
-        "per_page": 1,
-        "total": 6
-    },
     "schedule_stop_pairs": [
-				{
-					"origin_onestop_id": "s-9q8yyugptw-sanfranciscocaltrainstation",
-					"origin_arrival_time": "14:53:00",
-					"origin_departure_time": "14:53:00",
-					"destination_onestop_id": "s-9q8yw8y448-bayshorecaltrainstation",
-					"destination_arrival_time": "15:13:00",
-					"destination_departure_time": "15:13:00",
-					"route_onestop_id": "r-9q8yw-sx",
-					"trip": "8447926-ME01-Calshut-Sunday-50",
-					"trip_headsign": "Bayshore",
-					"block_id": null,
-					"trip_short_name": "222885",
-					"wheelchair_accessible": null,
-					"bikes_allowed": null,
-					"pickup_type": null,
-					"drop_off_type": null,
-					"timepoint": null,
-					"service_start_date": "2015-06-07",
-					"service_end_date": "2015-06-07",
-					"service_added_dates": [ ],
-					"service_except_dates": [ ],
-					"service_days_of_week": [
-						false,
-						false,
-						false,
-						false,
-						false,
-						false,
-						true
-					],
-					"created_at": "2015-08-11T23:57:20.529Z",
-					"updated_at": "2015-08-11T23:57:20.529Z"
-				}
-    ]
+        {
+            "route_onestop_id": "r-dr5r-2",
+            "operator_onestop_id": "o-dr5r-nyct",
+            "origin_onestop_id": "s-dr5ru0smu8-18st",
+            "origin_arrival_time": "25:35:00",
+            "origin_departure_time": "25:35:00",
+            "origin_timepoint_source": "gtfs_exact",
+            "origin_timezone": "America/New_York",
+            "destination_onestop_id": "s-dr5ru1np2p-23st",
+            "destination_arrival_time": "25:36:00",
+            "destination_departure_time": "25:36:00",
+            "destination_timepoint_source": "gtfs_exact",
+            "destination_timezone": "America/New_York",
+            "window_end": "25:36:00",
+            "window_start": "25:35:00",
+            "trip": "A20150614WKD_149100_2..N08R",
+            "trip_headsign": "WAKEFIELD - 241 ST",
+            "trip_short_name": null,
+            "block_id": null,
+            "service_start_date": "2015-06-14",
+            "service_end_date": "2016-12-31",
+            "service_days_of_week": [
+                true,
+                true,
+                true,
+                true,
+                true,
+                false,
+                false
+            ],
+            "service_added_dates": [],
+            "service_except_dates": [
+                "2015-09-07",
+                "2015-11-26"
+            ],
+            "shape_dist_traveled": 0.0,
+            "wheelchair_accessible": 0,
+            "bikes_allowed": null,
+            "drop_off_type": 0,
+            "pickup_type": 0,
+            "created_at": "2015-10-14T15:42:57.705Z",
+            "updated_at": "2015-10-14T15:42:57.705Z",
+        }
+    ],
+    "meta": {
+        "next": "http://transit.land/api/v1/schedule_stop_pairs?offset=2&per_page=1",
+        "offset": 1,
+        "per_page": 1,
+        "prev": "http://transit.land/api/v1/schedule_stop_pairs?offset=0&per_page=1",
+        "total": 2817329
+    }    
 }
 ````
-
-The response will contain an array of schedules. Each schedule represents an edge between two stops as well as the service schedule.
-
- * origin_onestop_id: Stop ID for origin
- * origin_arrival_time: Vehicle arrives at origin
- * origin_departure_time: Vehicle leaves origin
- * destination_onestop_id: Stop ID for destination
- * destination_arrival_time: Vehicle arrives at destination
- * destination_departure_time: Vehicle leaves destination to next edge
- * route_onestop_id: Route ID for destination
- * trip: A text label for a sequence of edges
- * trip_headsign: A human friendly description of the ultimate destination
- * service_start_date: Date service begins
- * service_end_date: Date service ends
- * service_added_dates: Array of additional dates service is scheduled
- * service_except_dates: Array of dates service is NOT scheduled (Holidays, etc.)
- * service_days_of_week: Scheduled service, in ISO order (Monday -> Sunday)
- * block_id: A block of trips made by the same vehicle
- * trip_short_name: A commonly known human-readable trip identifier, e.g. a train number
- * wheelchair_accessible: Wheelchair accessibility
- * bikes_allowed: Bike accessible
- * pickup_type: Stop regularity for picking up passengers
- * drop_off_type: Stop regularity for dropping off passengers
- * timepoint: Exact or interpolated arrival & departure times
