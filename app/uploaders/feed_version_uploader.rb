@@ -9,7 +9,7 @@ class FeedVersionUploader < CarrierWave::Uploader::Base
     storage :file
 
     def store_dir
-      "uploads/#{model.class.to_s.underscore}"
+      "uploads/#{Rails.env}/#{model.class.to_s.underscore}"
     end
   end
 

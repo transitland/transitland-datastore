@@ -39,6 +39,7 @@ RSpec.configure do |config|
   config.before(:suite) do
     DatabaseCleaner.strategy = :truncation, { except: ['spatial_ref_sys'] }
     DatabaseCleaner.start
+    clear_carrierwave_attachments
     Sidekiq::Worker.clear_all
   end
 
@@ -50,4 +51,12 @@ RSpec.configure do |config|
   config.before(:each, type: :feature) do
     Capybara.reset!
   end
+
+  config.after(:each) do
+    clear_carrierwave_attachments
+  end
+end
+
+def clear_carrierwave_attachments
+  FileUtils.rm_rf(Rails.root.join('public', 'uploads', 'test'))
 end
