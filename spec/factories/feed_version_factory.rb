@@ -23,7 +23,15 @@
 
 FactoryGirl.define do
   factory :feed_version do
-    feed
-    file { File.open(Rails.root.join('spec/support/example_gtfs_archives/f-9q9-caltrain.zip')) }
+  feed
+    factory :feed_version_caltrain do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/f-9q9-caltrain.zip')) }
+      association :feed, factory: :feed_caltrain
+    end
+
+    factory :feed_version_bart do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/f-9q9-bart.zip')) }
+      association :feed, factory: :feed_bart
+    end
   end
 end

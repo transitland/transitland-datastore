@@ -38,7 +38,7 @@ class FeedEaterFeedWorker < FeedEaterWorker
     logger.info "FeedEaterFeedWorker #{feed_onestop_id}: Importing feed at import level #{import_level}"
     graph = nil
     begin
-      graph = GTFSGraph.new(feed_file_path, feed)
+      graph = GTFSGraph.new(feed_file_path, feed, feed_version)
       graph.create_change_osr(import_level)
       if import_level >= 2
         schedule_jobs = []

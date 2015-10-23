@@ -27,6 +27,12 @@ class FeedVersion < ActiveRecord::Base
   belongs_to :feed, polymorphic: true
   has_many :feed_version_imports, dependent: :destroy
 
+  has_many :entities_imported_from_feed
+  has_many :imported_operators, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'
+  has_many :imported_stops, through: :entities_imported_from_feed, source: :entity, source_type: 'Stop'
+  has_many :imported_routes, through: :entities_imported_from_feed, source: :entity, source_type: 'Route'
+  has_many :imported_schedule_stop_pairs, through: :entities_imported_from_feed, source: :entity, source_type: 'ScheduleStopPair'
+
   mount_uploader :file, FeedVersionUploader
 
   validates :sha1, uniqueness: true

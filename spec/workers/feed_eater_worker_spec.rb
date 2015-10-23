@@ -1,25 +1,24 @@
 describe FeedEaterWorker do
   before(:each) do
-    @feedids = ['f-9q9-caltrain', 'f-9q9-bayarearapidtransit']
-    @feeds = @feedids.map {|feedid| Feed.new(onestop_id:feedid)}
+    create(:feed_version_caltrain)
+    create(:feed_version_bart)
   end
 
   it 'can take a one feed_onestop_id' do
     allow(FeedEaterWorker).to receive(:perform_async) { true }
-    FeedEaterWorker.perform_async(@feedids.first)
+    FeedEaterWorker.perform_async('f-9q9-bart')
     Sidekiq::Worker.clear_all
   end
 
   it 'can take a multiple feed_onestop_ids' do
     allow(FeedEaterWorker).to receive(:perform_async) { true }
-    FeedEaterWorker.perform_async(@feedids)
+    FeedEaterWorker.perform_async(['f-9q9-bart', 'f-9q9-caltrain'])
     Sidekiq::Worker.clear_all
   end
 
   it 'spawns child jobs' do
-    allow(Feed).to receive(:where) { @feeds }
     expect {
-      FeedEaterWorker.perform_async(@feedids)
+      FeedEaterWorker.perform_async(['f-9q9-bart', 'f-9q9-caltrain'])
     }.to change(FeedEaterWorker.jobs, :size).by(1)
     expect {
       FeedEaterWorker.drain

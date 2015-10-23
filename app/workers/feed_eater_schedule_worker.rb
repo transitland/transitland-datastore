@@ -11,7 +11,7 @@ class FeedEaterScheduleWorker < FeedEaterWorker
     feed_schedule_import = FeedScheduleImport.find(feed_schedule_import_id)
     graph = nil
     begin
-      graph = GTFSGraph.new(feed_file_path, feed)
+      graph = GTFSGraph.new(feed_file_path, feed, feed_version)
       graph.ssp_perform_async(
         trip_ids,
         agency_map,
