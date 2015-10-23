@@ -163,7 +163,6 @@ GEM
     globalid (0.3.6)
       activesupport (>= 4.1.0)
     hashdiff (0.2.2)
-    hashie (3.4.2)
     hitimes (1.2.3)
     http-cookie (1.0.2)
       domain_name (~> 0.5)
@@ -192,16 +191,7 @@ GEM
     netrc (0.10.3)
     nokogiri (1.6.6.2)
       mini_portile (~> 0.6.0)
-    oauth (0.4.7)
     oj (2.13.0)
-    omniauth (1.2.2)
-      hashie (>= 1.2, < 4)
-      rack (~> 1.0)
-    omniauth-oauth (1.1.0)
-      oauth
-      omniauth (~> 1.0)
-    omniauth-osm (0.3.2)
-      omniauth-oauth (~> 1.0)
     pg (0.18.3)
     polyamorous (1.1.0)
       activerecord (>= 3.0)
@@ -395,8 +385,6 @@ DEPENDENCIES
   json-schema
   mock_redis
   oj
-  omniauth
-  omniauth-osm
   pg
   pry-byebug
   pry-rails
