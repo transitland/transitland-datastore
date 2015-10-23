@@ -1,6 +1,8 @@
 require 'gtfsgraph'
 
-class FeedEaterScheduleWorker < FeedEaterWorker
+class FeedEaterScheduleWorker
+  include Sidekiq::Worker
+
   sidekiq_options queue: :feed_eater_schedule
 
   def perform(feed_onestop_id, feed_version_sha1, feed_schedule_import_id, trip_ids, agency_map, route_map, stop_map)

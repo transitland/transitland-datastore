@@ -188,6 +188,30 @@ describe Feed do
     end
   end
 
+  context 'fetch_and_return_feed_version' do
+    it 'creates a feed version the first time a file is downloaded' do
+      feed = create(:feed_caltrain)
+      expect(feed.feed_versions.count).to eq 0
+      VCR.use_cassette('fetch_caltrain') do
+        feed.fetch_and_return_feed_version
+      end
+      expect(feed.feed_versions.count).to eq 1
+    end
+
+    it "does not create a duplicate, if remote file hasn't changed since last download" do
+      feed = create(:feed_caltrain)
+      VCR.use_cassette('fetch_caltrain') do
+        @feed_version1 = feed.fetch_and_return_feed_version
+      end
+      expect(feed.feed_versions.count).to eq 1
+      VCR.use_cassette('fetch_caltrain') do
+        @feed_version2 = feed.fetch_and_return_feed_version
+      end
+      expect(feed.feed_versions.count).to eq 1
+      expect(@feed_version1).to eq @feed_version2
+    end
+  end
+
   it 'gets a bounding box around all its stops' do
     feed = build(:feed)
     stops = []

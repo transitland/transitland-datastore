@@ -157,6 +157,14 @@ class Feed < BaseFeed
     end
   end
 
+  def self.async_fetch_all_feeds
+    workers = []
+    Feed.find_each do |feed|
+      workers << FeedFetcherWorker.perform_async(feed.onestop_id)
+    end
+    workers
+  end
+
   def set_bounding_box_from_stops(stops)
     stop_features = Stop::GEOFACTORY.collection(stops.map { |stop| stop.geometry(as: :wkt) })
     bounding_box = RGeo::Cartesian::BoundingBox.create_from_geometry(stop_features)
