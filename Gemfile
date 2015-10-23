@@ -22,7 +22,6 @@ gem 'redis-rails'
 gem 'sidekiq'
 gem 'sidekiq-unique-jobs'
 gem 'sidekiq-limit_fetch'
-gem 'celluloid'
 gem 'whenever', require: false # to manage crontab
 
 # data model

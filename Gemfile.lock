@@ -372,7 +372,6 @@ DEPENDENCIES
   c_geohash
   carrierwave!
   celluloid
-  database_cleaner
   datastore_admin!
   enumerize
   factory_girl_rails
