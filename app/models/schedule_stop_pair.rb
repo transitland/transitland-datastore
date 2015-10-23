@@ -42,15 +42,16 @@
 #
 # Indexes
 #
-#  c_ssp_cu_in_changeset                             (created_or_updated_in_changeset_id)
-#  c_ssp_destination                                 (destination_id)
-#  c_ssp_origin                                      (origin_id)
-#  c_ssp_route                                       (route_id)
-#  c_ssp_service_end_date                            (service_end_date)
-#  c_ssp_service_start_date                          (service_start_date)
-#  c_ssp_trip                                        (trip)
-#  index_current_schedule_stop_pairs_on_operator_id  (operator_id)
-#  index_current_schedule_stop_pairs_on_updated_at   (updated_at)
+#  c_ssp_cu_in_changeset                                       (created_or_updated_in_changeset_id)
+#  c_ssp_destination                                           (destination_id)
+#  c_ssp_origin                                                (origin_id)
+#  c_ssp_route                                                 (route_id)
+#  c_ssp_service_end_date                                      (service_end_date)
+#  c_ssp_service_start_date                                    (service_start_date)
+#  c_ssp_trip                                                  (trip)
+#  index_current_schedule_stop_pairs_on_operator_id            (operator_id)
+#  index_current_schedule_stop_pairs_on_origin_departure_time  (origin_departure_time)
+#  index_current_schedule_stop_pairs_on_updated_at             (updated_at)
 #
 
 class BaseScheduleStopPair < ActiveRecord::Base
@@ -89,6 +90,7 @@ class ScheduleStopPair < BaseScheduleStopPair
   validates :origin,
             :destination,
             :route,
+            :operator,
             :trip,
             :origin_timezone,
             :destination_timezone,
@@ -111,6 +113,12 @@ class ScheduleStopPair < BaseScheduleStopPair
     date = date.is_a?(Date) ? date : Date.parse(date)
     # ISO week day is Monday = 1, Sunday = 7; Postgres arrays are indexed at 1
     where("(service_start_date <= ? AND service_end_date >= ?) AND (true = service_days_of_week[?] OR ? = ANY(service_added_dates)) AND NOT (? = ANY(service_except_dates))", date, date, date.cwday, date, date)
+  }
+
+  scope :where_origin_departure_between, -> (time1, time2) {
+    time1 = (GTFS::WideTime.parse(time1) || '00:00:00').to_s
+    time2 = (GTFS::WideTime.parse(time2) || '99:59:59').to_s
+    where("origin_departure_time >= ? AND origin_departure_time <= ?", time1, time2)
   }
 
   # Current service, and future service, active from a date

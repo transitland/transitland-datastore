@@ -16,6 +16,8 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
       @feeds = @feeds.within_bbox(params[:bbox])
     end
 
+    @feeds = @feeds.includes{[operators_in_feed]}
+
     per_page = params[:per_page].blank? ? Feed::PER_PAGE : params[:per_page].to_i
 
     respond_to do |format|
