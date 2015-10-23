@@ -7,9 +7,6 @@ path 'components' do
   gem 'datastore_admin'
 end
 
-# external Transitland libraries
-gem 'transitland_client', github: 'transitland/transitland-ruby-client', tag: 'v0.0.7', require: 'transitland_client'
-
 # process runner
 gem 'foreman', group: :development
 
