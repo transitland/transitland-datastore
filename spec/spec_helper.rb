@@ -48,10 +48,6 @@ RSpec.configure do |config|
     Sidekiq::Worker.clear_all
   end
 
-  config.before(:each, type: :feature) do
-    Capybara.reset!
-  end
-
   config.after(:each) do
     clear_carrierwave_attachments
   end
