@@ -36,7 +36,14 @@ class Api::V1::StopsController < Api::V1::BaseApiController
       @stops = @stops.updated_since(params[:updated_since])
     end
 
-    @stops = @stops.includes{[operators_serving_stop, operators_serving_stop.operator]} # TODO: check performance against eager_load, joins, etc.
+    @stops = @stops.includes{[
+      operators_serving_stop,
+      operators_serving_stop.operator,
+      routes_serving_stop,
+      routes_serving_stop.route,
+      routes_serving_stop.route.operator,
+      imported_from_feeds
+    ]} # TODO: check performance against eager_load, joins, etc.
 
     per_page = params[:per_page].blank? ? Stop::PER_PAGE : params[:per_page].to_i
 

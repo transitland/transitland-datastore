@@ -65,8 +65,11 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     if params[:updated_since].present?
       @ssps = @ssps.updated_since(params[:updated_since])
     end
-    # Eager load
-    @ssps = @ssps.includes(:operator, :route, :origin, :destination)
+    @ssps = @ssps.includes{[
+      origin,
+      destination,
+      route,
+      operator
+    ]}
   end
-
 end
