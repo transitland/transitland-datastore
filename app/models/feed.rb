@@ -144,9 +144,9 @@ class Feed < BaseFeed
         self.update(last_fetched_at: fetched_at)
         feed_version
       else
-        logger.info "File downloaded from #{url} has same sha1 hash as last imported version (or another error fetching file)"
+        logger.info "File downloaded from #{url} raises errors: #{feed_version.errors.full_messages}"
         existing = self.feed_versions.find_by(sha1: feed_version.sha1)
-        self.destroy # don't keep this new FeedVersion record around in memory
+        feed_version.destroy # don't keep this new FeedVersion record around in memory
         existing
       end
     rescue
