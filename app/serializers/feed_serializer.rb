@@ -38,6 +38,7 @@ class FeedSerializer < ApplicationSerializer
              :license_redistribute,
              :last_fetched_at,
              :last_imported_at,
+             :import_status,
              :created_at,
              :updated_at,
              :feed_versions_count,

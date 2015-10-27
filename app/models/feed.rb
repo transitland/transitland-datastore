@@ -30,9 +30,6 @@ class BaseFeed < ActiveRecord::Base
 
   PER_PAGE = 50
 
-  has_many :feed_versions, dependent: :destroy
-  has_many :feed_version_imports
-
   extend Enumerize
   enumerize :feed_format, in: [:gtfs]
   enumerize :license_use_without_attribution, in: [:yes, :no, :unknown]
@@ -54,11 +51,11 @@ class Feed < BaseFeed
   include UpdatedSince
   include HasAGeographicGeometry
 
+  has_many :feed_versions, dependent: :destroy, as: :feed # TODO: add a default sort order
+  has_many :feed_version_imports, -> { order 'created_at DESC' }, through: :feed_versions
+
   has_many :operators_in_feed
   has_many :operators, through: :operators_in_feed
-
-  has_many :feed_versions, dependent: :destroy, as: :feed
-  has_many :feed_version_imports, through: :feed_versions
 
   has_many :entities_imported_from_feed
   has_many :imported_operators, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'
@@ -169,6 +166,20 @@ class Feed < BaseFeed
     stop_features = Stop::GEOFACTORY.collection(stops.map { |stop| stop.geometry(as: :wkt) })
     bounding_box = RGeo::Cartesian::BoundingBox.create_from_geometry(stop_features)
     self.geometry = bounding_box.to_geometry
+  end
+
+  def import_status
+    if self.last_imported_at.blank? && self.feed_version_imports.count == 0
+      :never_imported
+    elsif self.feed_version_imports.first.success == false
+      :most_recent_failed
+    elsif self.feed_version_imports.first.success == true
+      :most_recent_succeeded
+    elsif self.feed_version_imports.first.success == nil
+      :in_progress
+    else
+      :unknown
+    end
   end
 
   private

@@ -233,4 +233,33 @@ describe Feed do
       ]
     })
   end
+
+  context 'import status' do
+    it 'handles never imported' do
+      feed = create(:feed)
+      expect(feed.import_status).to eq :never_imported
+    end
+
+    it 'handles most recent failed' do
+      feed = create(:feed)
+      create(:feed_version_import, feed: feed, success: true)
+      create(:feed_version_import, feed: feed, success: false)
+      expect(feed.import_status).to eq :most_recent_failed
+    end
+
+    it 'handles most recent succeeded' do
+      feed = create(:feed)
+      create(:feed_version_import, feed: feed, success: false)
+      create(:feed_version_import, feed: feed, success: true)
+      expect(feed.import_status).to eq :most_recent_succeeded
+    end
+
+    it 'handles in progress' do
+      feed = create(:feed)
+      create(:feed_version_import, feed: feed, success: true)
+      create(:feed_version_import, feed: feed, success: false)
+      create(:feed_version_import, feed: feed, success: nil)
+      expect(feed.import_status).to eq :in_progress
+    end
+  end
 end
