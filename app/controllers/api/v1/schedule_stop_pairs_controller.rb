@@ -65,6 +65,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     if params[:updated_since].present?
       @ssps = @ssps.updated_since(params[:updated_since])
     end
+    @ssps = @ssps.order(:id)
     @ssps = @ssps.includes{[
       origin,
       destination,
