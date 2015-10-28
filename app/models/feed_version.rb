@@ -43,8 +43,8 @@ class FeedVersion < ActiveRecord::Base
 
   def compute_and_set_hashes
     if file_changed?
-      self.sha1 ||= Digest::SHA1.file(file.path).hexdigest
-      self.md5  ||= Digest::MD5.file(file.path).hexdigest
+      self.sha1 = Digest::SHA1.file(file.path).hexdigest
+      self.md5  = Digest::MD5.file(file.path).hexdigest
     end
   end
 
