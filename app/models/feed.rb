@@ -51,7 +51,7 @@ class Feed < BaseFeed
   include UpdatedSince
   include HasAGeographicGeometry
 
-  has_many :feed_versions, dependent: :destroy, as: :feed # TODO: add a default sort order
+  has_many :feed_versions, -> { order 'created_at DESC' }, dependent: :destroy, as: :feed
   has_many :feed_version_imports, -> { order 'created_at DESC' }, through: :feed_versions
 
   has_many :operators_in_feed

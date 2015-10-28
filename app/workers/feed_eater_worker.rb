@@ -14,7 +14,6 @@ class FeedEaterWorker
     if feed_version_sha1.present?
       feed_version = feed.feed_versions.find_by!(sha1: feed_version_sha1)
     else
-      # TODO: decide what the sort order on feed versions should be
       feed_version = feed.feed_versions.last!
     end
 
