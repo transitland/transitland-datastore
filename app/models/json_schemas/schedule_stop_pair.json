@@ -85,10 +85,10 @@
     "frequencyStartTime": { "type": ["string","null"] },
     "frequencyEndTime": { "type": ["string","null"] },
     "frequencyHeadwaySeconds": { "type": ["string","null"] },
-    "wheelchairAccessible": { "type": ["integer","null"] },
-    "bikesAllowed": { "type": ["integer","null"] },
-    "pickupType": { "type": ["integer","null"] },
-    "dropOffType": { "type": ["integer","null"] },
+    "wheelchairAccessible": { "type": ["boolean","null"] },
+    "bikesAllowed": { "type": ["boolean","null"] },
+    "pickupType": { "type": ["string","null"] },
+    "dropOffType": { "type": ["string","null"] },
     "shapeDistTraveled": { "type": ["number","null"] },
     "tags": { "type": "object" }
   }
