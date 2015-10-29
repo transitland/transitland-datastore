@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151027003112) do
+ActiveRecord::Schema.define(version: 20151029001514) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -168,10 +168,6 @@ ActiveRecord::Schema.define(version: 20151027003112) do
     t.datetime "updated_at",                                      null: false
     t.string   "block_id"
     t.string   "trip_short_name"
-    t.integer  "wheelchair_accessible"
-    t.integer  "bikes_allowed"
-    t.integer  "pickup_type"
-    t.integer  "drop_off_type"
     t.float    "shape_dist_traveled"
     t.string   "origin_timezone"
     t.string   "destination_timezone"
@@ -180,6 +176,10 @@ ActiveRecord::Schema.define(version: 20151027003112) do
     t.string   "origin_timepoint_source"
     t.string   "destination_timepoint_source"
     t.integer  "operator_id"
+    t.boolean  "wheelchair_accessible"
+    t.boolean  "bikes_allowed"
+    t.string   "pickup_type"
+    t.string   "drop_off_type"
   end
 
   add_index "current_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "c_ssp_cu_in_changeset", using: :btree
@@ -428,10 +428,6 @@ ActiveRecord::Schema.define(version: 20151027003112) do
     t.datetime "updated_at",                                      null: false
     t.string   "block_id"
     t.string   "trip_short_name"
-    t.integer  "wheelchair_accessible"
-    t.integer  "bikes_allowed"
-    t.integer  "pickup_type"
-    t.integer  "drop_off_type"
     t.float    "shape_dist_traveled"
     t.string   "origin_timezone"
     t.string   "destination_timezone"
@@ -440,6 +436,10 @@ ActiveRecord::Schema.define(version: 20151027003112) do
     t.string   "origin_timepoint_source"
     t.string   "destination_timepoint_source"
     t.integer  "operator_id"
+    t.boolean  "wheelchair_accessible"
+    t.boolean  "bikes_allowed"
+    t.string   "pickup_type"
+    t.string   "drop_off_type"
   end
 
   add_index "old_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "o_ssp_cu_in_changeset", using: :btree
