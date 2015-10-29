@@ -147,9 +147,10 @@ describe GTFSGraph do
       expect(s.destination_timezone).to eq('America/Los_Angeles')
       expect(s.shape_dist_traveled).to eq(0.0)
       expect(s.block_id).to be_nil
-      expect(s.wheelchair_accessible).to eq(0)
-      expect(s.pickup_type).to eq(0)
-      expect(s.drop_off_type).to eq(0)
+      expect(s.wheelchair_accessible).to eq(nil)
+      expect(s.bikes_allowed).to eq(nil)
+      expect(s.pickup_type).to eq(nil)
+      expect(s.drop_off_type).to eq(nil)
       expect(s.origin_arrival_time).to eq('08:15:00')
       expect(s.origin_departure_time).to eq('08:15:00')
       expect(s.destination_arrival_time).to eq('08:20:00')
