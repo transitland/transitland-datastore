@@ -27,10 +27,6 @@
 #  updated_at                         :datetime         not null
 #  block_id                           :string
 #  trip_short_name                    :string
-#  wheelchair_accessible              :integer
-#  bikes_allowed                      :integer
-#  pickup_type                        :integer
-#  drop_off_type                      :integer
 #  shape_dist_traveled                :float
 #  origin_timezone                    :string
 #  destination_timezone               :string
@@ -39,6 +35,10 @@
 #  origin_timepoint_source            :string
 #  destination_timepoint_source       :string
 #  operator_id                        :integer
+#  wheelchair_accessible              :boolean
+#  bikes_allowed                      :boolean
+#  pickup_type                        :string
+#  drop_off_type                      :string
 #
 # Indexes
 #
