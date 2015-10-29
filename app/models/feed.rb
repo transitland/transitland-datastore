@@ -7,7 +7,6 @@
 #  url                                :string
 #  feed_format                        :string
 #  tags                               :hstore
-#  last_sha1                          :string
 #  last_fetched_at                    :datetime
 #  last_imported_at                   :datetime
 #  license_name                       :string
@@ -20,13 +19,12 @@
 #  updated_at                         :datetime
 #  created_or_updated_in_changeset_id :integer
 #  geometry                           :geography({:srid geometry, 4326
+#  latest_fetch_exception_log         :text
 #
 # Indexes
 #
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
 #
-
-require 'open-uri'
 
 class BaseFeed < ActiveRecord::Base
   self.abstract_class = true
@@ -47,6 +45,20 @@ class BaseFeed < ActiveRecord::Base
 end
 
 class Feed < BaseFeed
+  class FetchError < StandardError
+    attr_accessor :feed, :error_messages, :backtrace
+
+    def initialize(feed, error_messages, backtrace=[])
+      @feed = feed
+      @error_messages = error_messages
+      @backtrace = backtrace
+    end
+
+    def to_s
+      "Feed::FetchError for #{feed.onestop_id}: #{@error_messages.join(', ')}"
+    end
+  end
+
   self.table_name_prefix = 'current_'
 
   include HasAOnestopId
@@ -54,10 +66,11 @@ class Feed < BaseFeed
   include UpdatedSince
   include HasAGeographicGeometry
 
+  has_many :feed_versions, -> { order 'created_at DESC' }, dependent: :destroy, as: :feed
+  has_many :feed_version_imports, -> { order 'created_at DESC' }, through: :feed_versions
+
   has_many :operators_in_feed
   has_many :operators, through: :operators_in_feed
-
-  has_many :feed_imports, -> { order 'created_at DESC' }, dependent: :destroy
 
   has_many :entities_imported_from_feed
   has_many :imported_operators, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'
@@ -127,52 +140,78 @@ class Feed < BaseFeed
     return true
   end
 
-  def fetch_and_check_for_updated_version
+  def fetch_and_return_feed_version
     begin
       logger.info "Fetching feed #{onestop_id} from #{url}"
-      File.open(file_path, 'wb') do |file|
-        open(url) do |resp|
-          file.write(resp.read)
+      @fetched_at = DateTime.now
+
+      # download from URL using Carrierwave
+      new_feed_version = self.feed_versions.create(
+        remote_file_url: self.url,
+        fetched_at: @fetched_at
+      )
+
+      feed_version_to_return = nil
+
+      if new_feed_version.persisted?
+        logger.info "File downloaded from #{url} has a new sha1 hash"
+        feed_version_to_return = new_feed_version
+      else
+        logger.info "File downloaded from #{url} raises errors: #{new_feed_version.errors.full_messages}"
+        if new_feed_version.errors.full_messages.include? "Sha1 has already been taken"
+          feed_version_to_return = self.feed_versions.find_by(sha1: new_feed_version.sha1)
+        else
+          raise Feed::FetchError.new(self, new_feed_version.errors.full_messages)
         end
       end
 
-      if last_sha1 == file_sha1_hash
-        logger.info "File downloaded from #{url} has same sha1 hash as last imported version"
-        false
-      else
-        logger.info "File downloaded from #{url} has a new sha1 hash"
-        true
+      return feed_version_to_return
+    rescue Exception => e
+      @fetch_exception_log = e.message
+      if e.backtrace.present?
+        @fetch_exception_log << "\n"
+        @fetch_exception_log << e.backtrace
       end
-    rescue
-      logger.error "Error fetching feed ##{onestop_id}"
-      logger.error $!.message
-      logger.error $!.backtrace
-      false
+      logger.error @fetch_exception_log
+      return nil
+    ensure
+      unless new_feed_version.persisted?
+        new_feed_version.destroy # don't keep this new FeedVersion record around in memory
+      end
+
+      self.update(
+        latest_fetch_exception_log: @fetch_exception_log || nil,
+        last_fetched_at: @fetched_at
+      )
     end
   end
 
-  def file_path
-    File.join(Figaro.env.transitland_feed_data_path, "#{onestop_id}.zip")
-  end
-
-  def file_sha1_hash
-    Digest::SHA1.file(file_path).hexdigest
-  end
-
-  def self.fetch_and_check_for_updated_version(feed_onestop_ids = [])
-    feeds_with_updated_versions = []
-    feeds = feed_onestop_ids.length > 0 ? where(onestop_id: feed_onestop_ids) : where('')
-    feeds.each do |feed|
-      is_updated_version = feed.fetch_and_check_for_updated_version
-      feeds_with_updated_versions << feed if is_updated_version
+  def self.async_fetch_all_feeds
+    workers = []
+    Feed.find_each do |feed|
+      workers << FeedFetcherWorker.perform_async(feed.onestop_id)
     end
-    feeds_with_updated_versions
+    workers
   end
 
   def set_bounding_box_from_stops(stops)
     stop_features = Stop::GEOFACTORY.collection(stops.map { |stop| stop.geometry(as: :wkt) })
     bounding_box = RGeo::Cartesian::BoundingBox.create_from_geometry(stop_features)
     self.geometry = bounding_box.to_geometry
+  end
+
+  def import_status
+    if self.last_imported_at.blank? && self.feed_version_imports.count == 0
+      :never_imported
+    elsif self.feed_version_imports.first.success == false
+      :most_recent_failed
+    elsif self.feed_version_imports.first.success == true
+      :most_recent_succeeded
+    elsif self.feed_version_imports.first.success == nil
+      :in_progress
+    else
+      :unknown
+    end
   end
 
   private

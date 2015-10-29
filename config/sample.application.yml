@@ -6,10 +6,8 @@ TRANSITLAND_FEED_DATA_PATH: <%= Rails.root.join('tmp', 'transitland-feed-data') 
 TRANSITLAND_DATASTORE_HOST: http://localhost:3000
 AUTO_CONFLATE_STOPS_WITH_OSM: 'true'
 TYR_AUTH_TOKEN: 'get one from mapzen.com/developers'
-CREATE_FEED_EATER_ARTIFACTS: 'false'
-UPLOAD_FEED_EATER_ARTIFACTS_TO_S3: 'false'
-ARTIFACT_UPLOAD_S3_REGION: 'us-east-1'
-ARTIFACT_UPLOAD_S3_BUCKET: 'name of an S3 bucket'
+ATTACHMENTS_S3_REGION: 'us-east-1'
+ATTACHMENTS_S3_BUCKET: 'name of an S3 bucket'
 AWS_ACCESS_KEY_ID: 'xxxxxxxxx'
 AWS_SECRET_ACCESS_KEY: 'xxxxxx'
 RUN_GOOGLE_FEEDVALIDATOR: 'false'

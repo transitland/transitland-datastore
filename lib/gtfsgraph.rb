@@ -3,9 +3,10 @@ class GTFSGraph
   CHANGE_PAYLOAD_MAX_ENTITIES = 1_000
   STOP_TIMES_MAX_LOAD = 100_000
 
-  def initialize(filename, feed=nil)
+  def initialize(filename, feed, feed_version)
     # GTFS Graph / TransitLand wrapper
     @feed = feed
+    @feed_version = feed_version
     @gtfs = GTFS::Source.build(filename, {strict: false})
     @log = []
     # GTFS entity to Onestop ID
@@ -290,6 +291,7 @@ class GTFSGraph
   def create_change_payloads(changeset, entity_type, entities)
     entities.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
       changes = chunk.map do |entity|
+        entity.compact! # remove any nil values
         change = {}
         change['action'] = 'createUpdate'
         change[entity_type] = entity
@@ -309,7 +311,10 @@ class GTFSGraph
       onestopId: entity.onestop_id,
       name: entity.name,
       identifiedBy: entity.identified_by.uniq,
-      importedFromFeedOnestopId: @feed.onestop_id,
+      importedFromFeed: {
+        onestopId: @feed.onestop_id,
+        sha1: @feed_version.sha1
+      },
       geometry: entity.geometry,
       tags: entity.tags || {},
       timezone: entity.timezone,
@@ -322,7 +327,10 @@ class GTFSGraph
       onestopId: entity.onestop_id,
       name: entity.name,
       identifiedBy: entity.identified_by.uniq,
-      importedFromFeedOnestopId: @feed.onestop_id,
+      importedFromFeed: {
+        onestopId: @feed.onestop_id,
+        sha1: @feed_version.sha1
+      },
       geometry: entity.geometry,
       tags: entity.tags || {},
       timezone: entity.timezone
@@ -334,7 +342,10 @@ class GTFSGraph
       onestopId: entity.onestop_id,
       name: entity.name,
       identifiedBy: entity.identified_by.uniq,
-      importedFromFeedOnestopId: @feed.onestop_id,
+      importedFromFeed: {
+        onestopId: @feed.onestop_id,
+        sha1: @feed_version.sha1
+      },
       operatedBy: entity.operator.onestop_id,
       serves: entity.serves.map(&:onestop_id),
       tags: entity.tags || {},
@@ -344,7 +355,10 @@ class GTFSGraph
 
   def make_change_ssp(entity)
     {
-      importedFromFeedOnestopId: @feed.onestop_id,
+      importedFromFeed: {
+        onestopId: @feed.onestop_id,
+        sha1: @feed_version.sha1
+      },
       originOnestopId: entity.origin.onestop_id,
       originTimezone: entity.origin_timezone,
       originArrivalTime: entity.origin_arrival_time,
@@ -440,12 +454,10 @@ end
 if __FILE__ == $0
   ActiveRecord::Base.logger = Logger.new(STDOUT)
   feed_onestop_id = ARGV[0] || 'f-9q9-caltrain'
-  filename = "tmp/transitland-feed-data/#{feed_onestop_id}.zip"
   import_level = (ARGV[1] || 1).to_i
-  # FeedEaterFeedWorker.new.perform(feed_onestop_id, import_level)
   feed = Feed.find_by!(onestop_id: feed_onestop_id)
-  feed.fetch_and_check_for_updated_version unless File.exists?(filename)
-  graph = GTFSGraph.new(feed.file_path, feed)
+  feed_version = feed.feed_versions.first || feed.fetch_and_return_feed_version
+  graph = GTFSGraph.new(feed_version.file.path, feed, feed_version)
   graph.create_change_osr(import_level)
   if import_level >= 2
     graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map|

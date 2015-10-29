@@ -1,13 +1,21 @@
-task :enqueue_feed_eater_worker, [:feed_onestop_ids, :import_level] => [:environment] do |t, args|
+task :enqueue_feed_fetcher_workers, [] => [:environment] do |t, args|
   begin
-    if args.feed_onestop_ids.present?
-      array_of_feed_onestop_ids = args.feed_onestop_ids.split(' ')
+    workers = Feed.async_fetch_all_feeds
+    if workers
+      puts "FeedEaterWorkers #{workers} created and enqueued."
     else
-      array_of_feed_onestop_ids = []
+      raise 'FeedEaterWorker could not be created or enqueued.'
     end
-    # Defalut import level
-    import_level = (args.import_level || 0).to_i
-    feed_eater_worker = FeedEaterWorker.perform_async(array_of_feed_onestop_ids, import_level)
+  rescue
+    puts "Error: #{$!.message}"
+    puts $!.backtrace
+  end
+end
+
+task :enqueue_feed_eater_worker, [:feed_onestop_id, :feed_version_sha1, :import_level] => [:environment] do |t, args|
+  begin
+    import_level = (args.import_level || 0).to_i # default import level
+    feed_eater_worker = FeedEaterWorker.perform_async(args.feed_onestop_id, args.feed_version_sha1, import_level)
     if feed_eater_worker
       puts "FeedEaterWorker ##{feed_eater_worker} has been created and enqueued."
     else

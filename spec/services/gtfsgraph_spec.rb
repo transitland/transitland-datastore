@@ -1,22 +1,22 @@
 require 'gtfsgraph'
 
 def load_feed(import_level=1)
-  path = 'spec/support/example_gtfs_archives/f-9q9-caltrain.zip'
-  feed = create(:feed_caltrain)
-  graph = GTFSGraph.new(File.join(Rails.root, path), feed)
+  feed_version = create(:feed_version_caltrain)
+  feed = feed_version.feed
+  graph = GTFSGraph.new(feed_version.file.path, feed, feed_version)
   graph.create_change_osr(import_level)
   if import_level >= 2
     graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map|
       graph.ssp_perform_async(trip_ids, agency_map, route_map, stop_map)
     end
   end
-  feed
+  return feed, feed_version
 end
 
 describe GTFSGraph do
 
   context 'can apply level 0 and 1 changesets' do
-    before(:each) { @feed = load_feed(1) }
+    before(:each) { @feed, @feed_version = load_feed(1) }
 
     it 'updated feed geometry' do
       geometry = [
@@ -32,7 +32,8 @@ describe GTFSGraph do
     end
 
     it 'created a known Operator' do
-      expect(@feed.operators.count).to eq(1)
+      expect(@feed.imported_operators.count).to eq(1)
+      expect(@feed_version.imported_operators).to eq(@feed.imported_operators)
       o = @feed.operators.find_by(onestop_id: 'o-9q9-caltrain')
       expect(o).to be_truthy
       expect(o.name).to eq('Caltrain')
@@ -45,6 +46,7 @@ describe GTFSGraph do
 
     it 'created known Routes' do
       expect(@feed.imported_routes.count).to eq(5)
+      expect(@feed_version.imported_routes).to eq(@feed.imported_routes)
       r = @feed.imported_routes.find_by(onestop_id: 'r-9q9j-bullet')
       expect(r).to be_truthy
       expect(r.name).to eq('Bullet')
@@ -57,6 +59,7 @@ describe GTFSGraph do
 
     it 'created known Stops' do
       expect(@feed.imported_stops.count).to eq(31)
+      expect(@feed_version.imported_stops).to eq(@feed.imported_stops)
       s = @feed.imported_stops.find_by(onestop_id: 's-9q9k659e3r-sanjosecaltrainstation')
       expect(s).to be_truthy
       expect(s.name).to eq('San Jose Caltrain Station')
@@ -73,7 +76,7 @@ describe GTFSGraph do
     end
 
     it 'created known Operator that serves known Routes' do
-      o = @feed.operators.find_by(onestop_id: 'o-9q9-caltrain')
+      o = @feed.imported_operators.find_by(onestop_id: 'o-9q9-caltrain')
       expect(o.routes.size).to eq(5)
       expect(o.routes.map(&:onestop_id)).to contain_exactly(
         "r-9q9j-bullet",
@@ -85,7 +88,7 @@ describe GTFSGraph do
     end
 
     it 'created known Operator that serves known Stops' do
-      o = @feed.operators.find_by(onestop_id: 'o-9q9-caltrain')
+      o = @feed.imported_operators.find_by(onestop_id: 'o-9q9-caltrain')
       # Just check the number of stops here...
       expect(o.stops.size).to eq(31)
     end
@@ -113,10 +116,11 @@ describe GTFSGraph do
 
   context 'can apply a level 2 changeset' do
 
-    before(:each) { @feed = load_feed(2) }
+    before(:each) { @feed, @feed_version = load_feed(2) }
 
     it 'created known ScheduleStopPairs' do
       expect(@feed.imported_schedule_stop_pairs.count).to eq(4661) # EXACTLY.
+      expect(@feed_version.imported_schedule_stop_pairs.pluck(:id)).to match_array(@feed.imported_schedule_stop_pairs.pluck(:id))
       # Find a UNIQUE SSP, by origin, destination, route, trip.
       origin = @feed.imported_stops.find_by!(
         onestop_id: 's-9q8yyugptw-sanfranciscocaltrainstation'
