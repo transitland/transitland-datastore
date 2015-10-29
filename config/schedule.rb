@@ -6,5 +6,5 @@
 # Learn more: http://github.com/javan/whenever
 
 every 1.day, at: '12:01 pm' do
-  runner 'FeedEaterWorker.perform_async'
+  runner 'Feed.async_fetch_all_feeds'
 end

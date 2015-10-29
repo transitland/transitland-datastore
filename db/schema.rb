@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151022233724) do
+ActiveRecord::Schema.define(version: 20151027003112) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -40,7 +40,6 @@ ActiveRecord::Schema.define(version: 20151022233724) do
     t.string    "url"
     t.string    "feed_format"
     t.hstore    "tags"
-    t.string    "last_sha1"
     t.datetime  "last_fetched_at"
     t.datetime  "last_imported_at"
     t.string    "license_name"
@@ -53,6 +52,7 @@ ActiveRecord::Schema.define(version: 20151022233724) do
     t.datetime  "updated_at"
     t.integer   "created_or_updated_in_changeset_id"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
+    t.text      "latest_fetch_exception_log"
   end
 
   add_index "current_feeds", ["created_or_updated_in_changeset_id"], name: "index_current_feeds_on_created_or_updated_in_changeset_id", using: :btree
@@ -218,42 +218,58 @@ ActiveRecord::Schema.define(version: 20151022233724) do
     t.integer  "feed_id"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "feed_version_id"
   end
 
   add_index "entities_imported_from_feed", ["entity_type", "entity_id"], name: "index_entities_imported_from_feed_on_entity_type_and_entity_id", using: :btree
   add_index "entities_imported_from_feed", ["feed_id"], name: "index_entities_imported_from_feed_on_feed_id", using: :btree
-
-  create_table "feed_imports", force: :cascade do |t|
-    t.integer  "feed_id"
-    t.boolean  "success"
-    t.string   "sha1"
-    t.text     "import_log"
-    t.text     "validation_report"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.text     "exception_log"
-  end
-
-  add_index "feed_imports", ["created_at"], name: "index_feed_imports_on_created_at", using: :btree
-  add_index "feed_imports", ["feed_id"], name: "index_feed_imports_on_feed_id", using: :btree
+  add_index "entities_imported_from_feed", ["feed_version_id"], name: "index_entities_imported_from_feed_on_feed_version_id", using: :btree
 
   create_table "feed_schedule_imports", force: :cascade do |t|
     t.boolean  "success"
     t.text     "import_log"
     t.text     "exception_log"
-    t.integer  "feed_import_id"
-    t.datetime "created_at",     null: false
-    t.datetime "updated_at",     null: false
+    t.datetime "created_at",             null: false
+    t.datetime "updated_at",             null: false
+    t.integer  "feed_version_import_id"
   end
 
-  add_index "feed_schedule_imports", ["feed_import_id"], name: "index_feed_schedule_imports_on_feed_import_id", using: :btree
+  add_index "feed_schedule_imports", ["feed_version_import_id"], name: "index_feed_schedule_imports_on_feed_version_import_id", using: :btree
+
+  create_table "feed_version_imports", force: :cascade do |t|
+    t.integer  "feed_version_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.boolean  "success"
+    t.text     "import_log"
+    t.text     "exception_log"
+    t.text     "validation_report"
+  end
+
+  add_index "feed_version_imports", ["feed_version_id"], name: "index_feed_version_imports_on_feed_version_id", using: :btree
+
+  create_table "feed_versions", force: :cascade do |t|
+    t.integer  "feed_id"
+    t.string   "feed_type"
+    t.string   "file"
+    t.date     "earliest_calendar_date"
+    t.date     "latest_calendar_date"
+    t.string   "sha1"
+    t.string   "md5"
+    t.hstore   "tags"
+    t.datetime "fetched_at"
+    t.datetime "imported_at"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "feed_versions", ["feed_type", "feed_id"], name: "index_feed_versions_on_feed_type_and_feed_id", using: :btree
 
   create_table "old_feeds", force: :cascade do |t|
     t.string    "onestop_id"
     t.string    "url"
     t.string    "feed_format"
     t.hstore    "tags"
-    t.string    "last_sha1"
     t.datetime  "last_fetched_at"
     t.datetime  "last_imported_at"
     t.string    "license_name"
@@ -268,6 +284,7 @@ ActiveRecord::Schema.define(version: 20151022233724) do
     t.integer   "created_or_updated_in_changeset_id"
     t.integer   "destroyed_in_changeset_id"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
+    t.text      "latest_fetch_exception_log"
   end
 
   add_index "old_feeds", ["created_or_updated_in_changeset_id"], name: "index_old_feeds_on_created_or_updated_in_changeset_id", using: :btree

@@ -7,7 +7,6 @@
 #  url                                :string
 #  feed_format                        :string
 #  tags                               :hstore
-#  last_sha1                          :string
 #  last_fetched_at                    :datetime
 #  last_imported_at                   :datetime
 #  license_name                       :string
@@ -20,12 +19,12 @@
 #  updated_at                         :datetime
 #  created_or_updated_in_changeset_id :integer
 #  geometry                           :geography({:srid geometry, 4326
+#  latest_fetch_exception_log         :text
 #
 # Indexes
 #
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
 #
-
 
 describe Feed do
   context 'changesets' do
@@ -188,6 +187,44 @@ describe Feed do
     end
   end
 
+  context 'fetch_and_return_feed_version' do
+    it 'creates a feed version the first time a file is downloaded' do
+      feed = create(:feed_caltrain)
+      expect(feed.feed_versions.count).to eq 0
+      VCR.use_cassette('fetch_caltrain') do
+        feed.fetch_and_return_feed_version
+      end
+      expect(feed.feed_versions.count).to eq 1
+    end
+
+    it "does not create a duplicate, if remote file hasn't changed since last download" do
+      feed = create(:feed_caltrain)
+      VCR.use_cassette('fetch_caltrain') do
+        @feed_version1 = feed.fetch_and_return_feed_version
+      end
+      expect(feed.feed_versions.count).to eq 1
+      VCR.use_cassette('fetch_caltrain') do
+        @feed_version2 = feed.fetch_and_return_feed_version
+      end
+      expect(feed.feed_versions.count).to eq 1
+      expect(@feed_version1).to eq @feed_version2
+    end
+
+    it 'logs fetch errors' do
+      feed = create(:feed_caltrain)
+      VCR.use_cassette('fetch_caltrain') do
+        @feed_version1 = feed.fetch_and_return_feed_version
+      end
+      feed.update(url: 'http://www.bart.gov/this-is-a-bad-url.zip')
+      VCR.use_cassette('fetch_bart_404') do
+        @feed_version2 = feed.fetch_and_return_feed_version
+      end
+      expect(feed.feed_versions.count).to eq 1
+      expect(feed.latest_fetch_exception_log).to be_present
+      expect(feed.latest_fetch_exception_log).to include('404 Not Found')
+    end
+  end
+
   it 'gets a bounding box around all its stops' do
     feed = build(:feed)
     stops = []
@@ -208,5 +245,34 @@ describe Feed do
         ]
       ]
     })
+  end
+
+  context 'import status' do
+    it 'handles never imported' do
+      feed = create(:feed)
+      expect(feed.import_status).to eq :never_imported
+    end
+
+    it 'handles most recent failed' do
+      feed = create(:feed)
+      create(:feed_version_import, feed: feed, success: true)
+      create(:feed_version_import, feed: feed, success: false)
+      expect(feed.import_status).to eq :most_recent_failed
+    end
+
+    it 'handles most recent succeeded' do
+      feed = create(:feed)
+      create(:feed_version_import, feed: feed, success: false)
+      create(:feed_version_import, feed: feed, success: true)
+      expect(feed.import_status).to eq :most_recent_succeeded
+    end
+
+    it 'handles in progress' do
+      feed = create(:feed)
+      create(:feed_version_import, feed: feed, success: true)
+      create(:feed_version_import, feed: feed, success: false)
+      create(:feed_version_import, feed: feed, success: nil)
+      expect(feed.import_status).to eq :in_progress
+    end
   end
 end

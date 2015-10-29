@@ -7,11 +7,11 @@
       <%= check_box_tag(:clear_enqueued_jobs, 1, true) %>
       <%= label_tag(:clear_enqueued_jobs, 'Clear enqueued jobs (not already executing)') %>
 
+      <%= check_box_tag(:destroy_feed_versions, 1, true) %>
+      <%= label_tag(:destroy_feed_versions, 'Destroy feed versions (and their attached GTFS archives') %>
+
       <%= check_box_tag(:truncate_database, 1, true) %>
       <%= label_tag(:truncate_database, 'Truncate database') %>
-
-      <%= check_box_tag(:clear_data_directory, 1, true) %>
-      <%= label_tag(:clear_data_directory, 'Clear data directory') %>
 
       <%= submit_tag('Reset', class: 'btn btn-danger') %>
     <% end %>

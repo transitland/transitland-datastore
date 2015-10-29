@@ -51,6 +51,13 @@ gem 'oj'
 # consuming other APIs
 gem 'faraday'
 
+# file attachments
+gem 'fog-aws', group: [:staging, :production]
+gem 'carrierwave', github: 'carrierwaveuploader/carrierwave', ref: '49fdad1'
+# using a development version of carrierwave in order to only
+# load fog-aws, rather than the entire fog library
+# https://github.com/carrierwaveuploader/carrierwave/issues/1698
+
 # development tools
 gem 'better_errors', group: :development
 gem 'binding_of_caller', group: :development

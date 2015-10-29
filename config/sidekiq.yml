@@ -5,10 +5,10 @@ staging:
 production:
   :concurrency: 20
 :limits:
-  feed_eater_feed: 1
+  feed_eater: 1
 :process_limits:
   feed_eater_schedule: 1
 :queues:
-  - feed_eater_feed
+  - feed_eater
   - feed_eater_schedule
   - default
