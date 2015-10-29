@@ -19,13 +19,12 @@
 #  updated_at                         :datetime
 #  created_or_updated_in_changeset_id :integer
 #  geometry                           :geography({:srid geometry, 4326
+#  latest_fetch_exception_log         :text
 #
 # Indexes
 #
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
 #
-
-
 
 describe Feed do
   context 'changesets' do
@@ -209,6 +208,20 @@ describe Feed do
       end
       expect(feed.feed_versions.count).to eq 1
       expect(@feed_version1).to eq @feed_version2
+    end
+
+    it 'logs fetch errors' do
+      feed = create(:feed_caltrain)
+      VCR.use_cassette('fetch_caltrain') do
+        @feed_version1 = feed.fetch_and_return_feed_version
+      end
+      feed.update(url: 'http://www.bart.gov/this-is-a-bad-url.zip')
+      VCR.use_cassette('fetch_bart_404') do
+        @feed_version2 = feed.fetch_and_return_feed_version
+      end
+      expect(feed.feed_versions.count).to eq 1
+      expect(feed.latest_fetch_exception_log).to be_present
+      expect(feed.latest_fetch_exception_log).to include('404 Not Found')
     end
   end
 

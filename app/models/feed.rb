@@ -19,6 +19,7 @@
 #  updated_at                         :datetime
 #  created_or_updated_in_changeset_id :integer
 #  geometry                           :geography({:srid geometry, 4326
+#  latest_fetch_exception_log         :text
 #
 # Indexes
 #
@@ -44,6 +45,20 @@ class BaseFeed < ActiveRecord::Base
 end
 
 class Feed < BaseFeed
+  class FetchError < StandardError
+    attr_accessor :feed, :error_messages, :backtrace
+
+    def initialize(feed, error_messages, backtrace=[])
+      @feed = feed
+      @error_messages = error_messages
+      @backtrace = backtrace
+    end
+
+    def to_s
+      "Feed::FetchError for #{feed.onestop_id}: #{@error_messages.join(', ')}"
+    end
+  end
+
   self.table_name_prefix = 'current_'
 
   include HasAOnestopId
@@ -128,29 +143,46 @@ class Feed < BaseFeed
   def fetch_and_return_feed_version
     begin
       logger.info "Fetching feed #{onestop_id} from #{url}"
-      fetched_at = DateTime.now
+      @fetched_at = DateTime.now
 
       # download from URL using Carrierwave
-      feed_version = self.feed_versions.create(
+      new_feed_version = self.feed_versions.create(
         remote_file_url: self.url,
-        fetched_at: fetched_at
+        fetched_at: @fetched_at
       )
 
-      if feed_version.persisted?
+      feed_version_to_return = nil
+
+      if new_feed_version.persisted?
         logger.info "File downloaded from #{url} has a new sha1 hash"
-        self.update(last_fetched_at: fetched_at)
-        feed_version
+        feed_version_to_return = new_feed_version
       else
-        logger.info "File downloaded from #{url} raises errors: #{feed_version.errors.full_messages}"
-        existing = self.feed_versions.find_by(sha1: feed_version.sha1)
-        feed_version.destroy # don't keep this new FeedVersion record around in memory
-        existing
+        logger.info "File downloaded from #{url} raises errors: #{new_feed_version.errors.full_messages}"
+        if new_feed_version.errors.full_messages.include? "Sha1 has already been taken"
+          feed_version_to_return = self.feed_versions.find_by(sha1: new_feed_version.sha1)
+        else
+          raise Feed::FetchError.new(self, new_feed_version.errors.full_messages)
+        end
       end
-    rescue
-      logger.error "Error downloading feed ##{onestop_id} from #{url}: #{$!.message}"
-      logger.error $!.message
-      logger.error $!.backtrace
-      nil
+
+      return feed_version_to_return
+    rescue Exception => e
+      @fetch_exception_log = e.message
+      if e.backtrace.present?
+        @fetch_exception_log << "\n"
+        @fetch_exception_log << e.backtrace
+      end
+      logger.error @fetch_exception_log
+      return nil
+    ensure
+      unless new_feed_version.persisted?
+        new_feed_version.destroy # don't keep this new FeedVersion record around in memory
+      end
+
+      self.update(
+        latest_fetch_exception_log: @fetch_exception_log || nil,
+        last_fetched_at: @fetched_at
+      )
     end
   end
 

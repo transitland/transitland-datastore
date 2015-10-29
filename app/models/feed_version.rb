@@ -42,14 +42,14 @@ class FeedVersion < ActiveRecord::Base
   private
 
   def compute_and_set_hashes
-    if file_changed?
+    if file.present? && file_changed?
       self.sha1 = Digest::SHA1.file(file.path).hexdigest
       self.md5  = Digest::MD5.file(file.path).hexdigest
     end
   end
 
   def read_gtfs_calendar_dates
-    if file_changed?
+    if file.present? && file_changed?
       gtfs_file = GTFS::Source.build(file.path, {strict: false})
       self.earliest_calendar_date ||= gtfs_file.calendars.map {|c| c.start_date}.min
       self.latest_calendar_date   ||= gtfs_file.calendars.map {|c| c.end_date}.max
@@ -57,7 +57,7 @@ class FeedVersion < ActiveRecord::Base
   end
 
   def read_gtfs_feed_info
-    if file_changed?
+    if file.present? && file_changed?
       gtfs_file = GTFS::Source.build(file.path, {strict: false})
       begin
         if gtfs_file.feed_infos.count > 0
