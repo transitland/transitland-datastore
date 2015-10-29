@@ -9,7 +9,11 @@ class FeedFetcherWorker
       feed = Feed.find_by_onestop_id!(feed_onestop_id)
       logger.info "FeedFetcherWorker checking #{feed.onestop_id}"
       feed_version = feed.fetch_and_return_feed_version
-      logger.info "FeedFetcherWorker checked #{feed.onestop_id} and found sha1: #{feed_version.sha1}"
+      if feed_version
+        logger.info "FeedFetcherWorker checked #{feed.onestop_id} and found sha1: #{feed_version.sha1}"
+      else
+        logger.info "FeedFetcherWorker checked #{feed.onestop_id} and didn't return a FeedVersion"
+      end
     rescue Exception => e
       # NOTE: we're catching all exceptions, including Interrupt,
       #   SignalException, and SyntaxError
