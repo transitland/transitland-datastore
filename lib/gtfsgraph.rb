@@ -358,6 +358,7 @@ class GTFSGraph
       tripHeadsign: entity.trip_headsign,
       tripShortName: entity.trip_short_name,
       wheelchairAccessible: entity.wheelchair_accessible,
+      bikesAllowed: entity.bikes_allowed,
       dropOffType: entity.drop_off_type,
       pickupType: entity.pickup_type,
       shapeDistTraveled: entity.shape_dist_traveled,
