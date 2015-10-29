@@ -396,12 +396,12 @@ class GTFSGraph
       trip: trip.id.presence,
       trip_headsign: (origin.stop_headsign || trip.trip_headsign).presence,
       trip_short_name: trip.trip_short_name.presence,
-      wheelchair_accessible: trip.wheelchair_accessible.to_i,
-      bikes_allowed: trip.bikes_allowed.to_i,
-      # Stop Time
-      drop_off_type: origin.drop_off_type.to_i,
-      pickup_type: origin.pickup_type.to_i,
-      shape_dist_traveled: origin.shape_dist_traveled.to_f,
+      shape_dist_traveled: destination.shape_dist_traveled.to_f,
+      # Accessibility
+      pickup_type: to_pickup_type(origin.pickup_type),
+      drop_off_type: to_pickup_type(destination.drop_off_type),
+      wheelchair_accessible: to_tfn(trip.wheelchair_accessible),
+      bikes_allowed: to_tfn(trip.bikes_allowed),
       # service period
       service_start_date: service_period.start_date,
       service_end_date: service_period.end_date,
@@ -409,6 +409,30 @@ class GTFSGraph
       service_added_dates: service_period.added_dates,
       service_except_dates: service_period.except_dates
     )
+  end
+
+  def to_tfn(value)
+    case value.to_i
+    when 0
+      nil
+    when 1
+      true
+    when 2
+      false
+    end
+  end
+
+  def to_pickup_type(value)
+    case value.to_i
+    when 0
+      nil
+    when 1
+      :unavailable
+    when 2
+      :ask_agency
+    when 3
+      :ask_driver
+    end
   end
 end
 
