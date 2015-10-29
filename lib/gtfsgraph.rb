@@ -438,7 +438,7 @@ class GTFSGraph
 end
 
 if __FILE__ == $0
-  # ActiveRecord::Base.logger = Logger.new(STDOUT)
+  ActiveRecord::Base.logger = Logger.new(STDOUT)
   feed_onestop_id = ARGV[0] || 'f-9q9-caltrain'
   filename = "tmp/transitland-feed-data/#{feed_onestop_id}.zip"
   import_level = (ARGV[1] || 1).to_i
