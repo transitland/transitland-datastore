@@ -15,6 +15,7 @@
     "licenseName": { "type": "string" },
     "licenseUrl": { "type": "string" },
     "licenseUseWithoutAttribution": { "type": "string" },
+    "licenseAttributionText": { "type": "string" },
     "licenseCreateDerivedProduct": { "type": "string" },
     "licenseRedistribute": { "type": "string" },
     "includesOperators": {

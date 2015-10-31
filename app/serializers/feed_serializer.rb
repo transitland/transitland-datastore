@@ -20,6 +20,7 @@
 #  created_or_updated_in_changeset_id :integer
 #  geometry                           :geography({:srid geometry, 4326
 #  latest_fetch_exception_log         :text
+#  license_attribution_text           :text
 #
 # Indexes
 #
@@ -37,6 +38,7 @@ class FeedSerializer < ApplicationSerializer
              :license_use_without_attribution,
              :license_create_derived_product,
              :license_redistribute,
+             :license_attribution_text,
              :last_fetched_at,
              :last_imported_at,
              :latest_fetch_exception_log,
