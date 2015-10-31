@@ -297,12 +297,19 @@ class GTFSGraph
         change[entity_type] = entity
         change
       end
-      ChangePayload.create!(
-        changeset: changeset,
-        payload: {
-          changes: changes
-        }
-      )
+      begin
+        ChangePayload.create!(
+          changeset: changeset,
+          payload: {
+            changes: changes
+          }
+        )
+      rescue Exception => e
+        log "Error: #{e.message}"
+        log "Payload:"
+        log changes.to_json
+        raise e
+      end
     end
   end
 
