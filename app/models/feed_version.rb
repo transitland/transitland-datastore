@@ -25,7 +25,7 @@ class FeedVersion < ActiveRecord::Base
   PER_PAGE = 50
 
   belongs_to :feed, polymorphic: true
-  has_many :feed_version_imports, dependent: :destroy
+  has_many :feed_version_imports, -> { order 'created_at DESC' }, dependent: :destroy
 
   has_many :entities_imported_from_feed
   has_many :imported_operators, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'
