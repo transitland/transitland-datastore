@@ -42,7 +42,8 @@ class Api::V1::StopsController < Api::V1::BaseApiController
       routes_serving_stop,
       routes_serving_stop.route,
       routes_serving_stop.route.operator,
-      imported_from_feeds
+      imported_from_feeds,
+      imported_from_feed_versions
     ]} # TODO: check performance against eager_load, joins, etc.
 
     per_page = params[:per_page].blank? ? Stop::PER_PAGE : params[:per_page].to_i
