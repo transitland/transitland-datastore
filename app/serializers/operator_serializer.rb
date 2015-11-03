@@ -29,6 +29,8 @@
 #
 
 class OperatorSerializer < CurrentEntitySerializer
+  cache key: 'operators', expires_in: 1.week
+
   attributes :name,
              :short_name,
              :onestop_id,

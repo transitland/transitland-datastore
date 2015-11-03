@@ -19,6 +19,8 @@
 #
 
 class RouteServingStopSerializer < ApplicationSerializer
+  cache key: 'routes_serving_stop', expires_in: 1.week
+
   attributes :operator_name,
              :operator_onestop_id,
              :route_name,

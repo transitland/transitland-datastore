@@ -24,6 +24,8 @@
 #
 
 class RouteSerializer < CurrentEntitySerializer
+  cache key: 'routes', expires_in: 1.week
+
   attributes :onestop_id,
              :name,
              :geometry,

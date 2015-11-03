@@ -22,6 +22,8 @@
 #
 
 class FeedVersionSerializer < ApplicationSerializer
+  cache key: 'feed_versions', expires_in: 1.week
+
   attributes :sha1,
              :earliest_calendar_date,
              :latest_calendar_date,

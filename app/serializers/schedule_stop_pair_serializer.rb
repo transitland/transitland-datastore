@@ -55,6 +55,8 @@
 #
 
 class ScheduleStopPairSerializer < ApplicationSerializer
+  cache key: 'schedule_stop_pairs', expires_in: 1.week
+
   attributes :origin_onestop_id,
              :destination_onestop_id,
              :route_onestop_id,
