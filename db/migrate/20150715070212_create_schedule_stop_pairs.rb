@@ -10,7 +10,7 @@ class CreateScheduleStopPairs < ActiveRecord::Migration
       # Changeset
       t.references :created_or_updated_in_changeset, index: { name: 'c_ssp_cu_in_changeset' }
       t.integer :version
-      
+
       # Trip/edge data
       t.string :trip_headsign
       t.string :origin_arrival_time
@@ -19,21 +19,20 @@ class CreateScheduleStopPairs < ActiveRecord::Migration
       t.string :destination_departure_time
       t.string :frequency_start_time
       t.string :frequency_end_time
-      t.string :frequency_headway_seconds      
+      t.string :frequency_headway_seconds
       t.hstore :tags
-      
+
       # Calendar
       t.date :service_start_date, index: { name: 'c_ssp_service_start_date' }
       t.date :service_end_date, index: { name: 'c_ssp_service_end_date' }
       t.date :service_added_dates, array: true, default: []
       t.date :service_except_dates, array: true, default: []
       t.boolean :service_days_of_week, array: true, default: []
-      
+
       t.timestamps null: false
     end
 
     create_table :old_schedule_stop_pairs do |t|
-      # TODO: Specify index names to reduce table name length.
       t.references :origin, class_name: "Stop", index: { name: 'o_ssp_origin' }, polymorphic: true
       t.references :destination, class_name: "Stop", index: { name: 'o_ssp_destination' }, polymorphic: true
       t.references :route, index: { name: 'o_ssp_route'}, polymorphic: true

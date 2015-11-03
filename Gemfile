@@ -7,9 +7,6 @@ path 'components' do
   gem 'datastore_admin'
 end
 
-# external Transitland libraries
-gem 'transitland_client', github: 'transitland/transitland-ruby-client', tag: 'v0.0.7', require: 'transitland_client'
-
 # process runner
 gem 'foreman', group: :development
 
@@ -25,7 +22,6 @@ gem 'redis-rails'
 gem 'sidekiq'
 gem 'sidekiq-unique-jobs'
 gem 'sidekiq-limit_fetch'
-gem 'celluloid'
 gem 'whenever', require: false # to manage crontab
 
 # data model
@@ -41,8 +37,6 @@ gem 'text'
 
 # authentication and authorization
 gem 'rack-cors', require: 'rack/cors'
-gem 'omniauth'
-gem 'omniauth-osm'
 
 # providing API
 gem 'active_model_serializers', '0.9.3'
