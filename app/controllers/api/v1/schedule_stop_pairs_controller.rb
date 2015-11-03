@@ -14,7 +14,18 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
           Proc.new { |params| api_v1_schedule_stop_pairs_url(params) },
           params[:offset],
           per_page,
-          params.slice(:date, :service_from_date, :origin_onestop_id, :destination_onestop_id, :route_onestop_id, :bbox, :updated_since)
+          params.slice(
+            :date,
+            :service_from_date,
+            :origin_onestop_id,
+            :destination_onestop_id,
+            :origin_departure_between,
+            :trip,
+            :route_onestop_id,
+            :operator_onestop_id,
+            :bbox,
+            :updated_since
+          )
         )
       end
       format.geojson do
