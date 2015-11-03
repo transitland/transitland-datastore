@@ -14,7 +14,7 @@ class FeedEaterWorker
     if feed_version_sha1.present?
       feed_version = feed.feed_versions.find_by!(sha1: feed_version_sha1)
     else
-      feed_version = feed.feed_versions.last!
+      feed_version = feed.feed_versions.first!
     end
 
     # make sure to have local copy of file
