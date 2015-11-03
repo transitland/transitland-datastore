@@ -1,5 +1,3 @@
-require 'gtfsgraph'
-
 def load_feed(import_level=1)
   feed_version = create(:feed_version_caltrain)
   feed = feed_version.feed
