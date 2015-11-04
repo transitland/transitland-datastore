@@ -31,10 +31,13 @@ Rails.application.routes.draw do
       resources :stops, only: [:index, :show]
       resources :operators, only: [:index, :show]
       resources :routes, only: [:index, :show]
-      resources :schedule_stop_pairs, only: [:index, :frequency]
+      resources :schedule_stop_pairs, only: [:index]
       resources :feeds, only: [:index, :show] do
-        resources :feed_imports, only: [:index]
+        resources :feed_versions, only: [:index, :show] do
+          resources :feed_version_imports, only: [:index, :show]
+        end
       end
+      post '/webhooks/feed_fetcher', to: 'webhooks#feed_fetcher'
       post '/webhooks/feed_eater', to: 'webhooks#feed_eater'
     end
     match '*unmatched_route', :to => 'v1/base_api#raise_not_found!', via: :all

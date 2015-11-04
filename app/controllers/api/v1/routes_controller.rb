@@ -31,6 +31,12 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
       @routes = @routes.updated_since(params[:updated_since])
     end
 
+    @routes = @routes.includes{[
+      operator,
+      imported_from_feeds,
+      imported_from_feed_versions
+    ]}
+
     per_page = params[:per_page].blank? ? Route::PER_PAGE : params[:per_page].to_i
 
     respond_to do |format|

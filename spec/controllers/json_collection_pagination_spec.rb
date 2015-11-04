@@ -1,3 +1,26 @@
+class FakePaginationCollection
+  def initialize(items)
+    @items = items
+    @offset = 0
+    @limit = @items.size
+  end
+  def order(key)
+    @items = @items.sort
+    self
+  end
+  def offset(i)
+    @offset = i
+    self
+  end
+  def limit(i)
+    @limit = i
+    @items[@offset, @limit]
+  end
+  def count
+    @items[@offset, @limit].size
+  end
+end
+
 describe JsonCollectionPagination do
 
   before do
@@ -11,32 +34,46 @@ describe JsonCollectionPagination do
 
   context 'paginated_json_collection' do
     it 'one page' do
-      collection = instance_double("FakeModel", count: 3)
-      collection.stub_chain(:offset, :limit).and_return([1, 2, 3])
+      collection = FakePaginationCollection.new((0...10).to_a)
       expect(
-        object.send(:paginated_json_collection, collection, path_helper, 0, 50, {})
+        object.send(:paginated_json_collection, collection, path_helper, 0, 10, {})
       ).to eq({
-        json: [1, 2, 3],
+        json: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         meta: {
-          total: 3,
+          total: 10,
           offset: 0,
-          per_page: 50
+          per_page: 10
         }
       })
     end
 
     it 'multiple pages' do
-      collection = instance_double("FakeModel", count: 100)
-      collection.stub_chain(:offset, :limit).and_return([1, 2, 3])
+      collection = FakePaginationCollection.new((0...10).to_a)
       expect(
-        object.send(:paginated_json_collection, collection, path_helper, 40, 40, {})
+        object.send(:paginated_json_collection, collection, path_helper, 4, 4, {})
       ).to eq({
-        json: [1, 2, 3],
+        json: [4, 5, 6, 7],
         meta: {
-          total: 100,
-          offset: 40,
-          per_page: 40,
-          next: 'http://blah/offset=80',
+          total: 10,
+          offset: 4,
+          per_page: 4,
+          next: 'http://blah/offset=8',
+          prev: 'http://blah/offset=0'
+        }
+      })
+    end
+
+    it 'applies default sort order' do
+      collection = FakePaginationCollection.new((0...10).to_a.shuffle)
+      expect(
+        object.send(:paginated_json_collection, collection, path_helper, 4, 4, {})
+      ).to eq({
+        json: [4,5,6,7],
+        meta: {
+          total: 10,
+          offset: 4,
+          per_page: 4,
+          next: 'http://blah/offset=8',
           prev: 'http://blah/offset=0'
         }
       })

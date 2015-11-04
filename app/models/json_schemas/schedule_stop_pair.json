@@ -1,0 +1,104 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Transitland Datastore ScheduleStopPair",
+  "type": "object",
+  "required": [
+    "originOnestopId",
+    "destinationOnestopId",
+    "routeOnestopId",
+    "importedFromFeed",
+    "originArrivalTime",
+    "originDepartureTime",
+    "destinationArrivalTime",
+    "destinationDepartureTime",
+    "originTimezone",
+    "destinationTimezone",
+    "serviceStartDate",
+    "serviceEndDate",
+    "windowStart",
+    "windowEnd"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "originOnestopId": {
+      "type": "string",
+      "format": "stop-onestop-id"
+    },
+    "destinationOnestopId": {
+      "type": "string",
+      "format": "stop-onestop-id"
+    },
+    "routeOnestopId": {
+      "type": "string",
+      "format": "route-onestop-id"
+    },
+    "originArrivalTime": { "type": "string" },
+    "originDepartureTime": { "type": "string" },
+    "destinationArrivalTime": { "type": "string" },
+    "destinationDepartureTime": { "type": "string" },
+    "originTimezone": { "type": "string" },
+    "destinationTimezone": { "type": "string" },
+    "windowStart": { "type": "string" },
+    "windowEnd": { "type": "string" },
+    "originTimepointSource": { "type": "string" },
+    "destinationTimepointSource": { "type": "string" },
+    "serviceStartDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "serviceEndDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "serviceAddedDates": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "format": "date"
+      }
+    },
+    "serviceExceptDates": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "format": "date"
+      }
+    },
+    "serviceDaysOfWeek": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": {
+        "type": "boolean"
+      }
+    },
+    "trip": { "type": ["string","null"] },
+    "tripHeadsign": { "type": ["string","null"] },
+    "tripShortName": { "type": ["string","null"] },
+    "blockId": { "type": ["string","null"] },
+    "frequencyStartTime": { "type": ["string","null"] },
+    "frequencyEndTime": { "type": ["string","null"] },
+    "frequencyHeadwaySeconds": { "type": ["string","null"] },
+    "wheelchairAccessible": { "type": ["boolean","null"] },
+    "bikesAllowed": { "type": ["boolean","null"] },
+    "pickupType": { "type": ["string","null"] },
+    "dropOffType": { "type": ["string","null"] },
+    "shapeDistTraveled": { "type": ["number","null"] },
+    "tags": { "type": "object" },
+    "importedFromFeed": {
+      "type": "object",
+      "properties": {
+        "onestopId": {
+          "type": "string",
+          "format": "feed-onestop-id"
+        },
+        "sha1": {
+          "type": "string",
+          "format": "sha1"
+        }
+      }
+    }
+  }
+}

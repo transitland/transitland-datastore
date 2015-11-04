@@ -33,6 +33,12 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
       @operators = @operators.updated_since(params[:updated_since])
     end
 
+    @operators = @operators.includes{[
+      imported_from_feeds,
+      imported_from_feed_versions,
+      feeds
+    ]}
+
     per_page = params[:per_page].blank? ? Operator::PER_PAGE : params[:per_page].to_i
 
     respond_to do |format|

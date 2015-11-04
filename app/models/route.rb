@@ -64,7 +64,14 @@ class Route < BaseRoute
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
-    virtual_attributes: [:serves, :does_not_serve, :operated_by, :identified_by, :not_identified_by, :imported_from_feed_onestop_id]
+    virtual_attributes: [
+      :serves,
+      :does_not_serve,
+      :operated_by,
+      :identified_by,
+      :not_identified_by,
+      :imported_from_feed
+    ]
   })
 
   # FIXME: this is a temporary fix to run both the following `before_create_making_history` changeset
@@ -144,7 +151,6 @@ class Route < BaseRoute
     route = Route.new(
       name: name,
       onestop_id: onestop_id.to_s,
-      identifiers: [entity.id],
       # geometry:
     )
     # Copy over GTFS attributes to tags

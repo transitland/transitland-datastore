@@ -49,7 +49,7 @@ For a complete visualization of the Datastore's data model, see [doc/data-model.
 2. Depending upon your needs, you may need to modify your configuration by editing `config/application.yml` and `config/database.yml`.
 
    Note that any values in `config/database.yml` can also be overwritten with environment variables---useful if you're running a production server.
-   
+
    The tokens you specify in `config/application.yml` will be used for [API Authentication](#api-authentication).
 
 3. Create and initialize the database:
@@ -105,17 +105,26 @@ Example URL  | Parameters
 `GET /api/v1/routes?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
 `GET /api/v1/routes?tag_key=vehicle_type` | find all routes that have a tag of `tag_key` with any value
 `GET /api/v1/routes?tag_key=vehicle_type&tag_value=bus` | find all routes that have a tag of `tag_key` and a value of `tag_value`
-`POST /api/v1/webhooks/feed_eater` | ([secured](#api-authentication))
-`POST /api/v1/webhooks/feed_eater?feed_onestop_ids=f-9q9-bayarearapidtransit,f-9q9-actransit` | `feed_onestop_ids` is an optional parameter; by default, all feeds in the registry are checked for updates ([secured](#api-authentication))
+`POST /api/v1/webhooks/feed_fetcher` | ([secured](#api-authentication))
+`POST /api/v1/webhooks/feed_eater?feed_onestop_id=f-9q9-caltrain,feed_version_sha1=ab1e6ac73943082803f110df4b0fdd63a1d6b9f7` | ([secured](#api-authentication))
 `GET /api/v1/feeds` | none required
 `GET /api/v1/feeds?tag_key=license` | find all feeds that have a tag of `tag_key` with any value
 `GET /api/v1/feeds?tag_key=license&tag_value=Creative%20Commons%20Attribution%203.0%20Unported%20License` | find all feeds that have a tag of `tag_key` and a value of `tag_value`
 `GET /api/v1/feeds?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
 `GET /api/v1/feeds/f-9q9-bayarearapidtransit` | none required
-`GET /api/v1/feeds/f-9q9-bayarearapidtransit/feed_imports` | none required
-`GET /api/v1/schedule_stop_pairs` | Find all [Schedule Stop Pairs](doc/schedule_api.md)
+`GET /api/v1/feeds/f-9q9-bayarearapidtransit/feed_versions` | none required
+`GET /api/v1/feeds/f-9q9-bayarearapidtransit/feed_versions/c06b4b6b40815f27c81b4fcf486ac1fd70ab1966` | none required
+`GET /api/v1/feeds/f-9q9-bayarearapidtransit/feed_versions/c06b4b6b40815f27c81b4fcf486ac1fd70ab1966/feed_version_imports` | none required
+`GET /api/v1/feeds/f-9q9-bayarearapidtransit/feed_versions/c06b4b6b40815f27c81b4fcf486ac1fd70ab1966/feed_version_imports/1` | none required
+`GET /api/v1/schedule_stop_pairs` | Find all [Schedule Stop Pairs](doc/schedule_api.md). All options below can be combined.
 `GET /api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation` | Find all Schedule Stop Pairs from origin
-`GET /api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation&date=2015-08-05` | Find all Schedule Stop Pairs from origin on date
+`GET /api/v1/schedule_stop_pairs?destination_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation` | Find all Schedule Stop Pairs to a destination
+`GET /api/v1/schedule_stop_pairs?date=2015-08-05` | Find all Schedule Stop Pairs from origin on date
+`GET /api/v1/schedule_stop_pairs?service_from_date=2015-08-05` | Find all Schedule Stop Pairs in effect from a date
+`GET /api/v1/schedule_stop_pairs?origin_departure_between=09:00:00,09:10:00` | Find all Schedule Stop Pairs with origin_departure_time in a range
+`GET /api/v1/schedule_stop_pairs?trip=6507768-CT-14OCT-Combo-Weekday-01` | Find all Schedule Stop Pairs by trip identifier
+`GET /api/v1/schedule_stop_pairs?operator_onestop_id=o-9q9-caltrain` | Find all Schedule Stop Pairs from origin on date
+`GET /api/v1/schedule_stop_pairs?bbox=-121.0,35.0,-124.0,37.0` | Find all Schedule Stop Pairs originating within a bounding box
 
 Pagination for JSON endpoints:
 - `?offset=50` is the index of the first entity to be displayed (starts with 0)
@@ -127,24 +136,30 @@ Format:
 
 ## Running the FeedEater pipeline
 
-This asynchronous background worker will import feeds specified in the [Transitland Feed Registry](https://github.com/transitland/transitland-feed-registry).
+First load feed and operator records from the sample changesets included in this repository: `bundle exec rake db:load:sample_changesets` (***These files will be removed in the near future.***)
 
-To enqueue a worker from the command line:
+Now start the server and background queue and fetch feed files from their URLs:
 
-  - to load all feeds: `bundle exec rake enqueue_feed_eater_worker`
-  - to load one specified feed: `bundle exec rake enqueue_feed_eater_worker[f-9q9-bayarearapidtransit]`
-  - to load a few specified feeds: `bundle exec rake enqueue_feed_eater_worker['f-9q9-actransit f-c23-kingcounty']`
+1. `bundle exec rake enqueue_feed_fetcher_workers`
+2. `bundle exec foreman`
 
-By default, FeedEater will only import the operator from the specified feed(s). To import stops, routes, and schedule-stop-pairs, specify:
+After the feed files have been fetched, you can imported a feed:
 
-- operator with stops and routes `bundle exec rake enqueue_feed_eater_worker[f-9q9-bayarearapidtransit, 1]`
-- operator with stops, routes, and schedule-stop-pairs `bundle exec rake enqueue_feed_eater_worker[f-9q9-bayarearapidtransit, 2]`
+- just the operator record from latest feed version: `bundle exec rake enqueue_feed_eater_worker[f-9q9-bart]`
+- operator with stops and routes from latest feed version: `bundle exec rake enqueue_feed_eater_worker[f-9q9-bart,'',1]`
+- operator with stops, routes, and schedules from latest feed version: `bundle exec rake enqueue_feed_eater_worker[f-9q9-bart,'',2]`
+- operator with stops and routes from a specific feed version (include the SHA1 hash of the feed version): `bundle exec rake enqueue_feed_eater_worker[f-9q9-caltrain,'ab1e6ac73943082803f110df4b0fdd63a1d6b9f7',1]`
 
-To enqueue a worker from an endpoint:
+Alternatively, you can start the server and background queue and enqueue the workers using HTTP endpoints:
 
-    POST /api/v1/webhooks/feed_eater
-    
-Note that this endpoint requires [API authentication](#api-authentication).
+To fetch all feeds: `POST /api/v1/webhooks/feed_fetcher`
+
+To import a feed:
+
+- to import the latest feed version: `POST /api/v1/webhooks/feed_eater?feed_onestop_id=f-9q9-caltrain`
+- to import a specific feed version: `POST /api/v1/webhooks/feed_eater?feed_onestop_id=f-9q9-caltrain&feed_version_sha1=ab1e6ac73943082803f110df4b0fdd63a1d6b9f7`
+
+Note that these endpoint requires [API authentication](#api-authentication).
 
 To check the status of background workers, you can view Sidekiq's dashboard at: `/worker_dashboard`. In production and staging environments, accessing the dashboard will require the user name and password specified in `/config/application.yml` or by environment variable.
 

@@ -27,10 +27,6 @@
 #  updated_at                         :datetime         not null
 #  block_id                           :string
 #  trip_short_name                    :string
-#  wheelchair_accessible              :integer
-#  bikes_allowed                      :integer
-#  pickup_type                        :integer
-#  drop_off_type                      :integer
 #  shape_dist_traveled                :float
 #  origin_timezone                    :string
 #  destination_timezone               :string
@@ -38,23 +34,31 @@
 #  window_end                         :string
 #  origin_timepoint_source            :string
 #  destination_timepoint_source       :string
+#  operator_id                        :integer
+#  wheelchair_accessible              :boolean
+#  bikes_allowed                      :boolean
+#  pickup_type                        :string
+#  drop_off_type                      :string
 #
 # Indexes
 #
-#  c_ssp_cu_in_changeset                            (created_or_updated_in_changeset_id)
-#  c_ssp_destination                                (destination_id)
-#  c_ssp_origin                                     (origin_id)
-#  c_ssp_route                                      (route_id)
-#  c_ssp_service_end_date                           (service_end_date)
-#  c_ssp_service_start_date                         (service_start_date)
-#  c_ssp_trip                                       (trip)
-#  index_current_schedule_stop_pairs_on_updated_at  (updated_at)
+#  c_ssp_cu_in_changeset                                       (created_or_updated_in_changeset_id)
+#  c_ssp_destination                                           (destination_id)
+#  c_ssp_origin                                                (origin_id)
+#  c_ssp_route                                                 (route_id)
+#  c_ssp_service_end_date                                      (service_end_date)
+#  c_ssp_service_start_date                                    (service_start_date)
+#  c_ssp_trip                                                  (trip)
+#  index_current_schedule_stop_pairs_on_operator_id            (operator_id)
+#  index_current_schedule_stop_pairs_on_origin_departure_time  (origin_departure_time)
+#  index_current_schedule_stop_pairs_on_updated_at             (updated_at)
 #
 
 class ScheduleStopPairSerializer < ApplicationSerializer
   attributes :origin_onestop_id,
              :destination_onestop_id,
              :route_onestop_id,
+             :operator_onestop_id,
              :origin_timezone,
              :destination_timezone,
              :trip,
@@ -92,5 +96,9 @@ class ScheduleStopPairSerializer < ApplicationSerializer
 
   def route_onestop_id
     object.route.try(:onestop_id)
+  end
+
+  def operator_onestop_id
+    object.operator.try(:onestop_id)
   end
 end

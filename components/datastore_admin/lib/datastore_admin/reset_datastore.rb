@@ -7,6 +7,12 @@ module DatastoreAdmin
       Sidekiq::Queue.new.clear
     end
 
+    def self.destroy_feed_versions
+      FeedVersion.find_each do |feed_version|
+        feed_version.destroy
+      end
+    end
+
     def self.truncate_database
       # NOTE: don't truncate schema_migrations or spatial_ref_sys
       sql = "
@@ -21,7 +27,9 @@ module DatastoreAdmin
                  current_stops,
                  current_schedule_stop_pairs,
                  old_schedule_stop_pairs,
-                 feed_imports,
+                 feed_versions,
+                 feed_version_imports,
+                 feed_schedule_imports,
                  entities_imported_from_feed,
                  old_feeds,
                  old_operators_in_feed,
@@ -41,7 +49,9 @@ module DatastoreAdmin
         ALTER SEQUENCE current_routes_serving_stop_id_seq RESTART;
         ALTER SEQUENCE current_stops_id_seq RESTART;
         ALTER SEQUENCE current_schedule_stop_pairs_id_seq RESTART;
-        ALTER SEQUENCE feed_imports_id_seq RESTART;
+        ALTER SEQUENCE feed_versions_id_seq RESTART;
+        ALTER SEQUENCE feed_version_imports_id_seq RESTART;
+        ALTER SEQUENCE feed_schedule_imports_id_seq RESTART;
         ALTER SEQUENCE entities_imported_from_feed_id_seq RESTART;
         ALTER SEQUENCE old_feeds_id_seq RESTART;
         ALTER SEQUENCE old_operators_in_feed_id_seq RESTART;
@@ -53,10 +63,6 @@ module DatastoreAdmin
         ALTER SEQUENCE old_schedule_stop_pairs_id_seq RESTART;
       "
       ActiveRecord::Base.connection.execute(sql)
-    end
-
-    def self.clear_data_directory
-      FileUtils.rm_rf Dir.glob("#{Figaro.env.transitland_feed_data_path}/*")
     end
   end
 end

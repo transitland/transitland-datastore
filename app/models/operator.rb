@@ -68,7 +68,13 @@ class Operator < BaseOperator
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
-    virtual_attributes: [:serves, :does_not_serve, :identified_by, :not_identified_by, :imported_from_feed_onestop_id]
+    virtual_attributes: [
+      :serves,
+      :does_not_serve,
+      :identified_by,
+      :not_identified_by,
+      :imported_from_feed
+    ]
   })
   def self.after_create_making_history(created_model, changeset)
     OperatorRouteStopRelationship.manage_multiple(
@@ -112,6 +118,8 @@ class Operator < BaseOperator
   has_many :routes
   has_many :routes_serving_stop, through: :routes
 
+  has_many :schedule_stop_pairs
+
   validates :name, presence: true
 
   ##### FromGTFS ####
@@ -132,7 +140,6 @@ class Operator < BaseOperator
     operator = Operator.new(
       name: name,
       onestop_id: onestop_id.to_s,
-      identifiers: [entity.id]
     )
     operator[:geometry] = geometry
     # Copy over GTFS attributes to tags

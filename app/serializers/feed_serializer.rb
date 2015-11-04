@@ -7,7 +7,6 @@
 #  url                                :string
 #  feed_format                        :string
 #  tags                               :hstore
-#  last_sha1                          :string
 #  last_fetched_at                    :datetime
 #  last_imported_at                   :datetime
 #  license_name                       :string
@@ -20,12 +19,13 @@
 #  updated_at                         :datetime
 #  created_or_updated_in_changeset_id :integer
 #  geometry                           :geography({:srid geometry, 4326
+#  latest_fetch_exception_log         :text
+#  license_attribution_text           :text
 #
 # Indexes
 #
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
 #
-
 
 class FeedSerializer < ApplicationSerializer
   attributes :onestop_id,
@@ -38,21 +38,28 @@ class FeedSerializer < ApplicationSerializer
              :license_use_without_attribution,
              :license_create_derived_product,
              :license_redistribute,
-             :last_sha1,
+             :license_attribution_text,
              :last_fetched_at,
              :last_imported_at,
+             :latest_fetch_exception_log,
+             :import_status,
              :created_at,
              :updated_at,
-             :feed_imports_count,
-             :feed_imports_url
+             :feed_versions_count,
+             :feed_versions_url,
+             :feed_versions
 
   has_many :operators_in_feed
 
-  def feed_imports_count
-    object.feed_imports.count
+  def feed_versions_count
+    object.feed_versions.count
   end
 
-  def feed_imports_url
-    api_v1_feed_feed_imports_url(object.onestop_id)
+  def feed_versions_url
+    api_v1_feed_feed_versions_url(object.onestop_id)
+  end
+
+  def feed_versions
+    object.feed_versions.pluck(:sha1)
   end
 end

@@ -27,10 +27,6 @@
 #  updated_at                         :datetime         not null
 #  block_id                           :string
 #  trip_short_name                    :string
-#  wheelchair_accessible              :integer
-#  bikes_allowed                      :integer
-#  pickup_type                        :integer
-#  drop_off_type                      :integer
 #  shape_dist_traveled                :float
 #  origin_timezone                    :string
 #  destination_timezone               :string
@@ -38,17 +34,24 @@
 #  window_end                         :string
 #  origin_timepoint_source            :string
 #  destination_timepoint_source       :string
+#  operator_id                        :integer
+#  wheelchair_accessible              :boolean
+#  bikes_allowed                      :boolean
+#  pickup_type                        :string
+#  drop_off_type                      :string
 #
 # Indexes
 #
-#  c_ssp_cu_in_changeset                            (created_or_updated_in_changeset_id)
-#  c_ssp_destination                                (destination_id)
-#  c_ssp_origin                                     (origin_id)
-#  c_ssp_route                                      (route_id)
-#  c_ssp_service_end_date                           (service_end_date)
-#  c_ssp_service_start_date                         (service_start_date)
-#  c_ssp_trip                                       (trip)
-#  index_current_schedule_stop_pairs_on_updated_at  (updated_at)
+#  c_ssp_cu_in_changeset                                       (created_or_updated_in_changeset_id)
+#  c_ssp_destination                                           (destination_id)
+#  c_ssp_origin                                                (origin_id)
+#  c_ssp_route                                                 (route_id)
+#  c_ssp_service_end_date                                      (service_end_date)
+#  c_ssp_service_start_date                                    (service_start_date)
+#  c_ssp_trip                                                  (trip)
+#  index_current_schedule_stop_pairs_on_operator_id            (operator_id)
+#  index_current_schedule_stop_pairs_on_origin_departure_time  (origin_departure_time)
+#  index_current_schedule_stop_pairs_on_updated_at             (updated_at)
 #
 
 RSpec.describe ScheduleStopPair, type: :model do
@@ -91,6 +94,21 @@ RSpec.describe ScheduleStopPair, type: :model do
     end
   end
 
+  context 'route and operator set by route_onestop_id=' do
+    it '#route_onestop_id= sets route' do
+      ssp = create(:schedule_stop_pair)
+      ssp.route_onestop_id = route.onestop_id
+      expect(ssp.route).to eq(route)
+    end
+
+    it '#route_onestop_id= sets operator' do
+      ssp = create(:schedule_stop_pair)
+      ssp.route_onestop_id = route.onestop_id
+      expect(ssp.operator).to be_truthy
+      expect(ssp.operator).to eq(route.operator)
+    end
+  end
+
   context 'changeset' do
     it 'has a changeset' do
       ssp = create(:schedule_stop_pair)
@@ -119,6 +137,8 @@ RSpec.describe ScheduleStopPair, type: :model do
       expect(ssp.created_or_updated_in_changeset).to eq changeset
       expect(ssp.origin).to eq stop1
       expect(ssp.destination).to eq stop2
+      expect(ssp.operator).to be_truthy
+      expect(ssp.operator).to eq route.operator
       expect(stop1.trips_out).to match_array([ssp])
       expect(stop2.trips_in).to match_array([ssp])
       expect(stop1.stops_out).to match_array([stop2])
@@ -149,6 +169,31 @@ RSpec.describe ScheduleStopPair, type: :model do
       expect(ScheduleStopPair.where_service_from_date(expect_end0).count).to eq(2)
       expect(ScheduleStopPair.where_service_from_date(expect_end1).count).to eq(1)
       expect(ScheduleStopPair.where_service_from_date(expect_end2).count).to eq(0)
+    end
+
+    it 'where origin_departure_between' do
+      create(:schedule_stop_pair, origin_departure_time: '09:00:00')
+      create(:schedule_stop_pair, origin_departure_time: '09:05:00')
+      create(:schedule_stop_pair, origin_departure_time: '09:10:00')
+      expect(ScheduleStopPair.where_origin_departure_between('07:00:00', '08:00:00').count).to eq(0)
+      expect(ScheduleStopPair.where_origin_departure_between('08:00:00', '09:00:00').count).to eq(1)
+      expect(ScheduleStopPair.where_origin_departure_between('09:00:00', '09:00:00').count).to eq(1)
+      expect(ScheduleStopPair.where_origin_departure_between('09:00:00', '09:01:00').count).to eq(1)
+      expect(ScheduleStopPair.where_origin_departure_between('09:00:00', '09:05:00').count).to eq(2)
+      expect(ScheduleStopPair.where_origin_departure_between('09:00:00', '09:10:00').count).to eq(3)
+      expect(ScheduleStopPair.where_origin_departure_between('09:00:00', '10:00:00').count).to eq(3)
+      expect(ScheduleStopPair.where_origin_departure_between('00:00:00', '30:00:00').count).to eq(3)
+    end
+
+    it 'where origin_departure_between parses widetimes' do
+      create(:schedule_stop_pair, origin_departure_time: '09:00:00')
+      expect(ScheduleStopPair.where_origin_departure_between('8', '10').count).to eq(1)
+    end
+
+    it 'where origin_departure_between allows open ended ranges' do
+      create(:schedule_stop_pair, origin_departure_time: '09:00:00')
+      expect(ScheduleStopPair.where_origin_departure_between('08:00:00', nil).count).to eq(1)      
+      expect(ScheduleStopPair.where_origin_departure_between(nil, '10:00:00').count).to eq(1)
     end
 
   end

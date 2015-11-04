@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20150930002948) do
+ActiveRecord::Schema.define(version: 20151030234052) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -40,7 +40,6 @@ ActiveRecord::Schema.define(version: 20150930002948) do
     t.string    "url"
     t.string    "feed_format"
     t.hstore    "tags"
-    t.string    "last_sha1"
     t.datetime  "last_fetched_at"
     t.datetime  "last_imported_at"
     t.string    "license_name"
@@ -53,6 +52,8 @@ ActiveRecord::Schema.define(version: 20150930002948) do
     t.datetime  "updated_at"
     t.integer   "created_or_updated_in_changeset_id"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
+    t.text      "latest_fetch_exception_log"
+    t.text      "license_attribution_text"
   end
 
   add_index "current_feeds", ["created_or_updated_in_changeset_id"], name: "index_current_feeds_on_created_or_updated_in_changeset_id", using: :btree
@@ -168,10 +169,6 @@ ActiveRecord::Schema.define(version: 20150930002948) do
     t.datetime "updated_at",                                      null: false
     t.string   "block_id"
     t.string   "trip_short_name"
-    t.integer  "wheelchair_accessible"
-    t.integer  "bikes_allowed"
-    t.integer  "pickup_type"
-    t.integer  "drop_off_type"
     t.float    "shape_dist_traveled"
     t.string   "origin_timezone"
     t.string   "destination_timezone"
@@ -179,10 +176,17 @@ ActiveRecord::Schema.define(version: 20150930002948) do
     t.string   "window_end"
     t.string   "origin_timepoint_source"
     t.string   "destination_timepoint_source"
+    t.integer  "operator_id"
+    t.boolean  "wheelchair_accessible"
+    t.boolean  "bikes_allowed"
+    t.string   "pickup_type"
+    t.string   "drop_off_type"
   end
 
   add_index "current_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "c_ssp_cu_in_changeset", using: :btree
   add_index "current_schedule_stop_pairs", ["destination_id"], name: "c_ssp_destination", using: :btree
+  add_index "current_schedule_stop_pairs", ["operator_id"], name: "index_current_schedule_stop_pairs_on_operator_id", using: :btree
+  add_index "current_schedule_stop_pairs", ["origin_departure_time"], name: "index_current_schedule_stop_pairs_on_origin_departure_time", using: :btree
   add_index "current_schedule_stop_pairs", ["origin_id"], name: "c_ssp_origin", using: :btree
   add_index "current_schedule_stop_pairs", ["route_id"], name: "c_ssp_route", using: :btree
   add_index "current_schedule_stop_pairs", ["service_end_date"], name: "c_ssp_service_end_date", using: :btree
@@ -215,31 +219,58 @@ ActiveRecord::Schema.define(version: 20150930002948) do
     t.integer  "feed_id"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "feed_version_id"
   end
 
   add_index "entities_imported_from_feed", ["entity_type", "entity_id"], name: "index_entities_imported_from_feed_on_entity_type_and_entity_id", using: :btree
   add_index "entities_imported_from_feed", ["feed_id"], name: "index_entities_imported_from_feed_on_feed_id", using: :btree
+  add_index "entities_imported_from_feed", ["feed_version_id"], name: "index_entities_imported_from_feed_on_feed_version_id", using: :btree
 
-  create_table "feed_imports", force: :cascade do |t|
-    t.integer  "feed_id"
+  create_table "feed_schedule_imports", force: :cascade do |t|
     t.boolean  "success"
-    t.string   "sha1"
     t.text     "import_log"
-    t.text     "validation_report"
-    t.datetime "created_at"
-    t.datetime "updated_at"
     t.text     "exception_log"
+    t.datetime "created_at",             null: false
+    t.datetime "updated_at",             null: false
+    t.integer  "feed_version_import_id"
   end
 
-  add_index "feed_imports", ["created_at"], name: "index_feed_imports_on_created_at", using: :btree
-  add_index "feed_imports", ["feed_id"], name: "index_feed_imports_on_feed_id", using: :btree
+  add_index "feed_schedule_imports", ["feed_version_import_id"], name: "index_feed_schedule_imports_on_feed_version_import_id", using: :btree
+
+  create_table "feed_version_imports", force: :cascade do |t|
+    t.integer  "feed_version_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.boolean  "success"
+    t.text     "import_log"
+    t.text     "exception_log"
+    t.text     "validation_report"
+  end
+
+  add_index "feed_version_imports", ["feed_version_id"], name: "index_feed_version_imports_on_feed_version_id", using: :btree
+
+  create_table "feed_versions", force: :cascade do |t|
+    t.integer  "feed_id"
+    t.string   "feed_type"
+    t.string   "file"
+    t.date     "earliest_calendar_date"
+    t.date     "latest_calendar_date"
+    t.string   "sha1"
+    t.string   "md5"
+    t.hstore   "tags"
+    t.datetime "fetched_at"
+    t.datetime "imported_at"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "feed_versions", ["feed_type", "feed_id"], name: "index_feed_versions_on_feed_type_and_feed_id", using: :btree
 
   create_table "old_feeds", force: :cascade do |t|
     t.string    "onestop_id"
     t.string    "url"
     t.string    "feed_format"
     t.hstore    "tags"
-    t.string    "last_sha1"
     t.datetime  "last_fetched_at"
     t.datetime  "last_imported_at"
     t.string    "license_name"
@@ -254,6 +285,8 @@ ActiveRecord::Schema.define(version: 20150930002948) do
     t.integer   "created_or_updated_in_changeset_id"
     t.integer   "destroyed_in_changeset_id"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
+    t.text      "latest_fetch_exception_log"
+    t.text      "license_attribution_text"
   end
 
   add_index "old_feeds", ["created_or_updated_in_changeset_id"], name: "index_old_feeds_on_created_or_updated_in_changeset_id", using: :btree
@@ -397,10 +430,6 @@ ActiveRecord::Schema.define(version: 20150930002948) do
     t.datetime "updated_at",                                      null: false
     t.string   "block_id"
     t.string   "trip_short_name"
-    t.integer  "wheelchair_accessible"
-    t.integer  "bikes_allowed"
-    t.integer  "pickup_type"
-    t.integer  "drop_off_type"
     t.float    "shape_dist_traveled"
     t.string   "origin_timezone"
     t.string   "destination_timezone"
@@ -408,12 +437,18 @@ ActiveRecord::Schema.define(version: 20150930002948) do
     t.string   "window_end"
     t.string   "origin_timepoint_source"
     t.string   "destination_timepoint_source"
+    t.integer  "operator_id"
+    t.boolean  "wheelchair_accessible"
+    t.boolean  "bikes_allowed"
+    t.string   "pickup_type"
+    t.string   "drop_off_type"
   end
 
   add_index "old_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "o_ssp_cu_in_changeset", using: :btree
   add_index "old_schedule_stop_pairs", ["current_id"], name: "index_old_schedule_stop_pairs_on_current_id", using: :btree
   add_index "old_schedule_stop_pairs", ["destination_type", "destination_id"], name: "o_ssp_destination", using: :btree
   add_index "old_schedule_stop_pairs", ["destroyed_in_changeset_id"], name: "o_ssp_d_in_changeset", using: :btree
+  add_index "old_schedule_stop_pairs", ["operator_id"], name: "index_old_schedule_stop_pairs_on_operator_id", using: :btree
   add_index "old_schedule_stop_pairs", ["origin_type", "origin_id"], name: "o_ssp_origin", using: :btree
   add_index "old_schedule_stop_pairs", ["route_type", "route_id"], name: "o_ssp_route", using: :btree
   add_index "old_schedule_stop_pairs", ["service_end_date"], name: "o_ssp_service_end_date", using: :btree

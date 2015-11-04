@@ -7,9 +7,6 @@ path 'components' do
   gem 'datastore_admin'
 end
 
-# external Transitland libraries
-gem 'transitland_client', github: 'transitland/transitland-ruby-client', tag: 'v0.0.7', require: 'transitland_client'
-
 # process runner
 gem 'foreman', group: :development
 
@@ -25,13 +22,12 @@ gem 'redis-rails'
 gem 'sidekiq'
 gem 'sidekiq-unique-jobs'
 gem 'sidekiq-limit_fetch'
-gem 'celluloid'
 gem 'whenever', require: false # to manage crontab
 
 # data model
 gem 'squeel'
 gem 'enumerize'
-gem 'gtfs', github: 'transitland/gtfs', tag: 'v1.0.0rc4'
+gem 'gtfs', github: 'transitland/gtfs', tag: 'v1.0.0rc5'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 gem 'json-schema'
@@ -41,8 +37,6 @@ gem 'text'
 
 # authentication and authorization
 gem 'rack-cors', require: 'rack/cors'
-gem 'omniauth'
-gem 'omniauth-osm'
 
 # providing API
 gem 'active_model_serializers', '0.9.3'
@@ -50,6 +44,13 @@ gem 'oj'
 
 # consuming other APIs
 gem 'faraday'
+
+# file attachments
+gem 'fog-aws', group: [:staging, :production]
+gem 'carrierwave', github: 'carrierwaveuploader/carrierwave', ref: '49fdad1'
+# using a development version of carrierwave in order to only
+# load fog-aws, rather than the entire fog library
+# https://github.com/carrierwaveuploader/carrierwave/issues/1698
 
 # development tools
 gem 'better_errors', group: :development

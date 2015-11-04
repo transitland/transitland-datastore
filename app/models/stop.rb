@@ -69,7 +69,13 @@ class Stop < BaseStop
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
-    virtual_attributes: [:served_by, :not_served_by, :identified_by, :not_identified_by, :imported_from_feed_onestop_id]
+    virtual_attributes: [
+      :served_by,
+      :not_served_by,
+      :identified_by,
+      :not_identified_by,
+      :imported_from_feed
+    ]
   })
   def self.after_create_making_history(created_model, changeset)
     OperatorRouteStopRelationship.manage_multiple(
@@ -127,7 +133,7 @@ class Stop < BaseStop
       when Route
         routes << onestop_id_or_model
       when String
-        model = OnestopIdService.find!(onestop_id_or_model)
+        model = OnestopId.find!(onestop_id_or_model)
         case model
         when Route then routes << model
         when Operator then operators << model
@@ -239,7 +245,6 @@ class Stop < BaseStop
     stop = Stop.new(
       name: name,
       onestop_id: onestop_id.to_s,
-      identifiers: [entity.id],
       geometry: point.to_s
     )
     # Copy over GTFS attributes to tags
