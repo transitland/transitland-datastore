@@ -1,7 +1,7 @@
 class FeedEaterWorker
   include Sidekiq::Worker
 
-  sidekiq_options unique: true,
+  sidekiq_options unique: :until_and_while_executing,
                   unique_job_expiration: 60 * 60, # 1 hour
                   log_duplicate_payload: true,
                   queue: :feed_eater
