@@ -194,6 +194,27 @@ class ScheduleStopPair < BaseScheduleStopPair
       find(attrs[:id])
     end
   end
+  def self.apply_params(params, cache)
+    params = super(params, cache)
+    {
+      :origin_onestop_id => :origin,
+      :destination_onestop_id => :destination,
+      :route_onestop_id => :route
+    }.each do |k,v|
+      cache[params[k]] ||= OnestopIdService.find!(params[k])
+      params[v] = cache[params.delete(k)]
+    end
+    if params[:imported_from_feed]
+      feed_onestop_id = params[:imported_from_feed][:onestop_id]
+      feed_version_id = params[:imported_from_feed][:sha1]
+      cache[feed_onestop_id] ||= OnestopIdService.find!(feed_onestop_id)
+      cache[feed_version_id] ||= cache[feed_onestop_id].feed_versions.find_by!(sha1: feed_version_id)
+      params[:imported_from_feed][:feed] = cache[feed_onestop_id]
+      params[:imported_from_feed][:feed_version] = cache[feed_version_id]
+    end
+    params[:operator] = params[:route].operator
+    params
+  end
 
   # Interpolate
   def self.interpolate(ssps, method=:linear)
