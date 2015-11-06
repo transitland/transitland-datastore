@@ -34,7 +34,8 @@ module CurrentTrackedByChangeset
       end
     end
 
-    def apply_params(params, cache)
+    def apply_params(params, cache={})
+      # Filter changeset params
       params.select { |key, value| self.changeable_attributes.include?(key) }
     end
 
