@@ -35,6 +35,7 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
 
     @operators = @operators.includes{[
       imported_from_feeds,
+      imported_from_feed_versions,
       feeds
     ]}
 

@@ -1,4 +1,3 @@
-# TODO: move this out to a "onestop-id-registry-ruby-wrapper" library
 require 'addressable/template'
 
 class OnestopId
@@ -44,15 +43,15 @@ class OnestopId
     end
     self
   end
-  
+
   def to_s
     [@entity_prefix, @geohash, @name].join(COMPONENT_SEPARATOR)
   end
-  
+
   def self.create_identifier(feed_onestop_id, entity_prefix, entity_id)
     IDENTIFIER_TEMPLATE.expand(
-      feed_onestop_id: feed_onestop_id, 
-      entity_prefix: entity_prefix, 
+      feed_onestop_id: feed_onestop_id,
+      entity_prefix: entity_prefix,
       entity_id: entity_id
     ).to_s
   end
@@ -90,12 +89,20 @@ class OnestopId
     return is_a_valid_onestop_id, errors
   end
 
+  def self.find(onestop_id)
+    OnestopId::PREFIX_TO_MODEL[onestop_id.split(OnestopId::COMPONENT_SEPARATOR)[0]].find_by(onestop_id: onestop_id)
+  end
+
+  def self.find!(onestop_id)
+    OnestopId::PREFIX_TO_MODEL[onestop_id.split(OnestopId::COMPONENT_SEPARATOR)[0]].find_by!(onestop_id: onestop_id)
+  end
+
   private
 
   def name_filter(value)
     value.downcase.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')
   end
-  
+
   def geohash_filter(value)
     value.downcase.gsub(GEOHASH_FILTER, '')
   end

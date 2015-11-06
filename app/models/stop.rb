@@ -133,7 +133,7 @@ class Stop < BaseStop
       when Route
         routes << onestop_id_or_model
       when String
-        model = OnestopIdService.find!(onestop_id_or_model)
+        model = OnestopId.find!(onestop_id_or_model)
         case model
         when Route then routes << model
         when Operator then operators << model

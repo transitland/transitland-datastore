@@ -28,7 +28,7 @@ module Faker
     def self.is_unique?(onestop_id)
       is_unique = false
       begin
-        OnestopIdService.find!(onestop_id)
+        ::OnestopId.find!(onestop_id)
       rescue ActiveRecord::RecordNotFound
         is_unique = true
       end

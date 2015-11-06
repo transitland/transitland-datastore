@@ -20,7 +20,7 @@ class Api::V1::WebhooksController < Api::V1::BaseApiController
     if feed_version_sha1.present?
       feed_version = feed.feed_versions.find_by(sha1: feed_version_sha1)
     else
-      feed_version = feed.feed_versions.last! # TODO: decide on sort order of feed versions
+      feed_version = feed.feed_versions.first!
     end
     import_level = params[:import_level].present? ? params[:import_level].to_i : 0
     feed_eater_worker = FeedEaterWorker.perform_async(feed.onestop_id, feed_version.sha1, import_level)

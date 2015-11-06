@@ -6,7 +6,7 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   before_action :set_changeset, only: [:show, :update, :check, :apply, :revert, :append]
 
   def index
-    @changesets = Changeset.where('')
+    @changesets = Changeset.where('').include{change_payloads}
 
     per_page = params[:per_page].blank? ? Changeset::PER_PAGE : params[:per_page].to_i
 
@@ -87,13 +87,13 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   private
 
   def set_changeset
-    @changeset = Changeset.find(params[:id])
+    @changeset = Changeset.includes(:change_payloads).find(params[:id])
   end
 
   def changeset_params
     params.require(:changeset).permit! # TODO: permit specific params
   end
-  
+
   def change_params
     params.require(:change).permit! # TODO: permit specific params
   end

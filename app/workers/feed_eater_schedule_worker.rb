@@ -1,5 +1,3 @@
-require 'gtfsgraph'
-
 class FeedEaterScheduleWorker
   include Sidekiq::Worker
 
