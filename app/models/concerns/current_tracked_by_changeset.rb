@@ -13,11 +13,11 @@ module CurrentTrackedByChangeset
     attr_reader :kind_of_model_tracked,
                 :virtual_attributes
 
-    def apply_change(changeset: nil, attrs: {}, action: nil)
+    def apply_change(changeset: nil, attrs: {}, action: nil, cache: {})
       existing_model = find_existing_model(attrs)
       case action
       when 'createUpdate'
-        attrs_to_apply = attrs.select { |key, value| self.changeable_attributes.include?(key) }
+        attrs_to_apply = apply_params(attrs, cache)
         if existing_model
           existing_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply)
         else
@@ -32,6 +32,10 @@ module CurrentTrackedByChangeset
       else
         raise ArgumentError.new('an action must be supplied')
       end
+    end
+
+    def apply_params(params, cache)
+      params.select { |key, value| self.changeable_attributes.include?(key) }
     end
 
     def before_create_making_history(instantiated_model, changeset)
