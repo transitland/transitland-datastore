@@ -96,8 +96,9 @@ class GTFSGraph
       create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) })
     end
     log "Changeset apply"
+    t = Time.now
     changeset.apply!
-    log "  changeset apply done"
+    log "  apply done: total time: #{Time.now - t}"
   end
 
   def import_log
