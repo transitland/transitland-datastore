@@ -13,6 +13,7 @@
 #  version                            :integer
 #  identifiers                        :string           default([]), is an Array
 #  timezone                           :string
+#  last_conflated_at                  :datetime
 #
 # Indexes
 #
@@ -37,6 +38,7 @@ class Stop < BaseStop
   self.table_name_prefix = 'current_'
 
   GEOHASH_PRECISION = 10
+  MAX_HOURS_SINCE_LAST_CONFLATE = 2
 
   include HasAOnestopId
   include IsAnEntityWithIdentifiers
@@ -208,6 +210,11 @@ class Stop < BaseStop
     end
   end
 
+  def self.re_conflate_with_osm
+      stop_ids = Stop.where('last_conflated_at <= ?', MAX_HOURS_SINCE_LAST_CONFLATE.hours.ago).ids
+      ConflateStopsWithOsmWorker.perform_async(stop_ids)
+  end
+
   def self.conflate_with_osm(stops)
     stops.in_groups_of(TyrService::MAX_LOCATIONS_PER_REQUEST, false).each do |group|
       Stop.transaction do
@@ -218,11 +225,13 @@ class Stop < BaseStop
           }
         end
         tyr_locate_response = TyrService.locate(locations: locations)
+        now = DateTime.now
         group.each_with_index do |stop, index|
           way_id = tyr_locate_response[index][:edges][0][:way_id]
           stop_tags = stop.tags.try(:clone) || {}
           stop_tags[:osm_way_id] = way_id
           stop.update(tags: stop_tags)
+          stop.update(last_conflated_at: now)
         end
       end
     end
