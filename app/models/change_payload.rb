@@ -44,11 +44,11 @@ class ChangePayload < ActiveRecord::Base
   def apply!
     cache = {}
     entity_types = {
-      :feed => Feed,
-      :stop => Stop,
-      :operator => Operator,
-      :route => Route,
-      :schedule_stop_pair => ScheduleStopPair
+      feed: Feed,
+      stop: Stop,
+      operator: Operator,
+      route: Route,
+      schedule_stop_pair: ScheduleStopPair
     }
     (payload_as_ruby_hash[:changes] || []).each do |change|
       (entity_types.keys & change.keys).each do |entity_type|

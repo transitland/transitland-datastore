@@ -197,9 +197,9 @@ class ScheduleStopPair < BaseScheduleStopPair
   def self.apply_params(params, cache={})
     params = super(params, cache)
     {
-      :origin_onestop_id => :origin,
-      :destination_onestop_id => :destination,
-      :route_onestop_id => :route
+      origin_onestop_id: :origin,
+      destination_onestop_id: :destination,
+      route_onestop_id: :route
     }.each do |k,v|
       cache[params[k]] ||= OnestopId.find!(params[k])
       params[v] = cache[params.delete(k)]
