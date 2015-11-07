@@ -13,6 +13,7 @@
 #  version                            :integer
 #  identifiers                        :string           default([]), is an Array
 #  timezone                           :string
+#  last_conflated_at                  :datetime
 #
 # Indexes
 #
