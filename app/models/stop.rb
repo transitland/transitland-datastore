@@ -38,7 +38,7 @@ class Stop < BaseStop
   self.table_name_prefix = 'current_'
 
   GEOHASH_PRECISION = 10
-  MAX_HOURS_SINCE_LAST_CONFLATE = 2
+  MAX_HOURS_SINCE_LAST_CONFLATE = 84
 
   include HasAOnestopId
   include IsAnEntityWithIdentifiers
