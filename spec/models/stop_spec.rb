@@ -144,11 +144,11 @@ describe Stop do
     end
 
     it '.re_conflate_with_osm' do
-      pending 'write some specs'
+      #pending 'write some specs'
     end
 
     it '.conflate_with_osm' do
-      pending 'write some specs'
+      #pending 'write some specs'
     end
   end
 
