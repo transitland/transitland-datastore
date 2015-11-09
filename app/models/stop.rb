@@ -169,6 +169,11 @@ class Stop < BaseStop
     joins{operators_serving_stop.operator}.where{operators_serving_stop.operator_id == operator.id}
   }
 
+  # Last conflated before
+  scope :last_conflated_before, -> (last_conflated_at) {
+    where('last_conflated_at <= ?', last_conflated_at)
+  }
+
   # Similarity search
   def self.find_by_similarity(point, name, radius=100, threshold=0.75)
     # Similarity search. Returns a score,stop tuple or nil.
@@ -211,8 +216,9 @@ class Stop < BaseStop
   end
 
   def self.re_conflate_with_osm
-      stop_ids = Stop.where('last_conflated_at <= ?', MAX_HOURS_SINCE_LAST_CONFLATE.hours.ago).ids
-      ConflateStopsWithOsmWorker.perform_async(stop_ids)
+      ConflateStopsWithOsmWorker.perform_async(
+        Stop.last_conflated_before(MAX_HOURS_SINCE_LAST_CONFLATE.hours.ago).ids
+      )
   end
 
   def self.conflate_with_osm(stops)
