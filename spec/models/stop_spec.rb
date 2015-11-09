@@ -136,6 +136,22 @@ describe Stop do
     end
   end
 
+  context 'conflation' do
+    it 'finds stops that have not been conflated since' do
+      stop1 = create(:stop, last_conflated_at: 1.hours.ago)
+      stop2 = create(:stop, last_conflated_at: 3.hours.ago)
+      expect(Stop.last_conflated_before(2.hours.ago)).to match_array([stop2])
+    end
+
+    it '.re_conflate_with_osm' do
+      pending 'write some specs'
+    end
+
+    it '.conflate_with_osm' do
+      pending 'write some specs'
+    end
+  end
+
   context 'diff_against' do
     pending 'write some specs'
   end
