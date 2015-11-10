@@ -82,18 +82,18 @@ describe Api::V1::OperatorsController do
 
   describe 'GET show' do
     context 'as JSON' do
-      it 'returns operators by OnestopId' do
+      it 'returns operators by Onestop ID' do
         get :show, id: @vta.onestop_id
-        expect_json_types({
+        expect_json_types('operator',
           onestop_id: :string,
           geometry: :object,
           name: :string,
           created_at: :date,
           updated_at: :date
-        })
-        expect_json({ onestop_id: -> (onestop_id) {
+        )
+        expect_json('operator', onestop_id: -> (onestop_id) {
           expect(onestop_id).to eq @vta.onestop_id
-        }})
+        })
       end
 
       it 'returns a 404 when not found' do

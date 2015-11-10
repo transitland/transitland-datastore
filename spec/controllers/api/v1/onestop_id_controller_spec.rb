@@ -11,16 +11,16 @@ describe Api::V1::OnestopIdController do
   describe 'GET show' do
     it 'will return an Operator' do
       get :show, onestop_id: @sfmta.onestop_id
-      expect_json({ onestop_id: -> (onestop_id) {
+      expect_json('operator', onestop_id: -> (onestop_id) {
         expect(onestop_id).to eq @sfmta.onestop_id
-      }})
+      })
     end
 
     it 'will return a Stop' do
       get :show, onestop_id: @metro_embarcadero.onestop_id
-      expect_json({ onestop_id: -> (onestop_id) {
+      expect_json('stop', onestop_id: -> (onestop_id) {
         expect(onestop_id).to eq @metro_embarcadero.onestop_id
-      }})
+      })
     end
   end
 end

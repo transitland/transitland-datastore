@@ -89,18 +89,18 @@ describe Api::V1::RoutesController do
   end
 
   describe 'GET show' do
-    it 'returns stops by OnestopID' do
+    it 'returns route by Onestop ID' do
       get :show, id: 'r-9q8y-richmond~dalycity~millbrae'
-      expect_json_types({
+      expect_json_types('route',
         onestop_id: :string,
         geometry: :object,
         name: :string,
         created_at: :date,
         updated_at: :date
-      })
-      expect_json({ onestop_id: -> (onestop_id) {
+      )
+      expect_json('route', onestop_id: -> (onestop_id) {
         expect(onestop_id).to eq 'r-9q8y-richmond~dalycity~millbrae'
-      }})
+      })
     end
 
     it 'returns a 404 when not found' do

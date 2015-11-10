@@ -119,18 +119,18 @@ describe Api::V1::StopsController do
   end
 
   describe 'GET show' do
-    it 'returns stops by OnestopID' do
+    it 'returns stops by Onestop ID' do
       get :show, id: @metro_embarcadero.onestop_id
-      expect_json_types({
+      expect_json_types('stop',
         onestop_id: :string,
         geometry: :object,
         name: :string,
         created_at: :date,
         updated_at: :date
-      })
-      expect_json({ onestop_id: -> (onestop_id) {
+      )
+      expect_json('stop', onestop_id: -> (onestop_id) {
         expect(onestop_id).to eq @metro_embarcadero.onestop_id
-      }})
+      })
     end
 
     it 'returns a 404 when not found' do
