@@ -31,11 +31,12 @@ class FeedVersionImport < ActiveRecord::Base
       success: false,
       exception_log: exception_log
     )
+    self.feed_version.delete_schedule_stop_pairs!
   end
 
   def succeeded
     self.update(success: true)
     self.feed_version.update(imported_at: self.updated_at)
-    self.feed.update(last_imported_at: self.updated_at)
+    self.feed.activate_feed_version(self.feed_version.sha1)
   end
 end
