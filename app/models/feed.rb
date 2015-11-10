@@ -188,15 +188,17 @@ class Feed < BaseFeed
   end
 
   def activate_feed_version(feed_version_sha1)
-    activate, deactivate = self.feed_versions.partition { |fv| fv.sha1 = feed_version_sha1 }
-    raise Exception.new('Unknown feed_version') if activate.size == 0
-    raise Exception.new('Ambiguous feed_version') if activate.size > 1
-    feed_version = activate.first
-    feed_version.activate_schedule_stop_pairs!
-    self.update(last_imported_at: feed_version.imported_at)
-    deactivate.each do |fv|
-      fv.deactivate_schedule_stop_pairs!
-      # fv.delete_schedule_stop_pairs!
+    self.transaction do
+      activate, deactivate = self.feed_versions.partition { |fv| fv.sha1 = feed_version_sha1 }
+      raise Exception.new('Unknown feed_version') if activate.size == 0
+      raise Exception.new('Ambiguous feed_version') if activate.size > 1
+      feed_version = activate.first
+      feed_version.activate_schedule_stop_pairs!
+      self.update(last_imported_at: feed_version.imported_at)
+      deactivate.each do |fv|
+        fv.deactivate_schedule_stop_pairs!
+        # fv.delete_schedule_stop_pairs!
+      end
     end
   end
 
