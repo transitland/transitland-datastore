@@ -38,7 +38,6 @@ class Stop < BaseStop
   self.table_name_prefix = 'current_'
 
   GEOHASH_PRECISION = 10
-  MAX_HOURS_SINCE_LAST_CONFLATE = 84
 
   include HasAOnestopId
   include IsAnEntityWithIdentifiers
@@ -215,10 +214,14 @@ class Stop < BaseStop
     end
   end
 
-  def self.re_conflate_with_osm
-      ConflateStopsWithOsmWorker.perform_async(
-        Stop.last_conflated_before(MAX_HOURS_SINCE_LAST_CONFLATE.hours.ago).ids
-      )
+  def self.re_conflate_with_osm(last_conflated_at=nil)
+      if last_conflated_at.nil?
+        max_hours = Float(Figaro.env.max_hours_since_last_conflate.presence || 84)
+        last_conflated_at = max_hours.hours.ago
+      end
+      Stop.last_conflated_before(last_conflated_at).ids.each_slice(1000) do |slice|
+        ConflateStopsWithOsmWorker.perform_async(slice)
+      end
   end
 
   def self.conflate_with_osm(stops)
