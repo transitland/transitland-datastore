@@ -94,7 +94,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
   private
 
   def set_schedule_stop_pairs
-    @ssps = ScheduleStopPair.where('')
+    @ssps = ScheduleStopPair.where(active: true)
     # Service on a date
     if params[:date].present?
       @ssps = @ssps.where_service_on_date(params[:date])
