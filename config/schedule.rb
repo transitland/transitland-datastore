@@ -9,7 +9,6 @@ every 1.day, at: '12:01 pm' do
   runner 'Feed.async_fetch_all_feeds'
 end
 
-# Every day at 12:01 AM
-every '1 0 * * *' do
+every 1.day, at: '12:01 am' do
   runner 'Stop.re_conflate_with_osm'
 end
