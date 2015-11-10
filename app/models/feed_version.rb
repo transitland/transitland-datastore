@@ -39,6 +39,15 @@ class FeedVersion < ActiveRecord::Base
 
   before_validation :compute_and_set_hashes, :read_gtfs_calendar_dates, :read_gtfs_feed_info
 
+  def succeeded(timestamp)
+    self.update(imported_at: timestamp)
+    self.feed.activate_feed_version(self.sha1)
+  end
+
+  def failed
+    self.delete_schedule_stop_pairs!
+  end
+
   def activate_schedule_stop_pairs!
     imported_schedule_stop_pairs.where(active: false).update_all(active: true)
   end
