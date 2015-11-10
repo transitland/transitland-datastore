@@ -144,7 +144,11 @@ describe Stop do
     end
 
     it '.re_conflate_with_osm' do
-      #pending 'write some specs'
+      stop1 = create(:stop, last_conflated_at: 3.hours.ago)
+      expect {
+        Stop.re_conflate_with_osm(2.hours.ago)
+      }.to change(ConflateStopsWithOsmWorker.jobs, :size).by(1)
+      Sidekiq::Worker.clear_all
     end
 
     it '.conflate_with_osm' do
