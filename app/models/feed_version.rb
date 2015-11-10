@@ -39,6 +39,18 @@ class FeedVersion < ActiveRecord::Base
 
   before_validation :compute_and_set_hashes, :read_gtfs_calendar_dates, :read_gtfs_feed_info
 
+  def activate_schedule_stop_pairs!
+    imported_schedule_stop_pairs.where(active: false).update_all(active: true)
+  end
+
+  def deactivate_schedule_stop_pairs!
+    imported_schedule_stop_pairs.where(active: true).update_all(active: false)
+  end
+
+  def delete_schedule_stop_pairs!
+    imported_schedule_stop_pairs.delete_all
+  end
+
   private
 
   def compute_and_set_hashes
