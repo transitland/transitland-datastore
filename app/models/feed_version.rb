@@ -49,11 +49,11 @@ class FeedVersion < ActiveRecord::Base
   end
 
   def activate_schedule_stop_pairs!
-    imported_schedule_stop_pairs.where(active: false).update_all(active: true)
+    imported_schedule_stop_pairs.update_all(active: true)
   end
 
   def deactivate_schedule_stop_pairs!
-    imported_schedule_stop_pairs.where(active: true).update_all(active: false)
+    imported_schedule_stop_pairs.update_all(active: false)
   end
 
   def delete_schedule_stop_pairs!
