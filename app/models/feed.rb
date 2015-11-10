@@ -193,7 +193,7 @@ class Feed < BaseFeed
     raise Exception.new('Ambiguous feed_version') if activate.size > 1
     feed_version = activate.first
     feed_version.activate_schedule_stop_pairs!
-    self.update(last_imported_at: feed_version.updated_at)
+    self.update(last_imported_at: feed_version.imported_at)
     deactivate.each do |fv|
       fv.deactivate_schedule_stop_pairs!
       # fv.delete_schedule_stop_pairs!
