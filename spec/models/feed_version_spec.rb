@@ -41,4 +41,40 @@ describe FeedVersion do
     expect(feed_version.tags['feed_publisher_url']).to eq 'http://www.bart.gov'
     expect(feed_version.tags['feed_publisher_name']).to eq 'Bay Area Rapid Transit'
   end
+
+  context 'imported_schedule_stop_pairs' do
+    before(:each) do
+      @feed_version = create(:feed_version)
+      @ssp = create(:schedule_stop_pair)
+      EntityImportedFromFeed.create!(
+        entity: @ssp,
+        feed: @feed_version.feed,
+        feed_version: @feed_version
+      )
+    end
+
+    it '#activate_schedule_stop_pairs' do
+      expect(@ssp.active).to be nil
+      @feed_version.activate_schedule_stop_pairs!
+      @ssp.reload
+      expect(@ssp.active).to be true
+    end
+
+    it '#deactivate_schedule_stop_pairs' do
+      @ssp.update(active: true)
+      expect(@ssp.active).to be true
+      @feed_version.deactivate_schedule_stop_pairs!
+      @ssp.reload
+      expect(@ssp.active).to be false
+    end
+
+    it '#delete_schedule_stop_pairs' do
+      expect(@ssp.active).to be nil
+      @feed_version.delete_schedule_stop_pairs!
+      expect(@feed_version.imported_schedule_stop_pairs.count).to eq(0)
+      expect(ScheduleStopPair.exists?(@ssp.id)).to be false
+    end
+
+  end
+
 end
