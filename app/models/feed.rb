@@ -25,6 +25,7 @@
 # Indexes
 #
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
+#  index_current_feeds_on_geometry                            (geometry)
 #
 
 class BaseFeed < ActiveRecord::Base
