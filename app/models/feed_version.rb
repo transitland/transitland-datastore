@@ -69,7 +69,6 @@ class FeedVersion < ActiveRecord::Base
     EntityImportedFromFeed
       .where(feed_version: self, feed: self.feed, entity_type: 'ScheduleStopPair')
       .delete_all
-    self.imported_schedule_stop_pairs.reload
   end
 
   private
