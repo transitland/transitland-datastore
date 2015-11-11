@@ -39,6 +39,7 @@
 #  bikes_allowed                      :boolean
 #  pickup_type                        :string
 #  drop_off_type                      :string
+#  active                             :boolean
 #
 # Indexes
 #
@@ -49,6 +50,7 @@
 #  c_ssp_service_end_date                                      (service_end_date)
 #  c_ssp_service_start_date                                    (service_start_date)
 #  c_ssp_trip                                                  (trip)
+#  index_current_schedule_stop_pairs_on_active                 (active)
 #  index_current_schedule_stop_pairs_on_operator_id            (operator_id)
 #  index_current_schedule_stop_pairs_on_origin_departure_time  (origin_departure_time)
 #  index_current_schedule_stop_pairs_on_updated_at             (updated_at)

@@ -21,9 +21,11 @@
 #  geometry                           :geography({:srid geometry, 4326
 #  latest_fetch_exception_log         :text
 #  license_attribution_text           :text
+#  active_feed_version_id             :integer
 #
 # Indexes
 #
+#  index_current_feeds_on_active_feed_version_id              (active_feed_version_id)
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
 #  index_current_feeds_on_geometry                            (geometry)
 #
@@ -275,6 +277,45 @@ describe Feed do
       create(:feed_version_import, feed: feed, success: false)
       create(:feed_version_import, feed: feed, success: nil)
       expect(feed.import_status).to eq :in_progress
+    end
+  end
+
+  context 'active feed version' do
+    it 'sets the active feed version' do
+      feed = create(:feed)
+      fv = create(:feed_version, feed: feed)
+      expect(feed.active_feed_version).to be nil
+      feed.activate_feed_version(fv.sha1)
+      expect(feed.active_feed_version).to eq(fv)
+    end
+
+    it 'sets the active feed version and deactivates previous feed version' do
+      feed = create(:feed)
+      fv1 = create(:feed_version, feed: feed)
+      feed.activate_feed_version(fv1.sha1)
+      expect(feed.active_feed_version).to eq(fv1)
+      fv2 = create(:feed_version, feed: feed)
+      feed.activate_feed_version(fv2.sha1)
+      expect(feed.active_feed_version).to eq(fv2)
+    end
+
+    it 'cannot activate current active_feed_version' do
+      feed = create(:feed)
+      fv1 = create(:feed_version, feed: feed)
+      feed.activate_feed_version(fv1.sha1)
+      expect(feed.active_feed_version).to eq(fv1)
+      expect{feed.activate_feed_version(fv1.sha1)}.to raise_error(Exception)
+    end
+
+    it 'activates ssps' do
+      feed = create(:feed)
+      feed_version = create(:feed_version, feed: feed)
+      ssp = create(:schedule_stop_pair)
+      EntityImportedFromFeed.create!(entity: ssp, feed: feed, feed_version: feed_version)
+      expect(feed_version.imported_schedule_stop_pairs.count).to eq(1)
+      expect(feed.imported_schedule_stop_pairs.count).to eq(1)
+      feed.activate_feed_version(feed_version.sha1)
+      expect(ssp.reload.active).to be true
     end
   end
 end
