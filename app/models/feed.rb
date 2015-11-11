@@ -70,6 +70,7 @@ class Feed < BaseFeed
 
   has_many :feed_versions, -> { order 'created_at DESC' }, dependent: :destroy, as: :feed
   has_many :feed_version_imports, -> { order 'created_at DESC' }, through: :feed_versions
+  has_one :active_feed_version, class_name: "FeedVersion"
 
   has_many :operators_in_feed
   has_many :operators, through: :operators_in_feed
@@ -190,16 +191,14 @@ class Feed < BaseFeed
 
   def activate_feed_version(feed_version_sha1)
     self.transaction do
-      activate, deactivate = self.feed_versions.partition { |fv| fv.sha1 = feed_version_sha1 }
-      raise Exception.new('Unknown feed_version') if activate.size == 0
-      raise Exception.new('Ambiguous feed_version') if activate.size > 1
-      feed_version = activate.first
+      self.active_feed_version.delete_schedule_stop_pairs! if self.active_feed_version
+      feed_version = self.feed_versions.find_by!(sha1: feed_version_sha1)
       feed_version.activate_schedule_stop_pairs!
-      self.update(last_imported_at: feed_version.imported_at)
-      deactivate.each do |fv|
-        fv.deactivate_schedule_stop_pairs!
-        # fv.delete_schedule_stop_pairs!
-      end
+      self.update(
+        active_feed_version: feed_version,
+        last_imported_at: feed_version.imported_at
+      )
+      self.feed_versions.reload
     end
   end
 
