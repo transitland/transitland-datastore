@@ -57,15 +57,15 @@ The main ScheduleStopPair API endpoint is [/api/v1/schedule_stop_pairs](http://t
 
 | Query parameter        | Type | Description | Example |
 |------------------------|------|-------------|---------|
-| origin_onestop_id      | Onestop ID | Origin Stop | [from Embarcadero BART](http://transit.land/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8znb12j1-embarcadero) |
-| destination_onestop_id | Onestop ID | Destination Stop | [to Montgomery St. BART](http://transit.land/api/v1/schedule_stop_pairs?destination_onestop_id=s-9q8yyxq427-montgomeryst)
-| route_onestop_id       | Onestop ID | Route | [on Muni N](http://transit.land/api/v1/schedule_stop_pairs?route_onestop_id=r-9q8y-n) |
-| operator_onestop_id    | Onestop ID | Operator | [on BART](http://transit.land/api/v1/schedule_stop_pairs?operator_onestop_id=o-9q9-bart) |
-| service_date           | Date | Service operates on a date | [valid on 2015-10-21](http://transit.land/api/v1/schedule_stop_pairs?date=2015-10-21) |
-| service_from_date      | Date | Service operates on a date, or in the future | [valid on and after 2015-10-21](http://transit.land/api/v1/schedule_stop_pairs?service_from_date=2015-10-21) |
-| departing_between      | Time,Time | Origin departure time between two times | [departing between 09:00 - 09:10](http://transit.land/api/v1/schedule_stop_pairs?departing_betweem=09:00:00,09:10:00) |
-| trip                   | String | Trip identifier | [on trip '03SFO11SUN'](http://transit.land/api/v1/schedule_stop_pairs?trip=03SFO11SUN) |
-| bbox                   | Lon1,Lat1,Lon2,Lat2 | Origin Stop within bounding box | [in the Bay Area](http://transit.land/api/v1/schedule_stop_pairs?bbox=-122.4,37.7,-122.4,30.8)
+| origin_onestop_id        | Onestop ID | Origin Stop | [from Embarcadero BART](http://transit.land/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8znb12j1-embarcadero) |
+| destination_onestop_id   | Onestop ID | Destination Stop | [to Montgomery St. BART](http://transit.land/api/v1/schedule_stop_pairs?destination_onestop_id=s-9q8yyxq427-montgomeryst)
+| route_onestop_id         | Onestop ID | Route | [on Muni N](http://transit.land/api/v1/schedule_stop_pairs?route_onestop_id=r-9q8y-n) |
+| operator_onestop_id      | Onestop ID | Operator | [on BART](http://transit.land/api/v1/schedule_stop_pairs?operator_onestop_id=o-9q9-bart) |
+| service_date             | Date | Service operates on a date | [valid on 2015-10-21](http://transit.land/api/v1/schedule_stop_pairs?date=2015-10-21) |
+| service_from_date        | Date | Service operates on a date, or in the future | [valid on and after 2015-10-21](http://transit.land/api/v1/schedule_stop_pairs?service_from_date=2015-10-21) |
+| origin_departure_between | Time,Time | Origin departure time between two times | [departing between 09:00 - 09:10](http://transit.land/api/v1/schedule_stop_pairs?origin_departure_between=09:00:00,09:10:00) |
+| trip                     | String | Trip identifier | [on trip '03SFO11SUN'](http://transit.land/api/v1/schedule_stop_pairs?trip=03SFO11SUN) |
+| bbox                     | Lon1,Lat1,Lon2,Lat2 | Origin Stop within bounding box | [in the Bay Area](http://transit.land/api/v1/schedule_stop_pairs?bbox=-123.057,36.701,-121.044,38.138)
 
 ## Response format
 
