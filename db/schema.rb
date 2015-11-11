@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151030234052) do
+ActiveRecord::Schema.define(version: 20151106195645) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -205,6 +205,7 @@ ActiveRecord::Schema.define(version: 20151030234052) do
     t.integer   "version"
     t.string    "identifiers",                                                                                    default: [], array: true
     t.string    "timezone"
+    t.datetime  "last_conflated_at"
   end
 
   add_index "current_stops", ["created_or_updated_in_changeset_id"], name: "#c_stops_cu_in_changeset_id_index", using: :btree
@@ -468,6 +469,7 @@ ActiveRecord::Schema.define(version: 20151030234052) do
     t.integer   "version"
     t.string    "identifiers",                                                                                    default: [], array: true
     t.string    "timezone"
+    t.datetime  "last_conflated_at"
   end
 
   add_index "old_stops", ["created_or_updated_in_changeset_id"], name: "o_stops_cu_in_changeset_id_index", using: :btree
