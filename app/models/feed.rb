@@ -70,7 +70,6 @@ class Feed < BaseFeed
 
   has_many :feed_versions, -> { order 'created_at DESC' }, dependent: :destroy, as: :feed
   has_many :feed_version_imports, -> { order 'created_at DESC' }, through: :feed_versions
-  # has_one :active_feed_version, class_name: "FeedVersion"
   belongs_to :active_feed_version, class_name: 'FeedVersion'
 
   has_many :operators_in_feed
