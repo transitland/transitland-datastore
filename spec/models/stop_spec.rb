@@ -148,7 +148,6 @@ describe Stop do
       expect {
         Stop.re_conflate_with_osm(2.hours.ago)
       }.to change(ConflateStopsWithOsmWorker.jobs, :size).by(1)
-      Sidekiq::Worker.clear_all
     end
 
     it '.conflate_with_osm' do
