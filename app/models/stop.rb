@@ -13,6 +13,7 @@
 #  version                            :integer
 #  identifiers                        :string           default([]), is an Array
 #  timezone                           :string
+#  last_conflated_at                  :datetime
 #
 # Indexes
 #
@@ -168,6 +169,11 @@ class Stop < BaseStop
     joins{operators_serving_stop.operator}.where{operators_serving_stop.operator_id == operator.id}
   }
 
+  # Last conflated before
+  scope :last_conflated_before, -> (last_conflated_at) {
+    where('last_conflated_at <= ?', last_conflated_at)
+  }
+
   # Similarity search
   def self.find_by_similarity(point, name, radius=100, threshold=0.75)
     # Similarity search. Returns a score,stop tuple or nil.
@@ -209,6 +215,16 @@ class Stop < BaseStop
     end
   end
 
+  def self.re_conflate_with_osm(last_conflated_at=nil)
+      if last_conflated_at.nil?
+        max_hours = Float(Figaro.env.max_hours_since_last_conflate.presence || 84)
+        last_conflated_at = max_hours.hours.ago
+      end
+      Stop.last_conflated_before(last_conflated_at).ids.each_slice(1000) do |slice|
+        ConflateStopsWithOsmWorker.perform_async(slice)
+      end
+  end
+
   def self.conflate_with_osm(stops)
     stops.in_groups_of(TyrService::MAX_LOCATIONS_PER_REQUEST, false).each do |group|
       Stop.transaction do
@@ -219,11 +235,13 @@ class Stop < BaseStop
           }
         end
         tyr_locate_response = TyrService.locate(locations: locations)
+        now = DateTime.now
         group.each_with_index do |stop, index|
           way_id = tyr_locate_response[index][:edges][0][:way_id]
           stop_tags = stop.tags.try(:clone) || {}
           stop_tags[:osm_way_id] = way_id
           stop.update(tags: stop_tags)
+          stop.update(last_conflated_at: now)
         end
       end
     end
