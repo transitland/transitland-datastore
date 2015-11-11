@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151109203658) do
+ActiveRecord::Schema.define(version: 20151111010054) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -54,6 +54,7 @@ ActiveRecord::Schema.define(version: 20151109203658) do
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.text      "latest_fetch_exception_log"
     t.text      "license_attribution_text"
+    t.integer   "active_feed_version_id"
   end
 
   add_index "current_feeds", ["created_or_updated_in_changeset_id"], name: "index_current_feeds_on_created_or_updated_in_changeset_id", using: :btree
@@ -289,6 +290,7 @@ ActiveRecord::Schema.define(version: 20151109203658) do
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.text      "latest_fetch_exception_log"
     t.text      "license_attribution_text"
+    t.integer   "active_feed_version_id"
   end
 
   add_index "old_feeds", ["created_or_updated_in_changeset_id"], name: "index_old_feeds_on_created_or_updated_in_changeset_id", using: :btree
