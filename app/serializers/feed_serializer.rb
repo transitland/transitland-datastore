@@ -21,6 +21,7 @@
 #  geometry                           :geography({:srid geometry, 4326
 #  latest_fetch_exception_log         :text
 #  license_attribution_text           :text
+#  active_feed_version_id             :integer
 #
 # Indexes
 #
