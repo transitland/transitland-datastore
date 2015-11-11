@@ -200,7 +200,6 @@ class Feed < BaseFeed
         active_feed_version: feed_version,
         last_imported_at: feed_version.imported_at
       )
-      self.feed_versions.reload
     end
   end
 
