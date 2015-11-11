@@ -50,4 +50,8 @@ describe Route do
     expect(Route.operated_by(bart)).to match_array([route1])
     expect(Route.operated_by(sfmta.onestop_id)).to match_array([route2])
   end
+
+  it 'can be found when has stop within bbox query' do
+    
+  end
 end
