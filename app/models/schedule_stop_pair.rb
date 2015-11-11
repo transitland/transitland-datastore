@@ -129,8 +129,8 @@ class ScheduleStopPair < BaseScheduleStopPair
 
   # Service trips_out in a bbox
   scope :where_origin_bbox, -> (bbox) {
-    stops = Stop.within_bbox(bbox)
-    where(origin: stops)
+    # use Squeel gem to run a subquery
+    where{origin_id.in(Stop.within_bbox(bbox).select{id})}
   }
 
   # Handle mapping from onestop_id to id
