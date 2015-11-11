@@ -56,16 +56,14 @@ describe FeedVersion do
     it '#activate_schedule_stop_pairs' do
       expect(@ssp.active).to be nil
       @feed_version.activate_schedule_stop_pairs!
-      @ssp.reload
-      expect(@ssp.active).to be true
+      expect(@ssp.reload.active).to be true
     end
 
     it '#deactivate_schedule_stop_pairs' do
       @ssp.update(active: true)
       expect(@ssp.active).to be true
       @feed_version.deactivate_schedule_stop_pairs!
-      @ssp.reload
-      expect(@ssp.active).to be false
+      expect(@ssp.reload.active).to be false
     end
 
     it '#delete_schedule_stop_pairs' do
