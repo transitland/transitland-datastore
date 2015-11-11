@@ -57,6 +57,7 @@ ActiveRecord::Schema.define(version: 20151111010054) do
     t.integer   "active_feed_version_id"
   end
 
+  add_index "current_feeds", ["active_feed_version_id"], name: "index_current_feeds_on_active_feed_version_id", using: :btree
   add_index "current_feeds", ["created_or_updated_in_changeset_id"], name: "index_current_feeds_on_created_or_updated_in_changeset_id", using: :btree
   add_index "current_feeds", ["geometry"], name: "index_current_feeds_on_geometry", using: :gist
 
@@ -298,6 +299,7 @@ ActiveRecord::Schema.define(version: 20151111010054) do
     t.integer   "active_feed_version_id"
   end
 
+  add_index "old_feeds", ["active_feed_version_id"], name: "index_old_feeds_on_active_feed_version_id", using: :btree
   add_index "old_feeds", ["created_or_updated_in_changeset_id"], name: "index_old_feeds_on_created_or_updated_in_changeset_id", using: :btree
   add_index "old_feeds", ["current_id"], name: "index_old_feeds_on_current_id", using: :btree
   add_index "old_feeds", ["destroyed_in_changeset_id"], name: "index_old_feeds_on_destroyed_in_changeset_id", using: :btree
