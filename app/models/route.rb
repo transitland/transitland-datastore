@@ -134,7 +134,7 @@ class Route < BaseRoute
     end
   }
 
-  scope :where_has_stop_within_bbox, -> (bbox) {
+  scope :where_stop_within_bbox, -> (bbox) {
     where(id: RouteServingStop.select(:route_id).where(stop: Stop.within_bbox(bbox)))
   }
 
