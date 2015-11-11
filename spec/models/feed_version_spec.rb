@@ -67,9 +67,9 @@ describe FeedVersion do
     end
 
     it '#delete_schedule_stop_pairs' do
-      expect(@ssp.active).to be nil
       @feed_version.delete_schedule_stop_pairs!
       expect(@feed_version.imported_schedule_stop_pairs.count).to eq(0)
+      expect(EntityImportedFromFeed.where(feed: @feed_version.feed, feed_version: @feed_version, entity_type: 'ScheduleStopPair').count).to eq(0)
       expect(ScheduleStopPair.exists?(@ssp.id)).to be false
     end
 
