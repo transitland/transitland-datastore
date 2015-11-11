@@ -5,16 +5,16 @@ Transitland models each trip between two stops as an edge, called a `ScheduleSto
 ## ScheduleStopPair Data Model
 
 | Attribute                    | Type | Description |
-|------------------------------|-------------|
+|------------------------------|------|-------------|
 | route_onestop_id             | Onestop ID | Route |
 | operator_onestop_id          | Onestop ID | Operator |
-| origin_onestop_id            | Onestop ID | Origin Stop |
-| origin_timezone              | String | Origin Stop timezone |
+| origin_onestop_id            | Onestop ID | Origin stop |
+| origin_timezone              | String | Origin stop timezone |
 | origin_arrival_time          | Time | Time vehicle arrives at origin from previous stop |
 | origin_departure_time        | Time | Time vehicle leaves origin |
 | origin_timepoint_source      | Enum | Origin timepoint source |
-| destination_onestop_id       | Onestop ID | Destination Stop Onestop ID |
-| destination_timezone         | String | Destination Stop timezone |
+| destination_onestop_id       | Onestop ID | Destination stop |
+| destination_timezone         | String | Destination stop timezone |
 | destination_arrival_time     | Time | Time vehicle arrives at destination |
 | destination_departure_time   | Time | Time vehicle leaves destination for next stop |
 | destination_timepoint_source | Enum | Destination timepoint source |
@@ -56,7 +56,7 @@ Pickup (origin) and drop-off (destination)
 The main ScheduleStopPair API endpoint is [/api/v1/schedule_stop_pairs](http://transit.land/api/v1/schedule_stop_pairs). It accepts the following query parameters, which may be freely combined.
 
 | Query parameter        | Type | Description | Example |
-|------------------------|-------------|---------|
+|------------------------|------|-------------|---------|
 | origin_onestop_id      | Onestop ID | Origin Stop | [from Embarcadero BART](http://transit.land/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8znb12j1-embarcadero) |
 | destination_onestop_id | Onestop ID | Destination Stop | [to Montgomery St. BART](http://transit.land/api/v1/schedule_stop_pairs?destination_onestop_id=s-9q8yyxq427-montgomeryst)
 | route_onestop_id       | Onestop ID | Route | [on Muni N](http://transit.land/api/v1/schedule_stop_pairs?route_onestop_id=r-9q8y-n) |
