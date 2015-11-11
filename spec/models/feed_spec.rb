@@ -299,6 +299,14 @@ describe Feed do
       expect(feed.active_feed_version).to eq(fv2)
     end
 
+    it 'cannot activate current active_feed_version' do
+      feed = create(:feed)
+      fv1 = create(:feed_version, feed: feed)
+      feed.activate_feed_version(fv1.sha1)
+      expect(feed.active_feed_version).to eq(fv1)
+      expect{feed.activate_feed_version(fv1.sha1)}.to raise_error(Exception)
+    end
+
     it 'activates ssps' do
       feed = create(:feed)
       expect(feed.active_feed_version).to be nil
