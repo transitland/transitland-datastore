@@ -277,4 +277,41 @@ describe Feed do
       expect(feed.import_status).to eq :in_progress
     end
   end
+
+  context 'active feed version' do
+    it 'sets the active feed version' do
+      feed = create(:feed)
+      expect(feed.active_feed_version).to be nil
+      fv = create(:feed_version, feed: feed)
+      expect(feed.active_feed_version).to be nil
+      feed.activate_feed_version(fv.sha1)
+      expect(feed.active_feed_version).to eq(fv)
+    end
+
+    it 'sets the active feed version and deactives previous feed' do
+      feed = create(:feed)
+      expect(feed.active_feed_version).to be nil
+      fv1 = create(:feed_version, feed: feed)
+      feed.activate_feed_version(fv1.sha1)
+      expect(feed.active_feed_version).to eq(fv1)
+      fv2 = create(:feed_version, feed: feed)
+      feed.activate_feed_version(fv2.sha1)
+      expect(feed.active_feed_version).to eq(fv2)
+    end
+
+    it 'activates ssps' do
+      feed = create(:feed)
+      expect(feed.active_feed_version).to be nil
+      feed_version = create(:feed_version, feed: feed)
+      expect(feed.active_feed_version).to be nil
+      ssp = create(:schedule_stop_pair)
+      EntityImportedFromFeed.create!(entity: ssp, feed: feed, feed_version: feed_version)
+      expect(feed_version.imported_schedule_stop_pairs.count).to eq(1)
+      expect(feed.imported_schedule_stop_pairs.count).to eq(1)
+      expect(feed.active_feed_version).to be nil
+      feed.activate_feed_version(feed_version.sha1)
+      ssp.reload
+      expect(ssp.active).to be true
+    end
+  end
 end
