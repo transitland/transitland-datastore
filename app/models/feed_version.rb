@@ -57,7 +57,19 @@ class FeedVersion < ActiveRecord::Base
   end
 
   def delete_schedule_stop_pairs!
-    imported_schedule_stop_pairs.delete_all
+    # A call to "imported_schedule_stop_pairs.delete_all" deletes the records
+    # in the EIFF join table, not the SSPs. So, follow through join to delete.
+    # http://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html
+    # PostgreSQL supports joins in delete with "USING".
+    # http://www.postgresql.org/docs/9.0/static/sql-delete.html
+    ScheduleStopPair
+      .joins(:entities_imported_from_feed)
+      .where(entities_imported_from_feed: {feed_version: self, feed: self.feed, entity_type: 'ScheduleStopPair'})
+      .delete_all
+    EntityImportedFromFeed
+      .where(feed_version: self, feed: self.feed, entity_type: 'ScheduleStopPair')
+      .delete_all
+    self.imported_schedule_stop_pairs.reload
   end
 
   private
