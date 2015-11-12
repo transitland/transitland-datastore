@@ -52,6 +52,22 @@ describe Route do
   end
 
   it 'can be found when has stop within bbox query' do
-    
+    point = Stop::GEOFACTORY.point(-122.0, 35.0)
+    stop = create(:stop, geometry: point.to_s)
+    geojson = {
+      type: 'MultiLineString',
+      coordinates: [
+        [[-73.87481689453125, 40.88860081193033],[ -73.9764404296875, 40.763901280945866],[ -73.94622802734375, 40.686886382151116],[ -73.9544677734375, 40.61186744303007]],
+        [[-74.1851806640625,40.81588791441588],[-74.00665283203124,40.83251504043271],[-73.948974609375,40.7909394098518],[-73.8006591796875,40.751418432997426],[-73.4326171875,40.79301881008675]]
+      ]
+    }
+    route = create(:route, geometry: geojson)
+    rsp = create(:route_serving_stop, route_id: route.id, stop_id: stop.id)
+    bbox1 = [-121.0,34.0,-123.0,36.0]
+    bbox2 = [-125.0,34.0,-123.0,36.0]
+    bbox3 = [-73.87481689453125,40.88860081193033,-73.94622802734375,40.686886382151116]
+    expect(Route.where_stop_within_bbox(bbox1)).to match_array([route])
+    expect(Route.where_stop_within_bbox(bbox2)).to match_array([])
+    expect(Route.where_stop_within_bbox(bbox3)).to match_array([])
   end
 end
