@@ -135,6 +135,7 @@ class Route < BaseRoute
   }
 
   scope :where_stop_within_bbox, -> (bbox) {
+    #joins(routes_serving_stop: :stop).merge(Stop.within_bbox(bbox))
     where(id: RouteServingStop.select(:route_id).where(stop: Stop.within_bbox(bbox)))
   }
 
