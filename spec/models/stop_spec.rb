@@ -13,10 +13,12 @@
 #  version                            :integer
 #  identifiers                        :string           default([]), is an Array
 #  timezone                           :string
+#  last_conflated_at                  :datetime
 #
 # Indexes
 #
 #  #c_stops_cu_in_changeset_id_index   (created_or_updated_in_changeset_id)
+#  index_current_stops_on_geometry     (geometry)
 #  index_current_stops_on_identifiers  (identifiers)
 #  index_current_stops_on_onestop_id   (onestop_id)
 #  index_current_stops_on_tags         (tags)
@@ -132,6 +134,25 @@ describe Stop do
     it 'by both operator and route' do
       expect(Stop.served_by([@sfmta_route.onestop_id, @bart])).to match_array([@stop_with_both, @stop_with_sfmta])
       expect(Stop.served_by([@sfmta_route, @bart.onestop_id])).to match_array([@stop_with_both, @stop_with_sfmta])
+    end
+  end
+
+  context 'conflation' do
+    it 'finds stops that have not been conflated since' do
+      stop1 = create(:stop, last_conflated_at: 1.hours.ago)
+      stop2 = create(:stop, last_conflated_at: 3.hours.ago)
+      expect(Stop.last_conflated_before(2.hours.ago)).to match_array([stop2])
+    end
+
+    it '.re_conflate_with_osm' do
+      stop1 = create(:stop, last_conflated_at: 3.hours.ago)
+      expect {
+        Stop.re_conflate_with_osm(2.hours.ago)
+      }.to change(ConflateStopsWithOsmWorker.jobs, :size).by(1)
+    end
+
+    it '.conflate_with_osm' do
+      #pending 'write some specs'
     end
   end
 

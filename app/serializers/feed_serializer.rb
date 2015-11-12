@@ -21,10 +21,13 @@
 #  geometry                           :geography({:srid geometry, 4326
 #  latest_fetch_exception_log         :text
 #  license_attribution_text           :text
+#  active_feed_version_id             :integer
 #
 # Indexes
 #
+#  index_current_feeds_on_active_feed_version_id              (active_feed_version_id)
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
+#  index_current_feeds_on_geometry                            (geometry)
 #
 
 class FeedSerializer < ApplicationSerializer

@@ -5,6 +5,16 @@
 #
 # Learn more: http://github.com/javan/whenever
 
+# on servers, we need path to the right Ruby interpreter
+env :PATH, ENV['PATH']
+
+# make sure to run through bundle
+job_type :runner, "cd :path && bin/bundle exec rails runner -e :environment ':task' :output"
+
 every 1.day, at: '12:01 pm' do
   runner 'Feed.async_fetch_all_feeds'
+end
+
+every 1.day, at: '12:01 am' do
+  runner 'Stop.re_conflate_with_osm'
 end

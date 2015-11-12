@@ -1,7 +1,7 @@
 ---
 :concurrency: 5
 staging:
-  :concurrency: 20
+  :concurrency: 5
 production:
   :concurrency: 20
 :limits:
