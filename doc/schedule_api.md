@@ -46,7 +46,7 @@ Timepoint Source
  * transitland_interpolated_shape: Interpolated based on shape_dist_traveled
 
 Pickup (origin) and drop-off (destination)
- * null: Unknown
+ * null: Regularly scheduled pickup and drop-off
  * unavailable: Pickup or drop-off not available
  * ask_driver: Ask the driver for pickup or drop-off
  * ask_agency: Phone agency to schedule in advance
