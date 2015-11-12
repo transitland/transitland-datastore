@@ -51,7 +51,7 @@ describe Route do
     expect(Route.operated_by(sfmta.onestop_id)).to match_array([route2])
   end
 
-  it 'can be found when has stop within bbox query' do
+  it 'can be found only when has stop within bbox query' do
     point = Stop::GEOFACTORY.point(-122.0, 35.0)
     stop = create(:stop, geometry: point.to_s)
     geojson = {
