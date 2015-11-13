@@ -63,22 +63,22 @@ describe Route do
         ]
       }
       @route = create(:route, geometry: geojson)
-      create(:route_serving_stop, route_id: @route.id, stop_id: stop.id)
-      @bbox1 = [-121.0,34.0,-123.0,36.0]
-      @bbox2 = [-125.0,34.0,-123.0,36.0]
-      @bbox3 = [-73.87481689453125,40.88860081193033,-73.94622802734375,40.686886382151116]
+      create(:route_serving_stop, route: @route, stop: stop)
+      @bbox_should_contain_stop_not_geom = [-121.0,34.0,-123.0,36.0]
+      @bbox_should_neither_contain_stop_nor_geom = [-125.0,34.0,-123.0,36.0]
+      @bbox_should_contain_geom_only = [-73.87481689453125,40.88860081193033,-73.94622802734375,40.686886382151116]
     end
 
     it 'has a stop within bbox' do
-      expect(Route.where_stop_within_bbox(@bbox1)).to match_array([@route])
-      expect(Route.where_stop_within_bbox(@bbox2)).to match_array([])
-      expect(Route.where_stop_within_bbox(@bbox3)).to match_array([])
+      expect(Route.where_stop_within_bbox(@bbox_should_contain_stop_not_geom)).to match_array([@route])
+      expect(Route.where_stop_within_bbox(@bbox_should_neither_contain_stop_nor_geom)).to match_array([])
+      expect(Route.where_stop_within_bbox(@bbox_should_contain_geom_only)).to match_array([])
     end
 
     it 'has geometry within bbox' do
-      expect(Route.within_bbox(@bbox1)).to match_array([])
-      expect(Route.within_bbox(@bbox2)).to match_array([])
-      expect(Route.within_bbox(@bbox3)).to match_array([@route])
+      expect(Route.within_bbox(@bbox_should_contain_stop_not_geom)).to match_array([])
+      expect(Route.within_bbox(@bbox_should_neither_contain_stop_nor_geom)).to match_array([])
+      expect(Route.within_bbox(@bbox_should_contain_geom_only)).to match_array([@route])
     end
   end
 
