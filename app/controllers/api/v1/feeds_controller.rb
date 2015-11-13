@@ -13,7 +13,7 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
     elsif params[:tag_key].present?
       @feeds = @feeds.with_tag(params[:tag_key])
     elsif params[:bbox].present?
-      @feeds = @feeds.within_bbox(params[:bbox])
+      @feeds = @feeds.geometry_within_bbox(params[:bbox])
     end
 
     @feeds = @feeds.includes{[operators_in_feed]}

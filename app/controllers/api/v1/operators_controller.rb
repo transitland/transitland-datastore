@@ -19,7 +19,7 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
       @operators = @operators.where{st_dwithin(geometry, point, r)}.order{st_distance(geometry, point)}
     end
     if params[:bbox].present?
-      @operators = @operators.within_bbox(params[:bbox])
+      @operators = @operators.geometry_within_bbox(params[:bbox])
     end
     if params[:onestop_id].present?
       @operators = @operators.where(onestop_id: params[:onestop_id])

@@ -88,14 +88,14 @@ describe Stop do
       santa_clara = create(:stop, geometry: { type: 'Point', coordinates: [-121.936376, 37.352915] })
       mountain_view = create(:stop, geometry: { type: 'Point', coordinates: [-122.076327, 37.393879] })
       random = create(:stop, geometry: { type: 'Point', coordinates: [10.195312, 43.755225] })
-      expect(Stop.within_bbox('-122.0,37.25,-121.75,37.5')).to match_array([santa_clara])
-      expect(Stop.within_bbox('-122.25,37.25,-122.0,37.5')).to match_array([mountain_view])
+      expect(Stop.geometry_within_bbox('-122.0,37.25,-121.75,37.5')).to match_array([santa_clara])
+      expect(Stop.geometry_within_bbox('-122.25,37.25,-122.0,37.5')).to match_array([mountain_view])
     end
 
     it 'fails gracefully when ill-formed bounding box is provided' do
-      expect { Stop.within_bbox('-122.25,37.25,-122.0') }.to raise_error(ArgumentError)
-      expect { Stop.within_bbox() }.to raise_error(ArgumentError)
-      expect { Stop.within_bbox([-122.25,37.25,-122.0]) }.to raise_error(ArgumentError)
+      expect { Stop.geometry_within_bbox('-122.25,37.25,-122.0') }.to raise_error(ArgumentError)
+      expect { Stop.geometry_within_bbox() }.to raise_error(ArgumentError)
+      expect { Stop.geometry_within_bbox([-122.25,37.25,-122.0]) }.to raise_error(ArgumentError)
     end
   end
 
