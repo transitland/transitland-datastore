@@ -135,6 +135,10 @@ class Route < BaseRoute
     end
   }
 
+  scope :stop_within_bbox, -> (bbox) {
+    where(id: RouteServingStop.select(:route_id).where(stop: Stop.geometry_within_bbox(bbox)))
+  }
+
   ##### FromGTFS ####
   include FromGTFS
   def self.from_gtfs(entity, stops)
