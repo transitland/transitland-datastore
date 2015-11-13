@@ -17,7 +17,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
       @routes = @routes.operated_by(params[:operatedBy])
     end
     if params[:bbox].present?
-      @routes = @routes.where_stop_within_bbox(params[:bbox])
+      @routes = @routes.stop_within_bbox(params[:bbox])
     end
     if params[:onestop_id].present?
       @routes = @routes.where(onestop_id: params[:onestop_id])

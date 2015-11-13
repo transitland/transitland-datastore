@@ -70,9 +70,9 @@ describe Route do
     end
 
     it 'has a stop within bbox' do
-      expect(Route.where_stop_within_bbox(@bbox_should_contain_stop_not_geom)).to match_array([@route])
-      expect(Route.where_stop_within_bbox(@bbox_should_neither_contain_stop_nor_geom)).to match_array([])
-      expect(Route.where_stop_within_bbox(@bbox_should_contain_geom_only)).to match_array([])
+      expect(Route.stop_within_bbox(@bbox_should_contain_stop_not_geom)).to match_array([@route])
+      expect(Route.stop_within_bbox(@bbox_should_neither_contain_stop_nor_geom)).to match_array([])
+      expect(Route.stop_within_bbox(@bbox_should_contain_geom_only)).to match_array([])
     end
 
     it 'has geometry within bbox' do
