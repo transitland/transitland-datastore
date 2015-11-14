@@ -240,7 +240,7 @@ class Stop < BaseStop
           way_id = tyr_locate_response[index][:edges][0][:way_id]
           stop_tags = stop.tags.try(:clone) || {}
           if stop_tags[:osm_way_id] != way_id
-            logger.info "OSM Way Id changed for stop #{stop.id}: was #{stop_tags[:osm_way_id]} now #{way_id}"
+            logger.info "osm_way_id changed for Stop #{stop.id}: was \"#{stop_tags[:osm_way_id]}\" now \"#{way_id}\""
           end
           stop_tags[:osm_way_id] = way_id
           stop.update(tags: stop_tags)
