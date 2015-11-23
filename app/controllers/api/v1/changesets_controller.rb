@@ -1,7 +1,5 @@
 class Api::V1::ChangesetsController < Api::V1::BaseApiController
   include JsonCollectionPagination
-  PER_PAGE = 1
-
   include DownloadableCsv
 
   before_filter :require_api_auth_token, only: [:create, :update, :check, :apply, :revert, :append]
