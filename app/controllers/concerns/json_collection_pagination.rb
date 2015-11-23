@@ -17,7 +17,9 @@ module JsonCollectionPagination
     }
     meta[:total] = collection.count if total
 
-    # Get the current page of results, plus one to see if next page.
+    # Get the current page of results.
+    #  Add +1 to limit to see if there is a next page.
+    #  This will be dropped in the return.
     data = collection.offset(offset).limit(per_page+1).to_a
 
     # Previous and next page
