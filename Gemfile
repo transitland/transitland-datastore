@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.2.4'
+gem 'rails', '4.2.5'
 
 # Transitland Datastore components
 path 'components' do
@@ -15,11 +15,11 @@ gem 'figaro'
 
 # data stores
 gem 'pg'
-gem 'activerecord-postgis-adapter', '3.0.0'
+gem 'activerecord-postgis-adapter'
 gem 'redis-rails'
 
 # background processing
-gem 'sidekiq'
+gem 'sidekiq', '< 5'
 gem 'sidekiq-unique-jobs'
 gem 'sidekiq-limit_fetch'
 gem 'whenever', require: false # to manage crontab
