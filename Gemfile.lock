@@ -97,27 +97,11 @@ GEM
     byebug (5.0.0)
       columnize (= 0.9.0)
     c_geohash (1.1.2)
-    celluloid (0.17.2)
-      celluloid-essentials
-      celluloid-extras
-      celluloid-fsm
-      celluloid-pool
-      celluloid-supervision
-      timers (>= 4.1.1)
-    celluloid-essentials (0.20.5)
-      timers (>= 4.1.1)
-    celluloid-extras (0.20.5)
-      timers (>= 4.1.1)
-    celluloid-fsm (0.20.5)
-      timers (>= 4.1.1)
-    celluloid-pool (0.20.5)
-      timers (>= 4.1.1)
-    celluloid-supervision (0.20.5)
-      timers (>= 4.1.1)
     choice (0.2.0)
     chronic (0.10.2)
     coderay (1.1.0)
     columnize (0.9.0)
+    concurrent-ruby (1.0.0)
     connection_pool (2.2.0)
     crack (0.4.2)
       safe_yaml (~> 1.0.0)
@@ -165,7 +149,6 @@ GEM
     globalid (0.3.6)
       activesupport (>= 4.1.0)
     hashdiff (0.2.2)
-    hitimes (1.2.3)
     http-cookie (1.0.2)
       domain_name (~> 0.5)
     i18n (0.7.0)
@@ -184,7 +167,7 @@ GEM
     mime-types (2.99)
     mini_portile (0.6.2)
     minitest (5.8.3)
-    mock_redis (0.15.3)
+    mock_redis (0.15.4)
     multi_json (1.11.2)
     multipart-post (2.0.0)
     net-scp (1.2.1)
@@ -249,7 +232,7 @@ GEM
       thor (>= 0.18.1, < 2.0)
     raindrops (0.15.0)
     rake (10.4.2)
-    redis (3.2.1)
+    redis (3.2.2)
     redis-actionpack (4.0.1)
       actionpack (~> 4)
       redis-rack (~> 1.5.0)
@@ -257,8 +240,6 @@ GEM
     redis-activesupport (4.1.4)
       activesupport (>= 3, < 5)
       redis-store (~> 1.1.0)
-    redis-namespace (1.5.2)
-      redis (~> 3.0, >= 3.0.4)
     redis-rack (1.5.0)
       rack (~> 1.5)
       redis-store (~> 1.1.0)
@@ -304,16 +285,16 @@ GEM
     safe_yaml (1.0.4)
     sentry-raven (0.15.2)
       faraday (>= 0.7.6)
-    sidekiq (3.5.3)
-      celluloid (~> 0.17.2)
+    sidekiq (4.0.1)
+      concurrent-ruby (~> 1.0)
       connection_pool (~> 2.2, >= 2.2.0)
       json (~> 1.0)
       redis (~> 3.2, >= 3.2.1)
-      redis-namespace (~> 1.5, >= 1.5.2)
-    sidekiq-limit_fetch (2.4.2)
-      sidekiq (>= 2.6.5, < 4.0)
-    sidekiq-unique-jobs (4.0.8)
+    sidekiq-limit_fetch (3.0.1)
+      sidekiq (>= 4)
+    sidekiq-unique-jobs (4.0.9)
       sidekiq (>= 2.6)
+      thor
     simplecov (0.10.0)
       docile (~> 1.1.0)
       json (~> 1.8)
@@ -338,8 +319,6 @@ GEM
     thor (0.19.1)
     thread_safe (0.3.5)
     tilt (2.0.1)
-    timers (4.1.1)
-      hitimes
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
     unf (0.1.4)
@@ -398,7 +377,7 @@ DEPENDENCIES
   rgeo-geojson
   rspec-rails
   sentry-raven
-  sidekiq
+  sidekiq (< 5)
   sidekiq-limit_fetch
   sidekiq-unique-jobs
   simplecov

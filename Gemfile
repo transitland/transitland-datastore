@@ -19,7 +19,7 @@ gem 'activerecord-postgis-adapter', '3.0.0'
 gem 'redis-rails'
 
 # background processing
-gem 'sidekiq'
+gem 'sidekiq', '< 5'
 gem 'sidekiq-unique-jobs'
 gem 'sidekiq-limit_fetch'
 gem 'whenever', require: false # to manage crontab
