@@ -32,8 +32,6 @@
 class BaseOperator < ActiveRecord::Base
   self.abstract_class = true
 
-  PER_PAGE = 50
-
   attr_accessor :serves, :does_not_serve
 
   include IsAnEntityImportedFromFeeds

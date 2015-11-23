@@ -14,8 +14,6 @@
 #
 
 class ChangePayload < ActiveRecord::Base
-  PER_PAGE = 50
-
   include HasAJsonPayload
 
   belongs_to :changeset
