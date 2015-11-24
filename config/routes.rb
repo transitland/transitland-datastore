@@ -28,6 +28,7 @@ Rails.application.routes.draw do
           post 'append'
         end
       end
+      resources :fetch_info, only: [:index]
       resources :stops, only: [:index, :show]
       resources :operators, only: [:index, :show]
       resources :routes, only: [:index, :show]
