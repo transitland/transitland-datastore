@@ -27,8 +27,6 @@
 class BaseRoute < ActiveRecord::Base
   self.abstract_class = true
 
-  PER_PAGE = 50
-
   include IsAnEntityImportedFromFeeds
 
   attr_accessor :serves, :does_not_serve, :operated_by

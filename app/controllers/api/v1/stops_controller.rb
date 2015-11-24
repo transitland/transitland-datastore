@@ -46,15 +46,14 @@ class Api::V1::StopsController < Api::V1::BaseApiController
       imported_from_feed_versions
     ]} # TODO: check performance against eager_load, joins, etc.
 
-    per_page = params[:per_page].blank? ? Stop::PER_PAGE : params[:per_page].to_i
-
     respond_to do |format|
       format.json do
         render paginated_json_collection(
           @stops,
           Proc.new { |params| api_v1_stops_url(params) },
           params[:offset],
-          per_page,
+          params[:per_page],
+          params[:total],
           params.slice(:identifier, :identifier_starts_with, :servedBy, :lat, :lon, :r, :bbox, :onestop_id, :tag_key, :tag_value)
         )
       end

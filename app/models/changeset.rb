@@ -25,8 +25,6 @@ class Changeset < ActiveRecord::Base
     end
   end
 
-  PER_PAGE = 50
-
   include CanBeSerializedToCsv
 
   has_many :feeds_created_or_updated, class_name: 'Feed', foreign_key: 'created_or_updated_in_changeset_id'
