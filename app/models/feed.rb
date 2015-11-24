@@ -33,8 +33,6 @@
 class BaseFeed < ActiveRecord::Base
   self.abstract_class = true
 
-  PER_PAGE = 50
-
   extend Enumerize
   enumerize :feed_format, in: [:gtfs]
   enumerize :license_use_without_attribution, in: [:yes, :no, :unknown]

@@ -18,15 +18,14 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
 
     @feeds = @feeds.includes{[operators_in_feed]}
 
-    per_page = params[:per_page].blank? ? Feed::PER_PAGE : params[:per_page].to_i
-
     respond_to do |format|
       format.json do
         render paginated_json_collection(
           @feeds,
           Proc.new { |params| api_v1_feeds_url(params) },
           params[:offset],
-          per_page,
+          params[:per_page],
+          params[:total],
           params.slice(:tag_key, :tag_value)
         )
       end

@@ -63,14 +63,14 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
   before_action :set_schedule_stop_pairs
 
   def index
-    per_page = params[:per_page].blank? ? ScheduleStopPair::PER_PAGE : params[:per_page].to_i
     respond_to do |format|
       format.json do
         render paginated_json_collection(
           @ssps,
           Proc.new { |params| api_v1_schedule_stop_pairs_url(params) },
           params[:offset],
-          per_page,
+          params[:per_page],
+          params[:total],
           params.slice(
             :date,
             :service_from_date,

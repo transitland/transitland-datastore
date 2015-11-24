@@ -58,7 +58,6 @@
 
 class BaseScheduleStopPair < ActiveRecord::Base
   self.abstract_class = true
-  PER_PAGE = 50
   include IsAnEntityImportedFromFeeds
 
   extend Enumerize

@@ -8,15 +8,14 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   def index
     @changesets = Changeset.where('').include{change_payloads}
 
-    per_page = params[:per_page].blank? ? Changeset::PER_PAGE : params[:per_page].to_i
-
     respond_to do |format|
       format.json do
         render paginated_json_collection(
           @changesets,
           Proc.new { |params| api_v1_changesets_url(params) },
           params[:offset],
-          per_page,
+          params[:per_page],
+          params[:total],
           {}
         )
       end

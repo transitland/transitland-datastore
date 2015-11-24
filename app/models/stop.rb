@@ -28,8 +28,6 @@
 class BaseStop < ActiveRecord::Base
   self.abstract_class = true
 
-  PER_PAGE = 50
-
   include IsAnEntityImportedFromFeeds
 
   attr_accessor :served_by, :not_served_by

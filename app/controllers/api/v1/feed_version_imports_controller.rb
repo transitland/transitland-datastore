@@ -1,5 +1,7 @@
 class Api::V1::FeedVersionImportsController < Api::V1::BaseApiController
   include JsonCollectionPagination
+  PER_PAGE = 1
+
   include DownloadableCsv
 
   before_action :set_feed
@@ -9,15 +11,14 @@ class Api::V1::FeedVersionImportsController < Api::V1::BaseApiController
   def index
     @feed_version_imports = @feed_version.feed_version_imports
 
-    per_page = params[:per_page].blank? ? FeedVersionImport::PER_PAGE : params[:per_page].to_i
-
     respond_to do |format|
       format.json do
         render paginated_json_collection(
           @feed_version_imports,
           Proc.new { |params| api_v1_feed_feed_version_feed_version_imports_url(params) },
           params[:offset],
-          per_page,
+          params[:per_page],
+          params[:total],
           {}
         )
       end
