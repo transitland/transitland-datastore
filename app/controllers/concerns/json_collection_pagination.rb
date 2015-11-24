@@ -27,14 +27,14 @@ module JsonCollectionPagination
       meta[:prev] = path_helper.call(params.merge({
         offset: (offset - per_page) >= 0 ? (offset - per_page) : 0,
         per_page: per_page,
-        # total: total
+        total: total
       }))
     end
     if data.size > per_page
       meta[:next] = path_helper.call(params.merge({
         offset: offset + per_page,
         per_page: per_page,
-        # total: total
+        total: total
       }))
     end
 
