@@ -13,6 +13,10 @@ module DatastoreAdmin
       end
     end
 
+    def self.clear_cache
+      Rails.cache.clear
+    end
+
     def self.truncate_database
       # NOTE: don't truncate schema_migrations or spatial_ref_sys
       sql = "

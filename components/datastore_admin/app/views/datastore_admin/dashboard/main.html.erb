@@ -10,6 +10,9 @@
       <%= check_box_tag(:destroy_feed_versions, 1, true) %>
       <%= label_tag(:destroy_feed_versions, 'Destroy feed versions (and their attached GTFS archives') %>
 
+      <%= check_box_tag(:clear_cache, 1, true) %>
+      <%= label_tag(:clear_cache, 'Clear cache') %>
+
       <%= check_box_tag(:truncate_database, 1, true) %>
       <%= label_tag(:truncate_database, 'Truncate database') %>
 

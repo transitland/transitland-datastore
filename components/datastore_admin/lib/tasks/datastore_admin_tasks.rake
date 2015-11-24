@@ -12,6 +12,11 @@ task :truncate_database, [] => [:environment] do |t, args|
   puts "Database has been truncated."
 end
 
+task :clear_cache, [] => [:environment] do |t, args|
+  DatastoreAdmin::ResetDatastore.clear_cache
+  puts "Cache has been cleared."
+end
+
 task :clear_data_directory, [] => [:environment] do |t, args|
   DatastoreAdmin::ResetDatastore.clear_data_directory
   puts "Data directory has been cleared."
