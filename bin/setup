@@ -21,9 +21,14 @@ Dir.chdir APP_ROOT do
     system 'cp config/sample.database.yml config/database.yml'
   end
 
-  puts "\n== Removing old logs and tempfiles =="
-  system 'rm -f log/*'
+  puts "\n== Removing old tempfiles"
+  unless Dir.exists?('tmp')
+    system 'mkdir tmp'
+  end
   system 'rm -rf tmp/cache'
+
+  puts "\n== Removing old logs =="
+  system 'rm -f log/*'
 
   puts "\n== Restarting application server =="
   system 'touch tmp/restart.txt'

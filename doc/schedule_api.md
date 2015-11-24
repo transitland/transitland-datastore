@@ -1,54 +1,71 @@
 # Transitland schedule API
 
-Each ScheduleStopPair represents an edge between two stops, made on a particular route, at a particular time
+Transitland models each trip between two stops as an edge, called a `ScheduleStopPair`, or SSP. Each SSP contains an origin stop, a destination stop, a route, an operator, and arrival and departure times. Each edge also includes a service calendar, describing which days a trip is possible. Accessibility information for wheelchair and bicycle riders is included, if available. Some of this data is normally split across multiple GTFS tables, but is here denormalized for simpler access: each edge contains enough information to get from one stop to another, to another, and finally to your destination.
 
 ## ScheduleStopPair Data Model
 
-| Attribute                    | Description |
-|------------------------------|-------------|
-| route_onestop_id             | Route Onestop ID |
-| operator_onestop_id          | Operator Onestop ID |
-| origin_onestop_id            | Origin Stop Onestop ID |
-| origin_timezone              | Origin Stop timezone |
-| origin_arrival_time          | Time vehicle arrives at origin from previous stop |
-| origin_departure_time        | Time vehicle leaves origin |
-| origin_timepoint_source      | Timepoint is exact or interpolated |
-| destination_onestop_id       | Destination Stop Onestop ID |
-| destination_timezone         | Destination Stop timezone |
-| destination_arrival_time     | Time vehicle arrives at destination |
-| destination_departure_time   | Time vehicle leaves destination for next stop |
-| destination_timepoint_source | Timepoint is exact or interpolated |
-| window_start                 | The previous known exact timepoint |
-| window_end                   | The next known exact timepoint |
-| trip                         | A text label for a sequence of edges |
-| trip_headsign                | A human friendly description of the ultimate destination |
-| trip_short_name              | A commonly known human-readable trip identifier, e.g. a train number |
-| block_id                     | A block of trips made by the same vehicle |
-| service_start_date           | Date service begins |
-| service_end_date             | Date service ends |
-| service_days_of_week         | Scheduled service, in ISO order (Monday -> Sunday) |
-| service_added_dates          | Array of additional dates service is scheduled |
-| service_except_dates         | Array of dates service is NOT scheduled (Holidays, etc.) |
-| wheelchair_accessible        | Wheelchair accessibility |
-| bikes_allowed                | Bike accessible |
-| drop_off_type                | Regularly scheduled stop for dropping off passengers |
-| pickup_type                  | Regularly scheduled stop for picking up passengers |
+| Attribute                    | Type | Description |
+|------------------------------|------|-------------|
+| route_onestop_id             | Onestop ID | Route |
+| operator_onestop_id          | Onestop ID | Operator |
+| origin_onestop_id            | Onestop ID | Origin stop |
+| origin_timezone              | String | Origin stop timezone |
+| origin_arrival_time          | Time | Time vehicle arrives at origin from previous stop |
+| origin_departure_time        | Time | Time vehicle leaves origin |
+| origin_timepoint_source      | Enum | Origin timepoint source |
+| destination_onestop_id       | Onestop ID | Destination stop |
+| destination_timezone         | String | Destination stop timezone |
+| destination_arrival_time     | Time | Time vehicle arrives at destination |
+| destination_departure_time   | Time | Time vehicle leaves destination for next stop |
+| destination_timepoint_source | Enum | Destination timepoint source |
+| window_start                 | Time | The previous known exact timepoint |
+| window_end                   | Time | The next known exact timepoint |
+| trip                         | String | A text label for a sequence of edges |
+| trip_headsign                | String | A human friendly description of the ultimate destination |
+| trip_short_name              | String | A commonly known human-readable trip identifier, e.g. a train number |
+| block_id                     | String | A block of trips made by the same vehicle |
+| service_start_date           | Date | Date service begins |
+| service_end_date             | Date | Date service ends |
+| service_days_of_week         | Boolean Array | Scheduled service, in ISO order (Monday -> Sunday) |
+| service_added_dates          | Date Array | Array of additional dates service is scheduled |
+| service_except_dates         | Date Array | Array of dates service is NOT scheduled (Holidays, etc.) |
+| wheelchair_accessible        | Boolean | Wheelchair accessible: true, false, or null (unknown) |
+| bikes_allowed                | Boolean | Bike accessible: true, false, or null (unknown) |
+| drop_off_type                | Enum | Passenger drop-off |
+| pickup_type                  | Enum | Passenger pickup |
+
+### Data types
+
+Times can be specified with more than 24 hours, as specified by GTFS. For example, 25:10 is 1:10am the day after the trip begins.
+
+Timepoint Source
+ * gtfs_exact: An exact timepoint in the GTFS
+ * gtfs_interpolated: An interpolated timepoint in the GTFS
+ * transitland_interpolated_linear: Interpolated based on linear stop sequence
+ * transitland_interpolated_geometric: Interpolated based on straight-line distance
+ * transitland_interpolated_shape: Interpolated based on shape_dist_traveled
+
+Pickup (origin) and drop-off (destination)
+ * null: Regularly scheduled pickup and drop-off
+ * unavailable: Pickup or drop-off not available
+ * ask_driver: Ask the driver for pickup or drop-off
+ * ask_agency: Phone agency to schedule in advance
 
 ## Query parameters
 
 The main ScheduleStopPair API endpoint is [/api/v1/schedule_stop_pairs](http://transit.land/api/v1/schedule_stop_pairs). It accepts the following query parameters, which may be freely combined.
 
-| Query parameter        | Description |
-|------------------------|-------------|
-| [origin_onestop_id](http://dev.transit.land/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8znb12j1-embarcadero) | Origin Stop |
-| [destination_onestop_id](http://dev.transit.land/api/v1/schedule_stop_pairs?destination_onestop_id=s-9q8yyxq427-montgomeryst) | Destination Stop |
-| [route_onestop_id](http://dev.transit.land/api/v1/schedule_stop_pairs?route_onestop_id=r-9q8y-n) | Route |
-| [operator_onestop_id](http://dev.transit.land/api/v1/schedule_stop_pairs?operator_onestop_id=o-9q9-bart) | Operator |  |
-| [date](http://dev.transit.land/api/v1/schedule_stop_pairs?date=2015-08-21) | Service operates on a date |
-| [service_from_date](http://dev.transit.land/api/v1/schedule_stop_pairs?service_from_date=2015-10-21) | Service operates on a date, or in the future |
-| [origin_departure_between](http://dev.transit.land/api/v1/schedule_stop_pairs?origin_departure_between=09:00:00,09:10:00) | Origin departure time between two times |
-| [trip](http://dev.transit.land/api/v1/schedule_stop_pairs?trip=03SFO11SUN) | Trip identifier |
-| [bbox](http://dev.transit.land/api/v1/schedule_stop_pairs?bbox=-122.4,37.7,-122.4,30.8) | Origin Stop within bounding box |
+| Query parameter        | Type | Description | Example |
+|------------------------|------|-------------|---------|
+| origin_onestop_id        | Onestop ID | Origin Stop | [from Embarcadero BART](http://transit.land/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8znb12j1-embarcadero) |
+| destination_onestop_id   | Onestop ID | Destination Stop | [to Montgomery St. BART](http://transit.land/api/v1/schedule_stop_pairs?destination_onestop_id=s-9q8yyxq427-montgomeryst)
+| route_onestop_id         | Onestop ID | Route | [on Muni N](http://transit.land/api/v1/schedule_stop_pairs?route_onestop_id=r-9q8y-n) |
+| operator_onestop_id      | Onestop ID | Operator | [on BART](http://transit.land/api/v1/schedule_stop_pairs?operator_onestop_id=o-9q9-bart) |
+| service_date             | Date | Service operates on a date | [valid on 2015-10-21](http://transit.land/api/v1/schedule_stop_pairs?date=2015-10-21) |
+| service_from_date        | Date | Service operates on a date, or in the future | [valid on and after 2015-10-21](http://transit.land/api/v1/schedule_stop_pairs?service_from_date=2015-10-21) |
+| origin_departure_between | Time,Time | Origin departure time between two times | [departing between 09:00 - 09:10](http://transit.land/api/v1/schedule_stop_pairs?origin_departure_between=09:00:00,09:10:00) |
+| trip                     | String | Trip identifier | [on trip '03SFO11SUN'](http://transit.land/api/v1/schedule_stop_pairs?trip=03SFO11SUN) |
+| bbox                     | Lon1,Lat1,Lon2,Lat2 | Origin Stop within bounding box | [in the Bay Area](http://transit.land/api/v1/schedule_stop_pairs?bbox=-123.057,36.701,-121.044,38.138)
 
 ## Response format
 
@@ -91,10 +108,10 @@ The main ScheduleStopPair API endpoint is [/api/v1/schedule_stop_pairs](http://t
                 "2015-11-26"
             ],
             "shape_dist_traveled": 0.0,
-            "wheelchair_accessible": 0,
-            "bikes_allowed": null,
-            "drop_off_type": 0,
-            "pickup_type": 0,
+            "wheelchair_accessible": true,
+            "bikes_allowed": true,
+            "drop_off_type": null,
+            "pickup_type": null,
             "created_at": "2015-10-14T15:42:57.705Z",
             "updated_at": "2015-10-14T15:42:57.705Z",
         }

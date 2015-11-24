@@ -21,10 +21,13 @@
 #  geometry                           :geography({:srid geometry, 4326
 #  latest_fetch_exception_log         :text
 #  license_attribution_text           :text
+#  active_feed_version_id             :integer
 #
 # Indexes
 #
+#  index_current_feeds_on_active_feed_version_id              (active_feed_version_id)
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
+#  index_current_feeds_on_geometry                            (geometry)
 #
 
 class BaseFeed < ActiveRecord::Base
@@ -69,6 +72,7 @@ class Feed < BaseFeed
 
   has_many :feed_versions, -> { order 'created_at DESC' }, dependent: :destroy, as: :feed
   has_many :feed_version_imports, -> { order 'created_at DESC' }, through: :feed_versions
+  belongs_to :active_feed_version, class_name: 'FeedVersion'
 
   has_many :operators_in_feed
   has_many :operators, through: :operators_in_feed
@@ -183,6 +187,19 @@ class Feed < BaseFeed
       self.update(
         latest_fetch_exception_log: @fetch_exception_log || nil,
         last_fetched_at: @fetched_at
+      )
+    end
+  end
+
+  def activate_feed_version(feed_version_sha1)
+    self.transaction do
+      feed_version = self.feed_versions.find_by!(sha1: feed_version_sha1)
+      raise Exception.new('Cannot activate already active feed') if feed_version == self.active_feed_version
+      feed_version.activate_schedule_stop_pairs!
+      self.active_feed_version.delete_schedule_stop_pairs! if self.active_feed_version
+      self.update(
+        active_feed_version: feed_version,
+        last_imported_at: feed_version.imported_at
       )
     end
   end

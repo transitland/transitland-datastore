@@ -39,6 +39,38 @@ class FeedVersion < ActiveRecord::Base
 
   before_validation :compute_and_set_hashes, :read_gtfs_calendar_dates, :read_gtfs_feed_info
 
+  def succeeded(timestamp)
+    self.update(imported_at: timestamp)
+    self.feed.activate_feed_version(self.sha1)
+  end
+
+  def failed
+    self.delete_schedule_stop_pairs!
+  end
+
+  def activate_schedule_stop_pairs!
+    self.imported_schedule_stop_pairs.update_all(active: true)
+  end
+
+  def deactivate_schedule_stop_pairs!
+    self.imported_schedule_stop_pairs.update_all(active: false)
+  end
+
+  def delete_schedule_stop_pairs!
+    # A call to "imported_schedule_stop_pairs.delete_all" deletes the records
+    # in the EIFF join table, not the SSPs. So, follow through join to delete.
+    # http://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html
+    # PostgreSQL supports joins in delete with "USING".
+    # http://www.postgresql.org/docs/9.0/static/sql-delete.html
+    ScheduleStopPair
+      .joins(:entities_imported_from_feed)
+      .where(entities_imported_from_feed: {feed_version: self, feed: self.feed, entity_type: 'ScheduleStopPair'})
+      .delete_all
+    EntityImportedFromFeed
+      .where(feed_version: self, feed: self.feed, entity_type: 'ScheduleStopPair')
+      .delete_all
+  end
+
   private
 
   def compute_and_set_hashes

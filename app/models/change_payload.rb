@@ -42,21 +42,22 @@ class ChangePayload < ActiveRecord::Base
   })
 
   def apply!
+    cache = {}
+    entity_types = {
+      feed: Feed,
+      stop: Stop,
+      operator: Operator,
+      route: Route,
+      schedule_stop_pair: ScheduleStopPair
+    }
     (payload_as_ruby_hash[:changes] || []).each do |change|
-      if change[:feed].present?
-        Feed.apply_change(changeset: changeset, attrs: change[:feed], action: change[:action])
-      end
-      if change[:stop].present?
-        Stop.apply_change(changeset: changeset, attrs: change[:stop], action: change[:action])
-      end
-      if change[:operator].present?
-        Operator.apply_change(changeset: changeset, attrs: change[:operator], action: change[:action])
-      end
-      if change[:route].present?
-        Route.apply_change(changeset: changeset, attrs: change[:route], action: change[:action])
-      end
-      if change[:schedule_stop_pair].present?
-        ScheduleStopPair.apply_change(changeset: changeset, attrs: change[:schedule_stop_pair], action: change[:action])
+      (entity_types.keys & change.keys).each do |entity_type|
+        entity_types[entity_type].apply_change(
+          changeset: changeset,
+          attrs: change[entity_type],
+          action: change[:action],
+          cache: cache
+        )
       end
     end
   end

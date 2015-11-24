@@ -44,8 +44,9 @@ class GTFSGraph
       create_change_payloads(changeset, 'route', routes.map { |e| make_change_route(e) })
     end
     log "Changeset apply"
+    t = Time.now
     changeset.apply!
-    log "  changeset apply done"
+    log "  apply done: time #{Time.now - t}"
   end
 
   def ssp_schedule_async
@@ -96,8 +97,9 @@ class GTFSGraph
       create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) })
     end
     log "Changeset apply"
+    t = Time.now
     changeset.apply!
-    log "  changeset apply done"
+    log "  apply done: total time: #{Time.now - t}"
   end
 
   def import_log
@@ -459,16 +461,12 @@ class GTFSGraph
 end
 
 if __FILE__ == $0
+  require 'sidekiq/testing'
   ActiveRecord::Base.logger = Logger.new(STDOUT)
   feed_onestop_id = ARGV[0] || 'f-9q9-caltrain'
-  import_level = (ARGV[1] || 1).to_i
-  feed = Feed.find_by!(onestop_id: feed_onestop_id)
-  feed_version = feed.feed_versions.first || feed.fetch_and_return_feed_version
-  graph = GTFSGraph.new(feed_version.file.path, feed, feed_version)
-  graph.create_change_osr(import_level)
-  if import_level >= 2
-    graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map|
-      graph.ssp_perform_async(trip_ids, agency_map, route_map, stop_map)
-    end
-  end
+  FeedFetcherWorker.perform_async(feed_onestop_id)
+  FeedFetcherWorker.drain
+  FeedEaterWorker.perform_async(feed_onestop_id, nil, 2)
+  FeedEaterWorker.drain
+  FeedEaterScheduleWorker.drain
 end

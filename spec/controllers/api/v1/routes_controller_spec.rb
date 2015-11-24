@@ -12,6 +12,14 @@ describe Api::V1::RoutesController do
         type: 'MultiLineString'
       }
     )
+    point = Stop::GEOFACTORY.point(-122.38666,37.599787)
+    millbrae = create(
+      :stop,
+      onestop_id: "s-9q8vzhbf8h-millbrae",
+      name: "Millbrae",
+      geometry: point.to_s,
+    )
+    rsp = create(:route_serving_stop, route_id: @richmond_millbrae_route.id, stop_id: millbrae.id)
   end
 
   describe 'GET index' do
@@ -47,8 +55,8 @@ describe Api::V1::RoutesController do
         }})
       end
 
-      it 'returns no routes when none in bounding box' do
-        get :index, bbox: '-122.25783348083498,37.61280361684656,-122.17955589294435,37.64611177340781'
+      it 'returns no routes when no route stops in bounding box' do
+        get :index, bbox: '-122.353165,37.936887,-122.2992715,37.9030588'
         expect_json({ routes: -> (routes) {
           expect(routes.length).to eq 0
         }})

@@ -17,6 +17,7 @@
 # Indexes
 #
 #  c_route_cu_in_changeset              (created_or_updated_in_changeset_id)
+#  index_current_routes_on_geometry     (geometry)
 #  index_current_routes_on_identifiers  (identifiers)
 #  index_current_routes_on_operator_id  (operator_id)
 #  index_current_routes_on_tags         (tags)
@@ -132,6 +133,10 @@ class Route < BaseRoute
     else
       raise ArgumentError.new('must provide an Operator model or a Onestop ID')
     end
+  }
+
+  scope :stop_within_bbox, -> (bbox) {
+    where(id: RouteServingStop.select(:route_id).where(stop: Stop.geometry_within_bbox(bbox)))
   }
 
   ##### FromGTFS ####
