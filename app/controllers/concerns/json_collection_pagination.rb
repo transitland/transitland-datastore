@@ -1,6 +1,6 @@
 module JsonCollectionPagination
   extend ActiveSupport::Concern
-  PER_PAGE = 50
+  PER_PAGE ||= 50
 
   def paginated_json_collection(collection, path_helper, offset, per_page, total, params)
     # Apply id as a default sort order;
