@@ -31,7 +31,7 @@
 #
 
 class FeedSerializer < ApplicationSerializer
-  cache key: 'feeds', expires_in: 1.week
+  cache key: 'feeds'
 
   attributes :onestop_id,
              :url,

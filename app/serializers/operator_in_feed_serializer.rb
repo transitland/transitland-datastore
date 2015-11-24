@@ -19,7 +19,7 @@
 #
 
 class OperatorInFeedSerializer < ApplicationSerializer
-  cache key: 'operators_in_feed', expires_in: 1.week
+  cache key: 'operators_in_feed'
 
   attributes :gtfs_agency_id,
              :operator_onestop_id,

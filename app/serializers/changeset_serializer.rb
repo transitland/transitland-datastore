@@ -11,7 +11,7 @@
 #
 
 class ChangesetSerializer < ApplicationSerializer
-  cache key: 'changesets', expires_in: 1.week
+  cache key: 'changesets'
 
   attributes :id,
              :notes,

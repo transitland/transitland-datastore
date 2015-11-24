@@ -30,7 +30,7 @@
 #
 
 class OperatorSerializer < CurrentEntitySerializer
-  cache key: 'operators', expires_in: 1.week
+  cache key: 'operators'
 
   attributes :name,
              :short_name,

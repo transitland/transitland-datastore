@@ -26,7 +26,7 @@
 #
 
 class StopSerializer < CurrentEntitySerializer
-  cache key: 'stops', expires_in: 1.week
+  cache key: 'stops'
 
   attributes :onestop_id,
              :geometry,
