@@ -1,2 +1,0 @@
-class FetchInfoController < ApplicationController
-end
