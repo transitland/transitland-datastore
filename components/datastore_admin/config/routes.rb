@@ -10,6 +10,9 @@ end
 DatastoreAdmin::Engine.routes.draw do
   root to: 'dashboard#main'
   post '/reset', to: 'dashboard#reset'
-  mount Sidekiq::Web => '/workers'
+  get '/dispatcher', to: 'dashboard#dispatcher', as: :dispatcher
+  get '/sidekiq_dashboard', to: 'dashboard#sidekiq_dashboard', as: :sidekiq_dashboard
+  get '/postgres_dashboard', to: 'dashboard#postgres_dashboard', as: :postgres_dashboard
+  mount Sidekiq::Web, at: '/sidekiq'
   mount PgHero::Engine, at: '/postgres'
 end

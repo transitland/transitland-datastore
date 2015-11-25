@@ -4,8 +4,15 @@
   <title>Transitland Datastore Admin</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
   <style>
+    html, body, .container {
+      height: 100%;
+    }
     body {
       padding-top: 80px;
+    }
+    iframe {
+      height: 95%;
+      width: 100%;
     }
   </style>
 </head>
@@ -19,12 +26,14 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <a class="navbar-brand" href="#">Transitland Datastore Admin</a>
+        <%= link_to 'Transitland Datastore Admin', root_path, class: 'navbar-brand' %>
       </div>
       <div id="navbar" class="collapse navbar-collapse">
         <ul class="nav navbar-nav">
-          <li class="<%= 'active' if current_page? root_path %>"><a href="/">Main</a></li>
-          <li><a href="/admin/workers">Workers</a></li>
+          <li class="<%= 'active' if current_page? root_path %>"><%= link_to 'Main', root_path %></li>
+          <li class="<%= 'active' if current_page? dispatcher_path %>"><%= link_to 'Dispatcher', dispatcher_path %></li>
+          <li class="<%= 'active' if current_page? sidekiq_dashboard_path %>"><%= link_to 'Sidekiq Dashboard', sidekiq_dashboard_path %></li>
+          <li class="<%= 'active' if current_page? postgres_dashboard_path %>"><%= link_to 'Postgres Dashboard', postgres_dashboard_path %></li>
         </ul>
       </div>
     </div>
