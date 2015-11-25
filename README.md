@@ -5,8 +5,6 @@
 
 A community-run and -edited timetable and map of public transit service around the world.
 
-Integrates with the [Transitland Feed Registry](https://github.com/transitland/transitland-feed-registry).
-
 Behind the scenes: a Ruby on Rails web service (backed by Postgres/PostGIS), along with an asynchronous Sidekiq queue (backed by Resque) that runs Ruby and Python data-ingestion libraries.
 
 For more information about the overall process, see [Transitland: How it Works](http://transit.land/how-it-works/).
