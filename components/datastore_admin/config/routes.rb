@@ -14,5 +14,5 @@ DatastoreAdmin::Engine.routes.draw do
   get '/sidekiq_dashboard', to: 'dashboard#sidekiq_dashboard', as: :sidekiq_dashboard
   get '/postgres_dashboard', to: 'dashboard#postgres_dashboard', as: :postgres_dashboard
   mount Sidekiq::Web, at: '/sidekiq'
-  mount PgHero::Engine, at: '/postgres'
+  mount PgHero::Engine, at: '/postgres' if defined?(PgHero)
 end
