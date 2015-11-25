@@ -1,8 +1,6 @@
 TRANSITLAND_DATASTORE_AUTH_TOKEN: iamallowedtotouchthis
 ADMIN_USERNAME: onlyneedonproduction
 ADMIN_PASSWORD: onlyneedonproduction
-TRANSITLAND_FEED_REGISTRY_PATH: <%= Rails.root.join('tmp', 'transitland-feed-registry') %>
-TRANSITLAND_FEED_DATA_PATH: <%= Rails.root.join('tmp', 'transitland-feed-data') %>
 TRANSITLAND_DATASTORE_HOST: http://localhost:3000
 AUTO_CONFLATE_STOPS_WITH_OSM: 'true'
 MAX_HOURS_SINCE_LAST_CONFLATE: '84'
