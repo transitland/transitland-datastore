@@ -76,10 +76,16 @@ gem 'webmock', group: :test
 gem 'airborne', group: :test
 gem 'mock_redis', group: :test # used by sidekiq-unique-jobs
 
-# deployment and monitoring
+# deployment
 gem 'aws-sdk', group: [:staging, :production]
+
+# exception monitoring
 gem 'sentry-raven', group: [:staging, :production]
+
+# database query performance monitoring/analysis
 gem 'bullet', group: :development
+gem 'pghero', group: [:development, :staging] # mounted at /admin/postgres
+gem 'marginalia', group: [:development, :staging]
 
 # web server
 gem 'unicorn', group: [:staging, :production]
