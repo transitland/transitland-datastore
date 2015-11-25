@@ -2,7 +2,26 @@ class Api::V1::FetchInfoController < Api::V1::BaseApiController
 
 	def index
 		url = params[:url]
-		filename = Rails.root.join('spec/support/example_gtfs_archives/f-9q9-caltrain.zip')
+		raise Exception.new('invalid URL') unless url
+		
+		file = Tempfile.new('test.zip', Dir.tmpdir, 'wb+')
+		file.binmode
+		begin
+			response = Faraday.get(url)
+			file.write(response.body)
+			file.close
+			operators = gtfs_create_operators(file.path)
+		ensure
+			file.close
+			file.unlink
+		end
+
+		render json: {url: url, operators: operators}
+	end
+
+	private
+	
+	def gtfs_create_operators(filename)
 		gtfs = GTFS::Source.build(filename, {strict: false})
 		gtfs.load_graph
 		operators = {}
@@ -22,6 +41,7 @@ class Api::V1::FetchInfoController < Api::V1::BaseApiController
 			# TODO: Pass through Operator serializer
 		end
 
-		render json: {url: url, operators: operators}
+		operators
+
 	end
 end
