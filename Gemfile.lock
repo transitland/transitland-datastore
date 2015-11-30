@@ -11,12 +11,13 @@ GIT
 
 GIT
   remote: git://github.com/transitland/gtfs.git
-  revision: 1c6283b27bc09c169a27e9eaba531a158dcc11fa
-  tag: v1.0.0rc5
+  revision: 2b96bd213cd1ac3d2027affccd7e99af7962a61d
+  tag: v1.0.0rc7
   specs:
-    gtfs (1.0.0rc5)
+    gtfs (1.0.0rc7)
       multi_json
       rake
+      rcsv
       rubyzip (~> 1.1)
 
 PATH
@@ -230,6 +231,7 @@ GEM
       thor (>= 0.18.1, < 2.0)
     raindrops (0.15.0)
     rake (10.4.2)
+    rcsv (0.3.1)
     redis (3.2.2)
     redis-actionpack (4.0.1)
       actionpack (~> 4)
