@@ -1,3 +1,5 @@
+require 'csv'
+
 module CanBeSerializedToCsv
   extend ActiveSupport::Concern
 
