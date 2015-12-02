@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151111010054) do
+ActiveRecord::Schema.define(version: 20151202082502) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -200,6 +200,13 @@ ActiveRecord::Schema.define(version: 20151111010054) do
   add_index "current_schedule_stop_pairs", ["service_start_date"], name: "c_ssp_service_start_date", using: :btree
   add_index "current_schedule_stop_pairs", ["trip"], name: "c_ssp_trip", using: :btree
   add_index "current_schedule_stop_pairs", ["updated_at"], name: "index_current_schedule_stop_pairs_on_updated_at", using: :btree
+
+  create_table "current_shapes", force: :cascade do |t|
+    t.geography "geometry",   limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
+    t.hstore    "tags"
+    t.datetime  "created_at",                                                             null: false
+    t.datetime  "updated_at",                                                             null: false
+  end
 
   create_table "current_stops", force: :cascade do |t|
     t.string    "onestop_id"
@@ -470,6 +477,13 @@ ActiveRecord::Schema.define(version: 20151111010054) do
   add_index "old_schedule_stop_pairs", ["service_end_date"], name: "o_ssp_service_end_date", using: :btree
   add_index "old_schedule_stop_pairs", ["service_start_date"], name: "o_ssp_service_start_date", using: :btree
   add_index "old_schedule_stop_pairs", ["trip"], name: "o_ssp_trip", using: :btree
+
+  create_table "old_shapes", force: :cascade do |t|
+    t.geography "geometry",   limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
+    t.hstore    "tags"
+    t.datetime  "created_at",                                                             null: false
+    t.datetime  "updated_at",                                                             null: false
+  end
 
   create_table "old_stops", force: :cascade do |t|
     t.string    "onestop_id"
