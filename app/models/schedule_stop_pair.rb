@@ -58,7 +58,6 @@
 
 class BaseScheduleStopPair < ActiveRecord::Base
   self.abstract_class = true
-  PER_PAGE = 50
   include IsAnEntityImportedFromFeeds
 
   extend Enumerize
@@ -131,7 +130,7 @@ class ScheduleStopPair < BaseScheduleStopPair
 
   # Service trips_out in a bbox
   scope :where_origin_bbox, -> (bbox) {
-    stops = Stop.within_bbox(bbox)
+    stops = Stop.geometry_within_bbox(bbox)
     where(origin: stops)
   }
 

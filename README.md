@@ -5,8 +5,6 @@
 
 A community-run and -edited timetable and map of public transit service around the world.
 
-Integrates with the [Transitland Feed Registry](https://github.com/transitland/transitland-feed-registry).
-
 Behind the scenes: a Ruby on Rails web service (backed by Postgres/PostGIS), along with an asynchronous Sidekiq queue (backed by Resque) that runs Ruby and Python data-ingestion libraries.
 
 For more information about the overall process, see [Transitland: How it Works](http://transit.land/how-it-works/).
@@ -129,6 +127,7 @@ Example URL  | Parameters
 Pagination for JSON endpoints:
 - `?offset=50` is the index of the first entity to be displayed (starts with 0)
 - by default, 50 entities are displayed per page
+- to show the total number of results, use `?total=true`
 
 Format:
 - by default, responses are paginated JSON
@@ -161,7 +160,7 @@ To import a feed:
 
 Note that these endpoint requires [API authentication](#api-authentication).
 
-To check the status of background workers, you can view Sidekiq's dashboard at: `/worker_dashboard`. In production and staging environments, accessing the dashboard will require the user name and password specified in `/config/application.yml` or by environment variable.
+To check the status of background workers, you can view Sidekiq's dashboard at: `/admin/sidekiq`. In production and staging environments, accessing the dashboard will require the user name and password specified in `/config/application.yml` or by environment variable.
 
 To run the background workers regularly on servers, set up crontab entries:
 
@@ -191,3 +190,16 @@ Authorization | Token token=fde67e1437ebf73e1f3eW
 Depends on the Valhalla routing engine and its [Tyr ("Take Your Route") service](https://github.com/valhalla/tyr/).
 
 To automatically conflate stops whenever they are created or their location changed, add `TYR_AUTH_TOKEN` to `config/application.yml` and set `AUTO_CONFLATE_STOPS_WITH_OSM` to `true`.
+
+## Administration Interface
+
+Visit `/admin` to:
+
+- reset the database
+- use the [Transitland Dispatcher](https://github.com/transitland/dispatcher) interface to view, fetch, and load feeds
+- view Sidekiq's dashboard
+- view Postgres query performance (using [PgHero](https://github.com/ankane/pghero))
+
+In production and staging environments, accessing the dashboard will require the user name and password specified in `/config/application.yml` or by environment variable.
+
+On a local development machine, you'll need to run a separate copy of Transitland Dispatcher at `http://localhost:4200`. And if you want to analyze queries using PgHero, you'll need to [enable the pg_stat_statements module in your local Postgres server](https://github.com/ankane/pghero/blob/master/guides/Query-Stats.md).

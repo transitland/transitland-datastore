@@ -17,7 +17,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
       @routes = @routes.operated_by(params[:operatedBy])
     end
     if params[:bbox].present?
-      @routes = @routes.within_bbox(params[:bbox])
+      @routes = @routes.stop_within_bbox(params[:bbox])
     end
     if params[:onestop_id].present?
       @routes = @routes.where(onestop_id: params[:onestop_id])
@@ -37,15 +37,14 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
       imported_from_feed_versions
     ]}
 
-    per_page = params[:per_page].blank? ? Route::PER_PAGE : params[:per_page].to_i
-
     respond_to do |format|
       format.json do
         render paginated_json_collection(
           @routes,
           Proc.new { |params| api_v1_routes_url(params) },
           params[:offset],
-          per_page,
+          params[:per_page],
+          params[:total],
           params.slice(:identifier, :identifier_starts_with, :operatedBy, :bbox, :onestop_id, :tag_key, :tag_value)
         )
       end

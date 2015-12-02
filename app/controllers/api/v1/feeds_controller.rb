@@ -13,12 +13,10 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
     elsif params[:tag_key].present?
       @feeds = @feeds.with_tag(params[:tag_key])
     elsif params[:bbox].present?
-      @feeds = @feeds.within_bbox(params[:bbox])
+      @feeds = @feeds.geometry_within_bbox(params[:bbox])
     end
 
     @feeds = @feeds.includes{[operators_in_feed]}
-
-    per_page = params[:per_page].blank? ? Feed::PER_PAGE : params[:per_page].to_i
 
     respond_to do |format|
       format.json do
@@ -26,7 +24,8 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
           @feeds,
           Proc.new { |params| api_v1_feeds_url(params) },
           params[:offset],
-          per_page,
+          params[:per_page],
+          params[:total],
           params.slice(:tag_key, :tag_value)
         )
       end

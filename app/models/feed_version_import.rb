@@ -17,8 +17,6 @@
 #
 
 class FeedVersionImport < ActiveRecord::Base
-  PER_PAGE = 1
-
   belongs_to :feed_version
   has_one :feed, through: :feed_version, source_type: 'Feed'
 

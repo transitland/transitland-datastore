@@ -16,8 +16,6 @@
 #
 
 class FeedScheduleImport < ActiveRecord::Base
-  PER_PAGE = 1
-
   belongs_to :feed_version_import
   has_one :feed, through: :feed_version_import
 

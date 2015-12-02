@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.2.4'
+gem 'rails', '4.2.5'
 
 # Transitland Datastore components
 path 'components' do
@@ -15,11 +15,11 @@ gem 'figaro'
 
 # data stores
 gem 'pg'
-gem 'activerecord-postgis-adapter', '3.0.0'
+gem 'activerecord-postgis-adapter'
 gem 'redis-rails'
 
 # background processing
-gem 'sidekiq'
+gem 'sidekiq', '< 5'
 gem 'sidekiq-unique-jobs'
 gem 'sidekiq-limit_fetch'
 gem 'whenever', require: false # to manage crontab
@@ -27,7 +27,7 @@ gem 'whenever', require: false # to manage crontab
 # data model
 gem 'squeel'
 gem 'enumerize'
-gem 'gtfs', github: 'transitland/gtfs', tag: 'v1.0.0rc5'
+gem 'gtfs', github: 'transitland/gtfs', tag: 'v1.0.0rc7'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 gem 'json-schema'
@@ -76,10 +76,16 @@ gem 'webmock', group: :test
 gem 'airborne', group: :test
 gem 'mock_redis', group: :test # used by sidekiq-unique-jobs
 
-# deployment and monitoring
+# deployment
 gem 'aws-sdk', group: [:staging, :production]
+
+# exception monitoring
 gem 'sentry-raven', group: [:staging, :production]
+
+# database query performance monitoring/analysis
 gem 'bullet', group: :development
+gem 'pghero', group: [:development, :staging] # mounted at /admin/postgres
+gem 'marginalia', group: [:development, :staging]
 
 # web server
 gem 'unicorn', group: [:staging, :production]

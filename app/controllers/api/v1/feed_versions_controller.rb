@@ -8,15 +8,14 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
   def index
     @feed_versions = @feed.feed_versions
 
-    per_page = params[:per_page].blank? ? FeedVersion::PER_PAGE : params[:per_page].to_i
-
     respond_to do |format|
       format.json do
         render paginated_json_collection(
           @feed_versions,
           Proc.new { |params| api_v1_feed_feed_versions_url(params) },
           params[:offset],
-          per_page,
+          params[:per_page],
+          params[:total],
           {}
         )
       end

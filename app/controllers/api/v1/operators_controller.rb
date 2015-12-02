@@ -19,7 +19,7 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
       @operators = @operators.where{st_dwithin(geometry, point, r)}.order{st_distance(geometry, point)}
     end
     if params[:bbox].present?
-      @operators = @operators.within_bbox(params[:bbox])
+      @operators = @operators.geometry_within_bbox(params[:bbox])
     end
     if params[:onestop_id].present?
       @operators = @operators.where(onestop_id: params[:onestop_id])
@@ -39,15 +39,14 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
       feeds
     ]}
 
-    per_page = params[:per_page].blank? ? Operator::PER_PAGE : params[:per_page].to_i
-
     respond_to do |format|
       format.json do
         render paginated_json_collection(
           @operators,
           Proc.new { |params| api_v1_operators_url(params) },
           params[:offset],
-          per_page,
+          params[:per_page],
+          params[:total],
           params.slice(:identifier, :identifier_starts_with, :lat, :lon, :r, :bbox, :onestop_id, :tag_key, :tag_value)
         )
       end

@@ -27,8 +27,6 @@
 class BaseRoute < ActiveRecord::Base
   self.abstract_class = true
 
-  PER_PAGE = 50
-
   include IsAnEntityImportedFromFeeds
 
   attr_accessor :serves, :does_not_serve, :operated_by
@@ -133,6 +131,10 @@ class Route < BaseRoute
     else
       raise ArgumentError.new('must provide an Operator model or a Onestop ID')
     end
+  }
+
+  scope :stop_within_bbox, -> (bbox) {
+    where(id: RouteServingStop.select(:route_id).where(stop: Stop.geometry_within_bbox(bbox)))
   }
 
   ##### FromGTFS ####
