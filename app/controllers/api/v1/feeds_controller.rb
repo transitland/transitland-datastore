@@ -51,16 +51,16 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
       response = Faraday.get(url)
       file.write(response.body)
       file.close
-      operators = gtfs_create_operators(file.path)
+      feed, operators = fetch_info_gtfs(file.path)
     ensure
       file.close
       file.unlink
     end
-    feed = nil
+    feed.url = url
     render json: {
       url: url,
-      feed: feed,
-      operators: operators
+      feed: FeedSerializer.new(feed).as_json,
+      operators: operators.map { |o| OperatorSerializer.new(o).as_json }
     }
   end
 
@@ -70,24 +70,28 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
     @feed = Feed.find_by(onestop_id: params[:id])
   end
 
-  def gtfs_create_operators(filename)
+  def fetch_info_gtfs(filename)
     gtfs = GTFS::Source.build(filename, {strict: false})
     gtfs.load_graph
-    operators = {}
+    stop_map = {}
+    gtfs.stops.each do |stop|
+      stop_map[stop] = Stop.from_gtfs(stop)
+    end
+    feed = Feed.from_gtfs(nil, stop_map.values)
+    operators = []
     gtfs.agencies.each do |agency|
-      stops = Set.new
+      agency_stops = Set.new
       gtfs.children(agency).each do |route|
         gtfs.children(route).each do |trip|
           gtfs.children(trip).each do |stop|
-            stops.add(stop)
+            agency_stops << stop_map[stop]
           end
         end
       end
-      stops = stops.map { |stop| Stop.from_gtfs(stop) }
-      operator = Operator.from_gtfs(agency, stops)
-      operators[operator.onestop_id] = operator
-      # TODO: Pass through Operator serializer
+      operator = Operator.from_gtfs(agency, agency_stops)
+      operators << operator
+      feed.operators_in_feed.new(gtfs_agency_id: agency.id, operator: operator, id: nil)
     end
-    operators.values
+    return [feed, operators]
   end
 end
