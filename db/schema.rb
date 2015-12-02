@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151202082502) do
+ActiveRecord::Schema.define(version: 20151202220440) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -115,6 +115,13 @@ ActiveRecord::Schema.define(version: 20151202082502) do
   add_index "current_operators_serving_stop", ["stop_id", "operator_id"], name: "index_current_operators_serving_stop_on_stop_id_and_operator_id", unique: true, using: :btree
   add_index "current_operators_serving_stop", ["stop_id"], name: "index_current_operators_serving_stop_on_stop_id", using: :btree
 
+  create_table "current_route_stop_patterns", force: :cascade do |t|
+    t.geography "geometry",   limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
+    t.hstore    "tags"
+    t.datetime  "created_at",                                                             null: false
+    t.datetime  "updated_at",                                                             null: false
+  end
+
   create_table "current_routes", force: :cascade do |t|
     t.string    "onestop_id"
     t.string    "name"
@@ -200,13 +207,6 @@ ActiveRecord::Schema.define(version: 20151202082502) do
   add_index "current_schedule_stop_pairs", ["service_start_date"], name: "c_ssp_service_start_date", using: :btree
   add_index "current_schedule_stop_pairs", ["trip"], name: "c_ssp_trip", using: :btree
   add_index "current_schedule_stop_pairs", ["updated_at"], name: "index_current_schedule_stop_pairs_on_updated_at", using: :btree
-
-  create_table "current_shapes", force: :cascade do |t|
-    t.geography "geometry",   limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
-    t.hstore    "tags"
-    t.datetime  "created_at",                                                             null: false
-    t.datetime  "updated_at",                                                             null: false
-  end
 
   create_table "current_stops", force: :cascade do |t|
     t.string    "onestop_id"
@@ -378,6 +378,13 @@ ActiveRecord::Schema.define(version: 20151202082502) do
   add_index "old_operators_serving_stop", ["operator_type", "operator_id"], name: "operators_serving_stop_operator", using: :btree
   add_index "old_operators_serving_stop", ["stop_type", "stop_id"], name: "operators_serving_stop_stop", using: :btree
 
+  create_table "old_route_stop_patterns", force: :cascade do |t|
+    t.geography "geometry",   limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
+    t.hstore    "tags"
+    t.datetime  "created_at",                                                             null: false
+    t.datetime  "updated_at",                                                             null: false
+  end
+
   create_table "old_routes", force: :cascade do |t|
     t.string    "onestop_id"
     t.string    "name"
@@ -477,13 +484,6 @@ ActiveRecord::Schema.define(version: 20151202082502) do
   add_index "old_schedule_stop_pairs", ["service_end_date"], name: "o_ssp_service_end_date", using: :btree
   add_index "old_schedule_stop_pairs", ["service_start_date"], name: "o_ssp_service_start_date", using: :btree
   add_index "old_schedule_stop_pairs", ["trip"], name: "o_ssp_trip", using: :btree
-
-  create_table "old_shapes", force: :cascade do |t|
-    t.geography "geometry",   limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
-    t.hstore    "tags"
-    t.datetime  "created_at",                                                             null: false
-    t.datetime  "updated_at",                                                             null: false
-  end
 
   create_table "old_stops", force: :cascade do |t|
     t.string    "onestop_id"

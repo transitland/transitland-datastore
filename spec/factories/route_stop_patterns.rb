@@ -1,5 +1,5 @@
 FactoryGirl.define do
-  factory :shape do
+  factory :route_stop_pattern do
     geometry "MyString"
     tags ""
   end

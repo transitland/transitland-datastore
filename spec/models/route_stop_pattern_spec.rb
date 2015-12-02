@@ -1,6 +1,6 @@
 # == Schema Information
 #
-# Table name: current_shapes
+# Table name: current_route_stop_patterns
 #
 #  id         :integer          not null, primary key
 #  geometry   :geography({:srid geometry, 4326
@@ -11,6 +11,6 @@
 
 require 'rails_helper'
 
-RSpec.describe Shape, type: :model do
+RSpec.describe RouteStopPattern, type: :model do
   pending "add some examples to (or delete) #{__FILE__}"
 end
