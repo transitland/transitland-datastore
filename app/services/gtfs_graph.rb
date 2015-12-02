@@ -22,6 +22,7 @@ class GTFSGraph
     log "Load TL"
     load_tl_stops
     load_tl_routes
+    load_tl_route_geometries
     operators = load_tl_operators
     routes = operators.map { |operator| operator.serves }.reduce(Set.new, :+)
     stops = routes.map { |route| route.serves }.reduce(Set.new, :+)
@@ -100,6 +101,20 @@ class GTFSGraph
     t = Time.now
     changeset.apply!
     log "  apply done: total time: #{Time.now - t}"
+  end
+
+  def load_tl_route_geometries
+    rsps = []
+    log "Create changeset"
+    changeset = Changeset.create()
+    @gtfs.trip_stop_times(@gtfs.trips) do |trip,stop_times|
+      # TODO: no shape_id given
+      shape_points = @gtfs.shape_line(trip.shape_id)
+      rsp = RouteStopPattern.find_by_similarity(stop_times.map { |st| st.stop_id }, shape_points)
+      rsp ||= RouteStopPattern.from_gtfs(trip, shape_points)
+      rsps << rsp
+    end
+    #create_change_payloads(changeset, 'route_stop_pattern', rsps.map { |e| make_change_rsp(e) })
   end
 
   def import_log
@@ -359,6 +374,12 @@ class GTFSGraph
       serves: entity.serves.map(&:onestop_id),
       tags: entity.tags || {},
       geometry: entity.geometry
+    }
+  end
+
+  def make_change_rsp(entity)
+    {
+
     }
   end
 
