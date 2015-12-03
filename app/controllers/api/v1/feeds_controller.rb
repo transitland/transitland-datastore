@@ -45,13 +45,13 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
   def fetch_info
     url = params[:url]
     raise Exception.new('invalid URL') unless url
+    # Use read/write instead of fetch block to avoid race with Sidekiq.
     cachekey = "feeds/fetch_info/#{url}"
-    cachedata = Rails.cache.fetch(cachekey, expires_in: 1.second) do
+    cachedata = Rails.cache.read(cachekey)
+    if !cachedata
+      cachedata = {status: 'processing', url: url}
+      Rails.cache.write(cachekey, cachedata, expires_in: 30.minute)
       FeedInfoWorker.perform_async(url, cachekey)
-      {
-        status: 'processing',
-        url: url
-      }
     end
     render json: cachedata
   end
