@@ -45,23 +45,15 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
   def fetch_info
     url = params[:url]
     raise Exception.new('invalid URL') unless url
-    file = Tempfile.new('test.zip', Dir.tmpdir, 'wb+')
-    file.binmode
-    begin
-      response = Faraday.get(url)
-      file.write(response.body)
-      file.close
-      feed, operators = fetch_info_gtfs(file.path)
-    ensure
-      file.close
-      file.unlink
+    cachekey = "feeds/fetch_info/#{url}"
+    cachedata = Rails.cache.fetch(cachekey, expires_in: 1.second) do
+      FeedInfoWorker.perform_async(url, cachekey)
+      {
+        status: 'processing',
+        url: url
+      }
     end
-    feed.url = url
-    render json: {
-      url: url,
-      feed: FeedSerializer.new(feed).as_json,
-      operators: operators.map { |o| OperatorSerializer.new(o).as_json }
-    }
+    render json: cachedata
   end
 
   private
@@ -70,28 +62,4 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
     @feed = Feed.find_by(onestop_id: params[:id])
   end
 
-  def fetch_info_gtfs(filename)
-    gtfs = GTFS::Source.build(filename, {strict: false})
-    gtfs.load_graph
-    stop_map = {}
-    gtfs.stops.each do |stop|
-      stop_map[stop] = Stop.from_gtfs(stop)
-    end
-    feed = Feed.from_gtfs(nil, stop_map.values)
-    operators = []
-    gtfs.agencies.each do |agency|
-      agency_stops = Set.new
-      gtfs.children(agency).each do |route|
-        gtfs.children(route).each do |trip|
-          gtfs.children(trip).each do |stop|
-            agency_stops << stop_map[stop]
-          end
-        end
-      end
-      operator = Operator.from_gtfs(agency, agency_stops)
-      operators << operator
-      feed.operators_in_feed.new(gtfs_agency_id: agency.id, operator: operator, id: nil)
-    end
-    return [feed, operators]
-  end
 end
