@@ -22,10 +22,10 @@ class GTFSGraph
     log "Load TL"
     load_tl_stops
     load_tl_routes
-    load_tl_route_geometries
     operators = load_tl_operators
     routes = operators.map { |operator| operator.serves }.reduce(Set.new, :+)
     stops = routes.map { |route| route.serves }.reduce(Set.new, :+)
+    rsps = load_tl_route_geometries
     log "Create changeset"
     changeset = Changeset.create()
     log "Create: Operators, Stops, Routes"
@@ -37,6 +37,8 @@ class GTFSGraph
     if import_level >= 0
       log "  operators: #{operators.size}"
       create_change_payloads(changeset, 'operator', operators.map { |e| make_change_operator(e) })
+      log "  route geometries"
+      create_change_payloads(changeset, 'route_stop_pattern', rsps.map { |e| make_change_rsp(e) })
     end
     if import_level >= 1
       log "  stops: #{stops.size}"
@@ -110,11 +112,13 @@ class GTFSGraph
     @gtfs.trip_stop_times(@gtfs.trips) do |trip,stop_times|
       # TODO: no shape_id given
       shape_points = @gtfs.shape_line(trip.shape_id)
-      rsp = RouteStopPattern.find_by_similarity(stop_times.map { |st| st.stop_id }, shape_points)
-      rsp ||= RouteStopPattern.from_gtfs(trip, shape_points)
+      stop_pattern = stop_times.map { |st| st.stop_id }
+      # find_by_similarity seems to be for onestop_id entities
+      #rsp = RouteStopPattern.find_by_similarity(stop_pattern, shape_points)
+      rsp = RouteStopPattern.from_gtfs(trip, stop_pattern, shape_points)
       rsps << rsp
     end
-    #create_change_payloads(changeset, 'route_stop_pattern', rsps.map { |e| make_change_rsp(e) })
+    rsps
   end
 
   def import_log
@@ -379,7 +383,14 @@ class GTFSGraph
 
   def make_change_rsp(entity)
     {
-
+      importedFromFeed: {
+        onestopId: @feed.onestop_id,
+        sha1: @feed_version.sha1
+      },
+      route_id: entity.route_id,
+      stop_pattern: entity.stop_pattern,
+      geometry: entity.geometry,
+      tags: entity.tags || {},
     }
   end
 
