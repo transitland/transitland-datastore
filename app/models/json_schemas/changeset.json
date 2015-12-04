@@ -53,7 +53,7 @@
           {
             "required": ["routeStopPattern"],
             "properties": {
-              "scheduleStopPair": {
+              "routeStopPattern": {
                 "$ref": "./route_stop_pattern.json"
               }
             }

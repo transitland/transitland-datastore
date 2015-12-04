@@ -37,14 +37,14 @@ class GTFSGraph
     if import_level >= 0
       log "  operators: #{operators.size}"
       create_change_payloads(changeset, 'operator', operators.map { |e| make_change_operator(e) })
-      log "  route geometries"
-      create_change_payloads(changeset, 'route_stop_pattern', rsps.map { |e| make_change_rsp(e) })
     end
     if import_level >= 1
       log "  stops: #{stops.size}"
       create_change_payloads(changeset, 'stop', stops.map { |e| make_change_stop(e) })
       log "  routes: #{routes.size}"
       create_change_payloads(changeset, 'route', routes.map { |e| make_change_route(e) })
+      log "  route geometries: #{rsps.size}"
+      create_change_payloads(changeset, 'routeStopPattern', rsps.map { |e| make_change_rsp(e) })
     end
     log "Changeset apply"
     t = Time.now
@@ -112,9 +112,8 @@ class GTFSGraph
     @gtfs.trip_stop_times(@gtfs.trips) do |trip,stop_times|
       # TODO: no shape_id given
       shape_points = @gtfs.shape_line(trip.shape_id)
-      stop_pattern = stop_times.map { |st| st.stop_id }
-      # find_by_similarity seems to be for onestop_id entities
-      #rsp = RouteStopPattern.find_by_similarity(stop_pattern, shape_points)
+      stop_pattern = stop_times.map { |st| @gtfs_to_onestop_id[@gtfs.stop(st.stop_id)] }
+      # TODO: ignore duplicates
       rsp = RouteStopPattern.from_gtfs(trip, stop_pattern, shape_points)
       rsps << rsp
     end
@@ -387,10 +386,9 @@ class GTFSGraph
         onestopId: @feed.onestop_id,
         sha1: @feed_version.sha1
       },
-      route_id: entity.route_id,
-      stop_pattern: entity.stop_pattern,
+      stopPattern: entity.stop_pattern,
       geometry: entity.geometry,
-      tags: entity.tags || {},
+      tags: entity.tags || {}
     }
   end
 
