@@ -2,7 +2,7 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   include JsonCollectionPagination
   include DownloadableCsv
 
-  before_filter :require_api_auth_token, only: [:create, :update, :check, :apply, :revert, :append]
+  before_filter :require_api_auth_token, only: [:update, :check, :apply, :revert, :append]
   before_action :set_changeset, only: [:show, :update, :check, :apply, :revert, :append]
 
   def index
