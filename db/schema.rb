@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151202235125) do
+ActiveRecord::Schema.define(version: 20151204211707) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -118,10 +118,10 @@ ActiveRecord::Schema.define(version: 20151202235125) do
   create_table "current_route_stop_patterns", force: :cascade do |t|
     t.geography "geometry",     limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.hstore    "tags"
-    t.datetime  "created_at",                                                               null: false
-    t.datetime  "updated_at",                                                               null: false
+    t.datetime  "created_at",                                                                            null: false
+    t.datetime  "updated_at",                                                                            null: false
     t.string    "route_id"
-    t.string    "stop_pattern"
+    t.string    "stop_pattern",                                                             default: [],              array: true
   end
 
   create_table "current_routes", force: :cascade do |t|
@@ -383,10 +383,10 @@ ActiveRecord::Schema.define(version: 20151202235125) do
   create_table "old_route_stop_patterns", force: :cascade do |t|
     t.geography "geometry",     limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.hstore    "tags"
-    t.datetime  "created_at",                                                               null: false
-    t.datetime  "updated_at",                                                               null: false
+    t.datetime  "created_at",                                                                            null: false
+    t.datetime  "updated_at",                                                                            null: false
     t.string    "route_id"
-    t.string    "stop_pattern"
+    t.string    "stop_pattern",                                                             default: [],              array: true
   end
 
   create_table "old_routes", force: :cascade do |t|
