@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151204211707) do
+ActiveRecord::Schema.define(version: 20151204220815) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -116,12 +116,14 @@ ActiveRecord::Schema.define(version: 20151204211707) do
   add_index "current_operators_serving_stop", ["stop_id"], name: "index_current_operators_serving_stop_on_stop_id", using: :btree
 
   create_table "current_route_stop_patterns", force: :cascade do |t|
-    t.geography "geometry",     limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
+    t.geography "geometry",                        limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.hstore    "tags"
-    t.datetime  "created_at",                                                                            null: false
-    t.datetime  "updated_at",                                                                            null: false
+    t.datetime  "created_at",                                                                                               null: false
+    t.datetime  "updated_at",                                                                                               null: false
     t.string    "route_id"
-    t.string    "stop_pattern",                                                             default: [],              array: true
+    t.string    "stop_pattern",                                                                                default: [],              array: true
+    t.integer   "version"
+    t.integer   "created_or_updated_in_changeset"
   end
 
   create_table "current_routes", force: :cascade do |t|
@@ -381,12 +383,14 @@ ActiveRecord::Schema.define(version: 20151204211707) do
   add_index "old_operators_serving_stop", ["stop_type", "stop_id"], name: "operators_serving_stop_stop", using: :btree
 
   create_table "old_route_stop_patterns", force: :cascade do |t|
-    t.geography "geometry",     limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
+    t.geography "geometry",                        limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.hstore    "tags"
-    t.datetime  "created_at",                                                                            null: false
-    t.datetime  "updated_at",                                                                            null: false
+    t.datetime  "created_at",                                                                                               null: false
+    t.datetime  "updated_at",                                                                                               null: false
     t.string    "route_id"
-    t.string    "stop_pattern",                                                             default: [],              array: true
+    t.string    "stop_pattern",                                                                                default: [],              array: true
+    t.integer   "version"
+    t.integer   "created_or_updated_in_changeset"
   end
 
   create_table "old_routes", force: :cascade do |t|
