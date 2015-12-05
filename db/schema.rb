@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151204221527) do
+ActiveRecord::Schema.define(version: 20151205000820) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -120,7 +120,6 @@ ActiveRecord::Schema.define(version: 20151204221527) do
     t.hstore    "tags"
     t.datetime  "created_at",                                                                                                  null: false
     t.datetime  "updated_at",                                                                                                  null: false
-    t.string    "route_id"
     t.string    "stop_pattern",                                                                                   default: [],              array: true
     t.integer   "version"
     t.integer   "created_or_updated_in_changeset_id"
@@ -387,7 +386,6 @@ ActiveRecord::Schema.define(version: 20151204221527) do
     t.hstore    "tags"
     t.datetime  "created_at",                                                                                                  null: false
     t.datetime  "updated_at",                                                                                                  null: false
-    t.string    "route_id"
     t.string    "stop_pattern",                                                                                   default: [],              array: true
     t.integer   "version"
     t.integer   "created_or_updated_in_changeset_id"

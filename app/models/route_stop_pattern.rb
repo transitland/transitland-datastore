@@ -7,7 +7,6 @@
 #  tags                               :hstore
 #  created_at                         :datetime         not null
 #  updated_at                         :datetime         not null
-#  route_id                           :string
 #  stop_pattern                       :string           default([]), is an Array
 #  version                            :integer
 #  created_or_updated_in_changeset_id :integer
@@ -59,7 +58,6 @@ class RouteStopPattern < BaseRouteStopPattern
   include FromGTFS
   def self.from_gtfs(trip, stop_pattern, shape_points)
     rsp = RouteStopPattern.new(
-      route_id: trip.route_id,
       stop_pattern: stop_pattern,
       geometry: RouteStopPattern::GEOFACTORY.line_string(
         shape_points.map {|lon, lat| RouteStopPattern::GEOFACTORY.point(lon, lat)}
