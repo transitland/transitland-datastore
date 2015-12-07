@@ -48,7 +48,7 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
     if @changeset.applied
       raise Changeset::Error.new(@changeset, 'cannot update a Changeset that has already been applied')
     else
-      @changeset.update(changeset_params)
+      @changeset.update!(changeset_params)
       render json: @changeset
     end
   end
@@ -86,7 +86,7 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   private
 
   def set_changeset
-    @changeset = Changeset.includes(:change_payloads).find(params[:id])
+    @changeset = Changeset.find(params[:id])
   end
 
   def changeset_params
