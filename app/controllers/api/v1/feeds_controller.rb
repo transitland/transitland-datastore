@@ -50,7 +50,7 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
     cachedata = Rails.cache.read(cachekey)
     if !cachedata
       cachedata = {status: 'processing', url: url}
-      Rails.cache.write(cachekey, cachedata, expires_in: 30.minute)
+      Rails.cache.write(cachekey, cachedata, expires_in: 1.hour)
       FeedInfoWorker.perform_async(url, cachekey)
     end
     render json: cachedata
