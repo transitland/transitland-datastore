@@ -63,12 +63,11 @@ describe Api::V1::ChangesetsController do
       expect(Changeset.count).to eq 0
     end
 
-    it 'should fail when API auth token is not provided' do
+    it 'should allow Changeset creation without API Key' do
       @request.env['HTTP_AUTHORIZATION'] = nil
-      post :create, changeset: {
-        changes: []
-      }
-      expect(response.status).to eq 401
+      attrs = FactoryGirl.attributes_for(:changeset_with_payload)
+      post :create, changeset: attrs
+      expect(response.status).to eq 200
     end
 
     it 'should be able to instantly create and apply a Changeset with a valid payload' do
