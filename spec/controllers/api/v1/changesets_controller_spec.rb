@@ -54,7 +54,7 @@ describe Api::V1::ChangesetsController do
       expect(Changeset.count).to eq 1
       expect(ChangePayload.count).to eq 1
     end
-    
+
     it 'should fail to create a Changeset with an invalid payload' do
       post :create, changeset: {
         changes: []
@@ -89,7 +89,7 @@ describe Api::V1::ChangesetsController do
       post :append, id: changeset.id, change: change
       expect(response.status).to eq 200
       expect(Changeset.count).to eq 1
-      expect(ChangePayload.count).to eq 1    
+      expect(ChangePayload.count).to eq 1
     end
   end
 
@@ -104,7 +104,7 @@ describe Api::V1::ChangesetsController do
 
     it "shouldn't be able to append to an applied Changeset" do
       changeset = create(:changeset)
-      changeset.update(applied: true)      
+      changeset.update(applied: true)
       change = FactoryGirl.attributes_for(:change_payload)
       post :append, id: changeset.id, change: change
       expect_json({ message: 'cannot update a Changeset that has already been applied' })
@@ -157,6 +157,13 @@ describe Api::V1::ChangesetsController do
       post :apply, id: changeset
       expect(OnestopId.find!('s-9q8yt4b-1AvHoS').name).to eq '1st Ave. & Holloway Street'
       expect_json({ applied: true })
+    end
+
+    it 'should fail when API auth token is not provided' do
+      @request.env['HTTP_AUTHORIZATION'] = nil
+      changeset = create(:changeset)
+      post :apply, id: changeset.id
+      expect(response.status).to eq 401
     end
 
     it "will fail gracefully when a Changeset doesn't apply" do
