@@ -1,37 +1,47 @@
 class FeedInfoWorker
   include Sidekiq::Worker
+  sidekiq_options :retry => false
 
   def perform(url, cachekey)
-    file = Tempfile.new('test.zip', Dir.tmpdir, 'wb+')
-    file.binmode
-    begin
-      response = Faraday.get(url)
-      file.write(response.body)
-      file.close
-      feed, operators = gtfs_feed_operators(file.path)
-    ensure
-      file.close
-      file.unlink
+    feed, operators = nil, nil
+    download_to_tempfile(url) do |filename|
+      feed, operators = gtfs_feed_operators(url, filename)
     end
-    feed.url = url
     data = {
       status: 'complete',
       url: url,
       feed: FeedSerializer.new(feed).as_json,
       operators: operators.map { |o| OperatorSerializer.new(o).as_json }
     }
-    sleep 5
     Rails.cache.write(cachekey, data)
   end
 
-  def gtfs_feed_operators(filename)
+  private
+
+  def download_to_tempfile(url)
+    # TODO: streaming request to limit max file size.
+    # TODO: bail if file doesn't look like a Zip archive.
+    file = Tempfile.new('test.zip', Dir.tmpdir, 'wb+')
+    file.binmode
+    begin
+      response = Faraday.get(url)
+      file.write(response.body)
+      file.close
+      yield file.path
+    ensure
+      file.close unless file.closed?
+      file.unlink
+    end
+  end
+
+  def gtfs_feed_operators(url, filename)
     gtfs = GTFS::Source.build(filename, {strict: false})
     gtfs.load_graph
     stop_map = {}
     gtfs.stops.each do |stop|
       stop_map[stop] = Stop.from_gtfs(stop)
     end
-    feed = Feed.from_gtfs(nil, stop_map.values)
+    feed = Feed.from_gtfs(url, stop_map.values)
     operators = []
     gtfs.agencies.each do |agency|
       agency_stops = Set.new
