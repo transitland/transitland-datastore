@@ -33,7 +33,7 @@ class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
   private
 
   def change_payload_params
-    params.require(:changeset).slice(:payload)
+    params.require(:change_payload).permit!
   end
 
   def set_changeset
