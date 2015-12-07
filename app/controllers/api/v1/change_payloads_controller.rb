@@ -10,7 +10,7 @@ class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
       format.json do
         render paginated_json_collection(
           @changeset.change_payloads,
-          Proc.new { |params| api_v1_stops_url(params) },
+          Proc.new { |params| api_v1_changeset_change_payloads_url(params) },
           params[:offset],
           params[:per_page],
           params[:total],
