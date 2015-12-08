@@ -1,3 +1,5 @@
+require 'net/http'
+
 class FeedInfoWorker
   include Sidekiq::Worker
   sidekiq_options :retry => false
@@ -18,19 +20,42 @@ class FeedInfoWorker
 
   private
 
+  def fetch(url, limit=10, &block)
+    # http://ruby-doc.org/stdlib-2.2.3/libdoc/net/http/rdoc/Net/HTTP.html
+    # You should choose a better exception.
+    raise Exception.new('Too many redirects') if limit == 0
+    logger.info "fetch: #{url}"
+    url = URI.parse(url)
+    Net::HTTP.start(url.host, url.port) do |http|
+      http.request_get(url.path) do |response|
+        case response
+        when Net::HTTPSuccess then
+          logger.info "success"
+          yield response
+        when Net::HTTPRedirection then
+          location = response['location']
+          logger.info "redirected to #{location}"
+          fetch(location, limit-1, &block)
+        else
+          logger.info "failure"
+          raise Exception.new('Failed')
+        end
+      end
+    end
+  end
+
   def download_to_tempfile(url)
-    # TODO: streaming request to limit max file size.
-    # TODO: bail if file doesn't look like a Zip archive.
-    file = Tempfile.new('test.zip', Dir.tmpdir, 'wb+')
-    file.binmode
-    begin
-      response = Faraday.get(url)
-      file.write(response.body)
-      file.close
-      yield file.path
-    ensure
-      file.close unless file.closed?
-      file.unlink
+    fetch(url) do |response|
+      file = Tempfile.new('test.zip', Dir.tmpdir, 'wb')
+      file.binmode
+      begin
+        response.read_body { |chunk| file.write(chunk) }
+        file.close
+        yield file.path
+      ensure
+        file.close unless file.closed?
+        file.unlink
+      end
     end
   end
 
