@@ -83,4 +83,14 @@ class FeedInfoWorker
     end
     return [feed, operators]
   end
+
+end
+
+
+if __FILE__ == $0
+  require 'sidekiq/testing'
+  ActiveRecord::Base.logger = Logger.new(STDOUT)
+  url = ARGV[0] || "http://www.caltrain.com/Assets/GTFS/caltrain/GTFS-Caltrain-Devs.zip"
+  FeedInfoWorker.perform_async(url, 'asdf')
+  FeedInfoWorker.drain
 end
