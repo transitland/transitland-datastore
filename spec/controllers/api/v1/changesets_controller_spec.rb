@@ -26,14 +26,13 @@ describe Api::V1::ChangesetsController do
       })
     end
 
-    it 'returns ChangePayloads in payload' do
+    it 'returns ChangePayloads IDs' do
       create_list(:changeset_with_payload, 2)
       changeset = Changeset.last
       get :show, id: changeset.id
-      payloads = changeset.change_payloads.map {|x| x.payload_as_ruby_hash[:changes]}
       expect_json({
         id: changeset.id,
-        payload: -> (payload) { payload[:changes].count == payloads.length},
+        change_payload_ids: changeset.change_payload_ids,
         applied: false,
         applied_at: nil
       })
@@ -54,7 +53,7 @@ describe Api::V1::ChangesetsController do
       expect(Changeset.count).to eq 1
       expect(ChangePayload.count).to eq 1
     end
-    
+
     it 'should fail to create a Changeset with an invalid payload' do
       post :create, changeset: {
         changes: []
@@ -90,7 +89,7 @@ describe Api::V1::ChangesetsController do
       post :append, id: changeset.id, change: change
       expect(response.status).to eq 200
       expect(Changeset.count).to eq 1
-      expect(ChangePayload.count).to eq 1    
+      expect(ChangePayload.count).to eq 1
     end
   end
 
@@ -105,7 +104,7 @@ describe Api::V1::ChangesetsController do
 
     it "shouldn't be able to append to an applied Changeset" do
       changeset = create(:changeset)
-      changeset.update(applied: true)      
+      changeset.update(applied: true)
       change = FactoryGirl.attributes_for(:change_payload)
       post :append, id: changeset.id, change: change
       expect_json({ message: 'cannot update a Changeset that has already been applied' })
