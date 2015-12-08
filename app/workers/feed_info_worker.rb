@@ -6,8 +6,8 @@ class FeedInfoWorker
 
   def perform(url, cachekey)
     feed, operators = nil, nil
-    download_to_tempfile(url) do |filename|
-      feed, operators = gtfs_feed_operators(url, filename)
+    FeedInfo.download_to_tempfile(url) do |filename|
+      feed, operators = FeedInfo.parse_feed_and_operators(url, filename)
     end
     data = {
       status: 'complete',
@@ -17,88 +17,7 @@ class FeedInfoWorker
     }
     Rails.cache.write(cachekey, data)
   end
-
-  private
-
-  def fetch(url, limit=10, &block)
-    # http://ruby-doc.org/stdlib-2.2.3/libdoc/net/http/rdoc/Net/HTTP.html
-    # You should choose a better exception.
-    raise Exception.new('Too many redirects') if limit == 0
-    logger.info "fetch: #{url}"
-    url = URI.parse(url)
-    Net::HTTP.start(url.host, url.port) do |http|
-      http.request_get(url.path) do |response|
-        case response
-        when Net::HTTPSuccess then
-          logger.info "success"
-          yield response
-        when Net::HTTPRedirection then
-          location = response['location']
-          logger.info "redirected to #{location}"
-          fetch(location, limit-1, &block)
-        else
-          logger.info "failure"
-          raise Exception.new('Failed')
-        end
-      end
-    end
-  end
-
-  def download_to_tempfile(url)
-    fetch(url) do |response|
-      file = Tempfile.new('test.zip', Dir.tmpdir, 'wb')
-      file.binmode
-      begin
-        response.read_body { |chunk| file.write(chunk) }
-        file.close
-        yield file.path
-      ensure
-        file.close unless file.closed?
-        file.unlink
-      end
-    end
-  end
-
-  def gtfs_feed_operators(url, filename)
-    logger.info "gtfs_feed_operators"
-    gtfs = GTFS::Source.build(filename, {strict: false})
-    gtfs.load_graph
-
-    logger.info "visited stops"
-    stop_map = {}
-    agency_visited_stops = {}
-    feed_visited_stops = Set.new
-    gtfs.agencies.each do |agency|
-      visited_stops = Set.new
-      gtfs.children(agency).each do |route|
-        gtfs.children(route).each do |trip|
-          gtfs.children(trip).each do |stop|
-            stop_map[stop] ||= Stop.from_gtfs(stop)
-            visited_stops << stop_map[stop]
-          end
-        end
-      end
-      agency_visited_stops[agency] = visited_stops
-      feed_visited_stops |= visited_stops
-    end
-
-    logger.info "feed"
-    feed = Feed.from_gtfs(url, feed_visited_stops)
-
-    logger.info "operators"
-    operators = []
-    gtfs.agencies.each do |agency|
-      operator = Operator.from_gtfs(agency, agency_visited_stops[agency])
-      operators << operator
-      feed.operators_in_feed.new(gtfs_agency_id: agency.id, operator: operator, id: nil)
-    end
-
-    logger.info "done"
-    return [feed, operators]
-  end
-
 end
-
 
 if __FILE__ == $0
   require 'sidekiq/testing'
