@@ -60,27 +60,40 @@ class FeedInfoWorker
   end
 
   def gtfs_feed_operators(url, filename)
+    logger.info "gtfs_feed_operators"
     gtfs = GTFS::Source.build(filename, {strict: false})
     gtfs.load_graph
+
+    logger.info "visited stops"
     stop_map = {}
-    gtfs.stops.each do |stop|
-      stop_map[stop] = Stop.from_gtfs(stop)
-    end
-    feed = Feed.from_gtfs(url, stop_map.values)
-    operators = []
+    agency_visited_stops = {}
+    feed_visited_stops = Set.new
     gtfs.agencies.each do |agency|
-      agency_stops = Set.new
+      visited_stops = Set.new
       gtfs.children(agency).each do |route|
         gtfs.children(route).each do |trip|
           gtfs.children(trip).each do |stop|
-            agency_stops << stop_map[stop]
+            stop_map[stop] ||= Stop.from_gtfs(stop)
+            visited_stops << stop_map[stop]
           end
         end
       end
-      operator = Operator.from_gtfs(agency, agency_stops)
+      agency_visited_stops[agency] = visited_stops
+      feed_visited_stops |= visited_stops
+    end
+
+    logger.info "feed"
+    feed = Feed.from_gtfs(url, feed_visited_stops)
+
+    logger.info "operators"
+    operators = []
+    gtfs.agencies.each do |agency|
+      operator = Operator.from_gtfs(agency, agency_visited_stops[agency])
       operators << operator
       feed.operators_in_feed.new(gtfs_agency_id: agency.id, operator: operator, id: nil)
     end
+
+    logger.info "done"
     return [feed, operators]
   end
 
