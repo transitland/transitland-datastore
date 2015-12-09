@@ -24,7 +24,7 @@ class FeedInfo
 
   def self.download_to_tempfile(url, maxsize=nil)
     fetch(url) do |response|
-      file = Tempfile.new('test.zip', Dir.tmpdir, 'wb')
+      file = Tempfile.new('test.zip', Dir.tmpdir)
       file.binmode
       total = 0
       begin
