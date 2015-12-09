@@ -7,7 +7,7 @@ class FeedInfoWorker
   def perform(url, cachekey)
     error, feed, operators = nil, nil, nil
     begin
-      FeedInfo.download_to_tempfile(url) do |filename|
+      FeedInfo.download_to_tempfile(url, maxsize=100*1024*1024) do |filename|
         feed, operators = FeedInfo.parse_feed_and_operators(url, filename)
       end
     rescue StandardError => e
