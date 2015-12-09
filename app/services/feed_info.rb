@@ -7,7 +7,7 @@ class FeedInfo
     raise ArgumentError.new('Too many redirects') if limit == 0
     url = URI.parse(url)
     Net::HTTP.start(url.host, url.port) do |http|
-      http.request_get(url.path) do |response|
+      http.request_get(url.request_uri) do |response|
         case response
         when Net::HTTPSuccess then
           yield response
