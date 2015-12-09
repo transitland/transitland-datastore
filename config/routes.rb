@@ -37,6 +37,7 @@ Rails.application.routes.draw do
           resources :feed_version_imports, only: [:index, :show]
         end
       end
+      post '/feeds/fetch_info', to: 'feeds#fetch_info'
       post '/webhooks/feed_fetcher', to: 'webhooks#feed_fetcher'
       post '/webhooks/feed_eater', to: 'webhooks#feed_eater'
     end

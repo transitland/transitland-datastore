@@ -42,9 +42,24 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
     render json: @feed
   end
 
+  def fetch_info
+    url = params[:url]
+    raise Exception.new('invalid URL') if url.empty?
+    # Use read/write instead of fetch block to avoid race with Sidekiq.
+    cachekey = "feeds/fetch_info/#{url}"
+    cachedata = Rails.cache.read(cachekey)
+    if !cachedata
+      cachedata = {status: 'processing', url: url}
+      Rails.cache.write(cachekey, cachedata, expires_in: FeedInfo::CACHE_EXPIRATION)
+      FeedInfoWorker.perform_async(url, cachekey)
+    end
+    render json: cachedata
+  end
+
   private
 
   def set_feed
     @feed = Feed.find_by(onestop_id: params[:id])
   end
+
 end

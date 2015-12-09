@@ -230,6 +230,26 @@ class Feed < BaseFeed
     end
   end
 
+  ##### FromGTFS ####
+  include FromGTFS
+  def self.from_gtfs(url, stops)
+    # GTFS Constructor
+    raise ArgumentError.new('Need at least one Stop') if stops.empty?
+    geohash = GeohashHelpers.fit(stops.map { |i| i[:geometry] })
+    name = Addressable::URI.parse(url).host.gsub(/[^a-zA-Z0-9]/, '')
+    onestop_id = OnestopId.new(
+      entity_prefix: 'f',
+      geohash: geohash,
+      name: name
+    )
+    feed = Feed.new(
+      onestop_id: onestop_id.to_s,
+      url: url
+    )
+    feed.set_bounding_box_from_stops(stops)
+    feed
+  end
+
   private
 
   def set_default_values
