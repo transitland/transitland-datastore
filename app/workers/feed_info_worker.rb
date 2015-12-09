@@ -5,16 +5,27 @@ class FeedInfoWorker
   sidekiq_options :retry => false
 
   def perform(url, cachekey)
-    feed, operators = nil, nil
-    FeedInfo.download_to_tempfile(url) do |filename|
-      feed, operators = FeedInfo.parse_feed_and_operators(url, filename)
+    error, feed, operators = nil, nil, nil
+    begin
+      FeedInfo.download_to_tempfile(url) do |filename|
+        feed, operators = FeedInfo.parse_feed_and_operators(url, filename)
+      end
+    rescue StandardError => e
+      data = {
+        status: 'error',
+        url: url,
+        exception: e.class.name,
+        message: e.to_s
+      }
+    else
+      data = {
+        status: 'complete',
+        url: url,
+        feed: FeedSerializer.new(feed).as_json,
+        operators: operators.map { |o| OperatorSerializer.new(o).as_json }
+      }
     end
-    data = {
-      status: 'complete',
-      url: url,
-      feed: FeedSerializer.new(feed).as_json,
-      operators: operators.map { |o| OperatorSerializer.new(o).as_json }
-    }
+
     Rails.cache.write(cachekey, data)
   end
 end
