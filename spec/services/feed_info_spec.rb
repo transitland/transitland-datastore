@@ -63,6 +63,22 @@ describe FeedInfo do
         expect(Digest::MD5.new.update(data).hexdigest).to eq('355c7ebd00db307b91ecd23a4215174a')
       end
     end
+
+    it 'allows files smaller than maximum size' do
+      VCR.use_cassette('feed_info_download_binary') do
+        data = nil
+        FeedInfo.download_to_tempfile(url_binary, maxsize=2048) { |filename| data = File.read(filename) }
+        expect(Digest::MD5.new.update(data).hexdigest).to eq('355c7ebd00db307b91ecd23a4215174a')
+      end
+    end
+
+    it 'raises error if response larger than maximum size' do
+      VCR.use_cassette('feed_info_download_binary') do
+        expect {
+          FeedInfo.download_to_tempfile(url_binary, maxsize=128) { |filename| }
+        }.to raise_error(IOError)
+      end
+    end
   end
 
   context '#parse' do

@@ -20,12 +20,17 @@ class FeedInfo
     end
   end
 
-  def self.download_to_tempfile(url)
+  def self.download_to_tempfile(url, maxsize=nil)
     fetch(url) do |response|
       file = Tempfile.new('test.zip', Dir.tmpdir, 'wb')
       file.binmode
+      total = 0
       begin
-        response.read_body { |chunk| file.write(chunk) }
+        response.read_body do |chunk|
+          file.write(chunk)
+          total += chunk.size
+        end
+        raise IOError.new('Exceeds maximum file size') if (maxsize && total > maxsize)
         file.close
         yield file.path
       ensure
