@@ -37,7 +37,6 @@ describe FeedInfo do
         }.to raise_error(Net::HTTPServerException)
       end
     end
-
   end
 
   context '#download' do
@@ -46,6 +45,14 @@ describe FeedInfo do
         data = {}
         FeedInfo.download_to_tempfile(url) { |filename| data = JSON.parse(File.read(filename))}
         expect(data['url']).to eq(url)
+      end
+    end
+
+    it 'removes tempfile' do
+      VCR.use_cassette('feed_info_download') do
+        path = nil
+        FeedInfo.download_to_tempfile(url) { |filename| path = filename }
+        expect(File.exists?(path)).to be false
       end
     end
 
