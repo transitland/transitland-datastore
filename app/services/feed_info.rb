@@ -1,6 +1,8 @@
 require 'net/http'
 
 class FeedInfo
+  CACHE_EXPIRATION = 1.hour
+
   def self.fetch(url, limit=10, &block)
     # http://ruby-doc.org/stdlib-2.2.3/libdoc/net/http/rdoc/Net/HTTP.html
     # You should choose a better exception.

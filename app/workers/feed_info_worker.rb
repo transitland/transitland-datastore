@@ -25,7 +25,7 @@ class FeedInfoWorker
         operators: operators.map { |o| OperatorSerializer.new(o).as_json }
       }
     end
-    Rails.cache.write(cachekey, data)
+    Rails.cache.write(cachekey, data, expires_in: FeedInfo::CACHE_EXPIRATION)
   end
 end
 
