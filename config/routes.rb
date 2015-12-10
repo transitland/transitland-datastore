@@ -27,9 +27,10 @@ Rails.application.routes.draw do
           post 'revert'
           post 'append'
         end
-        resources :change_payloads, only: [:index, :show] do
+        resources :change_payloads, only: [:index, :show, :create] do
           member do
             post 'update'
+            post 'destroy'
           end
         end
       end
