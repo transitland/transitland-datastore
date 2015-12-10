@@ -1,9 +1,9 @@
 class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
   include JsonCollectionPagination
 
-  before_filter :require_api_auth_token, only: [:update]
-  before_action :set_changeset, only: [:index]
-  before_action :set_change_payload, only: [:show, :update]
+  before_filter :require_api_auth_token, only: [:update, :create, :destroy]
+  before_action :set_changeset, only: [:index, :create]
+  before_action :set_change_payload, only: [:show, :update, :destroy]
 
   def index
     respond_to do |format|
@@ -20,6 +20,11 @@ class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
     end
   end
 
+  def create
+    @change_payload = @changeset.change_payloads.create(change_payload_params)
+    render json: @change_payload
+  end
+
   def show
     render json: @change_payload
   end
@@ -27,6 +32,11 @@ class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
   def update
     raise Changeset::Error.new(@changeset, 'cannot update a Changeset that has already been applied') if @changeset.applied
     @change_payload.update!(change_payload_params)
+    render json: @change_payload
+  end
+
+  def destroy
+    @change_payload.destroy!
     render json: @change_payload
   end
 
@@ -42,6 +52,6 @@ class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
 
   def set_change_payload
     @changeset = Changeset.find(params[:changeset_id])
-    @change_payload = ChangePayload.find(params[:id])
+    @change_payload = @changeset.change_payloads.find(params[:id])
   end
 end
