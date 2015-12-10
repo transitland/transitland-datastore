@@ -53,7 +53,11 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
       Rails.cache.write(cachekey, cachedata, expires_in: FeedInfo::CACHE_EXPIRATION)
       FeedInfoWorker.perform_async(url, cachekey)
     end
-    render json: cachedata
+    if cachedata[:status] == 'error'
+      render json: cachedata, status: 500
+    else
+      render json: cachedata
+    end
   end
 
   private
