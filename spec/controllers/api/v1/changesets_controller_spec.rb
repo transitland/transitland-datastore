@@ -78,6 +78,14 @@ describe Api::V1::ChangesetsController do
       expect(Changeset.first.applied).to eq true
       expect(Stop.count).to eq 1
     end
+
+    it 'should require auth token to instantly create and apply Changeset' do
+      @request.env['HTTP_AUTHORIZATION'] = nil
+      attrs = FactoryGirl.attributes_for(:changeset_with_payload)
+      attrs[:whenToApply] = 'instantlyIfClean'
+      post :create, changeset: attrs
+      expect(response.status).to eq(401)
+    end
   end
 
   context 'POST append' do
