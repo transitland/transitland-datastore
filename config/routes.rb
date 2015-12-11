@@ -22,6 +22,7 @@ Rails.application.routes.draw do
       get '/onestop_id/:onestop_id', to: 'onestop_id#show'
       resources :changesets, only: [:index, :show, :create, :update] do
         member do
+          post 'delete'
           post 'check'
           post 'apply'
           post 'revert'
@@ -30,7 +31,7 @@ Rails.application.routes.draw do
         resources :change_payloads, only: [:index, :show, :create] do
           member do
             post 'update'
-            post 'destroy'
+            post 'delete'
           end
         end
       end
