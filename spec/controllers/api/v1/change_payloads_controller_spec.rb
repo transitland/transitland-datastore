@@ -81,9 +81,9 @@ describe Api::V1::ChangePayloadsController do
       end
     end
 
-    context 'POST destroy' do
-      it 'destroys a ChangePayload' do
-        post :destroy, changeset_id: @changeset.id, id: @change_payload.id
+    context 'POST delete' do
+      it 'delete s a ChangePayload' do
+        post :delete, changeset_id: @changeset.id, id: @change_payload.id
         expect(ChangePayload.exists?(@change_payload.id)).to be(false)
         expect(@changeset.change_payloads.size).to eq(0)
       end
