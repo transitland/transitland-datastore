@@ -104,6 +104,14 @@ describe Api::V1::ChangesetsController do
       expect(Changeset.exists?(changeset.id)).to eq(false)
       expect(ChangePayload.exists?(change_payload.id)).to eq(false)
     end
+
+    it 'should require auth token to delete Changeset' do
+      @request.env['HTTP_AUTHORIZATION'] = nil
+      changeset = create(:changeset)
+      post :delete, id: changeset.id
+      expect(response.status).to eq(401)
+    end
+
   end
 
   context 'POST append' do

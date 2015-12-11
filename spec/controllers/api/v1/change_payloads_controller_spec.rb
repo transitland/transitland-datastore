@@ -82,10 +82,16 @@ describe Api::V1::ChangePayloadsController do
     end
 
     context 'POST delete' do
-      it 'delete s a ChangePayload' do
+      it 'deletes a ChangePayload' do
         post :delete, changeset_id: @changeset.id, id: @change_payload.id
         expect(ChangePayload.exists?(@change_payload.id)).to be(false)
         expect(@changeset.change_payloads.size).to eq(0)
+      end
+
+      it 'requires auth key to delete ChangePayload' do
+        @request.env['HTTP_AUTHORIZATION'] = nil
+        post :delete, changeset_id: @changeset.id, id: @change_payload.id
+        expect(response.status).to eq(401)
       end
     end
 end
