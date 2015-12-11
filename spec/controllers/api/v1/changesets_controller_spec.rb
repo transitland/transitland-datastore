@@ -88,6 +88,24 @@ describe Api::V1::ChangesetsController do
     end
   end
 
+  context 'POST delete' do
+    it 'should delete Changeset' do
+      changeset = create(:changeset)
+      post :delete, id: changeset.id
+      expect(Changeset.exists?(changeset.id)).to eq(false)
+    end
+
+    it 'should delete Changeset and dependent ChangePayloads' do
+      changeset = create(:changeset_with_payload)
+      change_payload = changeset.change_payloads.first
+      expect(Changeset.exists?(changeset.id)).to eq(true)
+      expect(ChangePayload.exists?(change_payload.id)).to eq(true)
+      post :delete, id: changeset.id
+      expect(Changeset.exists?(changeset.id)).to eq(false)
+      expect(ChangePayload.exists?(change_payload.id)).to eq(false)
+    end
+  end
+
   context 'POST append' do
     it 'should be able to append a change payload to a Changeset' do
       changeset = create(:changeset)
