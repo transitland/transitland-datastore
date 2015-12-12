@@ -29,7 +29,7 @@ class BaseRoute < ActiveRecord::Base
 
   include IsAnEntityImportedFromFeeds
 
-  attr_accessor :serves, :does_not_serve, :operated_by
+  attr_accessor :serves, :does_not_serve, :operated_by, :traverses
 end
 
 class Route < BaseRoute
@@ -118,6 +118,7 @@ class Route < BaseRoute
   has_many :routes_serving_stop
   has_many :stops, through: :routes_serving_stop
   has_many :schedule_stop_pairs
+  has_many :route_stop_patterns
   belongs_to :operator
 
   validates :name, presence: true

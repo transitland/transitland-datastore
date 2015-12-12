@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151205000820) do
+ActiveRecord::Schema.define(version: 20151212192213) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -118,12 +118,20 @@ ActiveRecord::Schema.define(version: 20151205000820) do
   create_table "current_route_stop_patterns", force: :cascade do |t|
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.hstore    "tags"
-    t.datetime  "created_at",                                                                                                  null: false
-    t.datetime  "updated_at",                                                                                                  null: false
-    t.string    "stop_pattern",                                                                                   default: [],              array: true
+    t.datetime  "created_at",                                                                                                     null: false
+    t.datetime  "updated_at",                                                                                                     null: false
+    t.string    "stop_pattern",                                                                                   default: [],                 array: true
     t.integer   "version"
     t.integer   "created_or_updated_in_changeset_id"
+    t.string    "onestop_id"
+    t.integer   "route_id"
+    t.string    "route_type"
+    t.boolean   "is_generated",                                                                                   default: false
+    t.boolean   "is_modified",                                                                                    default: false
+    t.boolean   "is_only_stop_points",                                                                            default: false
   end
+
+  add_index "current_route_stop_patterns", ["route_type", "route_id"], name: "index_current_route_stop_patterns_on_route_type_and_route_id", using: :btree
 
   create_table "current_routes", force: :cascade do |t|
     t.string    "onestop_id"
@@ -384,12 +392,20 @@ ActiveRecord::Schema.define(version: 20151205000820) do
   create_table "old_route_stop_patterns", force: :cascade do |t|
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.hstore    "tags"
-    t.datetime  "created_at",                                                                                                  null: false
-    t.datetime  "updated_at",                                                                                                  null: false
-    t.string    "stop_pattern",                                                                                   default: [],              array: true
+    t.datetime  "created_at",                                                                                                     null: false
+    t.datetime  "updated_at",                                                                                                     null: false
+    t.string    "stop_pattern",                                                                                   default: [],                 array: true
     t.integer   "version"
     t.integer   "created_or_updated_in_changeset_id"
+    t.string    "onestop_id"
+    t.integer   "route_id"
+    t.string    "route_type"
+    t.boolean   "is_generated",                                                                                   default: false
+    t.boolean   "is_modified",                                                                                    default: false
+    t.boolean   "is_only_stop_points",                                                                            default: false
   end
+
+  add_index "old_route_stop_patterns", ["route_type", "route_id"], name: "index_old_route_stop_patterns_on_route_type_and_route_id", using: :btree
 
   create_table "old_routes", force: :cascade do |t|
     t.string    "onestop_id"

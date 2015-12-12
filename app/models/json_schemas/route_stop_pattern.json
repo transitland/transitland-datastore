@@ -18,6 +18,11 @@
         "format": "stop-onestop-id"
       }
     },
+    "onestopId": {"type": "string"},
+    "traversedBy": {
+      "type": "string",
+      "format": "route-onestop-id"
+    },
     "importedFromFeed": {
       "type": "object",
       "properties": {

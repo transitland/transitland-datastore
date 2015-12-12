@@ -13,6 +13,10 @@ class GTFSGraph
     @gtfs_to_onestop_id = {}
     # TL Indexed by Onestop ID
     @onestop_id_to_entity = {}
+
+    # for lack of a better place, for now
+    @onestop_id_to_rsp = {}
+    @trip_id_to_rsp = {}
   end
 
   def create_change_osr(import_level=0)
@@ -25,7 +29,7 @@ class GTFSGraph
     operators = load_tl_operators
     routes = operators.map { |operator| operator.serves }.reduce(Set.new, :+)
     stops = routes.map { |route| route.serves }.reduce(Set.new, :+)
-    rsps = load_tl_route_geometries
+    rsps = routes.map { |route| route.route_stop_patterns }.reduce(Set.new, :+)
     log "Create changeset"
     changeset = Changeset.create()
     log "Create: Operators, Stops, Routes"
@@ -105,21 +109,6 @@ class GTFSGraph
     log "  apply done: total time: #{Time.now - t}"
   end
 
-  def load_tl_route_geometries
-    rsps = []
-    log "Create changeset"
-    changeset = Changeset.create()
-    @gtfs.trip_stop_times(@gtfs.trips) do |trip,stop_times|
-      # TODO: no shape_id given
-      shape_points = @gtfs.shape_line(trip.shape_id)
-      stop_pattern = stop_times.map { |st| @gtfs_to_onestop_id[@gtfs.stop(st.stop_id)] }
-      # TODO: ignore duplicates
-      rsp = RouteStopPattern.from_gtfs(trip, stop_pattern, shape_points)
-      rsps << rsp
-    end
-    rsps
-  end
-
   def import_log
     @log.join("\n")
   end
@@ -172,43 +161,6 @@ class GTFSGraph
     end
   end
 
-  def load_tl_routes
-    # Routes
-    log "  routes"
-    @gtfs.routes.each do |entity|
-      # Find: (child gtfs trips) to (child gtfs stops) to (tl stops)
-      stops = @gtfs.children(entity)
-        .map { |trip| @gtfs.children(trip) }
-        .reduce(Set.new, :+)
-        .map { |stop| find_by_gtfs_entity(stop) }
-        .to_set
-      # Skip Route if no Stops
-      next if stops.empty?
-      # Find uniq shape_ids of trip_ids, filter missing shapes, build geometry.
-      geometry = Route::GEOFACTORY.multi_line_string(
-        @gtfs
-          .children(entity)
-          .map(&:shape_id)
-          .uniq
-          .compact
-          .map { |shape_id| @gtfs.shape_line(shape_id) }
-          .map { |coords| Route::GEOFACTORY.line_string( coords.map { |lon, lat| Route::GEOFACTORY.point(lon, lat) } ) }
-      )
-      # Search by similarity
-      # ... or create route from GTFS
-      route = Route.from_gtfs(entity, stops)
-      # ... check if Route exists, or another local Route, or new.
-      route = find_by_entity(route)
-      # Set geometry
-      route[:geometry] = geometry
-      # Add references and identifiers
-      route.serves ||= Set.new
-      route.serves |= stops
-      add_identifier(route, 'r', entity)
-      log "    #{route.onestop_id}: #{route.name}"
-    end
-  end
-
   def load_tl_operators
     # Operators
     log "  operators"
@@ -249,6 +201,135 @@ class GTFSGraph
     end
     # Return operators
     operators
+  end
+
+  def load_tl_routes
+    # Routes
+    log "  routes"
+    @gtfs.routes.each do |entity|
+      # Find: (child gtfs trips) to (child gtfs stops) to (tl stops)
+      stops = @gtfs.children(entity)
+        .map { |trip| @gtfs.children(trip) }
+        .reduce(Set.new, :+)
+        .map { |stop| find_by_gtfs_entity(stop) }
+        .to_set
+      # Skip Route if no Stops
+      next if stops.empty?
+      # Search by similarity
+      # ... or create route from GTFS
+      route = Route.from_gtfs(entity, stops)
+      # ... check if Route exists, or another local Route, or new.
+      route = find_by_entity(route)
+      load_tl_route_geometries(entity.route_id, route)
+      route[:geometry] = Route::GEOFACTORY.multi_line_string(
+        route.route_stop_patterns.to_set
+        .map { |rsp|
+          Route::GEOFACTORY.line_string(rsp.geometry[:coordinates]
+            .map { |lon, lat| Route::GEOFACTORY.point(lon, lat) }
+          )
+        }
+      )
+      #route[:geometry] = Route.convex_hull(route.route_stop_patterns, as: :wkt, projected: false)
+      # Add references and identifiers
+      route.serves ||= Set.new
+      route.serves |= stops
+      add_identifier(route, 'r', entity)
+      log "    #{route.onestop_id}: #{route.name}"
+    end
+  end
+
+  def load_tl_route_geometries(gtfs_route_id, tl_route)
+    @gtfs.trip_stop_times(@gtfs.trips.select {|t| t.route_id == gtfs_route_id}) do |trip,stop_times|
+      stop_pattern = stop_times.map { |st| @gtfs_to_onestop_id[@gtfs.stop(st.stop_id)] }
+      next if stop_pattern.empty?
+      feed_shape_points = @gtfs.shape_line(trip.shape_id)
+      # temporary RouteStopPattern
+      rsp = RouteStopPattern.from_gtfs(trip, stop_pattern, feed_shape_points)
+      tl_shape_points(trip, stop_times, rsp)
+      rsp = find_rsp(tl_route.onestop_id, rsp)
+      # associate with trip_ids for later use by ScheduleStopPair
+      @trip_id_to_rsp[trip.trip_id] = rsp
+      tl_route.route_stop_patterns << rsp
+    end
+  end
+
+  def tl_shape_points(trip, stop_times, rsp)
+    trip_stop_points = stop_times.map {|st| @gtfs.stop(st.stop_id)}
+    .map {|s| [s.stop_lat, s.stop_lon]}
+    if trip.shape_id.nil? || @gtfs.shape_line(trip.shape_id).empty?
+      rsp.geometry = RouteStopPattern.new_geometry(trip_stop_points)
+      rsp.is_generated = true
+      rsp.is_modified = true
+      rsp.is_only_stop_points = true
+    else
+      if trip_stop_points.eql?(rsp.geometry[:coordinates])
+        rsp.is_only_stop_points = true
+      end
+    end
+  end
+
+  def find_rsp(route_onestop_id, test_rsp)
+    candidate_rsps = matching_by_route_onestop_ids(route_onestop_id)
+    rsp = evaluate_matching_by_route_onestop_ids(candidate_rsps, route_onestop_id, test_rsp)
+    if rsp.nil?
+      stop_pattern_rsps = matching_stop_pattern_rsps(candidate_rsps, test_rsp)
+      geometry_rsps = matching_geometry_rsps(candidate_rsps, test_rsp)
+      rsp = evaluate_matching_by_structure(route_onestop_id, stop_pattern_rsps, geometry_rsps, test_rsp)
+    end
+    rsp
+  end
+
+  def evaluate_matching_by_route_onestop_ids(candidate_rsps, route_onestop_id, test_rsp)
+    if candidate_rsps.empty?
+      onestop_id = "#{route_onestop_id}#S1#G1"
+      @onestop_id_to_rsp[onestop_id] = test_rsp
+      test_rsp.onestop_id = onestop_id
+      test_rsp
+    end
+  end
+
+  def evaluate_matching_by_structure(route_onestop_id, stop_pattern_rsps, geometry_rsps, test_rsp)
+    s = ""
+    if stop_pattern_rsps.empty?
+      s = RouteStopPattern.generate_component_id(route_onestop_id, @onestop_id_to_rsp.keys,'S')
+    else
+      s = stop_pattern_rsps[0].onestop_id.split("#")[1]
+    end
+
+    g = ""
+    if geometry_rsps.empty?
+      g = RouteStopPattern.generate_component_id(route_onestop_id, @onestop_id_to_rsp.keys,'G')
+    else
+      g = geometry_rsps[0].onestop_id.split("#")[2]
+    end
+
+    rsp = test_rsp
+    onestop_id = "#{route_onestop_id}##{s}##{g}"
+    if @onestop_id_to_rsp.has_key?(onestop_id)
+      rsp = @onestop_id_to_rsp[onestop_id]
+    else
+      test_rsp.onestop_id = onestop_id
+      @onestop_id_to_rsp[onestop_id] = test_rsp
+    end
+    rsp
+  end
+
+  def matching_by_route_onestop_ids(route_onestop_id)
+    @onestop_id_to_rsp.keys.select {|k| k.to_s.match(/^#{route_onestop_id}/)}
+    .map {|onestop_id| @onestop_id_to_rsp[onestop_id]}
+    .concat(RouteStopPattern.route_onestop_id(route_onestop_id))
+  end
+
+  def matching_stop_pattern_rsps(candidate_rsps, test_rsp)
+    candidate_rsps.select { |c_rsp|
+      c_rsp.stop_pattern.eql?(test_rsp.stop_pattern)
+    }
+  end
+
+  def matching_geometry_rsps(matching_stop_pattern_rsps, test_rsp)
+    matching_stop_pattern_rsps.select { |o_rsp|
+      o_rsp.geometry[:coordinates].eql?(test_rsp.geometry[:coordinates])
+    }
   end
 
   def find_by_gtfs_entity(entity)
@@ -388,6 +469,8 @@ class GTFSGraph
       },
       stopPattern: entity.stop_pattern,
       geometry: entity.geometry,
+      onestopId: entity.onestop_id,
+      traversedBy: entity.route.onestop_id,
       tags: entity.tags || {}
     }
   end
