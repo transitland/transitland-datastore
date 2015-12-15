@@ -46,7 +46,7 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
 
   def destroy
     @changeset.destroy!
-    return render json: @changeset
+    return render json: {}
   end
 
   def update

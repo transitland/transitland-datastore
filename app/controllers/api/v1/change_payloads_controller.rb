@@ -37,7 +37,7 @@ class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
 
   def destroy
     @change_payload.destroy!
-    render json: @change_payload
+    render json: {}
   end
 
   private
