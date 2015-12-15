@@ -18,10 +18,24 @@
         "format": "stop-onestop-id"
       }
     },
+    "identifiedBy": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
     "onestopId": {"type": "string"},
     "traversedBy": {
       "type": "string",
       "format": "route-onestop-id"
+    },
+    "trips": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
     },
     "importedFromFeed": {
       "type": "object",

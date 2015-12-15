@@ -229,7 +229,6 @@ class GTFSGraph
           )
         }
       )
-      #route[:geometry] = Route.convex_hull(route.route_stop_patterns, as: :wkt, projected: false)
       # Add references and identifiers
       route.serves ||= Set.new
       route.serves |= stops
@@ -245,27 +244,41 @@ class GTFSGraph
       feed_shape_points = @gtfs.shape_line(trip.shape_id)
       # temporary RouteStopPattern
       rsp = RouteStopPattern.from_gtfs(trip, stop_pattern, feed_shape_points)
-      tl_shape_points(trip, stop_times, rsp)
+      inspect_rsp_geometry(trip, stop_times, rsp)
       rsp = find_rsp(tl_route.onestop_id, rsp)
+      add_identifier(rsp, 'rsp', trip) # trip is closest entity match we have to rsp
       # associate with trip_ids for later use by ScheduleStopPair
       @trip_id_to_rsp[trip.trip_id] = rsp
+      rsp.trips << trip.trip_id
       tl_route.route_stop_patterns << rsp
     end
   end
 
-  def tl_shape_points(trip, stop_times, rsp)
+  def inspect_rsp_geometry(trip, stop_times, rsp)
+    issues = {:empty => false}
     trip_stop_points = stop_times.map {|st| @gtfs.stop(st.stop_id)}
     .map {|s| [s.stop_lat, s.stop_lon]}
     if trip.shape_id.nil? || @gtfs.shape_line(trip.shape_id).empty?
+      issues[:empty] = true
+    else
+      if Set.new(trip_stop_points).subset?(Set.new(rsp.geometry[:coordinates]))
+        rsp.is_only_stop_points = true
+      end
+    end
+    # more inspections will go here
+    # then, modify rsp geometry based on issues
+    tl_rsp_geometry(rsp, trip_stop_points, issues)
+  end
+
+  def tl_rsp_geometry(rsp, trip_stop_points, issues)
+    if issues[:empty]
+      # create a new geometry from the trip stop points
       rsp.geometry = RouteStopPattern.new_geometry(trip_stop_points)
       rsp.is_generated = true
       rsp.is_modified = true
       rsp.is_only_stop_points = true
-    else
-      if trip_stop_points.eql?(rsp.geometry[:coordinates])
-        rsp.is_only_stop_points = true
-      end
     end
+    # more geometry modification will go here
   end
 
   def find_rsp(route_onestop_id, test_rsp)
@@ -326,8 +339,8 @@ class GTFSGraph
     }
   end
 
-  def matching_geometry_rsps(matching_stop_pattern_rsps, test_rsp)
-    matching_stop_pattern_rsps.select { |o_rsp|
+  def matching_geometry_rsps(candidate_rsps, test_rsp)
+    candidate_rsps.select { |o_rsp|
       o_rsp.geometry[:coordinates].eql?(test_rsp.geometry[:coordinates])
     }
   end
@@ -463,13 +476,15 @@ class GTFSGraph
 
   def make_change_rsp(entity)
     {
+      onestopId: entity.onestop_id,
+      identifiedBy: entity.identified_by.uniq,
       importedFromFeed: {
         onestopId: @feed.onestop_id,
         sha1: @feed_version.sha1
       },
       stopPattern: entity.stop_pattern,
       geometry: entity.geometry,
-      onestopId: entity.onestop_id,
+      trips: entity.trips,
       traversedBy: entity.route.onestop_id,
       tags: entity.tags || {}
     }

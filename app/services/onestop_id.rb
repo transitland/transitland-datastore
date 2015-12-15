@@ -5,14 +5,16 @@ class OnestopId
     'stop' => 's',
     'operator' => 'o',
     'feed' => 'f',
-    'route' => 'r'
+    'route' => 'r',
+    'route_stop_pattern' => 'rsp'
   }
   PREFIX_TO_ENTITY = ENTITY_TO_PREFIX.invert
   PREFIX_TO_MODEL = {
     's' => Stop,
     'o' => Operator,
     'r' => Route,
-    'f' => Feed
+    'f' => Feed,
+    'rsp' => RouteStopPattern
   }
   MODEL_TO_PREFIX = PREFIX_TO_MODEL.invert
   COMPONENT_SEPARATOR = '-'

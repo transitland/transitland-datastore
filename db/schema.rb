@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151212192213) do
+ActiveRecord::Schema.define(version: 20151215193448) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -129,6 +129,8 @@ ActiveRecord::Schema.define(version: 20151212192213) do
     t.boolean   "is_generated",                                                                                   default: false
     t.boolean   "is_modified",                                                                                    default: false
     t.boolean   "is_only_stop_points",                                                                            default: false
+    t.string    "trips",                                                                                          default: [],                 array: true
+    t.string    "identifiers",                                                                                    default: [],                 array: true
   end
 
   add_index "current_route_stop_patterns", ["route_type", "route_id"], name: "index_current_route_stop_patterns_on_route_type_and_route_id", using: :btree
@@ -403,6 +405,8 @@ ActiveRecord::Schema.define(version: 20151212192213) do
     t.boolean   "is_generated",                                                                                   default: false
     t.boolean   "is_modified",                                                                                    default: false
     t.boolean   "is_only_stop_points",                                                                            default: false
+    t.string    "trips",                                                                                          default: [],                 array: true
+    t.string    "identifiers",                                                                                    default: [],                 array: true
   end
 
   add_index "old_route_stop_patterns", ["route_type", "route_id"], name: "index_old_route_stop_patterns_on_route_type_and_route_id", using: :btree

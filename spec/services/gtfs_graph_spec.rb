@@ -112,6 +112,20 @@ describe GTFSGraph do
     end
   end
 
+  context 'can create RouteStopPattern' do
+    before(:each) do
+      @feed, @feed_version = load_feed(1)
+    end
+
+    it 'created known RouteStopPatterns' do
+      expect(@feed.imported_route_stop_patterns.count).to eq(51)
+    end
+
+    it 'generated RouteStopPattern geometries when no shapes existed' do
+      
+    end
+  end
+
   context 'can apply a level 2 changeset' do
 
     before(:each) { @feed, @feed_version = load_feed(2) }

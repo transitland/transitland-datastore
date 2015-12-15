@@ -16,14 +16,13 @@
 #  is_generated                       :boolean          default(FALSE)
 #  is_modified                        :boolean          default(FALSE)
 #  is_only_stop_points                :boolean          default(FALSE)
+#  trips                              :string           default([]), is an Array
+#  identifiers                        :string           default([]), is an Array
 #
 # Indexes
 #
 #  index_current_route_stop_patterns_on_route_type_and_route_id  (route_type,route_id)
 #
-
-# TODO: associate SSP,
-# calc distances (in separate import level)
 
 class BaseRouteStopPattern < ActiveRecord::Base
   self.abstract_class = true
@@ -36,9 +35,11 @@ end
 class RouteStopPattern < BaseRouteStopPattern
   self.table_name_prefix = 'current_'
 
-  belongs_to :route
+  belongs_to :route #route_type for polymorphic association?
   validates :geometry, :stop_pattern, presence: true
 
+  #include HasAOnestopId
+  include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
   include HasTags
   include UpdatedSince
@@ -46,9 +47,11 @@ class RouteStopPattern < BaseRouteStopPattern
   # Tracked by changeset
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
-    kind_of_model_tracked: :relationship,
+    kind_of_model_tracked: :onestop_entity,
     virtual_attributes: [
       :imported_from_feed,
+      :identified_by,
+      :not_identified_by,
       :traversed_by
     ]
   })
@@ -78,17 +81,10 @@ class RouteStopPattern < BaseRouteStopPattern
 
   def self.generate_component_id(route_onestop_id, feed_onestop_ids, component)
     # S for stop_pattern, G for geometry
-    component_count = 0
-    component_num = 0
-    if component == 'S'
-      component_num = 1
-      component_count += unique_components_by_route_onestop_id(route_onestop_id, component_num).size
-    elsif component == 'G'
-      component_num = 2
-      component_count += unique_components_by_route_onestop_id(route_onestop_id, component_num).size
-    end
+    component_num_hash = {'S' => 1, 'G' => 2}
+    component_count = unique_components_by_route_onestop_id(route_onestop_id, component_num_hash[component]).size
     component_count += feed_onestop_ids.select {|f_id| f_id.split("#")[0] == route_onestop_id}
-      .map {|f_id| f_id.split("#")[component_num]}.uniq.size
+      .map {|f_id| f_id.split("#")[component_num_hash[component]]}.uniq.size
     "#{component}#{component_count + 1}"
   end
 

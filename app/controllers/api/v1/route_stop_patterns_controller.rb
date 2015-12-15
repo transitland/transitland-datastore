@@ -29,7 +29,7 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
           params[:offset],
           params[:per_page],
           params[:total],
-          params.slice(:onestop_id)
+          params.slice(:onestop_id, :traversedBy)
         )
       end
       format.geojson do
