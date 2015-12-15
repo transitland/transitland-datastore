@@ -88,10 +88,10 @@ describe Api::V1::ChangesetsController do
     end
   end
 
-  context 'POST delete' do
+  context 'POST destroy' do
     it 'should delete Changeset' do
       changeset = create(:changeset)
-      post :delete, id: changeset.id
+      post :destroy, id: changeset.id
       expect(Changeset.exists?(changeset.id)).to eq(false)
     end
 
@@ -100,7 +100,7 @@ describe Api::V1::ChangesetsController do
       change_payload = changeset.change_payloads.first
       expect(Changeset.exists?(changeset.id)).to eq(true)
       expect(ChangePayload.exists?(change_payload.id)).to eq(true)
-      post :delete, id: changeset.id
+      post :destroy, id: changeset.id
       expect(Changeset.exists?(changeset.id)).to eq(false)
       expect(ChangePayload.exists?(change_payload.id)).to eq(false)
     end
@@ -108,7 +108,7 @@ describe Api::V1::ChangesetsController do
     it 'should require auth token to delete Changeset' do
       @request.env['HTTP_AUTHORIZATION'] = nil
       changeset = create(:changeset)
-      post :delete, id: changeset.id
+      post :destroy, id: changeset.id
       expect(response.status).to eq(401)
     end
 

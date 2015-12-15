@@ -1,9 +1,9 @@
 class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
   include JsonCollectionPagination
 
-  before_filter :require_api_auth_token, only: [:update, :create, :delete]
+  before_filter :require_api_auth_token, only: [:update, :create, :destroy]
   before_action :set_changeset, only: [:index, :create]
-  before_action :set_change_payload, only: [:show, :update, :delete]
+  before_action :set_change_payload, only: [:show, :update, :destroy]
 
   def index
     respond_to do |format|
@@ -35,7 +35,7 @@ class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
     render json: @change_payload
   end
 
-  def delete
+  def destroy
     @change_payload.destroy!
     render json: @change_payload
   end
