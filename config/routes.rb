@@ -20,20 +20,14 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       get '/onestop_id/:onestop_id', to: 'onestop_id#show'
-      resources :changesets, only: [:index, :show, :create, :update] do
+      resources :changesets, only: [:index, :show, :create, :update, :destroy] do
         member do
-          post 'delete'
           post 'check'
           post 'apply'
           post 'revert'
           post 'append'
         end
-        resources :change_payloads, only: [:index, :show, :create] do
-          member do
-            post 'update'
-            post 'delete'
-          end
-        end
+        resources :change_payloads, only: [:index, :show, :create, :update, :destroy]
       end
       resources :stops, only: [:index, :show]
       resources :operators, only: [:index, :show]
