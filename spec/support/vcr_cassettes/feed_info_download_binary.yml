@@ -1,0 +1,63 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: http://httpbin.org/stream-bytes/1024?seed=0
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 200
+      message: OK
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Wed, 09 Dec 2015 00:36:53 GMT
+      Content-Type:
+      - application/octet-stream
+      Transfer-Encoding:
+      - chunked
+      Connection:
+      - keep-alive
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Allow-Credentials:
+      - 'true'
+    body:
+      encoding: ASCII-8BIT
+      string: !binary |-
+        2MJrQoJnyE16leiBSMGeQOj7z+ZPuuaveBlvnOn3et1CzowDuGbTqwB+3j5T
+        3jCRPffNchRRgu4bjbSM0Ir2mpZxmGKTSjAvnKh5FsHg7Nfl7IpktEbP2eWW
+        85Rzqf/qyxWcfKHYPrsdOMtV0BklsguS6IiuBqKbk2Re+wkF9i8fNczvBWwZ
+        QjilWS6AChn8M1u71usrrPcOrdhXQJhxLHhokYJPW9ZAjwO9VQtHPfRaSVvy
+        op63Y2qmADFVPaNg4JFqZrNrqQtyQiiHfI/B4n5Pd8/gzzD/ohW5/GatUDa3
+        ANKHGR6m30f6GdplFEZzytwihaZY30cECq6O8vDoCr+zp7bno1+JNZYCJlXK
+        t1aeCin7SmWMS3o9DC2FEmdUahnoedf5V3qzbU285OugYPmjEBW/DwJkhHJ9
+        la1sXv1Cxm5bEN2z53OtHmU1CvI3JTJgiyb9+yVnruB+6lJ/f6sznDhX9ubR
+        CSVByNeVt84QFd4KOQoD2FQpJqf3geaAkq3Owv2/5zSJmdN7ymOW2cyoAC6B
+        QRDc8U1ozw+kIEnUDglqfd23rCb8aZxiDHgmCJ6hGoxYYsZ94Zx3oVYfrp/J
+        IOnM6t+uz4TJMMhxwXTKEwvvfObxqpI3F9Hjx7JrTh1tkOzvahnGuwdyrwfr
+        9rgUElsHWQL50RLkNTSs8B8BXgaa2y8cWPUh91x5Su/1oi/+GpQo5fLNUD7B
+        SmsLIQUTEmuMvSRsoxVxXvIOaGq6UjRLePPLRo6wy3JmxG4/dO8kdqN7NACy
+        ngFMxKGLJ7R4rcI7w0f7HuIKQYaUZRpASMHomAnKTleHP+spakqFkqCIaaJn
+        x8lKX6AosmGXI6taeWp6sVGmD0y+DZ8GeOMChhHdr72rAQqe/9+zujrASRp1
+        VCtr5W9ytYYh6XHKY85jODLwlgxjOxUvDqMsnJy0g0jgWnWhhPT07u+UfbQ3
+        RAspAKcjya74Zet0Vhriy1J0UwcLXjWGMDOsvE/cQVi2C+8SdbkMz/p1HhQZ
+        w2nrcBNtwdQKLn0g3u9Rb45JijNLcZqJQjseyBm7P0i8qL2D2x+lHrxbrLSp
+        ONQ9hKw7oEkrz41TlQYhZfmCE8PIxpGyNrvQwlqXoeYb1YZbdAM4p6l+9HtQ
+        2UKatNLJYg8JufZXcLmoQqtOW4q7JgWgBgs5pxEP+GzkN29bLVT8v2FoQ4i8
+        r3YK62hjACPeg7slVNfSPwXOK8mvKxTtmZ51JppAzrsG7gkWSiY8W7xnRX5k
+        T+aM+sWSQ690uGd+Bb0IrpTGSq81h1f6+DWQVPfslriuWurmVL8C0JDzXKBS
+        yJn8ACQLIO3yevLRx78wjGzzLCuoKByBy5rBREht/bfyiQ==
+    http_version: 
+  recorded_at: Wed, 09 Dec 2015 00:36:53 GMT
+recorded_with: VCR 3.0.0
