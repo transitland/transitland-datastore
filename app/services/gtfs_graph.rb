@@ -26,6 +26,7 @@ class GTFSGraph
     log "Load TL"
     load_tl_stops
     load_tl_routes
+    load_tl_route_stop_patterns
     operators = load_tl_operators
     routes = operators.map { |operator| operator.serves }.reduce(Set.new, :+)
     stops = routes.map { |route| route.serves }.reduce(Set.new, :+)
@@ -220,15 +221,6 @@ class GTFSGraph
       route = Route.from_gtfs(entity, stops)
       # ... check if Route exists, or another local Route, or new.
       route = find_by_entity(route)
-      load_tl_route_geometries(entity.route_id, route)
-      route[:geometry] = Route::GEOFACTORY.multi_line_string(
-        route.route_stop_patterns.to_set
-        .map { |rsp|
-          Route::GEOFACTORY.line_string(rsp.geometry[:coordinates]
-            .map { |lon, lat| Route::GEOFACTORY.point(lon, lat) }
-          )
-        }
-      )
       # Add references and identifiers
       route.serves ||= Set.new
       route.serves |= stops
@@ -237,11 +229,13 @@ class GTFSGraph
     end
   end
 
-  def load_tl_route_geometries(gtfs_route_id, tl_route)
-    @gtfs.trip_stop_times(@gtfs.trips.select {|t| t.route_id == gtfs_route_id}) do |trip,stop_times|
-      stop_pattern = stop_times.map { |st| @gtfs_to_onestop_id[@gtfs.stop(st.stop_id)] }
-      next if stop_pattern.empty?
+  def load_tl_route_stop_patterns
+    @gtfs.trip_stop_times do |trip,stop_times|
       feed_shape_points = @gtfs.shape_line(trip.shape_id)
+      tl_stops = stop_times.map { |stop_time| find_by_gtfs_entity(@gtfs.stop(stop_time.stop_id)) }
+      tl_route = find_by_gtfs_entity(@gtfs.parents(trip).first)
+      stop_pattern = tl_stops.map(&:onestop_id)
+      next if stop_pattern.empty?
       # temporary RouteStopPattern
       rsp = RouteStopPattern.from_gtfs(trip, stop_pattern, feed_shape_points)
       inspect_rsp_geometry(trip, stop_times, rsp)
@@ -470,7 +464,15 @@ class GTFSGraph
       operatedBy: entity.operator.onestop_id,
       serves: entity.serves.map(&:onestop_id),
       tags: entity.tags || {},
-      geometry: entity.geometry
+      # geometry: entity.geometry
+      # route[:geometry] = Route::GEOFACTORY.multi_line_string(
+      #   route.route_stop_patterns.to_set
+      #   .map { |rsp|
+      #     Route::GEOFACTORY.line_string(rsp.geometry[:coordinates]
+      #       .map { |lon, lat| Route::GEOFACTORY.point(lon, lat) }
+      #     )
+      #   }
+      # )
     }
   end
 
@@ -594,7 +596,7 @@ if __FILE__ == $0
   feed_onestop_id = ARGV[0] || 'f-9q9-caltrain'
   FeedFetcherWorker.perform_async(feed_onestop_id)
   FeedFetcherWorker.drain
-  FeedEaterWorker.perform_async(feed_onestop_id, nil, 2)
+  FeedEaterWorker.perform_async(feed_onestop_id, nil, 1)
   FeedEaterWorker.drain
   FeedEaterScheduleWorker.drain
 end
