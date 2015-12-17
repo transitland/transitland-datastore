@@ -35,7 +35,8 @@ end
 class RouteStopPattern < BaseRouteStopPattern
   self.table_name_prefix = 'current_'
 
-  belongs_to :route #route_type for polymorphic association?
+  belongs_to :route #type for polymorphic association?
+  has_many :schedule_stop_pairs
   validates :geometry, :stop_pattern, presence: true
 
   #include HasAOnestopId
@@ -94,9 +95,96 @@ class RouteStopPattern < BaseRouteStopPattern
     )
   end
 
+  def distance_sq(p1,p2)
+    (p2[0] - p1[0])**2 + (p2[1] - p1[1])**2
+  end
+
+  def distance_to_segment(t, p1, p2)
+    s = distance_sq(p1, p2).to_f
+    return Math.sqrt(distance_sq(p1, t)) if (s == 0)
+    a = ((t[0] - p1[0])*(p2[0] - p1[0]) + (t[1] - p1[1])*(p2[1] - p1[1])).to_f / s
+    return Math.sqrt(distance_sq(t, p1)) if (a < 0)
+    return Math.sqrt(distance_sq(t, p2)) if (a > 1)
+    x = p1[0] + a*(p2[0] - p1[0])
+    y = p1[1] + a*(p2[1] - p1[1])
+    Math.sqrt(distance_sq(t, [x,y]))
+  end
+
+  def nearest_segment_point(t, p1, p2)
+    s = distance_sq(p1, p2).to_f
+    return p1 if (s == 0)
+    a = ((t[0] - p1[0])*(p2[0] - p1[0]) + (t[1] - p1[1])*(p2[1] - p1[1])).to_f / s
+    return p1 if (a < 0)
+    return p2 if (a > 1)
+    x = p1[0] + a*(p2[0] - p1[0])
+    y = p1[1] + a*(p2[1] - p1[1])
+    [x, y]
+  end
+
+  def calculate_distances
+    distances_map = {}
+    segments = []
+    self.geometry[:coordinates][1..-1].each_index {|i| segments << [self.geometry[:coordinates][i], self.geometry[:coordinates][i+1]]}
+    total_distance = 0.0
+    self.stop_pattern.map {|s| Stop.find_by_onestop_id!(s)}.each do |stop|
+      stop_seg_distances = []
+      segments.each do |s|
+        stop_seg_distances << distance_to_segment(stop.geometry[:coordinates], s[0], s[1])
+      end
+      min_i = stop_seg_distances.index(stop_seg_distances.min)
+      seg_point = nearest_segment_point(stop.geometry[:coordinates], segments[min_i][0], segments[min_i][1])
+      first_cut = []
+      second_cut = []
+      if seg_point.eql?(segments[min_i][0])
+        first_cut = segments[0...min_i]
+        second_cut = segments[min_i..-1]
+      elsif seg_point.eql?(segments[min_i][1])
+        first_cut = segments[0..min_i]
+        second_cut = segments[min_i+1..-1]
+      else
+        # seg point is somewhere on the segment between endpoints
+        first_cut = segments[0...min_i] << [segments[min_i][0], seg_point]
+        second_cut = segments[min_i+1..-1].unshift([seg_point, segments[min_i][1]])
+      end
+
+      if !first_cut.empty?
+        total_distance += first_cut.map{|s| distance = Haversine.distance(s[0][1], s[0][0], s[1][1], s[1][0]).to_m }.reduce(:+)
+      end
+      distances_map[stop.onestop_id] = total_distance
+      segments = second_cut
+    end
+    distances_map
+  end
+
+  def inspect_geometry(trip, stop_points)
+    issues = {:empty => false}
+    if trip.shape_id.nil? || self.geometry[:coordinates].empty?
+      issues[:empty] = true
+    else
+      if Set.new(stop_points).subset?(Set.new(self.geometry[:coordinates]))
+        self.is_only_stop_points = true
+      end
+    end
+    # more inspections will go here
+    issues
+  end
+
+  def tl_geometry(stop_points, issues)
+    # modify rsp geometry based on issues
+    if issues[:empty]
+      # create a new geometry from the trip stop points
+      self.geometry = RouteStopPattern.new_geometry(stop_points)
+      self.is_generated = true
+      self.is_modified = true
+      self.is_only_stop_points = true
+    end
+    # more geometry modification will go here
+  end
+
   ##### FromGTFS ####
   include FromGTFS
   def self.from_gtfs(trip, stop_pattern, shape_points)
+    raise ArgumentError.new('Need at least one Stop') if stop_pattern.empty? || shape_points.empty?
     rsp = RouteStopPattern.new(
       stop_pattern: stop_pattern,
       geometry: self.new_geometry(shape_points)

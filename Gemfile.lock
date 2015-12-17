@@ -146,6 +146,7 @@ GEM
     globalid (0.3.6)
       activesupport (>= 4.1.0)
     hashdiff (0.2.3)
+    haversine (0.3.0)
     http-cookie (1.0.2)
       domain_name (~> 0.5)
     i18n (0.7.0)
@@ -362,6 +363,7 @@ DEPENDENCIES
   fog-aws
   foreman
   gtfs!
+  haversine
   json-schema
   marginalia
   mock_redis
