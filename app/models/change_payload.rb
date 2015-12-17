@@ -75,19 +75,17 @@ class ChangePayload < ActiveRecord::Base
     end
   end
 
-  def validate_payload
-    payload_validation_errors = JSON::Validator.fully_validate(
+  def payload_validation_errors
+    JSON::Validator.fully_validate(
       File.join(__dir__, 'json_schemas', 'changeset.json'),
       self.payload,
       errors_as_objects: true
     )
-    if payload_validation_errors.length > 0
-      payload_validation_errors.each do |error|
-        errors.add(:payload, error[:message])
-      end
-      false
-    else
-      true
+  end
+
+  def validate_payload
+    payload_validation_errors.each do |error|
+      errors.add(:payload, error[:message])
     end
   end
 
