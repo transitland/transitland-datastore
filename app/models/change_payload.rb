@@ -35,6 +35,9 @@ class ChangePayload < ActiveRecord::Base
   JSON::Validator.register_format_validator('feed-onestop-id', -> (onestop_id) {
     onestop_id_format_proc.call(onestop_id, 'feed')
   })
+  JSON::Validator.register_format_validator('route-onestop-id', -> (onestop_id) {
+    onestop_id_format_proc.call(onestop_id, 'route')
+  })
   JSON::Validator.register_format_validator('sha1', -> (sha1) {
     !!sha1.match(/^[0-9a-f]{5,40}$/)
   })
