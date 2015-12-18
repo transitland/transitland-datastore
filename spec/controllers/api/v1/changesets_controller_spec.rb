@@ -26,14 +26,13 @@ describe Api::V1::ChangesetsController do
       })
     end
 
-    it 'returns ChangePayloads in payload' do
+    it 'returns ChangePayloads IDs' do
       create_list(:changeset_with_payload, 2)
       changeset = Changeset.last
       get :show, id: changeset.id
-      payloads = changeset.change_payloads.map {|x| x.payload_as_ruby_hash[:changes]}
       expect_json({
         id: changeset.id,
-        payload: -> (payload) { payload[:changes].count == payloads.length},
+        change_payloads: changeset.change_payload_ids,
         applied: false,
         applied_at: nil
       })
@@ -69,15 +68,32 @@ describe Api::V1::ChangesetsController do
       post :create, changeset: attrs
       expect(response.status).to eq 200
     end
+  end
 
-    it 'should be able to instantly create and apply a Changeset with a valid payload' do
-      attrs = FactoryGirl.attributes_for(:changeset_with_payload)
-      attrs[:whenToApply] = 'instantlyIfClean'
-      post :create, changeset: attrs
-      expect(Changeset.count).to eq 1
-      expect(Changeset.first.applied).to eq true
-      expect(Stop.count).to eq 1
+  context 'POST destroy' do
+    it 'should delete Changeset' do
+      changeset = create(:changeset)
+      post :destroy, id: changeset.id
+      expect(Changeset.exists?(changeset.id)).to eq(false)
     end
+
+    it 'should delete Changeset and dependent ChangePayloads' do
+      changeset = create(:changeset_with_payload)
+      change_payload = changeset.change_payloads.first
+      expect(Changeset.exists?(changeset.id)).to eq(true)
+      expect(ChangePayload.exists?(change_payload.id)).to eq(true)
+      post :destroy, id: changeset.id
+      expect(Changeset.exists?(changeset.id)).to eq(false)
+      expect(ChangePayload.exists?(change_payload.id)).to eq(false)
+    end
+
+    it 'should require auth token to delete Changeset' do
+      @request.env['HTTP_AUTHORIZATION'] = nil
+      changeset = create(:changeset)
+      post :destroy, id: changeset.id
+      expect(response.status).to eq(401)
+    end
+
   end
 
   context 'POST append' do

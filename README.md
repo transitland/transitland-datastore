@@ -74,12 +74,19 @@ For a complete visualization of the Datastore's data model, see [doc/data-model.
 
 Example URL  | Parameters
 -------------|-----------
-`POST /api/v1/changesets` | include a [changeset payload](doc/changesets.md) in the request body ([secured](#api-authentication))
+`POST /api/v1/changesets` | include a [changeset payload](doc/changesets.md) in the request body
 `PUT /api/v1/changesets/32`<br/>(a Changeset can only be updated if it hasn't yet been applied)| include a [changeset payload](doc/changesets.md) in the request body ([secured](#api-authentication))
 `POST /api/v1/changesets/1/append` | Add an additional [changeset payload](doc/changesets.md) to a Changeset ([secured](#api-authentication))
 `POST /api/v1/changesets/1/check` | ([secured](#api-authentication))
 `POST /api/v1/changesets/1/apply` | ([secured](#api-authentication))
 `POST /api/v1/changesets/1/revert` | ([secured](#api-authentication))
+`DELETE /api/v1/changesets/1` | Delete Changeset ([secured](#api-authentication))
+`GET /api/v1/changesets/1/change_payloads` |
+`PUT /api/v1/changesets/1/change_payloads` |
+`POST /api/v1/changesets/1/change_payloads` |
+`GET /api/v1/changesets/1/change_payloads/1` |
+`PUT /api/v1/changesets/1/change_payloads/1` | ([secured](#api-authentication))
+`DELETE /api/v1/changesets/1/change_payloads/1` | ([secured](#api-authentication))
 `GET /api/v1/onestop_id/o-9q8y-SFMTA` | final part of the path can be a Onestop ID for any type of entity (for example, a stop or an operator)
 `GET /api/v1/stops` | none required
 `GET /api/v1/stops?identifier=4973` | `identifier` can be any type of stop identifier
