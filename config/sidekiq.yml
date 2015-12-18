@@ -3,7 +3,7 @@
 staging:
   :concurrency: 5
 production:
-  :concurrency: 20
+  :concurrency: 10
 :limits:
   feed_eater: 1
 :process_limits:
