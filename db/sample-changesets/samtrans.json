@@ -1,6 +1,5 @@
 {
   "changeset": {
-    "whenToApply": "instantlyIfClean",
     "payload": {
       "changes": [
         {

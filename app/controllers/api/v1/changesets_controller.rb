@@ -26,22 +26,8 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   end
 
   def create
-    params_for_this_changeset = changeset_params
-    when_to_apply = params_for_this_changeset.delete('whenToApply')
-    @changeset = Changeset.new(changeset_params)
-    if when_to_apply.presence == 'instantlyIfClean' && require_api_auth_token
-      @changeset.save!
-      trial_succeeds = @changeset.trial_succeeds?
-      if trial_succeeds
-        applied = @changeset.apply!
-        return render json: { applied: applied }
-      else
-        return render json: { trialSucceeds: trial_succeeds }
-      end
-    else
-      @changeset.save!
-      return render json: @changeset
-    end
+    @changeset = Changeset.create!(changeset_params)
+    return render json: @changeset
   end
 
   def destroy
