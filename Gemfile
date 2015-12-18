@@ -82,6 +82,9 @@ gem 'aws-sdk', group: [:staging, :production]
 # exception monitoring
 gem 'sentry-raven', group: [:staging, :production]
 
+# loggging
+gem 'logstasher'
+
 # database query performance monitoring/analysis
 gem 'bullet', group: :development
 gem 'pghero', group: [:development, :staging] # mounted at /admin/postgres
