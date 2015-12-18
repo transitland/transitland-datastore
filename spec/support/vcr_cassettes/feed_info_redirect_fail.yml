@@ -1,0 +1,89 @@
+---
+http_interactions:
+- request:
+    method: get
+    uri: http://httpbin.org/absolute-redirect/6
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 302
+      message: FOUND
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Wed, 09 Dec 2015 00:27:11 GMT
+      Content-Type:
+      - text/html; charset=utf-8
+      Content-Length:
+      - '283'
+      Connection:
+      - keep-alive
+      Location:
+      - http://httpbin.org/absolute-redirect/5
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Allow-Credentials:
+      - 'true'
+    body:
+      encoding: UTF-8
+      string: |-
+        <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+        <title>Redirecting...</title>
+        <h1>Redirecting...</h1>
+        <p>You should be redirected automatically to target URL: <a href="http://httpbin.org/absolute-redirect/5">http://httpbin.org/absolute-redirect/5</a>.  If not click the link.
+    http_version: 
+  recorded_at: Wed, 09 Dec 2015 00:27:11 GMT
+- request:
+    method: get
+    uri: http://httpbin.org/absolute-redirect/5
+    body:
+      encoding: US-ASCII
+      string: ''
+    headers:
+      Accept-Encoding:
+      - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
+      Accept:
+      - "*/*"
+      User-Agent:
+      - Ruby
+  response:
+    status:
+      code: 302
+      message: FOUND
+    headers:
+      Server:
+      - nginx
+      Date:
+      - Wed, 09 Dec 2015 00:27:11 GMT
+      Content-Type:
+      - text/html; charset=utf-8
+      Content-Length:
+      - '283'
+      Connection:
+      - keep-alive
+      Location:
+      - http://httpbin.org/absolute-redirect/4
+      Access-Control-Allow-Origin:
+      - "*"
+      Access-Control-Allow-Credentials:
+      - 'true'
+    body:
+      encoding: UTF-8
+      string: |-
+        <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+        <title>Redirecting...</title>
+        <h1>Redirecting...</h1>
+        <p>You should be redirected automatically to target URL: <a href="http://httpbin.org/absolute-redirect/4">http://httpbin.org/absolute-redirect/4</a>.  If not click the link.
+    http_version: 
+  recorded_at: Wed, 09 Dec 2015 00:27:11 GMT
+recorded_with: VCR 3.0.0

@@ -59,10 +59,10 @@ class FeedSerializer < ApplicationSerializer
   end
 
   def feed_versions_url
-    api_v1_feed_feed_versions_url(object.onestop_id)
+    api_v1_feed_feed_versions_url(object.onestop_id) if object.persisted?
   end
 
   def feed_versions
-    object.feed_versions.pluck(:sha1)
+    object.feed_versions.pluck(:sha1) if object.persisted?
   end
 end
