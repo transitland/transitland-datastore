@@ -39,7 +39,8 @@ class BaseRoute < ActiveRecord::Base
     "5" => "Cablecar",
     "6" => "Gondola",
     "7" => "Funicular",
-    # Extended vehicle types https=://support.google.com/transitpartners/answer/3520902?hl=en
+    # Extended vehicle types
+    # https=://support.google.com/transitpartners/answer/3520902?hl=en
     "100" => "Railway Service",
     "101" => "High Speed Rail Service",
     "102" => "Long Distance Trains",
