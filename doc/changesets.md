@@ -18,11 +18,11 @@ To create, check, and apply a changeset, you can either do each step as a separa
     }
   }
   ````
-			
+
 2. In the response, you'll get an ID for the changeset.
 
 3. Add changes to a changeset using the 'POST /api/v1/changesets/143/append' endpoint (assuming that the ID you got back in Step 2 is `143`):
-	
+
 	````json
 		{
       "changes": [
@@ -37,41 +37,9 @@ To create, check, and apply a changeset, you can either do each step as a separa
 		}
 	````
 
-4. Check that the changeset can be cleanly applied to the database: `POST /api/v1/changesets/143/check` 
+4. Check that the changeset can be cleanly applied to the database: `POST /api/v1/changesets/143/check`
 
 5. Apply the changeset: `POST /api/v1/changesets/143/apply` making sure to include an [API Auth Key](../readme.md#api-authentication).
-
-### All in One Go
-
-To create, check, and apply a changeset all in one API request: `POST /api/v1/changesets` with JSON like this in the request body. Note the `"whenToApply"` property:
-
-  ````json
-  {
-    "changeset": {
-      "whenToApply": "instantlyIfClean",
-      "payload": {
-        "changes": [
-          {
-            "action": "createUpdate",
-            "stop": {
-              "onestopId": "s-9q8yt4b-1AvHoS",
-              "name": "1st Ave. & Holloway Street"
-            }
-          },
-          {
-            "action": "createUpdate",
-            "operator": {
-              "onestopId": "o-9q8y-SFMTA",
-              "name": "San Francisco Municipal Transportation Agency",
-              "serves": ["s-9q8yt4b-1AvHoS"]
-            }
-          }
-        ]
-      },
-      "notes": "In this changeset, we are creating/editing a stop and an operator, and we're specifying a relationship between the two."
-    }
-  }
-  ````
 
 ### Changeset Properties
 
@@ -79,7 +47,6 @@ Property | Required | Description
 -------- | -------- | -----------
 `payload` | yes | see below
 `notes` | - | a few sentences or a paragraph of plain text describing the changes
-`whenToApply` | - | Two options:<ul><li>`holdForReview`</li> (default, if none specified)<li>`instantlyIfClean`</li></ul>
 
 ### Payload Format
 The payload is a JSON object. It's an array of change actions:
@@ -113,4 +80,4 @@ The possible actions include `createUpdate` and `destroy`:
 #### Payload JSON Schema
 Payloads are validated using JSON schemas found in `/app/models/json_schemas`.
 
-Note that the API consumers and produces JSON with `"camelCaseKeysInQuotationMarks"`, while internally, the Datastore uses `ruby_symbols_with_underscores`. 
+Note that the API consumers and produces JSON with `"camelCaseKeysInQuotationMarks"`, while internally, the Datastore uses `ruby_symbols_with_underscores`.

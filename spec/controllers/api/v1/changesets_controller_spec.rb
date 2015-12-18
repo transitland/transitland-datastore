@@ -26,14 +26,13 @@ describe Api::V1::ChangesetsController do
       })
     end
 
-    it 'returns ChangePayloads in payload' do
+    it 'returns ChangePayloads IDs' do
       create_list(:changeset_with_payload, 2)
       changeset = Changeset.last
       get :show, id: changeset.id
-      payloads = changeset.change_payloads.map {|x| x.payload_as_ruby_hash[:changes]}
       expect_json({
         id: changeset.id,
-        payload: -> (payload) { payload[:changes].count == payloads.length},
+        change_payloads: changeset.change_payload_ids,
         applied: false,
         applied_at: nil
       })
@@ -54,7 +53,7 @@ describe Api::V1::ChangesetsController do
       expect(Changeset.count).to eq 1
       expect(ChangePayload.count).to eq 1
     end
-    
+
     it 'should fail to create a Changeset with an invalid payload' do
       post :create, changeset: {
         changes: []
@@ -63,22 +62,38 @@ describe Api::V1::ChangesetsController do
       expect(Changeset.count).to eq 0
     end
 
-    it 'should fail when API auth token is not provided' do
+    it 'should allow Changeset creation without API Key' do
       @request.env['HTTP_AUTHORIZATION'] = nil
-      post :create, changeset: {
-        changes: []
-      }
-      expect(response.status).to eq 401
+      attrs = FactoryGirl.attributes_for(:changeset_with_payload)
+      post :create, changeset: attrs
+      expect(response.status).to eq 200
+    end
+  end
+
+  context 'POST destroy' do
+    it 'should delete Changeset' do
+      changeset = create(:changeset)
+      post :destroy, id: changeset.id
+      expect(Changeset.exists?(changeset.id)).to eq(false)
     end
 
-    it 'should be able to instantly create and apply a Changeset with a valid payload' do
-      attrs = FactoryGirl.attributes_for(:changeset_with_payload)
-      attrs[:whenToApply] = 'instantlyIfClean'
-      post :create, changeset: attrs
-      expect(Changeset.count).to eq 1
-      expect(Changeset.first.applied).to eq true
-      expect(Stop.count).to eq 1
+    it 'should delete Changeset and dependent ChangePayloads' do
+      changeset = create(:changeset_with_payload)
+      change_payload = changeset.change_payloads.first
+      expect(Changeset.exists?(changeset.id)).to eq(true)
+      expect(ChangePayload.exists?(change_payload.id)).to eq(true)
+      post :destroy, id: changeset.id
+      expect(Changeset.exists?(changeset.id)).to eq(false)
+      expect(ChangePayload.exists?(change_payload.id)).to eq(false)
     end
+
+    it 'should require auth token to delete Changeset' do
+      @request.env['HTTP_AUTHORIZATION'] = nil
+      changeset = create(:changeset)
+      post :destroy, id: changeset.id
+      expect(response.status).to eq(401)
+    end
+
   end
 
   context 'POST append' do
@@ -90,7 +105,7 @@ describe Api::V1::ChangesetsController do
       post :append, id: changeset.id, change: change
       expect(response.status).to eq 200
       expect(Changeset.count).to eq 1
-      expect(ChangePayload.count).to eq 1    
+      expect(ChangePayload.count).to eq 1
     end
   end
 
@@ -105,7 +120,7 @@ describe Api::V1::ChangesetsController do
 
     it "shouldn't be able to append to an applied Changeset" do
       changeset = create(:changeset)
-      changeset.update(applied: true)      
+      changeset.update(applied: true)
       change = FactoryGirl.attributes_for(:change_payload)
       post :append, id: changeset.id, change: change
       expect_json({ message: 'cannot update a Changeset that has already been applied' })
@@ -158,6 +173,13 @@ describe Api::V1::ChangesetsController do
       post :apply, id: changeset
       expect(OnestopId.find!('s-9q8yt4b-1AvHoS').name).to eq '1st Ave. & Holloway Street'
       expect_json({ applied: true })
+    end
+
+    it 'should fail when API auth token is not provided' do
+      @request.env['HTTP_AUTHORIZATION'] = nil
+      changeset = create(:changeset)
+      post :apply, id: changeset.id
+      expect(response.status).to eq 401
     end
 
     it "will fail gracefully when a Changeset doesn't apply" do

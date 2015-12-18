@@ -20,13 +20,14 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       get '/onestop_id/:onestop_id', to: 'onestop_id#show'
-      resources :changesets, only: [:index, :show, :create, :update] do
+      resources :changesets, only: [:index, :show, :create, :update, :destroy] do
         member do
           post 'check'
           post 'apply'
           post 'revert'
           post 'append'
         end
+        resources :change_payloads, only: [:index, :show, :create, :update, :destroy]
       end
       resources :stops, only: [:index, :show]
       resources :operators, only: [:index, :show]
@@ -37,6 +38,7 @@ Rails.application.routes.draw do
           resources :feed_version_imports, only: [:index, :show]
         end
       end
+      post '/feeds/fetch_info', to: 'feeds#fetch_info'
       post '/webhooks/feed_fetcher', to: 'webhooks#feed_fetcher'
       post '/webhooks/feed_eater', to: 'webhooks#feed_eater'
     end
