@@ -1,3 +1,5 @@
+require 'sidekiq/logging/json'
+
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
@@ -46,6 +48,7 @@ Rails.application.configure do
 
   # Enable the logstasher logs for the current environment
   config.logstasher.enabled = true
+  Sidekiq.logger.formatter = Sidekiq::Logging::Json::Logger.new
 
   # Prepend all log lines with the following tags.
   # config.log_tags = [ :subdomain, :uuid ]
