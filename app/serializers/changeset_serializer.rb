@@ -17,5 +17,10 @@ class ChangesetSerializer < ApplicationSerializer
              :applied_at,
              :created_at,
              :updated_at,
-             :change_payload_ids
+             :change_payloads
+
+  def change_payloads
+    object.change_payloads.pluck(:id)
+  end
+
 end

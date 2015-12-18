@@ -32,7 +32,7 @@ describe Api::V1::ChangesetsController do
       get :show, id: changeset.id
       expect_json({
         id: changeset.id,
-        change_payload_ids: changeset.change_payload_ids,
+        change_payloads: changeset.change_payload_ids,
         applied: false,
         applied_at: nil
       })
