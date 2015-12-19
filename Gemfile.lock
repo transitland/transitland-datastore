@@ -11,10 +11,10 @@ GIT
 
 GIT
   remote: git://github.com/transitland/gtfs.git
-  revision: 2b96bd213cd1ac3d2027affccd7e99af7962a61d
-  tag: v1.0.0rc7
+  revision: e9331bc5cc5046342f878bf015aea3e3b1ad7a25
+  tag: v1.0.1
   specs:
-    gtfs (1.0.0rc7)
+    gtfs (1.0.1)
       multi_json
       rake
       rcsv
