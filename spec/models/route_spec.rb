@@ -82,5 +82,4 @@ describe Route do
       expect(Route.geometry_within_bbox(@bbox_should_contain_geom_only)).to match_array([@route])
     end
   end
-
 end

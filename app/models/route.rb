@@ -26,9 +26,7 @@
 
 class BaseRoute < ActiveRecord::Base
   self.abstract_class = true
-
   include IsAnEntityImportedFromFeeds
-
   attr_accessor :serves, :does_not_serve, :operated_by
 end
 
@@ -157,9 +155,8 @@ class Route < BaseRoute
       # geometry:
     )
     # Copy over GTFS attributes to tags
-    vehicles = ['tram', 'metro', 'rail', 'bus', 'ferry', 'cablecar', 'gondola', 'funicalar']
     route.tags ||= {}
-    route.tags[:vehicle_type] = vehicles[entity.route_type.to_i]
+    route.tags[:vehicle_type] = entity.gtfs_vehicle_type
     route.tags[:route_long_name] = entity.route_long_name
     route.tags[:route_desc] = entity.route_desc
     route.tags[:route_url] = entity.route_url
