@@ -10,6 +10,14 @@ GIT
       mime-types (>= 1.16)
 
 GIT
+  remote: git://github.com/transitland/Sidekiq-Logging-JSON.git
+  revision: 7ea0db4da3405615a4e2a8b9d8b6e854986a2d2d
+  tag: 7ea0db4
+  specs:
+    sidekiq-logging-json (0.0.14)
+      sidekiq (>= 3)
+
+GIT
   remote: git://github.com/transitland/gtfs.git
   revision: 2b96bd213cd1ac3d2027affccd7e99af7962a61d
   tag: v1.0.0rc7
@@ -155,6 +163,12 @@ GEM
     json-schema (2.5.2)
       addressable (~> 2.3.8)
     kgio (2.10.0)
+    logstash-event (1.2.02)
+    logstasher (0.8.6)
+      activerecord (>= 3.0)
+      activesupport (>= 3.0)
+      logstash-event (~> 1.2.0)
+      request_store
     loofah (2.0.3)
       nokogiri (>= 1.5.9)
     mail (2.6.3)
@@ -248,6 +262,7 @@ GEM
       redis-store (~> 1.1.0)
     redis-store (1.1.7)
       redis (>= 2.2)
+    request_store (1.2.1)
     rest-client (1.8.0)
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 3.0)
@@ -363,6 +378,7 @@ DEPENDENCIES
   foreman
   gtfs!
   json-schema
+  logstasher
   marginalia
   mock_redis
   oj
@@ -381,6 +397,7 @@ DEPENDENCIES
   sentry-raven
   sidekiq (< 5)
   sidekiq-limit_fetch
+  sidekiq-logging-json!
   sidekiq-unique-jobs
   simplecov
   squeel
