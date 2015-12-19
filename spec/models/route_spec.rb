@@ -83,4 +83,18 @@ describe Route do
     end
   end
 
+  context 'from_gtfs' do
+    it 'returns vehicle_type string' do
+      # string
+      expect(Route.gtfs_vehicle_type('0')).to eq(:Tram)
+      # symbol
+      expect(Route.gtfs_vehicle_type(:'0')).to eq(:Tram)
+      # integer
+      expect(Route.gtfs_vehicle_type(0)).to eq(:Tram)
+    end
+    it 'supports extended vehicle_types' do
+      expect(Route.gtfs_vehicle_type('100')).to eq(:'Railway Service')      
+    end
+  end
+
 end

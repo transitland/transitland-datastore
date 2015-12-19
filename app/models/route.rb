@@ -26,6 +26,8 @@
 
 class BaseRoute < ActiveRecord::Base
   self.abstract_class = true
+  include IsAnEntityImportedFromFeeds
+  attr_accessor :serves, :does_not_serve, :operated_by
 
   VEHICLE_TYPES = {
     nil => nil,
@@ -169,10 +171,9 @@ class BaseRoute < ActiveRecord::Base
    :'1701' => :'Cable Car',
    :'1702' => :'Horse-drawn Carriage'
   }
-
-  include IsAnEntityImportedFromFeeds
-
-  attr_accessor :serves, :does_not_serve, :operated_by
+  def self.gtfs_vehicle_type(vehicle_type)
+    VEHICLE_TYPES[vehicle_type.to_s.to_sym]
+  end
 end
 
 class Route < BaseRoute
@@ -301,7 +302,7 @@ class Route < BaseRoute
     )
     # Copy over GTFS attributes to tags
     route.tags ||= {}
-    route.tags[:vehicle_type] = VEHICLE_TYPES[entity.route_type.to_sym]
+    route.tags[:vehicle_type] = gtfs_vehicle_type(entity.route_type)
     route.tags[:route_long_name] = entity.route_long_name
     route.tags[:route_desc] = entity.route_desc
     route.tags[:route_url] = entity.route_url
