@@ -187,6 +187,7 @@ GEM
     nokogiri (1.6.7.1)
       mini_portile2 (~> 2.0.0.rc2)
     oj (2.14.1)
+    oj_mimic_json (1.0.1)
     pg (0.18.4)
     pghero (1.1.4)
       activerecord
@@ -382,6 +383,7 @@ DEPENDENCIES
   marginalia
   mock_redis
   oj
+  oj_mimic_json
   pg
   pghero
   pry-byebug
