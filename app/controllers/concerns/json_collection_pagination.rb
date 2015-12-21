@@ -10,12 +10,12 @@ module JsonCollectionPagination
     # Meta
     offset = (offset.presence || 0).to_i
     per_page = (per_page.presence || self.class::PER_PAGE).to_i
-    total = total.present?
+    include_total = (total == true || total == 'true')
     meta = {
         offset: offset,
         per_page: per_page
     }
-    meta[:total] = collection.count if total
+    meta[:total] = collection.count if include_total
 
     # Get the current page of results.
     #  Add +1 to limit to see if there is a next page.

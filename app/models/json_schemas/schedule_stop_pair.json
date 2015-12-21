@@ -51,7 +51,7 @@
       "format": "date"
     },
     "serviceAddedDates": {
-      "type": "array",
+      "type": ["array", "null"],
       "uniqueItems": true,
       "items": {
         "type": "string",
@@ -59,7 +59,7 @@
       }
     },
     "serviceExceptDates": {
-      "type": "array",
+      "type": ["array", "null"],
       "uniqueItems": true,
       "items": {
         "type": "string",

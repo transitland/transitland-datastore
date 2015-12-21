@@ -36,10 +36,10 @@ class OperatorInFeedSerializer < ApplicationSerializer
   end
 
   def operator_url
-    api_v1_operator_url(object.operator.onestop_id)
+    api_v1_operator_url(object.operator.onestop_id) if object.operator.persisted?
   end
 
   def feed_url
-    api_v1_feed_url(object.feed.onestop_id)
+    api_v1_feed_url(object.feed.onestop_id) if object.feed.persisted?
   end
 end

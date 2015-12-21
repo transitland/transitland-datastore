@@ -73,6 +73,16 @@ describe JsonCollectionPagination do
           per_page: 10
         }
       })
+
+      expect(
+        object.send(:paginated_json_collection, collection, path_helper, 0, 10, false, {})
+      ).to eq({
+        json: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        meta: {
+          offset: 0,
+          per_page: 10
+        }
+      })
     end
 
     it 'has a next page' do

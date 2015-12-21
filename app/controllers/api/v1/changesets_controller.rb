@@ -2,8 +2,8 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   include JsonCollectionPagination
   include DownloadableCsv
 
-  before_filter :require_api_auth_token, only: [:create, :update, :check, :apply, :revert, :append]
-  before_action :set_changeset, only: [:show, :update, :check, :apply, :revert, :append]
+  before_filter :require_api_auth_token, only: [:update, :check, :apply, :revert, :append, :destroy]
+  before_action :set_changeset, only: [:show, :update, :check, :apply, :revert, :append, :destroy]
 
   def index
     @changesets = Changeset.where('').include{change_payloads}
@@ -26,29 +26,20 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   end
 
   def create
-    params_for_this_changeset = changeset_params
-    when_to_apply = params_for_this_changeset.delete('whenToApply')
-    @changeset = Changeset.new(changeset_params)
-    if when_to_apply.present? && when_to_apply == 'instantlyIfClean'
-      @changeset.save!
-      trial_succeeds = @changeset.trial_succeeds?
-      if trial_succeeds
-        applied = @changeset.apply!
-        return render json: { applied: applied }
-      else
-        return render json: { trialSucceeds: trial_succeeds }
-      end
-    else
-      @changeset.save!
-      return render json: @changeset
-    end
+    @changeset = Changeset.create!(changeset_params)
+    return render json: @changeset
+  end
+
+  def destroy
+    @changeset.destroy!
+    return render json: {}
   end
 
   def update
     if @changeset.applied
       raise Changeset::Error.new(@changeset, 'cannot update a Changeset that has already been applied')
     else
-      @changeset.update(changeset_params)
+      @changeset.update!(changeset_params)
       render json: @changeset
     end
   end
@@ -86,7 +77,7 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   private
 
   def set_changeset
-    @changeset = Changeset.includes(:change_payloads).find(params[:id])
+    @changeset = Changeset.find(params[:id])
   end
 
   def changeset_params

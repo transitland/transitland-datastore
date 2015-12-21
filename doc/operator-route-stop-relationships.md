@@ -36,7 +36,6 @@ Here's an example [changeset](changesets.md):
 ````json
   {
     "changeset": {
-      "whenToApply": "instantlyIfClean",
       "payload": {
         "changes": [
           {
@@ -98,7 +97,6 @@ Here's an example [changeset](changesets.md):
 ````json
   {
     "changeset": {
-      "whenToApply": "instantlyIfClean",
       "payload": {
         "changes": [
           {
@@ -153,7 +151,6 @@ Here's an example [changeset](changesets.md):
 ````json
 {
   "changeset": {
-    "whenToApply": "instantlyIfClean",
     "payload": {
       "changes": [
         {
@@ -236,7 +233,6 @@ Here's an example [changeset](changesets.md):
 ````json
 {
   "changeset": {
-    "whenToApply": "instantlyIfClean",
     "payload": {
       "changes": [
         {

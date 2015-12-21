@@ -27,7 +27,7 @@ gem 'whenever', require: false # to manage crontab
 # data model
 gem 'squeel'
 gem 'enumerize'
-gem 'gtfs', github: 'transitland/gtfs', tag: 'v1.0.0rc5'
+gem 'gtfs', github: 'transitland/gtfs', tag: 'v1.0.1'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 gem 'json-schema'
@@ -42,6 +42,7 @@ gem 'rack-cors', require: 'rack/cors'
 gem 'active_model_serializers', github: 'rails-api/active_model_serializers', ref: '5d0cc59'
 # using a development version of AMS in order to use JSON view caching
 gem 'oj'
+gem 'oj_mimic_json'
 
 # consuming other APIs
 gem 'faraday'
@@ -77,10 +78,20 @@ gem 'webmock', group: :test
 gem 'airborne', group: :test
 gem 'mock_redis', group: :test # used by sidekiq-unique-jobs
 
-# deployment and monitoring
+# deployment
 gem 'aws-sdk', group: [:staging, :production]
+
+# exception monitoring
 gem 'sentry-raven', group: [:staging, :production]
+
+# loggging
+gem 'logstasher'
+gem 'sidekiq-logging-json', github: 'transitland/Sidekiq-Logging-JSON', tag: '7ea0db4'
+
+# database query performance monitoring/analysis
 gem 'bullet', group: :development
+gem 'pghero', group: [:development, :staging] # mounted at /admin/postgres
+gem 'marginalia', group: [:development, :staging]
 
 # web server
 gem 'unicorn', group: [:staging, :production]

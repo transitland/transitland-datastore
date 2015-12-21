@@ -11,19 +11,16 @@
 #
 
 class ChangesetSerializer < ApplicationSerializer
-  cache key: 'changesets'
-
   attributes :id,
              :notes,
              :applied,
              :applied_at,
              :created_at,
              :updated_at,
-             :payload
+             :change_payloads
 
-  def payload
-    # TODO: move change payloads to a nested endpoint, so they can be paginated.
-    {changes: object.change_payloads.map {|x| x.payload_as_ruby_hash[:changes]}}
+  def change_payloads
+    object.change_payloads.pluck(:id)
   end
 
 end

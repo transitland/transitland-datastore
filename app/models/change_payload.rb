@@ -35,6 +35,9 @@ class ChangePayload < ActiveRecord::Base
   JSON::Validator.register_format_validator('feed-onestop-id', -> (onestop_id) {
     onestop_id_format_proc.call(onestop_id, 'feed')
   })
+  JSON::Validator.register_format_validator('route-onestop-id', -> (onestop_id) {
+    onestop_id_format_proc.call(onestop_id, 'route')
+  })
   JSON::Validator.register_format_validator('sha1', -> (sha1) {
     !!sha1.match(/^[0-9a-f]{5,40}$/)
   })
@@ -75,19 +78,17 @@ class ChangePayload < ActiveRecord::Base
     end
   end
 
-  def validate_payload
-    payload_validation_errors = JSON::Validator.fully_validate(
+  def payload_validation_errors
+    JSON::Validator.fully_validate(
       File.join(__dir__, 'json_schemas', 'changeset.json'),
       self.payload,
       errors_as_objects: true
     )
-    if payload_validation_errors.length > 0
-      payload_validation_errors.each do |error|
-        errors.add(:payload, error[:message])
-      end
-      false
-    else
-      true
+  end
+
+  def validate_payload
+    payload_validation_errors.each do |error|
+      errors.add(:payload, error[:message])
     end
   end
 
