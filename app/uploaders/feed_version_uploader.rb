@@ -29,8 +29,8 @@ class FeedVersionUploader < CarrierWave::Uploader::Base
   end
 
   def remove_any_local_cached_copies
-    if (cache_id = cached?)
-      FileUtils.rm_rf(File.join(root, cache_dir, cache_id))
+    if cached?
+      FileUtils.rm_rf(File.dirname(path))
     end
   end
 end
