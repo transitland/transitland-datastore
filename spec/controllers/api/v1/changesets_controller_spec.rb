@@ -19,7 +19,7 @@ describe Api::V1::ChangesetsController do
     it 'returns a changeset when its ID is given' do
       create_list(:changeset, 2)
       get :show, id: Changeset.last.id
-      expect_json({
+      expect_json('changeset', {
         id: Changeset.last.id,
         applied: false,
         applied_at: nil
@@ -30,7 +30,7 @@ describe Api::V1::ChangesetsController do
       create_list(:changeset_with_payload, 2)
       changeset = Changeset.last
       get :show, id: changeset.id
-      expect_json({
+      expect_json('changeset', {
         id: changeset.id,
         change_payloads: changeset.change_payload_ids,
         applied: false,

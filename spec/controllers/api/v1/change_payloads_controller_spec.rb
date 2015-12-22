@@ -44,7 +44,7 @@ describe Api::V1::ChangePayloadsController do
     context 'GET show' do
       it 'shows a ChangePayload' do
         get :show, changeset_id: @changeset.id, id: @change_payload.id
-        expect_json({
+        expect_json('change_payload', {
           id: @change_payload.id,
           changeset_id: @changeset.id
         })
@@ -55,7 +55,7 @@ describe Api::V1::ChangePayloadsController do
       it 'creates a ChangePayload' do
         change = FactoryGirl.attributes_for(:change_payload)
         post :create, changeset_id: @changeset.id, change_payload: change
-        expect_json(payload: -> (payload) {
+        expect_json('change_payload', payload: -> (payload) {
           expect(payload).to eq(change[:payload])
         })
       end
@@ -64,7 +64,7 @@ describe Api::V1::ChangePayloadsController do
         change = FactoryGirl.attributes_for(:change_payload)
         expect(@changeset.change_payloads.size).to eq(1)
         post :create, changeset_id: @changeset.id, change_payload: change
-        expect_json({
+        expect_json('change_payload', {
           changeset_id: @changeset.id
         })
         expect(@changeset.change_payloads.size).to eq(2)
@@ -75,8 +75,8 @@ describe Api::V1::ChangePayloadsController do
       it 'updates a ChangePayload' do
         change = FactoryGirl.attributes_for(:change_payload)
         post :update, changeset_id: @changeset.id, id: @change_payload.id, change_payload: change
-        expect_json(payload: -> (payload) {
-            expect(payload).to eq(change[:payload])
+        expect_json('change_payload', payload: -> (payload) {
+          expect(payload).to eq(change[:payload])
         })
       end
     end
