@@ -38,6 +38,13 @@ class ChangePayload < ActiveRecord::Base
   JSON::Validator.register_format_validator('route-onestop-id', -> (onestop_id) {
     onestop_id_format_proc.call(onestop_id, 'route')
   })
+  JSON::Validator.register_format_validator('vehicle-type', -> (vehicle_type) {
+    if vehicle_type.to_i
+      GTFS::Route::VEHICLE_TYPES.keys.map {|i| i.to_s.to_i }.include?(vehicle_type.to_i)
+    else
+      GTFS::Route::VEHICLE_TYPES.values.map { |s| s.to_s.parameterize('_') }.include?(vehicle_type.to_s)
+    end
+  })
   JSON::Validator.register_format_validator('sha1', -> (sha1) {
     !!sha1.match(/^[0-9a-f]{5,40}$/)
   })
