@@ -39,6 +39,13 @@ module JsonCollectionPagination
     end
 
     # Return results + meta
-    { json: data[0...per_page], meta: meta }
+    results_for_this_page = data[0...per_page]
+    if results_for_this_page.size > 0
+      { json: results_for_this_page, meta: meta }
+    else
+      # ActiveModelSerializers needs to know the
+      # model class so it can include a root node
+      { json: collection.model.none, meta: meta }
+    end
   end
 end
