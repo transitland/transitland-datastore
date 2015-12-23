@@ -356,6 +356,7 @@ class GTFSGraph
         sha1: @feed_version.sha1
       },
       operatedBy: entity.operator.onestop_id,
+      vehicleType: entity.vehicle_type,
       serves: entity.serves.map(&:onestop_id),
       tags: entity.tags || {},
       geometry: entity.geometry

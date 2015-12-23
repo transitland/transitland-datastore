@@ -107,9 +107,10 @@ Example URL  | Parameters
 `GET /api/v1/routes?identifier=19X` | `identifier` can be any type of route identifier
 `GET /api/v1/routes?identifier_starts_with=gtfs://f-9q9` | `identifier_starts_with` can be any type of route identifier fragment
 `GET /api/v1/routes?operatedBy=o-9q9-BART` | `operatedBy` is a Onestop ID for an operator/agency
+`GET /api/v1/routes?vehicle_type=bus,4` | find all routes with vehicle type(s) by integer or string. Possible values defined by the GTFS spec for [the `route_type` column](https://developers.google.com/transit/gtfs/reference#routes_route_type_field) and [the Extended GTFS Route Types](https://support.google.com/transitpartners/answer/3520902). Separate multiple vehicle types by commas.
 `GET /api/v1/routes?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
-`GET /api/v1/routes?tag_key=vehicle_type` | find all routes that have a tag of `tag_key` with any value
-`GET /api/v1/routes?tag_key=vehicle_type&tag_value=bus` | find all routes that have a tag of `tag_key` and a value of `tag_value`
+`GET /api/v1/routes?tag_key=route_color` | find all routes that have a tag of `tag_key` with any value
+`GET /api/v1/routes?tag_key=route_color&tag_value=FEF0B5` | find all routes that have a tag of `tag_key` and a value of `tag_value`
 `POST /api/v1/webhooks/feed_fetcher` | ([secured](#api-authentication))
 `POST /api/v1/webhooks/feed_eater?feed_onestop_id=f-9q9-caltrain,feed_version_sha1=ab1e6ac73943082803f110df4b0fdd63a1d6b9f7` | ([secured](#api-authentication))
 `GET /api/v1/feeds` | none required

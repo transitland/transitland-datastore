@@ -13,6 +13,7 @@
 #  updated_at                         :datetime
 #  geometry                           :geography({:srid geometry, 4326
 #  identifiers                        :string           default([]), is an Array
+#  vehicle_type                       :integer
 #
 # Indexes
 #
@@ -32,6 +33,7 @@ FactoryGirl.define do
       'N Judah',
       '522 Rapid'
     ].sample }
+    vehicle_type { [0,1,2,3,4,5,6,7,100,101,800,1700].sample }
     version 1
     association :created_or_updated_in_changeset, factory: :changeset
     association :operator
