@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151111010054) do
+ActiveRecord::Schema.define(version: 20151222222412) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -201,25 +201,47 @@ ActiveRecord::Schema.define(version: 20151111010054) do
   add_index "current_schedule_stop_pairs", ["trip"], name: "c_ssp_trip", using: :btree
   add_index "current_schedule_stop_pairs", ["updated_at"], name: "index_current_schedule_stop_pairs_on_updated_at", using: :btree
 
-  create_table "current_stops", force: :cascade do |t|
+  create_table "current_stations", force: :cascade do |t|
+    t.string    "type"
     t.string    "onestop_id"
-    t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
+    t.string    "name"
+    t.datetime  "last_conflated_at"
     t.hstore    "tags"
+    t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
+    t.integer   "parent_station_id"
+    t.integer   "created_or_updated_in_changeset_id"
+    t.integer   "version"
+    t.datetime  "created_at",                                                                                     null: false
+    t.datetime  "updated_at",                                                                                     null: false
+  end
+
+  add_index "current_stations", ["created_or_updated_in_changeset_id"], name: "index_current_station_on_cu_in_changeset_id", using: :btree
+  add_index "current_stations", ["parent_station_id"], name: "index_current_stations_on_parent_station_id", using: :btree
+
+  create_table "current_stops", force: :cascade do |t|
+    t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.datetime  "created_at"
     t.datetime  "updated_at"
     t.string    "name"
     t.integer   "created_or_updated_in_changeset_id"
     t.integer   "version"
-    t.string    "identifiers",                                                                                    default: [], array: true
     t.string    "timezone"
     t.datetime  "last_conflated_at"
+    t.string    "identifier"
+    t.string    "url"
+    t.string    "zone"
+    t.string    "code"
+    t.string    "description"
+    t.integer   "wheelchair_boarding"
+    t.integer   "location_type"
+    t.integer   "station_id"
+    t.integer   "parent_stop_id"
   end
 
   add_index "current_stops", ["created_or_updated_in_changeset_id"], name: "#c_stops_cu_in_changeset_id_index", using: :btree
   add_index "current_stops", ["geometry"], name: "index_current_stops_on_geometry", using: :gist
-  add_index "current_stops", ["identifiers"], name: "index_current_stops_on_identifiers", using: :gin
-  add_index "current_stops", ["onestop_id"], name: "index_current_stops_on_onestop_id", using: :btree
-  add_index "current_stops", ["tags"], name: "index_current_stops_on_tags", using: :btree
+  add_index "current_stops", ["parent_stop_id"], name: "index_current_stops_on_parent_stop_id", using: :btree
+  add_index "current_stops", ["station_id"], name: "index_current_stops_on_station_id", using: :btree
   add_index "current_stops", ["updated_at"], name: "index_current_stops_on_updated_at", using: :btree
 
   create_table "entities_imported_from_feed", force: :cascade do |t|
@@ -471,10 +493,25 @@ ActiveRecord::Schema.define(version: 20151111010054) do
   add_index "old_schedule_stop_pairs", ["service_start_date"], name: "o_ssp_service_start_date", using: :btree
   add_index "old_schedule_stop_pairs", ["trip"], name: "o_ssp_trip", using: :btree
 
-  create_table "old_stops", force: :cascade do |t|
+  create_table "old_stations", force: :cascade do |t|
+    t.string    "type"
     t.string    "onestop_id"
-    t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
+    t.string    "name"
+    t.datetime  "last_conflated_at"
     t.hstore    "tags"
+    t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
+    t.integer   "parent_station_id"
+    t.integer   "created_or_updated_in_changeset_id"
+    t.integer   "version"
+    t.datetime  "created_at",                                                                                     null: false
+    t.datetime  "updated_at",                                                                                     null: false
+  end
+
+  add_index "old_stations", ["created_or_updated_in_changeset_id"], name: "index_old_station_on_cu_in_changeset_id", using: :btree
+  add_index "old_stations", ["parent_station_id"], name: "index_old_stations_on_parent_station_id", using: :btree
+
+  create_table "old_stops", force: :cascade do |t|
+    t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.datetime  "created_at"
     t.datetime  "updated_at"
     t.string    "name"
@@ -482,16 +519,25 @@ ActiveRecord::Schema.define(version: 20151111010054) do
     t.integer   "destroyed_in_changeset_id"
     t.integer   "current_id"
     t.integer   "version"
-    t.string    "identifiers",                                                                                    default: [], array: true
     t.string    "timezone"
     t.datetime  "last_conflated_at"
+    t.string    "identifier"
+    t.string    "url"
+    t.string    "zone"
+    t.string    "code"
+    t.string    "description"
+    t.integer   "wheelchair_boarding"
+    t.integer   "location_type"
+    t.integer   "station_id"
+    t.integer   "parent_stop_id"
   end
 
   add_index "old_stops", ["created_or_updated_in_changeset_id"], name: "o_stops_cu_in_changeset_id_index", using: :btree
   add_index "old_stops", ["current_id"], name: "index_old_stops_on_current_id", using: :btree
   add_index "old_stops", ["destroyed_in_changeset_id"], name: "stops_d_in_changeset_id_index", using: :btree
   add_index "old_stops", ["geometry"], name: "index_old_stops_on_geometry", using: :gist
-  add_index "old_stops", ["identifiers"], name: "index_old_stops_on_identifiers", using: :gin
+  add_index "old_stops", ["parent_stop_id"], name: "index_old_stops_on_parent_stop_id", using: :btree
+  add_index "old_stops", ["station_id"], name: "index_old_stops_on_station_id", using: :btree
 
   add_foreign_key "change_payloads", "changesets"
 end
