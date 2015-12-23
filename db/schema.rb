@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151222213427) do
+ActiveRecord::Schema.define(version: 20151223172515) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -135,6 +135,7 @@ ActiveRecord::Schema.define(version: 20151222213427) do
   add_index "current_routes", ["operator_id"], name: "index_current_routes_on_operator_id", using: :btree
   add_index "current_routes", ["tags"], name: "index_current_routes_on_tags", using: :btree
   add_index "current_routes", ["updated_at"], name: "index_current_routes_on_updated_at", using: :btree
+  add_index "current_routes", ["vehicle_type"], name: "index_current_routes_on_vehicle_type", using: :btree
 
   create_table "current_routes_serving_stop", force: :cascade do |t|
     t.integer  "route_id"
@@ -395,6 +396,7 @@ ActiveRecord::Schema.define(version: 20151222213427) do
   add_index "old_routes", ["geometry"], name: "index_old_routes_on_geometry", using: :gist
   add_index "old_routes", ["identifiers"], name: "index_old_routes_on_identifiers", using: :gin
   add_index "old_routes", ["operator_type", "operator_id"], name: "index_old_routes_on_operator_type_and_operator_id", using: :btree
+  add_index "old_routes", ["vehicle_type"], name: "index_old_routes_on_vehicle_type", using: :btree
 
   create_table "old_routes_serving_stop", force: :cascade do |t|
     t.integer  "route_id"

@@ -17,12 +17,13 @@
 #
 # Indexes
 #
-#  c_route_cu_in_changeset              (created_or_updated_in_changeset_id)
-#  index_current_routes_on_geometry     (geometry)
-#  index_current_routes_on_identifiers  (identifiers)
-#  index_current_routes_on_operator_id  (operator_id)
-#  index_current_routes_on_tags         (tags)
-#  index_current_routes_on_updated_at   (updated_at)
+#  c_route_cu_in_changeset               (created_or_updated_in_changeset_id)
+#  index_current_routes_on_geometry      (geometry)
+#  index_current_routes_on_identifiers   (identifiers)
+#  index_current_routes_on_operator_id   (operator_id)
+#  index_current_routes_on_tags          (tags)
+#  index_current_routes_on_updated_at    (updated_at)
+#  index_current_routes_on_vehicle_type  (vehicle_type)
 #
 
 describe Route do
