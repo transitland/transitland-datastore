@@ -86,7 +86,7 @@ class GTFSGraph
       if ssps.size >= CHANGE_PAYLOAD_MAX_ENTITIES
         log  "  ssps: #{total} - #{total+ssps.size}"
         total += ssps.size
-        create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) })
+        create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) }, action: 'create')
         ssps = []
       end
     end
@@ -94,7 +94,7 @@ class GTFSGraph
     if ssps.size > 0
       log  "  ssps: #{total} - #{total+ssps.size}"
       total += ssps.size
-      create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) })
+      create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) }, action: 'create')
     end
     log "Changeset apply"
     t = Time.now
@@ -290,12 +290,12 @@ class GTFSGraph
 
   ##### Create change payloads ######
 
-  def create_change_payloads(changeset, entity_type, entities)
+  def create_change_payloads(changeset, entity_type, entities, action: 'createUpdate')
     entities.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
       changes = chunk.map do |entity|
         entity.compact! # remove any nil values
         change = {}
-        change['action'] = 'createUpdate'
+        change['action'] = action
         change[entity_type] = entity
         change
       end
