@@ -57,10 +57,10 @@ The main ScheduleStopPair API endpoint is [/api/v1/schedule_stop_pairs](http://t
 
 | Query parameter        | Type | Description | Example |
 |------------------------|------|-------------|---------|
-| origin_onestop_id        | Onestop ID | Origin Stop | [from Embarcadero BART](http://transit.land/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8znb12j1-embarcadero) |
-| destination_onestop_id   | Onestop ID | Destination Stop | [to Montgomery St. BART](http://transit.land/api/v1/schedule_stop_pairs?destination_onestop_id=s-9q8yyxq427-montgomeryst)
-| route_onestop_id         | Onestop ID | Route | [on Muni N](http://transit.land/api/v1/schedule_stop_pairs?route_onestop_id=r-9q8y-n) |
-| operator_onestop_id      | Onestop ID | Operator | [on BART](http://transit.land/api/v1/schedule_stop_pairs?operator_onestop_id=o-9q9-bart) |
+| origin_onestop_id        | Onestop ID | Origin Stop. Accepts multiple separated by commas. | [from Embarcadero BART](http://transit.land/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8znb12j1-embarcadero) |
+| destination_onestop_id   | Onestop ID | Destination Stop. Accepts multiple separated by commas. | [to Montgomery St. BART](http://transit.land/api/v1/schedule_stop_pairs?destination_onestop_id=s-9q8yyxq427-montgomeryst)
+| route_onestop_id         | Onestop ID | Route. Accepts multiple separated by commas. | [on Muni N](http://transit.land/api/v1/schedule_stop_pairs?route_onestop_id=r-9q8y-n) |
+| operator_onestop_id      | Onestop ID | Operator. Accepts multiple separated by commas. | [on BART](http://transit.land/api/v1/schedule_stop_pairs?operator_onestop_id=o-9q9-bart) |
 | service_date             | Date | Service operates on a date | [valid on 2015-10-26](http://transit.land/api/v1/schedule_stop_pairs?date=2015-10-26) |
 | service_from_date        | Date | Service operates on a date, or in the future | [valid on and after 2015-10-26](http://transit.land/api/v1/schedule_stop_pairs?service_from_date=2015-10-26) |
 | origin_departure_between | Time,Time | Origin departure time between two times | [departing between 07:00 - 09:00](http://transit.land/api/v1/schedule_stop_pairs?origin_departure_between=07:00:00,09:00:00) |

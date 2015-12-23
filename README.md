@@ -122,13 +122,14 @@ Example URL  | Parameters
 `GET /api/v1/feeds/f-9q9-bayarearapidtransit/feed_versions/c06b4b6b40815f27c81b4fcf486ac1fd70ab1966/feed_version_imports` | none required
 `GET /api/v1/feeds/f-9q9-bayarearapidtransit/feed_versions/c06b4b6b40815f27c81b4fcf486ac1fd70ab1966/feed_version_imports/1` | none required
 `GET /api/v1/schedule_stop_pairs` | Find all [Schedule Stop Pairs](doc/schedule_api.md). All options below can be combined.
-`GET /api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation` | Find all Schedule Stop Pairs from origin
-`GET /api/v1/schedule_stop_pairs?destination_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation` | Find all Schedule Stop Pairs to a destination
+`GET /api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation` | Find all Schedule Stop Pairs from origin. Accepts multiple Onestop IDs, separated by commas.
+`GET /api/v1/schedule_stop_pairs?destination_onestop_id=s-9q8yyugptw-sanfranciscocaltrainstation` | Find all Schedule Stop Pairs to a destination. Accepts multiple Onestop IDs, separated by commas.
 `GET /api/v1/schedule_stop_pairs?date=2015-08-05` | Find all Schedule Stop Pairs from origin on date
 `GET /api/v1/schedule_stop_pairs?service_from_date=2015-08-05` | Find all Schedule Stop Pairs in effect from a date
 `GET /api/v1/schedule_stop_pairs?origin_departure_between=09:00:00,09:10:00` | Find all Schedule Stop Pairs with origin_departure_time in a range
 `GET /api/v1/schedule_stop_pairs?trip=6507768-CT-14OCT-Combo-Weekday-01` | Find all Schedule Stop Pairs by trip identifier
-`GET /api/v1/schedule_stop_pairs?operator_onestop_id=o-9q9-caltrain` | Find all Schedule Stop Pairs from origin on date
+`GET /api/v1/schedule_stop_pairs?route_onestop_id=r-9q8y-richmond~dalycity~millbrae` | Find all Schedule Stop Pairs by route. Accepts multiple Onestop IDs, separated by commas.
+`GET /api/v1/schedule_stop_pairs?operator_onestop_id=o-9q9-caltrain` | Find all Schedule Stop Pairs by operator. Accepts multiple Onestop IDs, separated by commas.
 `GET /api/v1/schedule_stop_pairs?bbox=-121.0,35.0,-124.0,37.0` | Find all Schedule Stop Pairs originating within a bounding box
 
 Pagination for JSON endpoints:
