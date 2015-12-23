@@ -5,7 +5,10 @@ class OnestopId
     'stop' => 's',
     'operator' => 'o',
     'feed' => 'f',
-    'route' => 'r'
+    'route' => 'r',
+    'station' => 's',
+    'stationplatform' => 's',
+    'stationentrance' => 's'
   }
   PREFIX_TO_ENTITY = ENTITY_TO_PREFIX.invert
   PREFIX_TO_MODEL = {
