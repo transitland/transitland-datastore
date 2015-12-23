@@ -14,23 +14,61 @@ module CurrentTrackedByChangeset
                 :virtual_attributes
 
     def apply_change(changeset: nil, attrs: {}, action: nil, cache: {})
-      existing_model = find_existing_model(attrs)
+      apply_changes(changeset: changeset, changes: [attrs], action: action, cache: cache)
+    end
+
+    def apply_changes(changeset: nil, changes: nil, action: nil, cache: {})
+      changes ||= []
       case action
+      when 'create'
+        apply_changes_create(changeset: changeset, changes: changes, cache: cache)
       when 'createUpdate'
-        attrs_to_apply = apply_params(attrs, cache)
+        apply_changes_update(changeset: changeset, changes: changes, cache: cache)
+      when 'destroy'
+        apply_changes_destroy(changeset: changeset, changes: changes, cache: cache)
+      else
+        raise ArgumentError.new('an action must be supplied')
+      end
+    end
+
+    def apply_changes_create(changeset: nil, changes: nil, cache: {})
+      models = []
+      changes.each do |change|
+        attrs_to_apply = apply_params(change, cache)
+        model = self.new(attrs_to_apply)
+        model.version = 1
+        model.created_or_updated_in_changeset = changeset
+        models << model if self.before_create_making_history(model, changeset)
+      end
+      #
+      raise Changeset::Error.new(changeset, "Invalid model") unless models.all?(&:valid?)
+      self.import models, validate: false
+      # models.map(&:save!)
+      models.each { |model| self.after_create_making_history(model, changeset) }
+      # binding.pry
+      models
+    end
+
+    def apply_changes_update(changeset: nil, changes: nil, cache: {})
+      changes.each do |change|
+        existing_model = find_existing_model(change)
+        attrs_to_apply = apply_params(change, cache)
         if existing_model
           existing_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply)
         else
           self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
         end
-      when 'destroy'
+      end
+    end
+
+    def apply_changes_destroy(changeset: nil, changes: nil, cache: {})
+      changes.each do |change|
+        existing_model = find_existing_model(change)
         if existing_model
           existing_model.destroy_making_history(changeset: changeset)
         else
           raise Changeset::Error.new(changeset, "could not find a #{self.name} with Onestop ID of #{attrs[:onestop_id]} to destroy")
         end
-      else
-        raise ArgumentError.new('an action must be supplied')
       end
     end
 
