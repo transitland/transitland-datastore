@@ -33,7 +33,7 @@ FactoryGirl.define do
       'N Judah',
       '522 Rapid'
     ].sample }
-    vehicle_type { GTFS::Route::VEHICLE_TYPES.keys.map { |i| i.to_s.to_i }.sample }
+    vehicle_type { [0,1,2,3,4,5,6,7,100,101,800,1700].sample }
     version 1
     association :created_or_updated_in_changeset, factory: :changeset
     association :operator
