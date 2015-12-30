@@ -15,6 +15,8 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
       @rsps = @rsps.route_onestop_id(params[:traversedBy])
     end
 
+    # TODO: query by shape id, and maybe unique geometry
+
     @rsps = @rsps.includes{[
       route,
       imported_from_feeds,
@@ -36,7 +38,7 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
         render json: Geojson.from_entity_collection(@rsps)
       end
       format.csv do
-        return_downloadable_csv(@rsps, 'routes')
+        #return_downloadable_csv(@rsps, 'routes')
       end
     end
   end

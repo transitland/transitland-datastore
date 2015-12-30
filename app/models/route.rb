@@ -29,7 +29,7 @@ class BaseRoute < ActiveRecord::Base
 
   include IsAnEntityImportedFromFeeds
 
-  attr_accessor :serves, :does_not_serve, :operated_by, :traverses
+  attr_accessor :serves, :does_not_serve, :operated_by
 end
 
 class Route < BaseRoute

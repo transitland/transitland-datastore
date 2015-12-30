@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151215193448) do
+ActiveRecord::Schema.define(version: 20151217191504) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -207,6 +207,10 @@ ActiveRecord::Schema.define(version: 20151215193448) do
     t.string   "pickup_type"
     t.string   "drop_off_type"
     t.boolean  "active"
+    t.integer  "route_stop_pattern_id"
+    t.string   "route_stop_pattern_type"
+    t.float    "origin_dist_traveled"
+    t.float    "destination_dist_traveled"
   end
 
   add_index "current_schedule_stop_pairs", ["active"], name: "index_current_schedule_stop_pairs_on_active", using: :btree
@@ -497,6 +501,10 @@ ActiveRecord::Schema.define(version: 20151215193448) do
     t.string   "pickup_type"
     t.string   "drop_off_type"
     t.boolean  "active"
+    t.integer  "route_stop_pattern_id"
+    t.string   "route_stop_pattern_type"
+    t.float    "origin_dist_traveled"
+    t.float    "destination_dist_traveled"
   end
 
   add_index "old_schedule_stop_pairs", ["active"], name: "index_old_schedule_stop_pairs_on_active", using: :btree

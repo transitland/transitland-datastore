@@ -40,6 +40,10 @@
 #  pickup_type                        :string
 #  drop_off_type                      :string
 #  active                             :boolean
+#  route_stop_pattern_id              :integer
+#  route_stop_pattern_type            :string
+#  origin_dist_traveled               :float
+#  destination_dist_traveled          :float
 #
 # Indexes
 #
@@ -85,6 +89,7 @@ class ScheduleStopPair < BaseScheduleStopPair
   belongs_to :destination, class_name: "Stop"
   belongs_to :route
   belongs_to :operator
+  belongs_to :route_stop_pattern
 
   # Required relations and attributes
   before_validation :filter_service_range
@@ -196,6 +201,7 @@ class ScheduleStopPair < BaseScheduleStopPair
     end
   end
   def self.apply_params(params, cache={})
+    route_stop_pattern_onestop_id = params[:route_stop_pattern_onestop_id]
     params = super(params, cache)
     {
       origin_onestop_id: :origin,
@@ -213,6 +219,8 @@ class ScheduleStopPair < BaseScheduleStopPair
       params[:imported_from_feed][:feed] = cache[feed_onestop_id]
       params[:imported_from_feed][:feed_version] = cache[feed_version_id]
     end
+    # TODO: move RouteStopPattern search to OnestopId.find
+    params[:route_stop_pattern] = RouteStopPattern.where(onestop_id: route_stop_pattern_onestop_id).first
     params[:operator] = params[:route].operator
     params
   end

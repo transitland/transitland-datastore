@@ -14,9 +14,7 @@ class GTFSGraph
     # TL Indexed by Onestop ID
     @onestop_id_to_entity = {}
 
-    # for lack of a better place, for now
     @onestop_id_to_rsp = {}
-    @trip_id_to_rsp = {}
   end
 
   def create_change_osr(import_level=0)
@@ -58,33 +56,39 @@ class GTFSGraph
   end
 
   def ssp_schedule_async
-    agency_map, route_map, stop_map = make_gtfs_id_map
+    agency_map, route_map, stop_map, rsp_map = make_gtfs_id_map
     @gtfs.trip_chunks(STOP_TIMES_MAX_LOAD) do |trips|
       trip_ids = trips.map(&:id)
-      yield trip_ids, agency_map, route_map, stop_map
+      yield trip_ids, agency_map, route_map, stop_map, rsp_map
     end
   end
 
-  def ssp_perform_async(trip_ids, agency_map, route_map, stop_map)
+  def ssp_perform_async(trip_ids, agency_map, route_map, stop_map, rsp_map)
     log "Load GTFS"
     @gtfs.agencies
     @gtfs.routes
     @gtfs.stops
     @gtfs.trips
-    load_gtfs_id_map(agency_map, route_map, stop_map)
+    load_gtfs_id_map(agency_map, route_map, stop_map, rsp_map)
     trips = trip_ids.map { |trip_id| @gtfs.trip(trip_id) }
+    log "Calculating distances"
+    rsp_distances_map = {}
+    rsp_map.values.uniq.each do |onestop_id|
+      distances = RouteStopPattern.where(onestop_id: onestop_id).first.calculate_distances
+      rsp_distances_map[onestop_id] = distances
+    end
     log "Create changeset"
     changeset = Changeset.create()
     log "Create: SSPs"
     total = 0
     ssps = []
     @gtfs.trip_stop_times(trips) do |trip,stop_times|
-      # log "    trip id: #{trip.trip_id}, stop_times: #{stop_times.size}"
       route = @gtfs.route(trip.route_id)
+      rsp = RouteStopPattern.where(onestop_id: rsp_map[trip.trip_id]).first
       # Create SSPs for all stop_time edges
       ssp_trip = []
       stop_times[0..-2].zip(stop_times[1..-1]).each do |origin,destination|
-        ssp_trip << make_ssp(route, trip, origin, destination)
+        ssp_trip << make_ssp(route, trip, origin, destination, rsp, rsp_distances_map[rsp.onestop_id])
       end
       # Interpolate stop_times
       ScheduleStopPair.interpolate(ssp_trip)
@@ -238,41 +242,15 @@ class GTFSGraph
       next if stop_pattern.empty?
       # temporary RouteStopPattern
       rsp = RouteStopPattern.from_gtfs(trip, stop_pattern, feed_shape_points)
-      inspect_rsp_geometry(trip, stop_times, rsp)
+      trip_stop_points = tl_stops.map {|s| s.geometry[:coordinates]}
+      issues = rsp.evaluate_geometry(trip, trip_stop_points)
+      rsp.tl_geometry(trip_stop_points, issues)
+      rsp.inspect_geometry(trip_stop_points)
       rsp = find_rsp(tl_route.onestop_id, rsp)
       add_identifier(rsp, 'rsp', trip) # trip is closest entity match we have to rsp
-      # associate with trip_ids for later use by ScheduleStopPair
-      @trip_id_to_rsp[trip.trip_id] = rsp
       rsp.trips << trip.trip_id
       tl_route.route_stop_patterns << rsp
     end
-  end
-
-  def inspect_rsp_geometry(trip, stop_times, rsp)
-    issues = {:empty => false}
-    trip_stop_points = stop_times.map {|st| @gtfs.stop(st.stop_id)}
-    .map {|s| [s.stop_lat, s.stop_lon]}
-    if trip.shape_id.nil? || @gtfs.shape_line(trip.shape_id).empty?
-      issues[:empty] = true
-    else
-      if Set.new(trip_stop_points).subset?(Set.new(rsp.geometry[:coordinates]))
-        rsp.is_only_stop_points = true
-      end
-    end
-    # more inspections will go here
-    # then, modify rsp geometry based on issues
-    tl_rsp_geometry(rsp, trip_stop_points, issues)
-  end
-
-  def tl_rsp_geometry(rsp, trip_stop_points, issues)
-    if issues[:empty]
-      # create a new geometry from the trip stop points
-      rsp.geometry = RouteStopPattern.new_geometry(trip_stop_points)
-      rsp.is_generated = true
-      rsp.is_modified = true
-      rsp.is_only_stop_points = true
-    end
-    # more geometry modification will go here
   end
 
   def find_rsp(route_onestop_id, test_rsp)
@@ -374,13 +352,15 @@ class GTFSGraph
     agency_map = {}
     route_map = {}
     stop_map = {}
+    rsp_map = {}
     @gtfs.agencies.each { |e| agency_map[e.id] = @gtfs_to_onestop_id[e]}
     @gtfs.routes.each   { |e| route_map[e.id]  = @gtfs_to_onestop_id[e]}
     @gtfs.stops.each    { |e| stop_map[e.id]   = @gtfs_to_onestop_id[e]}
-    [agency_map, route_map, stop_map]
+    @gtfs.trips.each    { |e| rsp_map[e.id]    = @gtfs_to_onestop_id[e]}
+    [agency_map, route_map, stop_map, rsp_map]
   end
 
-  def load_gtfs_id_map(agency_map, route_map, stop_map)
+  def load_gtfs_id_map(agency_map, route_map, stop_map, rsp_map)
     @gtfs_to_onestop_id.clear
     # Populate GTFS entity to Onestop ID maps
     agency_map.each do |agency_id,onestop_id|
@@ -391,6 +371,9 @@ class GTFSGraph
     end
     stop_map.each do |stop_id,onestop_id|
       @gtfs_to_onestop_id[@gtfs.stop(stop_id)] = onestop_id
+    end
+    rsp_map.each do |trip_id,onestop_id|
+      @gtfs_to_onestop_id[@gtfs.trip(trip_id)] = onestop_id
     end
   end
 
@@ -473,6 +456,14 @@ class GTFSGraph
       #     )
       #   }
       # )
+      geometry: Route::GEOFACTORY.multi_line_string(
+         entity.route_stop_patterns.to_set
+         .map { |rsp|
+           Route::GEOFACTORY.line_string(rsp.geometry[:coordinates]
+             .map { |lon, lat| Route::GEOFACTORY.point(lon, lat) }
+           )
+         }
+       )
     }
   end
 
@@ -502,11 +493,14 @@ class GTFSGraph
       originTimezone: entity.origin_timezone,
       originArrivalTime: entity.origin_arrival_time,
       originDepartureTime: entity.origin_departure_time,
+      originDistTraveled: entity.origin_dist_traveled,
       destinationOnestopId: entity.destination.onestop_id,
       destinationTimezone: entity.destination_timezone,
       destinationArrivalTime: entity.destination_arrival_time,
       destinationDepartureTime: entity.destination_departure_time,
+      destinationDistTraveled: entity.destination_dist_traveled,
       routeOnestopId: entity.route.onestop_id,
+      routeStopPatternOnestopId: entity.route_stop_pattern.onestop_id,
       trip: entity.trip,
       tripHeadsign: entity.trip_headsign,
       tripShortName: entity.trip_short_name,
@@ -527,25 +521,28 @@ class GTFSGraph
     }
   end
 
-  def make_ssp(route, trip, origin, destination)
+  def make_ssp(route, trip, origin, destination, route_stop_pattern, rsp_stop_distances)
     # Generate an edge between an origin and destination for a given route/trip
     route = find_by_gtfs_entity(route)
     origin_stop = find_by_gtfs_entity(@gtfs.stop(origin.stop_id))
     destination_stop = find_by_gtfs_entity(@gtfs.stop(destination.stop_id))
     service_period = @gtfs.service_period(trip.service_id)
-    ScheduleStopPair.new(
+    ssp = ScheduleStopPair.new(
       # Origin
       origin: origin_stop,
       origin_timezone: origin_stop.timezone,
       origin_arrival_time: origin.arrival_time.presence,
       origin_departure_time: origin.departure_time.presence,
+      origin_dist_traveled: rsp_stop_distances[route_stop_pattern.stop_pattern.index(origin_stop.onestop_id)],
       # Destination
       destination: destination_stop,
       destination_timezone: destination_stop.timezone,
       destination_arrival_time: destination.arrival_time.presence,
       destination_departure_time: destination.departure_time.presence,
+      destination_dist_traveled: rsp_stop_distances[route_stop_pattern.stop_pattern.index(destination_stop.onestop_id)],
       # Route
       route: route,
+      route_stop_pattern: route_stop_pattern,
       # Trip
       trip: trip.id.presence,
       trip_headsign: (origin.stop_headsign || trip.trip_headsign).presence,
@@ -563,6 +560,8 @@ class GTFSGraph
       service_added_dates: service_period.added_dates,
       service_except_dates: service_period.except_dates
     )
+    route_stop_pattern.schedule_stop_pairs << ssp
+    ssp
   end
 
   def to_tfn(value)
