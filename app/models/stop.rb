@@ -267,7 +267,7 @@ class Stop < BaseStop
     onestop_id = OnestopId.new(
       entity_prefix: 's',
       geohash: geohash,
-      name: name
+      name: entity.id
     )
     stop = Stop.new(
       name: name,
