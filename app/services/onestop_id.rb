@@ -201,7 +201,7 @@ class RouteStopPatternOnestopId < OnestopId
     end
   end
 
-  def self.stored_component_count(route_onestop_id, component)
+  def self.component_count(route_onestop_id, component)
     case component
     when :stop_pattern
       num = 3
@@ -214,7 +214,7 @@ class RouteStopPatternOnestopId < OnestopId
     .pluck(:onestop_id).map {|onestop_id| onestop_id.split(COMPONENT_SEPARATOR)[num] }.uniq.size
   end
 
-  def self.component_count(onestop_id, component)
+  def self.onestop_id_component_num(onestop_id, component)
     case component
     when :stop_pattern
       return onestop_id.split(COMPONENT_SEPARATOR)[3].tr('S','').to_i
