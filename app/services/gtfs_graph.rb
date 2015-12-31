@@ -247,7 +247,7 @@ class GTFSGraph
       rsp.tl_geometry(trip_stop_points, issues)
       rsp.inspect_geometry(trip_stop_points)
       rsp = find_rsp(tl_route.onestop_id, rsp)
-      add_identifier(rsp, 'rsp', trip) # trip is closest entity match we have to rsp
+      add_identifier(rsp, 'r', trip) # trip is closest entity match we have to rsp
       rsp.trips << trip.trip_id
       tl_route.route_stop_patterns << rsp
     end
@@ -266,7 +266,7 @@ class GTFSGraph
 
   def evaluate_matching_by_route_onestop_ids(candidate_rsps, route_onestop_id, test_rsp)
     if candidate_rsps.empty?
-      onestop_id = "#{route_onestop_id}#S1#G1"
+      onestop_id = RouteStopPatternOnestopId.new(route_onestop_id: route_onestop_id, stop_pattern_num: 1, geometry_num: 1)
       @onestop_id_to_rsp[onestop_id] = test_rsp
       test_rsp.onestop_id = onestop_id
       test_rsp
@@ -274,22 +274,22 @@ class GTFSGraph
   end
 
   def evaluate_matching_by_structure(route_onestop_id, stop_pattern_rsps, geometry_rsps, test_rsp)
-    s = ""
+    s = 1
     if stop_pattern_rsps.empty?
-      s = RouteStopPattern.generate_component_id(route_onestop_id, @onestop_id_to_rsp.keys,'S')
+      s = RouteStopPatternOnestopId.store_component_count(route_onestop_id, :stop_pattern) + 1
     else
-      s = stop_pattern_rsps[0].onestop_id.split("#")[1]
+      s = RouteStopPatternOnestopId.component_count(stop_pattern_rsps[0].onestop_id)
     end
 
-    g = ""
+    g = 1
     if geometry_rsps.empty?
-      g = RouteStopPattern.generate_component_id(route_onestop_id, @onestop_id_to_rsp.keys,'G')
+      g = RouteStopPatternOnestopId.stored_component_count(route_onestop_id, :geometry) + 1
     else
-      g = geometry_rsps[0].onestop_id.split("#")[2]
+      g = RouteStopPatternOnestopId.component_count(geometry_rsps[0].onestop_id)
     end
 
     rsp = test_rsp
-    onestop_id = "#{route_onestop_id}##{s}##{g}"
+    onestop_id = RouteStopPatternOnestopId.new(route_onestop_id: route_onestop_id, stop_pattern_num: s, geometry_num: g)
     if @onestop_id_to_rsp.has_key?(onestop_id)
       rsp = @onestop_id_to_rsp[onestop_id]
     else
@@ -300,9 +300,9 @@ class GTFSGraph
   end
 
   def matching_by_route_onestop_ids(route_onestop_id)
-    @onestop_id_to_rsp.keys.select {|k| k.to_s.match(/^#{route_onestop_id}/)}
-    .map {|onestop_id| @onestop_id_to_rsp[onestop_id]}
-    .concat(RouteStopPattern.route_onestop_id(route_onestop_id))
+    # @onestop_id_to_rsp.values.select {|rsp| RouteStopPatternOnestopId.route_onestop_id(rsp.onestop_id) === route_onestop_id }
+    @onestop_id_to_rsp.values.select {|rsp| rsp.onestop_id.to_s.match(/^#{route_onestop_id}/)}
+    .concat(RouteStopPattern.where(route: Route.find_by(onestop_id: route_onestop_id)))
   end
 
   def matching_stop_pattern_rsps(candidate_rsps, test_rsp)

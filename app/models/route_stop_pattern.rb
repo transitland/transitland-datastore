@@ -79,33 +79,11 @@ class RouteStopPattern < BaseRouteStopPattern
     new_model.route = route
     self.existing_before_create_making_history(new_model, changeset)
   end
-  #def before_update_making_history(changeset)
-  #end
   # borrowed from schedule_stop_pair.rb
   def self.find_by_attributes(attrs = {})
     if attrs[:id].present?
       find(attrs[:id])
     end
-  end
-
-  #Custom onestop id
-
-  scope :route_onestop_id, -> (route_onestop_id) {
-    where(route_id: Route.select(:id).where(onestop_id: route_onestop_id))
-  }
-
-  scope :unique_components_by_route_onestop_id, -> (rt_onestop_id, component_num) {
-    route_onestop_id(rt_onestop_id).pluck(:onestop_id)
-    .map {|f_id| f_id.split("#")[component_num]}.uniq
-  }
-
-  def self.generate_component_id(route_onestop_id, feed_onestop_ids, component)
-    # S for stop_pattern, G for geometry
-    component_num_hash = {'S' => 1, 'G' => 2}
-    component_count = unique_components_by_route_onestop_id(route_onestop_id, component_num_hash[component]).size
-    component_count += feed_onestop_ids.select {|f_id| f_id.split("#")[0] == route_onestop_id}
-      .map {|f_id| f_id.split("#")[component_num_hash[component]]}.uniq.size
-    "#{component}#{component_count + 1}"
   end
 
   def self.line_string(points)
