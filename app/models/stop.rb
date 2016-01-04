@@ -77,7 +77,8 @@ class Stop < BaseStop
       :not_served_by,
       :identified_by,
       :not_identified_by,
-      :imported_from_feed
+      :imported_from_feed,
+      :parent_stop_onestop_id
     ]
   })
   def self.after_create_making_history(created_model, changeset)
@@ -110,10 +111,6 @@ class Stop < BaseStop
     end
     return true
   end
-
-  # Station relations
-  has_many :stop_entrances, class_name: 'StopEntrance', foreign_key: :parent_stop_id
-  has_many :stop_platforms, class_name: 'StopPlatform', foreign_key: :parent_stop_id
 
   # Operators serving this stop
   has_many :operators_serving_stop
@@ -259,7 +256,7 @@ class Stop < BaseStop
   include FromGTFS
   def self.from_gtfs(entity)
     # GTFS Constructor
-    point = Stop::GEOFACTORY.point(entity.stop_lon, entity.stop_lat)
+    point = GEOFACTORY.point(entity.stop_lon, entity.stop_lat)
     geohash = GeohashHelpers.encode(point, precision=GEOHASH_PRECISION)
     name = [entity.stop_name, entity.id, "unknown"]
       .select(&:present?)
@@ -269,7 +266,7 @@ class Stop < BaseStop
       geohash: geohash,
       name: entity.id
     )
-    stop = Stop.new(
+    stop = self.new(
       name: name,
       onestop_id: onestop_id.to_s,
       geometry: point.to_s
@@ -284,11 +281,21 @@ class Stop < BaseStop
     stop
   end
 
+  def parent_stop_onestop_id=(value)
+    self.parent_stop = Stop.find_by!(onestop_id: value)
+  end
+
   private
 
   def clean_attributes
     self.name.strip! if self.name.present?
   end
+end
+
+class StopStation < Stop
+  # Station relations
+  has_many :stop_entrances, class_name: 'StopEntrance', foreign_key: :parent_stop_id
+  has_many :stop_platforms, class_name: 'StopPlatform', foreign_key: :parent_stop_id
 end
 
 class StopPlatform < Stop

@@ -3,6 +3,7 @@ require 'addressable/template'
 class OnestopId
   ENTITY_TO_PREFIX = {
     'stop' => 's',
+    'stopstation' => 's',
     'stopplatform' => 's',
     'stopentrance' => 's',
     'operator' => 'o',
