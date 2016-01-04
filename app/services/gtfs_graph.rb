@@ -15,34 +15,60 @@ class GTFSGraph
     @onestop_id_to_entity = {}
   end
 
-  def create_change_osr(import_level=0)
-    raise ArgumentError.new('import_level must be 0, 1, or 2.') unless (0..2).include?(import_level)
-    log "Load GTFS"
+  def create_change_osr(import_level)
     @gtfs.load_graph
-    log "Load TL"
-    load_tl_stops
-    load_tl_routes
-    operators = load_tl_operators
-    routes = operators.map { |operator| operator.serves }.reduce(Set.new, :+)
-    stops = routes.map { |route| route.serves }.reduce(Set.new, :+)
-    log "Create changeset"
+    operators = Set.new
+    routes = Set.new
+    stops = Set.new
+
+    # Operators
+    @feed.operators_in_feed.each do |oif|
+      operator_gtfs = @gtfs.agency(oif.gtfs_agency_id)
+      next unless operator_gtfs
+      operator = find_by_onestop_id(oif.operator.onestop_id)
+      add_identifier(operator, 'o', operator_gtfs)
+      operators << operator
+      # Routes
+      @gtfs.children(operator_gtfs).each do |route_gtfs|
+        # Stops
+        route_stops = Set.new
+        route_stops_gtfs = @gtfs
+          .children(route_gtfs)
+          .map { |trip_gtfs| @gtfs.children(trip_gtfs) }
+          .reduce(Set.new, :+)
+        route_stops_gtfs.each do |stop_gtfs|
+          stop = find_by_entity(StopPlatform.from_gtfs(stop_gtfs))
+          add_identifier(stop, 's', stop_gtfs)
+          route_stops << stop
+          # Stations
+          stop_gtfs_parent = @gtfs.stop(stop_gtfs.parent_station)
+          if stop_gtfs_parent
+            station = find_by_entity(StopStation.from_gtfs(stop_gtfs_parent))
+            stop.parent_stop = station
+            add_identifier(station, 's', stop_gtfs_parent)
+            stops << station
+          end
+        end
+        stops |= route_stops
+        route = find_by_entity(Route.from_gtfs(route_gtfs, route_stops))
+        route.operator = operator
+        route.serves ||= Set.new
+        route.serves |= route_stops
+        add_identifier(route, 'r', route_gtfs)
+        routes << route
+      end
+    end
+    # binding.pry
+    # operators.map(&:save!)
+    # stops.map(&:save!)
+    # routes.map(&:save!)
+    log "Changeset create"
     changeset = Changeset.create()
-    log "Create: Operators, Stops, Routes"
-    # Update Feed Bounding Box
-    log "  updating feed bounding box"
     @feed.set_bounding_box_from_stops(stops)
-    # FIXME: Run through changeset
     @feed.save!
-    if import_level >= 0
-      log "  operators: #{operators.size}"
-      create_change_payloads(changeset, 'operator', operators.map { |e| make_change_operator(e) })
-    end
-    if import_level >= 1
-      log "  stops: #{stops.size}"
-      create_change_payloads(changeset, 'stop', stops.map { |e| make_change_stop(e) })
-      log "  routes: #{routes.size}"
-      create_change_payloads(changeset, 'route', routes.map { |e| make_change_route(e) })
-    end
+    create_change_payloads(changeset, 'operator', operators.map { |e| make_change_operator(e) })
+    create_change_payloads(changeset, 'stop', stops.map { |e| make_change_stop(e) })
+    create_change_payloads(changeset, 'route', routes.map { |e| make_change_route(e) })
     log "Changeset apply"
     t = Time.now
     changeset.apply!
@@ -106,8 +132,6 @@ class GTFSGraph
     @log.join("\n")
   end
 
-  ##### Private methods #####
-
   private
 
   ##### Logging #####
@@ -121,116 +145,6 @@ class GTFSGraph
     else
       puts msg
     end
-  end
-
-  ##### Create TL Entities #####
-
-  def load_tl_stops
-    # Merge child stations into parents.
-    # log "  merge stations"
-    # stations = Hash.new { |h,k| h[k] = [] }
-    # @gtfs.stops.each do |stop|
-    #   stations[@gtfs.stop(stop.parent_station) || stop] << stop
-    # end
-    # Merge station/platforms with Stops.
-    log "  stops"
-    @gtfs.stops.each do |entity|
-      # Temp stop to get geometry and name.
-      stop = Stop.from_gtfs(entity)
-      # Search by similarity
-      stop, score = Stop.find_by_similarity(stop[:geometry], stop.name, radius=1000, threshold=0.6)
-      # ... or create stop from GTFS
-      stop ||= Stop.from_gtfs(entity)
-      # ... check if Stop exists, or another local Stop, or new.
-      stop = find_by_entity(stop)
-      # Add identifiers and references
-      add_identifier(stop, 's', entity)
-      # Cache stop
-      if score
-        log "    #{stop.onestop_id}: #{stop.name} (search: #{entity.stop_name} = #{'%0.2f'%score.to_f})"
-      else
-        log "    #{stop.onestop_id}: #{stop.name}"
-      end
-    end
-  end
-
-  def load_tl_routes
-    # Routes
-    log "  routes"
-    @gtfs.routes.each do |entity|
-      # Find: (child gtfs trips) to (child gtfs stops) to (tl stops)
-      stops = @gtfs.children(entity)
-        .map { |trip| @gtfs.children(trip) }
-        .reduce(Set.new, :+)
-        .map { |stop| find_by_gtfs_entity(stop) }
-        .to_set
-      # Skip Route if no Stops
-      next if stops.empty?
-      # Find uniq shape_ids of trip_ids, filter missing shapes, build geometry.
-      geometry = Route::GEOFACTORY.multi_line_string(
-        @gtfs
-          .children(entity)
-          .map(&:shape_id)
-          .uniq
-          .compact
-          .map { |shape_id| @gtfs.shape_line(shape_id) }
-          .map { |coords| Route::GEOFACTORY.line_string( coords.map { |lon, lat| Route::GEOFACTORY.point(lon, lat) } ) }
-      )
-      # Search by similarity
-      # ... or create route from GTFS
-      route = Route.from_gtfs(entity, stops)
-      # ... check if Route exists, or another local Route, or new.
-      route = find_by_entity(route)
-      # Set geometry
-      route[:geometry] = geometry
-      # Add references and identifiers
-      route.serves ||= Set.new
-      route.serves |= stops
-      add_identifier(route, 'r', entity)
-      log "    #{route.onestop_id}: #{route.name}"
-    end
-  end
-
-  def load_tl_operators
-    # Operators
-    log "  operators"
-    operators = Set.new
-    @feed.operators_in_feed.each do |oif|
-      entity = @gtfs.agency(oif.gtfs_agency_id)
-      # Skip Operator if not found
-      next unless entity
-      # Find: (child gtfs routes) to (tl routes)
-      #   note: .compact because some gtfs routes are skipped.
-      routes = @gtfs.children(entity)
-        .map { |route| find_by_gtfs_entity(route) }
-        .compact
-        .to_set
-      # Find: (tl routes) to (serves tl stops)
-      stops = routes
-        .map { |route| route.serves }
-        .reduce(Set.new, :+)
-      # Create Operator from GTFS
-      operator = Operator.from_gtfs(entity, stops)
-      operator.onestop_id = oif.operator.onestop_id # Override Onestop ID
-      operator_original = operator # for merging geometry
-      # ... or check if Operator exists, or another local Operator, or new.
-      operator = find_by_entity(operator)
-      # Merge convex hulls
-      operator[:geometry] = Operator.convex_hull([operator, operator_original], as: :wkt, projected: false)
-      # Copy Operator timezone to fill missing Stop timezones
-      stops.each { |stop| stop.timezone ||= operator.timezone }
-      # Add references and identifiers
-      routes.each { |route| route.operator = operator }
-      operator.serves ||= Set.new
-      operator.serves |= routes
-      add_identifier(operator, 'o', entity)
-      # Cache Operator
-      # Add to found operators
-      operators << operator
-      log "    #{operator.onestop_id}: #{operator.name}"
-    end
-    # Return operators
-    operators
   end
 
   def find_by_gtfs_entity(entity)
@@ -336,6 +250,7 @@ class GTFSGraph
       onestopId: entity.onestop_id,
       name: entity.name,
       identifiedBy: entity.identified_by.uniq,
+      # parent_stop_onestop_id: entity.parent_stop.try(:onestop_id),
       importedFromFeed: {
         onestopId: @feed.onestop_id,
         sha1: @feed_version.sha1
@@ -467,7 +382,7 @@ if __FILE__ == $0
   feed_onestop_id = ARGV[0] || 'f-9q9-caltrain'
   FeedFetcherWorker.perform_async(feed_onestop_id)
   FeedFetcherWorker.drain
-  FeedEaterWorker.perform_async(feed_onestop_id, nil, 2)
+  FeedEaterWorker.perform_async(feed_onestop_id, nil, 1)
   FeedEaterWorker.drain
   FeedEaterScheduleWorker.drain
 end
