@@ -38,6 +38,7 @@ class GTFSGraph
           .reduce(Set.new, :+)
         route_stops_gtfs.each do |stop_gtfs|
           stop = find_by_entity(StopPlatform.from_gtfs(stop_gtfs))
+          stop.timezone ||= operator.timezone
           add_identifier(stop, 's', stop_gtfs)
           route_stops << stop
           # Stations
