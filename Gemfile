@@ -39,7 +39,7 @@ gem 'text'
 gem 'rack-cors', require: 'rack/cors'
 
 # providing API
-gem 'active_model_serializers', github: 'rails-api/active_model_serializers', ref: '9909908'
+gem 'active_model_serializers', github: 'rails-api/active_model_serializers', ref: '7d4f0c5'
 # using a development version of AMS in order to use JSON view caching
 gem 'oj'
 gem 'oj_mimic_json'
