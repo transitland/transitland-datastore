@@ -67,9 +67,9 @@ class GTFSGraph
     changeset = Changeset.create()
     @feed.set_bounding_box_from_stops(stops)
     @feed.save!
-    create_change_payloads(changeset, 'operator', operators.map { |e| make_change_operator(e) })
-    create_change_payloads(changeset, 'stop', stops.map { |e| make_change_stop(e) })
-    create_change_payloads(changeset, 'route', routes.map { |e| make_change_route(e) })
+    create_change_payloads(changeset, operators)
+    create_change_payloads(changeset, stops)
+    create_change_payloads(changeset, routes)
     log "Changeset apply"
     t = Time.now
     changeset.apply!
@@ -113,7 +113,7 @@ class GTFSGraph
       if ssps.size >= CHANGE_PAYLOAD_MAX_ENTITIES
         log  "  ssps: #{total} - #{total+ssps.size}"
         total += ssps.size
-        create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) })
+        create_change_payloads(changeset, ssps)
         ssps = []
       end
     end
@@ -121,7 +121,7 @@ class GTFSGraph
     if ssps.size > 0
       log  "  ssps: #{total} - #{total+ssps.size}"
       total += ssps.size
-      create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) })
+      create_change_payloads(changeset, ssps)
     end
     log "Changeset apply"
     t = Time.now
@@ -205,13 +205,12 @@ class GTFSGraph
 
   ##### Create change payloads ######
 
-  def create_change_payloads(changeset, entity_type, entities)
+  def create_change_payloads(changeset, entities)
     entities.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
       changes = chunk.map do |entity|
-        entity.compact! # remove any nil values
         change = {}
         change['action'] = 'createUpdate'
-        change[entity_type] = entity
+        change[entity.class.name.camelize(:lower)] = entity.as_change
         change
       end
       begin
@@ -228,55 +227,6 @@ class GTFSGraph
         raise e
       end
     end
-  end
-
-  def make_change_operator(entity)
-    {
-      onestopId: entity.onestop_id,
-      name: entity.name,
-      identifiedBy: entity.identified_by.uniq,
-      importedFromFeed: {
-        onestopId: @feed.onestop_id,
-        sha1: @feed_version.sha1
-      },
-      geometry: entity.geometry,
-      tags: entity.tags || {},
-      timezone: entity.timezone,
-      website: entity.website
-    }
-  end
-
-  def make_change_stop(entity)
-    {
-      onestopId: entity.onestop_id,
-      name: entity.name,
-      identifiedBy: entity.identified_by.uniq,
-      # parent_stop_onestop_id: entity.parent_stop.try(:onestop_id),
-      importedFromFeed: {
-        onestopId: @feed.onestop_id,
-        sha1: @feed_version.sha1
-      },
-      geometry: entity.geometry,
-      tags: entity.tags || {},
-      timezone: entity.timezone
-    }
-  end
-
-  def make_change_route(entity)
-    {
-      onestopId: entity.onestop_id,
-      name: entity.name,
-      identifiedBy: entity.identified_by.uniq,
-      importedFromFeed: {
-        onestopId: @feed.onestop_id,
-        sha1: @feed_version.sha1
-      },
-      operatedBy: entity.operator.onestop_id,
-      vehicleType: entity.vehicle_type,
-      serves: entity.serves.map(&:onestop_id),
-      tags: entity.tags || {},
-      geometry: entity.geometry
-    }
   end
 
   def make_change_ssp(entity)
