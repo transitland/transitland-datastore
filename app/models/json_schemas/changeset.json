@@ -27,6 +27,22 @@
             }
           },
           {
+            "required": ["stop_station"],
+            "properties": {
+              "stopStation": {
+                "$ref": "./stop.json"
+              }
+            }
+          },
+          {
+            "required": ["stop_platform"],
+            "properties": {
+              "stopPlatform": {
+                "$ref": "./stop.json"
+              }
+            }
+          },
+          {
             "required": ["operator"],
             "properties": {
               "operator": {

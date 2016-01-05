@@ -54,6 +54,8 @@ class ChangePayload < ActiveRecord::Base
     entity_types = {
       feed: Feed,
       stop: Stop,
+      stop_station: StopStation,
+      stop_platform: StopPlatform,
       operator: Operator,
       route: Route,
       schedule_stop_pair: ScheduleStopPair
@@ -97,6 +99,7 @@ class ChangePayload < ActiveRecord::Base
     payload_validation_errors.each do |error|
       errors.add(:payload, error[:message])
     end
+    binding.pry if errors.size > 0
   end
 
 end

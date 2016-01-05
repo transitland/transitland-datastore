@@ -18,6 +18,9 @@
         "type": "string"
       }
     },
+    "parentStopOnestopId": {
+      "type": "string"
+    },
     "notIdentifiedBy": {
       "type": "array",
       "uniqueItems": true,
