@@ -79,7 +79,7 @@ module CurrentTrackedByChangeset
     end
 
     def changeable_attributes
-      @changeable_attributes ||= (self.attribute_names + @virtual_attributes - ['id', 'created_at', 'updated_at', 'created_or_updated_in_changeset_id', 'destroyed_in_changeset_id', 'version']).map(&:to_sym)
+      @changeable_attributes ||= (self.attribute_names + @virtual_attributes - self.reflections.values.map(&:foreign_key) - ['id', 'created_at', 'updated_at', 'created_or_updated_in_changeset_id', 'destroyed_in_changeset_id', 'version']).map(&:to_sym)
     end
 
     def changeable_associated_models
@@ -94,9 +94,16 @@ module CurrentTrackedByChangeset
       else
         raise ArgumentError.new("must specify whether it's an entity or a relationship being tracked")
       end
-
       @virtual_attributes = virtual_attributes
     end
+  end
+
+  def as_change
+    Hash[
+      self
+        .slice(*self.class.changeable_attributes)
+        .map { |k,v| [k.to_s.camelize(:lower).to_sym,v] }
+    ]
   end
 
   def before_destroy_making_history(changeset, old_model)
