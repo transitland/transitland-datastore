@@ -64,6 +64,7 @@ class ScheduleStopPairSerializer < ApplicationSerializer
   attributes :origin_onestop_id,
              :destination_onestop_id,
              :route_onestop_id,
+             :route_stop_pattern_onestop_id,
              :operator_onestop_id,
              :origin_timezone,
              :destination_timezone,
@@ -80,6 +81,8 @@ class ScheduleStopPairSerializer < ApplicationSerializer
              :origin_departure_time,
              :destination_arrival_time,
              :destination_departure_time,
+             :origin_dist_traveled,
+             :destination_dist_traveled,
              :service_start_date,
              :service_end_date,
              :service_added_dates,
@@ -102,6 +105,10 @@ class ScheduleStopPairSerializer < ApplicationSerializer
 
   def route_onestop_id
     object.route.try(:onestop_id)
+  end
+
+  def route_stop_pattern_onestop_id
+    object.route_stop_pattern.try(:onestop_id)
   end
 
   def operator_onestop_id
