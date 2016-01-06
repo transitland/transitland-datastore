@@ -23,8 +23,9 @@ class GTFSGraph
     load_tl_stops
     load_tl_routes
     operators = load_tl_operators
-    routes = operators.map { |operator| operator.serves }.reduce(Set.new, :+)
-    stops = routes.map { |route| route.serves }.reduce(Set.new, :+)
+    routes = operators.map { |operator| operator.serves }.reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
+    stops = routes.map { |route| route.serves }.reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
+    operators.each { |o| o.serves = nil }
     log "Create changeset"
     changeset = Changeset.create()
     log "Create: Operators, Stops, Routes"
@@ -35,13 +36,13 @@ class GTFSGraph
     @feed.save!
     if import_level >= 0
       log "  operators: #{operators.size}"
-      create_change_payloads(changeset, 'operator', operators.map { |e| make_change_operator(e) })
+      create_change_payloads(changeset, operators)
     end
     if import_level >= 1
       log "  stops: #{stops.size}"
-      create_change_payloads(changeset, 'stop', stops.map { |e| make_change_stop(e) })
+      create_change_payloads(changeset, stops)
       log "  routes: #{routes.size}"
-      create_change_payloads(changeset, 'route', routes.map { |e| make_change_route(e) })
+      create_change_payloads(changeset, routes)
     end
     log "Changeset apply"
     t = Time.now
@@ -86,7 +87,7 @@ class GTFSGraph
       if ssps.size >= CHANGE_PAYLOAD_MAX_ENTITIES
         log  "  ssps: #{total} - #{total+ssps.size}"
         total += ssps.size
-        create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) })
+        create_change_payloads(changeset, ssps)
         ssps = []
       end
     end
@@ -94,7 +95,7 @@ class GTFSGraph
     if ssps.size > 0
       log  "  ssps: #{total} - #{total+ssps.size}"
       total += ssps.size
-      create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) })
+      create_change_payloads(changeset, ssps)
     end
     log "Changeset apply"
     t = Time.now
@@ -185,7 +186,7 @@ class GTFSGraph
       route[:geometry] = geometry
       # Add references and identifiers
       route.serves ||= Set.new
-      route.serves |= stops
+      route.serves |= stops.map(&:onestop_id)
       add_identifier(route, 'r', entity)
       log "    #{route.onestop_id}: #{route.name}"
     end
@@ -209,6 +210,7 @@ class GTFSGraph
       stops = routes
         .map { |route| route.serves }
         .reduce(Set.new, :+)
+        .map { |i| find_by_onestop_id(i) }
       # Create Operator from GTFS
       operator = Operator.from_gtfs(entity, stops)
       operator.onestop_id = oif.operator.onestop_id # Override Onestop ID
@@ -220,9 +222,9 @@ class GTFSGraph
       # Copy Operator timezone to fill missing Stop timezones
       stops.each { |stop| stop.timezone ||= operator.timezone }
       # Add references and identifiers
-      routes.each { |route| route.operator = operator }
+      routes.each { |route| route.operated_by = operator.onestop_id }
       operator.serves ||= Set.new
-      operator.serves |= routes
+      operator.serves |= routes.map(&:onestop_id)
       add_identifier(operator, 'o', entity)
       # Cache Operator
       # Add to found operators
@@ -290,14 +292,18 @@ class GTFSGraph
 
   ##### Create change payloads ######
 
-  def create_change_payloads(changeset, entity_type, entities)
+  def create_change_payloads(changeset, entities)
     entities.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
       changes = chunk.map do |entity|
-        entity.compact! # remove any nil values
-        change = {}
-        change['action'] = 'createUpdate'
-        change[entity_type] = entity
-        change
+        change = entity.as_change.compact
+        change[:importedFromFeed] = {
+          onestopId: @feed.onestop_id,
+          sha1: @feed_version.sha1
+        }
+        {
+          :action => :createUpdate,
+          entity.class.name.camelize(:lower) => change
+        }
       end
       begin
         ChangePayload.create!(
@@ -315,89 +321,6 @@ class GTFSGraph
     end
   end
 
-  def make_change_operator(entity)
-    {
-      onestopId: entity.onestop_id,
-      name: entity.name,
-      identifiedBy: entity.identified_by.uniq,
-      importedFromFeed: {
-        onestopId: @feed.onestop_id,
-        sha1: @feed_version.sha1
-      },
-      geometry: entity.geometry,
-      tags: entity.tags || {},
-      timezone: entity.timezone,
-      website: entity.website
-    }
-  end
-
-  def make_change_stop(entity)
-    {
-      onestopId: entity.onestop_id,
-      name: entity.name,
-      identifiedBy: entity.identified_by.uniq,
-      importedFromFeed: {
-        onestopId: @feed.onestop_id,
-        sha1: @feed_version.sha1
-      },
-      geometry: entity.geometry,
-      tags: entity.tags || {},
-      timezone: entity.timezone
-    }
-  end
-
-  def make_change_route(entity)
-    {
-      onestopId: entity.onestop_id,
-      name: entity.name,
-      identifiedBy: entity.identified_by.uniq,
-      importedFromFeed: {
-        onestopId: @feed.onestop_id,
-        sha1: @feed_version.sha1
-      },
-      operatedBy: entity.operator.onestop_id,
-      vehicleType: entity.vehicle_type,
-      serves: entity.serves.map(&:onestop_id),
-      tags: entity.tags || {},
-      geometry: entity.geometry
-    }
-  end
-
-  def make_change_ssp(entity)
-    {
-      importedFromFeed: {
-        onestopId: @feed.onestop_id,
-        sha1: @feed_version.sha1
-      },
-      originOnestopId: entity.origin.onestop_id,
-      originTimezone: entity.origin_timezone,
-      originArrivalTime: entity.origin_arrival_time,
-      originDepartureTime: entity.origin_departure_time,
-      destinationOnestopId: entity.destination.onestop_id,
-      destinationTimezone: entity.destination_timezone,
-      destinationArrivalTime: entity.destination_arrival_time,
-      destinationDepartureTime: entity.destination_departure_time,
-      routeOnestopId: entity.route.onestop_id,
-      trip: entity.trip,
-      tripHeadsign: entity.trip_headsign,
-      tripShortName: entity.trip_short_name,
-      wheelchairAccessible: entity.wheelchair_accessible,
-      bikesAllowed: entity.bikes_allowed,
-      dropOffType: entity.drop_off_type,
-      pickupType: entity.pickup_type,
-      shapeDistTraveled: entity.shape_dist_traveled,
-      serviceStartDate: entity.service_start_date,
-      serviceEndDate: entity.service_end_date,
-      serviceDaysOfWeek: entity.service_days_of_week,
-      serviceAddedDates: entity.service_added_dates,
-      serviceExceptDates: entity.service_except_dates,
-      windowStart: entity.window_start,
-      windowEnd: entity.window_end,
-      originTimepointSource: entity.origin_timepoint_source,
-      destinationTimepointSource: entity.destination_timepoint_source
-    }
-  end
-
   def make_ssp(route, trip, origin, destination)
     # Generate an edge between an origin and destination for a given route/trip
     route = find_by_gtfs_entity(route)
@@ -407,11 +330,13 @@ class GTFSGraph
     ScheduleStopPair.new(
       # Origin
       origin: origin_stop,
+      origin_onestop_id: origin_stop.onestop_id,
       origin_timezone: origin_stop.timezone,
       origin_arrival_time: origin.arrival_time.presence,
       origin_departure_time: origin.departure_time.presence,
       # Destination
       destination: destination_stop,
+      destination_onestop_id: destination_stop.onestop_id,
       destination_timezone: destination_stop.timezone,
       destination_arrival_time: destination.arrival_time.presence,
       destination_departure_time: destination.departure_time.presence,
