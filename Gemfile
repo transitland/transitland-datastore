@@ -39,7 +39,7 @@ gem 'text'
 gem 'rack-cors', require: 'rack/cors'
 
 # providing API
-gem 'active_model_serializers', '0.9.3'
+gem 'active_model_serializers', '0.9.4'
 gem 'oj'
 gem 'oj_mimic_json'
 
