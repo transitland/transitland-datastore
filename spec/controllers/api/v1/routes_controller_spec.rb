@@ -62,6 +62,22 @@ describe Api::V1::RoutesController do
         }})
       end
 
+      context 'returns routes by vehicle type' do
+        it 'by integer' do
+          get :index, vehicle_type: @richmond_millbrae_route.vehicle_type_value
+          expect_json({ routes: -> (routes) {
+            expect(routes.length).to eq 1
+          }})
+        end
+
+        it 'by string' do
+          get :index, vehicle_type: @richmond_millbrae_route.vehicle_type
+          expect_json({ routes: -> (routes) {
+            expect(routes.length).to eq 1
+          }})
+        end
+      end
+
       it 'returns routes operated by an Operator' do
         other_operator = create(:operator)
         other_route = create(:route, operator: other_operator)
