@@ -135,13 +135,25 @@ class ScheduleStopPair < BaseScheduleStopPair
   }
 
   # Handle mapping from onestop_id to id
+  def route_onestop_id
+    self.route.onestop_id
+  end
+
   def route_onestop_id=(value)
     self.route = Route.find_by!(onestop_id: value)
     self.operator = route.operator
   end
 
+  def origin_onestop_id
+    self.origin.onestop_id
+  end
+
   def origin_onestop_id=(value)
     self.origin = Stop.find_by!(onestop_id: value)
+  end
+
+  def destination_onestop_id
+    self.destination.onestop_id
   end
 
   def destination_onestop_id=(value)
