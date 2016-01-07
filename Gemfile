@@ -32,8 +32,6 @@ gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 gem 'json-schema'
 
-gem 'haversine'
-
 # text matching
 gem 'text'
 
