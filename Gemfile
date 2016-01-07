@@ -61,6 +61,8 @@ gem 'pry-byebug', group: [:development, :test]
 gem 'pry-rails', group: [:development, :test]
 gem 'pry-rescue', group: [:development, :test]
 gem 'pry-stack_explorer', group: [:development, :test]
+gem 'rubocop', require: false, group: [:development, :test]
+gem 'rubocop-rspec', require: false, group: [:development, :test]
 
 # code coverage and documentation
 gem 'rails-erd', group: :development
@@ -83,7 +85,7 @@ gem 'aws-sdk', group: [:staging, :production]
 # exception monitoring
 gem 'sentry-raven', group: [:staging, :production]
 
-# loggging
+# logging
 gem 'logstasher'
 gem 'sidekiq-logging-json', github: 'transitland/Sidekiq-Logging-JSON', tag: '7ea0db4'
 
