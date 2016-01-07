@@ -61,6 +61,8 @@ gem 'pry-byebug', group: [:development, :test]
 gem 'pry-rails', group: [:development, :test]
 gem 'pry-rescue', group: [:development, :test]
 gem 'pry-stack_explorer', group: [:development, :test]
+gem 'rubocop', require: false, group: [:development, :test]
+gem 'rubocop-rspec', require: false, group: [:development, :test]
 
 # code coverage and documentation
 gem 'rails-erd', group: :development
