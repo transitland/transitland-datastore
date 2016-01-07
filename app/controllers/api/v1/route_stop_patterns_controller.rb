@@ -7,12 +7,11 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
     @rsps = RouteStopPattern.where('')
 
     if params[:onestop_id].present?
-      # TODO: hash symbol issue!
       @rsps = @rsps.where(onestop_id: params[:onestop_id])
     end
 
     if params[:traversedBy].present?
-      @rsps = @rsps.route_onestop_id(params[:traversedBy])
+      @rsps = @rsps.where(route_id: Route.where(onestop_id: params[:traversedBy]))
     end
 
     # TODO: query by shape id, and maybe unique geometry

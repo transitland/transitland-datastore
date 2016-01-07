@@ -41,6 +41,16 @@ describe RouteStopPattern do
     expect(RouteStopPattern.line_string([[1,2],[2,2]]).is_a?(RGeo::Geographic::SphericalLineStringImpl)).to be true
   end
 
+  it 'can calculate distances' do
+    @simple_rsp =RouteStopPattern.new(stop_pattern:
+                     ["s-9q9k659e3r-sanjosecaltrainstation",
+                     "s-9q9hxhecje-sunnyvalecaltrainstation",
+                     "s-9q9hwp6epk-mountainviewcaltrainstation"],
+                     geometry: RouteStopPattern.line_string([[-121.902181, 37.329392],[-122.030742, 37.378427],[-122.076327, 37.393879]])
+    )
+    expect(@simple_rsp.calculate_distances).to eq([0.0, 12617.927110162818, 17001.510715519955])
+  end
+
   context 'without shape or shape points' do
     before(:each) do
       @trip = GTFS::Trip.new(trip_id: 'test')

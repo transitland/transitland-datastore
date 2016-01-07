@@ -92,66 +92,23 @@ class RouteStopPattern < BaseRouteStopPattern
     )
   end
 
-  def distance_sq(p1,p2)
-    (p2[0] - p1[0])**2 + (p2[1] - p1[1])**2
-  end
-
-  def distance_to_segment(t, p1, p2)
-    # adapted from http://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
-    # TODO: consolidate with nearest_segment_point
-    s = distance_sq(p1, p2).to_f
-    return Math.sqrt(distance_sq(p1, t)) if (s == 0)
-    a = ((t[0] - p1[0])*(p2[0] - p1[0]) + (t[1] - p1[1])*(p2[1] - p1[1])).to_f / s
-    return Math.sqrt(distance_sq(t, p1)) if (a < 0)
-    return Math.sqrt(distance_sq(t, p2)) if (a > 1)
-    x = p1[0] + a*(p2[0] - p1[0])
-    y = p1[1] + a*(p2[1] - p1[1])
-    Math.sqrt(distance_sq(t, [x,y]))
-  end
-
-  def nearest_segment_point(t, p1, p2)
-    # adapted from http://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
-    s = distance_sq(p1, p2).to_f
-    return p1 if (s == 0)
-    a = ((t[0] - p1[0])*(p2[0] - p1[0]) + (t[1] - p1[1])*(p2[1] - p1[1])).to_f / s
-    return p1 if (a < 0)
-    return p2 if (a > 1)
-    x = p1[0] + a*(p2[0] - p1[0])
-    y = p1[1] + a*(p2[1] - p1[1])
-    [x, y]
-  end
-
   def calculate_distances
     # TODO: potential issue with nearest stop segment matching after subsequent stop
     # TODO: investigate 'boundary' lat/lng possibilities
     distances = []
-    segments = self.geometry[:coordinates][0..-2].zip(self.geometry[:coordinates][1..-1])
     total_distance = 0.0
+    cartesian_factory = RGeo::Cartesian::Factory.new
+    cast_route = RGeo::Feature.cast(self[:geometry], cartesian_factory)
     self.stop_pattern.map {|s| Stop.find_by_onestop_id!(s)}.each do |stop|
-      stop_seg_distances = segments.map {|sg| distance_to_segment(stop.geometry[:coordinates], sg[0], sg[1])}
-      min_i = stop_seg_distances.index(stop_seg_distances.min)
-      seg_point = nearest_segment_point(stop.geometry[:coordinates], segments[min_i][0], segments[min_i][1])
-      first_cut = []
-      second_cut = []
-      if seg_point.eql?(segments[min_i][0])
-        # seg point is first point of segment
-        first_cut = segments[0...min_i]
-        second_cut = segments[min_i..-1]
-      elsif seg_point.eql?(segments[min_i][1])
-        # seg point is end point of segment
-        first_cut = segments[0..min_i]
-        second_cut = segments[min_i+1..-1]
+      cast_stop = RGeo::Feature.cast(stop[:geometry], cartesian_factory)
+      splits = cast_route.split_at_point(cast_stop)
+      if !splits[0]
+        distances << 0.0
       else
-        # seg point is somewhere on the segment between endpoints
-        first_cut = segments[0...min_i] << [segments[min_i][0], seg_point]
-        second_cut = segments[min_i+1..-1].unshift([seg_point, segments[min_i][1]])
+        total_distance += RGeo::Feature.cast(splits[0], RouteStopPattern::GEOFACTORY).length
+        distances << total_distance
+        cast_route = splits[1] || splits[0]
       end
-
-      if !first_cut.empty?
-        total_distance += first_cut.map{|s| distance = Haversine.distance(s[0][1], s[0][0], s[1][1], s[1][0]).to_m }.reduce(:+)
-      end
-      distances << total_distance
-      segments = second_cut
     end
     distances
   end
@@ -193,7 +150,7 @@ class RouteStopPattern < BaseRouteStopPattern
     raise ArgumentError.new('Need at least two stops') if stop_pattern.length < 2
     rsp = RouteStopPattern.new(
       stop_pattern: stop_pattern,
-      geometry: self.line_string(shape_points)
+      geometry: self.line_string(shape_points.uniq)
     )
     rsp.tags ||= {}
     rsp.tags[:shape_id] = trip.shape_id
