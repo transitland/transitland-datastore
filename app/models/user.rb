@@ -31,6 +31,18 @@ class User < ActiveRecord::Base
 
   has_many :changesets, foreign_key: :author_id
 
+  include CanBeSerializedToCsv
+  def self.csv_column_names
+    [
+      'Email'
+    ]
+  end
+  def csv_row_values
+    [
+      email
+    ]
+  end
+
   def admin?
     self.admin
   end

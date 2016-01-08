@@ -21,6 +21,39 @@ describe Api::V1::UsersController do
         expect(users.length).to eq 2
       }})
     end
+
+    it 'as CSV' do
+      create_list(:user, 2)
+      get :index, format: :csv
+      parsed_csv = CSV.parse(response.body)
+      expect(parsed_csv[0]).to eq ["Email"]
+      expect(parsed_csv.length).to eq 3
+    end
+  end
+
+  describe 'POST create' do
+    it 'can create a new user' do
+      post :create, user: FactoryGirl.attributes_for(:user)
+      expect(response.status).to eq 200
+      expect(User.count).to eq 1
+    end
+  end
+
+  describe 'POST destroy' do
+    it 'can destroy a user' do
+      post :destroy, id: user.id
+      expect(response.status).to eq 200
+      expect(User.count).to eq 0
+    end
+  end
+
+  describe 'PUT update' do
+    it 'can update an existing user' do
+      initial_email = user.email
+      put :update, id: user.id, user: { email: 'new@example.com' }
+      expect(response.status).to eq 200
+      expect(User.first.email).to eq 'new@example.com'
+    end
   end
 
   describe 'GET show' do
