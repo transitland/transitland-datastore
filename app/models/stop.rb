@@ -173,7 +173,7 @@ class Stop < BaseStop
   }
 
   # Similarity search
-  def self.find_by_similarity(point, name, radius=100, threshold=0.75)
+  def self.find_by_similarity(point, name, radius: 100, threshold: 0.75)
     # Similarity search. Returns a score,stop tuple or nil.
     other = Stop.new(name: name, geometry: point.to_s)
     # Class method, like other find_by methods.

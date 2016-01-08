@@ -1,5 +1,7 @@
-class GTFSGraph
+# GTFS Import
 
+# GTFS Import manager
+class GTFSGraph
   CHANGE_PAYLOAD_MAX_ENTITIES = 1_000
   STOP_TIMES_MAX_LOAD = 100_000
 
@@ -7,7 +9,7 @@ class GTFSGraph
     # GTFS Graph / TransitLand wrapper
     @feed = feed
     @feed_version = feed_version
-    @gtfs = GTFS::Source.build(filename, {strict: false})
+    @gtfs = GTFS::Source.build(filename, strict: false)
     @log = []
     # GTFS entity to Onestop ID
     @gtfs_to_onestop_id = {}
@@ -15,22 +17,28 @@ class GTFSGraph
     @onestop_id_to_entity = {}
   end
 
-  def create_change_osr(import_level=0)
-    raise ArgumentError.new('import_level must be 0, 1, or 2.') unless (0..2).include?(import_level)
-    log "Load GTFS"
+  def create_change_osr(import_level = 0)
+    fail ArgumentError, 'import_level must be 0, 1, or 2.' unless (0..2).include?(import_level)
+    log 'Load GTFS'
     @gtfs.load_graph
-    log "Load TL"
+    log 'Load TL'
     load_tl_stops
     load_tl_routes
     operators = load_tl_operators
-    routes = operators.map { |operator| operator.serves }.reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
-    stops = routes.map { |route| route.serves }.reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
+    routes = operators
+             .map(&:serves)
+             .reduce(Set.new, :+)
+             .map { |i| find_by_onestop_id(i) }
+    stops = routes
+            .map(&:serves)
+            .reduce(Set.new, :+)
+            .map { |i| find_by_onestop_id(i) }
     operators.each { |o| o.serves = nil }
-    log "Create changeset"
-    changeset = Changeset.create()
-    log "Create: Operators, Stops, Routes"
+    log 'Create changeset'
+    changeset = Changeset.create!
+    log 'Create: Operators, Stops, Routes'
     # Update Feed Bounding Box
-    log "  updating feed bounding box"
+    log '  updating feed bounding box'
     @feed.set_bounding_box_from_stops(stops)
     # FIXME: Run through changeset
     @feed.save!
@@ -44,10 +52,9 @@ class GTFSGraph
       log "  routes: #{routes.size}"
       create_change_payloads(changeset, routes)
     end
-    log "Changeset apply"
-    t = Time.now
+    log 'Changeset apply'
     changeset.apply!
-    log "  apply done: time #{Time.now - t}"
+    log '  apply done'
   end
 
   def ssp_schedule_async
@@ -59,24 +66,24 @@ class GTFSGraph
   end
 
   def ssp_perform_async(trip_ids, agency_map, route_map, stop_map)
-    log "Load GTFS"
+    log 'Load GTFS'
     @gtfs.agencies
     @gtfs.routes
     @gtfs.stops
     @gtfs.trips
     load_gtfs_id_map(agency_map, route_map, stop_map)
     trips = trip_ids.map { |trip_id| @gtfs.trip(trip_id) }
-    log "Create changeset"
-    changeset = Changeset.create()
-    log "Create: SSPs"
+    log 'Create changeset'
+    changeset = Changeset.create!
+    log 'Create: SSPs'
     total = 0
     ssps = []
-    @gtfs.trip_stop_times(trips) do |trip,stop_times|
+    @gtfs.trip_stop_times(trips) do |trip, stop_times|
       # log "    trip id: #{trip.trip_id}, stop_times: #{stop_times.size}"
       route = @gtfs.route(trip.route_id)
       # Create SSPs for all stop_time edges
       ssp_trip = []
-      stop_times[0..-2].zip(stop_times[1..-1]).each do |origin,destination|
+      stop_times[0..-2].zip(stop_times[1..-1]).each do |origin, destination|
         ssp_trip << make_ssp(route, trip, origin, destination)
       end
       # Interpolate stop_times
@@ -85,7 +92,7 @@ class GTFSGraph
       ssps += ssp_trip
       # If chunk is big enough, create change payloads.
       if ssps.size >= CHANGE_PAYLOAD_MAX_ENTITIES
-        log  "  ssps: #{total} - #{total+ssps.size}"
+        log "  ssps: #{total} - #{total + ssps.size}"
         total += ssps.size
         create_change_payloads(changeset, ssps)
         ssps = []
@@ -93,18 +100,17 @@ class GTFSGraph
     end
     # Create any trailing payloads
     if ssps.size > 0
-      log  "  ssps: #{total} - #{total+ssps.size}"
+      log "  ssps: #{total} - #{total + ssps.size}"
       total += ssps.size
       create_change_payloads(changeset, ssps)
     end
-    log "Changeset apply"
-    t = Time.now
+    log 'Changeset apply'
     changeset.apply!
-    log "  apply done: total time: #{Time.now - t}"
+    log '  apply done'
   end
 
   def import_log
-    @log.join("\n")
+    @log.join('\n')
   end
 
   ##### Private methods #####
@@ -128,54 +134,56 @@ class GTFSGraph
 
   def load_tl_stops
     # Merge child stations into parents.
-    log "  merge stations"
-    stations = Hash.new { |h,k| h[k] = [] }
+    log '  merge stations'
+    stations = Hash.new { |h, k| h[k] = [] }
     @gtfs.stops.each do |stop|
       stations[@gtfs.stop(stop.parent_station) || stop] << stop
     end
     # Merge station/platforms with Stops.
-    log "  stops"
-    stations.each do |station,platforms|
+    log '  stops'
+    stations.each do |station, platforms|
       # Temp stop to get geometry and name.
       stop = Stop.from_gtfs(station)
       # Search by similarity
-      stop, score = Stop.find_by_similarity(stop[:geometry], stop.name, radius=1000, threshold=0.6)
+      stop, = Stop.find_by_similarity(
+        stop[:geometry],
+        stop.name,
+        radius: 1000,
+        threshold: 0.6
+      )
       # ... or create stop from GTFS
       stop ||= Stop.from_gtfs(station)
       # ... check if Stop exists, or another local Stop, or new.
       stop = find_by_entity(stop)
       # Add identifiers and references
-      ([station]+platforms).each { |e| add_identifier(stop, 's', e) }
+      ([station] + platforms).each { |e| add_identifier(stop, 's', e) }
       # Cache stop
-      if score
-        log "    #{stop.onestop_id}: #{stop.name} (search: #{station.stop_name} = #{'%0.2f'%score.to_f})"
-      else
-        log "    #{stop.onestop_id}: #{stop.name}"
-      end
+      log "    #{stop.onestop_id}: #{stop.name}"
     end
   end
 
   def load_tl_routes
     # Routes
-    log "  routes"
+    log '  routes'
     @gtfs.routes.each do |entity|
       # Find: (child gtfs trips) to (child gtfs stops) to (tl stops)
-      stops = @gtfs.children(entity)
-        .map { |trip| @gtfs.children(trip) }
-        .reduce(Set.new, :+)
-        .map { |stop| find_by_gtfs_entity(stop) }
-        .to_set
+      stops = @gtfs
+              .children(entity)
+              .map { |trip| @gtfs.children(trip) }
+              .reduce(Set.new, :+)
+              .map { |stop| find_by_gtfs_entity(stop) }
+              .to_set
       # Skip Route if no Stops
       next if stops.empty?
       # Find uniq shape_ids of trip_ids, filter missing shapes, build geometry.
       geometry = Route::GEOFACTORY.multi_line_string(
         @gtfs
-          .children(entity)
-          .map(&:shape_id)
-          .uniq
-          .compact
-          .map { |shape_id| @gtfs.shape_line(shape_id) }
-          .map { |coords| Route::GEOFACTORY.line_string( coords.map { |lon, lat| Route::GEOFACTORY.point(lon, lat) } ) }
+        .children(entity)
+        .map(&:shape_id)
+        .uniq
+        .compact
+        .map { |shape_id| @gtfs.shape_line(shape_id) }
+        .map { |coords| Route::GEOFACTORY.line_string(coords.map { |lon, lat| Route::GEOFACTORY.point(lon, lat) }) }
       )
       # Search by similarity
       # ... or create route from GTFS
@@ -194,7 +202,7 @@ class GTFSGraph
 
   def load_tl_operators
     # Operators
-    log "  operators"
+    log '  operators'
     operators = Set.new
     @feed.operators_in_feed.each do |oif|
       entity = @gtfs.agency(oif.gtfs_agency_id)
@@ -202,15 +210,16 @@ class GTFSGraph
       next unless entity
       # Find: (child gtfs routes) to (tl routes)
       #   note: .compact because some gtfs routes are skipped.
-      routes = @gtfs.children(entity)
-        .map { |route| find_by_gtfs_entity(route) }
-        .compact
-        .to_set
+      routes = @gtfs
+               .children(entity)
+               .map { |route| find_by_gtfs_entity(route) }
+               .compact
+               .to_set
       # Find: (tl routes) to (serves tl stops)
       stops = routes
-        .map { |route| route.serves }
-        .reduce(Set.new, :+)
-        .map { |i| find_by_onestop_id(i) }
+              .map(&:serves)
+              .reduce(Set.new, :+)
+              .map { |i| find_by_onestop_id(i) }
       # Create Operator from GTFS
       operator = Operator.from_gtfs(entity, stops)
       operator.onestop_id = oif.operator.onestop_id # Override Onestop ID
@@ -257,7 +266,7 @@ class GTFSGraph
   ##### Identifiers #####
 
   def add_identifier(tl_entity, prefix, gtfs_entity)
-    identifier = OnestopId::create_identifier(
+    identifier = OnestopId.create_identifier(
       @feed.onestop_id,
       prefix,
       gtfs_entity.id
@@ -270,22 +279,22 @@ class GTFSGraph
     agency_map = {}
     route_map = {}
     stop_map = {}
-    @gtfs.agencies.each { |e| agency_map[e.id] = @gtfs_to_onestop_id[e]}
-    @gtfs.routes.each   { |e| route_map[e.id]  = @gtfs_to_onestop_id[e]}
-    @gtfs.stops.each    { |e| stop_map[e.id]   = @gtfs_to_onestop_id[e]}
+    @gtfs.agencies.each { |e| agency_map[e.id] = @gtfs_to_onestop_id[e] }
+    @gtfs.routes.each { |e| route_map[e.id] = @gtfs_to_onestop_id[e] }
+    @gtfs.stops.each { |e| stop_map[e.id] = @gtfs_to_onestop_id[e] }
     [agency_map, route_map, stop_map]
   end
 
   def load_gtfs_id_map(agency_map, route_map, stop_map)
     @gtfs_to_onestop_id.clear
     # Populate GTFS entity to Onestop ID maps
-    agency_map.each do |agency_id,onestop_id|
+    agency_map.each do |agency_id, onestop_id|
       @gtfs_to_onestop_id[@gtfs.agency(agency_id)] = onestop_id
     end
-    route_map.each do |route_id,onestop_id|
+    route_map.each do |route_id, onestop_id|
       @gtfs_to_onestop_id[@gtfs.route(route_id)] = onestop_id
     end
-    stop_map.each do |stop_id,onestop_id|
+    stop_map.each do |stop_id, onestop_id|
       @gtfs_to_onestop_id[@gtfs.stop(stop_id)] = onestop_id
     end
   end
@@ -312,9 +321,9 @@ class GTFSGraph
             changes: changes
           }
         )
-      rescue Exception => e
+      rescue StandardError => e
         log "Error: #{e.message}"
-        log "Payload:"
+        log 'Payload:'
         log changes.to_json
         raise e
       end
@@ -386,7 +395,7 @@ class GTFSGraph
   end
 end
 
-if __FILE__ == $0
+if __FILE__ == $PROGRAM_NAME
   require 'sidekiq/testing'
   ActiveRecord::Base.logger = Logger.new(STDOUT)
   feed_onestop_id = ARGV[0] || 'f-9q9-caltrain'
