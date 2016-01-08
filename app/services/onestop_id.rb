@@ -84,14 +84,17 @@ module OnestopId
 
   class FeedOnestopId < OnestopIdBase
     PREFIX = :f
+    MODEL = Feed
   end
 
   class StopOnestopId < OnestopIdBase
     PREFIX = :s
+    MODEL = Stop
   end
 
   class RouteOnestopId < OnestopIdBase
     PREFIX = :r
+    MODEL = Route
   end
 
   class RouteStopPatternOnestopId < OnestopIdBase
@@ -100,15 +103,20 @@ module OnestopId
     NUM_COMPONENTS = 4
   end
 
-  def OnestopId.lookup(string)
-    split = string.split(COMPONENT_SEPARATOR)
-    prefix = split[0]
+  LOOKUP = Hash[OnestopId::OnestopIdBase.descendants.map { |c| [[c::PREFIX, c::NUM_COMPONENTS], c] }]
+
+  def self.lookup(string: nil, prefix: nil, num_components: 3)
+    if string && string.length > 0
+      split = string.split(COMPONENT_SEPARATOR)
+      prefix = split[0]
+      prefix = prefix.to_sym if prefix
+      num_components = split.size
+    end
     prefix = prefix.to_sym if prefix
-    lookup = Hash[OnestopId::OnestopIdBase.descendants.map { |c| [[c::PREFIX, c::NUM_COMPONENTS], c] }]
-    lookup[[prefix, split.size]]
+    LOOKUP[[prefix, num_components]]
   end
 
-  def OnestopId.create_identifier(feed_onestop_id, entity_prefix, entity_id)
+  def self.create_identifier(feed_onestop_id, entity_prefix, entity_id)
     IDENTIFIER_TEMPLATE.expand(
       feed_onestop_id: feed_onestop_id,
       entity_prefix: entity_prefix,
@@ -116,35 +124,31 @@ module OnestopId
     ).to_s
   end
 
-  def OnestopId.validate_onestop_id_string(onestop_id)
-    binding.pry
-    klass = lookup(onestop_id)
+  def self.validate_onestop_id_string(onestop_id)
+    klass = lookup(string: onestop_id)
+    return false, ['must not be empty'] if onestop_id.blank?
     return false, ['invalid prefix'] unless klass
     klass.new(string: onestop_id).validate(onestop_id)
   end
 
-  def OnestopId.find(onestop_id)
-    lookup(onestop_id)::MODEL.find_by(onestop_id: onestop_id)
+  def self.find(onestop_id)
+    lookup(string: onestop_id)::MODEL.find_by(onestop_id: onestop_id)
   end
 
-  def OnestopId.find!(onestop_id)
-    lookup(onestop_id)::MODEL.find_by!(onestop_id: onestop_id)
+  def self.find!(onestop_id)
+    lookup(string: onestop_id)::MODEL.find_by!(onestop_id: onestop_id)
   end
 
-  # def OnestopId.entity_prefix(onestop_id)
-  #   onestop_id.split(COMPONENT_SEPARATOR)[0]
-  # end
-
-  # def OnestopId.model_from_prefix(prefix)
-  #   ENTITY_TO_MODEL.fetch(ENTITY_TO_MODEL.keys.find {|entity| entity::PREFIX == prefix}, nil)
-  # end
-
-  def OnestopId.new(*args)
-    StopOnestopId.new(*args)
-  end
-
-  def OnestopId.build(model, *args)
-    MODEL_TO_ENTITY[model].new(*args)
+  def self.new(*args)
+    if !args.empty? && args[0].has_key?(:string)
+      lookup(string: args[0][:string]).new(*args)
+    elsif !args.empty? && args[0].has_key?(:entity_prefix)
+      lookup(prefix: args[0][:entity_prefix]).new(*args)
+    #elsif args[0].has_key?(:route_onestop_id)
+      #RouteStopPatternOnestopId.new(*args)
+    else
+      raise ArgumentError.new('either a string or id components must be specified')
+    end
   end
 
 =begin

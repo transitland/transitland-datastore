@@ -31,30 +31,30 @@ describe OnestopId do
     it 'must not be blank' do
       is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string('')
       expect(is_a_valid_onestop_id).to be false
-      expect(errors).to include 'must not be blank'
+      expect(errors).to include 'must not be empty'
     end
     it 'must start with "s-" as its 1st component' do
-      is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string('69y7pwu-RetSta', expected_entity_type: 'stop')
+      is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string('69y7pwu-RetSta')
       expect(is_a_valid_onestop_id).to be false
-      expect(errors).to include 'must start with "s" as its 1st component'
+      expect(errors).to include 'invalid prefix'
     end
 
-    it 'must include 3 components separated by hyphens ("-")' do
+    it 'must include 3 components' do
       is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string('s-69y7pwuRetSta')
       expect(is_a_valid_onestop_id).to be false
-      expect(errors).to include 'must include 3 components separated by hyphens ("-")'
+      expect(errors).to include 'incorrect length'
     end
 
     it 'must include a valid geohash as its 2nd component, after "s-"' do
       is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string('s-69y@7pwu-RetSta')
       expect(is_a_valid_onestop_id).to be false
-      expect(errors).to include 'must include a valid geohash as its 2nd component'
+      expect(errors).to include 'invalid geohash'
     end
 
     it 'must include only letters, digits, and ~ or @ in its abbreviated name (the 3rd component)' do
       is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string('s-9y7pwu-RetSt#a')
       expect(is_a_valid_onestop_id).to be false
-      expect(errors).to include 'must include only letters, digits, and ~ or @ in its abbreviated name (the 3rd component)'
+      expect(errors).to include 'invalid name'
       is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string('s-9y7pwu-RetSt~a')
       expect(is_a_valid_onestop_id).to be true
       is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string('s-9y7pwu-RetSt@a')
