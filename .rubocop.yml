@@ -1,0 +1,8 @@
+require:
+  - rubocop-rspec
+AllCops:
+  Exclude:
+    - "db/schema.rb"
+  UseCache: false
+Metrics/LineLength:
+  Max: 120

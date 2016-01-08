@@ -65,6 +65,8 @@ For a complete visualization of the Datastore's data model, see [doc/data-model.
 
 5. Start the server and background queue: `bundle exec foreman start`
 
+6. If you're going to be coding, please read more about our [development practices](doc/development-practices.md).
+
 ## To Run Tests Locally
 
 1. Run the full test suite: `bundle exec rake`

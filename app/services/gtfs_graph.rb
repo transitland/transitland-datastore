@@ -2,8 +2,8 @@
 
 # GTFS Import manager
 class GTFSGraph
-  CHANGE_PAYLOAD_MAX_ENTITIES = 1_000
-  STOP_TIMES_MAX_LOAD = 100_000
+  CHANGE_PAYLOAD_MAX_ENTITIES = Figaro.env.feed_eater_change_payload_max_entities.try(:to_i) || 1_000
+  STOP_TIMES_MAX_LOAD = Figaro.env.feed_eater_stop_times_max_load.try(:to_i) || 100_000
 
   def initialize(filename, feed, feed_version)
     # GTFS Graph / TransitLand wrapper
