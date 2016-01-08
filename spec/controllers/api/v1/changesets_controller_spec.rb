@@ -68,6 +68,24 @@ describe Api::V1::ChangesetsController do
       post :create, changeset: attrs
       expect(response.status).to eq 200
     end
+
+    it 'should be able to create a Changeset with a new author (User)' do
+      post :create, changeset: FactoryGirl.attributes_for(:changeset).merge({ author_email: 'dummy@example.com' })
+      expect(response.status).to eq 200
+      expect(Changeset.count).to eq 1
+      expect(User.count).to eq 1
+      expect(Changeset.first.author).to eq User.first
+      expect(User.first.changesets).to match_array(Changeset.all)
+    end
+
+    it 'should be able to create a Changeset with an existing author (User)' do
+      user = create(:user)
+      post :create, changeset: FactoryGirl.attributes_for(:changeset).merge({ author_email: user.email })
+      expect(response.status).to eq 200
+      expect(Changeset.count).to eq 1
+      expect(User.count).to eq 1
+      expect(Changeset.first.author).to eq user
+    end
   end
 
   context 'POST destroy' do

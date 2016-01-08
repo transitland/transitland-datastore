@@ -8,6 +8,11 @@
 #  applied_at :datetime
 #  created_at :datetime
 #  updated_at :datetime
+#  author_id  :integer
+#
+# Indexes
+#
+#  index_changesets_on_author_id  (author_id)
 #
 
 class ChangesetSerializer < ApplicationSerializer
@@ -17,6 +22,7 @@ class ChangesetSerializer < ApplicationSerializer
              :applied_at,
              :created_at,
              :updated_at,
+             :author_id,
              :change_payloads
 
   def change_payloads

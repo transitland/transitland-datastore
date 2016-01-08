@@ -8,6 +8,11 @@
 #  applied_at :datetime
 #  created_at :datetime
 #  updated_at :datetime
+#  author_id  :integer
+#
+# Indexes
+#
+#  index_changesets_on_author_id  (author_id)
 #
 
 class Changeset < ActiveRecord::Base
@@ -26,6 +31,8 @@ class Changeset < ActiveRecord::Base
   end
 
   include CanBeSerializedToCsv
+
+  belongs_to :author, class_name: 'User'
 
   has_many :feeds_created_or_updated, class_name: 'Feed', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :feeds_destroyed, class_name: 'OldFeed', foreign_key: 'destroyed_in_changeset_id'
@@ -145,6 +152,10 @@ class Changeset < ActiveRecord::Base
 
   def payload=(changeset)
     append changeset
+  end
+
+  def author_email=(author_email)
+    self.author = User.find_or_create_by(email: author_email)
   end
 
   private

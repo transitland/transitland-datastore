@@ -8,7 +8,8 @@ namespace :db do
         puts "Creating changeset from #{file_path}"
         changeset = Changeset.create(
           payload: json['changeset']['payload'],
-          notes: json['changeset']['notes']
+          notes: json['changeset']['notes'],
+          author_email: json['changeset']['author_email']
         )
         puts "Changeset ##{changeset.id} created"
 
