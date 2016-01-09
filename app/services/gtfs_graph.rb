@@ -207,15 +207,15 @@ class GTFSGraph
       next unless entity
       # Find: (child gtfs routes) to (tl routes)
       #   note: .compact because some gtfs routes are skipped.
-      routes = @gtfs.children(entity)
-        .map { |route| find_by_gtfs_entity(route) }
-        .compact
-        .to_set
+      routes = @gtfs.children(entity).
+               map { |route| find_by_gtfs_entity(route) }.
+               compact.
+               to_set
       # Find: (tl routes) to (serves tl stops)
-      stops = routes
-        .map { |route| route.serves }
-        .reduce(Set.new, :+)
-        .map { |i| find_by_onestop_id(i) }
+      stops = routes.
+              map { |route| route.serves }.
+              reduce(Set.new, :+).
+              map { |i| find_by_onestop_id(i) }
       # Create Operator from GTFS
       operator = Operator.from_gtfs(entity, stops)
       operator.onestop_id = oif.operator.onestop_id # Override Onestop ID

@@ -112,8 +112,8 @@ module CurrentTrackedByChangeset
 
   def as_change
     Hash[
-        slice(*self.class.changeable_attributes).
-        map { |k,v| [k.to_s.camelize(:lower).to_sym,v] }
+      slice(*self.class.changeable_attributes).
+      map { |k, v| [k.to_s.camelize(:lower).to_sym,v] }
     ]
   end
 
