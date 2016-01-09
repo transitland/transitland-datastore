@@ -19,17 +19,17 @@ describe OnestopId do
   context '#geohash' do
     it 'filters geohashes' do
       expect(
-        TestOnestopId.new(entity_prefix: 's', geohash: 'a9q9', name: 'test').to_s
+        TestOnestopId.new(geohash: 'a9q9', name: 'test').to_s
       ).to eq('s-9q9-test')
     end
   end
 
   context '#name' do
     it 'allows only letters, digits, ~, @ in name' do
-      expect(TestOnestopId.new(entity_prefix: 's', geohash: '9q9', name: 'Foo Bar').to_s).to eq('s-9q9-foobar')
-      expect(TestOnestopId.new(entity_prefix: 's', geohash: '9q9', name: 'Foo Bar!').to_s).to eq('s-9q9-foobar')
-      expect(TestOnestopId.new(entity_prefix: 's', geohash: '9q9', name: 'Foo~Bar').to_s).to eq('s-9q9-foo~bar')
-      expect(TestOnestopId.new(entity_prefix: 's', geohash: '9q9', name: 'Foo~Bar0').to_s).to eq('s-9q9-foo~bar0')
+      expect(TestOnestopId.new(geohash: '9q9', name: 'foo bar').to_s).to eq('s-9q9-foobar')
+      expect(TestOnestopId.new(geohash: '9q9', name: 'foo bar!').to_s).to eq('s-9q9-foobar')
+      expect(TestOnestopId.new(geohash: '9q9', name: 'foo~bar').to_s).to eq('s-9q9-foo~bar')
+      expect(TestOnestopId.new(geohash: '9q9', name: 'foo~bar0').to_s).to eq('s-9q9-foo~bar0')
     end
   end
 
