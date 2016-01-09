@@ -1,7 +1,7 @@
 describe HasAOnestopId do
   context 'validation' do
     it 'for a Stop, must start with "s-" as its 1st component' do
-      stop = Stop.new(onestop_id: '69y7pwu-RetSta', geometry: 'POINT(-58.374722 -34.591389)')
+      stop = Stop.new(onestop_id: '9q9-asd')
       expect(stop.valid?).to be false
       expect(stop.errors.messages[:onestop_id]).to include 'invalid name'
     end
@@ -26,7 +26,7 @@ describe HasAOnestopId do
 
     it 'filters invalid characters' do
       stop = Stop.new(onestop_id: 's-9q9-xyz!')
-      expect(stop.onestop_id).to eq('s-9q9-xyz')
+      expect(stop.valid?).to be false
     end
   end
 end
