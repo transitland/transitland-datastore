@@ -136,7 +136,7 @@ class ScheduleStopPair < BaseScheduleStopPair
 
   # Handle mapping from onestop_id to id
   def route_onestop_id
-    self.route.onestop_id
+    route.onestop_id
   end
 
   def route_onestop_id=(value)
@@ -145,7 +145,7 @@ class ScheduleStopPair < BaseScheduleStopPair
   end
 
   def origin_onestop_id
-    self.origin.onestop_id
+    origin.onestop_id
   end
 
   def origin_onestop_id=(value)
@@ -153,7 +153,7 @@ class ScheduleStopPair < BaseScheduleStopPair
   end
 
   def destination_onestop_id
-    self.destination.onestop_id
+    destination.onestop_id
   end
 
   def destination_onestop_id=(value)
