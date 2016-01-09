@@ -79,7 +79,19 @@ module CurrentTrackedByChangeset
     end
 
     def changeable_attributes
-      @changeable_attributes ||= (self.attribute_names + @virtual_attributes - self.reflections.values.map(&:foreign_key) - ['id', 'created_at', 'updated_at', 'created_or_updated_in_changeset_id', 'destroyed_in_changeset_id', 'version']).map(&:to_sym)
+      @changeable_attributes ||= (
+        self.attribute_names +
+        @virtual_attributes -
+        self.reflections.values.map(&:foreign_key) -
+        [
+          'id',
+          'created_at',
+          'updated_at',
+          'created_or_updated_in_changeset_id',
+          'destroyed_in_changeset_id',
+          'version'
+        ]
+      ).map(&:to_sym)
     end
 
     def changeable_associated_models

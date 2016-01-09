@@ -22,8 +22,14 @@ class GTFSGraph
     load_tl_stops
     load_tl_routes
     operators = load_tl_operators
-    routes = operators.map { |operator| operator.serves }.reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
-    stops = routes.map { |route| route.serves }.reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
+    routes = operators.
+             map(&:serves).
+             reduce(Set.new, :+).
+             map { |i| find_by_onestop_id(i) }
+    stops = routes.
+            map(&:serves).
+            reduce(Set.new, :+).
+            map { |i| find_by_onestop_id(i) }
     operators.each { |o| o.serves = nil }
     log "Create changeset"
     changeset = Changeset.create()
