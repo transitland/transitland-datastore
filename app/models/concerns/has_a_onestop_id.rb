@@ -16,10 +16,6 @@ module HasAOnestopId
     end
   end
 
-  def onestop_id=(value)
-    super(OnestopId.factory(self.class).new(string: value).to_s)
-  end
-
   private
 
   def validate_onestop_id
