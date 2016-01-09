@@ -21,7 +21,7 @@ module CurrentTrackedByChangeset
         if existing_model
           existing_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply)
         else
-          create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
+          self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
         end
       when 'destroy'
         if existing_model
@@ -100,8 +100,9 @@ module CurrentTrackedByChangeset
 
   def as_change
     Hash[
-        slice(*self.class.changeable_attributes).
-        map { |k,v| [k.to_s.camelize(:lower).to_sym,v] }
+      self
+        .slice(*self.class.changeable_attributes)
+        .map { |k,v| [k.to_s.camelize(:lower).to_sym,v] }
     ]
   end
 
