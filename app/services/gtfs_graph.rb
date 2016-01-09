@@ -18,10 +18,10 @@ class GTFSGraph
   end
 
   def create_change_osr(import_level = 0)
-    fail ArgumentError, "import_level must be 0, 1, or 2." unless (0..2).include?(import_level)
-    log "Load GTFS"
+    fail ArgumentError, 'import_level must be 0, 1, or 2.' unless (0..2).include?(import_level)
+    log 'Load GTFS'
     @gtfs.load_graph
-    log "Load TL"
+    log 'Load TL'
     load_tl_stops
     load_tl_routes
     operators = load_tl_operators
@@ -34,11 +34,11 @@ class GTFSGraph
             .reduce(Set.new, :+)
             .map { |i| find_by_onestop_id(i) }
     operators.each { |o| o.serves = nil }
-    log "Create changeset"
+    log 'Create changeset'
     changeset = Changeset.create!
-    log "Create: Operators, Stops, Routes"
+    log 'Create: Operators, Stops, Routes'
     # Update Feed Bounding Box
-    log "  updating feed bounding box"
+    log '  updating feed bounding box'
     @feed.set_bounding_box_from_stops(stops)
     # FIXME: Run through changeset
     @feed.save!
@@ -52,9 +52,9 @@ class GTFSGraph
       log "  routes: #{routes.size}"
       create_change_payloads(changeset, routes)
     end
-    log "Changeset apply"
+    log 'Changeset apply'
     changeset.apply!
-    log "  apply done"
+    log '  apply done'
   end
 
   def ssp_schedule_async
@@ -66,16 +66,16 @@ class GTFSGraph
   end
 
   def ssp_perform_async(trip_ids, agency_map, route_map, stop_map)
-    log "Load GTFS"
+    log 'Load GTFS'
     @gtfs.agencies
     @gtfs.routes
     @gtfs.stops
     @gtfs.trips
     load_gtfs_id_map(agency_map, route_map, stop_map)
     trips = trip_ids.map { |trip_id| @gtfs.trip(trip_id) }
-    log "Create changeset"
+    log 'Create changeset'
     changeset = Changeset.create!
-    log "Create: SSPs"
+    log 'Create: SSPs'
     total = 0
     ssps = []
     @gtfs.trip_stop_times(trips) do |trip, stop_times|
@@ -104,9 +104,9 @@ class GTFSGraph
       total += ssps.size
       create_change_payloads(changeset, ssps)
     end
-    log "Changeset apply"
+    log 'Changeset apply'
     changeset.apply!
-    log "  apply done"
+    log '  apply done'
   end
 
   def import_log
@@ -134,13 +134,13 @@ class GTFSGraph
 
   def load_tl_stops
     # Merge child stations into parents.
-    log "  merge stations"
+    log '  merge stations'
     stations = Hash.new { |h, k| h[k] = [] }
     @gtfs.stops.each do |stop|
       stations[@gtfs.stop(stop.parent_station) || stop] << stop
     end
     # Merge station/platforms with Stops.
-    log "  stops"
+    log '  stops'
     stations.each do |station, platforms|
       # Temp stop to get geometry and name.
       stop = Stop.from_gtfs(station)
@@ -156,7 +156,7 @@ class GTFSGraph
       # ... check if Stop exists, or another local Stop, or new.
       stop = find_by_entity(stop)
       # Add identifiers and references
-      ([station] + platforms).each { |e| add_identifier(stop, "s", e) }
+      ([station] + platforms).each { |e| add_identifier(stop, 's', e) }
       # Cache stop
       log "    #{stop.onestop_id}: #{stop.name}"
     end
@@ -164,7 +164,7 @@ class GTFSGraph
 
   def load_tl_routes
     # Routes
-    log "  routes"
+    log '  routes'
     @gtfs.routes.each do |entity|
       # Find: (child gtfs trips) to (child gtfs stops) to (tl stops)
       stops = @gtfs
@@ -195,14 +195,14 @@ class GTFSGraph
       # Add references and identifiers
       route.serves ||= Set.new
       route.serves |= stops.map(&:onestop_id)
-      add_identifier(route, "r", entity)
+      add_identifier(route, 'r', entity)
       log "    #{route.onestop_id}: #{route.name}"
     end
   end
 
   def load_tl_operators
     # Operators
-    log "  operators"
+    log '  operators'
     operators = Set.new
     @feed.operators_in_feed.each do |oif|
       entity = @gtfs.agency(oif.gtfs_agency_id)
@@ -234,7 +234,7 @@ class GTFSGraph
       routes.each { |route| route.operated_by = operator.onestop_id }
       operator.serves ||= Set.new
       operator.serves |= routes.map(&:onestop_id)
-      add_identifier(operator, "o", entity)
+      add_identifier(operator, 'o', entity)
       # Cache Operator
       # Add to found operators
       operators << operator
@@ -323,7 +323,7 @@ class GTFSGraph
         )
       rescue StandardError => e
         log "Error: #{e.message}"
-        log "Payload:"
+        log 'Payload:'
         log changes.to_json
         raise e
       end
@@ -398,7 +398,7 @@ end
 if __FILE__ == $PROGRAM_NAME
   require 'sidekiq/testing'
   ActiveRecord::Base.logger = Logger.new(STDOUT)
-  feed_onestop_id = ARGV[0] || "f-9q9-caltrain"
+  feed_onestop_id = ARGV[0] || 'f-9q9-caltrain'
   FeedFetcherWorker.perform_async(feed_onestop_id)
   FeedFetcherWorker.drain
   FeedEaterWorker.perform_async(feed_onestop_id, nil, 2)
