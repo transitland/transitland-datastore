@@ -21,8 +21,8 @@ module OnestopId
         geohash = string.split(COMPONENT_SEPARATOR)[1]
         name = string.split(COMPONENT_SEPARATOR)[2]
       end
-      self.geohash = geohash
-      self.name = name
+      @geohash = geohash #.to_s.downcase.gsub(GEOHASH_FILTER, '')
+      @name = name #.to_s.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')
     end
 
     def to_s
@@ -33,6 +33,8 @@ module OnestopId
       errors = []
       errors << 'invalid geohash' unless @geohash.present?
       errors << 'invalid name' unless @name.present?
+      errors << 'invalid geohash' unless validate_geohash(@geohash)
+      errors << 'invalid name' unless validate_name(@name)
       return (errors.size == 0), errors
     end
 
@@ -46,12 +48,12 @@ module OnestopId
 
     private
 
-    def name=(value)
-      @name = value.to_s.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')
+    def validate_geohash(value)
+      !(value =~ GEOHASH_FILTER)
     end
 
-    def geohash=(value)
-      @geohash = value.to_s.downcase.gsub(GEOHASH_FILTER, '')
+    def validate_name(value)
+      !(value =~ NAME_FILTER)
     end
   end
 
