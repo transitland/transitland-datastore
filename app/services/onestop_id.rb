@@ -16,64 +16,42 @@ module OnestopId
 
     attr_accessor :geohash, :name
 
-    def initialize(string: nil, geohash: nil, name: nil, entity_prefix: nil)
+    def initialize(string: nil, geohash: nil, name: nil)
       if string && string.length > 0
-        @geohash = string.split(COMPONENT_SEPARATOR)[1]
-        @name = string.split(COMPONENT_SEPARATOR)[2]
-      elsif geohash && name
-        # Filter geohash and name; validate later
-        @geohash = geohash_filter(geohash)
-        @name = name_filter(name)
-      else
-        raise ArgumentError.new('either a string or entity/geohash/name must be specified')
+        geohash = string.split(COMPONENT_SEPARATOR)[1]
+        name = string.split(COMPONENT_SEPARATOR)[2]
       end
-      # Check valid OnestopID
-      is_a_valid_onestop_id, errors = self.validate(self.to_s)
-      if !is_a_valid_onestop_id
-        raise ArgumentError.new(errors.join(', '))
-      end
-      self
+      self.geohash = geohash
+      self.name = name
     end
 
     def to_s
       [self.class::PREFIX, @geohash, @name].join(COMPONENT_SEPARATOR)
     end
 
-    def validate(value)
-      split = value.split(COMPONENT_SEPARATOR)
+    def validate
       errors = []
-      errors << 'must not be empty' if value.blank?
-      errors << 'incorrect length' unless split.size == self.class::NUM_COMPONENTS
-      errors << 'invalid geohash' unless validate_geohash(split[1])
-      errors << 'invalid name' unless validate_name(split[2])
-      # errors << 'invalid suffix' unless validate_suffix(split[3])
+      errors << 'invalid geohash' unless @geohash.present?
+      errors << 'invalid name' unless @name.present?
       return (errors.size == 0), errors
     end
 
-    def validate_geohash(value)
-      !(value =~ GEOHASH_FILTER)
+    def valid?
+      return validate[0]
     end
 
-    def validate_name(value)
-      !(value =~ NAME_FILTER)
-    end
-
-    def validate_prefix(value)
-      value == self.PREFIX
-    end
-
-    def validate_suffix(value)
-      true
+    def errors
+      return validate[1]
     end
 
     private
 
-    def name_filter(value)
-      value.downcase.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')
+    def name=(value)
+      @name = value.to_s.downcase.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')
     end
 
-    def geohash_filter(value)
-      value.downcase.gsub(GEOHASH_FILTER, '')
+    def geohash=(value)
+      @geohash = value.to_s.downcase.gsub(GEOHASH_FILTER, '')
     end
   end
 
@@ -97,13 +75,8 @@ module OnestopId
     MODEL = Route
   end
 
-  class RouteStopPatternOnestopId < OnestopIdBase
-    PREFIX = :r
-    # MODEL = RouteStopPattern
-    NUM_COMPONENTS = 4
-  end
-
   LOOKUP = Hash[OnestopId::OnestopIdBase.descendants.map { |c| [[c::PREFIX, c::NUM_COMPONENTS], c] }]
+  LOOKUP_MODEL = Hash[OnestopId::OnestopIdBase.descendants.map { |c| [c::MODEL, c] }]
 
   def self.lookup(string: nil, prefix: nil, num_components: 3)
     if string && string.length > 0
@@ -124,11 +97,11 @@ module OnestopId
     ).to_s
   end
 
-  def self.validate_onestop_id_string(onestop_id)
+  def self.validate_onestop_id_string(onestop_id, expected_entity_type: nil)
     klass = lookup(string: onestop_id)
     return false, ['must not be empty'] if onestop_id.blank?
-    return false, ['invalid prefix'] unless klass
-    klass.new(string: onestop_id).validate(onestop_id)
+    return false, ['no matching handler'] unless klass
+    klass.new(string: onestop_id).validate
   end
 
   def self.find(onestop_id)
@@ -137,6 +110,10 @@ module OnestopId
 
   def self.find!(onestop_id)
     lookup(string: onestop_id)::MODEL.find_by!(onestop_id: onestop_id)
+  end
+
+  def self.factory(model)
+    LOOKUP_MODEL[model]
   end
 
   def self.new(*args)
