@@ -213,7 +213,7 @@ class GTFSGraph
                to_set
       # Find: (tl routes) to (serves tl stops)
       stops = routes.
-              map { |route| route.serves }.
+              map(&:serves).
               reduce(Set.new, :+).
               map { |i| find_by_onestop_id(i) }
       # Create Operator from GTFS
