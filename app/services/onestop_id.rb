@@ -20,9 +20,12 @@ module OnestopId
       if string && string.length > 0
         geohash = string.split(COMPONENT_SEPARATOR)[1]
         name = string.split(COMPONENT_SEPARATOR)[2]
+      else
+        geohash = geohash.to_s.downcase.gsub(GEOHASH_FILTER, '')
+        name = name.to_s.downcase.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')
       end
-      @geohash = geohash #.to_s.downcase.gsub(GEOHASH_FILTER, '')
-      @name = name #.to_s.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')
+      @geohash = geohash
+      @name = name
     end
 
     def to_s
