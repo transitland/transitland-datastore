@@ -47,7 +47,7 @@ module OnestopId
     private
 
     def name=(value)
-      @name = value.to_s.downcase.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')
+      @name = value.to_s.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')
     end
 
     def geohash=(value)
