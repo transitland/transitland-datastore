@@ -272,7 +272,6 @@ class GTFSGraph
         stop_pattern_index: 1,
         geometry_index: 1
       ).to_s
-      puts onestop_id
       @onestop_id_to_rsp[onestop_id] = test_rsp
       test_rsp.onestop_id = onestop_id
       test_rsp
@@ -306,7 +305,6 @@ class GTFSGraph
       stop_pattern_index: s,
       geometry_index: g
     ).to_s
-    puts onestop_id
     if @onestop_id_to_rsp.has_key?(onestop_id)
       rsp = @onestop_id_to_rsp[onestop_id]
     else

@@ -82,8 +82,8 @@ module OnestopId
 
   class RouteStopPatternOnestopId < OnestopIdBase
 
-    STOP_PATTERN_MATCH = /^[S][0-9]+[0-9]$/
-    GEOMETRY_MATCH = /^[G][0-9]+[0-9]$/
+    #STOP_PATTERN_MATCH = /^[S][1-9][0-9]*$/
+    #GEOMETRY_MATCH = /^[G][1-9][0-9]*$/
     PREFIX = :r
     MODEL = RouteStopPattern
     NUM_COMPONENTS = 5
@@ -111,11 +111,11 @@ module OnestopId
     end
 
     def validate
-      errors = super
+      errors = super[1]
       errors << 'invalid stop pattern index' unless @stop_pattern_index.present?
       errors << 'invalid geometry index' unless @geometry_index.present?
-      errors << 'invalid stop pattern index' unless validate_stop_pattern_index(@stop_pattern_index)
-      errors << 'invalid geometry index' unless validate_geometry_index(@geometry_index)
+      errors << 'invalid stop pattern index' unless validate_index(@stop_pattern_index)
+      errors << 'invalid geometry index' unless validate_index(@geometry_index)
       return (errors.size == 0), errors
     end
 
@@ -149,12 +149,8 @@ module OnestopId
 
     private
 
-    def validate_stop_pattern_index(value)
-      return (value =~ STOP_PATTERN_MATCH) == 0 ? true : false
-    end
-
-    def validate_geometry_index(value)
-      return (value =~ GEOMETRY_MATCH) == 0 ? true : false
+    def validate_index(value)
+      (value.is_a? Integer) && value != 0
     end
   end
 
@@ -197,17 +193,5 @@ module OnestopId
 
   def self.factory(model)
     LOOKUP_MODEL[model]
-  end
-
-  def self.new(*args)
-    if !args.empty? && args[0].has_key?(:string)
-      lookup(string: args[0][:string]).new(*args)
-    elsif !args.empty? && args[0].has_key?(:entity_prefix)
-      lookup(prefix: args[0][:entity_prefix]).new(*args)
-    #elsif args[0].has_key?(:route_onestop_id)
-      #RouteStopPatternOnestopId.new(*args)
-    else
-      raise ArgumentError.new('either a string or id components must be specified')
-    end
   end
 end
