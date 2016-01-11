@@ -80,6 +80,84 @@ module OnestopId
     MODEL = Route
   end
 
+  class RouteStopPatternOnestopId < OnestopIdBase
+
+    STOP_PATTERN_MATCH = /^[S][0-9]+[0-9]$/
+    GEOMETRY_MATCH = /^[G][0-9]+[0-9]$/
+    PREFIX = :r
+    MODEL = RouteStopPattern
+    NUM_COMPONENTS = 5
+
+    attr_accessor :stop_pattern_index, :geometry_index
+
+    def initialize(string: nil, route_onestop_id: nil, stop_pattern_index: nil, geometry_index: nil)
+      if string && string.length > 0
+        geohash = string.split(COMPONENT_SEPARATOR)[1]
+        name = string.split(COMPONENT_SEPARATOR)[2]
+        stop_pattern_index = self.class.onestop_id_component_num(string, :stop_pattern)
+        geometry_index = self.class.onestop_id_component_num(string, :geometry)
+      else
+        geohash = route_onestop_id.split(COMPONENT_SEPARATOR)[1].downcase.gsub(GEOHASH_FILTER, '')
+        name = route_onestop_id.split(COMPONENT_SEPARATOR)[2].downcase.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')
+      end
+      @geohash = geohash
+      @name = name
+      @stop_pattern_index = stop_pattern_index
+      @geometry_index = geometry_index
+    end
+
+    def to_s
+      [self.class::PREFIX, @geohash, @name, "S#{@stop_pattern_index}", "G#{@geometry_index}"].join(COMPONENT_SEPARATOR)
+    end
+
+    def validate
+      errors = super
+      errors << 'invalid stop pattern index' unless @stop_pattern_index.present?
+      errors << 'invalid geometry index' unless @geometry_index.present?
+      errors << 'invalid stop pattern index' unless validate_stop_pattern_index(@stop_pattern_index)
+      errors << 'invalid geometry index' unless validate_geometry_index(@geometry_index)
+      return (errors.size == 0), errors
+    end
+
+    def self.component_count(route_onestop_id, component)
+      case component
+      when :stop_pattern
+        num = 3
+      when :geometry
+        num = 4
+      else
+        raise ArgumentError.new('component must be stop_pattern or geometry')
+      end
+      RouteStopPattern.where(route: Route.find_by(onestop_id: route_onestop_id))
+      .pluck(:onestop_id).map {|onestop_id| onestop_id.split(COMPONENT_SEPARATOR)[num] }.uniq.size
+    end
+
+    def self.onestop_id_component_num(onestop_id, component)
+      case component
+      when :stop_pattern
+        return onestop_id.split(COMPONENT_SEPARATOR)[3].tr('S','').to_i
+      when :geometry
+        return onestop_id.split(COMPONENT_SEPARATOR)[4].tr('G','').to_i
+      else
+        raise ArgumentError.new('component must be stop_pattern or geometry')
+      end
+    end
+
+    def self.route_onestop_id(onestop_id)
+      onestop_id.split(COMPONENT_SEPARATOR)[0..2].join(COMPONENT_SEPARATOR)
+    end
+
+    private
+
+    def validate_stop_pattern_index(value)
+      return (value =~ STOP_PATTERN_MATCH) == 0 ? true : false
+    end
+
+    def validate_geometry_index(value)
+      return (value =~ GEOMETRY_MATCH) == 0 ? true : false
+    end
+  end
+
   LOOKUP = Hash[OnestopId::OnestopIdBase.descendants.map { |c| [[c::PREFIX, c::NUM_COMPONENTS], c] }]
   LOOKUP_MODEL = Hash[OnestopId::OnestopIdBase.descendants.map { |c| [c::MODEL, c] }]
 
@@ -132,117 +210,4 @@ module OnestopId
       raise ArgumentError.new('either a string or id components must be specified')
     end
   end
-end
-
-class RouteStopPatternOnestopId < OnestopId
-
-  STOP_PATTERN_MATCH = /^[S][0-9]+[0-9]$/
-  GEOMETRY_MATCH = /^[G][0-9]+[0-9]$/
-
-  # these are identifier components
-  attr_accessor :stop_pattern, :geometry
-
-  def initialize(string: nil, route_onestop_id: nil, stop_pattern_num: nil, geometry_num: nil)
-    if string && string.length > 0
-      @entity_prefix = string.split(COMPONENT_SEPARATOR)[0]
-      @geohash = string.split(COMPONENT_SEPARATOR)[1]
-      @name = string.split(COMPONENT_SEPARATOR)[2]
-      @stop_pattern = string.split(COMPONENT_SEPARATOR)[3]
-      @geometry = string.split(COMPONENT_SEPARATOR)[4]
-    elsif route_onestop_id && stop_pattern_num && geometry_num
-      @entity_prefix = route_onestop_id.split(COMPONENT_SEPARATOR)[0]
-      @geohash = route_onestop_id.split(COMPONENT_SEPARATOR)[1]
-      @name = route_onestop_id.split(COMPONENT_SEPARATOR)[2]
-      @stop_pattern = stop_pattern_num
-      @geometry = geometry_num
-    else
-      raise ArgumentError.new('either a string or route_onestop_id/stop_pattern_num/geometry_num must be specified')
-    end
-    # Check valid OnestopID
-    is_a_valid_onestop_id, errors = RouteStopPatternOnestopId.validate_onestop_id_string(self.to_s)
-    if !is_a_valid_onestop_id
-      raise ArgumentError.new(errors.join(', '))
-    end
-    self
-  end
-
-  def to_s
-    [@entity_prefix, @geohash, @name, "S#{@stop_pattern}", "G#{@geometry}"].join(COMPONENT_SEPARATOR)
-  end
-
-  def self.route_onestop_id(onestop_id)
-    onestop_id.split(COMPONENT_SEPARATOR)[0..2].join(COMPONENT_SEPARATOR)
-  end
-
-  def self.validate_onestop_id_string(onestop_id)
-    errors = []
-    is_a_valid_onestop_id = true
-
-    if onestop_id.blank?
-      return false, ['must not be blank']
-    end
-
-    if onestop_id.split(COMPONENT_SEPARATOR).length != 5
-      errors << 'must include 5 components separated by hyphens ("-")'
-      is_a_valid_onestop_id = false
-    end
-
-    is_a_valid_route_onestop_id, route_onestop_id_errors = super(
-      RouteStopPatternOnestopId.route_onestop_id(onestop_id),
-      expected_entity_type: 'route'
-    )
-    is_a_valid_onestop_id = is_a_valid_route_onestop_id if is_a_valid_onestop_id
-    errors.concat(route_onestop_id_errors)
-
-    return is_a_valid_onestop_id, errors
-  end
-
-  def self.valid_component?(component, value)
-    return false if !value || value.length == 0
-    if super(component, value)
-      return true
-    else
-      case component
-      when :stop_pattern
-        return (value =~ STOP_PATTERN_MATCH) == 0 ? true : false
-      when :geometry
-        return (value =~ GEOMETRY_MATCH) == 0 ? true : false
-      else
-        return false
-      end
-    end
-  end
-
-  def self.component_count(route_onestop_id, component)
-    case component
-    when :stop_pattern
-      num = 3
-    when :geometry
-      num = 4
-    else
-      raise ArgumentError.new('component must be stop_pattern or geometry')
-    end
-    RouteStopPattern.where(route: Route.find_by(onestop_id: route_onestop_id))
-    .pluck(:onestop_id).map {|onestop_id| onestop_id.split(COMPONENT_SEPARATOR)[num] }.uniq.size
-  end
-
-  def self.onestop_id_component_num(onestop_id, component)
-    case component
-    when :stop_pattern
-      return onestop_id.split(COMPONENT_SEPARATOR)[3].tr('S','').to_i
-    when :geometry
-      return onestop_id.split(COMPONENT_SEPARATOR)[4].tr('G','').to_i
-    else
-      raise ArgumentError.new('component must be stop_pattern or geometry')
-    end
-  end
-
-  def self.find(onestop_id)
-    RouteStopPattern.find_by(onestop_id: onestop_id)
-  end
-
-  def self.find!(onestop_id)
-    RouteStopPattern.find_by!(onestop_id: onestop_id)
-  end
-
 end

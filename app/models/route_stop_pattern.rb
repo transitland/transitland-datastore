@@ -54,7 +54,7 @@ class RouteStopPattern < BaseRouteStopPattern
     end
   end
 
-  #include HasAOnestopId
+  include HasAOnestopId
   include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
   include HasTags
