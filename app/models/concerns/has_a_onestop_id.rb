@@ -18,15 +18,10 @@ module HasAOnestopId
 
   private
 
-  def onestop_id_prefix_for_this_object
-    OnestopId::ENTITY_TO_PREFIX[self.class.to_s.downcase]
-  end
-
   def validate_onestop_id
-    is_a_valid_onestop_id, onestop_id_errors = OnestopId.validate_onestop_id_string(self.onestop_id, expected_entity_type: self.class.to_s.downcase)
-    onestop_id_errors.each do |onestop_id_error|
-      errors.add(:onestop_id, onestop_id_error)
+    osid = OnestopId.factory(self.class).new(string: onestop_id)
+    osid.errors.each do |error|
+      errors.add(:onestop_id, error)
     end
-    is_a_valid_onestop_id
   end
 end
