@@ -17,10 +17,10 @@ class ChangesetSerializer < ApplicationSerializer
              :applied_at,
              :created_at,
              :updated_at,
-             :payload
-  
-   def payload
-     {changes: object.change_payloads.map {|x| x.payload_as_ruby_hash[:changes]}}
-   end
+             :change_payloads
+
+  def change_payloads
+    object.change_payloads.pluck(:id)
+  end
 
 end
