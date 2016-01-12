@@ -31,7 +31,7 @@ describe RouteStopPattern do
       points.map {|lon, lat| RouteStopPattern::GEOFACTORY.point(lon, lat)}
     )
     sp = ["s-9q8yw8y448-bayshorecaltrainstation", "s-9q8yyugptw-sanfranciscocaltrainstation"]
-    rsp = create(:route_stop_pattern, stop_pattern: sp, geometry: geom)
+    rsp = create(:route_stop_pattern, stop_pattern: sp, geometry: geom, onestop_id: 'r-9q9j-bullet-S1-G1')
     expect(RouteStopPattern.exists?(rsp.id)).to be true
     expect(RouteStopPattern.find(rsp.id).stop_pattern).to match_array(sp)
     expect(RouteStopPattern.find(rsp.id).geometry[:coordinates]).to eq geom.points.map{|p| [p.x,p.y]}
@@ -42,6 +42,20 @@ describe RouteStopPattern do
   end
 
   it 'can calculate distances' do
+    point = Stop::GEOFACTORY.point(-122.0, 35.0).to_s
+    stop = create(:stop, geometry: point.to_s)
+    create(:stop,
+      onestop_id: "s-9q9k659e3r-sanjosecaltrainstation",
+      geometry: point = Stop::GEOFACTORY.point(-121.902181, 37.329392).to_s
+    )
+    create(:stop,
+      onestop_id: "s-9q9hxhecje-sunnyvalecaltrainstation",
+      geometry: point = Stop::GEOFACTORY.point(-122.030742, 37.378427).to_s
+    )
+    create(:stop,
+      onestop_id: "s-9q9hwp6epk-mountainviewcaltrainstation",
+      geometry: point = Stop::GEOFACTORY.point(-122.076327, 37.393879).to_s
+    )
     @simple_rsp =RouteStopPattern.new(stop_pattern:
                      ["s-9q9k659e3r-sanjosecaltrainstation",
                      "s-9q9hxhecje-sunnyvalecaltrainstation",
@@ -55,7 +69,7 @@ describe RouteStopPattern do
     before(:each) do
       @trip = GTFS::Trip.new(trip_id: 'test')
       @empty_rsp = RouteStopPattern.new(stop_pattern: [], geometry: RouteStopPattern.line_string([]))
-      @geom_rsp = create(:route_stop_pattern,
+      @geom_rsp = RouteStopPattern.new(
         stop_pattern: ["s-9q8yw8y448-bayshorecaltrainstation", "s-9q8yyugptw-sanfranciscocaltrainstation"],
         geometry: RouteStopPattern.line_string([[-122.401811, 37.706675],[-122.394935, 37.776348]])
       )
