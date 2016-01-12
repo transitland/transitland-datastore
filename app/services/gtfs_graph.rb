@@ -235,7 +235,7 @@ class GTFSGraph
 
   def load_tl_route_stop_patterns
     @gtfs.trip_stop_times do |trip,stop_times|
-      feed_shape_points = @gtfs.shape_line(trip.shape_id)
+      feed_shape_points = @gtfs.shape_line(trip.shape_id) || []
       tl_stops = stop_times.map { |stop_time| find_by_gtfs_entity(@gtfs.stop(stop_time.stop_id)) }
       tl_route = find_by_gtfs_entity(@gtfs.parents(trip).first)
       stop_pattern = tl_stops.map(&:onestop_id)
