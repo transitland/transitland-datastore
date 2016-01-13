@@ -35,7 +35,8 @@ end
 class RouteStopPattern < BaseRouteStopPattern
   self.table_name_prefix = 'current_'
 
-  belongs_to :route #type for polymorphic association?
+  after_commit :inspect_geometry
+  belongs_to :route
   has_many :schedule_stop_pairs
   validates :geometry, :stop_pattern, presence: true
   validates :onestop_id, uniqueness: true, on: create
@@ -92,6 +93,10 @@ class RouteStopPattern < BaseRouteStopPattern
     )
   end
 
+  def stop_points
+    self.stop_pattern.map {|s| Stop.where(onestop_id: s).first.geometry[:coordinates]}
+  end
+
   def calculate_distances
     # TODO: potential issue with nearest stop segment matching after subsequent stop
     # TODO: investigate 'boundary' lat/lng possibilities
@@ -132,16 +137,17 @@ class RouteStopPattern < BaseRouteStopPattern
       self.geometry = RouteStopPattern.line_string(stop_points)
       self.is_generated = true
       self.is_modified = true
-      self.is_only_stop_points = true
     end
     # more geometry modification can go here
   end
 
-  def inspect_geometry(stop_points)
+  def inspect_geometry
     # find and record characteristics of the final geometry
-    if Set.new(stop_points).subset?(Set.new(self.geometry[:coordinates]))
+    self.is_only_stop_points = false
+    if Set.new(stop_points).eql?(Set.new(self.geometry[:coordinates]))
       self.is_only_stop_points = true
     end
+    # more inspections will go here
   end
 
   ##### FromGTFS ####

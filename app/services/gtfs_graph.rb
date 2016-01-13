@@ -245,7 +245,6 @@ class GTFSGraph
       trip_stop_points = tl_stops.map {|s| s.geometry[:coordinates]}
       issues = rsp.evaluate_geometry(trip, trip_stop_points)
       rsp.tl_geometry(trip_stop_points, issues)
-      rsp.inspect_geometry(trip_stop_points)
       # determine if RouteStopPattern with same route, stop pattern, and geometry exists
       rsp = find_rsp(tl_route.onestop_id, rsp)
       add_identifier(rsp, 'rsp', trip) # trip is closest entity match we have to rsp
@@ -281,7 +280,9 @@ class GTFSGraph
   def evaluate_matching_by_structure(route_onestop_id, stop_pattern_rsps, geometry_rsps, test_rsp)
     s = 1
     if stop_pattern_rsps.empty?
-      s += @onestop_id_to_rsp.keys.map {|k|
+      s += @onestop_id_to_rsp.keys.select {|k|
+        OnestopId::RouteStopPatternOnestopId.route_onestop_id(k) == route_onestop_id
+      }.map {|k|
         OnestopId::RouteStopPatternOnestopId.onestop_id_component_num(k, :stop_pattern)
       }.uniq.size
       s += OnestopId::RouteStopPatternOnestopId.component_count(route_onestop_id, :stop_pattern)
@@ -291,10 +292,12 @@ class GTFSGraph
 
     g = 1
     if geometry_rsps.empty?
-      g += @onestop_id_to_rsp.keys.map {|k|
+      g += @onestop_id_to_rsp.keys.select {|k|
+        OnestopId::RouteStopPatternOnestopId.route_onestop_id(k) == route_onestop_id
+      }.map {|k|
         OnestopId::RouteStopPatternOnestopId.onestop_id_component_num(k, :geometry)
       }.uniq.size
-      g += OnestopId::RouteStopPatternOnestopId.component_count(route_onestop_id, :geometry) + 1
+      g += OnestopId::RouteStopPatternOnestopId.component_count(route_onestop_id, :geometry)
     else
       g = OnestopId::RouteStopPatternOnestopId.onestop_id_component_num(geometry_rsps[0].onestop_id, :geometry)
     end
@@ -493,6 +496,9 @@ class GTFSGraph
       },
       stopPattern: entity.stop_pattern,
       geometry: entity.geometry,
+      isOnlyStopPoints: entity.is_only_stop_points,
+      isGenerated: entity.is_generated,
+      isModified: entity.is_modified,
       trips: entity.trips,
       traversedBy: entity.route.onestop_id,
       tags: entity.tags || {}

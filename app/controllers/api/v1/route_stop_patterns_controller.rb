@@ -14,7 +14,13 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
       @rsps = @rsps.where(route_id: Route.where(onestop_id: params[:traversedBy]))
     end
 
-    # TODO: query by shape id, and maybe unique geometry
+    if params[:trip].present?
+      @rsps = @rsps.where("'?' = ANY (trips)", params[:trip])
+    end
+
+    if params[:stopVisited].present?
+      @rsps = @rsps.where("'?' = ANY (stop_pattern)", params[:stopVisited])
+    end
 
     @rsps = @rsps.includes{[
       route,

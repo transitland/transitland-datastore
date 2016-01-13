@@ -18,6 +18,15 @@
         "format": "stop-onestop-id"
       }
     },
+    "isOnlyStopPoints": {
+      "type": "boolean"
+    },
+    "isModified": {
+      "type": "boolean"
+    },
+    "isGenerated": {
+      "type": "boolean"
+    },
     "identifiedBy": {
       "type": "array",
       "uniqueItems": true,

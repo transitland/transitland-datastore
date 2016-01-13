@@ -26,6 +26,14 @@
 
 describe RouteStopPattern do
   it 'can be created' do
+    create(:stop,
+      onestop_id: "s-9q8yw8y448-bayshorecaltrainstation",
+      geometry: point = Stop::GEOFACTORY.point(-122.401811, 37.706675).to_s
+    )
+    create(:stop,
+      onestop_id: "s-9q8yyugptw-sanfranciscocaltrainstation",
+      geometry: point = Stop::GEOFACTORY.point(-122.394935, 37.776348).to_s
+    )
     points = [[-122.401811, 37.706675],[-122.394935, 37.776348]]
     geom = RouteStopPattern::GEOFACTORY.line_string(
       points.map {|lon, lat| RouteStopPattern::GEOFACTORY.point(lon, lat)}
@@ -56,7 +64,7 @@ describe RouteStopPattern do
       onestop_id: "s-9q9hwp6epk-mountainviewcaltrainstation",
       geometry: point = Stop::GEOFACTORY.point(-122.076327, 37.393879).to_s
     )
-    @simple_rsp =RouteStopPattern.new(stop_pattern:
+    @simple_rsp = RouteStopPattern.new(stop_pattern:
                      ["s-9q9k659e3r-sanjosecaltrainstation",
                      "s-9q9hxhecje-sunnyvalecaltrainstation",
                      "s-9q9hwp6epk-mountainviewcaltrainstation"],
@@ -89,6 +97,26 @@ describe RouteStopPattern do
       stop_points = [[-122.401811, 37.706675],[-122.394935, 37.776348]]
       @empty_rsp.tl_geometry(stop_points, issues)
       expect(@empty_rsp.geometry[:coordinates]).to eq(stop_points)
+      expect(@empty_rsp.is_generated).to be true
+      expect(@empty_rsp.is_modified).to be true
+    end
+
+    it 'RouteStopPattern.inspect_geometry' do
+      create(:stop,
+        onestop_id: "s-9q8yw8y448-bayshorecaltrainstation",
+        geometry: point = Stop::GEOFACTORY.point(-122.401811, 37.706675).to_s
+      )
+      create(:stop,
+        onestop_id: "s-9q8yyugptw-sanfranciscocaltrainstation",
+        geometry: point = Stop::GEOFACTORY.point(-122.394935, 37.776348).to_s
+      )
+
+      @geom_rsp.inspect_geometry
+      expect(@geom_rsp.is_only_stop_points).to be true
+
+      @geom_rsp.geometry = RouteStopPattern.line_string([[-121.902181, 37.329392],[-122.030742, 37.378427],[-122.076327, 37.393879]])
+      @geom_rsp.inspect_geometry
+      expect(@geom_rsp.is_only_stop_points).to be false
     end
   end
 end
