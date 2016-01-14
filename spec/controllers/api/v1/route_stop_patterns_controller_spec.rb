@@ -19,8 +19,13 @@ describe Api::V1::RouteStopPatternsController do
       points.map {|lon, lat| RouteStopPattern::GEOFACTORY.point(lon, lat)}
     )
     sp = ["s-9q8yw8y448-bayshorecaltrainstation", "s-9q8yyugptw-sanfranciscocaltrainstation"]
-    @rsp = create(:route_stop_pattern, stop_pattern: sp, geometry: geom, onestop_id: 'r-9q9j-bullet-S1-G1')
-    @rsp.route = @bullet_route
+    @rsp = create(:route_stop_pattern,
+      stop_pattern: sp,
+      geometry: geom,
+      onestop_id: 'r-9q9j-bullet-S1-G1',
+      route: @bullet_route,
+      trips: ['trip1','trip2']
+    )
   end
 
 
@@ -30,9 +35,58 @@ describe Api::V1::RouteStopPatternsController do
         get :index
         expect_json_types({ route_stop_patterns: :array })
         expect_json({ route_stop_patterns: -> (route_stop_patterns) {
-          expect(routes.length).to eq 1
+          expect(route_stop_patterns.length).to eq 1
         }})
       end
     end
+
+    context 'returns route_stop_patterns by trip' do
+      it 'when not found' do
+        get :index, trip: 'trip3'
+        expect_json({ route_stop_patterns: -> (route_stop_patterns) {
+          expect(route_stop_patterns.length).to eq 0
+        }})
+      end
+
+      it 'when found' do
+        get :index, trip: 'trip2'
+        expect_json({ route_stop_patterns: -> (route_stop_patterns) {
+          expect(route_stop_patterns.length).to eq 1
+        }})
+      end
+    end
+
+    context 'returns route_stop_patterns by stop visited' do
+      it 'when not found' do
+        get :index, stopVisited: 's-9q8yw8y448-testing'
+        expect_json({ route_stop_patterns: -> (route_stop_patterns) {
+          expect(route_stop_patterns.length).to eq 0
+        }})
+      end
+
+      it 'when found' do
+        get :index, stopVisited: 's-9q8yw8y448-bayshorecaltrainstation'
+        expect_json({ route_stop_patterns: -> (route_stop_patterns) {
+          expect(route_stop_patterns.length).to eq 1
+        }})
+      end
+    end
+
+    context 'returns route_stop_patterns by route traversed by' do
+      it 'when not found' do
+        get :index, traversedBy: 'r-9q9j-test'
+        expect_json({ route_stop_patterns: -> (route_stop_patterns) {
+          expect(route_stop_patterns.length).to eq 0
+        }})
+      end
+
+      it 'when found' do
+        get :index, traversedBy: 'r-9q9j-bullet'
+        expect_json({ route_stop_patterns: -> (route_stop_patterns) {
+          expect(route_stop_patterns.length).to eq 1
+        }})
+      end
+    end
+
   end
 end
