@@ -99,7 +99,7 @@ describe RouteStopPattern do
                          "s-9q9hwp6epk-mountainviewcaltrainstation"]
     expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
                                                             a_value_within(0.1).of(12617.9271),
-                                                            a_value_within(0.1).of(14809.7189),
+                                                            a_value_within(0.5).of(14809.7189),
                                                             a_value_within(0.1).of(17001.5107)])
 
 
