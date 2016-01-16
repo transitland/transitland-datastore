@@ -100,15 +100,23 @@ class RouteStopPattern < BaseRouteStopPattern
   def calculate_distances
     # TODO: potential issue with nearest stop segment matching after subsequent stop
     # TODO: investigate 'boundary' lat/lng possibilities
+
     distances = []
     total_distance = 0.0
     cartesian_factory = RGeo::Cartesian::Factory.new
     cast_route = RGeo::Feature.cast(self[:geometry], cartesian_factory)
-    self.stop_pattern.map {|s| Stop.find_by_onestop_id!(s)}.each do |stop|
+    self.stop_pattern.each_index do |i|
+      stop = Stop.find_by_onestop_id!(self.stop_pattern[i])
       cast_stop = RGeo::Feature.cast(stop[:geometry], cartesian_factory)
       splits = cast_route.split_at_point(cast_stop)
       if !splits[0]
-        distances << 0.0
+        if i == 0
+          distances << 0.0
+        else
+          previous_stop = Stop.find_by_onestop_id!(self.stop_pattern[i-1])
+          total_distance += stop[:geometry].distance(previous_stop[:geometry])
+          distances << total_distance
+        end
       else
         total_distance += RGeo::Feature.cast(splits[0], RouteStopPattern::GEOFACTORY).length
         distances << total_distance

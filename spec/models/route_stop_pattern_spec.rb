@@ -83,7 +83,6 @@ describe RouteStopPattern do
                          "s-9q9hxhecje-sunnyvalecaltrainstation",
                          "s-9q9hwtgq4s-midpoint",
                          "s-9q9hwp6epk-mountainviewcaltrainstation"]
-    puts @rsp.calculate_distances
     expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
                                                             a_value_within(0.1).of(12617.9271),
                                                             a_value_within(0.1).of(14809.7189),
@@ -144,15 +143,18 @@ describe RouteStopPattern do
     #                                                         a_value_within(0.1).of(17001.5107),
     #                                                         a_value_within(0.1).of(21385.0943)])
 
-    # create(:stop,
-    #   onestop_id: "s-9q9hwp6epk-beyondgeometry",
-    #   geometry: point = Stop::GEOFACTORY.point(-121.5, 37.0).to_s
-    # )
-    # @rsp.stop_pattern << "s-9q9hwp6epk-beyondgeometry"
-    # expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
-    #                                                  a_value_within(0.1).of(0.0),
-    #                                                  a_value_within(0.1).of(12617.9271),
-    #                                                  a_value_within(0.1).of(17001.5107)])
+    create(:stop,
+      onestop_id: "s-9q9hwp6epk-beyondgeometry",
+      geometry: point = Stop::GEOFACTORY.point(-121.5, 37.30).to_s
+    )
+    @rsp.stop_pattern = ["s-9q9hwp6epk-beyondgeometry",
+                         "s-9q9k659e3r-sanjosecaltrainstation",
+                         "s-9q9hxhecje-sunnyvalecaltrainstation",
+                         "s-9q9hwp6epk-mountainviewcaltrainstation"]
+    expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
+                                                     a_value_within(0.1).of(35756.8357),
+                                                     a_value_within(0.1).of(48374.7628),
+                                                     a_value_within(0.1).of(52758.3464)])
 
   end
 
