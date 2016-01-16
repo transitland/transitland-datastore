@@ -50,8 +50,6 @@ describe RouteStopPattern do
   end
 
   it 'can calculate distances' do
-    point = Stop::GEOFACTORY.point(-122.0, 35.0).to_s
-    stop = create(:stop, geometry: point.to_s)
     create(:stop,
       onestop_id: "s-9q9k659e3r-sanjosecaltrainstation",
       geometry: point = Stop::GEOFACTORY.point(-121.902181, 37.329392).to_s
@@ -64,13 +62,98 @@ describe RouteStopPattern do
       onestop_id: "s-9q9hwp6epk-mountainviewcaltrainstation",
       geometry: point = Stop::GEOFACTORY.point(-122.076327, 37.393879).to_s
     )
-    @simple_rsp = RouteStopPattern.new(stop_pattern:
+    @rsp = RouteStopPattern.new(stop_pattern:
                      ["s-9q9k659e3r-sanjosecaltrainstation",
                      "s-9q9hxhecje-sunnyvalecaltrainstation",
                      "s-9q9hwp6epk-mountainviewcaltrainstation"],
                      geometry: RouteStopPattern.line_string([[-121.902181, 37.329392],[-122.030742, 37.378427],[-122.076327, 37.393879]])
     )
-    expect(@simple_rsp.calculate_distances).to eq([0.0, 12617.927110162818, 17001.510715519955])
+    expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
+                                                            a_value_within(0.1).of(12617.9271),
+                                                            a_value_within(0.1).of(17001.5107)])
+
+    mv_syvalue_midpoint = [(@rsp.geometry[:coordinates][2][0] + @rsp.geometry[:coordinates][1][0])/2.0,
+                           (@rsp.geometry[:coordinates][2][1] + @rsp.geometry[:coordinates][1][1])/2.0]
+
+    create(:stop,
+     onestop_id: "s-9q9hwtgq4s-midpoint",
+     geometry: point = Stop::GEOFACTORY.point(-122.0519858, 37.39072182536).to_s
+    )
+    @rsp.stop_pattern = ["s-9q9k659e3r-sanjosecaltrainstation",
+                         "s-9q9hxhecje-sunnyvalecaltrainstation",
+                         "s-9q9hwtgq4s-midpoint",
+                         "s-9q9hwp6epk-mountainviewcaltrainstation"]
+    puts @rsp.calculate_distances
+    expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
+                                                            a_value_within(0.1).of(12617.9271),
+                                                            a_value_within(0.1).of(14809.7189),
+                                                            a_value_within(0.1).of(17001.5107)])
+
+    create(:stop,
+     onestop_id: "s-9q9hwtgq4s-midpoint~perpendicular~offset",
+     geometry: point = Stop::GEOFACTORY.point(mv_syvalue_midpoint[0], mv_syvalue_midpoint[1]).to_s
+    )
+    @rsp.stop_pattern = ["s-9q9k659e3r-sanjosecaltrainstation",
+                         "s-9q9hxhecje-sunnyvalecaltrainstation",
+                         "s-9q9hwtgq4s-midpoint",
+                         "s-9q9hwp6epk-mountainviewcaltrainstation"]
+    expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
+                                                            a_value_within(0.1).of(12617.9271),
+                                                            a_value_within(0.1).of(14809.7189),
+                                                            a_value_within(0.1).of(17001.5107)])
+
+
+    create(:stop,
+      onestop_id: "s-dqcjq9vgbv-A",
+      geometry: point = Stop::GEOFACTORY.point(-77.050171, 38.901890).to_s
+    )
+    create(:stop,
+      onestop_id: "s-dqcjq9vc13-B",
+      geometry: point = Stop::GEOFACTORY.point(-77.050155, 38.901394).to_s
+    )
+
+    @loop_rsp = RouteStopPattern.new(stop_pattern: ["s-dqcjq9vgbv-A", "s-dqcjq9vc13-B"], geometry: RouteStopPattern.line_string(
+      [[-77.050176, 38.900751],
+      [-77.050187, 38.901394],
+      [-77.050187, 38.901920],
+      [-77.050702, 38.902195],
+      [-77.050777, 38.902638],
+      [-77.050401, 38.903005],
+      [-77.049961, 38.903034],
+      [-77.049634, 38.902901],
+      [-77.049473, 38.902638],
+      [-77.049527, 38.902312],
+      [-77.049725, 38.902078],
+      [-77.050069, 38.901978],
+      [-77.050074, 38.901389],
+      [-77.050048, 38.900776]]
+    ))
+
+    expect(@loop_rsp.calculate_distances).to match_array(
+      [a_value_within(0.1).of(126.80),
+      a_value_within(0.1).of(553.56)]
+    )
+
+    # create(:stop,
+    #   onestop_id: "s-9q9hwp6epk-beyondgeometry",
+    #   geometry: point = Stop::GEOFACTORY.point(-122.1, 37.41).to_s
+    # )
+    # @rsp.stop_pattern << "s-9q9hwp6epk-beyondgeometry"
+    # expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
+    #                                                         a_value_within(0.1).of(12617.9271),
+    #                                                         a_value_within(0.1).of(17001.5107),
+    #                                                         a_value_within(0.1).of(21385.0943)])
+
+    # create(:stop,
+    #   onestop_id: "s-9q9hwp6epk-beyondgeometry",
+    #   geometry: point = Stop::GEOFACTORY.point(-121.5, 37.0).to_s
+    # )
+    # @rsp.stop_pattern << "s-9q9hwp6epk-beyondgeometry"
+    # expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
+    #                                                  a_value_within(0.1).of(0.0),
+    #                                                  a_value_within(0.1).of(12617.9271),
+    #                                                  a_value_within(0.1).of(17001.5107)])
+
   end
 
   context 'without shape or shape points' do
