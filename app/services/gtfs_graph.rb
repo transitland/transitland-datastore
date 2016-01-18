@@ -32,10 +32,10 @@ class GTFSGraph
       @gtfs.children(operator_gtfs).each do |route_gtfs|
         # Stops
         route_stops = Set.new
-        route_stops_gtfs = @gtfs
-          .children(route_gtfs)
-          .map { |trip_gtfs| @gtfs.children(trip_gtfs) }
-          .reduce(Set.new, :+)
+        route_stops_gtfs = @gtfs.
+                           children(route_gtfs).
+                           map { |trip_gtfs| @gtfs.children(trip_gtfs) }.
+                           reduce(Set.new, :+)
         route_stops_gtfs.each do |stop_gtfs|
           stop = find_by_entity(StopPlatform.from_gtfs(stop_gtfs))
           stop.timezone ||= operator.timezone
