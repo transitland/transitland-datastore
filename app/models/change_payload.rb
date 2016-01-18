@@ -100,7 +100,5 @@ class ChangePayload < ActiveRecord::Base
     payload_validation_errors.each do |error|
       errors.add(:payload, error[:message])
     end
-    binding.pry if errors.size > 0
   end
-
 end
