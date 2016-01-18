@@ -56,6 +56,7 @@ class ChangePayload < ActiveRecord::Base
       stop: Stop,
       stop_station: StopStation,
       stop_platform: StopPlatform,
+      stop_entrance: StopEntrance,
       operator: Operator,
       route: Route,
       schedule_stop_pair: ScheduleStopPair

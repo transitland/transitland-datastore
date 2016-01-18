@@ -27,7 +27,7 @@
             }
           },
           {
-            "required": ["stop_station"],
+            "required": ["stopStation"],
             "properties": {
               "stopStation": {
                 "$ref": "./stop.json"
@@ -35,7 +35,15 @@
             }
           },
           {
-            "required": ["stop_platform"],
+            "required": ["stopPlatform"],
+            "properties": {
+              "stopPlatform": {
+                "$ref": "./stop.json"
+              }
+            }
+          },
+          {
+            "required": ["stopEntrance"],
             "properties": {
               "stopPlatform": {
                 "$ref": "./stop.json"
