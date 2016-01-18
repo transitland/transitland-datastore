@@ -269,7 +269,7 @@ class Stop < BaseStop
       geohash: geohash,
       name: entity.id
     )
-    stop = self.new(
+    stop = new(
       name: name,
       onestop_id: onestop_id.to_s,
       geometry: point.to_s

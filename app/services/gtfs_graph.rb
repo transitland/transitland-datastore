@@ -43,12 +43,11 @@ class GTFSGraph
           route_stops << stop
           # Stations
           stop_gtfs_parent = @gtfs.stop(stop_gtfs.parent_station)
-          if stop_gtfs_parent
-            station = find_by_entity(StopStation.from_gtfs(stop_gtfs_parent))
-            stop.parent_stop = station
-            add_identifier(station, 's', stop_gtfs_parent)
-            stops << station
-          end
+          next unless stop_gtfs_parent
+          station = find_by_entity(StopStation.from_gtfs(stop_gtfs_parent))
+          stop.parent_stop = station
+          add_identifier(station, 's', stop_gtfs_parent)
+          stops << station
         end
         stops |= route_stops
         route = find_by_entity(Route.from_gtfs(route_gtfs, route_stops))
@@ -67,9 +66,13 @@ class GTFSGraph
     changeset = Changeset.create()
     @feed.set_bounding_box_from_stops(stops)
     @feed.save!
-    create_change_payloads(changeset, operators)
-    create_change_payloads(changeset, stops)
-    create_change_payloads(changeset, routes)
+    if import_level >= 0
+      create_change_payloads(changeset, operators)
+    end
+    if import_level >= 1
+      create_change_payloads(changeset, stops)
+      create_change_payloads(changeset, routes)
+    end
     log "Changeset apply"
     t = Time.now
     changeset.apply!

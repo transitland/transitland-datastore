@@ -56,7 +56,7 @@ describe GTFSGraph do
       expect(r.geometry).to be
     end
 
-    it 'created known Stops', :test_stops => true do
+    it 'created known Stops' do
       expect(@feed.imported_stops.count).to eq(64)
       expect(@feed_version.imported_stops).to eq(@feed.imported_stops)
       s = @feed.imported_stops.find_by(onestop_id: 's-9q9k659e3r-sanjosecaltrainstation')
