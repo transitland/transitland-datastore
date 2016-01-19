@@ -113,7 +113,8 @@ Example URL  | Parameters
 `GET /api/v1/routes?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
 `GET /api/v1/routes?tag_key=route_color` | find all routes that have a tag of `tag_key` with any value
 `GET /api/v1/routes?tag_key=route_color&tag_value=FEF0B5` | find all routes that have a tag of `tag_key` and a value of `tag_value`
-`POST /api/v1/webhooks/feed_fetcher` | ([secured](#api-authentication))
+`POST /api/v1/webhooks/feed_fetcher` | ([secured](#api-authentication)) fetches all feeds
+`POST /api/v1/webhooks/feed_fetcher?feed_onestop_id=f-9q9-caltrain` | ([secured](#api-authentication)) fetches only one feed
 `POST /api/v1/webhooks/feed_eater?feed_onestop_id=f-9q9-caltrain,feed_version_sha1=ab1e6ac73943082803f110df4b0fdd63a1d6b9f7` | ([secured](#api-authentication))
 `GET /api/v1/feeds` | none required
 `GET /api/v1/feeds?tag_key=license` | find all feeds that have a tag of `tag_key` with any value
