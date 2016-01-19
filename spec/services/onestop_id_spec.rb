@@ -14,6 +14,12 @@ describe OnestopId do
     expect {
       TestOnestopId.new('Retiro Station', [-58.374722,-34.591389])
     }.to raise_error(ArgumentError)
+    expect {
+      TestOnestopId.new(name: 'Retiro Station')
+    }.to raise_error(ArgumentError)
+    expect {
+      TestOnestopId.new(geohash: '9q9')
+    }.to raise_error(ArgumentError)
   end
 
   context '#geohash' do
@@ -34,17 +40,11 @@ describe OnestopId do
   end
 
   context '#validate' do
-    it 'requires geohash' do
-      expect(TestOnestopId.new(name: 'test').errors).to include 'invalid geohash'
-    end
     it 'requires valid geohash' do
-      expect(TestOnestopId.new(geohash: 'a@').errors).to include 'invalid geohash'
+      expect(TestOnestopId.new(geohash: 'a@', name: 'test').errors).to include 'invalid geohash'
     end
     it 'requires name' do
-      expect(TestOnestopId.new(geohash: '9q9').errors).to include 'invalid name'
-    end
-    it 'requires valid name' do
-      expect(TestOnestopId.new(name: '!').errors).to include 'invalid name'
+      expect(TestOnestopId.new(geohash: '9q9', name: '!').errors).to include 'invalid name'
     end
   end
 

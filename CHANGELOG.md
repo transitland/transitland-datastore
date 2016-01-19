@@ -102,7 +102,7 @@
 - fixing crontab on servers [\#223](https://github.com/transitland/transitland-datastore/pull/223) ([drewda](https://github.com/drewda))
 - Auto conflating stops [\#222](https://github.com/transitland/transitland-datastore/pull/222) ([doublestranded](https://github.com/doublestranded))
 - Fix BART initial convex hull [\#219](https://github.com/transitland/transitland-datastore/pull/219) ([irees](https://github.com/irees))
-- Improve SSP performance by caching entity lookups [\#218](https://github.com/transitland/transitland-datastore/pull/218) ([irees](https://github.com/irees))
+- Improve SSP performance by caching entity handler_by_strings [\#218](https://github.com/transitland/transitland-datastore/pull/218) ([irees](https://github.com/irees))
 - Making tmp directory if not exists [\#217](https://github.com/transitland/transitland-datastore/pull/217) ([doublestranded](https://github.com/doublestranded))
 - Update to sidekiq-unique-job broke unique: true [\#216](https://github.com/transitland/transitland-datastore/pull/216) ([irees](https://github.com/irees))
 

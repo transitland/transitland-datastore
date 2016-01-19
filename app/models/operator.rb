@@ -131,7 +131,7 @@ class Operator < BaseOperator
     name = [entity.agency_name, entity.id, "unknown"]
       .select(&:present?)
       .first
-    onestop_id = OnestopId.factory(self).new(
+    onestop_id = OnestopId.handler_by_model(self).new(
       geohash: geohash,
       name: name
     )
