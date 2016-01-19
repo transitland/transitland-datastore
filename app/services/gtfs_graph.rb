@@ -232,41 +232,6 @@ class GTFSGraph
     end
   end
 
-  def make_change_ssp(entity)
-    {
-      importedFromFeed: {
-        onestopId: @feed.onestop_id,
-        sha1: @feed_version.sha1
-      },
-      originOnestopId: entity.origin.onestop_id,
-      originTimezone: entity.origin_timezone,
-      originArrivalTime: entity.origin_arrival_time,
-      originDepartureTime: entity.origin_departure_time,
-      destinationOnestopId: entity.destination.onestop_id,
-      destinationTimezone: entity.destination_timezone,
-      destinationArrivalTime: entity.destination_arrival_time,
-      destinationDepartureTime: entity.destination_departure_time,
-      routeOnestopId: entity.route.onestop_id,
-      trip: entity.trip,
-      tripHeadsign: entity.trip_headsign,
-      tripShortName: entity.trip_short_name,
-      wheelchairAccessible: entity.wheelchair_accessible,
-      bikesAllowed: entity.bikes_allowed,
-      dropOffType: entity.drop_off_type,
-      pickupType: entity.pickup_type,
-      shapeDistTraveled: entity.shape_dist_traveled,
-      serviceStartDate: entity.service_start_date,
-      serviceEndDate: entity.service_end_date,
-      serviceDaysOfWeek: entity.service_days_of_week,
-      serviceAddedDates: entity.service_added_dates,
-      serviceExceptDates: entity.service_except_dates,
-      windowStart: entity.window_start,
-      windowEnd: entity.window_end,
-      originTimepointSource: entity.origin_timepoint_source,
-      destinationTimepointSource: entity.destination_timepoint_source
-    }
-  end
-
   def make_ssp(route, trip, origin, destination)
     # Generate an edge between an origin and destination for a given route/trip
     route = find_by_gtfs_entity(route)
