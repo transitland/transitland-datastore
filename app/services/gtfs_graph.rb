@@ -58,10 +58,6 @@ class GTFSGraph
         routes << route
       end
     end
-    # binding.pry
-    # operators.map(&:save!)
-    # stops.map(&:save!)
-    # routes.map(&:save!)
     log "Changeset create"
     changeset = Changeset.create()
     @feed.set_bounding_box_from_stops(stops)
