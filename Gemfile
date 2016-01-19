@@ -63,7 +63,6 @@ gem 'pry-rescue', group: [:development, :test]
 gem 'pry-stack_explorer', group: [:development, :test]
 gem 'rubocop', require: false, group: [:development, :test]
 gem 'rubocop-rspec', require: false, group: [:development, :test]
-gem 'github_changelog_generator', require: false, group: :development
 
 # code coverage and documentation
 gem 'rails-erd', group: :development
