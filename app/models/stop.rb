@@ -84,6 +84,7 @@ class Stop < BaseStop
   def self.after_create_making_history(created_model, changeset)
     if created_model.parent_stop_onestop_id
       created_model.parent_stop = Stop.find_by(onestop_id: created_model.parent_stop_onestop_id)
+      created_model.save!
     end
     OperatorRouteStopRelationship.manage_multiple(
       stop: {
