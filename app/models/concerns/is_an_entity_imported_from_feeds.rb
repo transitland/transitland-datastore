@@ -7,6 +7,10 @@ module IsAnEntityImportedFromFeeds
     has_many :imported_from_feed_versions, through: :entities_imported_from_feed, source: :feed_version
   end
 
+  def imported_from_feed
+    return nil
+  end
+
   def imported_from_feed=(imported_from_feed_params)
     params = HashHelpers::update_keys(imported_from_feed_params, :underscore)
     feed = params[:feed] || Feed.find_by!(onestop_id: params[:onestop_id])

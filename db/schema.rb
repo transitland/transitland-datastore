@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151223172515) do
+ActiveRecord::Schema.define(version: 20151231050119) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -215,12 +215,15 @@ ActiveRecord::Schema.define(version: 20151223172515) do
     t.string    "identifiers",                                                                                    default: [], array: true
     t.string    "timezone"
     t.datetime  "last_conflated_at"
+    t.string    "type"
+    t.integer   "parent_stop_id"
   end
 
   add_index "current_stops", ["created_or_updated_in_changeset_id"], name: "#c_stops_cu_in_changeset_id_index", using: :btree
   add_index "current_stops", ["geometry"], name: "index_current_stops_on_geometry", using: :gist
   add_index "current_stops", ["identifiers"], name: "index_current_stops_on_identifiers", using: :gin
   add_index "current_stops", ["onestop_id"], name: "index_current_stops_on_onestop_id", using: :btree
+  add_index "current_stops", ["parent_stop_id"], name: "index_current_stops_on_parent_stop_id", using: :btree
   add_index "current_stops", ["tags"], name: "index_current_stops_on_tags", using: :btree
   add_index "current_stops", ["updated_at"], name: "index_current_stops_on_updated_at", using: :btree
 
@@ -489,6 +492,8 @@ ActiveRecord::Schema.define(version: 20151223172515) do
     t.string    "identifiers",                                                                                    default: [], array: true
     t.string    "timezone"
     t.datetime  "last_conflated_at"
+    t.string    "type"
+    t.integer   "parent_stop_id"
   end
 
   add_index "old_stops", ["created_or_updated_in_changeset_id"], name: "o_stops_cu_in_changeset_id_index", using: :btree
@@ -496,6 +501,7 @@ ActiveRecord::Schema.define(version: 20151223172515) do
   add_index "old_stops", ["destroyed_in_changeset_id"], name: "stops_d_in_changeset_id_index", using: :btree
   add_index "old_stops", ["geometry"], name: "index_old_stops_on_geometry", using: :gist
   add_index "old_stops", ["identifiers"], name: "index_old_stops_on_identifiers", using: :gin
+  add_index "old_stops", ["parent_stop_id"], name: "index_old_stops_on_parent_stop_id", using: :btree
 
   add_foreign_key "change_payloads", "changesets"
 end

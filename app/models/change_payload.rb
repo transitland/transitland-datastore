@@ -54,6 +54,9 @@ class ChangePayload < ActiveRecord::Base
     entity_types = {
       feed: Feed,
       stop: Stop,
+      stop_station: StopStation,
+      stop_platform: StopPlatform,
+      stop_entrance: StopEntrance,
       operator: Operator,
       route: Route,
       schedule_stop_pair: ScheduleStopPair
@@ -98,5 +101,4 @@ class ChangePayload < ActiveRecord::Base
       errors.add(:payload, error[:message])
     end
   end
-
 end

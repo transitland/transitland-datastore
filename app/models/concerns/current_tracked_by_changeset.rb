@@ -99,6 +99,12 @@ module CurrentTrackedByChangeset
     end
   end
 
+  def as_change
+    h = {}
+    self.slice(*self.class.changeable_attributes).each { |k,v| h[k.camelize(:lower)] = v }
+    h.compact
+  end
+
   def before_destroy_making_history(changeset, old_model)
     # this is available for overriding in models
     super(changeset, old_model) if defined?(super)

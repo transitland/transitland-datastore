@@ -57,7 +57,7 @@ describe GTFSGraph do
     end
 
     it 'created known Stops' do
-      expect(@feed.imported_stops.count).to eq(31)
+      expect(@feed.imported_stops.count).to eq(64)
       expect(@feed_version.imported_stops).to eq(@feed.imported_stops)
       s = @feed.imported_stops.find_by(onestop_id: 's-9q9k659e3r-sanjosecaltrainstation')
       expect(s).to be_truthy
@@ -89,12 +89,12 @@ describe GTFSGraph do
     it 'created known Operator that serves known Stops' do
       o = @feed.imported_operators.find_by(onestop_id: 'o-9q9-caltrain')
       # Just check the number of stops here...
-      expect(o.stops.size).to eq(31)
+      expect(o.stops.size).to eq(64)
     end
 
     it 'created known Routes that serve known Stops' do
       r = @feed.imported_routes.find_by(onestop_id: 'r-9q9j-bullet')
-      expect(r.stops.size).to eq(13)
+      expect(r.stops.size).to eq(26)
       expect(r.stops.map(&:onestop_id)).to contain_exactly(
         "s-9q8vzhbggj-millbraecaltrainstation",
         "s-9q8yw8y448-bayshorecaltrainstation",

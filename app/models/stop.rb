@@ -14,15 +14,18 @@
 #  identifiers                        :string           default([]), is an Array
 #  timezone                           :string
 #  last_conflated_at                  :datetime
+#  type                               :string
+#  parent_stop_id                     :integer
 #
 # Indexes
 #
-#  #c_stops_cu_in_changeset_id_index   (created_or_updated_in_changeset_id)
-#  index_current_stops_on_geometry     (geometry)
-#  index_current_stops_on_identifiers  (identifiers)
-#  index_current_stops_on_onestop_id   (onestop_id)
-#  index_current_stops_on_tags         (tags)
-#  index_current_stops_on_updated_at   (updated_at)
+#  #c_stops_cu_in_changeset_id_index      (created_or_updated_in_changeset_id)
+#  index_current_stops_on_geometry        (geometry)
+#  index_current_stops_on_identifiers     (identifiers)
+#  index_current_stops_on_onestop_id      (onestop_id)
+#  index_current_stops_on_parent_stop_id  (parent_stop_id)
+#  index_current_stops_on_tags            (tags)
+#  index_current_stops_on_updated_at      (updated_at)
 #
 
 class BaseStop < ActiveRecord::Base
@@ -30,7 +33,7 @@ class BaseStop < ActiveRecord::Base
 
   include IsAnEntityImportedFromFeeds
 
-  attr_accessor :served_by, :not_served_by
+  attr_accessor :served_by, :not_served_by, :parent_stop_onestop_id
 end
 
 class Stop < BaseStop
@@ -74,10 +77,15 @@ class Stop < BaseStop
       :not_served_by,
       :identified_by,
       :not_identified_by,
-      :imported_from_feed
+      :imported_from_feed,
+      :parent_stop_onestop_id
     ]
   })
   def self.after_create_making_history(created_model, changeset)
+    if created_model.parent_stop_onestop_id
+      created_model.parent_stop = Stop.find_by(onestop_id: created_model.parent_stop_onestop_id)
+      created_model.save!
+    end
     OperatorRouteStopRelationship.manage_multiple(
       stop: {
         served_by: created_model.served_by || [],
@@ -252,7 +260,7 @@ class Stop < BaseStop
   include FromGTFS
   def self.from_gtfs(entity)
     # GTFS Constructor
-    point = Stop::GEOFACTORY.point(entity.stop_lon, entity.stop_lat)
+    point = GEOFACTORY.point(entity.stop_lon, entity.stop_lat)
     geohash = GeohashHelpers.encode(point, precision=GEOHASH_PRECISION)
     name = [entity.stop_name, entity.id, "unknown"]
       .select(&:present?)
@@ -260,9 +268,9 @@ class Stop < BaseStop
     onestop_id = OnestopId.new(
       entity_prefix: 's',
       geohash: geohash,
-      name: name
+      name: entity.id
     )
-    stop = Stop.new(
+    stop = new(
       name: name,
       onestop_id: onestop_id.to_s,
       geometry: point.to_s
@@ -282,6 +290,52 @@ class Stop < BaseStop
   def clean_attributes
     self.name.strip! if self.name.present?
   end
+end
+
+class StopStation < Stop
+  current_tracked_by_changeset({
+    kind_of_model_tracked: :onestop_entity,
+    virtual_attributes: [
+      :served_by,
+      :not_served_by,
+      :identified_by,
+      :not_identified_by,
+      :imported_from_feed
+    ]
+  })
+  # Station relations
+  has_many :stop_entrances, class_name: 'StopEntrance', foreign_key: :parent_stop_id
+  has_many :stop_platforms, class_name: 'StopPlatform', foreign_key: :parent_stop_id
+end
+
+class StopPlatform < Stop
+  current_tracked_by_changeset({
+    kind_of_model_tracked: :onestop_entity,
+    virtual_attributes: [
+      :served_by,
+      :not_served_by,
+      :identified_by,
+      :not_identified_by,
+      :imported_from_feed,
+      :parent_stop_onestop_id
+    ]
+  })
+  belongs_to :parent_stop, class_name: 'Stop'
+end
+
+class StopEntrance < Stop
+  current_tracked_by_changeset({
+    kind_of_model_tracked: :onestop_entity,
+    virtual_attributes: [
+      :served_by,
+      :not_served_by,
+      :identified_by,
+      :not_identified_by,
+      :imported_from_feed,
+      :parent_stop_onestop_id
+    ]
+  })
+  belongs_to :parent_station, class_name: 'Stop'
 end
 
 class OldStop < BaseStop
