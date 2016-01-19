@@ -45,15 +45,15 @@ class GTFSGraph
           stop_gtfs_parent = @gtfs.stop(stop_gtfs.parent_station)
           next unless stop_gtfs_parent
           station = find_by_entity(StopStation.from_gtfs(stop_gtfs_parent))
-          stop.parent_stop = station
+          stop.parent_stop_onestop_id = station.onestop_id
           add_identifier(station, 's', stop_gtfs_parent)
           stops << station
         end
         stops |= route_stops
         route = find_by_entity(Route.from_gtfs(route_gtfs, route_stops))
-        route.operator = operator
+        route.operated_by = operator.onestop_id
         route.serves ||= Set.new
-        route.serves |= route_stops
+        route.serves |= route_stops.map(&:onestop_id)
         add_identifier(route, 'r', route_gtfs)
         routes << route
       end
