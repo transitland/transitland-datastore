@@ -120,16 +120,4 @@ module OnestopId
   def self.factory(model)
     LOOKUP_MODEL[model]
   end
-
-  def self.new(*args)
-    if !args.empty? && args[0].has_key?(:string)
-      lookup(string: args[0][:string]).new(*args)
-    elsif !args.empty? && args[0].has_key?(:entity_prefix)
-      lookup(prefix: args[0][:entity_prefix]).new(*args)
-    #elsif args[0].has_key?(:route_onestop_id)
-      #RouteStopPatternOnestopId.new(*args)
-    else
-      raise ArgumentError.new('either a string or id components must be specified')
-    end
-  end
 end
