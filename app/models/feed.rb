@@ -237,8 +237,7 @@ class Feed < BaseFeed
     raise ArgumentError.new('Need at least one Stop') if stops.empty?
     geohash = GeohashHelpers.fit(stops.map { |i| i[:geometry] })
     name = Addressable::URI.parse(url).host.gsub(/[^a-zA-Z0-9]/, '')
-    onestop_id = OnestopId.new(
-      entity_prefix: 'f',
+    onestop_id = OnestopId.handler_by_model(self).new(
       geohash: geohash,
       name: name
     )
