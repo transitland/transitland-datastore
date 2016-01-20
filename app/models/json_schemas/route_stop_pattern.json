@@ -12,7 +12,6 @@
     "geometry": { "type": "object" },
     "stopPattern": {
       "type": "array",
-      "uniqueItems": false,
       "items": {
         "type": "string",
         "format": "stop-onestop-id"
