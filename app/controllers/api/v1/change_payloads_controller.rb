@@ -22,7 +22,7 @@ class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
   end
 
   def create
-    @change_payload = @changeset.change_payloads.create(change_payload_params)
+    @change_payload = @changeset.change_payloads.create!(change_payload_params)
     render json: @change_payload
   end
 
