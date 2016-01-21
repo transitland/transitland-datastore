@@ -6,48 +6,41 @@ class FeedInfoWorker
 
   def perform(url, cachekey)
     feed, operators = nil, nil
+    errors = []
+    response = {}
     begin
       feed_info = FeedInfo.new(url: url)
       feed_info.open do |f|
         feed, operators = f.parse_feed_and_operators
       end
     rescue GTFS::InvalidSourceException => e
-      data = {
-        status: 'error',
-        url: url,
+      errors << {
         exception: 'InvalidSourceException',
         message: 'Invalid GTFS Feed'
       }
     rescue SocketError => e
-      data = {
-        status: 'error',
-        url: url,
+      errors << {
         exception: 'SocketError',
         message: 'Error connecting to host'
       }
     rescue Net::HTTPServerException => e
-      data = {
-        status: 'error',
-        url: url,
+      errors << {
         exception: 'HTTPServerException',
         message: e.to_s
       }
     rescue StandardError => e
-      data = {
-        status: 'error',
-        url: url,
+      errors << {
         exception: e.class.name,
-        message: e.to_s
+        message: 'Could not download file'
       }
     else
-      data = {
-        status: 'complete',
-        url: url,
-        feed: FeedSerializer.new(feed).as_json,
-        operators: operators.map { |o| OperatorSerializer.new(o).as_json }
-      }
+      response[:feed] = FeedSerializer.new(feed).as_json
+      response[:operators] = operators.map { |o| OperatorSerializer.new(o).as_json }
     end
-    Rails.cache.write(cachekey, data, expires_in: FeedInfo::CACHE_EXPIRATION)
+    response[:status] = errors.size > 0 ? 'error' : 'complete'
+    response[:errors] = errors
+    response[:url] = url
+    Rails.cache.write(cachekey, response, expires_in: FeedInfo::CACHE_EXPIRATION)
   end
 end
 

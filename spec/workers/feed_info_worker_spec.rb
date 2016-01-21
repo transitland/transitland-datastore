@@ -23,8 +23,8 @@ describe FeedInfoWorker do
     end
     cachedata = Rails.cache.read(cachekey)
     expect(cachedata[:status]).to eq('error')
-    expect(cachedata[:exception]).to eq('HTTPServerException')
-    expect(cachedata[:message]).to eq('404 "Not Found"')
+    expect(cachedata[:errors].first[:exception]).to eq('HTTPServerException')
+    expect(cachedata[:errors].first[:message]).to eq('404 "Not Found"')
   end
 
   it 'fails with bad host' do
@@ -36,7 +36,7 @@ describe FeedInfoWorker do
     end
     cachedata = Rails.cache.read(cachekey)
     expect(cachedata[:status]).to eq('error')
-    expect(cachedata[:exception]).to eq('SocketError')
+    expect(cachedata[:errors].first[:exception]).to eq('SocketError')
   end
 
   it 'fails with invalid gtfs' do
@@ -48,7 +48,7 @@ describe FeedInfoWorker do
     end
     cachedata = Rails.cache.read(cachekey)
     expect(cachedata[:status]).to eq('error')
-    expect(cachedata[:exception]).to eq('InvalidSourceException')
-    expect(cachedata[:message]).to eq('Invalid GTFS Feed')
+    expect(cachedata[:errors].first[:exception]).to eq('InvalidSourceException')
+    expect(cachedata[:errors].first[:message]).to eq('Invalid GTFS Feed')
   end
 end
