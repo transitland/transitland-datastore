@@ -3,25 +3,25 @@
 # Table name: current_route_stop_patterns
 #
 #  id                                 :integer          not null, primary key
+#  onestop_id                         :string
 #  geometry                           :geography({:srid geometry, 4326
 #  tags                               :hstore
-#  created_at                         :datetime         not null
-#  updated_at                         :datetime         not null
 #  stop_pattern                       :string           default([]), is an Array
 #  version                            :integer
 #  created_or_updated_in_changeset_id :integer
-#  onestop_id                         :string
-#  route_id                           :integer
-#  route_type                         :string
 #  is_generated                       :boolean          default(FALSE)
 #  is_modified                        :boolean          default(FALSE)
 #  is_only_stop_points                :boolean          default(FALSE)
 #  trips                              :string           default([]), is an Array
 #  identifiers                        :string           default([]), is an Array
+#  created_at                         :datetime         not null
+#  updated_at                         :datetime         not null
+#  route_id                           :integer
 #
 # Indexes
 #
-#  index_current_route_stop_patterns_on_route_type_and_route_id  (route_type,route_id)
+#  index_current_route_stop_patterns_on_identifiers  (identifiers)
+#  index_current_route_stop_patterns_on_route_id     (route_id)
 #
 
 class BaseRouteStopPattern < ActiveRecord::Base
@@ -184,7 +184,7 @@ class RouteStopPattern < BaseRouteStopPattern
 
   def self.evaluate_matching_by_route_onestop_ids(candidate_rsps, route_onestop_id, test_rsp)
     if candidate_rsps.empty?
-      onestop_id = OnestopId.factory(RouteStopPattern).new(
+      onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(
         route_onestop_id: route_onestop_id,
         stop_pattern_index: 1,
         geometry_index: 1
@@ -219,7 +219,7 @@ class RouteStopPattern < BaseRouteStopPattern
       g = OnestopId::RouteStopPatternOnestopId.onestop_id_component_num(geometry_rsps[0].onestop_id, :geometry)
     end
 
-    onestop_id = OnestopId.factory(RouteStopPattern).new(
+    onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(
       route_onestop_id: route_onestop_id,
       stop_pattern_index: s,
       geometry_index: g

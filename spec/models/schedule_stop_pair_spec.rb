@@ -41,7 +41,6 @@
 #  drop_off_type                      :string
 #  active                             :boolean
 #  route_stop_pattern_id              :integer
-#  route_stop_pattern_type            :string
 #  origin_dist_traveled               :float
 #  destination_dist_traveled          :float
 #

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151223172515) do
+ActiveRecord::Schema.define(version: 20160121192921) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -116,24 +116,24 @@ ActiveRecord::Schema.define(version: 20151223172515) do
   add_index "current_operators_serving_stop", ["stop_id"], name: "index_current_operators_serving_stop_on_stop_id", using: :btree
 
   create_table "current_route_stop_patterns", force: :cascade do |t|
+    t.string    "onestop_id"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.hstore    "tags"
-    t.datetime  "created_at",                                                                                                     null: false
-    t.datetime  "updated_at",                                                                                                     null: false
     t.string    "stop_pattern",                                                                                   default: [],                 array: true
     t.integer   "version"
     t.integer   "created_or_updated_in_changeset_id"
-    t.string    "onestop_id"
-    t.integer   "route_id"
-    t.string    "route_type"
     t.boolean   "is_generated",                                                                                   default: false
     t.boolean   "is_modified",                                                                                    default: false
     t.boolean   "is_only_stop_points",                                                                            default: false
     t.string    "trips",                                                                                          default: [],                 array: true
     t.string    "identifiers",                                                                                    default: [],                 array: true
+    t.datetime  "created_at",                                                                                                     null: false
+    t.datetime  "updated_at",                                                                                                     null: false
+    t.integer   "route_id"
   end
 
-  add_index "current_route_stop_patterns", ["route_type", "route_id"], name: "index_current_route_stop_patterns_on_route_type_and_route_id", using: :btree
+  add_index "current_route_stop_patterns", ["identifiers"], name: "index_current_route_stop_patterns_on_identifiers", using: :btree
+  add_index "current_route_stop_patterns", ["route_id"], name: "index_current_route_stop_patterns_on_route_id", using: :btree
 
   create_table "current_routes", force: :cascade do |t|
     t.string    "onestop_id"
@@ -210,7 +210,6 @@ ActiveRecord::Schema.define(version: 20151223172515) do
     t.string   "drop_off_type"
     t.boolean  "active"
     t.integer  "route_stop_pattern_id"
-    t.string   "route_stop_pattern_type"
     t.float    "origin_dist_traveled"
     t.float    "destination_dist_traveled"
   end
@@ -398,23 +397,24 @@ ActiveRecord::Schema.define(version: 20151223172515) do
   add_index "old_operators_serving_stop", ["stop_type", "stop_id"], name: "operators_serving_stop_stop", using: :btree
 
   create_table "old_route_stop_patterns", force: :cascade do |t|
+    t.string    "onestop_id"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.hstore    "tags"
-    t.datetime  "created_at",                                                                                                     null: false
-    t.datetime  "updated_at",                                                                                                     null: false
     t.string    "stop_pattern",                                                                                   default: [],                 array: true
     t.integer   "version"
     t.integer   "created_or_updated_in_changeset_id"
-    t.string    "onestop_id"
-    t.integer   "route_id"
-    t.string    "route_type"
     t.boolean   "is_generated",                                                                                   default: false
     t.boolean   "is_modified",                                                                                    default: false
     t.boolean   "is_only_stop_points",                                                                            default: false
     t.string    "trips",                                                                                          default: [],                 array: true
     t.string    "identifiers",                                                                                    default: [],                 array: true
+    t.datetime  "created_at",                                                                                                     null: false
+    t.datetime  "updated_at",                                                                                                     null: false
+    t.integer   "route_id"
+    t.string    "route_type"
   end
 
+  add_index "old_route_stop_patterns", ["identifiers"], name: "index_old_route_stop_patterns_on_identifiers", using: :btree
   add_index "old_route_stop_patterns", ["route_type", "route_id"], name: "index_old_route_stop_patterns_on_route_type_and_route_id", using: :btree
 
   create_table "old_routes", force: :cascade do |t|
@@ -506,7 +506,6 @@ ActiveRecord::Schema.define(version: 20151223172515) do
     t.string   "drop_off_type"
     t.boolean  "active"
     t.integer  "route_stop_pattern_id"
-    t.string   "route_stop_pattern_type"
     t.float    "origin_dist_traveled"
     t.float    "destination_dist_traveled"
   end
