@@ -16,8 +16,7 @@ describe Changeset do
     expect(Changeset.exists?(changeset.id)).to be true
   end
 
-  it 'can append a payload' do
-    changeset = build(:changeset)
+  it 'can be created with an initial payload (compat)' do
     payload = {
       changes: [
         {
@@ -29,26 +28,23 @@ describe Changeset do
         }
       ]
     }
-    expect(changeset.change_payloads.count).equal?(0)
-    changeset.append(payload)
+    changeset = build(:changeset, payload: payload)
     expect(changeset.change_payloads.count).equal?(1)
   end
-  
+
   it 'sorts payloads by created_at' do
     changeset = create(:changeset)
     10.times {
-      payload = build(:change_payload)
-      changeset.append(payload.payload)
-      changeset.save!
+      create(:change_payload, changeset: changeset)
     }
     # Manually set created_at on the last payload to be earlier
     last_change = changeset.change_payloads.last
     last_change.created_at = "1970-01-01 00:00:00"
-    last_change.save!    
+    last_change.save!
     # Compare association order vs manual sorted order
     changes_order = changeset.change_payloads.map(&:id)
     changes_expect = Changeset.last.change_payloads.sort_by {|x|x.created_at}.map(&:id)
-    changes_order.zip(changes_expect).each {|a,b| assert a == b}    
+    changes_order.zip(changes_expect).each {|a,b| assert a == b}
   end
 
   context 'can be applied' do
@@ -143,7 +139,7 @@ describe Changeset do
       expect(OldStop.count).to eq 2
       expect(Stop.find_by_onestop_id('s-9q8yt4b-1AvHoS')).to be_nil
     end
-    
+
     it 'deletes payloads after applying' do
       payload_ids = @changeset1.change_payload_ids
       expect(payload_ids.length).to eq 1
