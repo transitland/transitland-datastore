@@ -126,7 +126,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
       @ssps = @ssps.where(route: routes)
     end
     if params[:operator_onestop_id].present?
-      operators = Stop.where(onestop_id: params[:operator_onestop_id].split(','))
+      operators = Operator.where(onestop_id: params[:operator_onestop_id].split(','))
       @ssps = @ssps.where(operator: operators)
     end
     # Stops in a bounding box
