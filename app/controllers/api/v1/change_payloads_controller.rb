@@ -4,6 +4,7 @@ class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
   before_filter :require_api_auth_token, only: [:update, :create, :destroy]
   before_action :set_changeset, only: [:index, :create]
   before_action :set_change_payload, only: [:show, :update, :destroy]
+  before_action :changeset_applied_lock, only: [:create, :update, :destroy]
 
   def index
     respond_to do |format|
@@ -21,7 +22,7 @@ class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
   end
 
   def create
-    @change_payload = @changeset.change_payloads.create(change_payload_params)
+    @change_payload = @changeset.change_payloads.create!(change_payload_params)
     render json: @change_payload
   end
 
@@ -30,7 +31,6 @@ class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
   end
 
   def update
-    raise Changeset::Error.new(@changeset, 'cannot update a Changeset that has already been applied') if @changeset.applied
     @change_payload.update!(change_payload_params)
     render json: @change_payload
   end
@@ -44,6 +44,10 @@ class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
 
   def change_payload_params
     params.require(:change_payload).permit!
+  end
+
+  def changeset_applied_lock
+    raise Changeset::Error.new(@changeset, 'cannot update a Changeset that has already been applied') if @changeset.applied
   end
 
   def set_changeset

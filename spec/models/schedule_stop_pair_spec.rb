@@ -133,7 +133,9 @@ RSpec.describe ScheduleStopPair, type: :model do
         ]
       }
       changeset = create(:changeset)
-      changeset.append(payload)
+      # FIXME: build doesn't save before apply, so no schema validation.
+      # Use create! instead, but need to update payload to use camelCase.
+      changeset.change_payloads.build(payload: payload)
       changeset.apply!
       ssp = changeset.schedule_stop_pairs_created_or_updated.first
       expect(ssp.created_or_updated_in_changeset).to eq changeset
@@ -194,7 +196,7 @@ RSpec.describe ScheduleStopPair, type: :model do
 
     it 'where origin_departure_between allows open ended ranges' do
       create(:schedule_stop_pair, origin_departure_time: '09:00:00')
-      expect(ScheduleStopPair.where_origin_departure_between('08:00:00', nil).count).to eq(1)      
+      expect(ScheduleStopPair.where_origin_departure_between('08:00:00', nil).count).to eq(1)
       expect(ScheduleStopPair.where_origin_departure_between(nil, '10:00:00').count).to eq(1)
     end
 

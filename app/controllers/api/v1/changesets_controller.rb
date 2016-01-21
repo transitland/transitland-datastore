@@ -2,8 +2,8 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   include JsonCollectionPagination
   include DownloadableCsv
 
-  before_filter :require_api_auth_token, only: [:update, :check, :apply, :revert, :append, :destroy]
-  before_action :set_changeset, only: [:show, :update, :check, :apply, :revert, :append, :destroy]
+  before_filter :require_api_auth_token, only: [:update, :check, :apply, :revert, :destroy]
+  before_action :set_changeset, only: [:show, :update, :check, :apply, :revert, :destroy]
 
   def index
     @changesets = Changeset.where('').include{change_payloads}
@@ -41,16 +41,6 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
     else
       @changeset.update!(changeset_params)
       render json: @changeset
-    end
-  end
-
-  def append
-    if @changeset.applied
-      raise Changeset::Error.new(@changeset, 'cannot update a Changeset that has already been applied')
-    else
-      @changeset.append(params)
-      @changeset.save!
-      render json: { appended: true }
     end
   end
 

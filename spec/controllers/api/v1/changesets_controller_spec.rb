@@ -96,19 +96,6 @@ describe Api::V1::ChangesetsController do
 
   end
 
-  context 'POST append' do
-    it 'should be able to append a change payload to a Changeset' do
-      changeset = create(:changeset)
-      change = FactoryGirl.attributes_for(:change_payload)
-      expect(Changeset.count).to eq 1
-      expect(ChangePayload.count).to eq 0
-      post :append, id: changeset.id, change: change
-      expect(response.status).to eq 200
-      expect(Changeset.count).to eq 1
-      expect(ChangePayload.count).to eq 1
-    end
-  end
-
   context 'POST update' do
     it "should be able to update a Changeset that hasn't yet been applied" do
       changeset = create(:changeset)
@@ -116,15 +103,6 @@ describe Api::V1::ChangesetsController do
         notes: 'this is the NEW note'
       }
       expect(changeset.reload.notes).to eq 'this is the NEW note'
-    end
-
-    it "shouldn't be able to append to an applied Changeset" do
-      changeset = create(:changeset)
-      changeset.update(applied: true)
-      change = FactoryGirl.attributes_for(:change_payload)
-      post :append, id: changeset.id, change: change
-      expect_json({ message: 'cannot update a Changeset that has already been applied' })
-      expect(response.code).to eq '400'
     end
   end
 

@@ -78,13 +78,12 @@ Example URL  | Parameters
 -------------|-----------
 `POST /api/v1/changesets` | include a [changeset payload](doc/changesets.md) in the request body
 `PUT /api/v1/changesets/32`<br/>(a Changeset can only be updated if it hasn't yet been applied)| include a [changeset payload](doc/changesets.md) in the request body ([secured](#api-authentication))
-`POST /api/v1/changesets/1/append` | Add an additional [changeset payload](doc/changesets.md) to a Changeset ([secured](#api-authentication))
 `POST /api/v1/changesets/1/check` | ([secured](#api-authentication))
 `POST /api/v1/changesets/1/apply` | ([secured](#api-authentication))
 `POST /api/v1/changesets/1/revert` | ([secured](#api-authentication))
 `DELETE /api/v1/changesets/1` | Delete Changeset ([secured](#api-authentication))
 `GET /api/v1/changesets/1/change_payloads` |
-`PUT /api/v1/changesets/1/change_payloads` |
+`PUT /api/v1/changesets/1/change_payloads` | Add an additional [changeset payload](doc/changesets.md) to a Changeset ([secured](#api-authentication))
 `POST /api/v1/changesets/1/change_payloads` |
 `GET /api/v1/changesets/1/change_payloads/1` |
 `PUT /api/v1/changesets/1/change_payloads/1` | ([secured](#api-authentication))
