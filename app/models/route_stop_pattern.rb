@@ -50,7 +50,7 @@ class RouteStopPattern < BaseRouteStopPattern
   end
 
   def geometry_has_at_least_two_coords
-    if geometry[:coordinates].length < 2
+    if geometry.nil? || self[:geometry].num_points < 2
       errors.add(:geometry, 'RouteStopPattern needs a geometry with least 2 coordinates')
     end
   end
@@ -100,27 +100,37 @@ class RouteStopPattern < BaseRouteStopPattern
   def calculate_distances
     # TODO: potential issue with nearest stop segment matching after subsequent stop
     # TODO: investigate 'boundary' lat/lng possibilities
-
     distances = []
     total_distance = 0.0
     cartesian_factory = RGeo::Cartesian::Factory.new
     cast_route = RGeo::Feature.cast(self[:geometry], cartesian_factory)
+    geometry_endpoint_reached = false
     self.stop_pattern.each_index do |i|
       stop = Stop.find_by_onestop_id!(self.stop_pattern[i])
       cast_stop = RGeo::Feature.cast(stop[:geometry], cartesian_factory)
-      splits = cast_route.split_at_point(cast_stop)
-      if !splits[0]
-        if i == 0
-          distances << 0.0
-        else
-          previous_stop = Stop.find_by_onestop_id!(self.stop_pattern[i-1])
-          total_distance += stop[:geometry].distance(previous_stop[:geometry])
-          distances << total_distance
-        end
-      else
-        total_distance += RGeo::Feature.cast(splits[0], RouteStopPattern::GEOFACTORY).length
+      if geometry_endpoint_reached
+        previous_stop = Stop.find_by_onestop_id!(self.stop_pattern[i-1])
+        total_distance += stop[:geometry].distance(previous_stop[:geometry])
         distances << total_distance
-        cast_route = splits[1] || splits[0]
+      else
+        splits = cast_route.split_at_point(cast_stop)
+        if splits[0].nil?
+          if i == 0
+            distances << 0.0
+          else
+            previous_stop = Stop.find_by_onestop_id!(self.stop_pattern[i-1])
+            total_distance += stop[:geometry].distance(previous_stop[:geometry])
+            distances << total_distance
+          end
+        else
+          total_distance += RGeo::Feature.cast(splits[0], RouteStopPattern::GEOFACTORY).length
+          distances << total_distance
+          if splits[1].nil?
+            geometry_endpoint_reached = true
+          else
+            cast_route = splits[1]
+          end
+        end
       end
     end
     distances
@@ -156,6 +166,85 @@ class RouteStopPattern < BaseRouteStopPattern
       self.is_only_stop_points = true
     end
     # more inspections will go here
+  end
+
+  scope :with_trips, -> (search_string) { where{trips.within(search_string)} }
+  scope :with_stops, -> (search_string) { where{stop_pattern.within(search_string)} }
+
+  def self.find_rsp(route_onestop_id, import_rsp_onestop_ids, import_rsps, test_rsp)
+    candidate_rsps = RouteStopPattern.matching_by_route_onestop_ids(route_onestop_id, import_rsps)
+    rsp = evaluate_matching_by_route_onestop_ids(candidate_rsps, route_onestop_id, test_rsp)
+    if rsp.nil?
+      stop_pattern_rsps = RouteStopPattern.matching_stop_pattern_rsps(candidate_rsps, test_rsp)
+      geometry_rsps = RouteStopPattern.matching_geometry_rsps(candidate_rsps, test_rsp)
+      rsp = evaluate_matching_by_structure(route_onestop_id, import_rsp_onestop_ids, stop_pattern_rsps, geometry_rsps, test_rsp)
+    end
+    rsp
+  end
+
+  def self.evaluate_matching_by_route_onestop_ids(candidate_rsps, route_onestop_id, test_rsp)
+    if candidate_rsps.empty?
+      onestop_id = OnestopId.factory(RouteStopPattern).new(
+        route_onestop_id: route_onestop_id,
+        stop_pattern_index: 1,
+        geometry_index: 1
+      ).to_s
+      test_rsp.onestop_id = onestop_id
+      test_rsp
+    end
+  end
+
+  def self.evaluate_matching_by_structure(route_onestop_id, import_rsp_onestop_ids, stop_pattern_rsps, geometry_rsps, test_rsp)
+    s = 1
+    if stop_pattern_rsps.empty?
+      s += import_rsp_onestop_ids.select {|k|
+        OnestopId::RouteStopPatternOnestopId.route_onestop_id(k) == route_onestop_id
+      }.map {|k|
+        OnestopId::RouteStopPatternOnestopId.onestop_id_component_num(k, :stop_pattern)
+      }.uniq.size
+      s += OnestopId::RouteStopPatternOnestopId.component_count(route_onestop_id, :stop_pattern)
+    else
+      s = OnestopId::RouteStopPatternOnestopId.onestop_id_component_num(stop_pattern_rsps[0].onestop_id, :stop_pattern)
+    end
+
+    g = 1
+    if geometry_rsps.empty?
+      g += import_rsp_onestop_ids.select {|k|
+        OnestopId::RouteStopPatternOnestopId.route_onestop_id(k) == route_onestop_id
+      }.map {|k|
+        OnestopId::RouteStopPatternOnestopId.onestop_id_component_num(k, :geometry)
+      }.uniq.size
+      g += OnestopId::RouteStopPatternOnestopId.component_count(route_onestop_id, :geometry)
+    else
+      g = OnestopId::RouteStopPatternOnestopId.onestop_id_component_num(geometry_rsps[0].onestop_id, :geometry)
+    end
+
+    onestop_id = OnestopId.factory(RouteStopPattern).new(
+      route_onestop_id: route_onestop_id,
+      stop_pattern_index: s,
+      geometry_index: g
+    ).to_s
+    test_rsp.onestop_id = onestop_id
+    existing_match = geometry_rsps.concat(stop_pattern_rsps).detect {|rsp| rsp.onestop_id == onestop_id}
+    existing_match || test_rsp
+  end
+
+  def self.matching_by_route_onestop_ids(route_onestop_id, import_rsps = [])
+    import_rsps.select {|rsp|
+      OnestopId::RouteStopPatternOnestopId.route_onestop_id(rsp.onestop_id) === route_onestop_id
+    }.concat(RouteStopPattern.where(route: Route.find_by(onestop_id: route_onestop_id)))
+  end
+
+  def self.matching_stop_pattern_rsps(candidate_rsps, test_rsp)
+    candidate_rsps.select { |c_rsp|
+      c_rsp.stop_pattern.eql?(test_rsp.stop_pattern)
+    }
+  end
+
+  def self.matching_geometry_rsps(candidate_rsps, test_rsp)
+    candidate_rsps.select { |o_rsp|
+      o_rsp.geometry[:coordinates].eql?(test_rsp.geometry[:coordinates])
+    }
   end
 
   ##### FromGTFS ####
