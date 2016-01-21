@@ -6,6 +6,10 @@ The only way to create, edit, and destroy data in the Transitland Datastore is t
 
 To create, check, and apply a changeset, you can either do each step as a separate HTTP request to the API, or you can try it in one-go. Make sure to include an [API Auth Key](../readme.md#api-authentication) in your requests.
 
+### Single-stop
+
+# TODO: Describe single-request changeset create & apply
+
 ### Step by Step
 
 1. Create an empty changeset: `POST /api/v1/changesets` with JSON like this in the request body:
@@ -20,7 +24,7 @@ To create, check, and apply a changeset, you can either do each step as a separa
 
 2. In the response, you'll get an ID for the changeset.
 
-3. Add changes to a changeset using the 'PUT /api/v1/changesets/143/change_payloads' endpoint (assuming that the ID you got back in Step 2 is `143`) :
+3. Add changes to a changeset using the 'POST /api/v1/changesets/143/change_payloads' endpoint (assuming that the ID you got back in Step 2 is `143`) :
 
 ````json
 {
