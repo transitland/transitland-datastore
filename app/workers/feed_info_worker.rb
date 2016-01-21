@@ -5,11 +5,33 @@ class FeedInfoWorker
   sidekiq_options :retry => false
 
   def perform(url, cachekey)
-    error, feed, operators = nil, nil, nil
+    feed, operators = nil, nil
     begin
-      FeedInfo.download_to_tempfile(url, maxsize=100*1024*1024) do |filename|
-        feed, operators = FeedInfo.parse_feed_and_operators(url, filename)
+      feed_info = FeedInfo.new(url: url)
+      feed_info.open do |f|
+        feed, operators = f.parse_feed_and_operators
       end
+    rescue GTFS::InvalidSourceException => e
+      data = {
+        status: 'error',
+        url: url,
+        exception: 'InvalidSourceException',
+        message: 'Invalid GTFS Feed'
+      }
+    rescue SocketError => e
+      data = {
+        status: 'error',
+        url: url,
+        exception: 'SocketError',
+        message: 'Error connecting to host'
+      }
+    rescue Net::HTTPServerException => e
+      data = {
+        status: 'error',
+        url: url,
+        exception: 'HTTPServerException',
+        message: e.to_s
+      }
     rescue StandardError => e
       data = {
         status: 'error',
