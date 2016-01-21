@@ -5,7 +5,7 @@ describe FeedInfo do
   let (:url_404) { 'http://httpbin.org/status/404' }
   let (:url_binary) { 'http://httpbin.org/stream-bytes/1024?seed=0' }
 
-  context '#fetch' do
+  context '.fetch' do
     it 'returns a response' do
       VCR.use_cassette('feed_info_fetch') do
         response = {}
@@ -39,7 +39,7 @@ describe FeedInfo do
     end
   end
 
-  context '#download' do
+  context '.download' do
     it 'downloads to temp file' do
       VCR.use_cassette('feed_info_download') do
         data = {}
@@ -81,12 +81,44 @@ describe FeedInfo do
     end
   end
 
-  context '#parse' do
+  context '.new' do
+    it 'requires url or path' do
+      expect { FeedInfo.new }.to raise_error(ArgumentError)
+    end
+  end
+
+  context '.open' do
+    it 'downloads if path not provided' do
+      url = 'http://www.caltrain.com/Assets/GTFS/caltrain/GTFS-Caltrain-Devs.zip'
+      VCR.use_cassette('fetch_caltrain') do
+        expect { FeedInfo.new(url: url).open { |f| f } }.not_to raise_error
+      end
+    end
+
+    it 'fails with bad host' do
+      url = 'http://test.example.com/gtfs.zip'
+      VCR.use_cassette('fetch_bad_host') do
+        expect { FeedInfo.new(url: url).open { |f| f } }.to raise_error(SocketError)
+      end
+    end
+
+    it 'raises exception on bad gtfs' do
+      VCR.use_cassette('feed_info_download_binary') do
+        expect { FeedInfo.new(url: url_binary).open { |f| f } }.to raise_error(GTFS::InvalidSourceException)
+      end
+    end
+  end
+
+  context '.parse' do
     let (:url) { 'http://www.caltrain.com/Assets/GTFS/caltrain/GTFS-Caltrain-Devs.zip' }
     let (:path) { Rails.root.join('spec/support/example_gtfs_archives/f-9q9-caltrain.zip') }
+    let (:feed_info) { FeedInfo.new(url: url, path: path) }
 
     it 'parses feed' do
-      feed, operators = FeedInfo.parse_feed_and_operators(url, path)
+      feed, operators = nil, nil
+      feed_info.open do |feed_info|
+        feed, operators = feed_info.parse_feed_and_operators
+      end
       expect(feed.onestop_id).to eq('f-9q9-wwwcaltraincom')
       expect(feed.url).to eq(url)
       expect(feed.geometry).to be_truthy
@@ -96,7 +128,10 @@ describe FeedInfo do
     end
 
     it 'parses operators' do
-      feed, operators = FeedInfo.parse_feed_and_operators(url, path)
+      feed, operators = nil, nil
+      feed_info.open do |feed_info|
+        feed, operators = feed_info.parse_feed_and_operators
+      end
       expect(operators.size).to eq(1)
       operator = operators.first
       expect(operator.onestop_id).to eq('o-9q9-caltrain')
