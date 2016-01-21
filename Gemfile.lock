@@ -418,7 +418,6 @@ DEPENDENCIES
   foreman
   github_changelog_generator
   gtfs!
-  haversine
   json-schema
   logstasher
   marginalia
