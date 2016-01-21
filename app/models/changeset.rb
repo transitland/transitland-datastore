@@ -139,12 +139,8 @@ class Changeset < ActiveRecord::Base
     # TODO: write it
   end
 
-  def append(changeset)
-    change_payloads.build payload: changeset
-  end
-
   def payload=(changeset)
-    append changeset
+    change_payloads.build payload: changeset
   end
 
   private

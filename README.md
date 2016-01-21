@@ -78,13 +78,12 @@ Example URL  | Parameters
 -------------|-----------
 `POST /api/v1/changesets` | include a [changeset payload](doc/changesets.md) in the request body
 `PUT /api/v1/changesets/32`<br/>(a Changeset can only be updated if it hasn't yet been applied)| include a [changeset payload](doc/changesets.md) in the request body ([secured](#api-authentication))
-`POST /api/v1/changesets/1/append` | Add an additional [changeset payload](doc/changesets.md) to a Changeset ([secured](#api-authentication))
 `POST /api/v1/changesets/1/check` | ([secured](#api-authentication))
 `POST /api/v1/changesets/1/apply` | ([secured](#api-authentication))
 `POST /api/v1/changesets/1/revert` | ([secured](#api-authentication))
 `DELETE /api/v1/changesets/1` | Delete Changeset ([secured](#api-authentication))
 `GET /api/v1/changesets/1/change_payloads` |
-`PUT /api/v1/changesets/1/change_payloads` |
+`PUT /api/v1/changesets/1/change_payloads` | Add an additional [changeset payload](doc/changesets.md) to a Changeset ([secured](#api-authentication))
 `POST /api/v1/changesets/1/change_payloads` |
 `GET /api/v1/changesets/1/change_payloads/1` |
 `PUT /api/v1/changesets/1/change_payloads/1` | ([secured](#api-authentication))
@@ -113,7 +112,8 @@ Example URL  | Parameters
 `GET /api/v1/routes?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
 `GET /api/v1/routes?tag_key=route_color` | find all routes that have a tag of `tag_key` with any value
 `GET /api/v1/routes?tag_key=route_color&tag_value=FEF0B5` | find all routes that have a tag of `tag_key` and a value of `tag_value`
-`POST /api/v1/webhooks/feed_fetcher` | ([secured](#api-authentication))
+`POST /api/v1/webhooks/feed_fetcher` | ([secured](#api-authentication)) fetches all feeds
+`POST /api/v1/webhooks/feed_fetcher?feed_onestop_id=f-9q9-caltrain` | ([secured](#api-authentication)) fetches only one feed
 `POST /api/v1/webhooks/feed_eater?feed_onestop_id=f-9q9-caltrain,feed_version_sha1=ab1e6ac73943082803f110df4b0fdd63a1d6b9f7` | ([secured](#api-authentication))
 `GET /api/v1/feeds` | none required
 `GET /api/v1/feeds?tag_key=license` | find all feeds that have a tag of `tag_key` with any value
