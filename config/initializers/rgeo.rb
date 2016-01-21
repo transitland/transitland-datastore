@@ -7,14 +7,6 @@ end
 module RGeo
   module Cartesian
     module LineStringMethods
-      def locate_point(target)
-        distance_on_line(target) / length
-      end
-
-      def distance_on_line(target)
-        nearest_locator = nearest_locator(target)
-        nearest_locator.distance_on_segment + distance_from_departure_to_segment(nearest_locator.segment)
-      end
 
       def split_at_point(target)
         nearest_locator = nearest_locator(target)
@@ -45,26 +37,6 @@ module RGeo
       def locators(point)
         _segments.collect { |segment| segment.locator(point) }
       end
-
-      def interpolate_point(location)
-        return points.last if location >= 1
-        return points.first if location <= 0
-
-        distance_on_line_string = location * length
-
-        line_distance_at_departure = line_distance_at_arrival = 0
-        segment = _segments.find do |segment|
-          line_distance_at_arrival += segment.length
-          line_distance_at_departure = line_distance_at_arrival - segment.length
-          line_distance_at_arrival > distance_on_line_string
-        end
-
-        return nil if segment.blank?
-
-        location_on_segment = (distance_on_line_string - line_distance_at_departure) / segment.length
-        dx_location, dy_location = segment.dx * location_on_segment, segment.dy * location_on_segment
-        factory.point(segment.s.x + dx_location, segment.s.y + dy_location)
-      end
     end
 
     class Segment
@@ -85,7 +57,6 @@ module RGeo
       end
 
       def distance_on_segment
-        # TODO: cache
         segment.tproj(target) * segment.length
       end
 
