@@ -50,6 +50,13 @@ Property | Required | Description
 -------- | -------- | -----------
 `notes` | - | a few sentences or a paragraph of plain text describing the changes
 
+### ChangePayload Properties
+
+Property | Required | Description
+-------- | -------- | -----------
+`payload` | yes | see below
+
+
 ### Payload Format
 The payload is a JSON object. It's an array of change actions:
 
@@ -57,7 +64,7 @@ The payload is a JSON object. It's an array of change actions:
 "changes": []
 ````
 
-Each changeset can contain one or more change actions.
+Each payload can contain one or more change actions.
 
 The possible actions include `createUpdate` and `destroy`:
 
