@@ -14,16 +14,16 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
       @rsps = @rsps.geometry_within_bbox(params[:bbox])
     end
 
-    if params[:traversedBy].present?
-      @rsps = @rsps.where(route_id: Route.where(onestop_id: params[:traversedBy]))
+    if params[:traversed_by].present?
+      @rsps = @rsps.where(route_id: Route.where(onestop_id: params[:traversed_by]))
     end
 
-    if params[:trip].present?
-      @rsps = @rsps.where("? = ANY (trips)", params[:trip])
+    if params[:trips].present?
+      @rsps = @rsps.with_trips(params[:trips])
     end
 
-    if params[:stopVisited].present?
-      @rsps = @rsps.where("? = ANY (stop_pattern)", params[:stopVisited])
+    if params[:stops_visited].present?
+      @rsps = @rsps.with_stops(params[:stops_visited])
     end
 
     @rsps = @rsps.includes{[
@@ -40,11 +40,18 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
           params[:offset],
           params[:per_page],
           params[:total],
-          params.slice(:onestop_id, :traversedBy)
+          params.slice(:onestop_id, :traversed_by, :trip, :bbox, :stop_visited)
         )
       end
       format.geojson do
-        render json: Geojson.from_entity_collection(@rsps)
+        append = Proc.new { |properties, entity|
+          properties[:route_onestop_id] = entity.route.onestop_id
+          properties[:stop_pattern] = entity.stop_pattern
+          properties[:is_generated] = entity.is_generated
+          properties[:is_modified] = entity.is_modified
+          properties[:is_only_stop_points] = entity.is_only_stop_points
+        }
+        render json: Geojson.from_entity_collection(@rsps, &append)
       end
       format.csv do
         #return_downloadable_csv(@rsps, 'routes')

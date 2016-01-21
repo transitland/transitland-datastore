@@ -40,32 +40,32 @@ describe Api::V1::RouteStopPatternsController do
       end
     end
 
-    context 'returns route_stop_patterns by trip' do
+    context 'returns route_stop_patterns by trips' do
       it 'when not found' do
-        get :index, trip: 'trip3'
+        get :index, trips: 'trip3'
         expect_json({ route_stop_patterns: -> (route_stop_patterns) {
           expect(route_stop_patterns.length).to eq 0
         }})
       end
 
       it 'when found' do
-        get :index, trip: 'trip2'
+        get :index, trips: 'trip2,trip1'
         expect_json({ route_stop_patterns: -> (route_stop_patterns) {
           expect(route_stop_patterns.length).to eq 1
         }})
       end
     end
 
-    context 'returns route_stop_patterns by stop visited' do
+    context 'returns route_stop_patterns by stops visited' do
       it 'when not found' do
-        get :index, stopVisited: 's-9q8yw8y448-testing'
+        get :index, stops_visited: 's-9q8yw8y448-testing'
         expect_json({ route_stop_patterns: -> (route_stop_patterns) {
           expect(route_stop_patterns.length).to eq 0
         }})
       end
 
       it 'when found' do
-        get :index, stopVisited: 's-9q8yw8y448-bayshorecaltrainstation'
+        get :index, stops_visited: 's-9q8yw8y448-bayshorecaltrainstation,s-9q8yyugptw-sanfranciscocaltrainstation'
         expect_json({ route_stop_patterns: -> (route_stop_patterns) {
           expect(route_stop_patterns.length).to eq 1
         }})
@@ -74,14 +74,14 @@ describe Api::V1::RouteStopPatternsController do
 
     context 'returns route_stop_patterns by route traversed by' do
       it 'when not found' do
-        get :index, traversedBy: 'r-9q9j-test'
+        get :index, traversed_by: 'r-9q9j-test'
         expect_json({ route_stop_patterns: -> (route_stop_patterns) {
           expect(route_stop_patterns.length).to eq 0
         }})
       end
 
       it 'when found' do
-        get :index, traversedBy: 'r-9q9j-bullet'
+        get :index, traversed_by: 'r-9q9j-bullet'
         expect_json({ route_stop_patterns: -> (route_stop_patterns) {
           expect(route_stop_patterns.length).to eq 1
         }})
