@@ -19,7 +19,7 @@ module HasAOnestopId
   private
 
   def validate_onestop_id
-    osid = OnestopId.factory(self.class).new(string: onestop_id)
+    osid = OnestopId.handler_by_model(self.class).new(string: onestop_id)
     osid.errors.each do |error|
       errors.add(:onestop_id, error)
     end

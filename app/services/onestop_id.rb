@@ -17,6 +17,9 @@ module OnestopId
     attr_accessor :geohash, :name
 
     def initialize(string: nil, geohash: nil, name: nil)
+      if string.nil? && (geohash.nil? || name.nil?)
+        raise(ArgumentError, 'argument must be either a onestop id string or both a geohash and name.')
+      end
       if string && string.length > 0
         geohash = string.split(COMPONENT_SEPARATOR)[1]
         name = string.split(COMPONENT_SEPARATOR)[2]
@@ -157,15 +160,17 @@ module OnestopId
   LOOKUP = Hash[OnestopId::OnestopIdBase.descendants.map { |c| [[c::PREFIX, c::NUM_COMPONENTS], c] }]
   LOOKUP_MODEL = Hash[OnestopId::OnestopIdBase.descendants.map { |c| [c::MODEL, c] }]
 
-  def self.lookup(string: nil, prefix: nil, num_components: 3)
+  def self.handler_by_string(string: nil)
     if string && string.length > 0
       split = string.split(COMPONENT_SEPARATOR)
-      prefix = split[0]
-      prefix = prefix.to_sym if prefix
+      prefix = split[0].to_sym
       num_components = split.size
+      LOOKUP[[prefix, num_components]]
     end
-    prefix = prefix.to_sym if prefix
-    LOOKUP[[prefix, num_components]]
+  end
+
+  def self.handler_by_model(model)
+    LOOKUP_MODEL[model]
   end
 
   def self.create_identifier(feed_onestop_id, entity_prefix, entity_id)
@@ -177,21 +182,17 @@ module OnestopId
   end
 
   def self.validate_onestop_id_string(onestop_id, expected_entity_type: nil)
-    klass = lookup(string: onestop_id)
+    klass = handler_by_string(string: onestop_id)
     return false, ['must not be empty'] if onestop_id.blank?
     return false, ['no matching handler'] unless klass
     klass.new(string: onestop_id).validate
   end
 
   def self.find(onestop_id)
-    lookup(string: onestop_id)::MODEL.find_by(onestop_id: onestop_id)
+    handler_by_string(string: onestop_id)::MODEL.find_by(onestop_id: onestop_id)
   end
 
   def self.find!(onestop_id)
-    lookup(string: onestop_id)::MODEL.find_by!(onestop_id: onestop_id)
-  end
-
-  def self.factory(model)
-    LOOKUP_MODEL[model]
+    handler_by_string(string: onestop_id)::MODEL.find_by!(onestop_id: onestop_id)
   end
 end

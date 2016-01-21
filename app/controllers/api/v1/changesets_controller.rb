@@ -32,7 +32,7 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
 
   def destroy
     @changeset.destroy!
-    return render json: {}
+    render json: {}, status: :no_content
   end
 
   def update
