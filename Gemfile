@@ -30,7 +30,7 @@ gem 'enumerize'
 gem 'gtfs', github: 'transitland/gtfs', tag: 'v1.0.1'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
-gem 'json-schema'
+gem 'json-schema', '2.5.2' # running into problems with 2.6.0
 
 # text matching
 gem 'text'
