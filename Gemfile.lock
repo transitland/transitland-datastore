@@ -180,7 +180,7 @@ GEM
     method_source (0.8.2)
     mime-types (2.99)
     mini_portile2 (2.0.0)
-    minitest (5.8.3)
+    minitest (5.8.4)
     mock_redis (0.16.0)
     multi_json (1.11.2)
     multipart-post (2.0.0)
