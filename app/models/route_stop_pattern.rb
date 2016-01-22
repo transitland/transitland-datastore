@@ -142,9 +142,7 @@ class RouteStopPattern < BaseRouteStopPattern
     if trip.shape_id.nil? || self.geometry[:coordinates].empty?
       issues[:empty] = true
     end
-    #polygon = RouteStopPattern.convex_hull([self], as: :wkt, projected: false)
-    #stop_points.map {|coord| polygon.overlaps?() }
-    # more inspections can go here
+    # more inspections can go here. e.g. has outlier stop
     issues
   end
 
@@ -165,22 +163,24 @@ class RouteStopPattern < BaseRouteStopPattern
     if Set.new(stop_points).eql?(Set.new(self.geometry[:coordinates]))
       self.is_only_stop_points = true
     end
-    # more inspections will go here
+    # more inspections can go here
   end
 
   scope :with_trips, -> (search_string) { where{trips.within(search_string)} }
   scope :with_stops, -> (search_string) { where{stop_pattern.within(search_string)} }
 
   def self.find_rsp(route_onestop_id, import_rsp_onestop_ids, import_rsps, test_rsp)
-    candidate_rsps = RouteStopPattern.matching_by_route_onestop_ids(route_onestop_id, import_rsps)
-    rsp = evaluate_matching_by_route_onestop_ids(candidate_rsps, route_onestop_id, test_rsp)
+    candidate_rsps = self.matching_by_route_onestop_ids(route_onestop_id, import_rsps)
+    rsp = self.evaluate_matching_by_route_onestop_ids(candidate_rsps, route_onestop_id, test_rsp)
     if rsp.nil?
-      stop_pattern_rsps = RouteStopPattern.matching_stop_pattern_rsps(candidate_rsps, test_rsp)
-      geometry_rsps = RouteStopPattern.matching_geometry_rsps(candidate_rsps, test_rsp)
-      rsp = evaluate_matching_by_structure(route_onestop_id, import_rsp_onestop_ids, stop_pattern_rsps, geometry_rsps, test_rsp)
+      stop_pattern_rsps = self.matching_stop_pattern_rsps(candidate_rsps, test_rsp)
+      geometry_rsps = self.matching_geometry_rsps(candidate_rsps, test_rsp)
+      rsp = self.evaluate_matching_by_structure(route_onestop_id, import_rsp_onestop_ids, stop_pattern_rsps, geometry_rsps, test_rsp)
     end
     rsp
   end
+
+  private
 
   def self.evaluate_matching_by_route_onestop_ids(candidate_rsps, route_onestop_id, test_rsp)
     if candidate_rsps.empty?
