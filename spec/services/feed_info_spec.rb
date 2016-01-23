@@ -16,7 +16,6 @@ describe FeedInfo do
 
     it 'fails with bad host' do
       url = 'http://test.example.com/gtfs.zip'
-      VCR.use_cassette('freed_fetch_bad_host') do
         expect { FeedInfo.new(url: url).open { |f| f } }.to raise_error(SocketError)
       end
     end
