@@ -2,17 +2,17 @@
 #
 # Table name: changesets
 #
-#  id         :integer          not null, primary key
-#  notes      :text
-#  applied    :boolean
-#  applied_at :datetime
-#  created_at :datetime
-#  updated_at :datetime
-#  author_id  :integer
+#  id           :integer          not null, primary key
+#  notes        :text
+#  applied      :boolean
+#  applied_at   :datetime
+#  created_at   :datetime
+#  updated_at   :datetime
+#  author_email :string
 #
 # Indexes
 #
-#  index_changesets_on_author_id  (author_id)
+#  index_changesets_on_author_email  (author_email)
 #
 
 describe Changeset do

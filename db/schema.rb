@@ -33,10 +33,10 @@ ActiveRecord::Schema.define(version: 20151239005523) do
     t.datetime "applied_at"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.integer  "author_id"
+    t.string   "author_email"
   end
 
-  add_index "changesets", ["author_id"], name: "index_changesets_on_author_id", using: :btree
+  add_index "changesets", ["author_email"], name: "index_changesets_on_author_email", using: :btree
 
   create_table "current_feeds", force: :cascade do |t|
     t.string    "onestop_id"
@@ -500,8 +500,11 @@ ActiveRecord::Schema.define(version: 20151239005523) do
   add_index "old_stops", ["geometry"], name: "index_old_stops_on_geometry", using: :gist
   add_index "old_stops", ["identifiers"], name: "index_old_stops_on_identifiers", using: :gin
 
-  create_table "users", force: :cascade do |t|
-    t.string   "email",                  default: "",    null: false
+  create_table "users", id: false, force: :cascade do |t|
+    t.string   "email",                                  null: false
+    t.string   "name"
+    t.string   "affiliation"
+    t.string   "user_type"
     t.string   "encrypted_password",     default: "",    null: false
     t.string   "reset_password_token"
     t.datetime "reset_password_sent_at"

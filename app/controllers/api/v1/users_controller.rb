@@ -16,7 +16,8 @@ class Api::V1::UsersController < Api::V1::BaseApiController
           params[:offset],
           params[:per_page],
           params[:total],
-          {}
+          {},
+          :email
         )
       end
       format.csv do

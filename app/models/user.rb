@@ -2,8 +2,10 @@
 #
 # Table name: users
 #
-#  id                     :integer          not null, primary key
-#  email                  :string           default(""), not null
+#  email                  :string           not null, primary key
+#  name                   :string
+#  affiliation            :string
+#  user_type              :string
 #  encrypted_password     :string           default(""), not null
 #  reset_password_token   :string
 #  reset_password_sent_at :datetime
@@ -23,22 +25,49 @@
 #
 
 class User < ActiveRecord::Base
+  self.primary_key = 'email'
+
   devise :database_authenticatable,
          :recoverable,
          :trackable
 
+  has_many :changesets, foreign_key: :author_email
+
   validates :email, presence: true
 
-  has_many :changesets, foreign_key: :author_id
+  extend Enumerize
+  enumerize :user_type, in: [
+    :community_builder,
+    :data_enthusiast,
+    :app_developer,
+    :hardware_vendor,
+    :consultant,
+    :transit_agency_staff,
+    :other_public_official
+  ]
+
+  before_update :update_email_on_changesets
+
+  def update_email_on_changesets
+    if email_changed?
+      Changeset.where(author_email: email_change.first).update_all(author_email: email_change.second)
+    end
+  end
 
   include CanBeSerializedToCsv
   def self.csv_column_names
     [
+      'Name',
+      'Affiliation',
+      'User Type',
       'Email'
     ]
   end
   def csv_row_values
     [
+      name,
+      affiliation,
+      user_type,
       email
     ]
   end

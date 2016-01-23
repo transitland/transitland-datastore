@@ -2,8 +2,10 @@
 #
 # Table name: users
 #
-#  id                     :integer          not null, primary key
-#  email                  :string           default(""), not null
+#  email                  :string           not null, primary key
+#  name                   :string
+#  affiliation            :string
+#  user_type              :string
 #  encrypted_password     :string           default(""), not null
 #  reset_password_token   :string
 #  reset_password_sent_at :datetime
@@ -23,8 +25,10 @@
 #
 
 class UserSerializer < ApplicationSerializer
-  attributes :id,
-             :email,
+  attributes :email,
+             :name,
+             :affiliation,
+             :user_type,
              :changesets,
              :sign_in_count,
              :current_sign_in_at,

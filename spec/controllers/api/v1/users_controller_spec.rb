@@ -26,7 +26,7 @@ describe Api::V1::UsersController do
       create_list(:user, 2)
       get :index, format: :csv
       parsed_csv = CSV.parse(response.body)
-      expect(parsed_csv[0]).to eq ["Email"]
+      expect(parsed_csv[0]).to eq ["Name", "Affiliation", "User Type", "Email"]
       expect(parsed_csv.length).to eq 3
     end
   end

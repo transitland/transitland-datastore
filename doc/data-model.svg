@@ -619,50 +619,50 @@
 <text text-anchor="start" x="914.214" y="-2081" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">text</text>
 </g>
 <!-- m_Feed&#45;&gt;m_FeedVersionImport -->
-<g id="edge47" class="edge"><title>m_Feed&#45;&gt;m_FeedVersionImport</title>
+<g id="edge46" class="edge"><title>m_Feed&#45;&gt;m_FeedVersionImport</title>
 <path fill="none" stroke="black" stroke-dasharray="1,5" d="M555.612,-1589.83C557.941,-1594.69 560.086,-1599.59 562,-1604.5 607.896,-1722.22 534.534,-1777.25 598,-1886.5 648.855,-1974.05 701.655,-1959.37 780,-2023.5 796.565,-2037.06 799,-2042.49 816,-2055.5 820.439,-2058.9 825.079,-2062.31 829.806,-2065.67"/>
 <polygon fill="black" stroke="black" points="828.109,-2068.33 837.286,-2070.92 831.727,-2063.17 828.109,-2068.33"/>
 </g>
 <!-- m_Feed&#45;&gt;m_OldFeed -->
-<g id="edge55" class="edge"><title>m_Feed&#45;&gt;m_OldFeed</title>
+<g id="edge54" class="edge"><title>m_Feed&#45;&gt;m_OldFeed</title>
 <path fill="none" stroke="black" d="M568.151,-1582.11C575.921,-1590.56 583.774,-1599.11 591.546,-1607.56"/>
 <polygon fill="black" stroke="black" points="570.449,-1579.95 562.039,-1575.46 565.811,-1584.22 570.449,-1579.95"/>
 <polygon fill="black" stroke="black" points="589.35,-1609.83 597.759,-1614.32 593.988,-1605.56 589.35,-1609.83"/>
 </g>
 <!-- m_Feed&#45;&gt;m_OldOperatorInFeed -->
-<g id="edge57" class="edge"><title>m_Feed&#45;&gt;m_OldOperatorInFeed</title>
+<g id="edge56" class="edge"><title>m_Feed&#45;&gt;m_OldOperatorInFeed</title>
 <path fill="none" stroke="black" d="M555.296,-1589.51C557.732,-1594.48 559.983,-1599.49 562,-1604.5 582.206,-1654.74 556.979,-1810.15 598,-1845.5 659.277,-1898.3 713.699,-1891.84 780,-1845.5 872.027,-1781.18 894.574,-1639.27 899.947,-1563.49"/>
 <polygon fill="black" stroke="black" points="903.114,-1563.32 900.547,-1554.14 896.827,-1562.92 903.114,-1563.32"/>
 </g>
 <!-- m_Feed&#45;&gt;m_Operator -->
-<g id="edge50" class="edge"><title>m_Feed&#45;&gt;m_Operator</title>
+<g id="edge49" class="edge"><title>m_Feed&#45;&gt;m_Operator</title>
 <path fill="none" stroke="black" stroke-dasharray="1,5" d="M471,-1365.13C471,-1244.45 471,-1123.77 471,-1003.09"/>
 <polygon fill="black" stroke="black" points="474.15,-1003.03 471,-994.031 467.85,-1003.03 474.15,-1003.03"/>
 </g>
 <!-- m_Feed&#45;&gt;m_Operator -->
-<g id="edge51" class="edge"><title>m_Feed&#45;&gt;m_Operator</title>
+<g id="edge50" class="edge"><title>m_Feed&#45;&gt;m_Operator</title>
 <path fill="none" stroke="black" stroke-dasharray="1,5" d="M437.082,-1365.13C409.484,-1244.45 410.331,-1123.77 439.623,-1003.09"/>
 <polygon fill="black" stroke="black" points="442.76,-1003.53 441.875,-994.031 436.647,-1002.01 442.76,-1003.53"/>
 </g>
 <!-- m_Feed&#45;&gt;m_OperatorInFeed -->
-<g id="edge49" class="edge"><title>m_Feed&#45;&gt;m_OperatorInFeed</title>
+<g id="edge48" class="edge"><title>m_Feed&#45;&gt;m_OperatorInFeed</title>
 <path fill="none" stroke="black" d="M562.039,-1477.5C577.186,-1477.5 592.817,-1477.5 607.696,-1477.5"/>
 <polygon fill="black" stroke="black" points="607.852,-1480.65 616.852,-1477.5 607.852,-1474.35 607.852,-1480.65"/>
 </g>
 <!-- m_Feed&#45;&gt;m_Route -->
-<g id="edge53" class="edge"><title>m_Feed&#45;&gt;m_Route</title>
+<g id="edge52" class="edge"><title>m_Feed&#45;&gt;m_Route</title>
 <path fill="none" stroke="black" stroke-dasharray="1,5" d="M549.354,-1357.15C554.185,-1346.69 558.501,-1336.07 562,-1325.5 610.04,-1180.41 545.856,-1127.17 598,-983.5 606.351,-960.492 619.479,-937.585 633.154,-917.39"/>
 <polygon fill="black" stroke="black" points="546.406,-1356.02 545.375,-1365.49 552.092,-1358.73 546.406,-1356.02"/>
 <polygon fill="black" stroke="black" points="635.883,-918.981 638.413,-909.788 630.702,-915.397 635.883,-918.981"/>
 </g>
 <!-- m_Feed&#45;&gt;m_ScheduleStopPair -->
-<g id="edge54" class="edge"><title>m_Feed&#45;&gt;m_ScheduleStopPair</title>
+<g id="edge53" class="edge"><title>m_Feed&#45;&gt;m_ScheduleStopPair</title>
 <path fill="none" stroke="black" stroke-dasharray="1,5" d="M570.603,-1443.29C660.042,-1412.15 778.246,-1370.7 780,-1368.5 823.619,-1313.73 799.779,-1123.61 816,-1055.5 817.076,-1050.98 818.213,-1046.43 819.405,-1041.86"/>
 <polygon fill="black" stroke="black" points="569.507,-1440.33 562.043,-1446.27 571.578,-1446.28 569.507,-1440.33"/>
 <polygon fill="black" stroke="black" points="822.48,-1042.56 821.763,-1033.05 816.394,-1040.93 822.48,-1042.56"/>
 </g>
 <!-- m_Feed&#45;&gt;m_Stop -->
-<g id="edge52" class="edge"><title>m_Feed&#45;&gt;m_Stop</title>
+<g id="edge51" class="edge"><title>m_Feed&#45;&gt;m_Stop</title>
 <path fill="none" stroke="black" stroke-dasharray="1,5" d="M382.447,-1365.19C371.584,-1346.39 362.157,-1326.39 356,-1306.17 345.913,-1273.04 346.858,-716.234 356,-682.833 367.691,-640.122 391.454,-597.267 414.36,-562.711"/>
 <polygon fill="black" stroke="black" points="417.127,-564.242 419.537,-555.017 411.9,-560.726 417.127,-564.242"/>
 </g>
@@ -729,7 +729,7 @@
 <polygon fill="black" stroke="black" points="720.22,-2028.74 719.952,-2038.27 726.106,-2030.99 720.22,-2028.74"/>
 </g>
 <!-- m_OldRoute&#45;&gt;m_OldRouteServingStop -->
-<g id="edge81" class="edge"><title>m_OldRoute&#45;&gt;m_OldRouteServingStop</title>
+<g id="edge80" class="edge"><title>m_OldRoute&#45;&gt;m_OldRouteServingStop</title>
 <path fill="none" stroke="black" d="M974.596,-1182.1C980.001,-1174.49 984.926,-1166.57 989,-1158.5 1079.7,-978.872 1102.75,-734.908 1108.56,-631.312"/>
 <polygon fill="black" stroke="black" points="1111.71,-631.477 1109.04,-622.322 1105.41,-631.141 1111.71,-631.477"/>
 </g>
@@ -766,59 +766,59 @@
 <polygon fill="black" stroke="black" points="651.268,-2031.14 657.456,-2038.39 657.142,-2028.86 651.268,-2031.14"/>
 </g>
 <!-- m_Operator&#45;&gt;m_OldOperator -->
-<g id="edge59" class="edge"><title>m_Operator&#45;&gt;m_OldOperator</title>
+<g id="edge58" class="edge"><title>m_Operator&#45;&gt;m_OldOperator</title>
 <path fill="none" stroke="black" d="M550.051,-970.156C569.591,-987.344 590.552,-1005.78 610.086,-1022.96"/>
 <polygon fill="black" stroke="black" points="551.864,-967.555 543.026,-963.976 547.703,-972.286 551.864,-967.555"/>
 <polygon fill="black" stroke="black" points="608.093,-1025.41 616.932,-1028.99 612.254,-1020.68 608.093,-1025.41"/>
 </g>
 <!-- m_Operator&#45;&gt;m_OldOperatorInFeed -->
-<g id="edge71" class="edge"><title>m_Operator&#45;&gt;m_OldOperatorInFeed</title>
+<g id="edge70" class="edge"><title>m_Operator&#45;&gt;m_OldOperatorInFeed</title>
 <path fill="none" stroke="black" d="M543.242,-916.023C629.283,-934.236 764.486,-965.277 780,-983.5 831.975,-1044.55 793.704,-1265.48 816,-1342.5 828.551,-1385.85 851.891,-1431.4 871.017,-1464.57"/>
 <polygon fill="black" stroke="black" points="868.522,-1466.54 875.78,-1472.73 873.963,-1463.37 868.522,-1466.54"/>
 </g>
 <!-- m_Operator&#45;&gt;m_OldOperatorServingStop -->
-<g id="edge67" class="edge"><title>m_Operator&#45;&gt;m_OldOperatorServingStop</title>
+<g id="edge66" class="edge"><title>m_Operator&#45;&gt;m_OldOperatorServingStop</title>
 <path fill="none" stroke="black" d="M543.234,-818.252C559.96,-802.135 578.605,-786.54 598,-774.5 633.823,-752.262 654.114,-769.591 688,-744.5"/>
 <path fill="none" stroke="black" d="M690,-744.5C724.757,-718.764 753.902,-741.986 780,-707.5 864.233,-596.193 742.206,-513.986 816,-395.5 818.327,-391.764 821.012,-388.234 823.963,-384.905"/>
 <polygon fill="black" stroke="black" points="826.327,-386.992 830.364,-378.353 821.821,-382.589 826.327,-386.992"/>
 </g>
 <!-- m_Operator&#45;&gt;m_OperatorInFeed -->
-<g id="edge60" class="edge"><title>m_Operator&#45;&gt;m_OperatorInFeed</title>
+<g id="edge59" class="edge"><title>m_Operator&#45;&gt;m_OperatorInFeed</title>
 <path fill="none" stroke="black" d="M504.517,-994.005C529.515,-1064.51 565.209,-1163.9 598,-1250.5 623.615,-1318.15 655.065,-1396.46 673.194,-1441.17"/>
 <polygon fill="black" stroke="black" points="670.332,-1442.5 676.636,-1449.65 676.17,-1440.13 670.332,-1442.5"/>
 </g>
 <!-- m_Operator&#45;&gt;m_OperatorServingStop -->
-<g id="edge61" class="edge"><title>m_Operator&#45;&gt;m_OperatorServingStop</title>
+<g id="edge60" class="edge"><title>m_Operator&#45;&gt;m_OperatorServingStop</title>
 <path fill="none" stroke="black" d="M513.655,-808.727C535.919,-763.208 565.435,-708.609 598,-663.5 613.411,-642.153 633.44,-620.763 650.69,-603.792"/>
 <polygon fill="black" stroke="black" points="653.135,-605.808 657.395,-597.278 648.745,-601.29 653.135,-605.808"/>
 </g>
 <!-- m_Operator&#45;&gt;m_Route -->
-<g id="edge63" class="edge"><title>m_Operator&#45;&gt;m_Route</title>
+<g id="edge62" class="edge"><title>m_Operator&#45;&gt;m_Route</title>
 <path fill="none" stroke="black" d="M543.026,-884.401C563.791,-879.402 586.629,-873.904 607.915,-868.78"/>
 <polygon fill="black" stroke="black" points="608.919,-871.778 616.932,-866.609 607.444,-865.653 608.919,-871.778"/>
 </g>
 <!-- m_Operator&#45;&gt;m_RouteServingStop -->
-<g id="edge64" class="edge"><title>m_Operator&#45;&gt;m_RouteServingStop</title>
+<g id="edge63" class="edge"><title>m_Operator&#45;&gt;m_RouteServingStop</title>
 <path fill="none" stroke="black" stroke-dasharray="1,5" d="M520.569,-808.593C535.525,-777.138 550.945,-741.386 562,-707.5 587.438,-629.524 542.546,-586.933 598,-526.5 613.427,-509.688 736.974,-477.564 821.602,-457.128"/>
 <polygon fill="black" stroke="black" points="822.421,-460.171 830.434,-455.004 820.947,-454.046 822.421,-460.171"/>
 </g>
 <!-- m_Operator&#45;&gt;m_ScheduleStopPair -->
-<g id="edge65" class="edge"><title>m_Operator&#45;&gt;m_ScheduleStopPair</title>
+<g id="edge64" class="edge"><title>m_Operator&#45;&gt;m_ScheduleStopPair</title>
 <path fill="none" stroke="black" d="M690,-744.5C724.703,-718.804 768.705,-729.853 807.576,-750.78"/>
 <polygon fill="black" stroke="black" points="806.397,-753.731 815.787,-755.386 809.479,-748.236 806.397,-753.731"/>
 </g>
 <!-- m_Operator&#45;&gt;m_Stop -->
-<g id="edge62" class="edge"><title>m_Operator&#45;&gt;m_Stop</title>
+<g id="edge61" class="edge"><title>m_Operator&#45;&gt;m_Stop</title>
 <path fill="none" stroke="black" stroke-dasharray="1,5" d="M471,-808.797C471,-727.353 471,-645.909 471,-564.464"/>
 <polygon fill="black" stroke="black" points="474.15,-564.048 471,-555.048 467.85,-564.048 474.15,-564.048"/>
 </g>
 <!-- m_OperatorInFeed&#45;&gt;m_OldOperatorInFeed -->
-<g id="edge69" class="edge"><title>m_OperatorInFeed&#45;&gt;m_OldOperatorInFeed</title>
+<g id="edge68" class="edge"><title>m_OperatorInFeed&#45;&gt;m_OldOperatorInFeed</title>
 <path fill="none" stroke="black" d="M761.015,-1489.59C780.371,-1492.88 801.475,-1496.47 821.303,-1499.85"/>
 <polygon fill="black" stroke="black" points="820.912,-1502.98 830.313,-1501.38 821.969,-1496.77 820.912,-1502.98"/>
 </g>
 <!-- m_OperatorServingStop&#45;&gt;m_OldOperatorServingStop -->
-<g id="edge72" class="edge"><title>m_OperatorServingStop&#45;&gt;m_OldOperatorServingStop</title>
+<g id="edge71" class="edge"><title>m_OperatorServingStop&#45;&gt;m_OldOperatorServingStop</title>
 <path fill="none" stroke="black" d="M715.182,-541.936C734.115,-520.544 760.105,-489.706 780,-460.5 798.592,-433.207 793.43,-419.607 816,-395.5 818.646,-392.674 821.467,-389.928 824.412,-387.269"/>
 <polygon fill="black" stroke="black" points="826.689,-389.467 831.489,-381.228 822.599,-384.676 826.689,-389.467"/>
 </g>
@@ -828,37 +828,37 @@
 <polygon fill="black" stroke="black" points="608.274,-2052.24 616.804,-2056.5 612.793,-2047.85 608.274,-2052.24"/>
 </g>
 <!-- m_Route&#45;&gt;m_OldRoute -->
-<g id="edge76" class="edge"><title>m_Route&#45;&gt;m_OldRoute</title>
+<g id="edge75" class="edge"><title>m_Route&#45;&gt;m_OldRoute</title>
 <path fill="none" stroke="black" d="M767.072,-913.716C771.891,-919.718 776.286,-926 780,-932.5 817.666,-998.426 789.381,-1028.39 816,-1099.5 825.301,-1124.34 838.051,-1150.06 850.866,-1173.23"/>
 <polygon fill="black" stroke="black" points="769.449,-911.649 761.236,-906.804 764.635,-915.713 769.449,-911.649"/>
 <polygon fill="black" stroke="black" points="848.248,-1175 855.396,-1181.31 853.744,-1171.92 848.248,-1175"/>
 </g>
 <!-- m_Route&#45;&gt;m_OldRouteServingStop -->
-<g id="edge87" class="edge"><title>m_Route&#45;&gt;m_OldRouteServingStop</title>
+<g id="edge86" class="edge"><title>m_Route&#45;&gt;m_OldRouteServingStop</title>
 <path fill="none" stroke="black" d="M761.325,-908.259C768.238,-915.922 774.655,-924.061 780,-932.5 808.658,-977.745 778.78,-1008.99 816,-1047.5 843.987,-1076.46 861.439,-1081.61 901.5,-1077.5"/>
 </g>
 <!-- m_Route&#45;&gt;m_RouteServingStop -->
-<g id="edge77" class="edge"><title>m_Route&#45;&gt;m_RouteServingStop</title>
+<g id="edge76" class="edge"><title>m_Route&#45;&gt;m_RouteServingStop</title>
 <path fill="none" stroke="black" d="M761.127,-793.593C768.453,-785.215 775.02,-776.129 780,-766.5 837.234,-655.837 747.182,-592.356 816,-488.5 820.074,-482.352 825.183,-476.861 830.865,-471.978"/>
 <polygon fill="black" stroke="black" points="833.2,-474.15 838.335,-466.116 829.31,-469.194 833.2,-474.15"/>
 </g>
 <!-- m_Route&#45;&gt;m_ScheduleStopPair -->
-<g id="edge79" class="edge"><title>m_Route&#45;&gt;m_ScheduleStopPair</title>
+<g id="edge78" class="edge"><title>m_Route&#45;&gt;m_ScheduleStopPair</title>
 <path fill="none" stroke="black" d="M761.015,-840.77C775.661,-838.97 791.307,-837.046 806.645,-835.161"/>
 <polygon fill="black" stroke="black" points="807.081,-838.281 815.63,-834.056 806.313,-832.028 807.081,-838.281"/>
 </g>
 <!-- m_Route&#45;&gt;m_Stop -->
-<g id="edge78" class="edge"><title>m_Route&#45;&gt;m_Stop</title>
+<g id="edge77" class="edge"><title>m_Route&#45;&gt;m_Stop</title>
 <path fill="none" stroke="black" stroke-dasharray="1,5" d="M616.951,-790.563C609.987,-782.932 603.483,-774.85 598,-766.5 571.382,-725.965 581.135,-708.058 562,-663.5 547.583,-629.928 529.505,-593.866 513.341,-563.252"/>
 <polygon fill="black" stroke="black" points="516.059,-561.654 509.057,-555.181 510.494,-564.608 516.059,-561.654"/>
 </g>
 <!-- m_RouteServingStop&#45;&gt;m_OldRouteServingStop -->
-<g id="edge83" class="edge"><title>m_RouteServingStop&#45;&gt;m_OldRouteServingStop</title>
+<g id="edge82" class="edge"><title>m_RouteServingStop&#45;&gt;m_OldRouteServingStop</title>
 <path fill="none" stroke="black" d="M941.248,-466.142C965.09,-483.449 996.641,-506.072 1025,-525.5 1029.92,-528.869 1035.02,-532.318 1040.17,-535.768"/>
 <polygon fill="black" stroke="black" points="1038.49,-538.44 1047.73,-540.815 1041.99,-533.199 1038.49,-538.44"/>
 </g>
 <!-- m_ScheduleStopPair&#45;&gt;m_OldScheduleStopPair -->
-<g id="edge90" class="edge"><title>m_ScheduleStopPair&#45;&gt;m_OldScheduleStopPair</title>
+<g id="edge89" class="edge"><title>m_ScheduleStopPair&#45;&gt;m_OldScheduleStopPair</title>
 <path fill="none" stroke="black" d="M979.991,-613.612C993.589,-576.299 1007.86,-537.151 1021.76,-498.999"/>
 <polygon fill="black" stroke="black" points="1024.79,-499.896 1024.91,-490.361 1018.87,-497.739 1024.79,-499.896"/>
 </g>
@@ -874,78 +874,82 @@
 <polygon fill="black" stroke="black" points="650.43,-2031.02 656.656,-2038.24 656.293,-2028.71 650.43,-2031.02"/>
 </g>
 <!-- m_Stop&#45;&gt;m_OldOperatorServingStop -->
-<g id="edge75" class="edge"><title>m_Stop&#45;&gt;m_OldOperatorServingStop</title>
+<g id="edge74" class="edge"><title>m_Stop&#45;&gt;m_OldOperatorServingStop</title>
 <path fill="none" stroke="black" d="M690,-438.5C732.106,-436.303 741.432,-425.538 780,-408.5 795.205,-401.783 811.008,-393.768 825.991,-385.637"/>
 <polygon fill="black" stroke="black" points="827.85,-388.21 834.221,-381.115 824.816,-382.688 827.85,-388.21"/>
 </g>
 <!-- m_Stop&#45;&gt;m_OldRouteServingStop -->
-<g id="edge86" class="edge"><title>m_Stop&#45;&gt;m_OldRouteServingStop</title>
+<g id="edge85" class="edge"><title>m_Stop&#45;&gt;m_OldRouteServingStop</title>
 <path fill="none" stroke="black" d="M690,-438.5C732.106,-436.303 750.776,-438.893 780,-408.5 819.776,-367.134 776.333,-325.97 816,-284.5 843.736,-255.503 861.384,-256.428 901.5,-255.5"/>
 <path fill="none" stroke="black" d="M903.5,-255.5C943.616,-254.572 963.272,-253.707 989,-284.5 1058.44,-367.608 966.594,-434.3 1025,-525.5 1027.33,-529.138 1029.99,-532.59 1032.9,-535.859"/>
 <polygon fill="black" stroke="black" points="1030.64,-538.062 1039.18,-542.313 1035.16,-533.667 1030.64,-538.062"/>
 <path fill="none" stroke="black" d="M543.098,-465.426C584.798,-453.568 638.798,-441.068 688,-438.5"/>
 </g>
 <!-- m_Stop&#45;&gt;m_OldScheduleStopPair -->
-<g id="edge92" class="edge"><title>m_Stop&#45;&gt;m_OldScheduleStopPair</title>
+<g id="edge91" class="edge"><title>m_Stop&#45;&gt;m_OldScheduleStopPair</title>
 <path fill="none" stroke="black" d="M903.5,-255.5C940.109,-254.653 980.369,-254.48 1015.57,-254.579"/>
 <polygon fill="black" stroke="black" points="1015.87,-257.73 1024.88,-254.612 1015.9,-251.43 1015.87,-257.73"/>
 </g>
 <!-- m_Stop&#45;&gt;m_OldStop -->
-<g id="edge93" class="edge"><title>m_Stop&#45;&gt;m_OldStop</title>
+<g id="edge92" class="edge"><title>m_Stop&#45;&gt;m_OldStop</title>
 <path fill="none" stroke="black" d="M550.334,-430.112C569.634,-415.726 590.304,-400.32 609.606,-385.932"/>
 <polygon fill="black" stroke="black" points="548.359,-427.655 543.026,-435.56 552.124,-432.707 548.359,-427.655"/>
 <polygon fill="black" stroke="black" points="611.598,-388.376 616.932,-380.472 607.833,-383.325 611.598,-388.376"/>
 </g>
 <!-- m_Stop&#45;&gt;m_OperatorServingStop -->
-<g id="edge73" class="edge"><title>m_Stop&#45;&gt;m_OperatorServingStop</title>
+<g id="edge72" class="edge"><title>m_Stop&#45;&gt;m_OperatorServingStop</title>
 <path fill="none" stroke="black" d="M543.026,-515.135C563.976,-522.991 587.037,-531.639 608.485,-539.682"/>
 <polygon fill="black" stroke="black" points="607.399,-542.639 616.932,-542.849 609.611,-536.74 607.399,-542.639"/>
 </g>
 <!-- m_Stop&#45;&gt;m_RouteServingStop -->
-<g id="edge84" class="edge"><title>m_Stop&#45;&gt;m_RouteServingStop</title>
+<g id="edge83" class="edge"><title>m_Stop&#45;&gt;m_RouteServingStop</title>
 <path fill="none" stroke="black" d="M690,-438.5C733.283,-436.241 781.616,-436.065 821.141,-436.532"/>
 <polygon fill="black" stroke="black" points="821.428,-439.686 830.469,-436.656 821.512,-433.387 821.428,-439.686"/>
 </g>
 <!-- m_Stop&#45;&gt;m_ScheduleStopPair -->
-<g id="edge88" class="edge"><title>m_Stop&#45;&gt;m_ScheduleStopPair</title>
+<g id="edge87" class="edge"><title>m_Stop&#45;&gt;m_ScheduleStopPair</title>
 <path fill="none" stroke="black" d="M690,-438.5C780.102,-433.798 832.095,-515.669 861.96,-605.099"/>
 <polygon fill="black" stroke="black" points="859.002,-606.19 864.781,-613.774 864.993,-604.241 859.002,-606.19"/>
 </g>
 <!-- m_Stop&#45;&gt;m_Stop -->
-<g id="edge94" class="edge"><title>m_Stop&#45;&gt;m_Stop</title>
+<g id="edge93" class="edge"><title>m_Stop&#45;&gt;m_Stop</title>
 <path fill="none" stroke="black" stroke-dasharray="1,5" d="M452.692,-555.347C453.973,-572.03 460.075,-584.5 471,-584.5 479.791,-584.5 485.46,-576.426 488.006,-564.579"/>
 <polygon fill="black" stroke="black" points="491.17,-564.699 489.308,-555.347 484.931,-563.819 491.17,-564.699"/>
 </g>
 <!-- m_Stop&#45;&gt;m_Stop -->
-<g id="edge95" class="edge"><title>m_Stop&#45;&gt;m_Stop</title>
+<g id="edge94" class="edge"><title>m_Stop&#45;&gt;m_Stop</title>
 <path fill="none" stroke="black" stroke-dasharray="1,5" d="M434.651,-555.054C430.556,-586.209 442.673,-613.5 471,-613.5 496.561,-613.5 508.923,-591.279 508.085,-564.049"/>
 <polygon fill="black" stroke="black" points="511.223,-563.768 507.349,-555.054 504.944,-564.281 511.223,-563.768"/>
 </g>
 <!-- m_User -->
 <g id="node23" class="node"><title>m_User</title>
-<path fill="none" stroke="black" d="M12,-822C12,-822 152,-822 152,-822 158,-822 164,-828 164,-834 164,-834 164,-969 164,-969 164,-975 158,-981 152,-981 152,-981 12,-981 12,-981 6,-981 0,-975 0,-969 0,-969 0,-834 0,-834 0,-828 6,-822 12,-822"/>
-<text text-anchor="start" x="68.3877" y="-967.7" font-family="Arial BoldMT" font-size="11.00">User</text>
-<polyline fill="none" stroke="black" points="0,-962 164,-962 "/>
-<text text-anchor="start" x="7" y="-949" font-family="ArialMT" font-size="10.00">admin </text>
-<text text-anchor="start" x="37.0146" y="-949" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">boolean</text>
+<path fill="none" stroke="black" d="M12,-809C12,-809 152,-809 152,-809 158,-809 164,-815 164,-821 164,-821 164,-982 164,-982 164,-988 158,-994 152,-994 152,-994 12,-994 12,-994 6,-994 0,-988 0,-982 0,-982 0,-821 0,-821 0,-815 6,-809 12,-809"/>
+<text text-anchor="start" x="68.3877" y="-980.7" font-family="Arial BoldMT" font-size="11.00">User</text>
+<polyline fill="none" stroke="black" points="0,-975 164,-975 "/>
+<text text-anchor="start" x="7" y="-962" font-family="ArialMT" font-size="10.00">admin </text>
+<text text-anchor="start" x="37.0146" y="-962" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">boolean</text>
+<text text-anchor="start" x="7" y="-949" font-family="ArialMT" font-size="10.00">affiliation </text>
+<text text-anchor="start" x="49.0654" y="-949" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
 <text text-anchor="start" x="7" y="-936" font-family="ArialMT" font-size="10.00">current_sign_in_at </text>
 <text text-anchor="start" x="92.0537" y="-936" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">datetime</text>
 <text text-anchor="start" x="7" y="-923" font-family="ArialMT" font-size="10.00">current_sign_in_ip </text>
 <text text-anchor="start" x="91.4971" y="-923" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
-<text text-anchor="start" x="7" y="-910" font-family="ArialMT" font-size="10.00">email </text>
-<text text-anchor="start" x="33.6748" y="-910" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗</text>
-<text text-anchor="start" x="7" y="-897" font-family="ArialMT" font-size="10.00">encrypted_password </text>
-<text text-anchor="start" x="102.054" y="-897" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗</text>
-<text text-anchor="start" x="7" y="-884" font-family="ArialMT" font-size="10.00">last_sign_in_at </text>
-<text text-anchor="start" x="76.4922" y="-884" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">datetime</text>
-<text text-anchor="start" x="7" y="-871" font-family="ArialMT" font-size="10.00">last_sign_in_ip </text>
-<text text-anchor="start" x="75.9355" y="-871" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
+<text text-anchor="start" x="7" y="-910" font-family="ArialMT" font-size="10.00">encrypted_password </text>
+<text text-anchor="start" x="102.054" y="-910" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗</text>
+<text text-anchor="start" x="7" y="-897" font-family="ArialMT" font-size="10.00">last_sign_in_at </text>
+<text text-anchor="start" x="76.4922" y="-897" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">datetime</text>
+<text text-anchor="start" x="7" y="-884" font-family="ArialMT" font-size="10.00">last_sign_in_ip </text>
+<text text-anchor="start" x="75.9355" y="-884" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
+<text text-anchor="start" x="7" y="-871" font-family="ArialMT" font-size="10.00">name </text>
+<text text-anchor="start" x="34.793" y="-871" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
 <text text-anchor="start" x="6.95605" y="-858" font-family="ArialMT" font-size="10.00">reset_password_sent_at </text>
 <text text-anchor="start" x="118.689" y="-858" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">datetime</text>
 <text text-anchor="start" x="7" y="-845" font-family="ArialMT" font-size="10.00">reset_password_token </text>
 <text text-anchor="start" x="110.394" y="-845" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
 <text text-anchor="start" x="7" y="-832" font-family="ArialMT" font-size="10.00">sign_in_count </text>
 <text text-anchor="start" x="71.4922" y="-832" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
+<text text-anchor="start" x="7" y="-819" font-family="ArialMT" font-size="10.00">user_type </text>
+<text text-anchor="start" x="53.6943" y="-819" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
 </g>
 <!-- m_User&#45;&gt;m_Changeset -->
 <g id="edge1" class="edge"><title>m_User&#45;&gt;m_Changeset</title>

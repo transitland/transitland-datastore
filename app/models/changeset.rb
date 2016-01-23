@@ -2,17 +2,17 @@
 #
 # Table name: changesets
 #
-#  id         :integer          not null, primary key
-#  notes      :text
-#  applied    :boolean
-#  applied_at :datetime
-#  created_at :datetime
-#  updated_at :datetime
-#  author_id  :integer
+#  id           :integer          not null, primary key
+#  notes        :text
+#  applied      :boolean
+#  applied_at   :datetime
+#  created_at   :datetime
+#  updated_at   :datetime
+#  author_email :string
 #
 # Indexes
 #
-#  index_changesets_on_author_id  (author_id)
+#  index_changesets_on_author_email  (author_email)
 #
 
 class Changeset < ActiveRecord::Base
@@ -31,8 +31,6 @@ class Changeset < ActiveRecord::Base
   end
 
   include CanBeSerializedToCsv
-
-  belongs_to :author, class_name: 'User'
 
   has_many :feeds_created_or_updated, class_name: 'Feed', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :feeds_destroyed, class_name: 'OldFeed', foreign_key: 'destroyed_in_changeset_id'
@@ -59,6 +57,10 @@ class Changeset < ActiveRecord::Base
 
   has_many :schedule_stop_pairs_created_or_updated, class_name: 'ScheduleStopPair', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :schedule_stop_pairs_destroyed, class_name: 'OldScheduleStopPair', foreign_key: 'destroyed_in_changeset_id'
+
+  belongs_to :author, class_name: 'User', foreign_key: 'author_email'
+
+  accepts_nested_attributes_for :author, reject_if: proc { |attributes| attributes['email'].blank? }, update_only: true
 
   after_initialize :set_default_values
 

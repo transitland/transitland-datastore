@@ -2,8 +2,10 @@
 #
 # Table name: users
 #
-#  id                     :integer          not null, primary key
-#  email                  :string           default(""), not null
+#  email                  :string           not null, primary key
+#  name                   :string
+#  affiliation            :string
+#  user_type              :string
 #  encrypted_password     :string           default(""), not null
 #  reset_password_token   :string
 #  reset_password_sent_at :datetime
@@ -24,6 +26,9 @@
 
 FactoryGirl.define do
   factory :user do
+    name { FFaker::Name.name }
+    affiliation { FFaker::Company.name }
     email { FFaker::Internet.email }
+    user_type { User.user_type.values.sample }
   end
 end
