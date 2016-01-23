@@ -47,20 +47,6 @@ class BaseFeed < ActiveRecord::Base
 end
 
 class Feed < BaseFeed
-  class FetchError < StandardError
-    attr_accessor :feed, :error_messages, :backtrace
-
-    def initialize(feed, error_messages, backtrace=[])
-      @feed = feed
-      @error_messages = error_messages
-      @backtrace = backtrace
-    end
-
-    def to_s
-      "Feed::FetchError for #{feed.onestop_id}: #{@error_messages.join(', ')}"
-    end
-  end
-
   self.table_name_prefix = 'current_'
 
   include HasAOnestopId
@@ -147,43 +133,34 @@ class Feed < BaseFeed
     begin
       logger.info "Fetching feed #{onestop_id} from #{url}"
       @fetched_at = DateTime.now
-
-      # download from URL using Carrierwave
-      new_feed_version = self.feed_versions.create(
-        remote_file_url: self.url,
-        fetched_at: @fetched_at
-      )
-
-      feed_version_to_return = nil
-
-      if new_feed_version.persisted?
-        logger.info "File downloaded from #{url} has a new sha1 hash"
-        feed_version_to_return = new_feed_version
-      else
-        logger.info "File downloaded from #{url} raises errors: #{new_feed_version.errors.full_messages}"
-        if new_feed_version.errors.full_messages.include? "Sha1 has already been taken"
-          feed_version_to_return = self.feed_versions.find_by(sha1: new_feed_version.sha1)
+      FeedFetch.download_to_tempfile(self.url) do |path|
+        sha1_for_new_tempfile = Digest::SHA1.file(path).hexdigest
+        existing_feed_version_with_same_sha1 = self.feed_versions.find_by(
+          sha1: sha1_for_new_tempfile
+        )
+        if existing_feed_version_with_same_sha1
+          logger.info "File downloaded from #{url} has an existing sha1 hash"
+          return existing_feed_version_with_same_sha1
         else
-          raise Feed::FetchError.new(self, new_feed_version.errors.full_messages)
+          logger.info "File downloaded from #{url} has a new sha1 hash"
+          new_feed_version = self.feed_versions.create(
+            file: File.open(path),
+            fetched_at: @fetched_at
+          )
+          return new_feed_version
         end
       end
-
-      return feed_version_to_return
     rescue Exception => e
       @fetch_exception_log = e.message
       if e.backtrace.present?
         @fetch_exception_log << "\n"
-        @fetch_exception_log << e.backtrace
+        @fetch_exception_log << e.backtrace.join("\n")
       end
       logger.error @fetch_exception_log
       return nil
     ensure
-      unless new_feed_version.persisted?
-        new_feed_version.destroy # don't keep this new FeedVersion record around in memory
-      end
-
       self.update(
-        latest_fetch_exception_log: @fetch_exception_log || nil,
+        latest_fetch_exception_log: @fetch_exception_log,
         last_fetched_at: @fetched_at
       )
     end
@@ -237,8 +214,7 @@ class Feed < BaseFeed
     raise ArgumentError.new('Need at least one Stop') if stops.empty?
     geohash = GeohashHelpers.fit(stops.map { |i| i[:geometry] })
     name = Addressable::URI.parse(url).host.gsub(/[^a-zA-Z0-9]/, '')
-    onestop_id = OnestopId.new(
-      entity_prefix: 'f',
+    onestop_id = OnestopId.handler_by_model(self).new(
       geohash: geohash,
       name: name
     )
