@@ -30,7 +30,7 @@ gem 'enumerize'
 gem 'gtfs', github: 'transitland/gtfs', tag: 'v1.0.1'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
-gem 'json-schema'
+gem 'json-schema', '2.5.2' # running into problems with 2.6.0
 
 # text matching
 gem 'text'
@@ -63,7 +63,6 @@ gem 'pry-rescue', group: [:development, :test]
 gem 'pry-stack_explorer', group: [:development, :test]
 gem 'rubocop', require: false, group: [:development, :test]
 gem 'rubocop-rspec', require: false, group: [:development, :test]
-gem 'github_changelog_generator', require: false, group: :development
 
 # code coverage and documentation
 gem 'rails-erd', group: :development
