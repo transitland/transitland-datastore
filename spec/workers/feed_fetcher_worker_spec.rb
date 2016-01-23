@@ -3,7 +3,7 @@ describe FeedFetcherWorker do
     bart = create(:feed_bart)
     caltrain = create(:feed_caltrain)
 
-    VCR.use_cassette('fetch_caltrain') do
+    VCR.use_cassette('feed_fetch_caltrain') do
       FeedFetcherWorker.new.perform('f-9q9-caltrain')
     end
 

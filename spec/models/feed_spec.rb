@@ -195,7 +195,7 @@ describe Feed do
     it 'creates a feed version the first time a file is downloaded' do
       feed = create(:feed_caltrain)
       expect(feed.feed_versions.count).to eq 0
-      VCR.use_cassette('fetch_caltrain') do
+      VCR.use_cassette('feed_fetch_caltrain') do
         feed.fetch_and_return_feed_version
       end
       expect(feed.feed_versions.count).to eq 1
@@ -203,11 +203,11 @@ describe Feed do
 
     it "does not create a duplicate, if remote file hasn't changed since last download" do
       feed = create(:feed_caltrain)
-      VCR.use_cassette('fetch_caltrain') do
+      VCR.use_cassette('feed_fetch_caltrain') do
         @feed_version1 = feed.fetch_and_return_feed_version
       end
       expect(feed.feed_versions.count).to eq 1
-      VCR.use_cassette('fetch_caltrain') do
+      VCR.use_cassette('feed_fetch_caltrain') do
         @feed_version2 = feed.fetch_and_return_feed_version
       end
       expect(feed.feed_versions.count).to eq 1
@@ -216,16 +216,16 @@ describe Feed do
 
     it 'logs fetch errors' do
       feed = create(:feed_caltrain)
-      VCR.use_cassette('fetch_caltrain') do
+      VCR.use_cassette('feed_fetch_caltrain') do
         @feed_version1 = feed.fetch_and_return_feed_version
       end
       feed.update(url: 'http://www.bart.gov/this-is-a-bad-url.zip')
-      VCR.use_cassette('fetch_bart_404') do
+      VCR.use_cassette('feed_fetch_bart_404') do
         @feed_version2 = feed.fetch_and_return_feed_version
       end
       expect(feed.feed_versions.count).to eq 1
       expect(feed.latest_fetch_exception_log).to be_present
-      expect(feed.latest_fetch_exception_log).to include('404 Not Found')
+      expect(feed.latest_fetch_exception_log).to include('404 "Not Found"')
     end
   end
 

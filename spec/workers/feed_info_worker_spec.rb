@@ -3,7 +3,7 @@ describe FeedInfoWorker do
     url = 'http://www.caltrain.com/Assets/GTFS/caltrain/GTFS-Caltrain-Devs.zip'
     cachekey = 'test'
     Rails.cache.delete(cachekey)
-    VCR.use_cassette('fetch_caltrain') do
+    VCR.use_cassette('feed_fetch_caltrain') do
       FeedInfoWorker.new.perform(url, cachekey)
     end
     cachedata = Rails.cache.read(cachekey)
@@ -18,7 +18,7 @@ describe FeedInfoWorker do
     url = 'http://www.bart.gov/this-is-a-bad-url.zip'
     cachekey = 'test'
     Rails.cache.delete(cachekey)
-    VCR.use_cassette('fetch_bart_404') do
+    VCR.use_cassette('feed_fetch_bart_404') do
       FeedInfoWorker.new.perform(url, cachekey)
     end
     cachedata = Rails.cache.read(cachekey)
@@ -31,7 +31,7 @@ describe FeedInfoWorker do
     url = 'http://test.example.com/gtfs.zip'
     cachekey = 'test'
     Rails.cache.delete(cachekey)
-    VCR.use_cassette('fetch_bad_host') do
+    VCR.use_cassette('feed_fetch_bad_host') do
       FeedInfoWorker.new.perform(url, cachekey)
     end
     cachedata = Rails.cache.read(cachekey)
@@ -43,7 +43,7 @@ describe FeedInfoWorker do
     url = 'http://httpbin.org/stream-bytes/1024?seed=0'
     cachekey = 'test'
     Rails.cache.delete(cachekey)
-    VCR.use_cassette('feed_info_download_binary') do
+    VCR.use_cassette('feed_fetch_download_binary') do
       FeedInfoWorker.new.perform(url, cachekey)
     end
     cachedata = Rails.cache.read(cachekey)
