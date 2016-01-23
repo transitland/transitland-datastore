@@ -25,7 +25,6 @@ Rails.application.routes.draw do
           post 'check'
           post 'apply'
           post 'revert'
-          post 'append'
         end
         resources :change_payloads, only: [:index, :show, :create, :update, :destroy]
       end

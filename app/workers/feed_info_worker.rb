@@ -5,27 +5,42 @@ class FeedInfoWorker
   sidekiq_options :retry => false
 
   def perform(url, cachekey)
-    error, feed, operators = nil, nil, nil
+    feed, operators = nil, nil
+    errors = []
+    response = {}
     begin
-      FeedInfo.download_to_tempfile(url, maxsize=100*1024*1024) do |filename|
-        feed, operators = FeedInfo.parse_feed_and_operators(url, filename)
+      feed_info = FeedInfo.new(url: url)
+      feed_info.open do |f|
+        feed, operators = f.parse_feed_and_operators
       end
-    rescue StandardError => e
-      data = {
-        status: 'error',
-        url: url,
-        exception: e.class.name,
+    rescue GTFS::InvalidSourceException => e
+      errors << {
+        exception: 'InvalidSourceException',
+        message: 'Invalid GTFS Feed'
+      }
+    rescue SocketError => e
+      errors << {
+        exception: 'SocketError',
+        message: 'Error connecting to host'
+      }
+    rescue Net::HTTPServerException => e
+      errors << {
+        exception: 'HTTPServerException',
         message: e.to_s
       }
-    else
-      data = {
-        status: 'complete',
-        url: url,
-        feed: FeedSerializer.new(feed).as_json,
-        operators: operators.map { |o| OperatorSerializer.new(o).as_json }
+    rescue StandardError => e
+      errors << {
+        exception: e.class.name,
+        message: 'Could not download file'
       }
+    else
+      response[:feed] = FeedSerializer.new(feed).as_json
+      response[:operators] = operators.map { |o| OperatorSerializer.new(o).as_json }
     end
-    Rails.cache.write(cachekey, data, expires_in: FeedInfo::CACHE_EXPIRATION)
+    response[:status] = errors.size > 0 ? 'error' : 'complete'
+    response[:errors] = errors
+    response[:url] = url
+    Rails.cache.write(cachekey, response, expires_in: FeedInfo::CACHE_EXPIRATION)
   end
 end
 
