@@ -26,13 +26,14 @@
 
 describe RouteStopPattern do
   before(:each) do
+    # let(:stop),etc be more explicit about naming these points
     create(:stop,
       onestop_id: "s-9q8yw8y448-bayshorecaltrainstation",
-      geometry: point = Stop::GEOFACTORY.point(-122.401811, 37.706675).to_s
+      geometry: Stop::GEOFACTORY.point(-122.401811, 37.706675).to_s
     )
     create(:stop,
       onestop_id: "s-9q8yyugptw-sanfranciscocaltrainstation",
-      geometry: point = Stop::GEOFACTORY.point(-122.394935, 37.776348).to_s
+      geometry: Stop::GEOFACTORY.point(-122.394935, 37.776348).to_s
     )
     points = [[-122.401811, 37.706675],[-122.394935, 37.776348]]
     @geom = RouteStopPattern::GEOFACTORY.line_string(

@@ -35,7 +35,7 @@ end
 class RouteStopPattern < BaseRouteStopPattern
   self.table_name_prefix = 'current_'
 
-  after_commit :inspect_geometry
+  after_commit :inspect_geometry #TODO: before_commit?
   belongs_to :route
   has_many :schedule_stop_pairs
   validates :geometry, :stop_pattern, presence: true
@@ -94,12 +94,13 @@ class RouteStopPattern < BaseRouteStopPattern
   end
 
   def stop_points
-    self.stop_pattern.map {|s| Stop.where(onestop_id: s).first.geometry[:coordinates]}
+    self.stop_pattern.map {|s| Stop.find_by_onestop_id!(s).geometry[:coordinates]}
   end
 
   def calculate_distances
     # TODO: potential issue with nearest stop segment matching after subsequent stop
     # TODO: investigate 'boundary' lat/lng possibilities
+    # TODO: document each branch (conditional)
     distances = []
     total_distance = 0.0
     cartesian_factory = RGeo::Cartesian::Factory.new
@@ -142,7 +143,7 @@ class RouteStopPattern < BaseRouteStopPattern
     if trip.shape_id.nil? || self.geometry[:coordinates].empty?
       issues[:empty] = true
     end
-    # more inspections can go here. e.g. has outlier stop
+    # more evaluations can go here. e.g. has outlier stop
     issues
   end
 
@@ -168,6 +169,19 @@ class RouteStopPattern < BaseRouteStopPattern
 
   scope :with_trips, -> (search_string) { where{trips.within(search_string)} }
   scope :with_stops, -> (search_string) { where{stop_pattern.within(search_string)} }
+
+  ##### FromGTFS ####
+  include FromGTFS
+  def self.from_gtfs(trip, stop_pattern, shape_points)
+    raise ArgumentError.new('Need at least two stops') if stop_pattern.length < 2
+    rsp = RouteStopPattern.new(
+      stop_pattern: stop_pattern,
+      geometry: self.line_string(shape_points.uniq)
+    )
+    rsp.tags ||= {}
+    rsp.tags[:shape_id] = trip.shape_id
+    rsp
+  end
 
   def self.find_rsp(route_onestop_id, import_rsp_onestop_ids, import_rsps, test_rsp)
     candidate_rsps = self.matching_by_route_onestop_ids(route_onestop_id, import_rsps)
@@ -195,29 +209,23 @@ class RouteStopPattern < BaseRouteStopPattern
   end
 
   def self.evaluate_matching_by_structure(route_onestop_id, import_rsp_onestop_ids, stop_pattern_rsps, geometry_rsps, test_rsp)
-    s = 1
-    if stop_pattern_rsps.empty?
-      s += import_rsp_onestop_ids.select {|k|
-        OnestopId::RouteStopPatternOnestopId.route_onestop_id(k) == route_onestop_id
-      }.map {|k|
-        OnestopId::RouteStopPatternOnestopId.onestop_id_component_num(k, :stop_pattern)
-      }.uniq.size
-      s += OnestopId::RouteStopPatternOnestopId.component_count(route_onestop_id, :stop_pattern)
-    else
-      s = OnestopId::RouteStopPatternOnestopId.onestop_id_component_num(stop_pattern_rsps[0].onestop_id, :stop_pattern)
-    end
+    generate_component = lambda {|component_name, candidate_rsps|
+      c = 1
+      if candidate_rsps.empty?
+        c += import_rsp_onestop_ids.select {|k|
+          OnestopId::RouteStopPatternOnestopId.route_onestop_id(k) == route_onestop_id
+        }.map {|k|
+          OnestopId::RouteStopPatternOnestopId.onestop_id_component_num(k, component_name)
+        }.uniq.size
+        c += OnestopId::RouteStopPatternOnestopId.component_count(route_onestop_id, component_name)
+      else
+        c = OnestopId::RouteStopPatternOnestopId.onestop_id_component_num(candidate_rsps.first.onestop_id, component_name)
+      end
+      return c
+    }
 
-    g = 1
-    if geometry_rsps.empty?
-      g += import_rsp_onestop_ids.select {|k|
-        OnestopId::RouteStopPatternOnestopId.route_onestop_id(k) == route_onestop_id
-      }.map {|k|
-        OnestopId::RouteStopPatternOnestopId.onestop_id_component_num(k, :geometry)
-      }.uniq.size
-      g += OnestopId::RouteStopPatternOnestopId.component_count(route_onestop_id, :geometry)
-    else
-      g = OnestopId::RouteStopPatternOnestopId.onestop_id_component_num(geometry_rsps[0].onestop_id, :geometry)
-    end
+    s = generate_component.call :stop_pattern, stop_pattern_rsps
+    g = generate_component.call :geometry, geometry_rsps
 
     onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(
       route_onestop_id: route_onestop_id,
@@ -231,8 +239,8 @@ class RouteStopPattern < BaseRouteStopPattern
 
   def self.matching_by_route_onestop_ids(route_onestop_id, import_rsps = [])
     import_rsps.select {|rsp|
-      OnestopId::RouteStopPatternOnestopId.route_onestop_id(rsp.onestop_id) === route_onestop_id
-    }.concat(RouteStopPattern.where(route: Route.find_by(onestop_id: route_onestop_id)))
+      OnestopId::RouteStopPatternOnestopId.route_onestop_id(rsp.onestop_id) == route_onestop_id
+    }.concat(RouteStopPattern.where(route: Route.find_by_onestop_id(route_onestop_id)))
   end
 
   def self.matching_stop_pattern_rsps(candidate_rsps, test_rsp)
@@ -245,19 +253,6 @@ class RouteStopPattern < BaseRouteStopPattern
     candidate_rsps.select { |o_rsp|
       o_rsp.geometry[:coordinates].eql?(test_rsp.geometry[:coordinates])
     }
-  end
-
-  ##### FromGTFS ####
-  include FromGTFS
-  def self.from_gtfs(trip, stop_pattern, shape_points)
-    raise ArgumentError.new('Need at least two stops') if stop_pattern.length < 2
-    rsp = RouteStopPattern.new(
-      stop_pattern: stop_pattern,
-      geometry: self.line_string(shape_points.uniq)
-    )
-    rsp.tags ||= {}
-    rsp.tags[:shape_id] = trip.shape_id
-    rsp
   end
 end
 
