@@ -104,11 +104,11 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     end
     # Service between stops
     if params[:origin_onestop_id].present?
-      origin_stops = Stop.where(onestop_id: params[:origin_onestop_id].split(','))
+      origin_stops = Stop.find_by_onestop_ids!(params[:origin_onestop_id].split(','))
       @ssps = @ssps.where(origin: origin_stops)
     end
     if params[:destination_onestop_id].present?
-      destination_stops = Stop.where(onestop_id: params[:destination_onestop_id].split(','))
+      destination_stops = Stop.find_by_onestop_ids!(params[:destination_onestop_id].split(','))
       @ssps = @ssps.where(destination: destination_stops)
     end
     # Departing between...
@@ -122,11 +122,11 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     end
     # Service on a route
     if params[:route_onestop_id].present?
-      routes = Route.where(onestop_id: params[:route_onestop_id].split(','))
+      routes = Route.find_by_onestop_ids!(params[:route_onestop_id].split(','))
       @ssps = @ssps.where(route: routes)
     end
     if params[:operator_onestop_id].present?
-      operators = Operator.where(onestop_id: params[:operator_onestop_id].split(','))
+      operators = Operator.find_by_onestop_ids!(params[:operator_onestop_id].split(','))
       @ssps = @ssps.where(operator: operators)
     end
     # Stops in a bounding box
