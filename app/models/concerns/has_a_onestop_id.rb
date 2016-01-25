@@ -14,6 +14,18 @@ module HasAOnestopId
       # TODO: make this case insensitive
       self.find_by(onestop_id: onestop_id)
     end
+
+    def self.find_by_onestop_ids!(onestop_ids)
+      results = self.where(onestop_id: onestop_ids).all
+      missing = onestop_ids - results.map(&:onestop_id)
+      fail ActiveRecord::RecordNotFound, "Couldn't find: #{missing.join(' ')}" if missing.size > 0
+      results
+    end
+
+    def self.find_by_onestop_ids(onestop_ids)
+      self.where(onestop_id: onestop_ids)
+    end
+
   end
 
   private
