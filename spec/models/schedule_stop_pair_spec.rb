@@ -133,7 +133,9 @@ RSpec.describe ScheduleStopPair, type: :model do
         ]
       }
       changeset = create(:changeset)
-      changeset.append(payload)
+      # FIXME: build doesn't save before apply, so no schema validation.
+      # Use create! instead, but need to update payload to use camelCase.
+      changeset.change_payloads.build(payload: payload)
       changeset.apply!
       ssp = changeset.schedule_stop_pairs_created_or_updated.first
       expect(ssp.created_or_updated_in_changeset).to eq changeset
@@ -173,6 +175,45 @@ RSpec.describe ScheduleStopPair, type: :model do
       expect(ScheduleStopPair.where_service_from_date(expect_end2).count).to eq(0)
     end
 
+    it 'where service before date' do
+      expect_none = Date.new(2010, 01, 01)
+      expect_all = Date.new(2020, 01, 01)
+      expect_start1 = Date.new(2013, 01, 01)
+      expect_start2 = Date.new(2015, 01, 01)
+      expect_end1 = Date.new(2016, 01, 01)
+      expect_end2 = Date.new(2018, 01, 01)
+      create(:schedule_stop_pair, service_start_date: expect_start1, service_end_date: expect_end1)
+      create(:schedule_stop_pair, service_start_date: expect_start2, service_end_date: expect_end2)
+      expect(ScheduleStopPair.where_service_before_date(expect_none).count).to eq(0)
+      expect(ScheduleStopPair.where_service_before_date(expect_all).count).to eq(2)
+      expect(ScheduleStopPair.where_service_before_date(expect_start1).count).to eq(1)
+      expect(ScheduleStopPair.where_service_before_date(expect_start2).count).to eq(2)
+    end
+
+    it 'where service before and after dates' do
+      # test where_service_before_date & where_service_from_date together
+      expect_start1 = Date.new(2013, 01, 01)
+      expect_start2 = Date.new(2015, 01, 01)
+      expect_end1 = Date.new(2016, 01, 01)
+      expect_end2 = Date.new(2018, 01, 01)
+      create(:schedule_stop_pair, service_start_date: expect_start1, service_end_date: expect_end1)
+      create(:schedule_stop_pair, service_start_date: expect_start2, service_end_date: expect_end2)
+      tests = [
+        ['2010-01-01', '2020-01-01', 2],
+        ['2010-01-01', '2013-01-01', 1],
+        ['2010-01-01', '2014-01-01', 1],
+        ['2010-01-01', '2015-01-01', 2],
+        ['2020-01-01', '2022-01-01', 0],
+      ].each do |start_date, end_date, count|
+        expect(
+          ScheduleStopPair
+            .where_service_from_date(start_date)
+            .where_service_before_date(end_date)
+            .count
+        ).to eq(count)
+      end
+    end
+
     it 'where origin_departure_between' do
       create(:schedule_stop_pair, origin_departure_time: '09:00:00')
       create(:schedule_stop_pair, origin_departure_time: '09:05:00')
@@ -194,7 +235,7 @@ RSpec.describe ScheduleStopPair, type: :model do
 
     it 'where origin_departure_between allows open ended ranges' do
       create(:schedule_stop_pair, origin_departure_time: '09:00:00')
-      expect(ScheduleStopPair.where_origin_departure_between('08:00:00', nil).count).to eq(1)      
+      expect(ScheduleStopPair.where_origin_departure_between('08:00:00', nil).count).to eq(1)
       expect(ScheduleStopPair.where_origin_departure_between(nil, '10:00:00').count).to eq(1)
     end
 

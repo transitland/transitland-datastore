@@ -4,7 +4,11 @@ The only way to create, edit, and destroy data in the Transitland Datastore is t
 
 ## Using the API
 
-To create, check, and apply a changeset, you can either do each step as a separate HTTP request to the API, or you can try it in one-go.
+To create, check, and apply a changeset, you can either do each step as a separate HTTP request to the API, or you can try it in one-go. Make sure to include an [API Auth Key](../readme.md#api-authentication) in your requests.
+
+### Single-stop
+
+# TODO: Describe single-request changeset create & apply
 
 ### Step by Step
 
@@ -13,7 +17,6 @@ To create, check, and apply a changeset, you can either do each step as a separa
   ````json
   {
     "changeset": {
-      "payload": {},
       "notes": "In this changeset, we are creating or editing a stop. If a stop with this Onestop ID already exists, we'll just update its name. If it does not already exist, we will create it."
     }
   }
@@ -21,32 +24,42 @@ To create, check, and apply a changeset, you can either do each step as a separa
 
 2. In the response, you'll get an ID for the changeset.
 
-3. Add changes to a changeset using the 'POST /api/v1/changesets/143/append' endpoint (assuming that the ID you got back in Step 2 is `143`):
+3. Add changes to a changeset using the 'POST /api/v1/changesets/143/change_payloads' endpoint (assuming that the ID you got back in Step 2 is `143`) :
 
-	````json
-		{
+````json
+{
+  "change_payload": {
+    "payload": {
       "changes": [
         {
           "action": "createUpdate",
           "stop": {
-            "onestopId": "s-9q8yt4b-1AvHoS",
+            "onestopId": "s-9q8yt4b-1avhos",
             "name": "1st Ave. & Holloway Street"
           }
         }
       ]
-		}
-	````
+    }
+  }
+}
+````
 
 4. Check that the changeset can be cleanly applied to the database: `POST /api/v1/changesets/143/check`
 
-5. Apply the changeset: `POST /api/v1/changesets/143/apply` making sure to include an [API Auth Key](../readme.md#api-authentication).
+5. Apply the changeset: `POST /api/v1/changesets/143/apply`
 
 ### Changeset Properties
 
 Property | Required | Description
 -------- | -------- | -----------
-`payload` | yes | see below
 `notes` | - | a few sentences or a paragraph of plain text describing the changes
+
+### ChangePayload Properties
+
+Property | Required | Description
+-------- | -------- | -----------
+`payload` | yes | see below
+
 
 ### Payload Format
 The payload is a JSON object. It's an array of change actions:
@@ -55,7 +68,7 @@ The payload is a JSON object. It's an array of change actions:
 "changes": []
 ````
 
-Each changeset can contain one or more change actions.
+Each payload can contain one or more change actions.
 
 The possible actions include `createUpdate` and `destroy`:
 

@@ -7,12 +7,12 @@ http_interactions:
       encoding: US-ASCII
       string: ''
     headers:
-      User-Agent:
-      - CarrierWave/0.10.0
       Accept-Encoding:
       - gzip;q=1.0,deflate;q=0.6,identity;q=0.3
       Accept:
       - "*/*"
+      User-Agent:
+      - Ruby
   response:
     status:
       code: 200
@@ -25,7 +25,7 @@ http_interactions:
       Content-Type:
       - application/zip
       Expires:
-      - Sat, 24 Oct 2015 07:53:49 GMT
+      - Sat, 23 Jan 2016 23:57:29 GMT
       Last-Modified:
       - Wed, 13 May 2015 20:08:53 GMT
       Server:
@@ -33,16 +33,16 @@ http_interactions:
       X-Aspnet-Version:
       - 4.0.30319
       X-Acmcache:
-      - 'Cache at 10/23/2015 12:53:49 AM based on ''Default'' (1). Output: True CacheHeader:
+      - 'Cache at 1/22/2016 3:57:29 PM based on ''Default'' (1). Output: True CacheHeader:
         True ExpireIn: 86400'
       Content-Disposition:
       - inline; filename="GTFS Caltrain Devs.zip"
       X-Powered-By:
       - ASP.NET
       Date:
-      - Fri, 23 Oct 2015 07:53:49 GMT
+      - Fri, 22 Jan 2016 23:57:29 GMT
       Set-Cookie:
-      - BIGipServer~SPORTS~acmpool1_http_https=3733157642.0.0000; path=/
+      - BIGipServer~SPORTS~acmpool1_http_https=3766712074.0.0000; path=/
     body:
       encoding: ASCII-8BIT
       string: !binary |-
@@ -1896,5 +1896,5 @@ http_interactions:
         AAABABgASq55f6GN0AFKrnl/oY3QAUqRQ1eRjdABUEsFBgAAAAAKAAoAsQMA
         ABhBAQAAAA==
     http_version: 
-  recorded_at: Fri, 23 Oct 2015 07:53:47 GMT
-recorded_with: VCR 2.9.3
+  recorded_at: Fri, 22 Jan 2016 23:57:28 GMT
+recorded_with: VCR 3.0.1

@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.2.5'
+gem 'rails', '4.2.5.1'
 
 # Transitland Datastore components
 path 'components' do
@@ -30,7 +30,7 @@ gem 'enumerize'
 gem 'gtfs', github: 'transitland/gtfs', tag: 'v1.0.1'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
-gem 'json-schema'
+gem 'json-schema', '2.5.2' # running into problems with 2.6.0
 
 # text matching
 gem 'text'
@@ -61,6 +61,8 @@ gem 'pry-byebug', group: [:development, :test]
 gem 'pry-rails', group: [:development, :test]
 gem 'pry-rescue', group: [:development, :test]
 gem 'pry-stack_explorer', group: [:development, :test]
+gem 'rubocop', require: false, group: [:development, :test]
+gem 'rubocop-rspec', require: false, group: [:development, :test]
 
 # code coverage and documentation
 gem 'rails-erd', group: :development
@@ -83,7 +85,7 @@ gem 'aws-sdk', group: [:staging, :production]
 # exception monitoring
 gem 'sentry-raven', group: [:staging, :production]
 
-# loggging
+# logging
 gem 'logstasher'
 gem 'sidekiq-logging-json', github: 'transitland/Sidekiq-Logging-JSON', tag: '7ea0db4'
 

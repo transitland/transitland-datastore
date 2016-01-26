@@ -257,8 +257,7 @@ class Stop < BaseStop
     name = [entity.stop_name, entity.id, "unknown"]
       .select(&:present?)
       .first
-    onestop_id = OnestopId.new(
-      entity_prefix: 's',
+    onestop_id = OnestopId.handler_by_model(self).new(
       geohash: geohash,
       name: name
     )

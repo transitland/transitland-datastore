@@ -152,8 +152,7 @@ class Route < BaseRoute
     name = [entity.route_short_name, entity.route_long_name, entity.id, "unknown"]
       .select(&:present?)
       .first
-    onestop_id = OnestopId.new(
-      entity_prefix: 'r',
+    onestop_id = OnestopId.handler_by_model(self).new(
       geohash: geohash,
       name: name
     )
