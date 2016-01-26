@@ -1,15 +1,43 @@
 # Change Log
 
-## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
+## [4.4.2](https://github.com/transitland/transitland-datastore/tree/4.4.2) (2016-01-26)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.4.1...4.4.2)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.4.1...HEAD)
+**Fixed bugs:**
+
+- FeedFetcher \(or FeedInfo?\) worker may still be leaving behind temp files [\#311](https://github.com/transitland/transitland-datastore/issues/311)
+- operator re-imported from multiple feed versions lists duplicate imported\_from\_feed\_onestop\_ids [\#302](https://github.com/transitland/transitland-datastore/issues/302)
 
 **Closed issues:**
 
+- SSP API: Raise error if missing Stop/Operator/Route [\#330](https://github.com/transitland/transitland-datastore/issues/330)
+- Fix SSP controller operator\_onestop\_id [\#327](https://github.com/transitland/transitland-datastore/issues/327)
+- if FeedFetcher has an exception, log the error [\#321](https://github.com/transitland/transitland-datastore/issues/321)
+- FeedInfo better error messages for bad GTFS feeds [\#317](https://github.com/transitland/transitland-datastore/issues/317)
+- ScheduleStopPair `service\_to\_date` scope + query parameter [\#309](https://github.com/transitland/transitland-datastore/issues/309)
+- add changelog [\#299](https://github.com/transitland/transitland-datastore/issues/299)
 - test Rubocop and HoundCI for style checking [\#297](https://github.com/transitland/transitland-datastore/issues/297)
+- refactor Onestop ID class [\#287](https://github.com/transitland/transitland-datastore/issues/287)
+- remove Changeset append API endpoint [\#271](https://github.com/transitland/transitland-datastore/issues/271)
 
 **Merged pull requests:**
 
+- Rails 4.2.5.1 and misc. gem updates [\#335](https://github.com/transitland/transitland-datastore/pull/335) ([drewda](https://github.com/drewda))
+- SSP where\_service\_before\_date [\#333](https://github.com/transitland/transitland-datastore/pull/333) ([irees](https://github.com/irees))
+- Add find\_by\_onestop\_ids, find\_by\_onestop\_ids! methods [\#331](https://github.com/transitland/transitland-datastore/pull/331) ([irees](https://github.com/irees))
+- turning FeedInfo service's download methods into a new FeedFetch service [\#329](https://github.com/transitland/transitland-datastore/pull/329) ([drewda](https://github.com/drewda))
+- Fix SSP controller operator\_onestop\_id [\#328](https://github.com/transitland/transitland-datastore/pull/328) ([irees](https://github.com/irees))
+- Remove changeset append [\#324](https://github.com/transitland/transitland-datastore/pull/324) ([irees](https://github.com/irees))
+- Improve feed info error handling [\#323](https://github.com/transitland/transitland-datastore/pull/323) ([irees](https://github.com/irees))
+- if FeedFetcher has an exception, log the error [\#322](https://github.com/transitland/transitland-datastore/pull/322) ([drewda](https://github.com/drewda))
+- Changeset/ChangePayload deletes [\#315](https://github.com/transitland/transitland-datastore/pull/315) ([drewda](https://github.com/drewda))
+- allow user to fetch the latest version of one feed [\#314](https://github.com/transitland/transitland-datastore/pull/314) ([drewda](https://github.com/drewda))
+- Gem updates [\#313](https://github.com/transitland/transitland-datastore/pull/313) ([drewda](https://github.com/drewda))
+- trying agin to fix custom HoundCI config [\#307](https://github.com/transitland/transitland-datastore/pull/307) ([drewda](https://github.com/drewda))
+- fix custom HoundCI config [\#306](https://github.com/transitland/transitland-datastore/pull/306) ([drewda](https://github.com/drewda))
+- Major refactoring of OnestopId: [\#305](https://github.com/transitland/transitland-datastore/pull/305) ([doublestranded](https://github.com/doublestranded))
+- fix for: operator re-imported from multiple feed versions lists duplicate `imported\_from\_feed\_onestop\_ids` [\#303](https://github.com/transitland/transitland-datastore/pull/303) ([drewda](https://github.com/drewda))
+- adding CHANGELOG [\#300](https://github.com/transitland/transitland-datastore/pull/300) ([drewda](https://github.com/drewda))
 - Rubocop and HoundCI style checking [\#298](https://github.com/transitland/transitland-datastore/pull/298) ([drewda](https://github.com/drewda))
 
 ## [4.4.1](https://github.com/transitland/transitland-datastore/tree/4.4.1) (2016-01-07)
