@@ -200,7 +200,6 @@ class ScheduleStopPair < BaseScheduleStopPair
     end
   end
   def self.apply_params(params, cache={})
-    route_stop_pattern_onestop_id = params[:route_stop_pattern_onestop_id]
     params = super(params, cache)
     {
       origin_onestop_id: :origin,
@@ -218,7 +217,9 @@ class ScheduleStopPair < BaseScheduleStopPair
       params[:imported_from_feed][:feed] = cache[feed_onestop_id]
       params[:imported_from_feed][:feed_version] = cache[feed_version_id]
     end
-    params[:route_stop_pattern] = RouteStopPattern.find_by_onestop_id!(route_stop_pattern_onestop_id)
+    if params[:route_stop_pattern_onestop_id].present?
+      params[:route_stop_pattern] = RouteStopPattern.find_by_onestop_id!(route_stop_pattern_onestop_id)
+    end
     params[:operator] = params[:route].operator
     params
   end

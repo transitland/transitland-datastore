@@ -197,7 +197,7 @@ RSpec.describe ScheduleStopPair, type: :model do
 
     it 'where origin_departure_between allows open ended ranges' do
       create(:schedule_stop_pair, origin_departure_time: '09:00:00')
-      expect(ScheduleStopPair.where_origin_departure_between('08:00:00', nil).count).to eq(1)      
+      expect(ScheduleStopPair.where_origin_departure_between('08:00:00', nil).count).to eq(1)
       expect(ScheduleStopPair.where_origin_departure_between(nil, '10:00:00').count).to eq(1)
     end
 

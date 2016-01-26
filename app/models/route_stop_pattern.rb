@@ -203,6 +203,7 @@ class RouteStopPattern < BaseRouteStopPattern
   private
 
   def self.compare_by_structure(test_rsp, candidate_rsp)
+    # test if two given rsps have equivalent stop pattern and geometry
     test_rsp.stop_pattern.eql?(candidate_rsp.stop_pattern) && test_rsp.geometry[:coordinates].eql?(candidate_rsp.geometry[:coordinates])
   end
 end
