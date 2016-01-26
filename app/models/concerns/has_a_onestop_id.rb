@@ -16,10 +16,11 @@ module HasAOnestopId
     end
 
     def self.find_by_onestop_ids!(onestop_ids)
-      results = self.where(onestop_id: onestop_ids).all
-      missing = onestop_ids - results.map(&:onestop_id)
+      # First query to check for missing id's
+      missing = onestop_ids - self.where(onestop_id: onestop_ids).pluck(:onestop_id)
       fail ActiveRecord::RecordNotFound, "Couldn't find: #{missing.join(' ')}" if missing.size > 0
-      results
+      # Second query as usual
+      self.where(onestop_id: onestop_ids)
     end
 
     def self.find_by_onestop_ids(onestop_ids)
