@@ -74,6 +74,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
           params.slice(
             :date,
             :service_from_date,
+            :service_before_date,
             :origin_onestop_id,
             :destination_onestop_id,
             :origin_departure_between,
@@ -101,6 +102,9 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     end
     if params[:service_from_date].present?
       @ssps = @ssps.where_service_from_date(params[:service_from_date])
+    end
+    if params[:service_before_date].present?
+      @ssps = @ssps.where_service_before_date(params[:service_before_date])
     end
     # Service between stops
     if params[:origin_onestop_id].present?

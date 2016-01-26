@@ -63,6 +63,7 @@ The main ScheduleStopPair API endpoint is [/api/v1/schedule_stop_pairs](http://t
 | operator_onestop_id      | Onestop ID | Operator. Accepts multiple separated by commas. | [on BART](http://transit.land/api/v1/schedule_stop_pairs?operator_onestop_id=o-9q9-bart) |
 | service_date             | Date | Service operates on a date | [valid on 2015-10-26](http://transit.land/api/v1/schedule_stop_pairs?date=2015-10-26) |
 | service_from_date        | Date | Service operates on a date, or in the future | [valid on and after 2015-10-26](http://transit.land/api/v1/schedule_stop_pairs?service_from_date=2015-10-26) |
+| service_before_date      | Date | Service operates up to and including date | [valid on and before 2015-11-30](http://transit.land/api/v1/schedule_stop_pairs?service_before_date=2015-11-30) |
 | origin_departure_between | Time,Time | Origin departure time between two times | [departing between 07:00 - 09:00](http://transit.land/api/v1/schedule_stop_pairs?origin_departure_between=07:00:00,09:00:00) |
 | trip                     | String | Trip identifier | [on trip '03SFO11SUN'](http://transit.land/api/v1/schedule_stop_pairs?trip=03SFO11SUN) |
 | bbox                     | Lon1,Lat1,Lon2,Lat2 | Origin Stop within bounding box | [in the Bay Area](http://transit.land/api/v1/schedule_stop_pairs?bbox=-123.057,36.701,-121.044,38.138)
