@@ -246,7 +246,7 @@ class GTFSGraph
       issues = rsp.evaluate_geometry(trip, trip_stop_points)
       rsp.tl_geometry(trip_stop_points, issues)
       # determine if RouteStopPattern with same route, stop pattern, and geometry exists
-      rsp = RouteStopPattern.find_rsp(tl_route.onestop_id, @onestop_id_to_rsp.keys, @onestop_id_to_rsp.values, rsp)
+      rsp = RouteStopPattern.find_rsp(tl_route.onestop_id, @onestop_id_to_rsp, rsp)
       @onestop_id_to_rsp[rsp.onestop_id] = rsp
       add_identifier(rsp, 'rsp', trip) # trip is closest entity match we have to rsp
       rsp.trips << trip.trip_id

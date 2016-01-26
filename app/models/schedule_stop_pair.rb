@@ -218,8 +218,7 @@ class ScheduleStopPair < BaseScheduleStopPair
       params[:imported_from_feed][:feed] = cache[feed_onestop_id]
       params[:imported_from_feed][:feed_version] = cache[feed_version_id]
     end
-    # TODO: move RouteStopPattern search to OnestopId.find
-    params[:route_stop_pattern] = RouteStopPattern.where(onestop_id: route_stop_pattern_onestop_id).first
+    params[:route_stop_pattern] = RouteStopPattern.find_by_onestop_id!(route_stop_pattern_onestop_id)
     params[:operator] = params[:route].operator
     params
   end

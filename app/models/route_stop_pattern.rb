@@ -35,7 +35,7 @@ end
 class RouteStopPattern < BaseRouteStopPattern
   self.table_name_prefix = 'current_'
 
-  after_commit :inspect_geometry #TODO: before_commit?
+  after_commit :inspect_geometry
   belongs_to :route
   has_many :schedule_stop_pairs
   validates :geometry, :stop_pattern, presence: true
@@ -183,76 +183,27 @@ class RouteStopPattern < BaseRouteStopPattern
     rsp
   end
 
-  def self.find_rsp(route_onestop_id, import_rsp_onestop_ids, import_rsps, test_rsp)
-    candidate_rsps = self.matching_by_route_onestop_ids(route_onestop_id, import_rsps)
-    rsp = self.evaluate_matching_by_route_onestop_ids(candidate_rsps, route_onestop_id, test_rsp)
-    if rsp.nil?
-      stop_pattern_rsps = self.matching_stop_pattern_rsps(candidate_rsps, test_rsp)
-      geometry_rsps = self.matching_geometry_rsps(candidate_rsps, test_rsp)
-      rsp = self.evaluate_matching_by_structure(route_onestop_id, import_rsp_onestop_ids, stop_pattern_rsps, geometry_rsps, test_rsp)
-    end
-    rsp
-  end
-
-  private
-
-  def self.evaluate_matching_by_route_onestop_ids(candidate_rsps, route_onestop_id, test_rsp)
-    if candidate_rsps.empty?
-      onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(
-        route_onestop_id: route_onestop_id,
-        stop_pattern_index: 1,
-        geometry_index: 1
-      ).to_s
+  def self.find_rsp(route_onestop_id, import_rsp_hash, test_rsp)
+    onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(
+      route_onestop_id: route_onestop_id,
+      stop_pattern: test_rsp.stop_pattern,
+      geometry_coords: test_rsp.geometry[:coordinates]
+    ).to_s
+    saved_rsp = RouteStopPattern.find_by_onestop_id(onestop_id)
+    if saved_rsp
+      return saved_rsp if self.compare_by_structure(test_rsp, saved_rsp)
+    elsif import_rsp_hash.keys.include?(onestop_id)
+      return import_rsp_hash[onestop_id] if self.compare_by_structure(test_rsp, import_rsp_hash[onestop_id])
+    else
       test_rsp.onestop_id = onestop_id
       test_rsp
     end
   end
 
-  def self.evaluate_matching_by_structure(route_onestop_id, import_rsp_onestop_ids, stop_pattern_rsps, geometry_rsps, test_rsp)
-    generate_component = lambda {|component_name, candidate_rsps|
-      c = 1
-      if candidate_rsps.empty?
-        c += import_rsp_onestop_ids.select {|k|
-          OnestopId::RouteStopPatternOnestopId.route_onestop_id(k) == route_onestop_id
-        }.map {|k|
-          OnestopId::RouteStopPatternOnestopId.onestop_id_component_num(k, component_name)
-        }.uniq.size
-        c += OnestopId::RouteStopPatternOnestopId.component_count(route_onestop_id, component_name)
-      else
-        c = OnestopId::RouteStopPatternOnestopId.onestop_id_component_num(candidate_rsps.first.onestop_id, component_name)
-      end
-      return c
-    }
+  private
 
-    s = generate_component.call :stop_pattern, stop_pattern_rsps
-    g = generate_component.call :geometry, geometry_rsps
-
-    onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(
-      route_onestop_id: route_onestop_id,
-      stop_pattern_index: s,
-      geometry_index: g
-    ).to_s
-    test_rsp.onestop_id = onestop_id
-    existing_match = geometry_rsps.concat(stop_pattern_rsps).detect {|rsp| rsp.onestop_id == onestop_id}
-    existing_match || test_rsp
-  end
-
-  def self.matching_by_route_onestop_ids(route_onestop_id, import_rsps = [])
-    import_rsps.select {|rsp|
-      OnestopId::RouteStopPatternOnestopId.route_onestop_id(rsp.onestop_id) == route_onestop_id
-    }.concat(RouteStopPattern.where(route: Route.find_by_onestop_id(route_onestop_id)))
-  end
-
-  def self.matching_stop_pattern_rsps(candidate_rsps, test_rsp)
-    candidate_rsps.select { |c_rsp|
-      c_rsp.stop_pattern.eql?(test_rsp.stop_pattern)
-    }
-  end
-
-  def self.matching_geometry_rsps(candidate_rsps, test_rsp)
-    candidate_rsps.select { |o_rsp|
-      o_rsp.geometry[:coordinates].eql?(test_rsp.geometry[:coordinates])
-    }
+  def self.compare_by_structure(test_rsp, candidate_rsp)
+    test_rsp.stop_pattern.eql?(candidate_rsp.stop_pattern) && test_rsp.geometry[:coordinates].eql?(candidate_rsp.geometry[:coordinates])
   end
 end
 

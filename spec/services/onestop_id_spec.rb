@@ -48,6 +48,10 @@ describe OnestopId do
     end
   end
 
+  context 'RouteStopPatternOnestopId' do
+    
+  end
+
   context 'finder methods' do
     before(:each) do
       @glen_park = create(:stop, onestop_id: 's-9q8y-GlenPark', geometry: 'POINT(-122.433416 37.732525)', name: 'Glen Park' )

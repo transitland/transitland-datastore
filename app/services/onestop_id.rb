@@ -84,66 +84,46 @@ module OnestopId
   end
 
   class RouteStopPatternOnestopId < OnestopIdBase
-
-    #STOP_PATTERN_MATCH = /^[S][1-9][0-9]*$/
-    #GEOMETRY_MATCH = /^[G][1-9][0-9]*$/
     PREFIX = :r
     MODEL = RouteStopPattern
-    NUM_COMPONENTS = 5
+    NUM_COMPONENTS = 4
+    HASH_LENGTH = 6
 
-    attr_accessor :stop_pattern_index, :geometry_index
+    attr_accessor :stop_hash, :geometry_hash
 
-    def initialize(string: nil, route_onestop_id: nil, stop_pattern_index: nil, geometry_index: nil)
+    def initialize(string: nil, route_onestop_id: nil, stop_pattern: nil, geometry_coords: nil)
       if string && string.length > 0
         geohash = string.split(COMPONENT_SEPARATOR)[1]
         name = string.split(COMPONENT_SEPARATOR)[2]
-        stop_pattern_index = self.class.onestop_id_component_num(string, :stop_pattern)
-        geometry_index = self.class.onestop_id_component_num(string, :geometry)
+        stop_hash = string.split(COMPONENT_SEPARATOR)[3]
+        geometry_hash = string.split(COMPONENT_SEPARATOR)[4]
       else
         geohash = route_onestop_id.split(COMPONENT_SEPARATOR)[1].downcase.gsub(GEOHASH_FILTER, '')
         name = route_onestop_id.split(COMPONENT_SEPARATOR)[2].downcase.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')
+        stop_hash = generate_hash_from_array(stop_pattern)
+        geometry_hash = generate_hash_from_array(geometry_coords)
       end
       @geohash = geohash
       @name = name
-      @stop_pattern_index = stop_pattern_index
-      @geometry_index = geometry_index
+      @stop_hash = stop_hash
+      @geometry_hash = geometry_hash
     end
 
     def to_s
-      [self.class::PREFIX, @geohash, @name, "S#{@stop_pattern_index}", "G#{@geometry_index}"].join(COMPONENT_SEPARATOR)
+      [self.class::PREFIX, @geohash, @name, @stop_hash, @geometry_hash].join(COMPONENT_SEPARATOR)
     end
 
     def validate
       errors = super[1]
-      errors << 'invalid stop pattern index' unless @stop_pattern_index.present?
-      errors << 'invalid geometry index' unless @geometry_index.present?
-      errors << 'invalid stop pattern index' unless validate_index(@stop_pattern_index)
-      errors << 'invalid geometry index' unless validate_index(@geometry_index)
+      errors << 'invalid hash' unless @stop_hash.present?
+      errors << 'invalid hash' unless validate_hash(@stop_hash)
+      errors << 'invalid hash' unless @geometry_hash.present?
+      errors << 'invalid hash' unless validate_hash(@geometry_hash)
       return (errors.size == 0), errors
     end
 
-    def self.component_count(route_onestop_id, component)
-      case component
-      when :stop_pattern
-        num = 3
-      when :geometry
-        num = 4
-      else
-        raise ArgumentError.new('component must be stop_pattern or geometry')
-      end
-      RouteStopPattern.where(route: Route.find_by(onestop_id: route_onestop_id))
-      .pluck(:onestop_id).map {|onestop_id| onestop_id.split(COMPONENT_SEPARATOR)[num] }.uniq.size
-    end
-
-    def self.onestop_id_component_num(onestop_id, component)
-      case component
-      when :stop_pattern
-        return onestop_id.split(COMPONENT_SEPARATOR)[3].tr('S','').to_i
-      when :geometry
-        return onestop_id.split(COMPONENT_SEPARATOR)[4].tr('G','').to_i
-      else
-        raise ArgumentError.new('component must be stop_pattern or geometry')
-      end
+    def generate_hash_from_array(array)
+      Digest::MD5.hexdigest(array.flatten.join(','))[0...HASH_LENGTH]
     end
 
     def self.route_onestop_id(onestop_id)
@@ -152,8 +132,8 @@ module OnestopId
 
     private
 
-    def validate_index(value)
-      (value.is_a? Integer) && value != 0
+    def validate_hash(value)
+      (value.is_a? String) && value.length == HASH_LENGTH
     end
   end
 

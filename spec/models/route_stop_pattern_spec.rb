@@ -25,39 +25,52 @@
 #
 
 describe RouteStopPattern do
+  let(:stop_1) { create(:stop,
+    onestop_id: "s-9q8yw8y448-bayshorecaltrainstation",
+    geometry: Stop::GEOFACTORY.point(-122.401811, 37.706675).to_s
+  )}
+  let(:stop_2) { create(:stop,
+    onestop_id: "s-9q8yyugptw-sanfranciscocaltrainstation",
+    geometry: Stop::GEOFACTORY.point(-122.394935, 37.776348).to_s
+  )}
+  let(:stop_a) { create(:stop,
+    onestop_id: "s-9q9k659e3r-sanjosecaltrainstation",
+    geometry: point = Stop::GEOFACTORY.point(-121.902181, 37.329392).to_s
+  )}
+  let(:stop_b) { create(:stop,
+    onestop_id: "s-9q9hxhecje-sunnyvalecaltrainstation",
+    geometry: point = Stop::GEOFACTORY.point(-122.030742, 37.378427).to_s
+  )}
+  let(:stop_c) { create(:stop,
+    onestop_id: "s-9q9hwp6epk-mountainviewcaltrainstation",
+    geometry: point = Stop::GEOFACTORY.point(-122.076327, 37.393879).to_s
+  )}
+
   before(:each) do
-    # let(:stop),etc be more explicit about naming these points
-    create(:stop,
-      onestop_id: "s-9q8yw8y448-bayshorecaltrainstation",
-      geometry: Stop::GEOFACTORY.point(-122.401811, 37.706675).to_s
-    )
-    create(:stop,
-      onestop_id: "s-9q8yyugptw-sanfranciscocaltrainstation",
-      geometry: Stop::GEOFACTORY.point(-122.394935, 37.776348).to_s
-    )
     points = [[-122.401811, 37.706675],[-122.394935, 37.776348]]
     @geom = RouteStopPattern::GEOFACTORY.line_string(
       points.map {|lon, lat| RouteStopPattern::GEOFACTORY.point(lon, lat)}
     )
-    @sp = ["s-9q8yw8y448-bayshorecaltrainstation", "s-9q8yyugptw-sanfranciscocaltrainstation"]
+    @sp = [stop_1.onestop_id, stop_2.onestop_id]
+    @route_onestop_id = 'r-9q9j-bullet'
+    @onestop_id = OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: @route_onestop_id,
+                                                           stop_pattern: @sp,
+                                                           geometry_coords: @geom.coordinates).to_s
   end
 
   context 'creation' do
 
     it 'can be created' do
-      rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: 'r-9q9j-bullet-S1-G1')
+      rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id)
       expect(RouteStopPattern.exists?(rsp.id)).to be true
       expect(RouteStopPattern.find(rsp.id).stop_pattern).to match_array(@sp)
       expect(RouteStopPattern.find(rsp.id).geometry[:coordinates]).to eq @geom.points.map{|p| [p.x,p.y]}
     end
 
     it 'cannot be created when stop_pattern has less than two stops' do
-      rsp = expect(
-        build(:route_stop_pattern,
-              stop_pattern: ["s-9q8yw8y448-bayshorecaltrainstation"],
-              geometry: @geom,
-              onestop_id: 'r-9q9j-bullet-S1-G1'
-        ).valid?
+      sp = ["s-9q8yw8y448-bayshorecaltrainstation"]
+      rsp = expect(build(:route_stop_pattern, stop_pattern: sp, geometry: @geom, onestop_id: @onestop_id)
+        .valid?
       ).to be false
     end
 
@@ -65,7 +78,7 @@ describe RouteStopPattern do
       rsp = build(:route_stop_pattern,
             stop_pattern: @sp,
             geometry: @geom,
-            onestop_id: 'r-9q9j-bullet-S1-G1'
+            onestop_id: @onestop_id
       )
       points = [[-122.401811, 37.706675]]
       geom = RouteStopPattern::GEOFACTORY.line_string(
@@ -82,119 +95,72 @@ describe RouteStopPattern do
 
   context 'new import' do
     before(:each) do
-      @route = create(:route, onestop_id: 'r-9q9j-bullet')
-      @saved_rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: 'r-9q9j-bullet-S1-G1', route: @route)
+      @route = create(:route, onestop_id: @route_onestop_id)
+      @saved_rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, route: @route)
+      import_sp = [ stop_a.onestop_id, stop_b.onestop_id, stop_c.onestop_id ]
+      import_geometry = RouteStopPattern.line_string([stop_a.geometry[:coordinates],
+                                                      stop_b.geometry[:coordinates],
+                                                      stop_c.geometry[:coordinates]])
+      import_onestop_id = OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: @route_onestop_id,
+                                                                  stop_pattern: import_sp,
+                                                                  geometry_coords: import_geometry.coordinates).to_s
       @import_rsp = RouteStopPattern.new(
-        onestop_id: 'r-9q9j-bullet-S2-G2',
-        stop_pattern: ["s-9q9k659e3r-sanjosecaltrainstation",
-                       "s-9q9hxhecje-sunnyvalecaltrainstation",
-                       "s-9q9hwp6epk-mountainviewcaltrainstation"],
-        geometry: RouteStopPattern.line_string([[-121.902181, 37.329392],
-                                                [-122.030742, 37.378427],
-                                                [-122.076327, 37.393879]]),
+        onestop_id: import_onestop_id,
+        stop_pattern: import_sp,
+        geometry: import_geometry,
         route: @route
       )
     end
 
     context 'RouteStopPattern.find_rsp' do
       before(:each) do
-        @import_rsp_onestop_ids = [@import_rsp.onestop_id]
-        @import_rsps = [@import_rsp]
-        @route_onestop_id = 'r-9q9j-bullet'
-        @test_sp = ["s-9q9k659e3r-sanjosecaltrainstation", "s-9q9hxhecje-sunnyvalecaltrainstation", "s-9q9hwp6epk-mountainviewcaltrainstation"]
-        @test_geom = RouteStopPattern.line_string([[-121.902181, 37.329392],[-122.030742, 37.378427],[-122.076327, 37.393879]])
+        @import_rsp_hash = { @import_rsp.onestop_id => @import_rsp }
+        @test_sp = [stop_a.onestop_id, stop_b.onestop_id, stop_c.onestop_id]
+        @test_geom = RouteStopPattern.line_string([stop_a.geometry[:coordinates],
+                                                        stop_b.geometry[:coordinates],
+                                                        stop_c.geometry[:coordinates]])
         @test_rsp = RouteStopPattern.new(stop_pattern: @test_sp, geometry: @test_geom)
       end
 
       it 'returns the import rsp the test rsp matches to' do
-        expect(RouteStopPattern.find_rsp(@route_onestop_id, @import_rsp_onestop_ids, @import_rsps, @test_rsp)).to be @import_rsp
+        expect(RouteStopPattern.find_rsp(@route_onestop_id, @import_rsp_hash, @test_rsp)).to be @import_rsp
       end
 
       it 'returns the test rsp when no match is found by route onestop id within both existing imports and saved rsps' do
         route_onestop_id = 'r-9q9j-test'
-        found_rsp = RouteStopPattern.find_rsp(route_onestop_id, @import_rsp_onestop_ids, @import_rsps, @test_rsp)
+        found_rsp = RouteStopPattern.find_rsp(route_onestop_id, @import_rsp_hash, @test_rsp)
         expect(found_rsp).to be @test_rsp
-        expect(found_rsp.onestop_id).to eq('r-9q9j-test-S1-G1')
+        expect(found_rsp.onestop_id).to eq('r-9q9j-test-c2e44f-014503')
       end
 
       it 'returns the test rsp with the correct new onestop id when route and stop pattern combo is original' do
         @test_rsp.stop_pattern = ["s-9q9k659e3r-sanjosecaltrainstation","s-9q9hxhecje-sunnyvalecaltrainstation"]
-        found_rsp = RouteStopPattern.find_rsp(@route_onestop_id, @import_rsp_onestop_ids, @import_rsps, @test_rsp)
+        found_rsp = RouteStopPattern.find_rsp(@route_onestop_id, @import_rsp_hash, @test_rsp)
         expect(found_rsp).to be @test_rsp
-        expect(found_rsp.onestop_id).to eq('r-9q9j-bullet-S3-G2')
+        expect(found_rsp.onestop_id).to eq('r-9q9j-bullet-d2ed7b-014503')
       end
 
       it 'returns the test rsp with the correct new onestop id when route and geometry combo is original' do
         @test_rsp.geometry = RouteStopPattern.line_string([[-121.902181, 37.329392],[-122.076327, 37.393879]])
-        found_rsp = RouteStopPattern.find_rsp(@route_onestop_id, @import_rsp_onestop_ids, @import_rsps, @test_rsp)
+        found_rsp = RouteStopPattern.find_rsp(@route_onestop_id, @import_rsp_hash, @test_rsp)
         expect(found_rsp).to be @test_rsp
-        expect(found_rsp.onestop_id).to eq('r-9q9j-bullet-S2-G3')
+        expect(found_rsp.onestop_id).to eq('r-9q9j-bullet-c2e44f-8c801d')
       end
 
       it 'returns the saved rsp when test rsp is equivalent' do
-        test_sp = ["s-9q8yw8y448-bayshorecaltrainstation", "s-9q8yyugptw-sanfranciscocaltrainstation"]
+        test_sp = [stop_1.onestop_id, stop_2.onestop_id]
         test_geom = RouteStopPattern.line_string([[-122.401811, 37.706675],[-122.394935, 37.776348]])
         test_rsp = RouteStopPattern.new(stop_pattern: test_sp, geometry: test_geom)
-        found_rsp = RouteStopPattern.find_rsp(@route_onestop_id, @import_rsp_onestop_ids, @import_rsps, test_rsp)
-        # object identity doesn't yield a perfect match
+        found_rsp = RouteStopPattern.find_rsp(@route_onestop_id, @import_rsp_hash, test_rsp)
+        # object identity won't yield a perfect match
         expect(found_rsp).to eq(@saved_rsp)
-        expect(found_rsp.onestop_id).to eq('r-9q9j-bullet-S1-G1')
+        expect(found_rsp.onestop_id).to eq(@onestop_id)
       end
-    end
-
-    it 'can be evaluated by matching route onestop ids' do
-
-    end
-
-    it 'can be evaluated by matching structure' do
-
-    end
-
-    it 'finds matching route stop patterns by route onestop id' do
-      expect(RouteStopPattern.matching_by_route_onestop_ids('r-9q9j-bullet', [@import_rsp])).to match_array([@saved_rsp, @import_rsp])
-      expect(RouteStopPattern.matching_by_route_onestop_ids('r-9q9j-test', [@import_rsp])).to match_array([])
-      expect(RouteStopPattern.matching_by_route_onestop_ids('r-9q9j-bullet', [])).to match_array([@saved_rsp])
-    end
-
-    it 'finds matching route stop patterns by equivalent stop patterns' do
-      candidate_rsps = [@saved_rsp, @import_rsp]
-      test_rsp = RouteStopPattern.new(
-        stop_pattern: ["s-9q9k659e3r-sanjosecaltrainstation",
-                       "s-9q9hxhecje-sunnyvalecaltrainstation",
-                       "s-9q9hwp6epk-mountainviewcaltrainstation"],
-        geometry: RouteStopPattern.line_string([[-121.902181, 37.329392],
-                                                [-122.030742, 37.378427],
-                                                [-122.050742, 37.388427],
-                                                [-122.076327, 37.393879]])
-      )
-      expect(RouteStopPattern.matching_stop_pattern_rsps(candidate_rsps, test_rsp)).to match_array([@import_rsp])
-      test_rsp.stop_pattern = ["s-9q8yw8y448-bayshorecaltrainstation", "s-9q8yyugptw-sanfranciscocaltrainstation"]
-      expect(RouteStopPattern.matching_stop_pattern_rsps(candidate_rsps, test_rsp)).to match_array([@saved_rsp])
-      test_rsp.stop_pattern = ["s-9q9hxhecje-sunnyvalecaltrainstation", "s-9q9k659e3r-sanjosecaltrainstation"]
-      expect(RouteStopPattern.matching_stop_pattern_rsps(candidate_rsps, test_rsp)).to match_array([])
-    end
-
-    it 'finds matching route stop patterns by equivalent geometry' do
-      candidate_rsps = [@saved_rsp, @import_rsp]
-      test_rsp = RouteStopPattern.new(
-        stop_pattern: ["s-9q9k659e3r-sanjosecaltrainstation",
-                       "s-9q9hxhecje-sunnyvalecaltrainstation",
-                       "s-9q9hwp6epk-mountainviewcaltrainstation"],
-        geometry: RouteStopPattern.line_string([[-121.902181, 37.329392],
-                                                [-122.030742, 37.378427],
-                                                [-122.076327, 37.393879]])
-      )
-      expect(RouteStopPattern.matching_geometry_rsps(candidate_rsps, test_rsp)).to match_array([@import_rsp])
-      test_rsp.geometry = RouteStopPattern.line_string([[-121.902181, 37.329392],
-                                              [-122.030742, 37.378427],
-                                              [-122.050742, 37.388427],
-                                              [-122.076327, 37.393879]])
-      expect(RouteStopPattern.matching_geometry_rsps(candidate_rsps, test_rsp)).to match_array([])
     end
   end
 
   it 'can be found by stops' do
-    rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: 'r-9q9j-bullet-S1-G1')
+    rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id)
     expect(RouteStopPattern.with_stops('s-9q8yw8y448-bayshorecaltrainstation')).to match_array([rsp])
     expect(RouteStopPattern.with_stops('s-9q8yw8y448-bayshorecaltrainstation,s-9q8yyugptw-sanfranciscocaltrainstation')).to match_array([rsp])
     expect(RouteStopPattern.with_stops('s-9q9k659e3r-sanjosecaltrainstation')).to match_array([])
@@ -202,7 +168,7 @@ describe RouteStopPattern do
   end
 
   it 'can be found by trips' do
-    rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: 'r-9q9j-bullet-S1-G1', trips: ['trip1','trip2'])
+    rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, trips: ['trip1','trip2'])
     expect(RouteStopPattern.with_trips('trip1')).to match_array([rsp])
     expect(RouteStopPattern.with_trips('trip1,trip2')).to match_array([rsp])
     expect(RouteStopPattern.with_trips('trip3')).to match_array([])
@@ -211,25 +177,13 @@ describe RouteStopPattern do
 
   context 'calculate_distances' do
     before(:each) do
-      create(:stop,
-        onestop_id: "s-9q9k659e3r-sanjosecaltrainstation",
-        geometry: point = Stop::GEOFACTORY.point(-121.902181, 37.329392).to_s
-      )
-      create(:stop,
-        onestop_id: "s-9q9hxhecje-sunnyvalecaltrainstation",
-        geometry: point = Stop::GEOFACTORY.point(-122.030742, 37.378427).to_s
-      )
-      create(:stop,
-        onestop_id: "s-9q9hwp6epk-mountainviewcaltrainstation",
-        geometry: point = Stop::GEOFACTORY.point(-122.076327, 37.393879).to_s
-      )
       @rsp = RouteStopPattern.new(
-        stop_pattern: ["s-9q9k659e3r-sanjosecaltrainstation",
-                       "s-9q9hxhecje-sunnyvalecaltrainstation",
-                       "s-9q9hwp6epk-mountainviewcaltrainstation"],
-        geometry: RouteStopPattern.line_string([[-121.902181, 37.329392],
-                                                [-122.030742, 37.378427],
-                                                [-122.076327, 37.393879]])
+        stop_pattern: [stop_a.onestop_id,
+                       stop_b.onestop_id,
+                       stop_c.onestop_id],
+        geometry: RouteStopPattern.line_string([stop_a.geometry[:coordinates],
+                                                stop_b.geometry[:coordinates],
+                                                stop_c.geometry[:coordinates]])
       )
     end
 
