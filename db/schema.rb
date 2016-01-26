@@ -124,7 +124,6 @@ ActiveRecord::Schema.define(version: 20160121192921) do
     t.integer   "created_or_updated_in_changeset_id"
     t.boolean   "is_generated",                                                                                   default: false
     t.boolean   "is_modified",                                                                                    default: false
-    t.boolean   "is_only_stop_points",                                                                            default: false
     t.string    "trips",                                                                                          default: [],                 array: true
     t.string    "identifiers",                                                                                    default: [],                 array: true
     t.datetime  "created_at",                                                                                                     null: false
@@ -405,7 +404,6 @@ ActiveRecord::Schema.define(version: 20160121192921) do
     t.integer   "created_or_updated_in_changeset_id"
     t.boolean   "is_generated",                                                                                   default: false
     t.boolean   "is_modified",                                                                                    default: false
-    t.boolean   "is_only_stop_points",                                                                            default: false
     t.string    "trips",                                                                                          default: [],                 array: true
     t.string    "identifiers",                                                                                    default: [],                 array: true
     t.datetime  "created_at",                                                                                                     null: false

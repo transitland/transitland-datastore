@@ -11,7 +11,6 @@
 #  created_or_updated_in_changeset_id :integer
 #  is_generated                       :boolean          default(FALSE)
 #  is_modified                        :boolean          default(FALSE)
-#  is_only_stop_points                :boolean          default(FALSE)
 #  trips                              :string           default([]), is an Array
 #  identifiers                        :string           default([]), is an Array
 #  created_at                         :datetime         not null
@@ -297,30 +296,27 @@ describe RouteStopPattern do
     end
 
     it 'is marked as empty after evaluation' do
-      expect(@empty_rsp.evaluate_geometry(@trip, [])[:empty]).to be true
-      expect(@geom_rsp.evaluate_geometry(@trip, [])[:empty]).to be true
+      has_issues, issues = @empty_rsp.evaluate_geometry(@trip, [])
+      expect(has_issues).to be true
+      expect(issues).to match_array([:empty])
+
+      has_issues, issues = @geom_rsp.evaluate_geometry(@trip, [])
+      expect(has_issues).to be true
+      expect(issues).to match_array([:empty])
 
       @trip.shape_id = 'test_shape'
-      expect(@empty_rsp.evaluate_geometry(@trip, [])[:empty]).to be true
-      expect(@geom_rsp.evaluate_geometry(@trip, [])[:empty]).to be false
+      has_issues, issues = @empty_rsp.evaluate_geometry(@trip, [])
+      expect(has_issues).to be true
+      expect(issues).to match_array([:empty])
     end
 
     it 'adds geometry consisting of stop points' do
-      issues = {:empty => true}
+      issues = [:empty]
       stop_points = [[-122.401811, 37.706675],[-122.394935, 37.776348]]
       @empty_rsp.tl_geometry(stop_points, issues)
       expect(@empty_rsp.geometry[:coordinates]).to eq(stop_points)
       expect(@empty_rsp.is_generated).to be true
       expect(@empty_rsp.is_modified).to be true
-    end
-
-    it 'RouteStopPattern.inspect_geometry' do
-      @geom_rsp.inspect_geometry
-      expect(@geom_rsp.is_only_stop_points).to be true
-
-      @geom_rsp.geometry = RouteStopPattern.line_string([[-121.902181, 37.329392],[-122.030742, 37.378427],[-122.076327, 37.393879]])
-      @geom_rsp.inspect_geometry
-      expect(@geom_rsp.is_only_stop_points).to be false
     end
   end
 end

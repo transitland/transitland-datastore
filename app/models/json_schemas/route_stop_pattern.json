@@ -17,9 +17,6 @@
         "format": "stop-onestop-id"
       }
     },
-    "isOnlyStopPoints": {
-      "type": "boolean"
-    },
     "isModified": {
       "type": "boolean"
     },

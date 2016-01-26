@@ -11,7 +11,6 @@
 #  created_or_updated_in_changeset_id :integer
 #  is_generated                       :boolean          default(FALSE)
 #  is_modified                        :boolean          default(FALSE)
-#  is_only_stop_points                :boolean          default(FALSE)
 #  trips                              :string           default([]), is an Array
 #  identifiers                        :string           default([]), is an Array
 #  created_at                         :datetime         not null
@@ -31,7 +30,6 @@ class RouteStopPatternSerializer < ApplicationSerializer
              :geometry,
              :is_generated,
              :is_modified,
-             :is_only_stop_points,
              :created_at,
              :updated_at,
              :trips,

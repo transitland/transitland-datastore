@@ -11,7 +11,6 @@
 #  created_or_updated_in_changeset_id :integer
 #  is_generated                       :boolean          default(FALSE)
 #  is_modified                        :boolean          default(FALSE)
-#  is_only_stop_points                :boolean          default(FALSE)
 #  trips                              :string           default([]), is an Array
 #  identifiers                        :string           default([]), is an Array
 #  created_at                         :datetime         not null
@@ -35,7 +34,6 @@ end
 class RouteStopPattern < BaseRouteStopPattern
   self.table_name_prefix = 'current_'
 
-  after_commit :inspect_geometry
   belongs_to :route
   has_many :schedule_stop_pairs
   validates :geometry, :stop_pattern, presence: true
@@ -100,37 +98,64 @@ class RouteStopPattern < BaseRouteStopPattern
   def calculate_distances
     # TODO: potential issue with nearest stop segment matching after subsequent stop
     # TODO: investigate 'boundary' lat/lng possibilities
-    # TODO: document each branch (conditional)
     distances = []
     total_distance = 0.0
     cartesian_factory = RGeo::Cartesian::Factory.new
     cast_route = RGeo::Feature.cast(self[:geometry], cartesian_factory)
+    geometry_start_reached = false
     geometry_endpoint_reached = false
     self.stop_pattern.each_index do |i|
       stop = Stop.find_by_onestop_id!(self.stop_pattern[i])
+      previous_stop = Stop.find_by_onestop_id!(self.stop_pattern[i-1]) if i!=0
       cast_stop = RGeo::Feature.cast(stop[:geometry], cartesian_factory)
       if geometry_endpoint_reached
-        previous_stop = Stop.find_by_onestop_id!(self.stop_pattern[i-1])
+        # |    <-- line geometry -->    |
+        # |-------- stop ---------------|   stop       * current stop *
         total_distance += stop[:geometry].distance(previous_stop[:geometry])
         distances << total_distance
       else
         splits = cast_route.split_at_point(cast_stop)
         if splits[0].nil?
           if i == 0
+            # current stop is before or at the line geometry, and is first
+            #                 |      <-- line geometry -->        |
+            # * current stop *|-------- other stop ---------------|
             distances << 0.0
           else
-            previous_stop = Stop.find_by_onestop_id!(self.stop_pattern[i-1])
+            # current stop is before or at the line geometry, and is not first
+            #                                   |      <-- line geometry -->        |
+            # other stop        * current stop *|-------- other stop ---------------|
             total_distance += stop[:geometry].distance(previous_stop[:geometry])
             distances << total_distance
           end
         else
+          # current stop is within the line geometry, or the first stop past the last
+          # endpoint of the line geometry.
+          #                   |      <-- line geometry -->           |
+          # other stop        |-------- * current stop * ------------|     other stop
+          #                                   OR
+          # other stop        |-------- other stop ------------------| * current stop *     other stop
           total_distance += RGeo::Feature.cast(splits[0], RouteStopPattern::GEOFACTORY).length
-          distances << total_distance
           if splits[1].nil?
+            # current stop is the first past the last geometry endpoint, so
+            # we need to tack on that extra distance between that stop and the
+            # stop before, if such a space exists.
+            if !geometry_endpoint_reached
+              total_distance += stop[:geometry].distance(cast_route.end_point)
+            end
             geometry_endpoint_reached = true
           else
             cast_route = splits[1]
           end
+
+          # tack on the extra space between the previous stop and the first point
+          # of the line geometry, if any. This is added to the distance measurement
+          # of the previous stop.
+          if !geometry_start_reached
+            distances[i-1] += previous_stop[:geometry].distance(splits[0].start_point) if i!=0
+          end
+          geometry_start_reached = true
+          distances << total_distance
         end
       end
     end
@@ -139,32 +164,23 @@ class RouteStopPattern < BaseRouteStopPattern
 
   def evaluate_geometry(trip, stop_points)
     # makes judgements on geometry so modifications can be made by tl_geometry
-    issues = {:empty => false, :has_outlier_stop => false}
+    issues = []
     if trip.shape_id.nil? || self.geometry[:coordinates].empty?
-      issues[:empty] = true
+      issues << :empty
     end
     # more evaluations can go here. e.g. has outlier stop
-    issues
+    return (issues.size > 0), issues
   end
 
   def tl_geometry(stop_points, issues)
     # modify rsp geometry based on issues hash from evaluate_geometry
-    if issues[:empty]
+    if issues.include?(:empty)
       # create a new geometry from the trip stop points
       self.geometry = RouteStopPattern.line_string(stop_points)
       self.is_generated = true
       self.is_modified = true
     end
     # more geometry modification can go here
-  end
-
-  def inspect_geometry
-    # find and record characteristics of the final geometry
-    self.is_only_stop_points = false
-    if Set.new(stop_points).eql?(Set.new(self.geometry[:coordinates]))
-      self.is_only_stop_points = true
-    end
-    # more inspections can go here
   end
 
   scope :with_trips, -> (search_string) { where{trips.within(search_string)} }

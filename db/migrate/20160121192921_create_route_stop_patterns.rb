@@ -11,7 +11,6 @@ class CreateRouteStopPatterns < ActiveRecord::Migration
         t.integer :created_or_updated_in_changeset_id
         t.boolean :is_generated, default: false
         t.boolean :is_modified, default: false
-        t.boolean :is_only_stop_points, default: false
         t.string :trips, array: true, default: []
         t.string :identifiers, array: true, index: true, default: []
         t.timestamps null: false

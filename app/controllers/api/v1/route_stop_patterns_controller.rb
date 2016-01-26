@@ -49,7 +49,6 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
           properties[:stop_pattern] = entity.stop_pattern
           properties[:is_generated] = entity.is_generated
           properties[:is_modified] = entity.is_modified
-          properties[:is_only_stop_points] = entity.is_only_stop_points
         }
         render json: Geojson.from_entity_collection(@rsps, &append)
       end
