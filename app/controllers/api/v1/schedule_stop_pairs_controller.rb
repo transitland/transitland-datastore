@@ -79,6 +79,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
             :origin_departure_between,
             :trip,
             :route_onestop_id,
+            :route_stop_pattern_onestop_id,
             :operator_onestop_id,
             :bbox,
             :updated_since
