@@ -152,6 +152,10 @@ class ScheduleStopPair < BaseScheduleStopPair
     self.destination = Stop.find_by!(onestop_id: value)
   end
 
+  def route_stop_pattern_onestop_id=(value)
+    self.route_stop_pattern = RouteStopPattern.find_by_onestop_id!(value)
+  end
+
   def service_on_date?(date)
     date = Date.parse(date) unless date.is_a?(Date)
     # the -1 is because ISO week day is Monday = 1, Sunday = 7
@@ -191,6 +195,7 @@ class ScheduleStopPair < BaseScheduleStopPair
       :origin_onestop_id,
       :destination_onestop_id,
       :route_onestop_id,
+      :route_stop_pattern_onestop_id,
       :imported_from_feed
     ]
   })
@@ -209,6 +214,9 @@ class ScheduleStopPair < BaseScheduleStopPair
       cache[params[k]] ||= OnestopId.find!(params[k])
       params[v] = cache[params.delete(k)]
     end
+    if params[:route_stop_pattern_onestop_id].present?
+      params[:route_stop_pattern] = RouteStopPattern.find_by_onestop_id!(params[:route_stop_pattern_onestop_id])
+    end
     if params[:imported_from_feed]
       feed_onestop_id = params[:imported_from_feed][:onestop_id]
       feed_version_id = params[:imported_from_feed][:sha1]
@@ -216,9 +224,6 @@ class ScheduleStopPair < BaseScheduleStopPair
       cache[feed_version_id] ||= cache[feed_onestop_id].feed_versions.find_by!(sha1: feed_version_id)
       params[:imported_from_feed][:feed] = cache[feed_onestop_id]
       params[:imported_from_feed][:feed_version] = cache[feed_version_id]
-    end
-    if params[:route_stop_pattern_onestop_id].present?
-      params[:route_stop_pattern] = RouteStopPattern.find_by_onestop_id!(route_stop_pattern_onestop_id)
     end
     params[:operator] = params[:route].operator
     params

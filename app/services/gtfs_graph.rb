@@ -74,7 +74,7 @@ class GTFSGraph
     log "Calculating distances"
     rsp_distances_map = {}
     rsp_map.values.uniq.each do |onestop_id|
-      distances = RouteStopPattern.where(onestop_id: onestop_id).first.calculate_distances
+      distances = RouteStopPattern.find_by_onestop_id!(onestop_id).calculate_distances
       rsp_distances_map[onestop_id] = distances
     end
     log "Create changeset"
@@ -84,7 +84,7 @@ class GTFSGraph
     ssps = []
     @gtfs.trip_stop_times(trips) do |trip,stop_times|
       route = @gtfs.route(trip.route_id)
-      rsp = RouteStopPattern.where(onestop_id: rsp_map[trip.trip_id]).first
+      rsp = RouteStopPattern.find_by_onestop_id!(rsp_map[trip.trip_id])
       # Create SSPs for all stop_time edges
       ssp_trip = []
       stop_times[0..-2].zip(stop_times[1..-1]).each do |origin,destination|
@@ -535,7 +535,7 @@ if __FILE__ == $0
   feed_onestop_id = ARGV[0] || 'f-9q9-caltrain'
   FeedFetcherWorker.perform_async(feed_onestop_id)
   FeedFetcherWorker.drain
-  FeedEaterWorker.perform_async(feed_onestop_id, nil, 1)
+  FeedEaterWorker.perform_async(feed_onestop_id, nil, 2)
   FeedEaterWorker.drain
   FeedEaterScheduleWorker.drain
 end
