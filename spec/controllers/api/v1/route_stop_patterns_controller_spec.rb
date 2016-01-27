@@ -76,9 +76,7 @@ describe Api::V1::RouteStopPatternsController do
     context 'returns route_stop_patterns by route traversed by' do
       it 'when not found' do
         get :index, traversed_by: 'r-9q9j-test'
-        expect_json({ route_stop_patterns: -> (route_stop_patterns) {
-          expect(route_stop_patterns.length).to eq 0
-        }})
+        expect(response.status).to eq 404
       end
 
       it 'when found' do
