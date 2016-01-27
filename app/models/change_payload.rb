@@ -56,7 +56,8 @@ class ChangePayload < ActiveRecord::Base
       stop: Stop,
       operator: Operator,
       route: Route,
-      schedule_stop_pair: ScheduleStopPair
+      schedule_stop_pair: ScheduleStopPair,
+      route_stop_pattern: RouteStopPattern
     }
     (payload_as_ruby_hash[:changes] || []).each do |change|
       (entity_types.keys & change.keys).each do |entity_type|

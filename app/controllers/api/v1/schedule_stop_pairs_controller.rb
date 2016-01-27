@@ -80,6 +80,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
             :origin_departure_between,
             :trip,
             :route_onestop_id,
+            :route_stop_pattern_onestop_id,
             :operator_onestop_id,
             :bbox,
             :updated_since
@@ -128,6 +129,10 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     if params[:route_onestop_id].present?
       routes = Route.find_by_onestop_ids!(params[:route_onestop_id].split(','))
       @ssps = @ssps.where(route: routes)
+    end
+    if params[:route_stop_pattern_onestop_id].present?
+      rsps = RouteStopPattern.where(onestop_id: params[:route_stop_pattern_onestop_id].split(','))
+      @ssps = @ssps.where(route_stop_pattern: rsps)
     end
     if params[:operator_onestop_id].present?
       operators = Operator.find_by_onestop_ids!(params[:operator_onestop_id].split(','))
