@@ -86,7 +86,7 @@ module OnestopId
   class RouteStopPatternOnestopId < OnestopIdBase
     PREFIX = :r
     MODEL = RouteStopPattern
-    NUM_COMPONENTS = 4
+    NUM_COMPONENTS = 5
     HASH_LENGTH = 6
 
     attr_accessor :stop_hash, :geometry_hash
@@ -115,10 +115,10 @@ module OnestopId
 
     def validate
       errors = super[1]
-      errors << 'invalid hash' unless @stop_hash.present?
-      errors << 'invalid hash' unless validate_hash(@stop_hash)
-      errors << 'invalid hash' unless @geometry_hash.present?
-      errors << 'invalid hash' unless validate_hash(@geometry_hash)
+      errors << 'invalid stop pattern hash' unless @stop_hash.present?
+      errors << 'invalid stop pattern hash' unless validate_hash(@stop_hash)
+      errors << 'invalid geometry hash' unless @geometry_hash.present?
+      errors << 'invalid geometry hash' unless validate_hash(@geometry_hash)
       return (errors.size == 0), errors
     end
 

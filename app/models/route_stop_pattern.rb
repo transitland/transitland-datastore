@@ -8,19 +8,23 @@
 #  tags                               :hstore
 #  stop_pattern                       :string           default([]), is an Array
 #  version                            :integer
-#  created_or_updated_in_changeset_id :integer
 #  is_generated                       :boolean          default(FALSE)
 #  is_modified                        :boolean          default(FALSE)
 #  trips                              :string           default([]), is an Array
 #  identifiers                        :string           default([]), is an Array
 #  created_at                         :datetime         not null
 #  updated_at                         :datetime         not null
+#  created_or_updated_in_changeset_id :integer
 #  route_id                           :integer
 #
 # Indexes
 #
-#  index_current_route_stop_patterns_on_identifiers  (identifiers)
-#  index_current_route_stop_patterns_on_route_id     (route_id)
+#  c_rsp_cu_in_changeset                              (created_or_updated_in_changeset_id)
+#  index_current_route_stop_patterns_on_identifiers   (identifiers)
+#  index_current_route_stop_patterns_on_onestop_id    (onestop_id)
+#  index_current_route_stop_patterns_on_route_id      (route_id)
+#  index_current_route_stop_patterns_on_stop_pattern  (stop_pattern)
+#  index_current_route_stop_patterns_on_trips         (trips)
 #
 
 class BaseRouteStopPattern < ActiveRecord::Base
@@ -89,10 +93,6 @@ class RouteStopPattern < BaseRouteStopPattern
     RouteStopPattern::GEOFACTORY.line_string(
       points.map {|lon, lat| RouteStopPattern::GEOFACTORY.point(lon, lat)}
     )
-  end
-
-  def stop_points
-    self.stop_pattern.map {|s| Stop.find_by_onestop_id!(s).geometry[:coordinates]}
   end
 
   def calculate_distances
@@ -192,7 +192,7 @@ class RouteStopPattern < BaseRouteStopPattern
     raise ArgumentError.new('Need at least two stops') if stop_pattern.length < 2
     rsp = RouteStopPattern.new(
       stop_pattern: stop_pattern,
-      geometry: self.line_string(shape_points.uniq)
+      geometry: self.line_string(shape_points.chunk{|c| c}.map(&:first))
     )
     rsp.tags ||= {}
     rsp.tags[:shape_id] = trip.shape_id

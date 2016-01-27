@@ -15,7 +15,7 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
     end
 
     if params[:traversed_by].present?
-      @rsps = @rsps.where(route_id: Route.where(onestop_id: params[:traversed_by]))
+      @rsps = @rsps.where(route: Route.find_by_onestop_id!(params[:traversed_by]))
     end
 
     if params[:trips].present?
@@ -36,7 +36,7 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
       format.json do
         render paginated_json_collection(
           @rsps,
-          Proc.new { |params| api_v1_routes_url(params) },
+          Proc.new { |params| api_v1_route_stop_patterns_url(params) },
           params[:offset],
           params[:per_page],
           params[:total],
@@ -51,9 +51,6 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
           properties[:is_modified] = entity.is_modified
         }
         render json: Geojson.from_entity_collection(@rsps, &append)
-      end
-      format.csv do
-        #return_downloadable_csv(@rsps, 'routes')
       end
     end
   end
