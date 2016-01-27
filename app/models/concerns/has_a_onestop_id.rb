@@ -14,19 +14,27 @@ module HasAOnestopId
       # TODO: make this case insensitive
       self.find_by(onestop_id: onestop_id)
     end
+
+    def self.find_by_onestop_ids!(onestop_ids)
+      # First query to check for missing id's
+      missing = onestop_ids - self.where(onestop_id: onestop_ids).pluck(:onestop_id)
+      fail ActiveRecord::RecordNotFound, "Couldn't find: #{missing.join(' ')}" if missing.size > 0
+      # Second query as usual
+      self.where(onestop_id: onestop_ids)
+    end
+
+    def self.find_by_onestop_ids(onestop_ids)
+      self.where(onestop_id: onestop_ids)
+    end
+
   end
 
   private
 
-  def onestop_id_prefix_for_this_object
-    OnestopId::ENTITY_TO_PREFIX[self.class.to_s.downcase]
-  end
-
   def validate_onestop_id
-    is_a_valid_onestop_id, onestop_id_errors = OnestopId.validate_onestop_id_string(self.onestop_id, expected_entity_type: self.class.to_s.downcase)
-    onestop_id_errors.each do |onestop_id_error|
-      errors.add(:onestop_id, onestop_id_error)
+    osid = OnestopId.handler_by_model(self.class).new(string: onestop_id)
+    osid.errors.each do |error|
+      errors.add(:onestop_id, error)
     end
-    is_a_valid_onestop_id
   end
 end

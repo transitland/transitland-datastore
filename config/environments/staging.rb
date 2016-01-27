@@ -44,7 +44,7 @@ Rails.application.configure do
   # config.force_ssl = true
 
   # Set to :debug to see everything in the log.
-  config.log_level = :debug
+  config.log_level = :info
 
   # Enable the logstasher logs for the current environment
   config.logstasher.enabled = true

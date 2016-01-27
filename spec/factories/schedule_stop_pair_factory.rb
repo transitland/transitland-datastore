@@ -40,6 +40,9 @@
 #  pickup_type                        :string
 #  drop_off_type                      :string
 #  active                             :boolean
+#  route_stop_pattern_id              :integer
+#  origin_dist_traveled               :float
+#  destination_dist_traveled          :float
 #
 # Indexes
 #
@@ -53,6 +56,7 @@
 #  index_current_schedule_stop_pairs_on_active                 (active)
 #  index_current_schedule_stop_pairs_on_operator_id            (operator_id)
 #  index_current_schedule_stop_pairs_on_origin_departure_time  (origin_departure_time)
+#  index_current_schedule_stop_pairs_on_route_stop_pattern_id  (route_stop_pattern_id)
 #  index_current_schedule_stop_pairs_on_updated_at             (updated_at)
 #
 

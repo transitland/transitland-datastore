@@ -60,7 +60,7 @@ describe Api::V1::ChangePayloadsController do
         })
       end
 
-      it 'appends ChangePayload to Changeset' do
+      it 'adds ChangePayload to Changeset' do
         change = FactoryGirl.attributes_for(:change_payload)
         expect(@changeset.change_payloads.size).to eq(1)
         post :create, changeset_id: @changeset.id, change_payload: change
@@ -68,6 +68,13 @@ describe Api::V1::ChangePayloadsController do
           changeset_id: @changeset.id
         })
         expect(@changeset.change_payloads.size).to eq(2)
+      end
+
+      it 'cannot add ChangePayload to applied Changeset' do
+        @changeset.apply!
+        change = FactoryGirl.attributes_for(:change_payload)
+        post :create, changeset_id: @changeset.id, change_payload: change
+        expect(response.status).to eq(400)
       end
     end
 
@@ -79,6 +86,15 @@ describe Api::V1::ChangePayloadsController do
             expect(payload).to eq(change[:payload])
         })
       end
+
+      it 'cannot update ChangePayload to applied Changeset' do
+        # Not normally be possible as ChangePayloads destroyed after apply
+        @changeset.apply!
+        @change_payload = create(:change_payload, changeset: @changeset)
+        change = FactoryGirl.attributes_for(:change_payload)
+        post :update, changeset_id: @changeset.id, id: @change_payload.id, change_payload: change
+        expect(response.status).to eq(400)
+      end
     end
 
     context 'POST destroy' do
@@ -86,6 +102,14 @@ describe Api::V1::ChangePayloadsController do
         post :destroy, changeset_id: @changeset.id, id: @change_payload.id
         expect(ChangePayload.exists?(@change_payload.id)).to be(false)
         expect(@changeset.change_payloads.size).to eq(0)
+      end
+
+      it 'cannot delete a ChangePayload to applied Changeset' do
+        # Not normally be possible as ChangePayloads destroyed after apply
+        @changeset.apply!
+        @change_payload = create(:change_payload, changeset: @changeset)
+        post :destroy, changeset_id: @changeset.id, id: @change_payload.id
+        expect(response.status).to eq(400)
       end
 
       it 'requires auth key to delete ChangePayload' do

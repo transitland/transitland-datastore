@@ -3,7 +3,7 @@ class FeedEaterScheduleWorker
 
   sidekiq_options queue: :feed_eater_schedule
 
-  def perform(feed_onestop_id, feed_version_sha1, feed_schedule_import_id, trip_ids, agency_map, route_map, stop_map)
+  def perform(feed_onestop_id, feed_version_sha1, feed_schedule_import_id, trip_ids, agency_map, route_map, stop_map, rsp_map)
     logger.info "FeedEaterScheduleWorker #{feed_onestop_id}: Importing #{trip_ids.size} trips"
     feed = Feed.find_by(onestop_id: feed_onestop_id)
     feed_version = FeedVersion.find_by(sha1: feed_version_sha1)
@@ -16,7 +16,8 @@ class FeedEaterScheduleWorker
         trip_ids,
         agency_map,
         route_map,
-        stop_map
+        stop_map,
+        rsp_map
       )
     rescue Exception => e
       exception_log = "\n#{e}\n#{e.backtrace}\n"

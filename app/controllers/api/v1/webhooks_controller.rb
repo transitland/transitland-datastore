@@ -2,7 +2,12 @@ class Api::V1::WebhooksController < Api::V1::BaseApiController
   before_filter :require_api_auth_token
 
   def feed_fetcher
-    workers = Feed.async_fetch_all_feeds
+    if params[:feed_onestop_id].present?
+      feed = Feed.find_by!(onestop_id: params[:feed_onestop_id])
+      workers = [FeedFetcherWorker.perform_async(feed.onestop_id)]
+    else
+      workers = Feed.async_fetch_all_feeds
+    end
     if workers
       render json: {
         code: 200,

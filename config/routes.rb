@@ -25,13 +25,13 @@ Rails.application.routes.draw do
           post 'check'
           post 'apply'
           post 'revert'
-          post 'append'
         end
         resources :change_payloads, only: [:index, :show, :create, :update, :destroy]
       end
       resources :stops, only: [:index, :show]
       resources :operators, only: [:index, :show]
       resources :routes, only: [:index, :show]
+      resources :route_stop_patterns, only: [:index, :show]
       resources :schedule_stop_pairs, only: [:index]
       resources :feeds, only: [:index, :show] do
         resources :feed_versions, only: [:index, :show] do
