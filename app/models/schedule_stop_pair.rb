@@ -128,6 +128,11 @@ class ScheduleStopPair < BaseScheduleStopPair
     where("service_end_date >= ?", date)
   }
 
+  scope :where_service_before_date, -> (date) {
+    date = date.is_a?(Date) ? date : Date.parse(date)
+    where("service_start_date <= ?", date)
+  }
+  
   # Service trips_out in a bbox
   scope :where_origin_bbox, -> (bbox) {
     stops = Stop.geometry_within_bbox(bbox)

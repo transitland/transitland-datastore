@@ -28,6 +28,7 @@ if LogStasher.enabled?
       :r,
       :route_onestop_id,
       :service_from_date,
+      :service_before_date,
       :tag_key,
       :tag_value,
       :trip,

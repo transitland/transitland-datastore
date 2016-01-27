@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.2.5'
+gem 'rails', '4.2.5.1'
 
 # Transitland Datastore components
 path 'components' do

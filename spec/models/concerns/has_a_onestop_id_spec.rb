@@ -1,4 +1,28 @@
 describe HasAOnestopId do
+  context 'find_by_onestop_ids' do
+    let(:stop1) { create(:stop) }
+    let(:stop2) { create(:stop) }
+    it 'returns all matches' do
+      expect(Stop.find_by_onestop_ids([stop1.onestop_id, stop2.onestop_id])).to eq([stop1, stop2])
+    end
+
+    it 'filters out missing' do
+      expect(Stop.find_by_onestop_ids([stop1.onestop_id, 's-9q9-missing'])).to eq([stop1])
+    end
+  end
+
+  context 'find_by_onestop_ids!' do
+    let(:stop1) { create(:stop) }
+    let(:stop2) { create(:stop) }
+    it 'returns all matches' do
+      expect(Stop.find_by_onestop_ids!([stop1.onestop_id, stop2.onestop_id])).to eq([stop1, stop2])
+    end
+
+    it 'raises exception on missing' do
+      expect { Stop.find_by_onestop_ids!(['s-9q9-missing']) }.to raise_error(ActiveRecord::RecordNotFound)
+    end
+  end
+
   context 'validation' do
     it 'for a Stop, must start with "s-" as its 1st component' do
       stop = Stop.new(onestop_id: '9q9-asd')
