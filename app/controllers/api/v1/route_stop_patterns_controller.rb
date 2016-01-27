@@ -15,7 +15,7 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
     end
 
     if params[:traversed_by].present?
-      @rsps = @rsps.where(route: Route.find_by_onestop_id!(params[:traversed_by]))
+      @rsps = @rsps.where(route: Route.find_by_onestop_id(params[:traversed_by]))
     end
 
     if params[:trips].present?
