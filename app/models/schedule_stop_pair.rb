@@ -40,6 +40,9 @@
 #  pickup_type                        :string
 #  drop_off_type                      :string
 #  active                             :boolean
+#  route_stop_pattern_id              :integer
+#  origin_dist_traveled               :float
+#  destination_dist_traveled          :float
 #
 # Indexes
 #
@@ -53,6 +56,7 @@
 #  index_current_schedule_stop_pairs_on_active                 (active)
 #  index_current_schedule_stop_pairs_on_operator_id            (operator_id)
 #  index_current_schedule_stop_pairs_on_origin_departure_time  (origin_departure_time)
+#  index_current_schedule_stop_pairs_on_route_stop_pattern_id  (route_stop_pattern_id)
 #  index_current_schedule_stop_pairs_on_updated_at             (updated_at)
 #
 
@@ -85,6 +89,7 @@ class ScheduleStopPair < BaseScheduleStopPair
   belongs_to :destination, class_name: "Stop"
   belongs_to :route
   belongs_to :operator
+  belongs_to :route_stop_pattern
 
   # Required relations and attributes
   before_validation :filter_service_range
@@ -153,6 +158,10 @@ class ScheduleStopPair < BaseScheduleStopPair
     self.destination = Stop.find_by!(onestop_id: value)
   end
 
+  def route_stop_pattern_onestop_id=(value)
+    self.route_stop_pattern = RouteStopPattern.find_by_onestop_id!(value)
+  end
+
   def service_on_date?(date)
     date = Date.parse(date) unless date.is_a?(Date)
     # the -1 is because ISO week day is Monday = 1, Sunday = 7
@@ -192,6 +201,7 @@ class ScheduleStopPair < BaseScheduleStopPair
       :origin_onestop_id,
       :destination_onestop_id,
       :route_onestop_id,
+      :route_stop_pattern_onestop_id,
       :imported_from_feed
     ]
   })
@@ -209,6 +219,9 @@ class ScheduleStopPair < BaseScheduleStopPair
     }.each do |k,v|
       cache[params[k]] ||= OnestopId.find!(params[k])
       params[v] = cache[params.delete(k)]
+    end
+    if params[:route_stop_pattern_onestop_id].present?
+      params[:route_stop_pattern] = RouteStopPattern.find_by_onestop_id!(params[:route_stop_pattern_onestop_id])
     end
     if params[:imported_from_feed]
       feed_onestop_id = params[:imported_from_feed][:onestop_id]

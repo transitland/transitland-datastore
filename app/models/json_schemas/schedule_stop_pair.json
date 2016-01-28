@@ -32,6 +32,9 @@
       "type": "string",
       "format": "route-onestop-id"
     },
+    "routeStopPatternOnestopId": {
+      "type": "string"
+    },
     "originArrivalTime": { "type": "string" },
     "originDepartureTime": { "type": "string" },
     "destinationArrivalTime": { "type": "string" },
@@ -42,6 +45,8 @@
     "windowEnd": { "type": "string" },
     "originTimepointSource": { "type": "string" },
     "destinationTimepointSource": { "type": "string" },
+    "originDistTraveled": { "type": "float" },
+    "destinationDistTraveled": { "type": "float" },
     "serviceStartDate": {
       "type": "string",
       "format": "date"

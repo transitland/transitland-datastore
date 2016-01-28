@@ -58,6 +58,9 @@ class Changeset < ActiveRecord::Base
   has_many :schedule_stop_pairs_created_or_updated, class_name: 'ScheduleStopPair', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :schedule_stop_pairs_destroyed, class_name: 'OldScheduleStopPair', foreign_key: 'destroyed_in_changeset_id'
 
+  has_many :route_stop_patterns_created_or_updated, class_name: 'RouteStopPattern', foreign_key: 'created_or_updated_in_changeset_id'
+  has_many :route_stop_patterns_destroyed, class_name: 'OldRouteStopPattern', foreign_key: 'destroyed_in_changeset_id'
+
   belongs_to :author, class_name: 'User', foreign_key: 'author_email'
 
   accepts_nested_attributes_for :author, reject_if: proc { |attributes| attributes['email'].blank? }, update_only: true
