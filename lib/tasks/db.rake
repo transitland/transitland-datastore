@@ -28,4 +28,40 @@ namespace :db do
       # TODO: fetch from canonical server
     end
   end
+
+  namespace :dump do
+    desc "Dumps the database to backups"
+    task :sql => :environment do
+      cmd = nil
+      timestamp = Time.now.strftime("%Y%m%d%H%M%S")
+      backup_directory = "#{Rails.root}/db/backups"
+      sql_backup_file = "#{backup_directory}/#{timestamp}.sql"
+      with_config do |app, hostname, db, user|
+        cmd = <<-BASH
+            mkdir -p #{backup_directory}
+            pg_dump -F p -h #{hostname} \
+                    -d #{db} \
+                    --no-owner --no-acl \
+                    -f #{sql_backup_file}
+        BASH
+      end
+      puts system(cmd)
+      upload_file_to_s3(sql_backup_file)
+    end
+  end
+
+  def upload_file_to_s3(path)
+    require 'aws-sdk'
+    name = File.basename(path)
+    s3 = Aws::S3::Resource.new(region:ENV['ATTACHMENTS_S3_REGION'])
+    obj = s3.bucket(ENV['ATTACHMENTS_S3_BUCKET']).object("db/backups/#{name}")
+    puts obj.upload_file(path)
+  end
+
+  def with_config
+    yield Rails.application.class.parent_name.underscore,
+      ActiveRecord::Base.connection_config[:hostname],
+      ActiveRecord::Base.connection_config[:database],
+      ActiveRecord::Base.connection_config[:username]
+  end
 end
