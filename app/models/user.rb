@@ -43,7 +43,7 @@ class User < ActiveRecord::Base
     :hardware_vendor,
     :consultant,
     :transit_agency_staff,
-    :other_public_official
+    :other_public_agency_staff
   ]
 
   before_update :update_email_on_changesets
