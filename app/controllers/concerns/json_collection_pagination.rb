@@ -2,10 +2,10 @@ module JsonCollectionPagination
   extend ActiveSupport::Concern
   PER_PAGE ||= 50
 
-  def paginated_json_collection(collection, path_helper, offset, per_page, total, params, sort_column=:id)
+  def paginated_json_collection(collection, path_helper, offset, per_page, total, params)
     # Apply id as a default sort order;
     #   will append to any existing sort orders.
-    collection = collection.order(sort_column)
+    collection = collection.order(:id)
 
     # Meta
     offset = (offset.presence || 0).to_i
