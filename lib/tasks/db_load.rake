@@ -10,7 +10,7 @@ namespace :db do
           payload: json['changeset']['payload'],
           notes: json['changeset']['notes']
         )
-        changeset.set_user_by_params(json['changeset']['user'])
+        changeset.set_user_by_params(json['changeset']['user'].with_indifferent_access)
         changeset.save!
         puts "Changeset ##{changeset.id} created"
 
