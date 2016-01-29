@@ -1,6 +1,10 @@
 {
   "changeset": {
-    "author_email": "transitland@mapzen.com",
+    "user": {
+      "email": "transitland@mapzen.com",
+      "name": "Transitland staff",
+      "user_type": "data_enthusists"
+    },
     "payload": {
       "changes": [
         {

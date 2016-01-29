@@ -2,17 +2,17 @@
 #
 # Table name: changesets
 #
-#  id           :integer          not null, primary key
-#  notes        :text
-#  applied      :boolean
-#  applied_at   :datetime
-#  created_at   :datetime
-#  updated_at   :datetime
-#  author_email :string
+#  id         :integer          not null, primary key
+#  notes      :text
+#  applied    :boolean
+#  applied_at :datetime
+#  created_at :datetime
+#  updated_at :datetime
+#  user_id    :integer
 #
 # Indexes
 #
-#  index_changesets_on_author_email  (author_email)
+#  index_changesets_on_user_id  (user_id)
 #
 
 class Changeset < ActiveRecord::Base
@@ -61,9 +61,11 @@ class Changeset < ActiveRecord::Base
   has_many :route_stop_patterns_created_or_updated, class_name: 'RouteStopPattern', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :route_stop_patterns_destroyed, class_name: 'OldRouteStopPattern', foreign_key: 'destroyed_in_changeset_id'
 
-  belongs_to :author, class_name: 'User', foreign_key: 'author_email'
+  belongs_to :user, autosave: true
 
-  accepts_nested_attributes_for :author, reject_if: proc { |attributes| attributes['email'].blank? }, update_only: true
+  def set_user_by_params(user_params)
+    self.user = User.find_or_create_by(user_params)
+  end
 
   after_initialize :set_default_values
 
@@ -153,10 +155,6 @@ class Changeset < ActiveRecord::Base
 
   def payload=(changeset)
     change_payloads.build payload: changeset
-  end
-
-  def author_email=(author_email)
-    self.author = User.find_or_create_by(email: author_email)
   end
 
   private

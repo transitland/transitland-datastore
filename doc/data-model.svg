@@ -1031,33 +1031,35 @@
 </g>
 <!-- m_User -->
 <g id="node25" class="node"><title>m_User</title>
-<path fill="none" stroke="black" d="M12,-1036.5C12,-1036.5 152,-1036.5 152,-1036.5 158,-1036.5 164,-1042.5 164,-1048.5 164,-1048.5 164,-1209.5 164,-1209.5 164,-1215.5 158,-1221.5 152,-1221.5 152,-1221.5 12,-1221.5 12,-1221.5 6,-1221.5 0,-1215.5 0,-1209.5 0,-1209.5 0,-1048.5 0,-1048.5 0,-1042.5 6,-1036.5 12,-1036.5"/>
-<text text-anchor="start" x="68.3877" y="-1208.2" font-family="Arial BoldMT" font-size="11.00">User</text>
-<polyline fill="none" stroke="black" points="0,-1202.5 164,-1202.5 "/>
-<text text-anchor="start" x="7" y="-1189.5" font-family="ArialMT" font-size="10.00">admin </text>
-<text text-anchor="start" x="37.0146" y="-1189.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">boolean</text>
-<text text-anchor="start" x="7" y="-1176.5" font-family="ArialMT" font-size="10.00">affiliation </text>
-<text text-anchor="start" x="49.0654" y="-1176.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
-<text text-anchor="start" x="7" y="-1163.5" font-family="ArialMT" font-size="10.00">current_sign_in_at </text>
-<text text-anchor="start" x="92.0537" y="-1163.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">datetime</text>
-<text text-anchor="start" x="7" y="-1150.5" font-family="ArialMT" font-size="10.00">current_sign_in_ip </text>
-<text text-anchor="start" x="91.4971" y="-1150.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
-<text text-anchor="start" x="7" y="-1137.5" font-family="ArialMT" font-size="10.00">encrypted_password </text>
-<text text-anchor="start" x="102.054" y="-1137.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗</text>
-<text text-anchor="start" x="7" y="-1124.5" font-family="ArialMT" font-size="10.00">last_sign_in_at </text>
-<text text-anchor="start" x="76.4922" y="-1124.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">datetime</text>
-<text text-anchor="start" x="7" y="-1111.5" font-family="ArialMT" font-size="10.00">last_sign_in_ip </text>
-<text text-anchor="start" x="75.9355" y="-1111.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
-<text text-anchor="start" x="7" y="-1098.5" font-family="ArialMT" font-size="10.00">name </text>
-<text text-anchor="start" x="34.793" y="-1098.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
-<text text-anchor="start" x="6.95605" y="-1085.5" font-family="ArialMT" font-size="10.00">reset_password_sent_at </text>
-<text text-anchor="start" x="118.689" y="-1085.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">datetime</text>
-<text text-anchor="start" x="7" y="-1072.5" font-family="ArialMT" font-size="10.00">reset_password_token </text>
-<text text-anchor="start" x="110.394" y="-1072.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
-<text text-anchor="start" x="7" y="-1059.5" font-family="ArialMT" font-size="10.00">sign_in_count </text>
-<text text-anchor="start" x="71.4922" y="-1059.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
-<text text-anchor="start" x="7" y="-1046.5" font-family="ArialMT" font-size="10.00">user_type </text>
-<text text-anchor="start" x="53.6943" y="-1046.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
+<path fill="none" stroke="black" d="M12,-1030C12,-1030 152,-1030 152,-1030 158,-1030 164,-1036 164,-1042 164,-1042 164,-1216 164,-1216 164,-1222 158,-1228 152,-1228 152,-1228 12,-1228 12,-1228 6,-1228 0,-1222 0,-1216 0,-1216 0,-1042 0,-1042 0,-1036 6,-1030 12,-1030"/>
+<text text-anchor="start" x="68.3877" y="-1214.7" font-family="Arial BoldMT" font-size="11.00">User</text>
+<polyline fill="none" stroke="black" points="0,-1209 164,-1209 "/>
+<text text-anchor="start" x="7" y="-1195.5" font-family="ArialMT" font-size="10.00">admin </text>
+<text text-anchor="start" x="37.0146" y="-1195.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">boolean</text>
+<text text-anchor="start" x="7" y="-1182.5" font-family="ArialMT" font-size="10.00">affiliation </text>
+<text text-anchor="start" x="49.0654" y="-1182.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
+<text text-anchor="start" x="7" y="-1169.5" font-family="ArialMT" font-size="10.00">current_sign_in_at </text>
+<text text-anchor="start" x="92.0537" y="-1169.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">datetime</text>
+<text text-anchor="start" x="7" y="-1156.5" font-family="ArialMT" font-size="10.00">current_sign_in_ip </text>
+<text text-anchor="start" x="91.4971" y="-1156.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
+<text text-anchor="start" x="7" y="-1143.5" font-family="ArialMT" font-size="10.00">email </text>
+<text text-anchor="start" x="33.6748" y="-1143.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗ U</text>
+<text text-anchor="start" x="7" y="-1130.5" font-family="ArialMT" font-size="10.00">encrypted_password </text>
+<text text-anchor="start" x="102.054" y="-1130.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗</text>
+<text text-anchor="start" x="7" y="-1117.5" font-family="ArialMT" font-size="10.00">last_sign_in_at </text>
+<text text-anchor="start" x="76.4922" y="-1117.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">datetime</text>
+<text text-anchor="start" x="7" y="-1104.5" font-family="ArialMT" font-size="10.00">last_sign_in_ip </text>
+<text text-anchor="start" x="75.9355" y="-1104.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
+<text text-anchor="start" x="7" y="-1091.5" font-family="ArialMT" font-size="10.00">name </text>
+<text text-anchor="start" x="34.793" y="-1091.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
+<text text-anchor="start" x="6.95605" y="-1078.5" font-family="ArialMT" font-size="10.00">reset_password_sent_at </text>
+<text text-anchor="start" x="118.689" y="-1078.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">datetime</text>
+<text text-anchor="start" x="7" y="-1065.5" font-family="ArialMT" font-size="10.00">reset_password_token </text>
+<text text-anchor="start" x="110.394" y="-1065.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
+<text text-anchor="start" x="7" y="-1052.5" font-family="ArialMT" font-size="10.00">sign_in_count </text>
+<text text-anchor="start" x="71.4922" y="-1052.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
+<text text-anchor="start" x="7" y="-1039.5" font-family="ArialMT" font-size="10.00">user_type </text>
+<text text-anchor="start" x="53.6943" y="-1039.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
 </g>
 <!-- m_User&#45;&gt;m_Changeset -->
 <g id="edge20" class="edge"><title>m_User&#45;&gt;m_Changeset</title>

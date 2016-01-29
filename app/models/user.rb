@@ -2,7 +2,8 @@
 #
 # Table name: users
 #
-#  email                  :string           not null, primary key
+#  id                     :integer          not null, primary key
+#  email                  :string           not null
 #  name                   :string
 #  affiliation            :string
 #  user_type              :string
@@ -25,15 +26,13 @@
 #
 
 class User < ActiveRecord::Base
-  self.primary_key = 'email'
-
   devise :database_authenticatable,
          :recoverable,
          :trackable
 
-  has_many :changesets, foreign_key: :author_email
+  has_many :changesets
 
-  validates :email, presence: true
+  validates :email, presence: true, uniqueness: true
 
   extend Enumerize
   enumerize :user_type, in: [
@@ -45,14 +44,6 @@ class User < ActiveRecord::Base
     :transit_agency_staff,
     :other_public_agency_staff
   ]
-
-  before_update :update_email_on_changesets
-
-  def update_email_on_changesets
-    if email_changed?
-      Changeset.where(author_email: email_change.first).update_all(author_email: email_change.second)
-    end
-  end
 
   include CanBeSerializedToCsv
   def self.csv_column_names

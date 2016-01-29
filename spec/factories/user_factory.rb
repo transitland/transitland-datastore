@@ -2,7 +2,8 @@
 #
 # Table name: users
 #
-#  email                  :string           not null, primary key
+#  id                     :integer          not null, primary key
+#  email                  :string           not null
 #  name                   :string
 #  affiliation            :string
 #  user_type              :string

@@ -2,7 +2,8 @@
 #
 # Table name: users
 #
-#  email                  :string           not null, primary key
+#  id                     :integer          not null, primary key
+#  email                  :string           not null
 #  name                   :string
 #  affiliation            :string
 #  user_type              :string
@@ -38,15 +39,7 @@ describe User do
   end
 
   it 'can author changesets' do
-    changeset = create(:changeset, author: user)
-    expect(changeset.author).to eq user
-  end
-
-  it 'if its email is changed, changesets associations are updated too' do
-    create_list(:changeset, 5, author: user)
-    create_list(:changeset, 2)
-    expect(user.changesets.count).to eq 5
-    user.update(email: 'new@example.com')
-    expect(user.changesets.count).to eq 5
+    changeset = create(:changeset, user: user)
+    expect(changeset.user).to eq user
   end
 end
