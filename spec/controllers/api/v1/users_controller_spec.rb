@@ -42,7 +42,7 @@ describe Api::V1::UsersController do
   describe 'POST destroy' do
     it 'can destroy a user' do
       post :destroy, id: user.id
-      expect(response.status).to eq 200
+      expect(response.status).to eq 204
       expect(User.count).to eq 0
     end
   end
