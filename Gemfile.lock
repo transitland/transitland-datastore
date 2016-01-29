@@ -310,6 +310,9 @@ GEM
       rspec-expectations (~> 3.4.0)
       rspec-mocks (~> 3.4.0)
       rspec-support (~> 3.4.0)
+    rspec-sidekiq (2.2.0)
+      rspec (~> 3.0, >= 3.0.0)
+      sidekiq (>= 2.4.0)
     rspec-support (3.4.1)
     rubocop (0.36.0)
       parser (>= 2.3.0.0, < 3.0)
@@ -421,6 +424,7 @@ DEPENDENCIES
   redis-rails
   rgeo-geojson
   rspec-rails
+  rspec-sidekiq
   rubocop
   rubocop-rspec
   sentry-raven
@@ -437,4 +441,4 @@ DEPENDENCIES
   whenever
 
 BUNDLED WITH
-   1.10.6
+   1.11.2

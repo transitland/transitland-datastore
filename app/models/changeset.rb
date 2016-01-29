@@ -70,6 +70,7 @@ class Changeset < ActiveRecord::Base
   end
 
   after_initialize :set_default_values
+  after_create :creation_email
 
   def entities_created_or_updated
     # NOTE: this is probably evaluating the SQL queries, rather than merging together ARel relations
@@ -131,6 +132,11 @@ class Changeset < ActiveRecord::Base
           raise Changeset::Error.new(self, $!.message, $!.backtrace)
         end
       end
+      unless Figaro.env.send_changeset_emails_to_users.presence == 'false'
+        if self.user && self.user.email.present? && !self.user.admin
+          ChangesetMailer.delay.application(self.id)
+        end
+      end
       # Now that the transaction is complete and has been committed,
       # we can do some async tasks like conflate stops with OSM.
       if Figaro.env.auto_conflate_stops_with_osm.present? &&
@@ -164,6 +170,14 @@ class Changeset < ActiveRecord::Base
   def set_default_values
     if self.new_record?
       self.applied ||= false
+    end
+  end
+
+  def creation_email
+    unless Figaro.env.send_changeset_emails_to_users.presence == 'false'
+      if self.user && self.user.email.present? && !self.user.admin
+        ChangesetMailer.delay.creation(self.id)
+      end
     end
   end
 
