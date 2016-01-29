@@ -4,8 +4,8 @@ def load_feed(import_level=1)
   graph = GTFSGraph.new(feed_version.file.path, feed, feed_version)
   graph.create_change_osr(import_level)
   if import_level >= 2
-    graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map|
-      graph.ssp_perform_async(trip_ids, agency_map, route_map, stop_map)
+    graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map, rsp_map|
+      graph.ssp_perform_async(trip_ids, agency_map, route_map, stop_map, rsp_map)
     end
   end
   return feed, feed_version
@@ -72,6 +72,10 @@ describe GTFSGraph do
         "gtfs://f-9q9-caltrain/s/777402"
       )
       expect(s.timezone).to eq('America/Los_Angeles')
+    end
+
+    it 'created known RouteStopPatterns' do
+      expect(@feed.imported_route_stop_patterns.count).to eq(51)
     end
 
     it 'created known Operator that serves known Routes' do

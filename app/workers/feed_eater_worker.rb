@@ -44,15 +44,15 @@ class FeedEaterWorker
       graph.create_change_osr(import_level)
       if import_level >= 2
         schedule_jobs = []
-        graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map|
+        graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map, rsp_map|
           # Create FeedScheduleImport record for FESW job
           feed_schedule_import = feed_version_import.feed_schedule_imports.create!
           # Don't enqueue immediately to avoid races
-          schedule_jobs << [feed_schedule_import.id, trip_ids, agency_map, route_map, stop_map]
+          schedule_jobs << [feed_schedule_import.id, trip_ids, agency_map, route_map, stop_map, rsp_map]
         end
-        schedule_jobs.each do |feed_schedule_import_id, trip_ids, agency_map, route_map, stop_map|
+        schedule_jobs.each do |feed_schedule_import_id, trip_ids, agency_map, route_map, stop_map, rsp_map|
           logger.info "FeedEaterWorker #{feed_onestop_id}: Enqueue schedule job"
-          FeedEaterScheduleWorker.perform_async(feed.onestop_id, feed_version.sha1, feed_schedule_import_id, trip_ids, agency_map, route_map, stop_map)
+          FeedEaterScheduleWorker.perform_async(feed.onestop_id, feed_version.sha1, feed_schedule_import_id, trip_ids, agency_map, route_map, stop_map, rsp_map)
         end
       end
     rescue Exception => e

@@ -37,7 +37,8 @@ class RouteSerializer < CurrentEntitySerializer
              :operated_by_onestop_id,
              :operated_by_name,
              :created_at,
-             :updated_at
+             :updated_at,
+             :route_stop_patterns_by_onestop_id
 
   def operated_by_onestop_id
     object.operator.try(:onestop_id)
@@ -45,5 +46,9 @@ class RouteSerializer < CurrentEntitySerializer
 
   def operated_by_name
     object.operator.try(:name)
+  end
+
+  def route_stop_patterns_by_onestop_id
+    object.route_stop_patterns.map(&:onestop_id)
   end
 end

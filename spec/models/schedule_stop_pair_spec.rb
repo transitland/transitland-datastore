@@ -40,6 +40,9 @@
 #  pickup_type                        :string
 #  drop_off_type                      :string
 #  active                             :boolean
+#  route_stop_pattern_id              :integer
+#  origin_dist_traveled               :float
+#  destination_dist_traveled          :float
 #
 # Indexes
 #
@@ -53,6 +56,7 @@
 #  index_current_schedule_stop_pairs_on_active                 (active)
 #  index_current_schedule_stop_pairs_on_operator_id            (operator_id)
 #  index_current_schedule_stop_pairs_on_origin_departure_time  (origin_departure_time)
+#  index_current_schedule_stop_pairs_on_route_stop_pattern_id  (route_stop_pattern_id)
 #  index_current_schedule_stop_pairs_on_updated_at             (updated_at)
 #
 
@@ -173,6 +177,45 @@ RSpec.describe ScheduleStopPair, type: :model do
       expect(ScheduleStopPair.where_service_from_date(expect_end0).count).to eq(2)
       expect(ScheduleStopPair.where_service_from_date(expect_end1).count).to eq(1)
       expect(ScheduleStopPair.where_service_from_date(expect_end2).count).to eq(0)
+    end
+
+    it 'where service before date' do
+      expect_none = Date.new(2010, 01, 01)
+      expect_all = Date.new(2020, 01, 01)
+      expect_start1 = Date.new(2013, 01, 01)
+      expect_start2 = Date.new(2015, 01, 01)
+      expect_end1 = Date.new(2016, 01, 01)
+      expect_end2 = Date.new(2018, 01, 01)
+      create(:schedule_stop_pair, service_start_date: expect_start1, service_end_date: expect_end1)
+      create(:schedule_stop_pair, service_start_date: expect_start2, service_end_date: expect_end2)
+      expect(ScheduleStopPair.where_service_before_date(expect_none).count).to eq(0)
+      expect(ScheduleStopPair.where_service_before_date(expect_all).count).to eq(2)
+      expect(ScheduleStopPair.where_service_before_date(expect_start1).count).to eq(1)
+      expect(ScheduleStopPair.where_service_before_date(expect_start2).count).to eq(2)
+    end
+
+    it 'where service before and after dates' do
+      # test where_service_before_date & where_service_from_date together
+      expect_start1 = Date.new(2013, 01, 01)
+      expect_start2 = Date.new(2015, 01, 01)
+      expect_end1 = Date.new(2016, 01, 01)
+      expect_end2 = Date.new(2018, 01, 01)
+      create(:schedule_stop_pair, service_start_date: expect_start1, service_end_date: expect_end1)
+      create(:schedule_stop_pair, service_start_date: expect_start2, service_end_date: expect_end2)
+      tests = [
+        ['2010-01-01', '2020-01-01', 2],
+        ['2010-01-01', '2013-01-01', 1],
+        ['2010-01-01', '2014-01-01', 1],
+        ['2010-01-01', '2015-01-01', 2],
+        ['2020-01-01', '2022-01-01', 0],
+      ].each do |start_date, end_date, count|
+        expect(
+          ScheduleStopPair
+            .where_service_from_date(start_date)
+            .where_service_before_date(end_date)
+            .count
+        ).to eq(count)
+      end
     end
 
     it 'where origin_departure_between' do
