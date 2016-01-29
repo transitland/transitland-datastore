@@ -26,7 +26,8 @@
 #
 
 class UserSerializer < ApplicationSerializer
-  attributes :email,
+  attributes :id,
+             :email,
              :name,
              :affiliation,
              :user_type,
