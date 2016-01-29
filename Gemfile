@@ -37,6 +37,7 @@ gem 'text'
 
 # authentication and authorization
 gem 'rack-cors', require: 'rack/cors'
+gem 'devise'
 
 # providing API
 gem 'active_model_serializers', '0.9.4'
@@ -74,6 +75,7 @@ gem 'database_cleaner', group: :test
 gem 'factory_girl_rails', group: [:development, :test]
 gem 'ffaker', group: [:development, :test]
 gem 'rspec-rails', group: [:development, :test]
+gem 'rspec-sidekiq', group: :test
 gem 'vcr', group: :test
 gem 'webmock', group: :test
 gem 'airborne', group: :test

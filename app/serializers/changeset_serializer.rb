@@ -8,6 +8,11 @@
 #  applied_at :datetime
 #  created_at :datetime
 #  updated_at :datetime
+#  user_id    :integer
+#
+# Indexes
+#
+#  index_changesets_on_user_id  (user_id)
 #
 
 class ChangesetSerializer < ApplicationSerializer
@@ -17,7 +22,13 @@ class ChangesetSerializer < ApplicationSerializer
              :applied_at,
              :created_at,
              :updated_at,
-             :change_payloads
+             :change_payloads,
+             :user
+
+  def user
+    object.user.id if object.user
+  end
+
 
   def change_payloads
     object.change_payloads.pluck(:id)

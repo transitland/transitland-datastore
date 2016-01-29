@@ -15,3 +15,4 @@ key | possible values | default | description
 `MAX_HOURS_SINCE_LAST_CONFLATE` | Any real number >= 0 | 84 hours | Stops that were last conflated before this number of hours before the re-conflation check time will be re-conflated.
 `FEED_EATER_CHANGE_PAYLOAD_MAX_ENTITIES` | Any integer > 0 | 1,000 | Set the number of entities that FeedEaterWorker and FeedEaterScheduleWorker will put into each changeset
 `FEED_EATER_STOP_TIMES_MAX_LOAD` | Any integer > 0 | 100,000 | When FeedEaterWorker spawns FeedEaterScheduleWorkers, this is the number of lines from a GTFS feed's `stop_times.txt` that will be sent to each FeedEaterScheduleWorker job
+`SEND_CHANGESET_EMAILS_TO_USERS` | `true`, `false` | `true` | By default, e-mail notifications go out to a changeset's author (as long as the user isn't an admin)

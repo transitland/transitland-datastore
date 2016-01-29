@@ -13,8 +13,6 @@
 #  index_change_payloads_on_changeset_id  (changeset_id)
 #
 
-# require 'rails_helper'
-
 RSpec.describe ChangePayload, type: :model do
   # Changeset/ChangePayload tests are in changeset_spec.rb
 

@@ -6,10 +6,12 @@ namespace :db do
         json = JSON.parse(file.read)
 
         puts "Creating changeset from #{file_path}"
-        changeset = Changeset.create(
+        changeset = Changeset.new(
           payload: json['changeset']['payload'],
           notes: json['changeset']['notes']
         )
+        changeset.set_user_by_params(json['changeset']['user'].with_indifferent_access)
+        changeset.save!
         puts "Changeset ##{changeset.id} created"
 
         puts "Applying changeset ##{changeset.id}"

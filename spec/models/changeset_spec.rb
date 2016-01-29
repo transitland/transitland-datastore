@@ -8,28 +8,58 @@
 #  applied_at :datetime
 #  created_at :datetime
 #  updated_at :datetime
+#  user_id    :integer
+#
+# Indexes
+#
+#  index_changesets_on_user_id  (user_id)
 #
 
 describe Changeset do
-  it 'can be created' do
-    changeset = create(:changeset)
-    expect(Changeset.exists?(changeset.id)).to be true
-  end
+  context 'creation' do
+    it 'is possible' do
+      changeset = create(:changeset)
+      expect(Changeset.exists?(changeset.id)).to be true
+    end
 
-  it 'can be created with an initial payload (compat)' do
-    payload = {
-      changes: [
-        {
-          action: "createUpdate",
-          stop: {
-            onestopId: 's-9q8yt4b-1AvHoS',
-            name: '1st Ave. & Holloway St.'
+    it 'is possible with an initial payload (compat)' do
+      payload = {
+        changes: [
+          {
+            action: "createUpdate",
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              name: '1st Ave. & Holloway St.'
+            }
           }
-        }
-      ]
-    }
-    changeset = build(:changeset, payload: payload)
-    expect(changeset.change_payloads.count).equal?(1)
+        ]
+      }
+      changeset = build(:changeset, payload: payload)
+      expect(changeset.change_payloads.count).equal?(1)
+    end
+
+    context 'creation e-mail' do
+      it 'sent to normal user' do
+        allow(Figaro.env).to receive(:send_changeset_emails_to_users) { 'true' }
+        user = create(:user)
+        changeset = create(:changeset, user: user)
+        expect(ChangesetMailer.instance_method :creation).to be_delayed(changeset.id)
+      end
+
+      it 'not sent to admin user' do
+        allow(Figaro.env).to receive(:send_changeset_emails_to_users) { 'false' }
+        user = create(:user, admin: true)
+        changeset = create(:changeset, user: user)
+        expect(ChangesetMailer.instance_method :creation).to_not be_delayed(changeset.id)
+      end
+
+      it 'not sent when disabled' do
+        allow(Figaro.env).to receive(:send_changeset_emails_to_users) { 'false' }
+        user = create(:user)
+        changeset = create(:changeset, user: user)
+        expect(ChangesetMailer.instance_method :creation).to_not be_delayed(changeset.id)
+      end
+    end
   end
 
   it 'sorts payloads by created_at' do
@@ -184,6 +214,27 @@ describe Changeset do
       expect(OldOperatorServingStop.count).to eq 1
       expect(OldOperatorServingStop.first.operator).to eq Operator.find_by_onestop_id!('o-9q8y-SFMTA')
       expect(OldOperatorServingStop.first.stop).to eq Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS')
+    end
+
+    context 'application e-mail' do
+      it 'sent to normal user' do
+        @changeset1.user = create(:user)
+        @changeset1.apply!
+        expect(ChangesetMailer.instance_method :application).to be_delayed(@changeset1.id)
+      end
+
+      it 'not sent to admin user' do
+        @changeset1.user = create(:user, admin: true)
+        @changeset1.apply!
+        expect(ChangesetMailer.instance_method :application).to_not be_delayed(@changeset1.id)
+      end
+
+      it 'not sent when disabled' do
+        allow(Figaro.env).to receive(:send_changeset_emails_to_users) { 'false' }
+        @changeset1.user = create(:user)
+        @changeset1.apply!
+        expect(ChangesetMailer.instance_method :application).to_not be_delayed(@changeset1.id)
+      end
     end
   end
 
