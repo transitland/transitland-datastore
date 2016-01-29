@@ -25,6 +25,11 @@ class ChangesetSerializer < ApplicationSerializer
              :change_payloads,
              :user
 
+  def user
+    object.user.id if object.user
+  end
+
+
   def change_payloads
     object.change_payloads.pluck(:id)
   end

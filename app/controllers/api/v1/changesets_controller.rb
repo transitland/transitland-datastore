@@ -26,7 +26,7 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   end
 
   def create
-    user_params = changeset_params.delete(:user)
+    user_params = changeset_params.delete(:user).compact
     @changeset = Changeset.new(changeset_params)
     if user_params.present?
       @changeset.set_user_by_params(user_params)
@@ -44,7 +44,7 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
     if @changeset.applied
       raise Changeset::Error.new(@changeset, 'cannot update a Changeset that has already been applied')
     else
-      user_params = changeset_params.delete(:user)
+      user_params = changeset_params.delete(:user).compact
       @changeset.update!(changeset_params)
       if user_params.present?
         @changeset.set_user_by_params(user_params)

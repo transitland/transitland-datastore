@@ -64,7 +64,8 @@ class Changeset < ActiveRecord::Base
   belongs_to :user, autosave: true
 
   def set_user_by_params(user_params)
-    self.user = User.find_or_create_by(user_params)
+    self.user = User.find_or_initialize_by(email: user_params[:email])
+    self.user.update_attributes(user_params)
   end
 
   after_initialize :set_default_values
