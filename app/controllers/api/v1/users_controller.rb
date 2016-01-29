@@ -33,7 +33,7 @@ class Api::V1::UsersController < Api::V1::BaseApiController
 
   def destroy
     @user.destroy!
-    return render json: {}
+    render json: {}, status: :no_content
   end
 
   def update
