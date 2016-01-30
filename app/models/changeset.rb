@@ -62,6 +62,8 @@ class Changeset < ActiveRecord::Base
   has_many :route_stop_patterns_destroyed, class_name: 'OldRouteStopPattern', foreign_key: 'destroyed_in_changeset_id'
 
   belongs_to :user, autosave: true
+  belongs_to :feed
+  belongs_to :feed_version
 
   def set_user_by_params(user_params)
     self.user = User.find_or_initialize_by(email: user_params[:email])
