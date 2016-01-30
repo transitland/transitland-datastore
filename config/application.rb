@@ -60,12 +60,12 @@ module TransitlandDatastore
       # use Mandrill to send e-mail
       config.action_mailer.smtp_settings = {
           address: "smtp.mandrillapp.com",
-          port: 25, # ports 587 and 2525 are also supported with STARTTLS
-          enable_starttls_auto: true, # detects and uses STARTTLS
+          port: 587,
+          enable_starttls_auto: true,
           user_name: Figaro.env.mandrill_user_name,
-          password: Figaro.env.madrill_password, # SMTP password is any valid API key
-          authentication: 'login', # Mandrill supports 'plain' or 'login'
-          domain: Figaro.env.HOST, # your domain to identify your server when connecting
+          password: Figaro.env.mandrill_password,
+          authentication: :plain,
+          domain: HOST
         }
     end
   end
