@@ -31,6 +31,7 @@ gem 'gtfs', github: 'transitland/gtfs', tag: '332408d4139e8b837e69c32691267294e3
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 gem 'json-schema', '2.5.2' # running into problems with 2.6.0
+gem 'email_validator'
 
 # text matching
 gem 'text'

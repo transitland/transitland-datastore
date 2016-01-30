@@ -32,7 +32,7 @@ class User < ActiveRecord::Base
 
   has_many :changesets
 
-  validates :email, presence: true, uniqueness: true
+  validates :email, presence: true, uniqueness: true, email: true
 
   extend Enumerize
   enumerize :user_type, in: [
