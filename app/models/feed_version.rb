@@ -81,8 +81,9 @@ class FeedVersion < ActiveRecord::Base
   def read_gtfs_calendar_dates
     if file.present? && file_changed?
       gtfs_file = GTFS::Source.build(file.path, {strict: false})
-      self.earliest_calendar_date ||= gtfs_file.calendars.map {|c| c.start_date}.min
-      self.latest_calendar_date   ||= gtfs_file.calendars.map {|c| c.end_date}.max
+      start_date, end_date = gtfs_file.service_period_range
+      self.earliest_calendar_date ||= start_date
+      self.latest_calendar_date ||= end_date
     end
   end
 

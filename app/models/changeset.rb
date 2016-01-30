@@ -8,6 +8,11 @@
 #  applied_at :datetime
 #  created_at :datetime
 #  updated_at :datetime
+#  user_id    :integer
+#
+# Indexes
+#
+#  index_changesets_on_user_id  (user_id)
 #
 
 class Changeset < ActiveRecord::Base
@@ -56,7 +61,16 @@ class Changeset < ActiveRecord::Base
   has_many :route_stop_patterns_created_or_updated, class_name: 'RouteStopPattern', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :route_stop_patterns_destroyed, class_name: 'OldRouteStopPattern', foreign_key: 'destroyed_in_changeset_id'
 
+  belongs_to :user, autosave: true
+
+  def set_user_by_params(user_params)
+    self.user = User.find_or_initialize_by(email: user_params[:email])
+    self.user.update_attributes(user_params)
+    self.user.user_type ||= nil # for some reason, Enumerize needs to see a value
+  end
+
   after_initialize :set_default_values
+  after_create :creation_email
 
   def entities_created_or_updated
     # NOTE: this is probably evaluating the SQL queries, rather than merging together ARel relations
@@ -118,6 +132,11 @@ class Changeset < ActiveRecord::Base
           raise Changeset::Error.new(self, $!.message, $!.backtrace)
         end
       end
+      unless Figaro.env.send_changeset_emails_to_users.presence == 'false'
+        if self.user && self.user.email.present? && !self.user.admin
+          ChangesetMailer.delay.application(self.id)
+        end
+      end
       # Now that the transaction is complete and has been committed,
       # we can do some async tasks like conflate stops with OSM.
       if Figaro.env.auto_conflate_stops_with_osm.present? &&
@@ -151,6 +170,14 @@ class Changeset < ActiveRecord::Base
   def set_default_values
     if self.new_record?
       self.applied ||= false
+    end
+  end
+
+  def creation_email
+    unless Figaro.env.send_changeset_emails_to_users.presence == 'false'
+      if self.user && self.user.email.present? && !self.user.admin
+        ChangesetMailer.delay.creation(self.id)
+      end
     end
   end
 
