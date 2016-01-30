@@ -82,9 +82,19 @@ class Changeset < ActiveRecord::Base
       operators_in_feed_created_or_updated +
       stops_created_or_updated +
       operators_created_or_updated +
-      routes_created_or_updated +
-      operators_serving_stop_created_or_updated +
-      routes_serving_stop_created_or_updated
+      routes_created_or_updated # +
+      # operators_serving_stop_created_or_updated +
+      # routes_serving_stop_created_or_updated
+    )
+  end
+
+  def onestop_entities_created_or_updated
+    (
+      feeds_created_or_updated +
+      operators_in_feed_created_or_updated +
+      stops_created_or_updated +
+      operators_created_or_updated +
+      routes_created_or_updated
     )
   end
 
@@ -117,37 +127,43 @@ class Changeset < ActiveRecord::Base
   end
 
   def apply!
-    if applied
-      raise Changeset::Error.new(self, 'has already been applied.')
-    else
-      Changeset.transaction do
-        begin
-          change_payloads.each do |change_payload|
-            change_payload.apply!
-          end
-          self.update(applied: true, applied_at: Time.now)
-          # Destroy change payloads
-          change_payloads.destroy_all
-        rescue
-          logger.error "Error applying Changeset #{self.id}: #{$!.message}"
-          logger.error $!.backtrace
-          raise Changeset::Error.new(self, $!.message, $!.backtrace)
+    fail raise Changeset::Error.new(self, 'has already been applied.') if applied
+    Changeset.transaction do
+      begin
+        change_payloads.each do |change_payload|
+          change_payload.apply!
         end
-      end
-      unless Figaro.env.send_changeset_emails_to_users.presence == 'false'
-        if self.user && self.user.email.present? && !self.user.admin
-          ChangesetMailer.delay.application(self.id)
+        self.update(applied: true, applied_at: Time.now)
+        # Create any feed-entity associations
+        if self.feed
+          self.onestop_entities_created_or_updated.each { |e|
+            e
+              .entities_imported_from_feed
+              .find_or_initialize_by(feed: feed, feed_version: feed_version)
+              .save!
+          }
         end
+        # Destroy change payloads
+        change_payloads.destroy_all
+      rescue
+        logger.error "Error applying Changeset #{self.id}: #{$!.message}"
+        logger.error $!.backtrace
+        raise Changeset::Error.new(self, $!.message, $!.backtrace)
       end
-      # Now that the transaction is complete and has been committed,
-      # we can do some async tasks like conflate stops with OSM.
-      if Figaro.env.auto_conflate_stops_with_osm.present? &&
-         Figaro.env.auto_conflate_stops_with_osm == 'true' &&
-         self.stops_created_or_updated.count > 0
-        ConflateStopsWithOsmWorker.perform_async(self.stops_created_or_updated.map(&:id))
-      end
-      true
     end
+    unless Figaro.env.send_changeset_emails_to_users.presence == 'false'
+      if self.user && self.user.email.present? && !self.user.admin
+        ChangesetMailer.delay.application(self.id)
+      end
+    end
+    # Now that the transaction is complete and has been committed,
+    # we can do some async tasks like conflate stops with OSM.
+    if Figaro.env.auto_conflate_stops_with_osm.present? &&
+       Figaro.env.auto_conflate_stops_with_osm == 'true' &&
+       self.stops_created_or_updated.count > 0
+      ConflateStopsWithOsmWorker.perform_async(self.stops_created_or_updated.map(&:id))
+    end
+    true
   end
 
   def revert!
