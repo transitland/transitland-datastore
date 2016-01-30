@@ -83,6 +83,8 @@ class Changeset < ActiveRecord::Base
       stops_created_or_updated +
       operators_created_or_updated +
       routes_created_or_updated +
+      route_stop_patterns_created_or_updated +
+      schedule_stop_pairs_created_or_updated +
       operators_serving_stop_created_or_updated +
       routes_serving_stop_created_or_updated
     )
@@ -94,7 +96,9 @@ class Changeset < ActiveRecord::Base
       operators_in_feed_created_or_updated +
       stops_created_or_updated +
       operators_created_or_updated +
-      routes_created_or_updated
+      routes_created_or_updated +
+      route_stop_patterns_created_or_updated +
+      schedule_stop_pairs_created_or_updated
     )
   end
 
