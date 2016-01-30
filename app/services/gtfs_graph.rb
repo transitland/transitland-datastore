@@ -346,10 +346,6 @@ class GTFSGraph
       onestopId: entity.onestop_id,
       name: entity.name,
       identifiedBy: entity.identified_by.uniq,
-      importedFromFeed: {
-        onestopId: @feed.onestop_id,
-        sha1: @feed_version.sha1
-      },
       geometry: entity.geometry,
       tags: entity.tags || {},
       timezone: entity.timezone,
@@ -362,10 +358,6 @@ class GTFSGraph
       onestopId: entity.onestop_id,
       name: entity.name,
       identifiedBy: entity.identified_by.uniq,
-      importedFromFeed: {
-        onestopId: @feed.onestop_id,
-        sha1: @feed_version.sha1
-      },
       geometry: entity.geometry,
       tags: entity.tags || {},
       timezone: entity.timezone
@@ -377,10 +369,6 @@ class GTFSGraph
       onestopId: entity.onestop_id,
       name: entity.name,
       identifiedBy: entity.identified_by.uniq,
-      importedFromFeed: {
-        onestopId: @feed.onestop_id,
-        sha1: @feed_version.sha1
-      },
       operatedBy: entity.operator.onestop_id,
       vehicleType: entity.vehicle_type,
       serves: entity.serves.map(&:onestop_id),
@@ -409,10 +397,6 @@ class GTFSGraph
     {
       onestopId: entity.onestop_id,
       identifiedBy: entity.identified_by.uniq,
-      importedFromFeed: {
-        onestopId: @feed.onestop_id,
-        sha1: @feed_version.sha1
-      },
       stopPattern: entity.stop_pattern,
       geometry: entity.geometry,
       isGenerated: entity.is_generated,
@@ -425,10 +409,6 @@ class GTFSGraph
 
   def make_change_ssp(entity)
     {
-      importedFromFeed: {
-        onestopId: @feed.onestop_id,
-        sha1: @feed_version.sha1
-      },
       originOnestopId: entity.origin.onestop_id,
       originTimezone: entity.origin_timezone,
       originArrivalTime: entity.origin_arrival_time,
