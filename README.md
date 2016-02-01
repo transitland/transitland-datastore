@@ -112,6 +112,11 @@ Example URL  | Parameters
 `GET /api/v1/routes?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
 `GET /api/v1/routes?tag_key=route_color` | find all routes that have a tag of `tag_key` with any value
 `GET /api/v1/routes?tag_key=route_color&tag_value=FEF0B5` | find all routes that have a tag of `tag_key` and a value of `tag_value`
+`GET /api/v1/route_stop_patterns` | none required
+`GET /api/v1/route_stop_patterns?traversed_by=r-9q8y-richmond~dalycity~millbrae` | find all Route Stop Patterns belonging to route
+`GET /api/v1/route_stop_patterns?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
+`GET /api/v1/route_stop_patterns?stops_visited=s-dr5rec3weg-whitehallferryterminal,s-dr5r4rn32w-stgeorgeferryterminal` | any one or more stop Onestop IDs, separated by comma. Finds Route Stop Patterns with stops_visited in stop_pattern.
+`GET /api/v1/route_stop_patterns?trips=01SFO10,02SFO10` | any one or more trip ids, separated by comma. Finds Route Stop Patterns with specified trips in trips.
 `POST /api/v1/webhooks/feed_fetcher` | ([secured](#api-authentication)) fetches all feeds
 `POST /api/v1/webhooks/feed_fetcher?feed_onestop_id=f-9q9-caltrain` | ([secured](#api-authentication)) fetches only one feed
 `POST /api/v1/webhooks/feed_eater?feed_onestop_id=f-9q9-caltrain,feed_version_sha1=ab1e6ac73943082803f110df4b0fdd63a1d6b9f7` | ([secured](#api-authentication))
