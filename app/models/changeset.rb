@@ -84,21 +84,14 @@ class Changeset < ActiveRecord::Base
       operators_created_or_updated +
       routes_created_or_updated +
       route_stop_patterns_created_or_updated +
-      schedule_stop_pairs_created_or_updated +
-      operators_serving_stop_created_or_updated +
-      routes_serving_stop_created_or_updated
+      schedule_stop_pairs_created_or_updated
     )
   end
 
-  def onestop_entities_created_or_updated
+  def relations_created_or_updated
     (
-      feeds_created_or_updated +
-      operators_in_feed_created_or_updated +
-      stops_created_or_updated +
-      operators_created_or_updated +
-      routes_created_or_updated +
-      route_stop_patterns_created_or_updated +
-      schedule_stop_pairs_created_or_updated
+      operators_serving_stop_created_or_updated +
+      routes_serving_stop_created_or_updated
     )
   end
 
@@ -109,6 +102,13 @@ class Changeset < ActiveRecord::Base
       stops_destroyed +
       operators_destroyed +
       routes_destroyed +
+      route_stop_patterns_destroyed +
+      schedule_stop_pairs_destroyed
+    )
+  end
+
+  def relations_destroyed
+    (
       operators_serving_stop_destroyed +
       routes_serving_stop_destroyed
     )
@@ -139,13 +139,13 @@ class Changeset < ActiveRecord::Base
         end
         self.update(applied: true, applied_at: Time.now)
         # Create any feed-entity associations
-        if self.feed
-          self.onestop_entities_created_or_updated.each { |e|
-            e
+        if feed && feed_version
+          self.entities_created_or_updated.each do |entity|
+            entity
               .entities_imported_from_feed
               .find_or_initialize_by(feed: feed, feed_version: feed_version)
               .save!
-          }
+          end
         end
         # Destroy change payloads
         change_payloads.destroy_all

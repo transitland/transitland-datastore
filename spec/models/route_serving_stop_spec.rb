@@ -69,7 +69,9 @@ describe RouteServingStop do
       expect(@changeset1.entities_created_or_updated).to match_array([
         Stop.find_by_onestop_id!('s-9q8yt4b-19Hollway'),
         Operator.find_by_onestop_id!('o-9q8y-SFMTA'),
-        Route.find_by_onestop_id!('r-9q8y-19Express'),
+        Route.find_by_onestop_id!('r-9q8y-19Express')
+      ])
+      expect(@changeset1.relations_created_or_updated).to match_array([
         OperatorServingStop.find_by_attributes({ operator_onestop_id: 'o-9q8y-SFMTA', stop_onestop_id: 's-9q8yt4b-19Hollway'}),
         RouteServingStop.find_by_attributes({ route_onestop_id: 'r-9q8y-19Express', stop_onestop_id: 's-9q8yt4b-19Hollway'})
       ])
