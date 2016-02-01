@@ -17,6 +17,7 @@ Every entity has a globally unique [Onestop ID](https://github.com/transitland/o
 * `Operator`
 * `Stop`
 * `Route`
+* `RouteStopPattern`
 
 The Datastore uses [changesets](doc/changesets.md) to track additions/edits/removals of entities.
 
