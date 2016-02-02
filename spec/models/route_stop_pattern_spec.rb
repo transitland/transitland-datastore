@@ -188,6 +188,7 @@ describe RouteStopPattern do
                                                 stop_b.geometry[:coordinates],
                                                 stop_c.geometry[:coordinates]])
       )
+      @trip = GTFS::Trip.new(trip_id: 'test', shape_id: 'test')
     end
 
     it 'can calculate distances when the geometry and stop coordinates are equal' do
@@ -266,10 +267,10 @@ describe RouteStopPattern do
         onestop_id: "s-9q9hwp6epk-before~geometry",
         geometry: point = Stop::GEOFACTORY.point(-121.5, 37.30).to_s
       )
-      @rsp.stop_pattern = ["s-9q9hwp6epk-before~geometry",
-                           "s-9q9k659e3r-sanjosecaltrainstation",
-                           "s-9q9hxhecje-sunnyvalecaltrainstation",
-                           "s-9q9hwp6epk-mountainviewcaltrainstation"]
+      @rsp.stop_pattern = @rsp.stop_pattern.unshift("s-9q9hwp6epk-before~geometry")
+      stop_points = @rsp.geometry[:coordinates].unshift([-121.5, 37.30])
+      has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
+      @rsp.tl_geometry(stop_points, issues)
       expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
                                                        a_value_within(0.1).of(35756.8357),
                                                        a_value_within(0.1).of(48374.7628),
@@ -282,6 +283,9 @@ describe RouteStopPattern do
        geometry: point = Stop::GEOFACTORY.point(-122.1, 37.41).to_s
       )
       @rsp.stop_pattern << "s-9q9hwp6epk-after~geometry"
+      stop_points = @rsp.geometry[:coordinates] << [-122.1, 37.41]
+      has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
+      @rsp.tl_geometry(stop_points, issues)
       expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
                                                        a_value_within(0.1).of(12617.9271),
                                                        a_value_within(0.1).of(17001.5107),
@@ -312,6 +316,20 @@ describe RouteStopPattern do
       has_issues, issues = @empty_rsp.evaluate_geometry(@trip, [])
       expect(has_issues).to be true
       expect(issues).to match_array([:empty])
+    end
+
+    it 'is marked correctly as having an after stop after evaluation' do
+      stop_points = [[-122.401811, 37.706675],[-122.394935, 37.776348], [-122.38, 37.8]]
+      @trip.shape_id = 'test_shape'
+      has_issues, issues = @geom_rsp.evaluate_geometry(@trip, stop_points)
+      expect(has_issues).to be true
+      expect(issues).to match_array([:has_after_stop])
+
+      stop_points = [[-122.401811, 37.706675],[-122.394935, 37.776348], [-122.396, 37.75]]
+      @trip.shape_id = 'test_shape'
+      has_issues, issues = @geom_rsp.evaluate_geometry(@trip, stop_points)
+      expect(has_issues).to be false
+      expect(issues).to match_array([])
     end
 
     it 'adds geometry consisting of stop points' do
