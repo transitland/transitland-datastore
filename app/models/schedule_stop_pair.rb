@@ -137,7 +137,7 @@ class ScheduleStopPair < BaseScheduleStopPair
     date = date.is_a?(Date) ? date : Date.parse(date)
     where("service_start_date <= ?", date)
   }
-  
+
   # Service trips_out in a bbox
   scope :where_origin_bbox, -> (bbox) {
     stops = Stop.geometry_within_bbox(bbox)
@@ -215,21 +215,11 @@ class ScheduleStopPair < BaseScheduleStopPair
     {
       origin_onestop_id: :origin,
       destination_onestop_id: :destination,
-      route_onestop_id: :route
+      route_onestop_id: :route,
+      route_stop_pattern_onestop_id: :route_stop_pattern
     }.each do |k,v|
       cache[params[k]] ||= OnestopId.find!(params[k])
       params[v] = cache[params.delete(k)]
-    end
-    if params[:route_stop_pattern_onestop_id].present?
-      params[:route_stop_pattern] = RouteStopPattern.find_by_onestop_id!(params[:route_stop_pattern_onestop_id])
-    end
-    if params[:imported_from_feed]
-      feed_onestop_id = params[:imported_from_feed][:onestop_id]
-      feed_version_id = params[:imported_from_feed][:sha1]
-      cache[feed_onestop_id] ||= OnestopId.find!(feed_onestop_id)
-      cache[feed_version_id] ||= cache[feed_onestop_id].feed_versions.find_by!(sha1: feed_version_id)
-      params[:imported_from_feed][:feed] = cache[feed_onestop_id]
-      params[:imported_from_feed][:feed_version] = cache[feed_version_id]
     end
     params[:operator] = params[:route].operator
     params
