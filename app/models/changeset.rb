@@ -131,12 +131,15 @@ class Changeset < ActiveRecord::Base
         self.update(applied: true, applied_at: Time.now)
         # Create any feed-entity associations
         if feed && feed_version
+          eiff_batch = []
           self.entities_created_or_updated do |entity|
-            entity
-              .entities_imported_from_feed
-              .find_or_initialize_by(feed: feed, feed_version: feed_version)
-              .save!
+            eiff_batch << entity.entities_imported_from_feed.find_or_initialize_by(feed: feed, feed_version: feed_version)
+            if eiff_batch.size >= 1000
+              EntityImportedFromFeed.import eiff_batch
+              eiff_batch = []
+            end
           end
+          EntityImportedFromFeed.import eiff_batch
         end
         # Destroy change payloads
         change_payloads.destroy_all
