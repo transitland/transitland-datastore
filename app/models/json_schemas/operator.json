@@ -46,19 +46,6 @@
         "format": "stop-onestop-id"
       }
     },
-    "importedFromFeed": {
-      "type": "object",
-      "properties": {
-        "onestopId": {
-          "type": "string",
-          "format": "feed-onestop-id"
-        },
-        "sha1": {
-          "type": "string",
-          "format": "sha1"
-        }
-      }
-    },
     "website": {
       "type": "string"
     }
