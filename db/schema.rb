@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160128305523) do
+ActiveRecord::Schema.define(version: 20160130014111) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -34,8 +34,12 @@ ActiveRecord::Schema.define(version: 20160128305523) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer  "user_id"
+    t.integer  "feed_id"
+    t.integer  "feed_version_id"
   end
 
+  add_index "changesets", ["feed_id"], name: "index_changesets_on_feed_id", using: :btree
+  add_index "changesets", ["feed_version_id"], name: "index_changesets_on_feed_version_id", using: :btree
   add_index "changesets", ["user_id"], name: "index_changesets_on_user_id", using: :btree
 
   create_table "current_feeds", force: :cascade do |t|

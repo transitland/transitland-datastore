@@ -30,7 +30,7 @@ class GTFSGraph
     stops = routes.map { |route| route.serves }.reduce(Set.new, :+)
     rsps = routes.map { |route| route.route_stop_patterns }.reduce(Set.new, :+)
     log "Create changeset"
-    changeset = Changeset.create()
+    changeset = Changeset.create(feed: @feed, feed_version: @feed_version)
     log "Create: Operators, Stops, Routes"
     # Update Feed Bounding Box
     log "  updating feed bounding box"
@@ -78,7 +78,7 @@ class GTFSGraph
       rsp_distances_map[onestop_id] = distances
     end
     log "Create changeset"
-    changeset = Changeset.create()
+    changeset = Changeset.create(feed: @feed, feed_version: @feed_version)
     log "Create: SSPs"
     total = 0
     ssps = []
@@ -346,10 +346,6 @@ class GTFSGraph
       onestopId: entity.onestop_id,
       name: entity.name,
       identifiedBy: entity.identified_by.uniq,
-      importedFromFeed: {
-        onestopId: @feed.onestop_id,
-        sha1: @feed_version.sha1
-      },
       geometry: entity.geometry,
       tags: entity.tags || {},
       timezone: entity.timezone,
@@ -362,10 +358,6 @@ class GTFSGraph
       onestopId: entity.onestop_id,
       name: entity.name,
       identifiedBy: entity.identified_by.uniq,
-      importedFromFeed: {
-        onestopId: @feed.onestop_id,
-        sha1: @feed_version.sha1
-      },
       geometry: entity.geometry,
       tags: entity.tags || {},
       timezone: entity.timezone
@@ -377,10 +369,6 @@ class GTFSGraph
       onestopId: entity.onestop_id,
       name: entity.name,
       identifiedBy: entity.identified_by.uniq,
-      importedFromFeed: {
-        onestopId: @feed.onestop_id,
-        sha1: @feed_version.sha1
-      },
       operatedBy: entity.operator.onestop_id,
       vehicleType: entity.vehicle_type,
       serves: entity.serves.map(&:onestop_id),
@@ -409,10 +397,6 @@ class GTFSGraph
     {
       onestopId: entity.onestop_id,
       identifiedBy: entity.identified_by.uniq,
-      importedFromFeed: {
-        onestopId: @feed.onestop_id,
-        sha1: @feed_version.sha1
-      },
       stopPattern: entity.stop_pattern,
       geometry: entity.geometry,
       isGenerated: entity.is_generated,
@@ -425,10 +409,6 @@ class GTFSGraph
 
   def make_change_ssp(entity)
     {
-      importedFromFeed: {
-        onestopId: @feed.onestop_id,
-        sha1: @feed_version.sha1
-      },
       originOnestopId: entity.origin.onestop_id,
       originTimezone: entity.origin_timezone,
       originArrivalTime: entity.origin_arrival_time,

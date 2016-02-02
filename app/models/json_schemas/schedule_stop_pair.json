@@ -6,7 +6,6 @@
     "originOnestopId",
     "destinationOnestopId",
     "routeOnestopId",
-    "importedFromFeed",
     "originArrivalTime",
     "originDepartureTime",
     "destinationArrivalTime",
@@ -91,19 +90,6 @@
     "pickupType": { "type": ["string","null"] },
     "dropOffType": { "type": ["string","null"] },
     "shapeDistTraveled": { "type": ["number","null"] },
-    "tags": { "type": "object" },
-    "importedFromFeed": {
-      "type": "object",
-      "properties": {
-        "onestopId": {
-          "type": "string",
-          "format": "feed-onestop-id"
-        },
-        "sha1": {
-          "type": "string",
-          "format": "sha1"
-        }
-      }
-    }
+    "tags": { "type": "object" }
   }
 }
