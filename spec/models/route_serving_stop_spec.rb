@@ -66,13 +66,13 @@ describe RouteServingStop do
       @changeset1.apply!
       expect(Stop.find_by_onestop_id!('s-9q8yt4b-19Hollway').operators).to include Operator.find_by_onestop_id!('o-9q8y-SFMTA')
       expect(Stop.find_by_onestop_id!('s-9q8yt4b-19Hollway').routes).to include Route.find_by_onestop_id!('r-9q8y-19Express')
-      expect(@changeset1.entities_created_or_updated).to match_array([
-        Stop.find_by_onestop_id!('s-9q8yt4b-19Hollway'),
-        Operator.find_by_onestop_id!('o-9q8y-SFMTA'),
-        Route.find_by_onestop_id!('r-9q8y-19Express')
+      expect(@changeset1.stops_created_or_updated).to match_array([Stop.find_by_onestop_id!('s-9q8yt4b-19Hollway')])
+      expect(@changeset1.operators_created_or_updated).to match_array([Operator.find_by_onestop_id!('o-9q8y-SFMTA')])
+      expect(@changeset1.routes_created_or_updated).to match_array([Route.find_by_onestop_id!('r-9q8y-19Express')])
+      expect(@changeset1.operators_serving_stop_created_or_updated).to match_array([
+        OperatorServingStop.find_by_attributes({ operator_onestop_id: 'o-9q8y-SFMTA', stop_onestop_id: 's-9q8yt4b-19Hollway'})
       ])
-      expect(@changeset1.relations_created_or_updated).to match_array([
-        OperatorServingStop.find_by_attributes({ operator_onestop_id: 'o-9q8y-SFMTA', stop_onestop_id: 's-9q8yt4b-19Hollway'}),
+      expect(@changeset1.routes_serving_stop_created_or_updated).to match_array([
         RouteServingStop.find_by_attributes({ route_onestop_id: 'r-9q8y-19Express', stop_onestop_id: 's-9q8yt4b-19Hollway'})
       ])
       expect(Route.find_by_onestop_id!('r-9q8y-19Express').geometry[:coordinates][0][0]).to eq [-73.87481689453125, 40.88860081193033]

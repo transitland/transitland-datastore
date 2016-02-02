@@ -14,7 +14,7 @@ describe OperatorRouteStopRelationship do
     it 'should be able to create an OperatorServingStop when none exists already' do
       @operator_route_stop_relationship1.apply_change(in_changeset: @changeset1)
       expect(@stop.operators).to include @operator
-      expect(@changeset1.relations_created_or_updated).to include OperatorServingStop.first
+      expect(@changeset1.operators_serving_stop_created_or_updated).to include OperatorServingStop.first
     end
 
     it 'should be able to delete an OperatorServingStop when one already exists' do
@@ -30,7 +30,6 @@ describe OperatorRouteStopRelationship do
       expect(@stop.operators).to_not include @operator
       expect(OldOperatorServingStop.count).to eq 1
       expect(changeset2.operators_serving_stop_destroyed).to include OldOperatorServingStop.first
-      expect(changeset2.relations_destroyed).to include OldOperatorServingStop.first
     end
 
     it "should be agreeable when trying to delete an OperatorServingStop that doesn't exist" do

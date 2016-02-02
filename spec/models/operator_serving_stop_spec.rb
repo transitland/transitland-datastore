@@ -52,11 +52,13 @@ describe OperatorServingStop do
       @changeset1.apply!
       expect(Stop.find_by_onestop_id!('s-9q8yt4b-19Hollway').operators).to include Operator.find_by_onestop_id!('o-9q8y-SFMTA')
       expect(Operator.find_by_onestop_id!('o-9q8y-SFMTA').stops).to include Stop.find_by_onestop_id!('s-9q8yt4b-19Hollway')
-      expect(@changeset1.entities_created_or_updated).to match_array([
-        Stop.find_by_onestop_id!('s-9q8yt4b-19Hollway'),
+      expect(@changeset1.stops_created_or_updated).to match_array([
+        Stop.find_by_onestop_id!('s-9q8yt4b-19Hollway')
+      ])
+      expect(@changeset1.operators_created_or_updated).to match_array([
         Operator.find_by_onestop_id!('o-9q8y-SFMTA')
       ])
-      expect(@changeset1.relations_created_or_updated).to match_array([
+      expect(@changeset1.operators_serving_stop_created_or_updated).to match_array([
         OperatorServingStop.find_by_attributes({ operator_onestop_id: 'o-9q8y-SFMTA', stop_onestop_id: 's-9q8yt4b-19Hollway'})
       ])
     end
