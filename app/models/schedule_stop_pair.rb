@@ -218,6 +218,7 @@ class ScheduleStopPair < BaseScheduleStopPair
       route_onestop_id: :route,
       route_stop_pattern_onestop_id: :route_stop_pattern
     }.each do |k,v|
+      next if params[k].nil?
       cache[params[k]] ||= OnestopId.find!(params[k])
       params[v] = cache[params.delete(k)]
     end
