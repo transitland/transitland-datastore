@@ -131,7 +131,7 @@ class Changeset < ActiveRecord::Base
   end
 
   def apply!
-    fail raise Changeset::Error.new(self, 'has already been applied.') if applied
+    fail Changeset::Error.new(self, 'has already been applied.') if applied
     Changeset.transaction do
       begin
         change_payloads.each do |change_payload|
