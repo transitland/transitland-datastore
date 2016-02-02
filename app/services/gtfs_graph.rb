@@ -248,8 +248,7 @@ class GTFSGraph
       trip_stop_points = tl_stops.map {|s| s.geometry[:coordinates]}
       rsp = RouteStopPattern.from_gtfs(trip, tl_route.onestop_id, stop_pattern, trip_stop_points, feed_shape_points)
       # determine if RouteStopPattern exists
-      rsp = find_by_entity(rsp) #RouteStopPattern.find_rsp(tl_route.onestop_id, @onestop_id_to_rsp, rsp)
-      #@onestop_id_to_rsp[rsp.onestop_id] = rsp
+      rsp = find_by_entity(rsp)
       add_identifier(rsp, 'trip', trip)
       rsp.trips << trip.trip_id
       tl_route.route_stop_patterns << rsp
