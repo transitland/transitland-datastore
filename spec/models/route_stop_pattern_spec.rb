@@ -114,52 +114,6 @@ describe RouteStopPattern do
         route: @route
       )
     end
-
-    context 'RouteStopPattern.find_rsp' do
-      before(:each) do
-        @import_rsp_hash = { @import_rsp.onestop_id => @import_rsp }
-        @test_sp = [stop_a.onestop_id, stop_b.onestop_id, stop_c.onestop_id]
-        @test_geom = RouteStopPattern.line_string([stop_a.geometry[:coordinates],
-                                                        stop_b.geometry[:coordinates],
-                                                        stop_c.geometry[:coordinates]])
-        @test_rsp = RouteStopPattern.new(stop_pattern: @test_sp, geometry: @test_geom)
-      end
-
-      it 'returns the import rsp the test rsp matches to' do
-        expect(RouteStopPattern.find_rsp(@route_onestop_id, @import_rsp_hash, @test_rsp)).to be @import_rsp
-      end
-
-      it 'returns the test rsp when no match is found by route onestop id within both existing imports and saved rsps' do
-        route_onestop_id = 'r-9q9j-test'
-        found_rsp = RouteStopPattern.find_rsp(route_onestop_id, @import_rsp_hash, @test_rsp)
-        expect(found_rsp).to be @test_rsp
-        expect(found_rsp.onestop_id).to eq('r-9q9j-test-c2e44f-014503')
-      end
-
-      it 'returns the test rsp with the correct new onestop id when route and stop pattern combo is original' do
-        @test_rsp.stop_pattern = ["s-9q9k659e3r-sanjosecaltrainstation","s-9q9hxhecje-sunnyvalecaltrainstation"]
-        found_rsp = RouteStopPattern.find_rsp(@route_onestop_id, @import_rsp_hash, @test_rsp)
-        expect(found_rsp).to be @test_rsp
-        expect(found_rsp.onestop_id).to eq('r-9q9j-bullet-d2ed7b-014503')
-      end
-
-      it 'returns the test rsp with the correct new onestop id when route and geometry combo is original' do
-        @test_rsp.geometry = RouteStopPattern.line_string([[-121.902181, 37.329392],[-122.076327, 37.393879]])
-        found_rsp = RouteStopPattern.find_rsp(@route_onestop_id, @import_rsp_hash, @test_rsp)
-        expect(found_rsp).to be @test_rsp
-        expect(found_rsp.onestop_id).to eq('r-9q9j-bullet-c2e44f-8c801d')
-      end
-
-      it 'returns the saved rsp when test rsp is equivalent' do
-        test_sp = [stop_1.onestop_id, stop_2.onestop_id]
-        test_geom = RouteStopPattern.line_string([[-122.401811, 37.706675],[-122.394935, 37.776348]])
-        test_rsp = RouteStopPattern.new(stop_pattern: test_sp, geometry: test_geom)
-        found_rsp = RouteStopPattern.find_rsp(@route_onestop_id, @import_rsp_hash, test_rsp)
-        # object identity won't yield a perfect match
-        expect(found_rsp).to eq(@saved_rsp)
-        expect(found_rsp.onestop_id).to eq(@onestop_id)
-      end
-    end
   end
 
   it 'can be found by stops' do

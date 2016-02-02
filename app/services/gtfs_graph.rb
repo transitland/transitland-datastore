@@ -245,13 +245,11 @@ class GTFSGraph
       stop_pattern = tl_stops.map(&:onestop_id)
       next if stop_pattern.empty?
       # temporary RouteStopPattern
-      rsp = RouteStopPattern.from_gtfs(trip, stop_pattern, feed_shape_points)
       trip_stop_points = tl_stops.map {|s| s.geometry[:coordinates]}
-      has_issues, issues = rsp.evaluate_geometry(trip, trip_stop_points)
-      rsp.tl_geometry(trip_stop_points, issues) if has_issues
-      # determine if RouteStopPattern with same route, stop pattern, and geometry exists
-      rsp = RouteStopPattern.find_rsp(tl_route.onestop_id, @onestop_id_to_rsp, rsp)
-      @onestop_id_to_rsp[rsp.onestop_id] = rsp
+      rsp = RouteStopPattern.from_gtfs(trip, tl_route.onestop_id, stop_pattern, trip_stop_points, feed_shape_points)
+      # determine if RouteStopPattern exists
+      rsp = find_by_entity(rsp) #RouteStopPattern.find_rsp(tl_route.onestop_id, @onestop_id_to_rsp, rsp)
+      #@onestop_id_to_rsp[rsp.onestop_id] = rsp
       add_identifier(rsp, 'trip', trip)
       rsp.trips << trip.trip_id
       tl_route.route_stop_patterns << rsp
