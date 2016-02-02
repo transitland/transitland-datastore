@@ -1,5 +1,8 @@
 class GTFSGraph
 
+  class Error < StandardError
+  end
+
   CHANGE_PAYLOAD_MAX_ENTITIES = Figaro.env.feed_eater_change_payload_max_entities.try(:to_i) || 1_000
   STOP_TIMES_MAX_LOAD = Figaro.env.feed_eater_stop_times_max_load.try(:to_i) || 100_000
 
@@ -26,6 +29,7 @@ class GTFSGraph
     load_tl_routes
     load_tl_route_stop_patterns
     operators = load_tl_operators
+    fail GTFSGraph::Error.new('No agencies found that match operators_in_feed') unless operators.size > 0
     routes = operators.map { |operator| operator.serves }.reduce(Set.new, :+)
     stops = routes.map { |route| route.serves }.reduce(Set.new, :+)
     rsps = routes.map { |route| route.route_stop_patterns }.reduce(Set.new, :+)
