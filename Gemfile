@@ -29,6 +29,7 @@ gem 'squeel'
 gem 'enumerize'
 gem 'gtfs', github: 'transitland/gtfs', tag: 'v1.0.1'
 gem 'rgeo-geojson'
+gem 'haversine'
 gem 'c_geohash', require: 'geohash'
 gem 'json-schema'
 
