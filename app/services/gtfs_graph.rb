@@ -484,7 +484,6 @@ class GTFSGraph
       service_added_dates: service_period.added_dates,
       service_except_dates: service_period.except_dates
     )
-    route_stop_pattern.schedule_stop_pairs << ssp
     ssp
   end
 
