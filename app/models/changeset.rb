@@ -74,44 +74,35 @@ class Changeset < ActiveRecord::Base
   after_initialize :set_default_values
   after_create :creation_email
 
-  def entities_created_or_updated
-    # NOTE: this is probably evaluating the SQL queries, rather than merging together ARel relations
-    # in Rails 5, there will be an ActiveRecord::Relation.or() operator to use instead here
-    (
-      feeds_created_or_updated +
-      operators_in_feed_created_or_updated +
-      stops_created_or_updated +
-      operators_created_or_updated +
-      routes_created_or_updated +
-      route_stop_patterns_created_or_updated +
-      schedule_stop_pairs_created_or_updated
-    )
+  def entities_created_or_updated(&block)
+    # Pass &block to find_each for each kind of entity.
+    feeds_created_or_updated.find_each(&block)
+    operators_in_feed_created_or_updated.find_each(&block)
+    stops_created_or_updated.find_each(&block)
+    operators_created_or_updated.find_each(&block)
+    routes_created_or_updated.find_each(&block)
+    route_stop_patterns_created_or_updated.find_each(&block)
+    schedule_stop_pairs_created_or_updated.find_each(&block)
   end
 
-  def relations_created_or_updated
-    (
-      operators_serving_stop_created_or_updated +
-      routes_serving_stop_created_or_updated
-    )
+  def relations_created_or_updated(&block)
+    operators_serving_stop_created_or_updated.find_each(&block)
+    routes_serving_stop_created_or_updated.find_each(&block)
   end
 
-  def entities_destroyed
-    (
-      feeds_destroyed +
-      operators_in_feed_destroyed +
-      stops_destroyed +
-      operators_destroyed +
-      routes_destroyed +
-      route_stop_patterns_destroyed +
-      schedule_stop_pairs_destroyed
-    )
+  def entities_destroyed(&block)
+    feeds_destroyed.find_each(&block)
+    operators_destroyed.find_each(&block)
+    stops_destroyed.find_each(&block)
+    operators_destroyed.find_each(&block)
+    routes_destroyed.find_each(&block)
+    route_stop_patterns_destroyed.find_each(&block)
+    schedule_stop_pairs_destroyed.find_each(&block)
   end
 
-  def relations_destroyed
-    (
-      operators_serving_stop_destroyed +
-      routes_serving_stop_destroyed
-    )
+  def relations_destroyed(&block)
+    operators_serving_stop_destroyed.find_each(&block)
+    routes_serving_stop_destroyed.find_each(&block)
   end
 
   def trial_succeeds?
@@ -140,7 +131,7 @@ class Changeset < ActiveRecord::Base
         self.update(applied: true, applied_at: Time.now)
         # Create any feed-entity associations
         if feed && feed_version
-          self.entities_created_or_updated.each do |entity|
+          self.entities_created_or_updated do |entity|
             entity
               .entities_imported_from_feed
               .find_or_initialize_by(feed: feed, feed_version: feed_version)
