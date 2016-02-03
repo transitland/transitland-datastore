@@ -25,6 +25,7 @@ describe FeedInfoWorker do
     expect(cachedata[:status]).to eq('error')
     expect(cachedata[:errors].first[:exception]).to eq('HTTPServerException')
     expect(cachedata[:errors].first[:message]).to eq('404 "Not Found"')
+    expect(cachedata[:errors].first[:response_code]).to eq('404')
   end
 
   it 'fails with bad host' do

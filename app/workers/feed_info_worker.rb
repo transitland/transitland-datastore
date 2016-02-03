@@ -26,7 +26,8 @@ class FeedInfoWorker
     rescue Net::HTTPServerException => e
       errors << {
         exception: 'HTTPServerException',
-        message: e.to_s
+        message: e.to_s,
+        response_code: e.response.code
       }
     rescue StandardError => e
       errors << {
