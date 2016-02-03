@@ -253,7 +253,7 @@ class GTFSGraph
       rsp = RouteStopPattern.find_rsp(tl_route.onestop_id, @onestop_id_to_rsp, rsp)
       @onestop_id_to_rsp[rsp.onestop_id] = rsp
       add_identifier(rsp, 'trip', trip)
-      rsp.trips << trip.trip_id
+      rsp.trips << trip.trip_id unless rsp.trips.include?(trip.trip_id)
       tl_route.route_stop_patterns << rsp
     end
   end
