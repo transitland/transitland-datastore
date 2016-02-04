@@ -514,12 +514,18 @@ class GTFSGraph
 end
 
 if __FILE__ == $0
-  require 'sidekiq/testing'
-  ActiveRecord::Base.logger = Logger.new(STDOUT)
   feed_onestop_id = ARGV[0] || 'f-9q9-caltrain'
-  FeedFetcherWorker.perform_async(feed_onestop_id)
-  FeedFetcherWorker.drain
-  FeedEaterWorker.perform_async(feed_onestop_id, nil, 2)
-  FeedEaterWorker.drain
-  FeedEaterScheduleWorker.drain
+  path = ARGV[1] || File.open(Rails.root.join('spec/support/example_gtfs_archives/f-9q9-caltrain.zip'))
+  import_level = 2
+  ####
+  feed = Feed.find_by_onestop_id!(feed_onestop_id)
+  feed_version = feed.feed_versions.create!
+  ####
+  graph = GTFSGraph.new(path, feed, feed_version)
+  graph.create_change_osr(import_level)
+  if import_level >= 2
+    graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map, rsp_map|
+      graph.ssp_perform_async(trip_ids, agency_map, route_map, stop_map, rsp_map)
+    end
+  end
 end
