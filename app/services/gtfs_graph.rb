@@ -34,7 +34,11 @@ class GTFSGraph
     stops = routes.map { |route| route.serves }.reduce(Set.new, :+)
     rsps = routes.map { |route| route.route_stop_patterns }.reduce(Set.new, :+)
     log "Create changeset"
-    changeset = Changeset.create(feed: @feed, feed_version: @feed_version)
+    changeset = Changeset.create(
+      feed: @feed,
+      feed_version: @feed_version,
+      notes: "Changeset created by FeedEaterWorker for #{@feed.onestop_id} #{@feed_version.sha1}"
+    )
     log "Create: Operators, Stops, Routes"
     # Update Feed Bounding Box
     log "  updating feed bounding box"
@@ -82,7 +86,11 @@ class GTFSGraph
       rsp_distances_map[onestop_id] = distances
     end
     log "Create changeset"
-    changeset = Changeset.create(feed: @feed, feed_version: @feed_version)
+    changeset = Changeset.create(
+      feed: @feed,
+      feed_version: @feed_version,
+      notes: "Changeset created by FeedEaterScheduleWorker for #{@feed.onestop_id} #{@feed_version.sha1}"
+    )
     log "Create: SSPs"
     total = 0
     ssps = []
