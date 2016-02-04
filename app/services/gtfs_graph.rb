@@ -209,6 +209,14 @@ class GTFSGraph
         .reduce(Set.new, :+)
         .map { |stop| find_by_gtfs_entity(stop) }
         .to_set
+      # Also serve parent stations...
+      parent_stations = Set.new
+      stops.each do |stop|
+        parent_station = find_by_onestop_id(stop.tags[:parent_station])
+        next unless parent_station
+        parent_stations << parent_station
+      end
+      stops |= parent_stations
       # Skip Route if no Stops
       next if stops.empty?
       # Search by similarity
