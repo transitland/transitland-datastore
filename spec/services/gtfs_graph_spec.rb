@@ -30,11 +30,11 @@ describe GTFSGraph do
     it 'updated feed geometry' do
       geometry = [
         [
-          [-122.412018, 37.003606],
-          [-121.566497, 37.003606],
-          [-121.566497, 37.776439],
-          [-122.412018, 37.776439],
-          [-122.412018, 37.003606]
+          [-122.412076, 37.003485],
+          [-121.566088, 37.003485],
+          [-121.566088, 37.776439],
+          [-122.412076, 37.776439],
+          [-122.412076, 37.003485]
         ]
       ]
       expect(@feed.geometry(as: :geojson)[:coordinates]).to match_array(geometry)
@@ -68,18 +68,15 @@ describe GTFSGraph do
     end
 
     it 'created known Stops' do
-      expect(@feed.imported_stops.count).to eq(31)
+      expect(@feed.imported_stops.count).to eq(95)
       expect(@feed_version.imported_stops).to eq(@feed.imported_stops)
-      s = @feed.imported_stops.find_by(onestop_id: 's-9q9k659e3r-sanjosecaltrainstation')
+      s = @feed.imported_stops.find_by(onestop_id: 's-9q9k65c8ju-sanjosecaltrainstation')
       expect(s).to be_truthy
       expect(s.name).to eq('San Jose Caltrain Station')
-      expect(s.onestop_id).to eq('s-9q9k659e3r-sanjosecaltrainstation')
+      expect(s.onestop_id).to eq('s-9q9k65c8ju-sanjosecaltrainstation')
       # expect(s.tags['']) # no tags
       expect(s.geometry).to be
       expect(s.identifiers).to contain_exactly(
-        "gtfs://f-9q9-caltrain/s/ctsj",
-        "gtfs://f-9q9-caltrain/s/70261",
-        "gtfs://f-9q9-caltrain/s/70262",
         "gtfs://f-9q9-caltrain/s/777402"
       )
       expect(s.timezone).to eq('America/Los_Angeles')
@@ -104,26 +101,52 @@ describe GTFSGraph do
     it 'created known Operator that serves known Stops' do
       o = @feed.imported_operators.find_by(onestop_id: 'o-9q9-caltrain')
       # Just check the number of stops here...
-      expect(o.stops.size).to eq(31)
+      expect(o.stops.size).to eq(95)
     end
 
     it 'created known Routes that serve known Stops' do
       r = @feed.imported_routes.find_by(onestop_id: 'r-9q9j-bullet')
-      expect(r.stops.size).to eq(13)
+      expect(r.stops.size).to eq(39)
       expect(r.stops.map(&:onestop_id)).to contain_exactly(
-        "s-9q8vzhbggj-millbraecaltrainstation",
-        "s-9q8yw8y448-bayshorecaltrainstation",
-        "s-9q8yycs6ku-22ndstreetcaltrainstation",
-        "s-9q8yyugptw-sanfranciscocaltrainstation",
-        "s-9q9hwp6epk-mountainviewcaltrainstation",
-        "s-9q9hxhecje-sunnyvalecaltrainstation",
-        "s-9q9j5dmkuu-menloparkcaltrainstation",
-        "s-9q9j6812kg-redwoodcitycaltrainstation",
-        "s-9q9j8rn6tv-sanmateocaltrainstation",
-        "s-9q9j913rf1-hillsdalecaltrainstation",
-        "s-9q9jh061xw-paloaltocaltrainstation",
-        "s-9q9k62qu53-tamiencaltrainstation",
-        "s-9q9k659e3r-sanjosecaltrainstation"
+         "s-9q8vzhbdsn-millbraecaltrain",
+         "s-9q8vzhbg0m-millbraecaltrain",
+         "s-9q8vzhbggj-millbraecaltrainstation",
+         "s-9q8yw8vcur-bayshorecaltrain",
+         "s-9q8yw8vd50-bayshorecaltrain",
+         "s-9q8yw8y448-bayshorecaltrainstation",
+         "s-9q8yycs6ku-22ndstreetcaltrainstation",
+         "s-9q8yycs9f7-22ndstcaltrain",
+         "s-9q8yycscyq-22ndstcaltrain",
+         "s-9q8yyufxmv-sanfranciscocaltrain",
+         "s-9q8yyufxpm-sanfranciscocaltrain",
+         "s-9q8yyugptw-sanfranciscocaltrainstation",
+         "s-9q9hwp6epk-mountainviewcaltrainstation",
+         "s-9q9hwp6ypj-mtviewcaltrain",
+         "s-9q9hwp7n80-mtviewcaltrain",
+         "s-9q9hxhe7jx-sunnyvalecaltrain",
+         "s-9q9hxhe7yy-sunnyvalecaltrain",
+         "s-9q9hxhecje-sunnyvalecaltrainstation",
+         "s-9q9j5dmkuu-menloparkcaltrainstation",
+         "s-9q9j5dmmxw-menloparkcaltrain",
+         "s-9q9j5dmw65-menloparkcaltrain",
+         "s-9q9j6812kg-redwoodcitycaltrainstation",
+         "s-9q9j681k7g-redwoodcitycaltrain",
+         "s-9q9j681ktq-redwoodcitycaltrain",
+         "s-9q9j8rn3zx-sanmateocaltrain",
+         "s-9q9j8rn6tv-sanmateocaltrainstation",
+         "s-9q9j8rn74j-sanmateocaltrain",
+         "s-9q9j913rf1-hillsdalecaltrainstation",
+         "s-9q9j9199we-hillsdalecaltrain",
+         "s-9q9j919ccj-hillsdalecaltrain",
+         "s-9q9jh061xw-paloaltocaltrainstation",
+         "s-9q9jh067sh-paloaltocaltrain",
+         "s-9q9jh06kn1-paloaltocaltrain",
+         "s-9q9k62qu53-tamiencaltrainstation",
+         "s-9q9k62qu8y-tamiencaltrain",
+         "s-9q9k62quxk-tamiencaltrain",
+         "s-9q9k658fd1-sanjosediridoncaltrain",
+         "s-9q9k658ftf-sanjosediridoncaltrain",
+         "s-9q9k659e3r-sanjosecaltrainstation"
       )
     end
   end
@@ -137,10 +160,10 @@ describe GTFSGraph do
       expect(@feed_version.imported_schedule_stop_pairs.pluck(:id)).to match_array(@feed.imported_schedule_stop_pairs.pluck(:id))
       # Find a UNIQUE SSP, by origin, destination, route, trip.
       origin = @feed.imported_stops.find_by!(
-        onestop_id: 's-9q8yyugptw-sanfranciscocaltrainstation'
+        onestop_id: "s-9q8yyufxpm-sanfranciscocaltrain"
       )
       destination = @feed.imported_stops.find_by!(
-        onestop_id: 's-9q8yycs6ku-22ndstreetcaltrainstation'
+        onestop_id: "s-9q8yycs9f7-22ndstcaltrain"
       )
       route = @feed.imported_routes.find_by!(onestop_id: 'r-9q9-local')
       operator = @feed.operators.find_by(onestop_id: 'o-9q9-caltrain')
