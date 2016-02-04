@@ -16,3 +16,4 @@ key | possible values | default | description
 `FEED_EATER_CHANGE_PAYLOAD_MAX_ENTITIES` | Any integer > 0 | 1,000 | Set the number of entities that FeedEaterWorker and FeedEaterScheduleWorker will put into each changeset
 `FEED_EATER_STOP_TIMES_MAX_LOAD` | Any integer > 0 | 100,000 | When FeedEaterWorker spawns FeedEaterScheduleWorkers, this is the number of lines from a GTFS feed's `stop_times.txt` that will be sent to each FeedEaterScheduleWorker job
 `SEND_CHANGESET_EMAILS_TO_USERS` | `true`, `false` | `true` | By default, e-mail notifications go out to a changeset's author (as long as the user isn't an admin)
+`FEED_INFO_CACHE_EXPIRATION` | Any integer > 0 | 14400 seconds | Cache expiration time, in seconds, for FeedInfo results
