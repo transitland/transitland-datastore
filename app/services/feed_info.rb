@@ -1,6 +1,6 @@
 class FeedInfo
 
-  CACHE_EXPIRATION = 1.hour
+  CACHE_EXPIRATION = 4.hour
 
   def initialize(url: nil, path: nil)
     fail ArgumentError.new('must provide url') unless url.present?
