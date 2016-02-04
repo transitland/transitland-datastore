@@ -325,10 +325,19 @@ describe RouteStopPattern do
       expect(has_issues).to be true
       expect(issues).to match_array([:has_after_stop])
 
-      stop_points = [[-122.401811, 37.706675],[-122.394935, 37.776348], [-122.38, 37.8]]
+      # the last point/stop falls below the line perpendicular to that of the first 2 points through point 2
+      stop_points = [[-122.401811, 37.706675],[-122.394935, 37.776348], [-122.3975, 37.741]]
       @trip.shape_id = 'test_shape'
       has_issues, issues = @geom_rsp.evaluate_geometry(@trip, stop_points)
       expect(has_issues).to be false
+      expect(issues).to match_array([])
+
+      # the last point/stop falls below the line perpendicular to that of the first 2 points through point 2,
+      # but the distance to the line is great enough to mark it as an after stop
+      stop_points = [[-122.401811, 37.706675],[-122.394935, 37.776348], [-122.39, 37.77]]
+      @trip.shape_id = 'test_shape'
+      has_issues, issues = @geom_rsp.evaluate_geometry(@trip, stop_points)
+      expect(has_issues).to be true
       expect(issues).to match_array([:has_after_stop])
     end
 

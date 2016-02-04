@@ -98,7 +98,6 @@ class RouteStopPattern < BaseRouteStopPattern
   def calculate_distances
     # TODO: potential issue with nearest stop segment matching after subsequent stop
     # TODO: investigate 'boundary' lat/lng possibilities
-
     distances = []
     total_distance = 0.0
     cartesian_factory = RGeo::Cartesian::Factory.new(srid: 4326)
@@ -114,15 +113,20 @@ class RouteStopPattern < BaseRouteStopPattern
         distances << 0.0
       else
         total_distance += RGeo::Feature.cast(splits[0], RouteStopPattern::GEOFACTORY).length
-        # reverse coordinates for Haversine
-        #reversed = splits[0].coordinates.map {|c| c.reverse}
-        #segments = reversed[0...-1].zip(reversed[1..-1])
-        #total_distance += segments.inject(0.0) {|sum, seg| sum + Haversine.distance(seg[0], seg[1]).to_meters}
-        #distances << total_distance
+        distances << total_distance
       end
       cast_route = splits[1]
     end
     distances
+  end
+
+  def outlier_stop(spherical_stop)
+    cartesian_factory = RGeo::Cartesian::Factory.new(srid: 4326)
+    cartesian_line = RGeo::Feature.cast(self[:geometry], cartesian_factory)
+    cartesian_stop = RGeo::Feature.cast(spherical_stop, cartesian_factory)
+    closest_point = cartesian_line.closest_point(cartesian_stop)
+    spherical_closest = RGeo::Feature.cast(closest_point, RouteStopPattern::GEOFACTORY)
+    spherical_stop.distance(spherical_closest) > 100.0
   end
 
   def evaluate_geometry(trip, stop_points)
@@ -132,14 +136,20 @@ class RouteStopPattern < BaseRouteStopPattern
       issues << :empty
     else
       cartesian_factory = RGeo::Cartesian::Factory.new(srid: 4326)
-      cast_geometry = RGeo::Feature.cast(self[:geometry], cartesian_factory)
+      cartesian_line = RGeo::Feature.cast(self[:geometry], cartesian_factory)
       first_stop = RouteStopPattern::GEOFACTORY.point(stop_points[0][0],stop_points[0][1])
-      if cast_geometry.before?(first_stop) || cast_geometry.distance_to_point(first_stop) > 200.0
+      if cartesian_line.before?(first_stop) || outlier_stop(first_stop)
         issues << :has_before_stop
       end
       last_stop = RouteStopPattern::GEOFACTORY.point(stop_points[-1][0],stop_points[-1][1])
-      if cast_geometry.after?(last_stop) || cast_geometry.distance_to_point(last_stop) > 200.0
+      if cartesian_line.after?(last_stop) || outlier_stop(last_stop)
         issues << :has_after_stop
+      end
+      stop_points[1...-1].zip(self.stop_pattern[1...-1]).each do |stop_point, stop_onestop_id|
+        if outlier_stop(RouteStopPattern::GEOFACTORY.point(stop_point[0],stop_point[1]))
+          logger.info "Stop #{stop_onestop_id} is too far from the shape geometry"
+          issues << :has_outlier_stop
+        end
       end
     end
     # more evaluations can go here. e.g. has outlier stop

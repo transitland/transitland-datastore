@@ -25,8 +25,8 @@ module RGeo
         [factory.line_string(points1), factory.line_string(points2)]
       end
 
-      def distance_to_point(target)
-        locators(target).min_by(&:distance_from_segment).distance_from_segment
+      def closest_point(target)
+        nearest_locator(target).interpolate_point(factory)
       end
 
       def distance_from_departure_to_segment(segment)
@@ -94,9 +94,3 @@ module RGeo
     end
   end
 end
-
-#module Haversine
-#  class Distance
-#    GREAT_CIRCLE_RADIUS_METERS = 6378137
-#  end
-#end
