@@ -107,13 +107,14 @@ class RouteStopPattern < BaseRouteStopPattern
       cast_stop = RGeo::Feature.cast(stop[:geometry], cartesian_factory)
       splits = cast_route.split_at_point(cast_stop)
       if (splits[0].nil? && i != 0) || (splits[1].nil? && i != -1)
-        logger.info "warning: stop #{stop.onestop_id} may indicate invalid geometry"
+        # only the first and last stops are expected to have 1 split result instead of 2
+        logger.info "stop #{stop.onestop_id} may indicate invalid geometry"
       end
       if splits[0].nil?
         distances << 0.0
       else
         total_distance += RGeo::Feature.cast(splits[0], RouteStopPattern::GEOFACTORY).length
-        distances << total_distance
+        distances << total_distance.round(1)
       end
       cast_route = splits[1]
     end
@@ -152,7 +153,7 @@ class RouteStopPattern < BaseRouteStopPattern
         end
       end
     end
-    # more evaluations can go here. e.g. has outlier stop
+    # more evaluations can go here
     return (issues.size > 0), issues
   end
 

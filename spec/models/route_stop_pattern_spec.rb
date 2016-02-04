@@ -293,6 +293,93 @@ describe RouteStopPattern do
     end
   end
 
+  context 'determining outlier stops' do
+    before(:each) do
+      @rsp = RouteStopPattern.new(
+        stop_pattern: @sp,
+        geometry: @geom
+      )
+    end
+
+    it 'returns false when the stop is within 100 meters of the closest point on the line' do
+      # distance is approx 81 m
+      test_stop = create(:stop,
+        onestop_id: "s-9q8yw8y448-test",
+        geometry: Stop::GEOFACTORY.point(-122.3975, 37.741).to_s
+      )
+      @rsp.stop_pattern = [@sp[0],test_stop.onestop_id,@sp[1]]
+      expect(@rsp.outlier_stop(test_stop[:geometry])).to be false
+    end
+
+    it 'returns true when the stop greater than 100 meters of the closest point on the line' do
+      # distance is approx 146 m
+      test_stop = create(:stop,
+        onestop_id: "s-9q8yw8y448-test",
+        geometry: Stop::GEOFACTORY.point(-122.3968, 37.7405).to_s
+      )
+      @rsp.stop_pattern = [@sp[0],test_stop.onestop_id,@sp[1]]
+      expect(@rsp.outlier_stop(test_stop[:geometry])).to be true
+    end
+  end
+
+  context 'before and after stops' do
+    before(:each) do
+      @trip = GTFS::Trip.new(trip_id: 'test')
+      @rsp = RouteStopPattern.new(
+        stop_pattern: @sp,
+        geometry: @geom
+      )
+    end
+
+    it 'is marked correctly as having an after stop after evaluation' do
+      stop_points = [[-122.401811, 37.706675],[-122.394935, 37.776348], [-122.38, 37.8]]
+      @trip.shape_id = 'test_shape'
+      has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
+      expect(has_issues).to be true
+      expect(issues).to match_array([:has_after_stop])
+    end
+
+    it 'does not have an after stop if the last stop is close to the line and below the last stop perpendicular' do
+      stop_points = [[-122.401811, 37.706675],[-122.394935, 37.776348], [-122.3975, 37.741]]
+      @trip.shape_id = 'test_shape'
+      has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
+      expect(has_issues).to be false
+      expect(issues).to match_array([])
+    end
+
+    it 'has an after stop if the last stop is below the last stop perpendicular but not close enough to the line' do
+      stop_points = [[-122.401811, 37.706675],[-122.394935, 37.776348], [-122.39, 37.77]]
+      @trip.shape_id = 'test_shape'
+      has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
+      expect(has_issues).to be true
+      expect(issues).to match_array([:has_after_stop])
+    end
+
+    it 'is marked correctly as having a before stop after evaluation' do
+      stop_points = [[-122.405, 37.63],[-122.401811, 37.706675],[-122.394935, 37.776348]]
+      @trip.shape_id = 'test_shape'
+      has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
+      expect(has_issues).to be true
+      expect(issues).to match_array([:has_before_stop])
+    end
+
+    it 'does not have a before stop if the first stop is close to the line and above the first stop perpendicular' do
+      stop_points = [[-122.40182, 37.7067],[-122.401811, 37.706675],[-122.394935, 37.776348]]
+      @trip.shape_id = 'test_shape'
+      has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
+      expect(has_issues).to be false
+      expect(issues).to match_array([])
+    end
+
+    it 'has a before stop if the first stop is above the first stop perpendicular but not close enough to the line' do
+      stop_points = [[-122.40182, 37.72],[-122.401811, 37.706675],[-122.394935, 37.776348]]
+      @trip.shape_id = 'test_shape'
+      has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
+      expect(has_issues).to be true
+      expect(issues).to match_array([:has_before_stop])
+    end
+  end
+
   context 'without shape or shape points' do
     before(:each) do
       @trip = GTFS::Trip.new(trip_id: 'test')
@@ -316,29 +403,6 @@ describe RouteStopPattern do
       has_issues, issues = @empty_rsp.evaluate_geometry(@trip, [])
       expect(has_issues).to be true
       expect(issues).to match_array([:empty])
-    end
-
-    it 'is marked correctly as having an after stop after evaluation' do
-      stop_points = [[-122.401811, 37.706675],[-122.394935, 37.776348], [-122.38, 37.8]]
-      @trip.shape_id = 'test_shape'
-      has_issues, issues = @geom_rsp.evaluate_geometry(@trip, stop_points)
-      expect(has_issues).to be true
-      expect(issues).to match_array([:has_after_stop])
-
-      # the last point/stop falls below the line perpendicular to that of the first 2 points through point 2
-      stop_points = [[-122.401811, 37.706675],[-122.394935, 37.776348], [-122.3975, 37.741]]
-      @trip.shape_id = 'test_shape'
-      has_issues, issues = @geom_rsp.evaluate_geometry(@trip, stop_points)
-      expect(has_issues).to be false
-      expect(issues).to match_array([])
-
-      # the last point/stop falls below the line perpendicular to that of the first 2 points through point 2,
-      # but the distance to the line is great enough to mark it as an after stop
-      stop_points = [[-122.401811, 37.706675],[-122.394935, 37.776348], [-122.39, 37.77]]
-      @trip.shape_id = 'test_shape'
-      has_issues, issues = @geom_rsp.evaluate_geometry(@trip, stop_points)
-      expect(has_issues).to be true
-      expect(issues).to match_array([:has_after_stop])
     end
 
     it 'adds geometry consisting of stop points' do
