@@ -16,7 +16,6 @@ class GTFSGraph
     @gtfs_to_onestop_id = {}
     # TL Indexed by Onestop ID
     @onestop_id_to_entity = {}
-
     @onestop_id_to_rsp = {}
   end
 
@@ -143,30 +142,18 @@ class GTFSGraph
 
   def load_tl_stops
     # Merge child stations into parents.
-    log "  merge stations"
-    stations = Hash.new { |h,k| h[k] = [] }
-    @gtfs.stops.each do |stop|
-      stations[@gtfs.stop(stop.parent_station) || stop] << stop
-    end
-    # Merge station/platforms with Stops.
     log "  stops"
-    stations.each do |station,platforms|
-      # Temp stop to get geometry and name.
-      stop = Stop.from_gtfs(station)
-      # Search by similarity
-      stop, score = Stop.find_by_similarity(stop[:geometry], stop.name, radius=1000, threshold=0.6)
-      # ... or create stop from GTFS
-      stop ||= Stop.from_gtfs(station)
-      # ... check if Stop exists, or another local Stop, or new.
-      stop = find_by_entity(stop)
-      # Add identifiers and references
-      ([station]+platforms).each { |e| add_identifier(stop, 's', e) }
-      # Cache stop
-      if score
-        log "    #{stop.onestop_id}: #{stop.name} (search: #{station.stop_name} = #{'%0.2f'%score.to_f})"
-      else
-        log "    #{stop.onestop_id}: #{stop.name}"
-      end
+    @gtfs.stops.each do |gtfs_stop|
+      stop = find_by_entity(Stop.from_gtfs(gtfs_stop))
+      add_identifier(stop, 's', gtfs_stop)
+      log "    #{stop.onestop_id}: #{stop.name}"
+    end
+    # Pass through again to reference parent stations by Onestop ID...
+    @gtfs.stops.select(&:parent_station).each do |gtfs_stop|
+      stop = find_by_gtfs_entity(gtfs_stop)
+      parent_stop = find_by_gtfs_entity(@gtfs.stop(gtfs_stop.parent_station))
+      next unless parent_stop
+      stop.tags[:parent_station] = parent_stop.onestop_id
     end
   end
 
