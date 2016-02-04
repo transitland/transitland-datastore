@@ -68,6 +68,24 @@ describe Api::V1::ChangesetsController do
       post :create, changeset: attrs
       expect(response.status).to eq 200
     end
+
+    it 'should be able to create a Changeset with a new User author' do
+      post :create, changeset: FactoryGirl.attributes_for(:changeset).merge({ user: { email: 'dummy@example.com' } })
+      expect(response.status).to eq 200
+      expect(Changeset.count).to eq 1
+      expect(User.count).to eq 1
+      expect(Changeset.first.user).to eq User.first
+      expect(User.first.changesets).to match_array(Changeset.all)
+    end
+
+    it 'should be able to create a Changeset with an existing User author' do
+      user = create(:user)
+      post :create, changeset: FactoryGirl.attributes_for(:changeset).merge({ user: { email: user.email } })
+      expect(response.status).to eq 200
+      expect(Changeset.count).to eq 1
+      expect(User.count).to eq 1
+      expect(Changeset.first.user).to eq user
+    end
   end
 
   context 'POST destroy' do
@@ -96,19 +114,6 @@ describe Api::V1::ChangesetsController do
 
   end
 
-  context 'POST append' do
-    it 'should be able to append a change payload to a Changeset' do
-      changeset = create(:changeset)
-      change = FactoryGirl.attributes_for(:change_payload)
-      expect(Changeset.count).to eq 1
-      expect(ChangePayload.count).to eq 0
-      post :append, id: changeset.id, change: change
-      expect(response.status).to eq 200
-      expect(Changeset.count).to eq 1
-      expect(ChangePayload.count).to eq 1
-    end
-  end
-
   context 'POST update' do
     it "should be able to update a Changeset that hasn't yet been applied" do
       changeset = create(:changeset)
@@ -116,15 +121,6 @@ describe Api::V1::ChangesetsController do
         notes: 'this is the NEW note'
       }
       expect(changeset.reload.notes).to eq 'this is the NEW note'
-    end
-
-    it "shouldn't be able to append to an applied Changeset" do
-      changeset = create(:changeset)
-      changeset.update(applied: true)
-      change = FactoryGirl.attributes_for(:change_payload)
-      post :append, id: changeset.id, change: change
-      expect_json({ message: 'cannot update a Changeset that has already been applied' })
-      expect(response.code).to eq '400'
     end
   end
 

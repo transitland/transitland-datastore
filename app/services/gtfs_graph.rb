@@ -1,5 +1,8 @@
 class GTFSGraph
 
+  class Error < StandardError
+  end
+
   CHANGE_PAYLOAD_MAX_ENTITIES = Figaro.env.feed_eater_change_payload_max_entities.try(:to_i) || 1_000
   STOP_TIMES_MAX_LOAD = Figaro.env.feed_eater_stop_times_max_load.try(:to_i) || 100_000
 
@@ -26,11 +29,12 @@ class GTFSGraph
     load_tl_routes
     load_tl_route_stop_patterns
     operators = load_tl_operators
+    fail GTFSGraph::Error.new('No agencies found that match operators_in_feed') unless operators.size > 0
     routes = operators.map { |operator| operator.serves }.reduce(Set.new, :+)
     stops = routes.map { |route| route.serves }.reduce(Set.new, :+)
     rsps = routes.map { |route| route.route_stop_patterns }.reduce(Set.new, :+)
     log "Create changeset"
-    changeset = Changeset.create()
+    changeset = Changeset.create(feed: @feed, feed_version: @feed_version)
     log "Create: Operators, Stops, Routes"
     # Update Feed Bounding Box
     log "  updating feed bounding box"
@@ -78,7 +82,7 @@ class GTFSGraph
       rsp_distances_map[onestop_id] = distances
     end
     log "Create changeset"
-    changeset = Changeset.create()
+    changeset = Changeset.create(feed: @feed, feed_version: @feed_version)
     log "Create: SSPs"
     total = 0
     ssps = []
@@ -249,7 +253,7 @@ class GTFSGraph
       rsp = RouteStopPattern.find_rsp(tl_route.onestop_id, @onestop_id_to_rsp, rsp)
       @onestop_id_to_rsp[rsp.onestop_id] = rsp
       add_identifier(rsp, 'trip', trip)
-      rsp.trips << trip.trip_id
+      rsp.trips << trip.trip_id unless rsp.trips.include?(trip.trip_id)
       tl_route.route_stop_patterns << rsp
     end
   end
@@ -346,10 +350,6 @@ class GTFSGraph
       onestopId: entity.onestop_id,
       name: entity.name,
       identifiedBy: entity.identified_by.uniq,
-      importedFromFeed: {
-        onestopId: @feed.onestop_id,
-        sha1: @feed_version.sha1
-      },
       geometry: entity.geometry,
       tags: entity.tags || {},
       timezone: entity.timezone,
@@ -362,10 +362,6 @@ class GTFSGraph
       onestopId: entity.onestop_id,
       name: entity.name,
       identifiedBy: entity.identified_by.uniq,
-      importedFromFeed: {
-        onestopId: @feed.onestop_id,
-        sha1: @feed_version.sha1
-      },
       geometry: entity.geometry,
       tags: entity.tags || {},
       timezone: entity.timezone
@@ -377,10 +373,6 @@ class GTFSGraph
       onestopId: entity.onestop_id,
       name: entity.name,
       identifiedBy: entity.identified_by.uniq,
-      importedFromFeed: {
-        onestopId: @feed.onestop_id,
-        sha1: @feed_version.sha1
-      },
       operatedBy: entity.operator.onestop_id,
       vehicleType: entity.vehicle_type,
       serves: entity.serves.map(&:onestop_id),
@@ -409,10 +401,6 @@ class GTFSGraph
     {
       onestopId: entity.onestop_id,
       identifiedBy: entity.identified_by.uniq,
-      importedFromFeed: {
-        onestopId: @feed.onestop_id,
-        sha1: @feed_version.sha1
-      },
       stopPattern: entity.stop_pattern,
       geometry: entity.geometry,
       isGenerated: entity.is_generated,
@@ -425,10 +413,6 @@ class GTFSGraph
 
   def make_change_ssp(entity)
     {
-      importedFromFeed: {
-        onestopId: @feed.onestop_id,
-        sha1: @feed_version.sha1
-      },
       originOnestopId: entity.origin.onestop_id,
       originTimezone: entity.origin_timezone,
       originArrivalTime: entity.origin_arrival_time,

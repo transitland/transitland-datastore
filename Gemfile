@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.2.5'
+gem 'rails', '4.2.5.1'
 
 # Transitland Datastore components
 path 'components' do
@@ -27,17 +27,18 @@ gem 'whenever', require: false # to manage crontab
 # data model
 gem 'squeel'
 gem 'enumerize'
-gem 'gtfs', github: 'transitland/gtfs', tag: 'v1.0.1'
+gem 'gtfs', github: 'transitland/gtfs', tag: '332408d4139e8b837e69c32691267294e3a120f7'
 gem 'rgeo-geojson'
-gem 'haversine'
 gem 'c_geohash', require: 'geohash'
-gem 'json-schema'
+gem 'json-schema', '2.5.2' # running into problems with 2.6.0
+gem 'email_validator'
 
 # text matching
 gem 'text'
 
 # authentication and authorization
 gem 'rack-cors', require: 'rack/cors'
+gem 'devise'
 
 # providing API
 gem 'active_model_serializers', '0.9.4'
@@ -64,7 +65,6 @@ gem 'pry-rescue', group: [:development, :test]
 gem 'pry-stack_explorer', group: [:development, :test]
 gem 'rubocop', require: false, group: [:development, :test]
 gem 'rubocop-rspec', require: false, group: [:development, :test]
-gem 'github_changelog_generator', require: false, group: :development
 
 # code coverage and documentation
 gem 'rails-erd', group: :development
@@ -76,6 +76,7 @@ gem 'database_cleaner', group: :test
 gem 'factory_girl_rails', group: [:development, :test]
 gem 'ffaker', group: [:development, :test]
 gem 'rspec-rails', group: [:development, :test]
+gem 'rspec-sidekiq', group: :test
 gem 'vcr', group: :test
 gem 'webmock', group: :test
 gem 'airborne', group: :test

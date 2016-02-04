@@ -25,7 +25,6 @@ Rails.application.routes.draw do
           post 'check'
           post 'apply'
           post 'revert'
-          post 'append'
         end
         resources :change_payloads, only: [:index, :show, :create, :update, :destroy]
       end
@@ -42,6 +41,10 @@ Rails.application.routes.draw do
       post '/feeds/fetch_info', to: 'feeds#fetch_info'
       post '/webhooks/feed_fetcher', to: 'webhooks#feed_fetcher'
       post '/webhooks/feed_eater', to: 'webhooks#feed_eater'
+
+      # TODO: expose user authentication endpoints in the future
+      # devise_for :users
+      resources :users
     end
     match '*unmatched_route', :to => 'v1/base_api#raise_not_found!', via: :all
   end

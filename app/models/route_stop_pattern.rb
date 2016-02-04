@@ -146,12 +146,6 @@ class RouteStopPattern < BaseRouteStopPattern
       if cartesian_line.after?(last_stop) || outlier_stop(last_stop)
         issues << :has_after_stop
       end
-      # stop_points[1...-1].zip(self.stop_pattern[1...-1]).each do |stop_point, stop_onestop_id|
-      #   if outlier_stop(RouteStopPattern::GEOFACTORY.point(stop_point[0],stop_point[1]))
-      #     logger.info "Stop #{stop_onestop_id} is too far from the shape geometry"
-      #     issues << :has_outlier_stop
-      #   end
-      # end
     end
     # more evaluations can go here
     return (issues.size > 0), issues

@@ -13,6 +13,17 @@ end
 
 describe GTFSGraph do
 
+  context 'load operators' do
+    it 'fails if no matching operator_in_feed' do
+      feed_version = create(:feed_version_caltrain)
+      feed = feed_version.feed
+      oif = feed.operators_in_feed.first
+      oif.update!({gtfs_agency_id:'not-found'})
+      graph = GTFSGraph.new(feed_version.file.path, feed, feed_version)
+      expect { graph.create_change_osr(1) }.to raise_error(GTFSGraph::Error)
+    end
+  end
+
   context 'can apply level 0 and 1 changesets' do
     before(:each) { @feed, @feed_version = load_feed(1) }
 

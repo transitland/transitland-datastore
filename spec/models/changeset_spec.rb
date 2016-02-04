@@ -8,47 +8,73 @@
 #  applied_at :datetime
 #  created_at :datetime
 #  updated_at :datetime
+#  user_id    :integer
+#
+# Indexes
+#
+#  index_changesets_on_user_id  (user_id)
 #
 
 describe Changeset do
-  it 'can be created' do
-    changeset = create(:changeset)
-    expect(Changeset.exists?(changeset.id)).to be true
+  context 'creation' do
+    it 'is possible' do
+      changeset = create(:changeset)
+      expect(Changeset.exists?(changeset.id)).to be true
+    end
+
+    it 'is possible with an initial payload (compat)' do
+      payload = {
+        changes: [
+          {
+            action: "createUpdate",
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              name: '1st Ave. & Holloway St.'
+            }
+          }
+        ]
+      }
+      changeset = build(:changeset, payload: payload)
+      expect(changeset.change_payloads.count).equal?(1)
+    end
+
+    context 'creation e-mail' do
+      it 'sent to normal user' do
+        allow(Figaro.env).to receive(:send_changeset_emails_to_users) { 'true' }
+        user = create(:user)
+        changeset = create(:changeset, user: user)
+        expect(ChangesetMailer.instance_method :creation).to be_delayed(changeset.id)
+      end
+
+      it 'not sent to admin user' do
+        allow(Figaro.env).to receive(:send_changeset_emails_to_users) { 'false' }
+        user = create(:user, admin: true)
+        changeset = create(:changeset, user: user)
+        expect(ChangesetMailer.instance_method :creation).to_not be_delayed(changeset.id)
+      end
+
+      it 'not sent when disabled' do
+        allow(Figaro.env).to receive(:send_changeset_emails_to_users) { 'false' }
+        user = create(:user)
+        changeset = create(:changeset, user: user)
+        expect(ChangesetMailer.instance_method :creation).to_not be_delayed(changeset.id)
+      end
+    end
   end
 
-  it 'can append a payload' do
-    changeset = build(:changeset)
-    payload = {
-      changes: [
-        {
-          action: "createUpdate",
-          stop: {
-            onestopId: 's-9q8yt4b-1AvHoS',
-            name: '1st Ave. & Holloway St.'
-          }
-        }
-      ]
-    }
-    expect(changeset.change_payloads.count).equal?(0)
-    changeset.append(payload)
-    expect(changeset.change_payloads.count).equal?(1)
-  end
-  
   it 'sorts payloads by created_at' do
     changeset = create(:changeset)
     10.times {
-      payload = build(:change_payload)
-      changeset.append(payload.payload)
-      changeset.save!
+      create(:change_payload, changeset: changeset)
     }
     # Manually set created_at on the last payload to be earlier
     last_change = changeset.change_payloads.last
     last_change.created_at = "1970-01-01 00:00:00"
-    last_change.save!    
+    last_change.save!
     # Compare association order vs manual sorted order
     changes_order = changeset.change_payloads.map(&:id)
     changes_expect = Changeset.last.change_payloads.sort_by {|x|x.created_at}.map(&:id)
-    changes_order.zip(changes_expect).each {|a,b| assert a == b}    
+    changes_order.zip(changes_expect).each {|a,b| assert a == b}
   end
 
   context 'can be applied' do
@@ -143,7 +169,7 @@ describe Changeset do
       expect(OldStop.count).to eq 2
       expect(Stop.find_by_onestop_id('s-9q8yt4b-1AvHoS')).to be_nil
     end
-    
+
     it 'deletes payloads after applying' do
       payload_ids = @changeset1.change_payload_ids
       expect(payload_ids.length).to eq 1
@@ -188,6 +214,27 @@ describe Changeset do
       expect(OldOperatorServingStop.count).to eq 1
       expect(OldOperatorServingStop.first.operator).to eq Operator.find_by_onestop_id!('o-9q8y-SFMTA')
       expect(OldOperatorServingStop.first.stop).to eq Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS')
+    end
+
+    context 'application e-mail' do
+      it 'sent to normal user' do
+        @changeset1.user = create(:user)
+        @changeset1.apply!
+        expect(ChangesetMailer.instance_method :application).to be_delayed(@changeset1.id)
+      end
+
+      it 'not sent to admin user' do
+        @changeset1.user = create(:user, admin: true)
+        @changeset1.apply!
+        expect(ChangesetMailer.instance_method :application).to_not be_delayed(@changeset1.id)
+      end
+
+      it 'not sent when disabled' do
+        allow(Figaro.env).to receive(:send_changeset_emails_to_users) { 'false' }
+        @changeset1.user = create(:user)
+        @changeset1.apply!
+        expect(ChangesetMailer.instance_method :application).to_not be_delayed(@changeset1.id)
+      end
     end
   end
 
