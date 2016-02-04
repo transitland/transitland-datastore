@@ -1,6 +1,6 @@
 class FeedInfo
 
-  CACHE_EXPIRATION = 4.hour
+  CACHE_EXPIRATION = Float(Figaro.env.feed_info_cache_expiration.presence || 14400)
 
   def initialize(url: nil, path: nil)
     fail ArgumentError.new('must provide url') unless url.present?
