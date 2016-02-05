@@ -109,7 +109,7 @@ class RouteStopPattern < BaseRouteStopPattern
       if (splits[0].nil? && i != 0) || (splits[1].nil? && i != self.stop_pattern.size - 1)
         # only the first and last stops are expected to have 1 split result instead of 2
         # So this might be an outlier stop.
-        logger.info "stop #{stop.onestop_id} may be an outlier or indicate invalid geometry"
+        logger.info "stop #{stop.onestop_id} for route #{self.route.onestop_id} may be an outlier or indicate invalid geometry"
         # TODO add interpolated distance at halfway and split line there?
         distances << distances[i-1]
       else
