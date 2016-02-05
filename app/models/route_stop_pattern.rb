@@ -106,7 +106,6 @@ class RouteStopPattern < BaseRouteStopPattern
       stop = Stop.find_by_onestop_id!(self.stop_pattern[i])
       cast_stop = RGeo::Feature.cast(stop[:geometry], cartesian_factory)
       splits = cast_route.split_at_point(cast_stop)
-      logger.info "#{self.route.onestop_id} #{i} #{stop.onestop_id}"
       if (splits[0].nil? && i != 0) || (splits[1].nil? && i != self.stop_pattern.size - 1)
         # only the first and last stops are expected to have 1 split result instead of 2
         # So this might be an outlier stop.
