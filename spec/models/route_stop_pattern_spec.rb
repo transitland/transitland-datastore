@@ -313,7 +313,7 @@ describe RouteStopPattern do
                                                               a_value_within(0.1).of(17001.5107)])
     end
 
-    it 'can calculate distances when two stop points are identical' do
+    it 'can calculate distances when two consecutive stop points are identical' do
       create(:stop,
         onestop_id: "s-9q9hwtgq4s-sunnyvaleidentical",
         geometry: stop_2.geometry

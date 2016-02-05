@@ -115,7 +115,13 @@ class RouteStopPattern < BaseRouteStopPattern
                      may be an outlier or indicate invalid geometry")
         # TODO add interpolated distance at halfway and split line there?
         # if so, will need to take into account case of 2 consecutive stops having same location.
-        distances << distances[i-1]
+        if (i == 0 && splits[1].nil?)
+          distances << 0.0
+        elsif (i == self.stop_pattern.size - 1 && splits[1].nil?)
+          distances << RGeo::Feature.cast(splits[1], RouteStopPattern::GEOFACTORY).length
+        else
+          distances << distances[i-1]
+        end
       else
         if splits[0].nil?
           distances << 0.0
