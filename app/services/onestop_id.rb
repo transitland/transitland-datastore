@@ -5,7 +5,7 @@ module OnestopId
   COMPONENT_SEPARATOR = '-'
   GEOHASH_FILTER = /[^0123456789bcdefghjkmnpqrstuvwxyz]/
   NAME_TILDE = /[\-\:\&\@\/]/
-  NAME_FILTER = /[^a-zA-Z\d\@\~]/
+  NAME_FILTER = /[^a-zA-Z\d\@\~\>\<]/
   IDENTIFIER_TEMPLATE = Addressable::Template.new("gtfs://{feed_onestop_id}/{entity_prefix}/{entity_id}")
 
   class OnestopIdBase
