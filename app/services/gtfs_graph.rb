@@ -10,13 +10,12 @@ class GTFSGraph
     # GTFS Graph / TransitLand wrapper
     @feed = feed
     @feed_version = feed_version
-    @gtfs = GTFS::Source.build(filename, {strict: false})
+    @gtfs = GTFS::LocalSource.new(filename, {strict: false})
     @log = []
     # GTFS entity to Onestop ID
     @gtfs_to_onestop_id = {}
     # TL Indexed by Onestop ID
     @onestop_id_to_entity = {}
-    @onestop_id_to_rsp = {}
   end
 
   def create_change_osr(import_level=0)
@@ -26,12 +25,13 @@ class GTFSGraph
     log "Load TL"
     load_tl_stops
     load_tl_routes
-    load_tl_route_stop_patterns
+    rsps = load_tl_route_stop_patterns
     operators = load_tl_operators
     fail GTFSGraph::Error.new('No agencies found that match operators_in_feed') unless operators.size > 0
     routes = operators.map { |operator| operator.serves }.reduce(Set.new, :+)
     stops = routes.map { |route| route.serves }.reduce(Set.new, :+)
-    rsps = routes.map { |route| route.route_stop_patterns }.reduce(Set.new, :+)
+    rsps = rsps.select { |rsp| routes.include?(rsp.route) }
+    # rsps = routes.map { |route| route.route_stop_patterns }.reduce(Set.new, :+)
     log "Create changeset"
     changeset = Changeset.create(
       feed: @feed,
@@ -258,6 +258,7 @@ class GTFSGraph
   end
 
   def load_tl_route_stop_patterns
+    rsps = Set.new
     @gtfs.trip_stop_times do |trip,stop_times|
       feed_shape_points = @gtfs.shape_line(trip.shape_id) || []
       tl_stops = stop_times.map { |stop_time| find_by_gtfs_entity(@gtfs.stop(stop_time.stop_id)) }
@@ -265,17 +266,17 @@ class GTFSGraph
       stop_pattern = tl_stops.map(&:onestop_id)
       next if stop_pattern.empty?
       # temporary RouteStopPattern
-      rsp = RouteStopPattern.from_gtfs(trip, stop_pattern, feed_shape_points)
       trip_stop_points = tl_stops.map {|s| s.geometry[:coordinates]}
-      has_issues, issues = rsp.evaluate_geometry(trip, trip_stop_points)
-      rsp.tl_geometry(trip_stop_points, issues) if has_issues
-      # determine if RouteStopPattern with same route, stop pattern, and geometry exists
-      rsp = RouteStopPattern.find_rsp(tl_route.onestop_id, @onestop_id_to_rsp, rsp)
-      @onestop_id_to_rsp[rsp.onestop_id] = rsp
+      # determine if RouteStopPattern exists
+      rsp = find_by_entity(
+        RouteStopPattern.from_gtfs(trip, tl_route.onestop_id, stop_pattern, trip_stop_points, feed_shape_points)
+      )
       add_identifier(rsp, 'trip', trip)
       rsp.trips << trip.trip_id unless rsp.trips.include?(trip.trip_id)
-      tl_route.route_stop_patterns << rsp
+      rsp.route = tl_route
+      rsps << rsp
     end
+    rsps
   end
 
   def find_by_gtfs_entity(entity)
@@ -536,10 +537,10 @@ end
 if __FILE__ == $0
   feed_onestop_id = ARGV[0] || 'f-9q9-caltrain'
   path = ARGV[1] || File.open(Rails.root.join('spec/support/example_gtfs_archives/f-9q9-caltrain.zip'))
-  import_level = 2
+  import_level = 1
   ####
   feed = Feed.find_by_onestop_id!(feed_onestop_id)
-  feed_version = feed.feed_versions.create!
+  feed_version = feed.feed_versions.first # create!
   ####
   graph = GTFSGraph.new(path, feed, feed_version)
   graph.create_change_osr(import_level)

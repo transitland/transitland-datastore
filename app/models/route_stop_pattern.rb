@@ -95,6 +95,10 @@ class RouteStopPattern < BaseRouteStopPattern
     )
   end
 
+  def simplify_geometry
+    self.geometry = RouteStopPattern.line_string(self.geometry[:coordinates].map { |c| c.map { |n| n.round(5) } })
+  end
+
   def calculate_distances
     # TODO: potential issue with nearest stop segment matching after subsequent stop
     # TODO: investigate 'boundary' lat/lng possibilities
@@ -188,39 +192,23 @@ class RouteStopPattern < BaseRouteStopPattern
 
   ##### FromGTFS ####
   include FromGTFS
-  def self.from_gtfs(trip, stop_pattern, shape_points)
+  def self.from_gtfs(trip, route_onestop_id, stop_pattern, trip_stop_points, shape_points)
     raise ArgumentError.new('Need at least two stops') if stop_pattern.length < 2
     rsp = RouteStopPattern.new(
       stop_pattern: stop_pattern,
       geometry: self.line_string(shape_points.chunk{|c| c}.map(&:first))
     )
+    has_issues, issues = rsp.evaluate_geometry(trip, trip_stop_points)
+    rsp.tl_geometry(trip_stop_points, issues) if has_issues
+    onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(
+      route_onestop_id: route_onestop_id,
+      stop_pattern: rsp.stop_pattern,
+      geometry_coords: rsp.geometry[:coordinates]
+    )
+    rsp.onestop_id = onestop_id.to_s
     rsp.tags ||= {}
     rsp.tags[:shape_id] = trip.shape_id
     rsp
-  end
-
-  def self.find_rsp(route_onestop_id, import_rsp_hash, test_rsp)
-    onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(
-      route_onestop_id: route_onestop_id,
-      stop_pattern: test_rsp.stop_pattern,
-      geometry_coords: test_rsp.geometry[:coordinates]
-    ).to_s
-    saved_rsp = RouteStopPattern.find_by_onestop_id(onestop_id)
-    if saved_rsp
-      return saved_rsp if self.compare_by_structure(test_rsp, saved_rsp)
-    elsif import_rsp_hash.keys.include?(onestop_id)
-      return import_rsp_hash[onestop_id] if self.compare_by_structure(test_rsp, import_rsp_hash[onestop_id])
-    else
-      test_rsp.onestop_id = onestop_id
-      test_rsp
-    end
-  end
-
-  private
-
-  def self.compare_by_structure(test_rsp, candidate_rsp)
-    # test if two given rsps have equivalent stop pattern and geometry
-    test_rsp.stop_pattern.eql?(candidate_rsp.stop_pattern) && test_rsp.geometry[:coordinates].eql?(candidate_rsp.geometry[:coordinates])
   end
 end
 
