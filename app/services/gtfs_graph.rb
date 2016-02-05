@@ -26,12 +26,13 @@ class GTFSGraph
     log "Load TL"
     load_tl_stops
     load_tl_routes
-    load_tl_route_stop_patterns
+    rsps = load_tl_route_stop_patterns
     operators = load_tl_operators
     fail GTFSGraph::Error.new('No agencies found that match operators_in_feed') unless operators.size > 0
     routes = operators.map { |operator| operator.serves }.reduce(Set.new, :+)
     stops = routes.map { |route| route.serves }.reduce(Set.new, :+)
-    rsps = routes.map { |route| route.route_stop_patterns }.reduce(Set.new, :+)
+    rsps = rsps.select { |rsp| routes.include?(rsp.route) }
+    # rsps = routes.map { |route| route.route_stop_patterns }.reduce(Set.new, :+)
     log "Create changeset"
     changeset = Changeset.create(
       feed: @feed,
