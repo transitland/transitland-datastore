@@ -121,6 +121,11 @@ class Changeset < ActiveRecord::Base
     trial_succeeds
   end
 
+  def destroy_all_change_payloads
+    # Destroy change payloads
+    change_payloads.destroy_all
+  end
+
   def apply!
     fail Changeset::Error.new(self, 'has already been applied.') if applied
     Changeset.transaction do
@@ -138,8 +143,6 @@ class Changeset < ActiveRecord::Base
               .save!
           end
         end
-        # Destroy change payloads
-        change_payloads.destroy_all
       rescue
         logger.error "Error applying Changeset #{self.id}: #{$!.message}"
         logger.error $!.backtrace
