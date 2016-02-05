@@ -10,7 +10,7 @@ class GTFSGraph
     # GTFS Graph / TransitLand wrapper
     @feed = feed
     @feed_version = feed_version
-    @gtfs = GTFS::Source.build(filename, {strict: false})
+    @gtfs = GTFS::LocalSource.new(filename, {strict: false})
     @log = []
     # GTFS entity to Onestop ID
     @gtfs_to_onestop_id = {}
