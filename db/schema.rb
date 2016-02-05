@@ -15,9 +15,8 @@ ActiveRecord::Schema.define(version: 20160205200954) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "hstore"
-  enable_extension "pg_stat_statements"
   enable_extension "postgis"
+  enable_extension "hstore"
 
   create_table "change_payloads", force: :cascade do |t|
     t.json     "payload"
