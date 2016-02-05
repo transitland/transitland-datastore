@@ -30,6 +30,8 @@
 #  index_current_feeds_on_geometry                            (geometry)
 #
 
+require 'sidekiq/testing'
+
 describe Feed do
   context 'changesets' do
     before(:each) do
@@ -226,6 +228,27 @@ describe Feed do
       expect(feed.feed_versions.count).to eq 1
       expect(feed.latest_fetch_exception_log).to be_present
       expect(feed.latest_fetch_exception_log).to include('404 "Not Found"')
+    end
+  end
+
+  context '#async_fetch_feed_version' do
+    it 'enqueues FeedFetcher job' do
+      Sidekiq::Testing.fake! do
+        feed = create(:feed_caltrain)
+        expect {
+          feed.async_fetch_feed_version
+        }.to change(FeedFetcherWorker.jobs, :size).by(1)
+        FeedFetcherWorker.jobs.clear
+      end
+    end
+    it 'can auto-enqueue FeedFetcher job in after_create callback' do
+      allow(Figaro.env).to receive(:auto_fetch_feed_version) { 'true' }
+      Sidekiq::Testing.fake! do
+        expect {
+          feed = create(:feed_caltrain)
+        }.to change(FeedFetcherWorker.jobs, :size).by(1)
+        FeedFetcherWorker.jobs.clear
+      end
     end
   end
 
