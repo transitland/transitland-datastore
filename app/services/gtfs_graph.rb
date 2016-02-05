@@ -182,8 +182,10 @@ class GTFSGraph
     # Operators
     log "  operators"
     operators = Set.new
+    # key=nil is poorly defined in gtfs wrapper
+    agencies = Hash[@gtfs.agencies.map { |a| [a.id,a] }]
     @feed.operators_in_feed.each do |oif|
-      entity = @gtfs.agency(oif.gtfs_agency_id)
+      entity = agencies[oif.gtfs_agency_id]
       # Skip Operator if not found
       next unless entity
       # Find: (child gtfs routes) to (tl routes)
