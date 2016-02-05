@@ -70,9 +70,7 @@ class Feed < BaseFeed
 
   after_initialize :set_default_values
 
-  after_create { |feed|
-    async_fetch_feed_version if Figaro.env.auto_fetch_feed_version.presence == 'true'
-  }
+  after_create :after_create_async_fetch_feed_version
 
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
@@ -236,6 +234,10 @@ class Feed < BaseFeed
   end
 
   private
+
+  def after_create_async_fetch_feed_version
+    async_fetch_feed_version if Figaro.env.auto_fetch_feed_version.presence == 'true'
+  end
 
   def set_default_values
     if self.new_record?
