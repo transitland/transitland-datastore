@@ -170,15 +170,6 @@ describe Changeset do
       expect(Stop.find_by_onestop_id('s-9q8yt4b-1AvHoS')).to be_nil
     end
 
-    it 'deletes payloads after applying' do
-      payload_ids = @changeset1.change_payload_ids
-      expect(payload_ids.length).to eq 1
-      @changeset1.apply!
-      payload_ids.each do |i|
-        expect(ChangePayload.find_by(id: i)).to be_nil
-      end
-    end
-
     it 'to create and remove a relationship' do
       @changeset1.apply!
       @changeset2.apply!
@@ -240,6 +231,18 @@ describe Changeset do
 
   context 'revert' do
     pending 'write some specs'
+  end
+
+  context '#destroy_all_change_payloads' do
+    it 'destroys all ChangePayloads' do
+      changeset = create(:changeset_with_payload)
+      payload_ids = changeset.change_payload_ids
+      expect(payload_ids.length).to eq 1
+      changeset.destroy_all_change_payloads
+      payload_ids.each do |i|
+        expect(ChangePayload.find_by(id: i)).to be_nil
+      end
+    end
   end
 
   it 'will conflate stops with OSM after the DB transaction is complete' do

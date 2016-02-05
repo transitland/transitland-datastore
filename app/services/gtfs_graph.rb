@@ -59,6 +59,7 @@ class GTFSGraph
     log "Changeset apply"
     t = Time.now
     changeset.apply!
+    changeset.destroy_all_change_payloads
     log "  apply done: time #{Time.now - t}"
   end
 
@@ -122,6 +123,7 @@ class GTFSGraph
     log "Changeset apply"
     t = Time.now
     changeset.apply!
+    changeset.destroy_all_change_payloads
     log "  apply done: total time: #{Time.now - t}"
   end
 
