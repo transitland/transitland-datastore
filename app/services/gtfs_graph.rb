@@ -16,7 +16,6 @@ class GTFSGraph
     @gtfs_to_onestop_id = {}
     # TL Indexed by Onestop ID
     @onestop_id_to_entity = {}
-
     @onestop_id_to_rsp = {}
   end
 
@@ -34,7 +33,11 @@ class GTFSGraph
     stops = routes.map { |route| route.serves }.reduce(Set.new, :+)
     rsps = routes.map { |route| route.route_stop_patterns }.reduce(Set.new, :+)
     log "Create changeset"
-    changeset = Changeset.create(feed: @feed, feed_version: @feed_version)
+    changeset = Changeset.create(
+      feed: @feed,
+      feed_version: @feed_version,
+      notes: "Changeset created by FeedEaterWorker for #{@feed.onestop_id} #{@feed_version.sha1}"
+    )
     log "Create: Operators, Stops, Routes"
     # Update Feed Bounding Box
     log "  updating feed bounding box"
@@ -82,7 +85,11 @@ class GTFSGraph
       rsp_distances_map[onestop_id] = distances
     end
     log "Create changeset"
-    changeset = Changeset.create(feed: @feed, feed_version: @feed_version)
+    changeset = Changeset.create(
+      feed: @feed,
+      feed_version: @feed_version,
+      notes: "Changeset created by FeedEaterScheduleWorker for #{@feed.onestop_id} #{@feed_version.sha1}"
+    )
     log "Create: SSPs"
     total = 0
     ssps = []
@@ -142,31 +149,32 @@ class GTFSGraph
   ##### Create TL Entities #####
 
   def load_tl_stops
-    # Merge child stations into parents.
-    log "  merge stations"
-    stations = Hash.new { |h,k| h[k] = [] }
-    @gtfs.stops.each do |stop|
-      stations[@gtfs.stop(stop.parent_station) || stop] << stop
-    end
-    # Merge station/platforms with Stops.
+    # Merge child stations into parents
     log "  stops"
-    stations.each do |station,platforms|
-      # Temp stop to get geometry and name.
-      stop = Stop.from_gtfs(station)
-      # Search by similarity
-      stop, score = Stop.find_by_similarity(stop[:geometry], stop.name, radius=1000, threshold=0.6)
-      # ... or create stop from GTFS
-      stop ||= Stop.from_gtfs(station)
-      # ... check if Stop exists, or another local Stop, or new.
-      stop = find_by_entity(stop)
-      # Add identifiers and references
-      ([station]+platforms).each { |e| add_identifier(stop, 's', e) }
-      # Cache stop
-      if score
-        log "    #{stop.onestop_id}: #{stop.name} (search: #{station.stop_name} = #{'%0.2f'%score.to_f})"
-      else
-        log "    #{stop.onestop_id}: #{stop.name}"
+    # Create parent stops first
+    @gtfs.stops.reject(&:parent_station).each do |gtfs_stop|
+      stop = find_by_entity(Stop.from_gtfs(gtfs_stop))
+      add_identifier(stop, 's', gtfs_stop)
+      log "    Station: #{stop.onestop_id}: #{stop.name}"
+    end
+    # Create child stops
+    @gtfs.stops.select(&:parent_station).each do |gtfs_stop|
+      stop = Stop.from_gtfs(gtfs_stop)
+      parent_stop = find_by_gtfs_entity(@gtfs.stop(gtfs_stop.parent_station))
+      # Combine onestop_id with parent_stop onestop_id, if present
+      if parent_stop
+        # parse parent_stop osid
+        osid = OnestopId::StopOnestopId.new(string: parent_stop.onestop_id)
+        # add gtfs_stop.stop_id as the platform suffix
+        stop.onestop_id = OnestopId::StopOnestopId.new(geohash: osid.geohash, name: "#{osid.name}<#{gtfs_stop.id}")
+        # add parent_station osid
+        stop.tags[:parent_station] = parent_stop.onestop_id
       end
+      # index
+      stop = find_by_entity(stop)
+      add_identifier(stop, 's', gtfs_stop)
+      #
+      log "    Stop: #{stop.onestop_id}: #{stop.name}"
     end
   end
 
@@ -174,8 +182,10 @@ class GTFSGraph
     # Operators
     log "  operators"
     operators = Set.new
+    # key=nil is poorly defined in gtfs wrapper
+    agencies = Hash[@gtfs.agencies.map { |a| [a.id,a] }]
     @feed.operators_in_feed.each do |oif|
-      entity = @gtfs.agency(oif.gtfs_agency_id)
+      entity = agencies[oif.gtfs_agency_id]
       # Skip Operator if not found
       next unless entity
       # Find: (child gtfs routes) to (tl routes)
@@ -222,6 +232,14 @@ class GTFSGraph
         .reduce(Set.new, :+)
         .map { |stop| find_by_gtfs_entity(stop) }
         .to_set
+      # Also serve parent stations...
+      parent_stations = Set.new
+      stops.each do |stop|
+        parent_station = find_by_onestop_id(stop.tags[:parent_station])
+        next unless parent_station
+        parent_stations << parent_station
+      end
+      stops |= parent_stations
       # Skip Route if no Stops
       next if stops.empty?
       # Search by similarity
@@ -250,7 +268,7 @@ class GTFSGraph
       # determine if RouteStopPattern exists
       rsp = find_by_entity(rsp)
       add_identifier(rsp, 'trip', trip)
-      rsp.trips << trip.trip_id
+      rsp.trips << trip.trip_id unless rsp.trips.include?(trip.trip_id)
       tl_route.route_stop_patterns << rsp
     end
   end
@@ -511,12 +529,18 @@ class GTFSGraph
 end
 
 if __FILE__ == $0
-  require 'sidekiq/testing'
-  ActiveRecord::Base.logger = Logger.new(STDOUT)
   feed_onestop_id = ARGV[0] || 'f-9q9-caltrain'
-  FeedFetcherWorker.perform_async(feed_onestop_id)
-  FeedFetcherWorker.drain
-  FeedEaterWorker.perform_async(feed_onestop_id, nil, 2)
-  FeedEaterWorker.drain
-  FeedEaterScheduleWorker.drain
+  path = ARGV[1] || File.open(Rails.root.join('spec/support/example_gtfs_archives/f-9q9-caltrain.zip'))
+  import_level = 2
+  ####
+  feed = Feed.find_by_onestop_id!(feed_onestop_id)
+  feed_version = feed.feed_versions.create!
+  ####
+  graph = GTFSGraph.new(path, feed, feed_version)
+  graph.create_change_osr(import_level)
+  if import_level >= 2
+    graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map, rsp_map|
+      graph.ssp_perform_async(trip_ids, agency_map, route_map, stop_map, rsp_map)
+    end
+  end
 end
