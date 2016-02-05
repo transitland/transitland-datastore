@@ -141,19 +141,32 @@ class GTFSGraph
   ##### Create TL Entities #####
 
   def load_tl_stops
-    # Merge child stations into parents.
+    # Merge child stations into parents
     log "  stops"
-    @gtfs.stops.each do |gtfs_stop|
+    # Create parent stops first
+    @gtfs.stops.reject(&:parent_station).each do |gtfs_stop|
       stop = find_by_entity(Stop.from_gtfs(gtfs_stop))
       add_identifier(stop, 's', gtfs_stop)
-      log "    #{stop.onestop_id}: #{stop.name}"
+      log "    Station: #{stop.onestop_id}: #{stop.name}"
     end
-    # Pass through again to reference parent stations by Onestop ID...
+    # Create child stops
     @gtfs.stops.select(&:parent_station).each do |gtfs_stop|
-      stop = find_by_gtfs_entity(gtfs_stop)
+      stop = Stop.from_gtfs(gtfs_stop)
       parent_stop = find_by_gtfs_entity(@gtfs.stop(gtfs_stop.parent_station))
-      next unless parent_stop
-      stop.tags[:parent_station] = parent_stop.onestop_id
+      # Combine onestop_id with parent_stop onestop_id, if present
+      if parent_stop
+        # parse parent_stop osid
+        osid = OnestopId::StopOnestopId.new(string: parent_stop.onestop_id)
+        # add gtfs_stop.stop_id as the platform suffix
+        stop.onestop_id = OnestopId::StopOnestopId.new(geohash: osid.geohash, name: "#{parent_stop.name}<#{gtfs_stop.id}")
+        # add parent_station osid
+        stop.tags[:parent_station] = parent_stop.onestop_id
+      end
+      # index
+      stop = find_by_entity(stop)
+      add_identifier(stop, 's', gtfs_stop)
+      #
+      log "    Stop: #{stop.onestop_id}: #{stop.name}"
     end
   end
 
