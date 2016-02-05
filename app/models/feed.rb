@@ -183,9 +183,13 @@ class Feed < BaseFeed
   def self.async_fetch_all_feeds
     workers = []
     Feed.find_each do |feed|
-      workers << FeedFetcherWorker.perform_async(feed.onestop_id)
+      workers << feed.async_fetch_feed_version
     end
     workers
+  end
+
+  def async_fetch_feed_version
+    FeedFetcherWorker.perform_async(onestop_id)
   end
 
   def set_bounding_box_from_stops(stops)
