@@ -16,7 +16,6 @@ class GTFSGraph
     @gtfs_to_onestop_id = {}
     # TL Indexed by Onestop ID
     @onestop_id_to_entity = {}
-    @onestop_id_to_rsp = {}
   end
 
   def create_change_osr(import_level=0)
