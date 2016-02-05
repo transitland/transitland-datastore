@@ -158,7 +158,7 @@ class GTFSGraph
         # parse parent_stop osid
         osid = OnestopId::StopOnestopId.new(string: parent_stop.onestop_id)
         # add gtfs_stop.stop_id as the platform suffix
-        stop.onestop_id = OnestopId::StopOnestopId.new(geohash: osid.geohash, name: "#{parent_stop.name}<#{gtfs_stop.id}")
+        stop.onestop_id = OnestopId::StopOnestopId.new(geohash: osid.geohash, name: "#{osid.name}<#{gtfs_stop.id}")
         # add parent_station osid
         stop.tags[:parent_station] = parent_stop.onestop_id
       end
