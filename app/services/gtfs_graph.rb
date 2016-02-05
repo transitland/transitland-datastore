@@ -16,7 +16,6 @@ class GTFSGraph
     @gtfs_to_onestop_id = {}
     # TL Indexed by Onestop ID
     @onestop_id_to_entity = {}
-    @onestop_id_to_rsp = {}
   end
 
   def create_change_osr(import_level=0)
@@ -538,10 +537,10 @@ end
 if __FILE__ == $0
   feed_onestop_id = ARGV[0] || 'f-9q9-caltrain'
   path = ARGV[1] || File.open(Rails.root.join('spec/support/example_gtfs_archives/f-9q9-caltrain.zip'))
-  import_level = 2
+  import_level = 1
   ####
   feed = Feed.find_by_onestop_id!(feed_onestop_id)
-  feed_version = feed.feed_versions.create!
+  feed_version = feed.feed_versions.first # create!
   ####
   graph = GTFSGraph.new(path, feed, feed_version)
   graph.create_change_osr(import_level)
