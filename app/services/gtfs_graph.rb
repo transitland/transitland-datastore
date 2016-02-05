@@ -258,6 +258,7 @@ class GTFSGraph
   end
 
   def load_tl_route_stop_patterns
+    rsps = Set.new
     @gtfs.trip_stop_times do |trip,stop_times|
       feed_shape_points = @gtfs.shape_line(trip.shape_id) || []
       tl_stops = stop_times.map { |stop_time| find_by_gtfs_entity(@gtfs.stop(stop_time.stop_id)) }
@@ -266,13 +267,16 @@ class GTFSGraph
       next if stop_pattern.empty?
       # temporary RouteStopPattern
       trip_stop_points = tl_stops.map {|s| s.geometry[:coordinates]}
-      rsp = RouteStopPattern.from_gtfs(trip, tl_route.onestop_id, stop_pattern, trip_stop_points, feed_shape_points)
       # determine if RouteStopPattern exists
-      rsp = find_by_entity(rsp)
+      rsp = find_by_entity(
+        RouteStopPattern.from_gtfs(trip, tl_route.onestop_id, stop_pattern, trip_stop_points, feed_shape_points)
+      )
       add_identifier(rsp, 'trip', trip)
       rsp.trips << trip.trip_id unless rsp.trips.include?(trip.trip_id)
-      tl_route.route_stop_patterns << rsp
+      rsp.route = tl_route
+      rsps << rsp
     end
+    rsps
   end
 
   def find_by_gtfs_entity(entity)
