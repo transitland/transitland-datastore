@@ -70,6 +70,10 @@ class Feed < BaseFeed
 
   after_initialize :set_default_values
 
+  after_create { |feed|
+    async_fetch_feed_version if Figaro.env.auto_fetch_feed_version.presence == 'true'
+  }
+
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
