@@ -11,12 +11,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160205000053) do
+ActiveRecord::Schema.define(version: 20160205200954) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "postgis"
   enable_extension "hstore"
+  enable_extension "pg_stat_statements"
+  enable_extension "postgis"
 
   create_table "change_payloads", force: :cascade do |t|
     t.json     "payload"
@@ -423,9 +424,11 @@ ActiveRecord::Schema.define(version: 20160205000053) do
     t.integer   "destroyed_in_changeset_id"
     t.integer   "route_id"
     t.string    "route_type"
+    t.integer   "current_id"
   end
 
   add_index "old_route_stop_patterns", ["created_or_updated_in_changeset_id"], name: "o_rsp_cu_in_changeset", using: :btree
+  add_index "old_route_stop_patterns", ["current_id"], name: "index_old_route_stop_patterns_on_current_id", using: :btree
   add_index "old_route_stop_patterns", ["identifiers"], name: "index_old_route_stop_patterns_on_identifiers", using: :gin
   add_index "old_route_stop_patterns", ["onestop_id"], name: "index_old_route_stop_patterns_on_onestop_id", using: :btree
   add_index "old_route_stop_patterns", ["route_type", "route_id"], name: "index_old_route_stop_patterns_on_route_type_and_route_id", using: :btree
