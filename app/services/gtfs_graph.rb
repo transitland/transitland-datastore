@@ -31,7 +31,22 @@ class GTFSGraph
     routes = operators.map { |operator| operator.serves }.reduce(Set.new, :+)
     stops = routes.map { |route| route.serves }.reduce(Set.new, :+)
     rsps = rsps.select { |rsp| routes.include?(rsp.route) }
-    # rsps = routes.map { |route| route.route_stop_patterns }.reduce(Set.new, :+)
+    # Update route geometries
+    route_rsps = {}
+    rsps.each do |rsp|
+      route_rsps[rsp.route] ||= Set.new
+      route_rsps[rsp.route] << rsp
+    end
+    routes.each do |route|
+      route.geometry = Route::GEOFACTORY.multi_line_string(
+        (route_rsps[route] || []).map { |rsp|
+          Route::GEOFACTORY.line_string(
+            rsp.geometry[:coordinates].map { |lon, lat| Route::GEOFACTORY.point(lon, lat) }
+          )
+        }
+      )
+    end
+    ####
     log "Create changeset"
     changeset = Changeset.create(
       feed: @feed,
@@ -404,23 +419,7 @@ class GTFSGraph
       vehicleType: entity.vehicle_type,
       serves: entity.serves.map(&:onestop_id),
       tags: entity.tags || {},
-      # geometry: entity.geometry
-      # route[:geometry] = Route::GEOFACTORY.multi_line_string(
-      #   route.route_stop_patterns.to_set
-      #   .map { |rsp|
-      #     Route::GEOFACTORY.line_string(rsp.geometry[:coordinates]
-      #       .map { |lon, lat| Route::GEOFACTORY.point(lon, lat) }
-      #     )
-      #   }
-      # )
-      geometry: Route::GEOFACTORY.multi_line_string(
-         entity.route_stop_patterns.to_set
-         .map { |rsp|
-           Route::GEOFACTORY.line_string(rsp.geometry[:coordinates]
-             .map { |lon, lat| Route::GEOFACTORY.point(lon, lat) }
-           )
-         }
-       )
+      geometry: entity.geometry
     }
   end
 
@@ -552,7 +551,7 @@ if __FILE__ == $0
   import_level = 1
   ####
   feed = Feed.find_by_onestop_id!(feed_onestop_id)
-  feed_version = feed.feed_versions.first # create!
+  feed_version = feed.feed_versions.create!
   ####
   graph = GTFSGraph.new(path, feed, feed_version)
   graph.create_change_osr(import_level)
