@@ -24,7 +24,7 @@ describe FeedInfoWorker do
     cachedata = Rails.cache.read(cachekey)
     expect(cachedata[:status]).to eq('error')
     expect(cachedata[:errors].first[:exception]).to eq('HTTPServerException')
-    expect(cachedata[:errors].first[:message]).to eq('404 "Not Found"')
+    expect(cachedata[:errors].first[:message]).to eq('There was an error downloading the file. The transit operator server responded with: 404 "Not Found".')
     expect(cachedata[:errors].first[:response_code]).to eq('404')
   end
 
@@ -50,6 +50,6 @@ describe FeedInfoWorker do
     cachedata = Rails.cache.read(cachekey)
     expect(cachedata[:status]).to eq('error')
     expect(cachedata[:errors].first[:exception]).to eq('InvalidSourceException')
-    expect(cachedata[:errors].first[:message]).to eq('Invalid GTFS Feed')
+    expect(cachedata[:errors].first[:message]).to eq('This file does not appear to be a valid GTFS feed. Contact Transitland for more help.')
   end
 end
