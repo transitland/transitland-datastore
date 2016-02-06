@@ -16,23 +16,23 @@ class FeedInfoWorker
     rescue GTFS::InvalidSourceException => e
       errors << {
         exception: 'InvalidSourceException',
-        message: 'Invalid GTFS Feed'
+        message: 'This file does not appear to be a valid GTFS feed. Contact Transitland for more help.'
       }
     rescue SocketError => e
       errors << {
         exception: 'SocketError',
-        message: 'Error connecting to host'
+        message: 'There was a problem downloading the file. Check the address and try again, or contact the transit operator for more help.'
       }
     rescue Net::HTTPServerException => e
       errors << {
         exception: 'HTTPServerException',
-        message: e.to_s,
+        message: "There was an error downloading the file. The transit operator server responded with: #{e.to_s}.",
         response_code: e.response.code
       }
     rescue StandardError => e
       errors << {
         exception: e.class.name,
-        message: 'Could not download file'
+        message: 'There was a problem downloading or processing from this URL.'
       }
     else
       response[:feed] = FeedSerializer.new(feed).as_json
