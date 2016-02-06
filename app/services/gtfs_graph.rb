@@ -38,9 +38,8 @@ class GTFSGraph
       route_rsps[rsp.route] << rsp
     end
     routes.each do |route|
-      rsps = route_rsps[route]
       route.geometry = Route::GEOFACTORY.multi_line_string(
-        rsps.map { |rsp|
+        (route_rsps[route] || []).map { |rsp|
           Route::GEOFACTORY.line_string(
             rsp.geometry[:coordinates].map { |lon, lat| Route::GEOFACTORY.point(lon, lat) }
           )
