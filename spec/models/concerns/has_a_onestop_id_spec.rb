@@ -3,11 +3,11 @@ describe HasAOnestopId do
     let(:stop1) { create(:stop) }
     let(:stop2) { create(:stop) }
     it 'returns all matches' do
-      expect(Stop.find_by_onestop_ids([stop1.onestop_id, stop2.onestop_id])).to eq([stop1, stop2])
+      expect(Stop.find_by_onestop_ids([stop1.onestop_id, stop2.onestop_id])).to match_array([stop1, stop2])
     end
 
     it 'filters out missing' do
-      expect(Stop.find_by_onestop_ids([stop1.onestop_id, 's-9q9-missing'])).to eq([stop1])
+      expect(Stop.find_by_onestop_ids([stop1.onestop_id, 's-9q9-missing'])).to match_array([stop1])
     end
   end
 
@@ -15,7 +15,7 @@ describe HasAOnestopId do
     let(:stop1) { create(:stop) }
     let(:stop2) { create(:stop) }
     it 'returns all matches' do
-      expect(Stop.find_by_onestop_ids!([stop1.onestop_id, stop2.onestop_id])).to eq([stop1, stop2])
+      expect(Stop.find_by_onestop_ids!([stop1.onestop_id, stop2.onestop_id])).to match_array([stop1, stop2])
     end
 
     it 'raises exception on missing' do
