@@ -82,8 +82,12 @@ class GTFSGraph
     log "Calculating distances"
     rsp_distances_map = {}
     rsp_map.values.uniq.each do |onestop_id|
-      distances = RouteStopPattern.find_by_onestop_id!(onestop_id).calculate_distances
-      rsp_distances_map[onestop_id] = distances
+      rsp = RouteStopPattern.find_by_onestop_id!(onestop_id)
+      begin
+        rsp_distances_map[onestop_id] = rsp.calculate_distances
+      rescue StandardError
+        log "Could not calculate distances #{onestop_id}"
+      end
     end
     log "Create changeset"
     changeset = Changeset.create(
@@ -258,6 +262,8 @@ class GTFSGraph
   end
 
   def load_tl_route_stop_patterns
+    # Route Stop Patterns
+    log "  route stop patterns"
     rsps = Set.new
     @gtfs.trip_stop_times do |trip,stop_times|
       feed_shape_points = @gtfs.shape_line(trip.shape_id) || []
@@ -472,19 +478,25 @@ class GTFSGraph
     origin_stop = find_by_gtfs_entity(@gtfs.stop(origin.stop_id))
     destination_stop = find_by_gtfs_entity(@gtfs.stop(destination.stop_id))
     service_period = @gtfs.service_period(trip.service_id)
+    origin_dist_traveled = nil
+    destination_dist_traveled = nil
+    if rsp_stop_distances
+        origin_dist_traveled = rsp_stop_distances[route_stop_pattern.stop_pattern.index(origin_stop.onestop_id)]
+        destination_dist_traveled = rsp_stop_distances[route_stop_pattern.stop_pattern.index(destination_stop.onestop_id)]
+    end
     ssp = ScheduleStopPair.new(
       # Origin
       origin: origin_stop,
       origin_timezone: origin_stop.timezone,
       origin_arrival_time: origin.arrival_time.presence,
       origin_departure_time: origin.departure_time.presence,
-      origin_dist_traveled: rsp_stop_distances[route_stop_pattern.stop_pattern.index(origin_stop.onestop_id)],
+      origin_dist_traveled: origin_dist_traveled,
       # Destination
       destination: destination_stop,
       destination_timezone: destination_stop.timezone,
       destination_arrival_time: destination.arrival_time.presence,
       destination_departure_time: destination.departure_time.presence,
-      destination_dist_traveled: rsp_stop_distances[route_stop_pattern.stop_pattern.index(destination_stop.onestop_id)],
+      destination_dist_traveled: destination_dist_traveled,
       # Route
       route: route,
       route_stop_pattern: route_stop_pattern,
