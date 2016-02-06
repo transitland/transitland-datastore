@@ -139,6 +139,11 @@ class RouteStopPattern < BaseRouteStopPattern
     distances
   end
 
+  def cartesian_cast(geometry)
+    cartesian_factory = RGeo::Cartesian::Factory.new(srid: 4326)
+    RGeo::Feature.cast(geometry, cartesian_factory)
+  end
+
   def outlier_stop(spherical_stop)
     cartesian_factory = RGeo::Cartesian::Factory.new(srid: 4326)
     cartesian_line = RGeo::Feature.cast(self[:geometry], cartesian_factory)
