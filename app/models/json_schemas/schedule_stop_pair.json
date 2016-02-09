@@ -6,7 +6,6 @@
     "originOnestopId",
     "destinationOnestopId",
     "routeOnestopId",
-    "importedFromFeed",
     "originArrivalTime",
     "originDepartureTime",
     "destinationArrivalTime",
@@ -32,6 +31,9 @@
       "type": "string",
       "format": "route-onestop-id"
     },
+    "routeStopPatternOnestopId": {
+      "type": "string"
+    },
     "originArrivalTime": { "type": "string" },
     "originDepartureTime": { "type": "string" },
     "destinationArrivalTime": { "type": "string" },
@@ -42,6 +44,8 @@
     "windowEnd": { "type": "string" },
     "originTimepointSource": { "type": "string" },
     "destinationTimepointSource": { "type": "string" },
+    "originDistTraveled": { "type": "float" },
+    "destinationDistTraveled": { "type": "float" },
     "serviceStartDate": {
       "type": "string",
       "format": "date"
@@ -86,19 +90,6 @@
     "pickupType": { "type": ["string","null"] },
     "dropOffType": { "type": ["string","null"] },
     "shapeDistTraveled": { "type": ["number","null"] },
-    "tags": { "type": "object" },
-    "importedFromFeed": {
-      "type": "object",
-      "properties": {
-        "onestopId": {
-          "type": "string",
-          "format": "feed-onestop-id"
-        },
-        "sha1": {
-          "type": "string",
-          "format": "sha1"
-        }
-      }
-    }
+    "tags": { "type": "object" }
   }
 }

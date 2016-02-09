@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Transitland Datastore RouteStopPattern",
+  "type": "object",
+  "required": [
+    "stopPattern",
+    "geometry"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "tags": { "type": "object" },
+    "geometry": { "type": "object" },
+    "stopPattern": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "stop-onestop-id"
+      }
+    },
+    "isModified": {
+      "type": "boolean"
+    },
+    "isGenerated": {
+      "type": "boolean"
+    },
+    "identifiedBy": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
+    "onestopId": {"type": "string"},
+    "traversedBy": {
+      "type": "string",
+      "format": "route-onestop-id"
+    },
+    "trips": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

@@ -30,7 +30,7 @@ describe FeedVersion do
 
   it 'reads earliest and latest dates from calendars.txt' do
     feed_version = create(:feed_version_bart)
-    expect(feed_version.earliest_calendar_date).to eq Date.parse('2015-09-14')
+    expect(feed_version.earliest_calendar_date).to eq Date.parse('2013-11-28')
     expect(feed_version.latest_calendar_date).to eq Date.parse('2017-01-01')
   end
 

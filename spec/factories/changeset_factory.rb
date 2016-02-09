@@ -8,6 +8,11 @@
 #  applied_at :datetime
 #  created_at :datetime
 #  updated_at :datetime
+#  user_id    :integer
+#
+# Indexes
+#
+#  index_changesets_on_user_id  (user_id)
 #
 
 FactoryGirl.define do

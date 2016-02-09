@@ -5,7 +5,7 @@ module OnestopId
   COMPONENT_SEPARATOR = '-'
   GEOHASH_FILTER = /[^0123456789bcdefghjkmnpqrstuvwxyz]/
   NAME_TILDE = /[\-\:\&\@\/]/
-  NAME_FILTER = /[^a-zA-Z\d\@\~]/
+  NAME_FILTER = /[^a-zA-Z\d\@\~\>\<]/
   IDENTIFIER_TEMPLATE = Addressable::Template.new("gtfs://{feed_onestop_id}/{entity_prefix}/{entity_id}")
 
   class OnestopIdBase
@@ -81,6 +81,60 @@ module OnestopId
   class RouteOnestopId < OnestopIdBase
     PREFIX = :r
     MODEL = Route
+  end
+
+  class RouteStopPatternOnestopId < OnestopIdBase
+    PREFIX = :r
+    MODEL = RouteStopPattern
+    NUM_COMPONENTS = 5
+    HASH_LENGTH = 6
+
+    attr_accessor :stop_hash, :geometry_hash
+
+    def initialize(string: nil, route_onestop_id: nil, stop_pattern: nil, geometry_coords: nil)
+      if string && string.length > 0
+        geohash = string.split(COMPONENT_SEPARATOR)[1]
+        name = string.split(COMPONENT_SEPARATOR)[2]
+        stop_hash = string.split(COMPONENT_SEPARATOR)[3]
+        geometry_hash = string.split(COMPONENT_SEPARATOR)[4]
+      else
+        geohash = route_onestop_id.split(COMPONENT_SEPARATOR)[1].downcase.gsub(GEOHASH_FILTER, '')
+        name = route_onestop_id.split(COMPONENT_SEPARATOR)[2].downcase.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')
+        stop_hash = generate_hash_from_array(stop_pattern)
+        geometry_hash = generate_hash_from_array(geometry_coords)
+      end
+      @geohash = geohash
+      @name = name
+      @stop_hash = stop_hash
+      @geometry_hash = geometry_hash
+    end
+
+    def to_s
+      [self.class::PREFIX, @geohash, @name, @stop_hash, @geometry_hash].join(COMPONENT_SEPARATOR)
+    end
+
+    def validate
+      errors = super[1]
+      errors << 'invalid stop pattern hash' unless @stop_hash.present?
+      errors << 'invalid stop pattern hash' unless validate_hash(@stop_hash)
+      errors << 'invalid geometry hash' unless @geometry_hash.present?
+      errors << 'invalid geometry hash' unless validate_hash(@geometry_hash)
+      return (errors.size == 0), errors
+    end
+
+    def generate_hash_from_array(array)
+      Digest::MD5.hexdigest(array.flatten.join(','))[0...HASH_LENGTH]
+    end
+
+    def self.route_onestop_id(onestop_id)
+      onestop_id.split(COMPONENT_SEPARATOR)[0..2].join(COMPONENT_SEPARATOR)
+    end
+
+    private
+
+    def validate_hash(value)
+      (value.is_a? String) && value.length == HASH_LENGTH
+    end
   end
 
   LOOKUP = Hash[OnestopId::OnestopIdBase.descendants.map { |c| [[c::PREFIX, c::NUM_COMPONENTS], c] }]

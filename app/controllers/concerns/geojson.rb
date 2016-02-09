@@ -1,7 +1,7 @@
 module Geojson
   extend ActiveSupport::Concern
 
-  def self.from_entity_collection(entities)
+  def self.from_entity_collection(entities, &block)
     # TODO: paginate or serve as GeoJSON tiles, perhaps for consumption by
     # https://github.com/glenrobertson/leaflet-tilelayer-geojson
     factory = RGeo::GeoJSON::EntityFactory.instance
@@ -14,6 +14,7 @@ module Geojson
       }
       (properties[:name] = entity.name) if entity.try(:name)
       (properties[:identifiers] = entity.identifiers) if entity.try(:identifiers)
+      block.call(properties, entity) if block_given?
       factory.feature(
         entity.geometry(as: :wkt),
         entity.onestop_id,

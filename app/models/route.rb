@@ -118,12 +118,16 @@ class Route < BaseRoute
     routes_serving_stop.each do |route_serving_stop|
       route_serving_stop.destroy_making_history(changeset: changeset)
     end
+    route_stop_patterns.each do |route_stop_pattern|
+      route_stop_pattern.destroy_making_history(changeset: changeset)
+    end
     return true
   end
 
   has_many :routes_serving_stop
   has_many :stops, through: :routes_serving_stop
   has_many :schedule_stop_pairs
+  has_many :route_stop_patterns
   belongs_to :operator
 
   validates :name, presence: true

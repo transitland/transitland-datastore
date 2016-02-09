@@ -4,8 +4,8 @@ def load_feed(import_level=1)
   graph = GTFSGraph.new(feed_version.file.path, feed, feed_version)
   graph.create_change_osr(import_level)
   if import_level >= 2
-    graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map|
-      graph.ssp_perform_async(trip_ids, agency_map, route_map, stop_map)
+    graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map, rsp_map|
+      graph.ssp_perform_async(trip_ids, agency_map, route_map, stop_map, rsp_map)
     end
   end
   return feed, feed_version
@@ -13,17 +13,28 @@ end
 
 describe GTFSGraph do
 
+  context 'load operators' do
+    it 'fails if no matching operator_in_feed' do
+      feed_version = create(:feed_version_caltrain)
+      feed = feed_version.feed
+      oif = feed.operators_in_feed.first
+      oif.update!({gtfs_agency_id:'not-found'})
+      graph = GTFSGraph.new(feed_version.file.path, feed, feed_version)
+      expect { graph.create_change_osr(1) }.to raise_error(GTFSGraph::Error)
+    end
+  end
+
   context 'can apply level 0 and 1 changesets' do
     before(:each) { @feed, @feed_version = load_feed(1) }
 
     it 'updated feed geometry' do
       geometry = [
         [
-          [-122.412018, 37.003606],
-          [-121.566497, 37.003606],
-          [-121.566497, 37.776439],
-          [-122.412018, 37.776439],
-          [-122.412018, 37.003606]
+          [-122.412076, 37.003485],
+          [-121.566088, 37.003485],
+          [-121.566088, 37.776439],
+          [-122.412076, 37.776439],
+          [-122.412076, 37.003485]
         ]
       ]
       expect(@feed.geometry(as: :geojson)[:coordinates]).to match_array(geometry)
@@ -57,7 +68,7 @@ describe GTFSGraph do
     end
 
     it 'created known Stops' do
-      expect(@feed.imported_stops.count).to eq(31)
+      expect(@feed.imported_stops.count).to eq(95)
       expect(@feed_version.imported_stops).to eq(@feed.imported_stops)
       s = @feed.imported_stops.find_by(onestop_id: 's-9q9k659e3r-sanjosecaltrainstation')
       expect(s).to be_truthy
@@ -66,12 +77,13 @@ describe GTFSGraph do
       # expect(s.tags['']) # no tags
       expect(s.geometry).to be
       expect(s.identifiers).to contain_exactly(
-        "gtfs://f-9q9-caltrain/s/ctsj",
-        "gtfs://f-9q9-caltrain/s/70261",
-        "gtfs://f-9q9-caltrain/s/70262",
-        "gtfs://f-9q9-caltrain/s/777402"
+        "gtfs://f-9q9-caltrain/s/ctsj"
       )
       expect(s.timezone).to eq('America/Los_Angeles')
+    end
+
+    it 'created known RouteStopPatterns' do
+      expect(@feed.imported_route_stop_patterns.count).to eq(51)
     end
 
     it 'created known Operator that serves known Routes' do
@@ -89,26 +101,52 @@ describe GTFSGraph do
     it 'created known Operator that serves known Stops' do
       o = @feed.imported_operators.find_by(onestop_id: 'o-9q9-caltrain')
       # Just check the number of stops here...
-      expect(o.stops.size).to eq(31)
+      expect(o.stops.size).to eq(95)
     end
 
     it 'created known Routes that serve known Stops' do
       r = @feed.imported_routes.find_by(onestop_id: 'r-9q9j-bullet')
-      expect(r.stops.size).to eq(13)
+      expect(r.stops.size).to eq(39)
       expect(r.stops.map(&:onestop_id)).to contain_exactly(
         "s-9q8vzhbggj-millbraecaltrainstation",
+        "s-9q8vzhbggj-millbraecaltrainstation<70061",
+        "s-9q8vzhbggj-millbraecaltrainstation<70062",
         "s-9q8yw8y448-bayshorecaltrainstation",
+        "s-9q8yw8y448-bayshorecaltrainstation<70031",
+        "s-9q8yw8y448-bayshorecaltrainstation<70032",
         "s-9q8yycs6ku-22ndstreetcaltrainstation",
+        "s-9q8yycs6ku-22ndstreetcaltrainstation<70021",
+        "s-9q8yycs6ku-22ndstreetcaltrainstation<70022",
         "s-9q8yyugptw-sanfranciscocaltrainstation",
+        "s-9q8yyugptw-sanfranciscocaltrainstation<70011",
+        "s-9q8yyugptw-sanfranciscocaltrainstation<70012",
         "s-9q9hwp6epk-mountainviewcaltrainstation",
+        "s-9q9hwp6epk-mountainviewcaltrainstation<70211",
+        "s-9q9hwp6epk-mountainviewcaltrainstation<70212",
         "s-9q9hxhecje-sunnyvalecaltrainstation",
+        "s-9q9hxhecje-sunnyvalecaltrainstation<70221",
+        "s-9q9hxhecje-sunnyvalecaltrainstation<70222",
         "s-9q9j5dmkuu-menloparkcaltrainstation",
+        "s-9q9j5dmkuu-menloparkcaltrainstation<70161",
+        "s-9q9j5dmkuu-menloparkcaltrainstation<70162",
         "s-9q9j6812kg-redwoodcitycaltrainstation",
+        "s-9q9j6812kg-redwoodcitycaltrainstation<70141",
+        "s-9q9j6812kg-redwoodcitycaltrainstation<70142",
         "s-9q9j8rn6tv-sanmateocaltrainstation",
+        "s-9q9j8rn6tv-sanmateocaltrainstation<70091",
+        "s-9q9j8rn6tv-sanmateocaltrainstation<70092",
         "s-9q9j913rf1-hillsdalecaltrainstation",
+        "s-9q9j913rf1-hillsdalecaltrainstation<70111",
+        "s-9q9j913rf1-hillsdalecaltrainstation<70112",
         "s-9q9jh061xw-paloaltocaltrainstation",
+        "s-9q9jh061xw-paloaltocaltrainstation<70171",
+        "s-9q9jh061xw-paloaltocaltrainstation<70172",
         "s-9q9k62qu53-tamiencaltrainstation",
-        "s-9q9k659e3r-sanjosecaltrainstation"
+        "s-9q9k62qu53-tamiencaltrainstation<70271",
+        "s-9q9k62qu53-tamiencaltrainstation<70272",
+        "s-9q9k659e3r-sanjosecaltrainstation",
+        "s-9q9k659e3r-sanjosecaltrainstation<70261",
+        "s-9q9k659e3r-sanjosecaltrainstation<70262"
       )
     end
   end
@@ -122,10 +160,10 @@ describe GTFSGraph do
       expect(@feed_version.imported_schedule_stop_pairs.pluck(:id)).to match_array(@feed.imported_schedule_stop_pairs.pluck(:id))
       # Find a UNIQUE SSP, by origin, destination, route, trip.
       origin = @feed.imported_stops.find_by!(
-        onestop_id: 's-9q8yyugptw-sanfranciscocaltrainstation'
+        onestop_id: "s-9q8yyugptw-sanfranciscocaltrainstation<70012"
       )
       destination = @feed.imported_stops.find_by!(
-        onestop_id: 's-9q8yycs6ku-22ndstreetcaltrainstation'
+        onestop_id: "s-9q8yycs6ku-22ndstreetcaltrainstation<70022"
       )
       route = @feed.imported_routes.find_by!(onestop_id: 'r-9q9-local')
       operator = @feed.operators.find_by(onestop_id: 'o-9q9-caltrain')

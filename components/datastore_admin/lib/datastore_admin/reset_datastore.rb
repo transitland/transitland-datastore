@@ -26,6 +26,7 @@ module DatastoreAdmin
                  current_routes_serving_stop,
                  current_stops,
                  current_schedule_stop_pairs,
+                 current_route_stop_patterns,
                  old_schedule_stop_pairs,
                  feed_versions,
                  feed_version_imports,
@@ -37,7 +38,9 @@ module DatastoreAdmin
                  old_operators_serving_stop,
                  old_routes,
                  old_routes_serving_stop,
-                 old_stops;
+                 old_route_stop_patterns,
+                 old_stops,
+                 users;
 
         ALTER SEQUENCE changesets_id_seq RESTART;
         ALTER SEQUENCE change_payloads_id_seq RESTART;
@@ -49,6 +52,7 @@ module DatastoreAdmin
         ALTER SEQUENCE current_routes_serving_stop_id_seq RESTART;
         ALTER SEQUENCE current_stops_id_seq RESTART;
         ALTER SEQUENCE current_schedule_stop_pairs_id_seq RESTART;
+        ALTER SEQUENCE current_route_stop_patterns_id_seq RESTART;
         ALTER SEQUENCE feed_versions_id_seq RESTART;
         ALTER SEQUENCE feed_version_imports_id_seq RESTART;
         ALTER SEQUENCE feed_schedule_imports_id_seq RESTART;
@@ -61,6 +65,8 @@ module DatastoreAdmin
         ALTER SEQUENCE old_routes_serving_stop_id_seq RESTART;
         ALTER SEQUENCE old_stops_id_seq RESTART;
         ALTER SEQUENCE old_schedule_stop_pairs_id_seq RESTART;
+        ALTER SEQUENCE old_route_stop_patterns_id_seq RESTART;
+        ALTER SEQUENCE users_id_seq RESTART;
       "
       ActiveRecord::Base.connection.execute(sql)
     end

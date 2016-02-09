@@ -140,6 +140,7 @@ module CurrentTrackedByChangeset
       old_model.version = self.version
       old_model.current = self
 
+      self.version ||= 1 # some entities had no version set
       self.version = self.version + 1
       self.merge_in_attributes(new_attrs)
       self.created_or_updated_in_changeset = changeset
