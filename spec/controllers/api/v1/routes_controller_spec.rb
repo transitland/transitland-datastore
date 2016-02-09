@@ -13,13 +13,13 @@ describe Api::V1::RoutesController do
       }
     )
     point = Stop::GEOFACTORY.point(-122.38666,37.599787)
-    millbrae = create(
+    @millbrae = create(
       :stop,
       onestop_id: "s-9q8vzhbf8h-millbrae",
       name: "Millbrae",
       geometry: point.to_s,
     )
-    rsp = create(:route_serving_stop, route_id: @richmond_millbrae_route.id, stop_id: millbrae.id)
+    rsp = create(:route_serving_stop, route_id: @richmond_millbrae_route.id, stop_id: @millbrae.id)
   end
 
   describe 'GET index' do
@@ -86,6 +86,54 @@ describe Api::V1::RoutesController do
         @richmond_millbrae_route.update(operator: bart)
 
         get :index, operatedBy: 'o-9q9-BART'
+        expect_json({ routes: -> (routes) {
+          expect(routes.first[:onestop_id]).to eq 'r-9q8y-richmond~dalycity~millbrae'
+        }})
+      end
+
+      it 'returns routes traversing route stop patterns' do
+        point = Stop::GEOFACTORY.point(-122.353165, 37.936887)
+        richmond = create(
+          :stop,
+          onestop_id: "s-9q8zzf1nks-richmond",
+          name: "Richmond",
+          geometry: point.to_s,
+        )
+        create(:route_serving_stop, route_id: @richmond_millbrae_route.id, stop_id: richmond.id)
+
+        route_stop_pattern = create(:route_stop_pattern,
+          stop_pattern: [richmond.onestop_id, @millbrae.onestop_id],
+          geometry: RouteStopPattern::GEOFACTORY.line_string([
+            Stop::GEOFACTORY.point(-122.353165, 37.936887),
+            Stop::GEOFACTORY.point(-122.38666, 37.599787)
+          ]),
+          onestop_id: OnestopId.handler_by_model(RouteStopPattern).new(
+            route_onestop_id: @richmond_millbrae_route.onestop_id,
+            stop_pattern: [richmond.onestop_id, @millbrae.onestop_id],
+            geometry_coords: [[-122.353165, 37.936887],[-122.38666, 37.599787]]
+          ),
+          route: @richmond_millbrae_route,
+          trips: ['trip1','trip2']
+        )
+
+        other_route = create(:route, onestop_id: 'r-9q9-test')
+        other_route_stop_pattern = create(:route_stop_pattern,
+          stop_pattern: [@millbrae.onestop_id, richmond.onestop_id],
+          geometry: RouteStopPattern::GEOFACTORY.line_string([
+            Stop::GEOFACTORY.point(-122.38666, 37.599787),
+            Stop::GEOFACTORY.point(-122.36666, 37.559787),
+            Stop::GEOFACTORY.point(-122.353165, 37.936887)
+          ]),
+          onestop_id: OnestopId.handler_by_model(RouteStopPattern).new(
+            route_onestop_id: other_route.onestop_id,
+            stop_pattern: [@millbrae.onestop_id, richmond.onestop_id],
+            geometry_coords: [[-122.353165, 37.936887],[-122.36666, 37.559787],[-122.38666, 37.599787]]
+          ),
+          route: other_route,
+          trips: ['trip3']
+        )
+
+        get :index, traverses: 'r-9q8y-richmond~dalycity~millbrae-45cad3-46d384'
         expect_json({ routes: -> (routes) {
           expect(routes.first[:onestop_id]).to eq 'r-9q8y-richmond~dalycity~millbrae'
         }})
