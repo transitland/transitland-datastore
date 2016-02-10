@@ -20,10 +20,8 @@ module CurrentTrackedByChangeset
     def apply_changes(changeset: nil, changes: nil, action: nil, cache: {})
       changes ||= []
       case action
-      when 'create'
-        apply_changes_create(changeset: changeset, changes: changes, cache: cache)
       when 'createUpdate'
-        apply_changes_update(changeset: changeset, changes: changes, cache: cache)
+        apply_changes_create_update(changeset: changeset, changes: changes, cache: cache)
       when 'destroy'
         apply_changes_destroy(changeset: changeset, changes: changes, cache: cache)
       else
@@ -31,25 +29,7 @@ module CurrentTrackedByChangeset
       end
     end
 
-    def apply_changes_create(changeset: nil, changes: nil, cache: {})
-      models = []
-      changes.each do |change|
-        attrs_to_apply = apply_params(change, cache)
-        model = self.new(attrs_to_apply)
-        model.version = 1
-        model.created_or_updated_in_changeset = changeset
-        models << model if self.before_create_making_history(model, changeset)
-      end
-      #
-      raise Changeset::Error.new(changeset, "Invalid model") unless models.all?(&:valid?)
-      self.import models, validate: false
-      # models.map(&:save!)
-      models.each { |model| self.after_create_making_history(model, changeset) }
-      # binding.pry
-      models
-    end
-
-    def apply_changes_update(changeset: nil, changes: nil, cache: {})
+    def apply_changes_create_update(changeset: nil, changes: nil, cache: {})
       changes.each do |change|
         existing_model = find_existing_model(change)
         attrs_to_apply = apply_params(change, cache)
