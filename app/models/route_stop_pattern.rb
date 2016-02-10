@@ -99,6 +99,10 @@ class RouteStopPattern < BaseRouteStopPattern
     self.geometry = RouteStopPattern.line_string(self.geometry[:coordinates].map { |c| c.map { |n| n.round(5) } })
   end
 
+  def remove_duplicate_points
+    self.geometry = RouteStopPattern.line_string(self.geometry[:coordinates].chunk{|c| c}.map(&:first))
+  end
+
   def calculate_distances
     # TODO: potential issue with nearest stop segment matching after subsequent stop
     # TODO: investigate 'boundary' lat/lng possibilities
