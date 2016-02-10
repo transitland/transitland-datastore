@@ -1,9 +1,9 @@
 # Transitland RouteStopPattern
 
-Transitland models route geometries by breaking them into individual components called Route Stop Patterns. These components are uniquely defined by a route, a stop pattern corresponding to a trip stop sequence, and a line geometry, all three derived from the trips and shapes of a GTFS feed. Because of this, it is possible to have two distinct Route Stop Patterns within one route, both sharing the same line geometry but having different stop patterns, and vice versa. Individual Route Stop Patterns also have records of the GTFS trips and single shape used to create them; a typical Route Stop Pattern will reference back to one or many trips having the same stop pattern, but only references the one shape shared by those trips. When a Route Stop Pattern's trips have no shapes or empty shapes, there will be no shape reference.
+Transitland models route geometries by breaking them into individual components called Route Stop Patterns. These components are uniquely defined by a route, a stop pattern, and a line geometry, all three derived from the trip routes, trip stop sequences, and shapes of a GTFS feed. Because of this, it is possible to have two distinct Route Stop Patterns within one route, both sharing the same line geometry but having different stop patterns, and vice versa. Individual Route Stop Patterns also have records of the GTFS trips and the single shape used to create them; a typical Route Stop Pattern will reference back to one or many trips having the same stop pattern, but only references the one shape shared by those trips. When a Route Stop Pattern's trips have no shapes or empty shapes, there will be no shape reference.
 
-Route Stop Patterns may also make modify the original shape line geometry if necessary. When this is done, a Boolean
-value named is_modified will be set to true. Currently, the line geometry is only modified when it is generated.
+Route Stop Patterns may also make modify the original shape line geometry if necessary. When this is done, a Boolean value named is_modified will be set to true. Currently, the line geometry is only modified when it is generated, which in turn only occurs when the trip the Route Stop pattern is derived from does
+not have a shape id or shape points. In this case, the line geometry becomes the points of the stop pattern, and a separate boolean named is_generated will be set to true.  
 
 ## RouteStopPattern Data Model
 
@@ -24,37 +24,49 @@ RouteStopPatterns are uniquely identified by a Onestop Id, but the composition o
 Route, Stop, Feed, and Operator Onestop Ids. The RouteStopPattern Onestop Id has 5 components instead of 3, with each component separated by a dash just as the ids of the latter Transitland entities. The first 3 components are exactly the Route Onestop Id of the Route to which the RouteStopPattern belongs to. The fourth component is the first 6 hexadecimal characters of the MD5 hash produced from the stop pattern string (stop onestop id's separated by comma). The fifth component is the first 6 hexadecimal characters of the MD5 hash produced from geometry coordinates as a string (coordinates separated by comma).
 
 ### Distance calculation algorithm
-
 Each Schedule Stop Pair will be associated to a RouteStopPattern. In addition, two attributes have been added to Schedule Stop Pair: origin_distance_traveled and destination_distance_traveled. These are the distances, in meters rounded to the nearest decimeter, of the origin and destination stops along the line geometry from the start point.
 
 The algorithm to compute these distances runs as follows:
 
   1) Initialize the total distance traveled counter to 0.0.
 
-  2) Determine whether the first stop of the stop pattern lies before the start point of the line geometry. If so, store that stop's distance as 0.0 and add the distance from that stop to the first point of the line geometry to the distance traveled of the second stop.
+  2) Determine whether the first stop of the stop pattern lies before the start point of the line geometry.* If so, store that stop's distance as 0.0 and add the distance from that stop to the first point of the line geometry to the distance traveled of the second stop.
 
   3) Initialize evaluation line geometry and set it to the complete Route Stop Pattern line geometry.
 
   4) For each stop in the stop pattern starting with the second stop:
-      a) Find its nearest point to the line geometry. These calculations are done in a Cartesian projection.
+      a) Find its nearest point to the line geometry.**
       b) Once the nearest point is found, split the line at this point into two.
       c) For the first half of the split, add the lengths of the segments to the total distance counter,
          and store the current stop's distance as that total distance traveled.
-      d) The second half of the split is now the evaluation line geometry. Repeat 3) with this line
+      d) The second half of the split is now the evaluation line geometry. Repeat 4) with this line
          and with the next stop in the stop pattern.
 
-  5) Determine whether the last stop is after the end point of the comparison line geometry. If so, add the
-     distance from the stop to the endpoint to that stop's distance traveled.
+  5) Determine whether the last stop is after the last point of the comparison line geometry. If so, add the
+     distance from the stop to the last point to that stop's distance traveled.
 
-Here is a visualization. Spaces and dashes are 1 unit long.
+*
+** These calculations are done in a Cartesian projection.
+
+Here is a visualization. X's represent stops, and pipes represent line endpoints. Spaces and dashes are 1 unit long.
+
+Step 1
 
 x |-----x--------x--------| x
 
+Step 2/3
+
 0 |-----x--------x--------| x
+
+Step 4
 
 0 |-----6--------x--------| x
 
+Step 4
+
 0 |-----6--------15--------| x
+
+Step 5
 
 0 |-----6--------15--------| 24
 
@@ -68,10 +80,10 @@ The main RouteStopPattern API endpoint is [/api/v1/route_stop_patterns](http://t
 | Query parameter        | Type | Description | Example |
 |------------------------|------|-------------|---------|
 | onestop_id             | Onestop ID | RouteStopPattern. | (http://transit.land/api/v1/route_stop_patterns?onestop_id=r-9q9-pittsburg~baypoint~sfia~millbrae-49ae87-5ae164) |
-| traversed_by   | Onestop ID | Route. Accepts multiple separated by commas. | [belonging to Route Pittsburg/Bay Point - SFIA/Millbrae](http://transit.land/api/v1/route_stop_patterns?traversed_by=r-9q9-pittsburg~baypoint~sfia~millbrae)
+| traversed_by   | Onestop ID | Route. Accepts multiple route onestop ids separated by commas. | [belonging to Route Pittsburg/Bay Point - SFIA/Millbrae](http://transit.land/api/v1/route_stop_patterns?traversed_by=r-9q9-pittsburg~baypoint~sfia~millbrae)
 | stops_visited  | Onestop ID | Stop. Accepts multiple separated by commas. | [Having stop MacArthur](http://transit.land/api/v1/route_stop_patterns?stops_visited=s-9q9p1wrwrp-macarthur)
-| trips | String | Derived from trip. Accepts multiple separated by commas. | [Having trips ](http://transit.land/api/v1/route_stop_patterns?trips=01SFO10,96SFO10)
-| bbox                     | Lon1,Lat1,Lon2,Lat2 | Stop within bounding box | [in the Bay Area](http://transit.land/api/v1/route_stop_patterns?bbox=-123.057,36.701,-121.044,38.138)
+| trips | String | Derived from trip. Accepts multiple trips ids separated by commas. | [Having trips ](http://transit.land/api/v1/route_stop_patterns?trips=01SFO10,96SFO10)
+| bbox                     | Lon1,Lat1,Lon2,Lat2 | Route Stop Patterns within bounding box | [in the Bay Area](http://transit.land/api/v1/route_stop_patterns?bbox=-123.057,36.701,-121.044,38.138)
 
 ## Response format
 
