@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160130014111) do
+ActiveRecord::Schema.define(version: 20160205200954) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -139,11 +139,11 @@ ActiveRecord::Schema.define(version: 20160130014111) do
   end
 
   add_index "current_route_stop_patterns", ["created_or_updated_in_changeset_id"], name: "c_rsp_cu_in_changeset", using: :btree
-  add_index "current_route_stop_patterns", ["identifiers"], name: "index_current_route_stop_patterns_on_identifiers", using: :btree
+  add_index "current_route_stop_patterns", ["identifiers"], name: "index_current_route_stop_patterns_on_identifiers", using: :gin
   add_index "current_route_stop_patterns", ["onestop_id"], name: "index_current_route_stop_patterns_on_onestop_id", using: :btree
   add_index "current_route_stop_patterns", ["route_id"], name: "index_current_route_stop_patterns_on_route_id", using: :btree
-  add_index "current_route_stop_patterns", ["stop_pattern"], name: "index_current_route_stop_patterns_on_stop_pattern", using: :btree
-  add_index "current_route_stop_patterns", ["trips"], name: "index_current_route_stop_patterns_on_trips", using: :btree
+  add_index "current_route_stop_patterns", ["stop_pattern"], name: "index_current_route_stop_patterns_on_stop_pattern", using: :gin
+  add_index "current_route_stop_patterns", ["trips"], name: "index_current_route_stop_patterns_on_trips", using: :gin
 
   create_table "current_routes", force: :cascade do |t|
     t.string    "onestop_id"
@@ -423,14 +423,16 @@ ActiveRecord::Schema.define(version: 20160130014111) do
     t.integer   "destroyed_in_changeset_id"
     t.integer   "route_id"
     t.string    "route_type"
+    t.integer   "current_id"
   end
 
   add_index "old_route_stop_patterns", ["created_or_updated_in_changeset_id"], name: "o_rsp_cu_in_changeset", using: :btree
-  add_index "old_route_stop_patterns", ["identifiers"], name: "index_old_route_stop_patterns_on_identifiers", using: :btree
+  add_index "old_route_stop_patterns", ["current_id"], name: "index_old_route_stop_patterns_on_current_id", using: :btree
+  add_index "old_route_stop_patterns", ["identifiers"], name: "index_old_route_stop_patterns_on_identifiers", using: :gin
   add_index "old_route_stop_patterns", ["onestop_id"], name: "index_old_route_stop_patterns_on_onestop_id", using: :btree
   add_index "old_route_stop_patterns", ["route_type", "route_id"], name: "index_old_route_stop_patterns_on_route_type_and_route_id", using: :btree
-  add_index "old_route_stop_patterns", ["stop_pattern"], name: "index_old_route_stop_patterns_on_stop_pattern", using: :btree
-  add_index "old_route_stop_patterns", ["trips"], name: "index_old_route_stop_patterns_on_trips", using: :btree
+  add_index "old_route_stop_patterns", ["stop_pattern"], name: "index_old_route_stop_patterns_on_stop_pattern", using: :gin
+  add_index "old_route_stop_patterns", ["trips"], name: "index_old_route_stop_patterns_on_trips", using: :gin
 
   create_table "old_routes", force: :cascade do |t|
     t.string    "onestop_id"

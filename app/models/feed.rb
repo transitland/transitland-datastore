@@ -70,6 +70,8 @@ class Feed < BaseFeed
 
   after_initialize :set_default_values
 
+  after_create :after_create_async_fetch_feed_version
+
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
@@ -183,9 +185,13 @@ class Feed < BaseFeed
   def self.async_fetch_all_feeds
     workers = []
     Feed.find_each do |feed|
-      workers << FeedFetcherWorker.perform_async(feed.onestop_id)
+      workers << feed.async_fetch_feed_version
     end
     workers
+  end
+
+  def async_fetch_feed_version
+    FeedFetcherWorker.perform_async(onestop_id)
   end
 
   def set_bounding_box_from_stops(stops)
@@ -228,6 +234,10 @@ class Feed < BaseFeed
   end
 
   private
+
+  def after_create_async_fetch_feed_version
+    async_fetch_feed_version if Figaro.env.auto_fetch_feed_version.presence == 'true'
+  end
 
   def set_default_values
     if self.new_record?
