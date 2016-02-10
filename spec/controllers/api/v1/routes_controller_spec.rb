@@ -93,7 +93,7 @@ describe Api::V1::RoutesController do
 
       it 'returns routes traversing route stop patterns' do
         route_stop_pattern = create(:route_stop_pattern_bart)
-        other_route_stop_pattern = create(:route_stop_pattern_fake)
+        other_route_stop_pattern = create(:route_stop_pattern)
 
         get :index, traverses: "r-9q8y-richmond~dalycity~millbrae-45cad3-46d384,#{other_route_stop_pattern.onestop_id}"
         expect_json({ routes: -> (routes) {
@@ -104,7 +104,7 @@ describe Api::V1::RoutesController do
 
       it 'returns no routes when none traversing route stop patterns' do
         route_stop_pattern = create(:route_stop_pattern_bart)
-        other_route_stop_pattern = create(:route_stop_pattern_fake)
+        other_route_stop_pattern = create(:route_stop_pattern)
 
         get :index, traverses: 'r-9q8y-test-45cad3-46d384'
         expect_json({ routes: -> (routes) {

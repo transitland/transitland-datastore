@@ -1,10 +1,6 @@
 FactoryGirl.define do
-  factory :route_stop_pattern do
-    geometry "MyString"
-    tags ""
-  end
 
-  factory :route_stop_pattern_fake, class: RouteStopPattern do
+  factory :route_stop_pattern, class: RouteStopPattern do
     geometry { RouteStopPattern::GEOFACTORY.line_string([
       Stop::GEOFACTORY.point(-122.353165, 37.936887),
       Stop::GEOFACTORY.point(-122.38666, 37.599787)
@@ -12,12 +8,12 @@ FactoryGirl.define do
     stop_pattern {[create(:stop).onestop_id, create(:stop).onestop_id]}
     version 1
     association :route, factory: :route
-    after(:build) { |rsp_fake|
+    after(:build) { |rsp|
       puts
-      rsp_fake.onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(
-      route_onestop_id: "#{rsp_fake.route.onestop_id}",
-      stop_pattern: rsp_fake.stop_pattern,
-      geometry_coords: rsp_fake.geometry[:coordinates]
+      rsp.onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(
+      route_onestop_id: "#{rsp.route.onestop_id}",
+      stop_pattern: rsp.stop_pattern,
+      geometry_coords: rsp.geometry[:coordinates]
     )}
   end
 
