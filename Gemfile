@@ -69,11 +69,11 @@ gem 'rubocop-rspec', require: false, group: [:development, :test]
 # code coverage and documentation
 gem 'rails-erd', group: :development
 gem 'annotate', group: :development
-gem 'simplecov', :require => false, group: [:development, :test]
+gem 'simplecov', require: false, group: [:development, :test]
 
 # testing
 gem 'database_cleaner', group: :test
-gem 'factory_girl_rails', :require => false, group: [:development, :test]
+gem 'factory_girl_rails', require: false, group: [:development, :test]
 gem 'ffaker', group: [:development, :test]
 gem 'rspec-rails', group: [:development, :test]
 gem 'rspec-sidekiq', group: :test
