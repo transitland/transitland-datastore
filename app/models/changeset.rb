@@ -82,7 +82,6 @@ class Changeset < ActiveRecord::Base
     operators_created_or_updated.find_each(&block)
     routes_created_or_updated.find_each(&block)
     route_stop_patterns_created_or_updated.find_each(&block)
-    schedule_stop_pairs_created_or_updated.find_each(&block)
   end
 
   def relations_created_or_updated(&block)
@@ -97,7 +96,6 @@ class Changeset < ActiveRecord::Base
     operators_destroyed.find_each(&block)
     routes_destroyed.find_each(&block)
     route_stop_patterns_destroyed.find_each(&block)
-    schedule_stop_pairs_destroyed.find_each(&block)
   end
 
   def relations_destroyed(&block)
