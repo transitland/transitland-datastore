@@ -9,7 +9,6 @@ FactoryGirl.define do
     version 1
     association :route, factory: :route
     after(:build) { |rsp|
-      puts
       rsp.onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(
       route_onestop_id: "#{rsp.route.onestop_id}",
       stop_pattern: rsp.stop_pattern,
@@ -23,8 +22,8 @@ FactoryGirl.define do
       [-122.38666, 37.599787]
     ])}
     stop_pattern {[
-      create(:stop, onestop_id: 's-9q8zzf1nks-richmond').onestop_id,
-      create(:stop, onestop_id: 's-9q8vzhbf8h-millbrae').onestop_id
+      's-9q8zzf1nks-richmond',
+      's-9q8vzhbf8h-millbrae'
     ]}
     version 1
     association :route, factory: :route, onestop_id: 'r-9q8y-richmond~dalycity~millbrae', name: 'Richmond - Daly City/Millbrae'
