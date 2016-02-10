@@ -29,7 +29,7 @@ class FeedVersion < ActiveRecord::Base
   has_many :imported_operators, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'
   has_many :imported_stops, through: :entities_imported_from_feed, source: :entity, source_type: 'Stop'
   has_many :imported_routes, through: :entities_imported_from_feed, source: :entity, source_type: 'Route'
-  has_many :imported_schedule_stop_pairs, through: :entities_imported_from_feed, source: :entity, source_type: 'ScheduleStopPair'
+  has_many :imported_schedule_stop_pairs, class_name: 'ScheduleStopPair'
 
   mount_uploader :file, FeedVersionUploader
 

@@ -90,6 +90,8 @@ class ScheduleStopPair < BaseScheduleStopPair
   belongs_to :route
   belongs_to :operator
   belongs_to :route_stop_pattern
+  belongs_to :feed
+  belongs_to :feed_version
 
   # Required relations and attributes
   before_validation :filter_service_range
