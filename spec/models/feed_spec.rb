@@ -335,8 +335,8 @@ describe Feed do
     it 'activates ssps' do
       feed = create(:feed)
       feed_version = create(:feed_version, feed: feed)
-      ssp = create(:schedule_stop_pair)
-      EntityImportedFromFeed.create!(entity: ssp, feed: feed, feed_version: feed_version)
+      ssp = create(:schedule_stop_pair, feed: feed, feed_version: feed_version)
+      expect(ssp.active).to be_falsy
       expect(feed_version.imported_schedule_stop_pairs.count).to eq(1)
       expect(feed.imported_schedule_stop_pairs.count).to eq(1)
       feed.activate_feed_version(feed_version.sha1)

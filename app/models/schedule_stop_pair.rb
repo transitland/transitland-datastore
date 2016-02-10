@@ -62,7 +62,6 @@
 
 class BaseScheduleStopPair < ActiveRecord::Base
   self.abstract_class = true
-  include IsAnEntityImportedFromFeeds
 
   extend Enumerize
   enumerize :origin_timepoint_source, in: [
