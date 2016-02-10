@@ -5,7 +5,7 @@ FactoryGirl.define do
       Stop::GEOFACTORY.point(-122.353165, 37.936887),
       Stop::GEOFACTORY.point(-122.38666, 37.599787)
     ])}
-    stop_pattern {[create(:stop).onestop_id, create(:stop).onestop_id]}
+    stop_pattern {[Faker::OnestopId.stop, Faker::OnestopId.stop]}
     version 1
     association :route, factory: :route
     after(:build) { |rsp|
