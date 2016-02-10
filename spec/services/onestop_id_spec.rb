@@ -5,6 +5,13 @@ class TestOnestopId < OnestopId::OnestopIdBase
   NUM_COMPONENTS = 3
 end
 
+class TestRSPOnestopId < OnestopId::RouteStopPatternOnestopId
+  PREFIX = :r
+  MODEL = RouteStopPattern
+  NUM_COMPONENTS = 5
+  HASH_LENGTH = 6
+end
+
 describe OnestopId do
   it 'fails gracefully when given an invalid geometry' do
     expect {
@@ -46,10 +53,6 @@ describe OnestopId do
     it 'requires name' do
       expect(TestOnestopId.new(geohash: '9q9', name: '!').errors).to include 'invalid name'
     end
-  end
-
-  context 'RouteStopPatternOnestopId' do
-    
   end
 
   context 'finder methods' do

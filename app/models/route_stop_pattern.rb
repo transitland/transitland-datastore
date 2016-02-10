@@ -145,10 +145,8 @@ class RouteStopPattern < BaseRouteStopPattern
   end
 
   def outlier_stop(spherical_stop)
-    cartesian_factory = RGeo::Cartesian::Factory.new(srid: 4326)
-    cartesian_line = RGeo::Feature.cast(self[:geometry], cartesian_factory)
-    cartesian_stop = RGeo::Feature.cast(spherical_stop, cartesian_factory)
-    closest_point = cartesian_line.closest_point(cartesian_stop)
+    cartesian_line = cartesian_cast(self[:geometry])
+    closest_point = cartesian_line.closest_point(cartesian_cast(spherical_stop))
     spherical_closest = RGeo::Feature.cast(closest_point, RouteStopPattern::GEOFACTORY)
     spherical_stop.distance(spherical_closest) > 100.0
   end
