@@ -29,7 +29,7 @@ class FeedVersion < ActiveRecord::Base
   has_many :imported_operators, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'
   has_many :imported_stops, through: :entities_imported_from_feed, source: :entity, source_type: 'Stop'
   has_many :imported_routes, through: :entities_imported_from_feed, source: :entity, source_type: 'Route'
-  has_many :imported_schedule_stop_pairs, class_name: 'ScheduleStopPair'
+  has_many :imported_schedule_stop_pairs, class_name: 'ScheduleStopPair', dependent: :delete_all
 
   mount_uploader :file, FeedVersionUploader
 
@@ -55,18 +55,7 @@ class FeedVersion < ActiveRecord::Base
   end
 
   def delete_schedule_stop_pairs!
-    # A call to "imported_schedule_stop_pairs.delete_all" deletes the records
-    # in the EIFF join table, not the SSPs. So, follow through join to delete.
-    # http://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html
-    # PostgreSQL supports joins in delete with "USING".
-    # http://www.postgresql.org/docs/9.0/static/sql-delete.html
-    ScheduleStopPair
-      .joins(:entities_imported_from_feed)
-      .where(entities_imported_from_feed: {feed_version: self, feed: self.feed, entity_type: 'ScheduleStopPair'})
-      .delete_all
-    EntityImportedFromFeed
-      .where(feed_version: self, feed: self.feed, entity_type: 'ScheduleStopPair')
-      .delete_all
+      self.imported_schedule_stop_pairs.delete_all
   end
 
   private
