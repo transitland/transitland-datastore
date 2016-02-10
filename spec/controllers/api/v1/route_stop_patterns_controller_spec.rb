@@ -86,6 +86,29 @@ describe Api::V1::RouteStopPatternsController do
         }})
       end
     end
+  end
 
+  describe 'GET show' do
+    it 'returns route stop patterns by OnestopID' do
+      get :show, id: 'r-9q9j-bullet-c2e44f-8c801d'
+      expect_json_types({
+        onestop_id: :string,
+        route_onestop_id: :string,
+        geometry: :object,
+        stop_pattern: :array,
+        trips: :array,
+        identifiers: :array,
+        created_at: :date,
+        updated_at: :date
+      })
+      expect_json({ onestop_id: -> (onestop_id) {
+        expect(onestop_id).to eq 'r-9q9j-bullet-c2e44f-8c801d'
+      }})
+    end
+
+    it 'returns a 404 when not found' do
+      get :show, id: 'r-9q9j-bullet-test12-test12'
+      expect(response.status).to eq 404
+    end
   end
 end
