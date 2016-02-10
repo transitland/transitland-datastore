@@ -104,12 +104,6 @@ class GTFSGraph
         log "Could not calculate distances #{onestop_id}"
       end
     end
-    log "Create changeset"
-    changeset = Changeset.create(
-      feed: @feed,
-      feed_version: @feed_version,
-      notes: "Changeset created by FeedEaterScheduleWorker for #{@feed.onestop_id} #{@feed_version.sha1}"
-    )
     log "Create: SSPs"
     total = 0
     ssps = []
@@ -127,23 +121,18 @@ class GTFSGraph
       ssps += ssp_trip
       # If chunk is big enough, create change payloads.
       if ssps.size >= CHANGE_PAYLOAD_MAX_ENTITIES
-        log  "  ssps: #{total} - #{total+ssps.size}"
-        total += ssps.size
-        create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) }, action: 'create')
+        log  "  ssps: #{ssps.size}"
+        fail GTFSGraph::Error.new('Validation error') unless ssps.map(&:valid?).all?
+        ScheduleStopPair.import ssps, validate: false
         ssps = []
       end
     end
-    # Create any trailing payloads
     if ssps.size > 0
-      log  "  ssps: #{total} - #{total+ssps.size}"
-      total += ssps.size
-      create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) }, action: 'create')
+      log  "  ssps: #{ssps.size}"
+      fail GTFSGraph::Error.new('Validation error') unless ssps.map(&:valid?).all?
+      ScheduleStopPair.import ssps, validate: false
+      ssps = []
     end
-    log "Changeset apply"
-    t = Time.now
-    changeset.apply!
-    changeset.destroy_all_change_payloads
-    log "  apply done: total time: #{Time.now - t}"
   end
 
   def import_log
@@ -345,6 +334,7 @@ class GTFSGraph
 
   def load_gtfs_id_map(agency_map, route_map, stop_map, rsp_map)
     @gtfs_to_onestop_id.clear
+    @onestop_id_to_entity.clear
     # Populate GTFS entity to Onestop ID maps
     agency_map.each do |agency_id,onestop_id|
       @gtfs_to_onestop_id[@gtfs.agency(agency_id)] = onestop_id
@@ -437,40 +427,6 @@ class GTFSGraph
     }
   end
 
-  def make_change_ssp(entity)
-    {
-      originOnestopId: entity.origin.onestop_id,
-      originTimezone: entity.origin_timezone,
-      originArrivalTime: entity.origin_arrival_time,
-      originDepartureTime: entity.origin_departure_time,
-      originDistTraveled: entity.origin_dist_traveled,
-      destinationOnestopId: entity.destination.onestop_id,
-      destinationTimezone: entity.destination_timezone,
-      destinationArrivalTime: entity.destination_arrival_time,
-      destinationDepartureTime: entity.destination_departure_time,
-      destinationDistTraveled: entity.destination_dist_traveled,
-      routeOnestopId: entity.route.onestop_id,
-      routeStopPatternOnestopId: entity.route_stop_pattern.onestop_id,
-      trip: entity.trip,
-      tripHeadsign: entity.trip_headsign,
-      tripShortName: entity.trip_short_name,
-      wheelchairAccessible: entity.wheelchair_accessible,
-      bikesAllowed: entity.bikes_allowed,
-      dropOffType: entity.drop_off_type,
-      pickupType: entity.pickup_type,
-      shapeDistTraveled: entity.shape_dist_traveled,
-      serviceStartDate: entity.service_start_date,
-      serviceEndDate: entity.service_end_date,
-      serviceDaysOfWeek: entity.service_days_of_week,
-      serviceAddedDates: entity.service_added_dates,
-      serviceExceptDates: entity.service_except_dates,
-      windowStart: entity.window_start,
-      windowEnd: entity.window_end,
-      originTimepointSource: entity.origin_timepoint_source,
-      destinationTimepointSource: entity.destination_timepoint_source
-    }
-  end
-
   def make_ssp(route, trip, origin, destination, route_stop_pattern, rsp_stop_distances)
     # Generate an edge between an origin and destination for a given route/trip
     route = find_by_gtfs_entity(route)
@@ -484,6 +440,9 @@ class GTFSGraph
         destination_dist_traveled = rsp_stop_distances[route_stop_pattern.stop_pattern.index(destination_stop.onestop_id)]
     end
     ssp = ScheduleStopPair.new(
+      # Feed
+      feed: @feed,
+      feed_version: @feed_version,
       # Origin
       origin: origin_stop,
       origin_timezone: origin_stop.timezone,
@@ -499,6 +458,8 @@ class GTFSGraph
       # Route
       route: route,
       route_stop_pattern: route_stop_pattern,
+      # Operator
+      operator: route.operator,
       # Trip
       trip: trip.id.presence,
       trip_headsign: (origin.stop_headsign || trip.trip_headsign).presence,
