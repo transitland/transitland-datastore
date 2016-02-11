@@ -8,7 +8,7 @@ FactoryGirl.define do
     stop_pattern {[Faker::OnestopId.stop, Faker::OnestopId.stop]}
     version 1
     association :route, factory: :route
-    after(:build) { |rsp|
+    after(:create) { |rsp|
       rsp.onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(
       route_onestop_id: "#{rsp.route.onestop_id}",
       stop_pattern: rsp.stop_pattern,
