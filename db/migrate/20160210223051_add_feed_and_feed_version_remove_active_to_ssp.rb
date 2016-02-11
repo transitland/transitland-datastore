@@ -1,4 +1,4 @@
-class AddFeedAndFeedVersionToSsp < ActiveRecord::Migration
+class AddFeedAndFeedVersionRemoveActiveToSsp < ActiveRecord::Migration
   def change
     ["current","old"].each do |version|
       add_reference "#{version}_schedule_stop_pairs", :feed, index: true
