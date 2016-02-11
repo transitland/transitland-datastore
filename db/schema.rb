@@ -218,7 +218,6 @@ ActiveRecord::Schema.define(version: 20160210223051) do
     t.boolean  "bikes_allowed"
     t.string   "pickup_type"
     t.string   "drop_off_type"
-    t.boolean  "active"
     t.integer  "route_stop_pattern_id"
     t.float    "origin_dist_traveled"
     t.float    "destination_dist_traveled"
@@ -226,7 +225,6 @@ ActiveRecord::Schema.define(version: 20160210223051) do
     t.integer  "feed_version_id"
   end
 
-  add_index "current_schedule_stop_pairs", ["active"], name: "index_current_schedule_stop_pairs_on_active", using: :btree
   add_index "current_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "c_ssp_cu_in_changeset", using: :btree
   add_index "current_schedule_stop_pairs", ["destination_id"], name: "c_ssp_destination", using: :btree
   add_index "current_schedule_stop_pairs", ["feed_id"], name: "index_current_schedule_stop_pairs_on_feed_id", using: :btree
@@ -525,7 +523,6 @@ ActiveRecord::Schema.define(version: 20160210223051) do
     t.boolean  "bikes_allowed"
     t.string   "pickup_type"
     t.string   "drop_off_type"
-    t.boolean  "active"
     t.integer  "route_stop_pattern_id"
     t.float    "origin_dist_traveled"
     t.float    "destination_dist_traveled"
@@ -533,7 +530,6 @@ ActiveRecord::Schema.define(version: 20160210223051) do
     t.integer  "feed_version_id"
   end
 
-  add_index "old_schedule_stop_pairs", ["active"], name: "index_old_schedule_stop_pairs_on_active", using: :btree
   add_index "old_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "o_ssp_cu_in_changeset", using: :btree
   add_index "old_schedule_stop_pairs", ["current_id"], name: "index_old_schedule_stop_pairs_on_current_id", using: :btree
   add_index "old_schedule_stop_pairs", ["destination_type", "destination_id"], name: "o_ssp_destination", using: :btree
