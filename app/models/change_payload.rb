@@ -69,7 +69,7 @@ class ChangePayload < ActiveRecord::Base
       .chunk { |entity_type, action, change| [entity_type, action] }
       .each { | chunk_key, chunked_changes |
         entity_type, action = chunk_key
-        puts "Applying... #{entity_type}, #{action}, #{chunked_changes.size}"
+        # puts "Applying... #{entity_type}, #{action}, #{chunked_changes.size}"
         entity_types[entity_type].apply_changes(
           changeset: changeset,
           action: action,
