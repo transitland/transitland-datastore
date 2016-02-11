@@ -115,6 +115,17 @@ class ScheduleStopPair < BaseScheduleStopPair
   include UpdatedSince
 
   # Scopes
+  # Feed Version Import Level
+  scope :where_import_level, -> (import_level) {
+    # where(feed_version: FeedVersion.where(feed: Feed.where('active_feed_version_id >= 0'), import_level: import_level.to_i))
+    where(feed_version: FeedVersion.where(import_level: import_level.to_i))
+  }
+
+  # Active Feed Version
+  scope :where_active, -> {
+    where(feed_version: FeedVersion.where(feed: Feed.where('active_feed_version_id >= 0')))
+  }
+
   # Service active on a date
   scope :where_service_on_date, -> (date) {
     date = date.is_a?(Date) ? date : Date.parse(date)
