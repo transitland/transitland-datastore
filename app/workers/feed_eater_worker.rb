@@ -80,18 +80,18 @@ end
 
 
 if __FILE__ == $0
-  require 'sidekiq/testing'
+  # require 'sidekiq/testing'
   ActiveRecord::Base.logger = Logger.new(STDOUT)
   feed_onestop_id = ARGV[0] || 'f-9q9-caltrain'
   import_level = (ARGV[1].presence || 1).to_i
-  FeedFetcherWorker.perform_async(feed_onestop_id)
-  FeedFetcherWorker.drain
-  t0 = Time.now
+  FeedFetcherWorker.new.perform(feed_onestop_id)
+  # FeedFetcherWorker.drain
+  # t0 = Time.now
   FeedEaterWorker.perform_async(feed_onestop_id, nil, import_level)
-  FeedEaterWorker.drain
-  t1 = Time.now
-  FeedEaterScheduleWorker.drain
-  t2 = Time.now
-  puts "SSP Time: #{t2-t1}"
-  puts "Total Time: #{t2-t0}"
+  # FeedEaterWorker.drain
+  # t1 = Time.now
+  # FeedEaterScheduleWorker.drain
+  # t2 = Time.now
+  # puts "SSP Time: #{t2-t1}"
+  # puts "Total Time: #{t2-t0}"
 end
