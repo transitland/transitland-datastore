@@ -39,7 +39,7 @@ class FeedVersion < ActiveRecord::Base
 
   def succeeded(timestamp)
     self.update(imported_at: timestamp)
-    self.feed.activate_feed_version(self.sha1)
+    self.feed.update(last_imported_at: self.imported_at)
   end
 
   def failed

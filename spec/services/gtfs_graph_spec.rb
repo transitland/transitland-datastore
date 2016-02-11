@@ -8,6 +8,7 @@ def load_feed(import_level=1)
       graph.ssp_perform_async(trip_ids, agency_map, route_map, stop_map, rsp_map)
     end
   end
+  feed.activate_feed_version(feed_version.sha1)
   return feed, feed_version
 end
 
