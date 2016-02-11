@@ -150,6 +150,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
       origin,
       destination,
       route,
+      route_stop_pattern,
       operator
     ]}
   end
