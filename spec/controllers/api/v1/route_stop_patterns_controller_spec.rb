@@ -23,7 +23,6 @@ describe Api::V1::RouteStopPatternsController do
     @rsp = create(:route_stop_pattern,
       stop_pattern: sp,
       geometry: geom,
-      onestop_id: 'r-9q9j-bullet-c2e44f-8c801d',
       route: @bullet_route,
       trips: ['trip1','trip2']
     )
@@ -90,7 +89,7 @@ describe Api::V1::RouteStopPatternsController do
 
   describe 'GET show' do
     it 'returns route stop patterns by OnestopID' do
-      get :show, id: 'r-9q9j-bullet-c2e44f-8c801d'
+      get :show, id: 'r-9q9j-bullet-32e326-0e096a'
       expect_json_types({
         onestop_id: :string,
         route_onestop_id: :string,
@@ -102,7 +101,7 @@ describe Api::V1::RouteStopPatternsController do
         updated_at: :date
       })
       expect_json({ onestop_id: -> (onestop_id) {
-        expect(onestop_id).to eq 'r-9q9j-bullet-c2e44f-8c801d'
+        expect(onestop_id).to eq 'r-9q9j-bullet-32e326-0e096a'
       }})
     end
 
