@@ -41,7 +41,6 @@ Rails.application.routes.draw do
       post '/feeds/fetch_info', to: 'feeds#fetch_info'
       post '/webhooks/feed_fetcher', to: 'webhooks#feed_fetcher'
       post '/webhooks/feed_eater', to: 'webhooks#feed_eater'
-      post '/webhooks/feed_activation', to: 'webhooks#feed_activation'
       # TODO: expose user authentication endpoints in the future
       # devise_for :users
       resources :users
