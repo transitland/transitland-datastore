@@ -86,7 +86,12 @@ if __FILE__ == $0
   import_level = (ARGV[1].presence || 1).to_i
   FeedFetcherWorker.perform_async(feed_onestop_id)
   FeedFetcherWorker.drain
+  t0 = Time.now
   FeedEaterWorker.perform_async(feed_onestop_id, nil, import_level)
   FeedEaterWorker.drain
+  t1 = Time.now
   FeedEaterScheduleWorker.drain
+  t2 = Time.now
+  puts "SSP Time: #{t2-t1}"
+  puts "Total Time: #{t2-t0}"
 end
