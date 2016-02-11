@@ -4,15 +4,6 @@ describe Api::V1::WebhooksController do
     @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANOTHERKEY'
   end
 
-  context 'POST feed_activation' do
-    it 'should enqueue a new FeedActivationWorker' do
-      feed_version = create(:feed_version_bart)
-      post :feed_activation, feed_onestop_id: feed_version.feed.onestop_id, feed_version_sha1: feed_version.sha1
-      expect_json({ code: 200, errors: [] })
-    end
-
-  end
-
   context 'POST feed_fetcher' do
     it 'should enqueue a new FeedFetcher for every feed' do
       create_list(:feed, 4)

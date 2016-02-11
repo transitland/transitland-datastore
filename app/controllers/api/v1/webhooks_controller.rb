@@ -41,19 +41,4 @@ class Api::V1::WebhooksController < Api::V1::BaseApiController
     end
   end
 
-  def feed_activation
-    feed = Feed.find_by_onestop_id!(params[:feed_onestop_id])
-    feed_version = feed.feed_versions.find_by(sha1: params[:feed_version_sha1])
-    feed_activation_worker = FeedActivationWorker.perform_async(feed.onestop_id, feed_version.sha1)
-    if feed_activation_worker
-      render json: {
-        code: 200,
-        message: "FeedActivationWorker ##{feed_activation_worker} has been enqueued.",
-        errors: []
-      }
-    else
-      raise 'FeedActivationWorker could not be created or enqueued.'
-    end
-  end
-
 end
