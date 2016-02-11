@@ -96,6 +96,15 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
   private
 
   def set_schedule_stop_pairs
+    # FeedVersion Import level
+    @ssps = ScheduleStopPair.where('')
+    if params[:import_level].present?
+      @ssps = @ssps.where_import_level(params[:import_level])
+    end
+    # FeedVersion Active
+    if params[:active].presence == 'true'
+      @ssps = @ssps.where_active
+    end
     # Service on a date
     if params[:date].present?
       @ssps = @ssps.where_service_on_date(params[:date])
