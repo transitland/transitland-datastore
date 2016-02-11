@@ -331,16 +331,5 @@ describe Feed do
       expect(feed.active_feed_version).to eq(fv1)
       expect{feed.activate_feed_version(fv1.sha1)}.to raise_error(Exception)
     end
-
-    it 'activates ssps' do
-      feed = create(:feed)
-      feed_version = create(:feed_version, feed: feed)
-      ssp = create(:schedule_stop_pair, feed: feed, feed_version: feed_version)
-      expect(ssp.active).to be_falsy
-      expect(feed_version.imported_schedule_stop_pairs.count).to eq(1)
-      expect(feed.imported_schedule_stop_pairs.count).to eq(1)
-      feed.activate_feed_version(feed_version.sha1)
-      expect(ssp.reload.active).to be true
-    end
   end
 end
