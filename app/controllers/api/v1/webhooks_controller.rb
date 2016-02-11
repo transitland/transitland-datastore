@@ -40,4 +40,5 @@ class Api::V1::WebhooksController < Api::V1::BaseApiController
       raise 'FeedEaterWorker could not be created or enqueued.'
     end
   end
+
 end

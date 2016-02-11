@@ -16,6 +16,9 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     if params[:operatedBy].present?
       @routes = @routes.operated_by(params[:operatedBy])
     end
+    if params[:traverses].present?
+      @routes = @routes.traverses(params[:traverses].split(','))
+    end
     if params[:vehicle_type].present?
       # some count be integers, some could be strings
       vehicle_types_mixed = params[:vehicle_type].split(',')
@@ -46,6 +49,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
 
     @routes = @routes.includes{[
       operator,
+      route_stop_patterns,
       imported_from_feeds,
       imported_from_feed_versions
     ]}
