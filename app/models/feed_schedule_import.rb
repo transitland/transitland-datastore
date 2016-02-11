@@ -33,9 +33,13 @@ class FeedScheduleImport < ActiveRecord::Base
   def succeeded
     # Mark as succeeded, bubble to parent feed_version_import
     self.update(success: true)
-    siblings = self.feed_version_import.feed_schedule_imports.pluck('success')
-    if siblings.all?
+    if all_succeeded?
       self.feed_version_import.succeeded
     end
   end
+
+  def all_succeeded?
+    success && self.feed_version_import.feed_schedule_imports.pluck('success').all?
+  end
+
 end
