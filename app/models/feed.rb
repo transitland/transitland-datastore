@@ -174,7 +174,6 @@ class Feed < BaseFeed
     self.transaction do
       feed_version = self.feed_versions.find_by!(sha1: feed_version_sha1)
       raise Exception.new('Cannot activate already active feed') if feed_version == self.active_feed_version
-      feed_version.activate_schedule_stop_pairs!
       self.active_feed_version.delete_schedule_stop_pairs! if self.active_feed_version
       self.update!(active_feed_version: feed_version)
     end

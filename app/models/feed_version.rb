@@ -46,16 +46,8 @@ class FeedVersion < ActiveRecord::Base
     self.delete_schedule_stop_pairs!
   end
 
-  def activate_schedule_stop_pairs!
-    self.imported_schedule_stop_pairs.update_all(active: true)
-  end
-
-  def deactivate_schedule_stop_pairs!
-    self.imported_schedule_stop_pairs.update_all(active: false)
-  end
-
   def delete_schedule_stop_pairs!
-      self.imported_schedule_stop_pairs.delete_all
+    self.imported_schedule_stop_pairs.delete_all
   end
 
   private
