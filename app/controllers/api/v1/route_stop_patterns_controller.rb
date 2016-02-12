@@ -3,6 +3,8 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
   include JsonCollectionPagination
   include DownloadableCsv
 
+  before_action :set_route_stop_pattern, only: [:show]
+
   def index
     @rsps = RouteStopPattern.where('')
 
@@ -57,7 +59,13 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
 
   def show
     respond_to do |format|
-      format.json { render json: @route }
+      format.json { render json: @route_stop_pattern }
     end
+  end
+
+  private
+
+  def set_route_stop_pattern
+    @route_stop_pattern = RouteStopPattern.find_by_onestop_id!(params[:id])
   end
 end

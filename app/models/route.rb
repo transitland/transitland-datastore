@@ -143,6 +143,10 @@ class Route < BaseRoute
     end
   }
 
+  scope :traverses, -> (route_stop_pattern_onestop_id) {
+    where(id: RouteStopPattern.select(:route_id).where(onestop_id: route_stop_pattern_onestop_id))
+  }
+
   scope :stop_within_bbox, -> (bbox) {
     where(id: RouteServingStop.select(:route_id).where(stop: Stop.geometry_within_bbox(bbox)))
   }
