@@ -20,6 +20,9 @@ namespace :db do
         st = ActiveRecord::Base.connection.execute(query)
         current_ssp += batch_size
       end
+      # DELETE EIFFs
+
+      # ActiveRecord version
       # find_in_batches works by 'table.id > last_id', so should be safe to
       # delete at the end of a find_in_batches block.
       # total = EntityImportedFromFeed.where(entity_type: 'ScheduleStopPair').count
