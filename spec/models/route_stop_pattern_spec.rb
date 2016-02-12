@@ -96,6 +96,12 @@ describe RouteStopPattern do
     expect(RouteStopPattern.line_string([[1,2],[2,2]]).is_a?(RGeo::Geographic::SphericalLineStringImpl)).to be true
   end
 
+  it 'can simplify line geometry' do
+    expect(RouteStopPattern.simplify_geometry([[-122.0123456,45.01234567],
+                                               [-122.0123478,45.01234589],
+                                               [-123.0,45.0]])).to match_array([[-122.01235,45.01235],[-123.0,45.0]])
+  end
+
   context 'new import' do
     before(:each) do
       @route = create(:route, onestop_id: @route_onestop_id)

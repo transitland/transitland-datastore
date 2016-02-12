@@ -95,12 +95,17 @@ class RouteStopPattern < BaseRouteStopPattern
     )
   end
 
-  def simplify_geometry
-    self.geometry = RouteStopPattern.line_string(self.geometry[:coordinates].map { |c| c.map { |n| n.round(5) } })
+  def self.simplify_geometry(points)
+    points = self.set_precision(points, 5)
+    self.remove_duplicate_points(points)
   end
 
-  def remove_duplicate_points
-    self.geometry = RouteStopPattern.line_string(self.geometry[:coordinates].chunk{|c| c}.map(&:first))
+  def self.set_precision(points, precision)
+    points.map { |c| c.map { |n| n.round(precision) } }
+  end
+
+  def self.remove_duplicate_points(points)
+    points.chunk{|c| c}.map(&:first)
   end
 
   def calculate_distances
@@ -204,7 +209,7 @@ class RouteStopPattern < BaseRouteStopPattern
     raise ArgumentError.new('Need at least two stops') if stop_pattern.length < 2
     rsp = RouteStopPattern.new(
       stop_pattern: stop_pattern,
-      geometry: self.line_string(shape_points.chunk{|c| c}.map(&:first))
+      geometry: self.line_string(self.simplify_geometry(shape_points))
     )
     has_issues, issues = rsp.evaluate_geometry(trip, trip_stop_points)
     rsp.tl_geometry(trip_stop_points, issues) if has_issues
