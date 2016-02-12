@@ -92,6 +92,11 @@ module OnestopId
     attr_accessor :stop_hash, :geometry_hash
 
     def initialize(string: nil, route_onestop_id: nil, stop_pattern: nil, geometry_coords: nil)
+      if string.nil? && (route_onestop_id.nil? || stop_pattern.nil? || geometry_coords.nil?)
+        raise(ArgumentError, %Q'argument must include a route onestop id,
+                                stop pattern array of stop onestop ids,
+                                and array of geographic coordinate arrays.')
+      end
       if string && string.length > 0
         geohash = string.split(COMPONENT_SEPARATOR)[1]
         name = string.split(COMPONENT_SEPARATOR)[2]
