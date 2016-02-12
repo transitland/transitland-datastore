@@ -30,6 +30,7 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
     change_payload_params = changeset_params.delete(:change_payloads).try(:compact)
     @changeset = Changeset.new(changeset_params)
     if user_params.present?
+      user_params.delete(:id) # because that could be sent by Ember, and we'd rather match on email
       @changeset.set_user_by_params(user_params)
     end
     if change_payload_params.present?
