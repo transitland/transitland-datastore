@@ -1,8 +1,8 @@
 # Transitland RouteStopPattern
 
-Transitland models route geometries by breaking them into individual components called Route Stop Patterns. These components are uniquely defined by a route, a stop pattern, and a line geometry, all three derived from the trip routes, trip stop sequences, and shapes of a GTFS feed. Because of this, it is possible to have two distinct Route Stop Patterns within one route, both sharing the same line geometry but having different stop patterns, and vice versa. Individual Route Stop Patterns also have records of the GTFS trips and the single shape used to create them; a typical Route Stop Pattern will reference back to one or many trips having the same stop pattern, but only references the one shape shared by those trips. When a Route Stop Pattern's trips have no shapes or empty shapes, there will be no shape reference.
+Transitland models route geometries by breaking them into individual components called Route Stop Patterns. These components are uniquely defined by a route, a stop pattern, and a line geometry; all three derived from the trip routes, trip stop sequences, and shapes of a GTFS feed. Because of this, it is possible to have two distinct Route Stop Patterns within one route, both sharing the same line geometry but having different stop patterns, and vice versa. Individual Route Stop Patterns also have records of the GTFS trips and the single shape used to create them; a typical Route Stop Pattern will reference back to one or many trips having the same stop pattern, but only references the one shape shared by those trips. When a Route Stop Pattern's trips have no shapes or empty shapes, there will be no shape reference.
 
-Route Stop Patterns may also make modify the original shape line geometry if necessary. When this is done, a Boolean value named `is_modified` will be set to true. Currently, the line geometry is only modified in two situations: when it is generated as the result of missing its original GTFS shape id or shape points, and when the first and/or last stops are determined to be before or after the line geometry. In the case of generation, the line geometry becomes the points of the stop pattern, and a separate boolean named `is_generated` will be set to true. In the case where a first or last stop is found to be before or after the line geometry, its coordinates are added to the beginning or end of the line geometry. Please see the section
+Route Stop Patterns may also modify the original shape line geometry if necessary. When this is done, a Boolean value named `is_modified` will be set to true. Currently, the line geometry is only modified in two situations: when it is generated as the result of missing its original GTFS shape id or shape points, and when the first and/or last stops are determined to be before or after the line geometry. In the case of generation, the line geometry becomes the sequential points of the stop pattern, and a separate boolean named `is_generated` will be set to true. In the case where a first or last stop is found to be before or after the line geometry, its coordinates are added to the beginning or end of the line geometry. Please see the section
 "Before and After Stops" for more information on how that determination is done.
 
 ## RouteStopPattern Data Model
@@ -32,19 +32,17 @@ The algorithm to compute these distances runs as follows:
 
   1. Initialize the total distance traveled counter to 0.0.
 
-  2. Initialize evaluation line geometry and set it to the complete Route Stop Pattern line geometry.
+  2. Initialize an evaluation line geometry and set it to the complete Route Stop Pattern line geometry.
 
   3. For each stop in the stop pattern:
     1. Find its nearest point to the line geometry. This is accomplished by projecting the stop point
     and line into Cartesian coordinates, finding the nearest line segment to the stop point, and then finding
     the nearest point on that segment.
     2. Once the nearest point is found, split the line at this point into two.
-    3. For the first half of the split, add the lengths of the segments to the total distance counter,
-         and store the current stop's distance as that total distance traveled.
+    3. For the first half of the split, project the segments back into spherical coordinates to calculate their lengths. Sum these lengths and add that sum to the total distance counter. Store the current stop's distance as the updated total distance counter.
     4. The second half of the split is now the evaluation line geometry. Repeat step 3 (stop pattern iteration) with this evaluation line and with the next stop in the stop pattern.
 
-  The algorithm should never run out of evaluation line to split, since we
-  add the last stop if it is found past the last endpoint of the line. If there is a complication in the split computation, this should indicate an outlier stop, the result is logged, and that stop receives a distance value equal to the previous stop.
+  The algorithm should never run out of evaluation line to split, since we add the last stop if it is found past the last endpoint of the line. If there is a complication in the split computation, this should indicate an outlier stop, the result is logged, and that stop receives a distance value equal to the previous stop.
 
 ## Query parameters
 
