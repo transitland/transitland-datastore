@@ -131,7 +131,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
       @ssps = @ssps.where(route: routes)
     end
     if params[:route_stop_pattern_onestop_id].present?
-      rsps = RouteStopPattern.where(onestop_id: params[:route_stop_pattern_onestop_id].split(','))
+      rsps = RouteStopPattern.find_by_onestop_ids!(params[:route_stop_pattern_onestop_id].split(','))
       @ssps = @ssps.where(route_stop_pattern: rsps)
     end
     if params[:operator_onestop_id].present?
@@ -150,6 +150,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
       origin,
       destination,
       route,
+      route_stop_pattern,
       operator
     ]}
   end

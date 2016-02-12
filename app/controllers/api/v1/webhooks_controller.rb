@@ -3,8 +3,9 @@ class Api::V1::WebhooksController < Api::V1::BaseApiController
 
   def feed_fetcher
     if params[:feed_onestop_id].present?
-      feed = Feed.find_by!(onestop_id: params[:feed_onestop_id])
-      workers = [FeedFetcherWorker.perform_async(feed.onestop_id)]
+      workers = [
+        Feed.find_by_onestop_id!(params[:feed_onestop_id]).async_fetch_feed_version
+      ]
     else
       workers = Feed.async_fetch_all_feeds
     end
@@ -39,4 +40,5 @@ class Api::V1::WebhooksController < Api::V1::BaseApiController
       raise 'FeedEaterWorker could not be created or enqueued.'
     end
   end
+
 end

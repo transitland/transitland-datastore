@@ -25,6 +25,10 @@ module RGeo
         [factory.line_string(points1), factory.line_string(points2)]
       end
 
+      def closest_point(target)
+        nearest_locator(target).interpolate_point(factory)
+      end
+
       def distance_from_departure_to_segment(segment)
         index = _segments.index(segment)
         _segments[0...index].inject(0.0){ |sum_, seg_| sum_ + seg_.length }
@@ -36,6 +40,14 @@ module RGeo
 
       def locators(point)
         _segments.collect { |segment| segment.locator(point) }
+      end
+
+      def before?(target)
+        return _segments[0].tproj(target) < 0.0 ? true : false
+      end
+
+      def after?(target)
+        return _segments[-1].tproj(target) > 1.0 ? true : false
       end
     end
 

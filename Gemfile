@@ -27,16 +27,18 @@ gem 'whenever', require: false # to manage crontab
 # data model
 gem 'squeel'
 gem 'enumerize'
-gem 'gtfs', github: 'transitland/gtfs', tag: 'v1.0.1'
+gem 'gtfs', github: 'transitland/gtfs', tag: '332408d4139e8b837e69c32691267294e3a120f7'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 gem 'json-schema', '2.5.2' # running into problems with 2.6.0
+gem 'email_validator'
 
 # text matching
 gem 'text'
 
 # authentication and authorization
 gem 'rack-cors', require: 'rack/cors'
+gem 'devise'
 
 # providing API
 gem 'active_model_serializers', '0.9.4'
@@ -67,13 +69,14 @@ gem 'rubocop-rspec', require: false, group: [:development, :test]
 # code coverage and documentation
 gem 'rails-erd', group: :development
 gem 'annotate', group: :development
-gem 'simplecov', :require => false, group: [:development, :test]
+gem 'simplecov', require: false, group: [:development, :test]
 
 # testing
 gem 'database_cleaner', group: :test
-gem 'factory_girl_rails', group: [:development, :test]
+gem 'factory_girl_rails', require: false, group: [:development, :test]
 gem 'ffaker', group: [:development, :test]
 gem 'rspec-rails', group: [:development, :test]
+gem 'rspec-sidekiq', group: :test
 gem 'vcr', group: :test
 gem 'webmock', group: :test
 gem 'airborne', group: :test
