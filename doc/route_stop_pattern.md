@@ -24,6 +24,34 @@ RouteStopPatterns are uniquely identified by a Onestop Id, but the composition o
 Route, Stop, Feed, and Operator Onestop Ids. The RouteStopPattern Onestop Id has 5 components instead of 3, with each component separated by a dash just as the ids of the latter Transitland entities. The first 3 components are exactly the Route Onestop Id of the Route to which the RouteStopPattern belongs to. The fourth component is the first 6 hexadecimal characters of the MD5 hash produced from the stop pattern string (stop onestop id's separated by comma). The fifth component is the first 6 hexadecimal characters of the MD5 hash produced from geometry coordinates as a string (coordinates separated by comma).
 
 ### Before and After Stops
+A stop is considered to be before (after) a Route Stop Pattern line geometry if its point satisfies one of two conditions:
+
+1. It is found on the opposite side of the line that is perpendicular to the first (last) line segment and that passes through the first (last) endpoint of the segment.
+
+2. It is greater than 100 meters distant from any point in the line geometry.
+
+For example:
+
+Before:
+
+&emsp;&emsp;&emsp;&emsp; | <br/>
+&emsp;&emsp;&emsp;&nbsp;x |-----------> <br/>
+&emsp;&emsp;&emsp;&emsp;  |
+
+Before:
+
+&emsp;&emsp;&emsp;&emsp;    | <br/>
+&emsp;&emsp;&emsp;&emsp;  |-----------> <br/>
+&emsp;&emsp;&emsp;&emsp; | ]  100 m  <br/>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp; x
+
+Not before:
+
+&emsp;&emsp;&emsp;&emsp;    | <br/>
+&emsp;&emsp;&emsp;&emsp;  |-----------> <br/>
+&emsp;&emsp;&emsp;&emsp; | x &emsp;&emsp;]  100 m  <br/>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
+
 
 ### Distance calculation algorithm
 Each Schedule Stop Pair will be associated to a RouteStopPattern. In addition, two attributes have been added to Schedule Stop Pair: origin_distance_traveled and destination_distance_traveled. These are the distances, in meters rounded to the nearest decimeter, of the origin and destination stops along the line geometry from the start point.
