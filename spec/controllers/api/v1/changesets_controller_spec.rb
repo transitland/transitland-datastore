@@ -86,6 +86,23 @@ describe Api::V1::ChangesetsController do
       expect(User.count).to eq 1
       expect(Changeset.first.user).to eq user
     end
+
+    it 'should be able to create a Changeset with multiple associated ChangePayloads in one request (the way Dispatcher does)' do
+      user = create(:user)
+      post(:create, {
+        changeset: FactoryGirl.attributes_for(:changeset).merge({
+          user: { email: user.email },
+          change_payloads: [
+            FactoryGirl.attributes_for(:change_payload),
+            FactoryGirl.attributes_for(:change_payload)
+          ]
+        })
+      })
+      expect(response.status).to eq 200
+      expect(Changeset.count).to eq 1
+      expect(User.count).to eq 1
+      expect(Changeset.first.change_payloads.count).to eq 2
+    end
   end
 
   context 'POST destroy' do

@@ -27,9 +27,15 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
 
   def create
     user_params = changeset_params.delete(:user).try(:compact)
+    change_payload_params = changeset_params.delete(:change_payloads).try(:compact)
     @changeset = Changeset.new(changeset_params)
     if user_params.present?
       @changeset.set_user_by_params(user_params)
+    end
+    if change_payload_params.present?
+      change_payload_params.each do |change_payload_param|
+        @changeset.change_payloads.new(change_payload_param)
+      end
     end
     @changeset.save!
     return render json: @changeset
