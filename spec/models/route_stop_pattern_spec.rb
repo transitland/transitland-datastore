@@ -48,17 +48,21 @@ describe RouteStopPattern do
     onestop_id: "s-9q9hwp6epk-mountainviewcaltrainstation",
     geometry: Stop::GEOFACTORY.point(-122.076327, 37.393879).to_s
   )}
+  let(:route_onestop_id) { 'r-9q9j-bullet' }
 
   before(:each) do
-    points = [[-122.401811, 37.706675],[-122.394935, 37.776348]]
+    @geom_points = [[-122.401811, 37.706675],[-122.394935, 37.776348]]
     @geom = RouteStopPattern::GEOFACTORY.line_string(
-      points.map {|lon, lat| RouteStopPattern::GEOFACTORY.point(lon, lat)}
+      @geom_points.map {|lon, lat| RouteStopPattern::GEOFACTORY.point(lon, lat)}
     )
     @sp = [stop_1.onestop_id, stop_2.onestop_id]
-    @route_onestop_id = 'r-9q9j-bullet'
-    @onestop_id = OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: @route_onestop_id,
+    @onestop_id = OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: route_onestop_id,
                                                            stop_pattern: @sp,
                                                            geometry_coords: @geom.coordinates).to_s
+    @rsp = RouteStopPattern.new(
+     stop_pattern: @sp,
+     geometry: @geom
+    )
   end
 
   context 'creation' do
@@ -71,7 +75,7 @@ describe RouteStopPattern do
     end
 
     it 'cannot be created when stop_pattern has less than two stops' do
-      sp = ["s-9q8yw8y448-bayshorecaltrainstation"]
+      sp = [stop_1.onestop_id]
       rsp = expect(build(:route_stop_pattern, stop_pattern: sp, geometry: @geom, onestop_id: @onestop_id)
         .valid?
       ).to be false
@@ -104,13 +108,13 @@ describe RouteStopPattern do
 
   context 'new import' do
     before(:each) do
-      @route = create(:route, onestop_id: @route_onestop_id)
+      @route = create(:route, onestop_id: route_onestop_id)
       @saved_rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, route: @route)
       import_sp = [ stop_a.onestop_id, stop_b.onestop_id, stop_c.onestop_id ]
       import_geometry = RouteStopPattern.line_string([stop_a.geometry[:coordinates],
                                                       stop_b.geometry[:coordinates],
                                                       stop_c.geometry[:coordinates]])
-      import_onestop_id = OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: @route_onestop_id,
+      import_onestop_id = OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: route_onestop_id,
                                                                   stop_pattern: import_sp,
                                                                   geometry_coords: import_geometry.coordinates).to_s
       @import_rsp = RouteStopPattern.new(
@@ -150,8 +154,8 @@ describe RouteStopPattern do
         stop_pattern: @sp,
         geometry: @geom
       )
-      @rsp.route = Route.new(onestop_id: @route_onestop_id)
-      @rsp.onestop_id = OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: @route_onestop_id,
+      @rsp.route = Route.new(onestop_id: route_onestop_id)
+      @rsp.onestop_id = OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: route_onestop_id,
                                                              stop_pattern: @sp,
                                                              geometry_coords: @geom.coordinates).to_s
       @trip = GTFS::Trip.new(trip_id: 'test', shape_id: 'test')
@@ -166,14 +170,14 @@ describe RouteStopPattern do
     it 'can calculate distances when a stop is on a segment between two geometry coordinates' do
       mv_syvalue_midpoint = [(@rsp.geometry[:coordinates][2][0] + @rsp.geometry[:coordinates][1][0])/2.0,
                              (@rsp.geometry[:coordinates][2][1] + @rsp.geometry[:coordinates][1][1])/2.0]
-      create(:stop,
+      midpoint = create(:stop,
         onestop_id: "s-9q9hwtgq4s-midpoint",
         geometry: Stop::GEOFACTORY.point(mv_syvalue_midpoint[0], mv_syvalue_midpoint[1]).to_s
       )
-      @rsp.stop_pattern = ["s-9q9k659e3r-sanjosecaltrainstation",
-                           "s-9q9hxhecje-sunnyvalecaltrainstation",
-                           "s-9q9hwtgq4s-midpoint",
-                           "s-9q9hwp6epk-mountainviewcaltrainstation"]
+      @rsp.stop_pattern = [stop_a.onestop_id,
+                           stop_b.onestop_id,
+                           midpoint.onestop_id,
+                           stop_c.onestop_id]
       expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(12617.9271),
                                                               a_value_within(0.1).of(14809.7189),
@@ -181,14 +185,14 @@ describe RouteStopPattern do
     end
 
     it 'can calculate distances when a stop is between two geometry coordinates but not on a segment' do
-      create(:stop,
+      p_offset = create(:stop,
        onestop_id: "s-9q9hwtgq4s-midpoint~perpendicular~offset",
        geometry: Stop::GEOFACTORY.point(-122.0519858, 37.39072182536).to_s
       )
-      @rsp.stop_pattern = ["s-9q9k659e3r-sanjosecaltrainstation",
-                           "s-9q9hxhecje-sunnyvalecaltrainstation",
-                           "s-9q9hwtgq4s-midpoint~perpendicular~offset",
-                           "s-9q9hwp6epk-mountainviewcaltrainstation"]
+      @rsp.stop_pattern = [stop_a.onestop_id,
+                           stop_b.onestop_id,
+                           p_offset.onestop_id,
+                           stop_c.onestop_id]
       expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(12617.9271),
                                                               a_value_within(0.5).of(14809.7189),
@@ -196,16 +200,15 @@ describe RouteStopPattern do
     end
 
     it 'can calculate distances by matching stops to the right segments if considered sequentially' do
-      create(:stop,
+      a = create(:stop,
         onestop_id: "s-dqcjq9vgbv-A",
         geometry: Stop::GEOFACTORY.point(-77.050171, 38.901890).to_s
       )
-      create(:stop,
+      b = create(:stop,
         onestop_id: "s-dqcjq9vc13-B",
         geometry: Stop::GEOFACTORY.point(-77.050155, 38.901394).to_s
       )
-
-      @loop_rsp = RouteStopPattern.new(stop_pattern: ["s-dqcjq9vgbv-A", "s-dqcjq9vc13-B"], geometry: RouteStopPattern.line_string(
+      @loop_rsp = RouteStopPattern.new(stop_pattern: [a.onestop_id, b.onestop_id], geometry: RouteStopPattern.line_string(
         [[-77.050176, 38.900751],
         [-77.050187, 38.901394],
         [-77.050187, 38.901920],
@@ -221,19 +224,17 @@ describe RouteStopPattern do
         [-77.050074, 38.901389],
         [-77.050048, 38.900776]]
       ))
-
       expect(@loop_rsp.calculate_distances).to match_array(
         [a_value_within(0.1).of(126.80),
-        a_value_within(0.1).of(553.56)]
+         a_value_within(0.1).of(553.56)]
       )
     end
 
     it 'can calculate distances when a stop is before the first point of a geometry' do
-      create(:stop,
+      @rsp.stop_pattern = @rsp.stop_pattern.unshift(create(:stop,
         onestop_id: "s-9q9hwp6epk-before~geometry",
         geometry: Stop::GEOFACTORY.point(-121.5, 37.30).to_s
-      )
-      @rsp.stop_pattern = @rsp.stop_pattern.unshift("s-9q9hwp6epk-before~geometry")
+      ).onestop_id)
       stop_points = @rsp.geometry[:coordinates].unshift([-121.5, 37.30])
       has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
       @rsp.tl_geometry(stop_points, issues)
@@ -244,11 +245,10 @@ describe RouteStopPattern do
     end
 
     it 'can calculate distances when a stop is after the last point of a geometry' do
-      create(:stop,
+      @rsp.stop_pattern << create(:stop,
        onestop_id: "s-9q9hwp6epk-after~geometry",
        geometry: Stop::GEOFACTORY.point(-122.1, 37.41).to_s
-      )
-      @rsp.stop_pattern << "s-9q9hwp6epk-after~geometry"
+      ).onestop_id
       stop_points = @rsp.geometry[:coordinates] << [-122.1, 37.41]
       has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
       @rsp.tl_geometry(stop_points, issues)
@@ -259,14 +259,14 @@ describe RouteStopPattern do
     end
 
     it 'can continue distance calculation when a stop is an outlier' do
-      create(:stop,
+      outlier = create(:stop,
         onestop_id: "s-9q9hwtgq4s-outlier",
         geometry: Stop::GEOFACTORY.point(-63.0, 30.0).to_s
       )
-      @rsp.stop_pattern = ["s-9q9k659e3r-sanjosecaltrainstation",
-                           "s-9q9hxhecje-sunnyvalecaltrainstation",
-                           "s-9q9hwtgq4s-outlier",
-                           "s-9q9hwp6epk-mountainviewcaltrainstation"]
+      @rsp.stop_pattern = [stop_a.onestop_id,
+                           stop_b.onestop_id,
+                           outlier.onestop_id,
+                           stop_c.onestop_id]
       expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(12617.9271),
                                                               a_value_within(0.1).of(12617.9271),
@@ -274,14 +274,14 @@ describe RouteStopPattern do
     end
 
     it 'can calculate distances when two consecutive stop points are identical' do
-      create(:stop,
+      identical = create(:stop,
         onestop_id: "s-9q9hwtgq4s-sunnyvaleidentical",
         geometry: stop_2.geometry
       )
-      @rsp.stop_pattern = ["s-9q9k659e3r-sanjosecaltrainstation",
-                           "s-9q9hxhecje-sunnyvalecaltrainstation",
-                           "s-9q9hwtgq4s-sunnyvaleidentical",
-                           "s-9q9hwp6epk-mountainviewcaltrainstation"]
+      @rsp.stop_pattern = [stop_a.onestop_id,
+                           stop_b.onestop_id,
+                           identical.onestop_id,
+                           stop_c.onestop_id]
       expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(12617.9271),
                                                               a_value_within(0.1).of(12617.9271),
@@ -290,13 +290,6 @@ describe RouteStopPattern do
   end
 
   context 'determining outlier stops' do
-    before(:each) do
-      @rsp = RouteStopPattern.new(
-        stop_pattern: @sp,
-        geometry: @geom
-      )
-    end
-
     it 'returns false when the stop is within 100 meters of the closest point on the line' do
       # distance is approx 81 m
       test_stop = create(:stop,
@@ -307,7 +300,7 @@ describe RouteStopPattern do
       expect(@rsp.outlier_stop(test_stop[:geometry])).to be false
     end
 
-    it 'returns true when the stop greater than 100 meters of the closest point on the line' do
+    it 'returns true when the stop is greater than 100 meters of the closest point on the line' do
       # distance is approx 146 m
       test_stop = create(:stop,
         onestop_id: "s-9q8yw8y448-test",
@@ -321,14 +314,10 @@ describe RouteStopPattern do
   context 'before and after stops' do
     before(:each) do
       @trip = GTFS::Trip.new(trip_id: 'test')
-      @rsp = RouteStopPattern.new(
-        stop_pattern: @sp,
-        geometry: @geom
-      )
     end
 
     it 'is marked correctly as having an after stop after evaluation' do
-      stop_points = [[-122.401811, 37.706675],[-122.394935, 37.776348], [-122.38, 37.8]]
+      stop_points = @geom_points << [-122.38, 37.8]
       @trip.shape_id = 'test_shape'
       has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
       expect(has_issues).to be true
@@ -336,7 +325,7 @@ describe RouteStopPattern do
     end
 
     it 'does not have an after stop if the last stop is close to the line and below the last stop perpendicular' do
-      stop_points = [[-122.401811, 37.706675],[-122.394935, 37.776348], [-122.3975, 37.741]]
+      stop_points = @geom_points << [-122.3975, 37.741]
       @trip.shape_id = 'test_shape'
       has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
       expect(has_issues).to be false
@@ -344,7 +333,7 @@ describe RouteStopPattern do
     end
 
     it 'has an after stop if the last stop is below the last stop perpendicular but not close enough to the line' do
-      stop_points = [[-122.401811, 37.706675],[-122.394935, 37.776348], [-122.39, 37.77]]
+      stop_points = @geom_points << [-122.39, 37.77]
       @trip.shape_id = 'test_shape'
       has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
       expect(has_issues).to be true
@@ -352,7 +341,7 @@ describe RouteStopPattern do
     end
 
     it 'is marked correctly as having a before stop after evaluation' do
-      stop_points = [[-122.405, 37.63],[-122.401811, 37.706675],[-122.394935, 37.776348]]
+      stop_points = @geom_points.unshift([-122.405, 37.63])
       @trip.shape_id = 'test_shape'
       has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
       expect(has_issues).to be true
@@ -360,7 +349,7 @@ describe RouteStopPattern do
     end
 
     it 'does not have a before stop if the first stop is close to the line and above the first stop perpendicular' do
-      stop_points = [[-122.40182, 37.7067],[-122.401811, 37.706675],[-122.394935, 37.776348]]
+      stop_points = @geom_points.unshift([-122.40182, 37.7067])
       @trip.shape_id = 'test_shape'
       has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
       expect(has_issues).to be false
@@ -368,7 +357,7 @@ describe RouteStopPattern do
     end
 
     it 'has a before stop if the first stop is above the first stop perpendicular but not close enough to the line' do
-      stop_points = [[-122.40182, 37.72],[-122.401811, 37.706675],[-122.394935, 37.776348]]
+      stop_points = @geom_points.unshift([-122.40182, 37.72])
       @trip.shape_id = 'test_shape'
       has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
       expect(has_issues).to be true
@@ -380,10 +369,6 @@ describe RouteStopPattern do
     before(:each) do
       @trip = GTFS::Trip.new(trip_id: 'test')
       @empty_rsp = RouteStopPattern.new(stop_pattern: [], geometry: RouteStopPattern.line_string([]))
-      @geom_rsp = RouteStopPattern.new(
-        stop_pattern: @sp,
-        geometry: @geom
-      )
     end
 
     it 'is marked as empty after evaluation' do
@@ -391,7 +376,7 @@ describe RouteStopPattern do
       expect(has_issues).to be true
       expect(issues).to match_array([:empty])
 
-      has_issues, issues = @geom_rsp.evaluate_geometry(@trip, [])
+      has_issues, issues = @rsp.evaluate_geometry(@trip, [])
       expect(has_issues).to be true
       expect(issues).to match_array([:empty])
 
@@ -403,7 +388,7 @@ describe RouteStopPattern do
 
     it 'adds geometry consisting of stop points' do
       issues = [:empty]
-      stop_points = [[-122.401811, 37.706675],[-122.394935, 37.776348]]
+      stop_points = @geom_points
       @empty_rsp.tl_geometry(stop_points, issues)
       expect(@empty_rsp.geometry[:coordinates]).to eq(stop_points)
       expect(@empty_rsp.is_generated).to be true
