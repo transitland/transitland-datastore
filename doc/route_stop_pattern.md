@@ -2,7 +2,8 @@
 
 Transitland models route geometries by breaking them into individual components called Route Stop Patterns. These components are uniquely defined by a route, a stop pattern, and a line geometry, all three derived from the trip routes, trip stop sequences, and shapes of a GTFS feed. Because of this, it is possible to have two distinct Route Stop Patterns within one route, both sharing the same line geometry but having different stop patterns, and vice versa. Individual Route Stop Patterns also have records of the GTFS trips and the single shape used to create them; a typical Route Stop Pattern will reference back to one or many trips having the same stop pattern, but only references the one shape shared by those trips. When a Route Stop Pattern's trips have no shapes or empty shapes, there will be no shape reference.
 
-Route Stop Patterns may also make modify the original shape line geometry if necessary. When this is done, a Boolean value named `is_modified` will be set to true. Currently, the line geometry is only modified in two situations: when it is generated as the result of missing its original GTFS shape id or shape points, and when the first and/or last stops are determined to be before or after the line geometry. In the case of generation, the line geometry becomes the points of the stop pattern, and a separate boolean named `is_generated` will be set to true. In the case where a first or last stop is found to be before or after the line geometry, its coordinates are added to the beginning or end of the line geometry.
+Route Stop Patterns may also make modify the original shape line geometry if necessary. When this is done, a Boolean value named `is_modified` will be set to true. Currently, the line geometry is only modified in two situations: when it is generated as the result of missing its original GTFS shape id or shape points, and when the first and/or last stops are determined to be before or after the line geometry. In the case of generation, the line geometry becomes the points of the stop pattern, and a separate boolean named `is_generated` will be set to true. In the case where a first or last stop is found to be before or after the line geometry, its coordinates are added to the beginning or end of the line geometry. Please see the section
+"Before and After Stops" for more information on how that determination is done.
 
 ## RouteStopPattern Data Model
 
@@ -21,6 +22,8 @@ Route Stop Patterns may also make modify the original shape line geometry if nec
 ### Onestop ID
 RouteStopPatterns are uniquely identified by a Onestop Id, but the composition of this id is different from that of
 Route, Stop, Feed, and Operator Onestop Ids. The RouteStopPattern Onestop Id has 5 components instead of 3, with each component separated by a dash just as the ids of the latter Transitland entities. The first 3 components are exactly the Route Onestop Id of the Route to which the RouteStopPattern belongs to. The fourth component is the first 6 hexadecimal characters of the MD5 hash produced from the stop pattern string (stop onestop id's separated by comma). The fifth component is the first 6 hexadecimal characters of the MD5 hash produced from geometry coordinates as a string (coordinates separated by comma).
+
+### Before and After Stops
 
 ### Distance calculation algorithm
 Each Schedule Stop Pair will be associated to a RouteStopPattern. In addition, two attributes have been added to Schedule Stop Pair: origin_distance_traveled and destination_distance_traveled. These are the distances, in meters rounded to the nearest decimeter, of the origin and destination stops along the line geometry from the start point.
