@@ -44,7 +44,7 @@ The algorithm to compute these distances runs as follows:
     4. The second half of the split is now the evaluation line geometry. Repeat step 3 (stop pattern iteration) with this evaluation line and with the next stop in the stop pattern.
 
   The algorithm should never run out of evaluation line to split, since we
-  added the last stop if it existed past the last endpoint of the line. If there is a complication in the split computation, this should indicate an outlier stop, the result is logged, and that stop receives a distance value equal to the previous stop.
+  add the last stop if it is found past the last endpoint of the line. If there is a complication in the split computation, this should indicate an outlier stop, the result is logged, and that stop receives a distance value equal to the previous stop.
 
 ## Query parameters
 

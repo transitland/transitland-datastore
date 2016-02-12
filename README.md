@@ -113,6 +113,7 @@ Example URL  | Parameters
 `GET /api/v1/routes?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
 `GET /api/v1/routes?tag_key=route_color` | find all routes that have a tag of `tag_key` with any value
 `GET /api/v1/routes?tag_key=route_color&tag_value=FEF0B5` | find all routes that have a tag of `tag_key` and a value of `tag_value`
+`GET /api/v1/routes?traverses=r-9q9-pittsburg~baypoint~sfia~millbrae-49ae87-5ae164` | find all routes having specified route stop patterns
 `GET /api/v1/route_stop_patterns` | none required
 `GET /api/v1/route_stop_patterns?traversed_by=r-9q8y-richmond~dalycity~millbrae` | find all Route Stop Patterns belonging to route
 `GET /api/v1/route_stop_patterns?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
