@@ -14,13 +14,13 @@ Transitland models each trip between two stops as an edge, called a `ScheduleSto
 | origin_arrival_time          | Time | Time vehicle arrives at origin from previous stop |
 | origin_departure_time        | Time | Time vehicle leaves origin |
 | origin_timepoint_source      | Enum | Origin timepoint source |
-| origin_distance_traveled     | Number | Distance in meters along the associated Route Stop Pattern line geometry |
+| origin_dist_traveled         | Number | Distance in meters along the associated Route Stop Pattern line geometry |
 | destination_onestop_id       | Onestop ID | Destination stop |
 | destination_timezone         | String | Destination stop timezone |
 | destination_arrival_time     | Time | Time vehicle arrives at destination |
 | destination_departure_time   | Time | Time vehicle leaves destination for next stop |
 | destination_timepoint_source | Enum | Destination timepoint source |
-| destination_distance_traveled | Number | Distance in meters along the associated Route Stop Pattern line geometry |
+| destination_dist_traveled    | Number | Distance in meters along the associated Route Stop Pattern line geometry |
 | window_start                 | Time | The previous known exact timepoint |
 | window_end                   | Time | The next known exact timepoint |
 | trip                         | String | A text label for a sequence of edges |
