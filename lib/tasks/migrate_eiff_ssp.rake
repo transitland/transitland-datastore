@@ -1,5 +1,3 @@
-ActiveRecord::Base.logger = Logger.new(STDOUT)
-
 namespace :db do
   namespace :migrate do
     task :migrate_eiff_ssp, [] => [:environment] do |t, args|
@@ -7,6 +5,7 @@ namespace :db do
       current_ssp = 0
       batch_size = 100_000
       while current_ssp < last_ssp do
+        puts "Processing SSPs: #{current_ssp} - #{current_ssp + batch_size} / #{last_ssp}"
         query = <<-EOQ
           UPDATE current_schedule_stop_pairs AS ssp
           SET feed_id = eiff.feed_id, feed_version_id = eiff.feed_version_id
@@ -25,6 +24,7 @@ namespace :db do
         .where(entity_type: 'ScheduleStopPair')
         .select('id')
         .find_in_batches do |eiffs|
+          puts "Deleting SSP EIFFs: batch of #{eiffs.size}"
           EntityImportedFromFeed.delete(eiffs)
         end
       # Done
