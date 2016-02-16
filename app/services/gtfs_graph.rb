@@ -118,8 +118,12 @@ class GTFSGraph
       rsp = RouteStopPattern.find_by_onestop_id!(rsp_map[trip.trip_id])
       # Create SSPs for all stop_time edges
       ssp_trip = []
-      stop_times[0..-2].zip(stop_times[1..-1]).each do |origin,destination|
-        ssp_trip << make_ssp(route, trip, origin, destination, rsp, rsp_distances_map[rsp.onestop_id])
+      stop_times[0..-2].zip(stop_times[1..-1]).each_with_index do |e, i|
+        origin = e[0]
+        destination = e[1]
+        origin_dist_traveled = rsp_distances_map[rsp.onestop_id][i]
+        destination_dist_traveled = rsp_distances_map[rsp.onestop_id][i+1]
+        ssp_trip << make_ssp(route, trip, origin, origin_dist_traveled, destination, destination_dist_traveled, rsp)
       end
       # Interpolate stop_times
       ScheduleStopPair.interpolate(ssp_trip)
@@ -471,18 +475,14 @@ class GTFSGraph
     }
   end
 
-  def make_ssp(route, trip, origin, destination, route_stop_pattern, rsp_stop_distances)
+  def make_ssp(route, trip, origin, origin_dist_traveled, destination, destination_dist_traveled, route_stop_pattern)
     # Generate an edge between an origin and destination for a given route/trip
     route = find_by_gtfs_entity(route)
     origin_stop = find_by_gtfs_entity(@gtfs.stop(origin.stop_id))
     destination_stop = find_by_gtfs_entity(@gtfs.stop(destination.stop_id))
     service_period = @gtfs.service_period(trip.service_id)
-    origin_dist_traveled = nil
-    destination_dist_traveled = nil
-    if rsp_stop_distances
-        origin_dist_traveled = rsp_stop_distances[route_stop_pattern.stop_pattern.index(origin_stop.onestop_id)]
-        destination_dist_traveled = rsp_stop_distances[route_stop_pattern.stop_pattern.index(destination_stop.onestop_id)]
-    end
+    origin_dist_traveled = origin_dist_traveled
+    destination_dist_traveled = destination_dist_traveled
     ssp = ScheduleStopPair.new(
       # Origin
       origin: origin_stop,
