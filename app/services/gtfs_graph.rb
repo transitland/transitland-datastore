@@ -121,8 +121,14 @@ class GTFSGraph
       stop_times[0..-2].zip(stop_times[1..-1]).each_with_index do |e, i|
         origin = e[0]
         destination = e[1]
-        origin_dist_traveled = rsp_distances_map[rsp.onestop_id][i]
-        destination_dist_traveled = rsp_distances_map[rsp.onestop_id][i+1]
+        origin_dist_traveled = nil
+        destination_dist_traveled = nil
+        begin
+          origin_dist_traveled = rsp_distances_map[rsp.onestop_id][i]
+          destination_dist_traveled = rsp_distances_map[rsp.onestop_id][i+1]
+        rescue StandardError
+          log "Distances array size does not match number of stop times"
+        end
         ssp_trip << make_ssp(route, trip, origin, origin_dist_traveled, destination, destination_dist_traveled, rsp)
       end
       # Interpolate stop_times
