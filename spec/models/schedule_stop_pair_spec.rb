@@ -155,6 +155,27 @@ RSpec.describe ScheduleStopPair, type: :model do
   end
 
   context 'scopes' do
+    it 'where_active' do
+      feed = create(:feed)
+      feed_version = create(:feed_version, feed: feed)
+      feed.update!(active_feed_version: feed_version)
+      ssp1 = create(:schedule_stop_pair, feed_version: feed_version, feed: feed)
+      ssp2 = create(:schedule_stop_pair)
+      expect(ScheduleStopPair.all).to match_array([ssp1, ssp2])
+      expect(ScheduleStopPair.where_active).to match_array([ssp1])
+    end
+
+    it 'where_import_level' do
+      feed = create(:feed)
+      feed_version1 = create(:feed_version, feed: feed, import_level: 1)
+      feed_version2 = create(:feed_version, feed: feed, import_level: 2)
+      feed.update!(active_feed_version: feed_version2)
+      ssp1 = create(:schedule_stop_pair, feed_version: feed_version1, feed: feed)
+      ssp2 = create(:schedule_stop_pair, feed_version: feed_version2, feed: feed)
+      expect(ScheduleStopPair.where_import_level(1)).to match_array([ssp1])
+      expect(ScheduleStopPair.where_import_level(2)).to match_array([ssp2])
+    end
+
     it 'where service on date' do
       expect_start = Date.new(2015, 01, 01)
       expect_end = Date.new(2016, 01, 01)

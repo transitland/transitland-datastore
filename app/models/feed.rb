@@ -67,6 +67,7 @@ class Feed < BaseFeed
   has_many :imported_routes, through: :entities_imported_from_feed, source: :entity, source_type: 'Route'
   has_many :imported_schedule_stop_pairs, through: :entities_imported_from_feed, source: :entity, source_type: 'ScheduleStopPair'
   has_many :imported_route_stop_patterns, through: :entities_imported_from_feed, source: :entity, source_type: 'RouteStopPattern'
+  has_many :imported_schedule_stop_pairs, class_name: 'ScheduleStopPair', dependent: :delete_all
 
   after_initialize :set_default_values
 
@@ -173,7 +174,6 @@ class Feed < BaseFeed
     self.transaction do
       feed_version = self.feed_versions.find_by!(sha1: feed_version_sha1)
       raise Exception.new('Cannot activate already active feed') if feed_version == self.active_feed_version
-      feed_version.activate_schedule_stop_pairs!
       self.active_feed_version.delete_schedule_stop_pairs! if self.active_feed_version
       self.update!(active_feed_version: feed_version)
     end
