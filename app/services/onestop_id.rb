@@ -18,7 +18,7 @@ module OnestopId
 
     def initialize(string: nil, geohash: nil, name: nil)
       if string.nil? && (geohash.nil? || name.nil?)
-        raise(ArgumentError, 'argument must be either a onestop id string or both a geohash and name.')
+        fail ArgumentError.new('argument must be either a onestop id string or both a geohash and name.')
       end
       if string && string.length > 0
         geohash = string.split(COMPONENT_SEPARATOR)[1]
@@ -93,7 +93,7 @@ module OnestopId
 
     def initialize(string: nil, route_onestop_id: nil, stop_pattern: nil, geometry_coords: nil)
       if string.nil? && (route_onestop_id.nil? || stop_pattern.nil? || geometry_coords.nil?)
-        raise(ArgumentError, %Q'argument must include a route onestop id,
+        fail ArgumentError.new(%Q'argument must include a route onestop id,
                                 stop pattern array of stop onestop ids,
                                 and array of geographic coordinate arrays.')
       end

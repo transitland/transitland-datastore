@@ -100,10 +100,22 @@ describe RouteStopPattern do
     expect(RouteStopPattern.line_string([[1,2],[2,2]]).is_a?(RGeo::Geographic::SphericalLineStringImpl)).to be true
   end
 
-  it 'can simplify line geometry' do
+  it '#simplify_geometry' do
     expect(RouteStopPattern.simplify_geometry([[-122.0123456,45.01234567],
                                                [-122.0123478,45.01234589],
                                                [-123.0,45.0]])).to match_array([[-122.01235,45.01235],[-123.0,45.0]])
+  end
+
+  it '#set_precision' do
+    expect(RouteStopPattern.set_precision([[-122.0123456,45.01234567],
+                                           [-122.9123478,45.91234589]])).to match_array([[-122.01235,45.01235],[-122.91235,45.91235]])
+  end
+
+  it '#remove_duplicate_points' do
+    expect(RouteStopPattern.remove_duplicate_points([[-122.0123,45.0123],
+                                                     [-122.0123,45.0123],
+                                                     [-122.9876,45.9876],
+                                                     [-122.0123,45.0123]])).to match_array([[-122.0123,45.0123],[-122.9876,45.9876],[-122.0123,45.0123]])
   end
 
   context 'new import' do
@@ -200,30 +212,33 @@ describe RouteStopPattern do
     end
 
     it 'can calculate distances by matching stops to the right segments if considered sequentially' do
-      a = create(:stop,
+      first_stop = create(:stop,
         onestop_id: "s-dqcjq9vgbv-A",
         geometry: Stop::GEOFACTORY.point(-77.050171, 38.901890).to_s
       )
-      b = create(:stop,
+      second_stop = create(:stop,
         onestop_id: "s-dqcjq9vc13-B",
         geometry: Stop::GEOFACTORY.point(-77.050155, 38.901394).to_s
       )
-      @loop_rsp = RouteStopPattern.new(stop_pattern: [a.onestop_id, b.onestop_id], geometry: RouteStopPattern.line_string(
-        [[-77.050176, 38.900751],
-        [-77.050187, 38.901394],
-        [-77.050187, 38.901920],
-        [-77.050702, 38.902195],
-        [-77.050777, 38.902638],
-        [-77.050401, 38.903005],
-        [-77.049961, 38.903034],
-        [-77.049634, 38.902901],
-        [-77.049473, 38.902638],
-        [-77.049527, 38.902312],
-        [-77.049725, 38.902078],
-        [-77.050069, 38.901978],
-        [-77.050074, 38.901389],
-        [-77.050048, 38.900776]]
-      ))
+      @loop_rsp = RouteStopPattern.new(
+        stop_pattern: [first_stop.onestop_id, second_stop.onestop_id],
+        geometry: RouteStopPattern.line_string(
+          [[-77.050176, 38.900751],
+          [-77.050187, 38.901394],
+          [-77.050187, 38.901920],
+          [-77.050702, 38.902195],
+          [-77.050777, 38.902638],
+          [-77.050401, 38.903005],
+          [-77.049961, 38.903034],
+          [-77.049634, 38.902901],
+          [-77.049473, 38.902638],
+          [-77.049527, 38.902312],
+          [-77.049725, 38.902078],
+          [-77.050069, 38.901978],
+          [-77.050074, 38.901389],
+          [-77.050048, 38.900776]]
+        )
+      )
       expect(@loop_rsp.calculate_distances).to match_array(
         [a_value_within(0.1).of(126.80),
          a_value_within(0.1).of(553.56)]

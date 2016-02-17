@@ -49,18 +49,28 @@ describe OnestopId do
   end
 
   context 'RouteStopPatternOnestopId' do
-    it 'fails gracefully when given invalid arguments' do
-      expect {
-        OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: 'r-9q9-the~route',
-                                                 geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]).to_s
-      }.to raise_error(ArgumentError)
-      expect {
-        OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: 'r-9q9-the~route',
-                                                 stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2']).to_s
-      }.to raise_error(ArgumentError)
+    context 'invalid arguments' do
+      it 'fails gracefully when given an invalid stop pattern' do
+        expect {
+          OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: 'r-the~route',
+                                                   geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]).to_s
+        }.to raise_error(ArgumentError)
+      end
+      it 'fails gracefully when given an invalid geometry' do
+        expect {
+          OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: 'r-9q9-the~route',
+                                                   stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2']).to_s
+        }.to raise_error(ArgumentError)
+      end
+      it 'fails gracefully when given an invalid route' do
+        expect {
+          OnestopId::RouteStopPatternOnestopId.new(stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2'],
+                                                   geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]).to_s
+        }.to raise_error(ArgumentError)
+      end
     end
 
-    it 'determines route onestop id' do
+    it 'handles route onestop id' do
       onestop_id = OnestopId::RouteStopPatternOnestopId.new(
             route_onestop_id: 'r-9q9-the~route',
             stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2'],

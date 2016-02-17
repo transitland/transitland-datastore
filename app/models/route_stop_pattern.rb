@@ -38,6 +38,8 @@ end
 class RouteStopPattern < BaseRouteStopPattern
   self.table_name_prefix = 'current_'
 
+  COORDINATE_PRECISION = 5
+
   belongs_to :route
   has_many :schedule_stop_pairs
   validates :geometry, :stop_pattern, presence: true
@@ -96,16 +98,16 @@ class RouteStopPattern < BaseRouteStopPattern
   end
 
   def self.simplify_geometry(points)
-    points = self.set_precision(points, 5)
+    points = self.set_precision(points)
     self.remove_duplicate_points(points)
   end
 
-  def self.set_precision(points, precision)
-    points.map { |c| c.map { |n| n.round(precision) } }
+  def self.set_precision(points)
+    points.map { |c| c.map { |n| n.round(COORDINATE_PRECISION) } }
   end
 
   def self.remove_duplicate_points(points)
-    points.chunk{|c| c}.map(&:first)
+    points.chunk{ |c| c }.map(&:first)
   end
 
   def calculate_distances
