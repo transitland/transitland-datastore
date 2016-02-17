@@ -23,21 +23,32 @@ module FeedFetch
 
   private
 
-  def self.fetch(url, limit=10, &block)
+  def self.fetch(url, limit=10, timeout=60, &block)
     # http://ruby-doc.org/stdlib-2.2.3/libdoc/net/http/rdoc/Net/HTTP.html
     # You should choose a better exception.
+    # Some improvements inspired by
+    #   https://gist.github.com/sekrett/7dd4177d6c87cf8265cd
     raise ArgumentError.new('Too many redirects') if limit == 0
     url = URI.parse(url)
-    Net::HTTP.start(url.host, url.port) do |http|
-      http.request_get(url.request_uri) do |response|
-        case response
-        when Net::HTTPSuccess then
-          yield response
-        when Net::HTTPRedirection then
-          fetch(response['location'], limit-1, &block)
-        else
-          raise response.value
-        end
+    http = Net::HTTP.new(url.host, url.port)
+    http.open_timeout = timeout
+    http.read_timeout = timeout
+    if url.instance_of?(URI::HTTPS)
+      http.use_ssl = true
+    end
+    http.request_get(url.request_uri) do |response|
+      case response
+      when Net::HTTPRedirection then
+        fetch(
+          response['location'],
+          limit=limit-1,
+          timeout=timeout,
+          &block
+        )
+      when Net::HTTPSuccess then
+        yield response
+      else
+        raise response.value
       end
     end
   end
