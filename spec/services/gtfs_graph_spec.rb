@@ -1,5 +1,5 @@
-def load_feed(import_level=1)
-  feed_version = create(:feed_version_caltrain)
+def load_feed(feed_version_name, import_level=1)
+  feed_version = create(feed_version_name)
   feed = feed_version.feed
   graph = GTFSGraph.new(feed_version.file.path, feed, feed_version)
   graph.create_change_osr(import_level)
@@ -26,7 +26,7 @@ describe GTFSGraph do
   end
 
   context 'can apply level 0 and 1 changesets' do
-    before(:each) { @feed, @feed_version = load_feed(1) }
+    before(:each) { @feed, @feed_version = load_feed(:feed_version_caltrain, 1) }
 
     it 'updated feed geometry' do
       geometry = [
@@ -154,7 +154,7 @@ describe GTFSGraph do
 
   context 'can apply a level 2 changeset' do
 
-    before(:each) { @feed, @feed_version = load_feed(2) }
+    before(:each) { @feed, @feed_version = load_feed(:feed_version_caltrain, 2) }
 
     it 'created known ScheduleStopPairs' do
       expect(@feed.imported_schedule_stop_pairs.count).to eq(4661) # EXACTLY.
@@ -208,6 +208,30 @@ describe GTFSGraph do
       expect(s.destination_timepoint_source).to eq('gtfs_exact')
       expect(s.window_start).to eq('08:15:00')
       expect(s.window_end).to eq('08:20:00')
+    end
+  end
+
+  context 'distance calculation assignment' do
+
+    before(:each) { @feed, @feed_version = load_feed(:feed_version_vta, 2) }
+
+    it 'correctly assigned distances to schedule stop pairs containing stops repeated in its Route Stop Pattern' do
+      origin = @feed.imported_stops.find_by!(
+        onestop_id: "s-9q9kf4gkqz-greatmall~maintransitcenter"
+      )
+      destination = @feed.imported_stops.find_by!(
+        onestop_id: "s-9q9kf51txf-main~greatmallparkway"
+      )
+      route = @feed.imported_routes.find_by!(onestop_id: 'r-9q9k-66')
+      trip = '1930705'
+      ssp = @feed.imported_schedule_stop_pairs.where(
+        origin: origin,
+        destination: destination,
+        route: route,
+        trip: trip
+      )
+      expect(ssp.origin_dist_traveled).to eq(27528.4)
+      expect(ssp.destination_dist_traveled).to eq(26793.6)
     end
   end
 end

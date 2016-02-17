@@ -34,5 +34,10 @@ FactoryGirl.define do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/f-9q9-bart.zip')) }
       association :feed, factory: :feed_bart
     end
+
+    factory :feed_version_vta do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/vta_gtfs.zip')) }
+      association :feed, factory: :feed_vta
+    end
   end
 end
