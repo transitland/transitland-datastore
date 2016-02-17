@@ -98,11 +98,11 @@ class GTFSGraph
     rsp_distances_map = {}
     rsp_map.values.uniq.each do |onestop_id|
       rsp = RouteStopPattern.find_by_onestop_id!(onestop_id)
-      begin
+      #begin
         rsp_distances_map[onestop_id] = rsp.calculate_distances
-      rescue StandardError
-        log "Could not calculate distances #{onestop_id}"
-      end
+      #rescue StandardError
+      #  log "Could not calculate distances for Route Stop Pattern: #{onestop_id}"
+      #end
     end
     log "Create changeset"
     changeset = Changeset.create(
@@ -123,11 +123,9 @@ class GTFSGraph
         destination = e[1]
         origin_dist_traveled = nil
         destination_dist_traveled = nil
-        begin
+        if rsp_distances_map.include?(rsp.onestop_id)
           origin_dist_traveled = rsp_distances_map[rsp.onestop_id][i]
           destination_dist_traveled = rsp_distances_map[rsp.onestop_id][i+1]
-        rescue StandardError
-          log "Distances array size does not match number of stop times"
         end
         ssp_trip << make_ssp(route, trip, origin, origin_dist_traveled, destination, destination_dist_traveled, rsp)
       end
