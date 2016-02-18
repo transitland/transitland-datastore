@@ -70,7 +70,7 @@ class Changeset < ActiveRecord::Base
   belongs_to :feed_version
 
   def set_user_by_params(user_params)
-    self.user = User.find_or_initialize_by(email: user_params[:email])
+    self.user = User.find_or_initialize_by(email: user_params[:email].downcase)
     self.user.update_attributes(user_params)
     self.user.user_type ||= nil # for some reason, Enumerize needs to see a value
   end
