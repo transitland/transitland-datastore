@@ -405,7 +405,7 @@ describe RouteStopPattern do
       issues = [:empty]
       stop_points = @geom_points
       @empty_rsp.tl_geometry(stop_points, issues)
-      expect(@empty_rsp.geometry[:coordinates]).to eq(stop_points)
+      expect(@empty_rsp.geometry[:coordinates]).to eq(RouteStopPattern.simplify_geometry(stop_points))
       expect(@empty_rsp.is_generated).to be true
       expect(@empty_rsp.is_modified).to be true
     end
