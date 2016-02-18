@@ -135,6 +135,9 @@ Example URL  | Parameters
 `GET /api/v1/schedule_stop_pairs?route_onestop_id=r-9q8y-richmond~dalycity~millbrae` | Find all Schedule Stop Pairs by route. Accepts multiple Onestop IDs, separated by commas.
 `GET /api/v1/schedule_stop_pairs?operator_onestop_id=o-9q9-caltrain` | Find all Schedule Stop Pairs by operator. Accepts multiple Onestop IDs, separated by commas.
 `GET /api/v1/schedule_stop_pairs?bbox=-121.0,35.0,-124.0,37.0` | Find all Schedule Stop Pairs originating within a bounding box
+`GET /api/v1/schedule_stop_pairs?active=true` | Schedule Stop Pairs from active FeedVersions
+`GET /api/v1/schedule_stop_pairs?import_level=2` | Schedule Stop Pairs from FeedVersion with a given import_level
+
 
 Pagination for JSON endpoints:
 - `?offset=50` is the index of the first entity to be displayed (starts with 0)

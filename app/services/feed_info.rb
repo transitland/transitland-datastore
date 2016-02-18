@@ -49,6 +49,8 @@ class FeedInfo
     # operators
     operators = []
     @gtfs.agencies.each do |agency|
+      visited_stops = agency_visited_stops[agency] || []
+      next if visited_stops.size == 0
       operator = Operator.from_gtfs(agency, agency_visited_stops[agency])
       operators << operator
       feed.operators_in_feed.new(gtfs_agency_id: agency.id, operator: operator, id: nil)

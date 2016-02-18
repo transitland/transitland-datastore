@@ -152,7 +152,7 @@ describe GTFSGraph do
     end
   end
 
-  context 'can apply a level 2 changeset' do
+  context 'can apply a level 2 changeset', import_level:2 do
 
     before(:each) { @feed, @feed_version = load_feed(2) }
 
