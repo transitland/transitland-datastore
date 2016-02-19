@@ -132,8 +132,8 @@ class RouteStopPattern < BaseRouteStopPattern
         # if so, will need to take into account case of 2 consecutive stops having same location.
         if (i == 0 && splits[1].nil?)
           distances << 0.0
-        elsif (i == self.stop_pattern.size - 1 && splits[1].nil?)
-          distances << RGeo::Feature.cast(splits[1], RouteStopPattern::GEOFACTORY).length
+        elsif (i == self.stop_pattern.size - 1 && splits[0].nil?)
+          distances << self[:geometry].length.round(1)
         else
           distances << distances[i-1]
         end
