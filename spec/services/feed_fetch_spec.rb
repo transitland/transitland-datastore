@@ -4,6 +4,7 @@ describe FeedFetch do
   let (:url_redirect_many) { 'http://httpbin.org/absolute-redirect/6' }
   let (:url_404) { 'http://httpbin.org/status/404' }
   let (:url_binary) { 'http://httpbin.org/stream-bytes/1024?seed=0' }
+  let (:url_ssl) { 'https://httpbin.org/get'}
 
   context '.fetch' do
     it 'returns a response' do
@@ -20,6 +21,15 @@ describe FeedFetch do
         FeedFetch.fetch(url_redirect) { |resp| response = JSON.parse(resp.read_body) }
         expect(response['url']).to eq(url)
       end
+    end
+
+    it 'follows SSL' do
+      VCR.use_cassette('feed_fetch_ssl') do
+        response = {}
+        FeedFetch.fetch(url_ssl) { |resp| response = JSON.parse(resp.read_body) }
+        expect(response['url']).to eq(url_ssl)
+      end
+
     end
 
     it 'follows a redirect no more than limit times' do

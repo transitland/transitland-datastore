@@ -33,6 +33,8 @@ Transitland models each trip between two stops as an edge, called a `ScheduleSto
 | bikes_allowed                | Boolean | Bike accessible: true, false, or null (unknown) |
 | drop_off_type                | Enum | Passenger drop-off |
 | pickup_type                  | Enum | Passenger pickup |
+| active                       | Boolean | SSPs from active FeedVersions |
+| import_level                 | Integer | SSPs from FeedVersion with import_level |
 
 ### Data types
 
