@@ -245,15 +245,20 @@ describe GTFSGraph do
       )
       route = @feed.imported_routes.find_by!(onestop_id: 'r-9q9k-66')
       trip = '1930705'
-      found = @feed.imported_schedule_stop_pairs.where(
+      first_found = @feed.imported_schedule_stop_pairs.where(
+        destination: origin,
+        route: route,
+        trip: trip
+      )
+      second_found = @feed.imported_schedule_stop_pairs.where(
         origin: origin,
         destination: destination,
         route: route,
         trip: trip
       )
-      ssp = found.first
-      expect(ssp.origin_dist_traveled).to eq(27531.4)
-      expect(ssp.destination_dist_traveled).to eq(27827.2)
+      ssp1 = first_found.first
+      ssp2 = second_found.first
+      expect(ssp2.destination_dist_traveled).to be > ssp1.origin_dist_traveled
     end
   end
 end
