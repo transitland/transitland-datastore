@@ -128,7 +128,7 @@ class RouteStopPattern < BaseRouteStopPattern
         # having the same coordinates.
         logger.info %Q(stop #{stop.onestop_id} for route #{self.route.onestop_id}
                      within route stop pattern #{self.onestop_id}
-                     may be an outlier or indicate invalid geometry")
+                     may be an outlier or indicate invalid geometry)
         # TODO add interpolated distance at halfway and split line there?
         # if so, will need to take into account case of 2 consecutive stops having same location.
         if (i == 0 && splits[1].nil?)
@@ -147,6 +147,10 @@ class RouteStopPattern < BaseRouteStopPattern
         end
         cast_route = splits[1]
       end
+    end
+    if (distances[-1] > self[:geometry].length)
+      logger.info %Q(The last stop of Route Stop Pattern #{self.onestop_id}
+                  has a distance greater than the length of the geometry)
     end
     distances
   end
