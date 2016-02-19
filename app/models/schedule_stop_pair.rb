@@ -62,7 +62,6 @@
 
 class BaseScheduleStopPair < ActiveRecord::Base
   self.abstract_class = true
-  include IsAnEntityImportedFromFeeds
 
   extend Enumerize
   enumerize :origin_timepoint_source, in: [
@@ -90,6 +89,8 @@ class ScheduleStopPair < BaseScheduleStopPair
   belongs_to :route
   belongs_to :operator
   belongs_to :route_stop_pattern
+  belongs_to :feed
+  belongs_to :feed_version
 
   # Required relations and attributes
   before_validation :filter_service_range
@@ -114,6 +115,16 @@ class ScheduleStopPair < BaseScheduleStopPair
   include UpdatedSince
 
   # Scopes
+  # Feed Version Import Level
+  scope :where_import_level, -> (import_level) {
+    where(feed_version: FeedVersion.where(import_level: import_level.to_i))
+  }
+
+  # Active Feed Version
+  scope :where_active, -> {
+    joins('INNER JOIN current_feeds ON feed_version_id = current_feeds.active_feed_version_id')
+  }
+
   # Service active on a date
   scope :where_service_on_date, -> (date) {
     date = date.is_a?(Date) ? date : Date.parse(date)
@@ -137,7 +148,7 @@ class ScheduleStopPair < BaseScheduleStopPair
     date = date.is_a?(Date) ? date : Date.parse(date)
     where("service_start_date <= ?", date)
   }
-  
+
   # Service trips_out in a bbox
   scope :where_origin_bbox, -> (bbox) {
     stops = Stop.geometry_within_bbox(bbox)
@@ -215,21 +226,12 @@ class ScheduleStopPair < BaseScheduleStopPair
     {
       origin_onestop_id: :origin,
       destination_onestop_id: :destination,
-      route_onestop_id: :route
+      route_onestop_id: :route,
+      route_stop_pattern_onestop_id: :route_stop_pattern
     }.each do |k,v|
+      next if params[k].nil?
       cache[params[k]] ||= OnestopId.find!(params[k])
       params[v] = cache[params.delete(k)]
-    end
-    if params[:route_stop_pattern_onestop_id].present?
-      params[:route_stop_pattern] = RouteStopPattern.find_by_onestop_id!(params[:route_stop_pattern_onestop_id])
-    end
-    if params[:imported_from_feed]
-      feed_onestop_id = params[:imported_from_feed][:onestop_id]
-      feed_version_id = params[:imported_from_feed][:sha1]
-      cache[feed_onestop_id] ||= OnestopId.find!(feed_onestop_id)
-      cache[feed_version_id] ||= cache[feed_onestop_id].feed_versions.find_by!(sha1: feed_version_id)
-      params[:imported_from_feed][:feed] = cache[feed_onestop_id]
-      params[:imported_from_feed][:feed_version] = cache[feed_version_id]
     end
     params[:operator] = params[:route].operator
     params

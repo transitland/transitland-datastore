@@ -70,7 +70,7 @@ class Changeset < ActiveRecord::Base
   belongs_to :feed_version
 
   def set_user_by_params(user_params)
-    self.user = User.find_or_initialize_by(email: user_params[:email])
+    self.user = User.find_or_initialize_by(email: user_params[:email].downcase)
     self.user.update_attributes(user_params)
     self.user.user_type ||= nil # for some reason, Enumerize needs to see a value
   end
@@ -86,7 +86,6 @@ class Changeset < ActiveRecord::Base
     operators_created_or_updated.find_each(&block)
     routes_created_or_updated.find_each(&block)
     route_stop_patterns_created_or_updated.find_each(&block)
-    schedule_stop_pairs_created_or_updated.find_each(&block)
   end
 
   def relations_created_or_updated(&block)
@@ -101,7 +100,6 @@ class Changeset < ActiveRecord::Base
     operators_destroyed.find_each(&block)
     routes_destroyed.find_each(&block)
     route_stop_patterns_destroyed.find_each(&block)
-    schedule_stop_pairs_destroyed.find_each(&block)
   end
 
   def relations_destroyed(&block)
@@ -140,12 +138,17 @@ class Changeset < ActiveRecord::Base
         self.update(applied: true, applied_at: Time.now)
         # Create any feed-entity associations
         if feed && feed_version
+          eiff_batch = []
           self.entities_created_or_updated do |entity|
-            entity
+            eiff_batch << entity
               .entities_imported_from_feed
-              .find_or_initialize_by(feed: feed, feed_version: feed_version)
-              .save!
+              .new(feed: feed, feed_version: feed_version)
+            if eiff_batch.size >= 1000
+              EntityImportedFromFeed.import eiff_batch
+              eiff_batch = []
+            end
           end
+          EntityImportedFromFeed.import eiff_batch
         end
       rescue
         logger.error "Error applying Changeset #{self.id}: #{$!.message}"

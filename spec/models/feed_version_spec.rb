@@ -45,32 +45,13 @@ describe FeedVersion do
   context 'imported_schedule_stop_pairs' do
     before(:each) do
       @feed_version = create(:feed_version)
-      @ssp = create(:schedule_stop_pair)
-      EntityImportedFromFeed.create!(
-        entity: @ssp,
-        feed: @feed_version.feed,
-        feed_version: @feed_version
-      )
-    end
-
-    it '#activate_schedule_stop_pairs' do
-      expect(@ssp.active).to be nil
-      @feed_version.activate_schedule_stop_pairs!
-      expect(@ssp.reload.active).to be true
-    end
-
-    it '#deactivate_schedule_stop_pairs' do
-      @ssp.update(active: true)
-      expect(@ssp.active).to be true
-      @feed_version.deactivate_schedule_stop_pairs!
-      expect(@ssp.reload.active).to be false
+      @ssp = create(:schedule_stop_pair, feed: @feed_version.feed, feed_version: @feed_version)
     end
 
     it '#delete_schedule_stop_pairs' do
       @feed_version.delete_schedule_stop_pairs!
-      expect(@feed_version.imported_schedule_stop_pairs.count).to eq(0)
-      expect(EntityImportedFromFeed.where(feed: @feed_version.feed, feed_version: @feed_version, entity_type: 'ScheduleStopPair').count).to eq(0)
       expect(ScheduleStopPair.exists?(@ssp.id)).to be false
+      expect(@feed_version.imported_schedule_stop_pairs.count).to eq(0)
     end
 
   end

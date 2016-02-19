@@ -77,3 +77,14 @@ class FeedEaterWorker
     end
   end
 end
+
+
+if __FILE__ == $0
+  require 'sidekiq/testing'
+  Sidekiq::Testing.inline!
+  ActiveRecord::Base.logger = Logger.new(STDOUT)
+  feed_onestop_id = ARGV[0] || 'f-9q9-caltrain'
+  import_level = (ARGV[1].presence || 1).to_i
+  FeedFetcherWorker.new.perform(feed_onestop_id)
+  FeedEaterWorker.perform_async(feed_onestop_id, nil, import_level)
+end

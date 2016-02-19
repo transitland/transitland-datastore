@@ -1,5 +1,100 @@
 # Change Log
 
+## [4.5.1](https://github.com/transitland/transitland-datastore/tree/4.5.1) (2016-02-12)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.5.0...4.5.1)
+
+**Fixed bugs:**
+
+- fix RouteStopPatternController\#show [\#390](https://github.com/transitland/transitland-datastore/issues/390)
+
+**Closed issues:**
+
+- FeedActivationWorker [\#406](https://github.com/transitland/transitland-datastore/issues/406)
+- Issue adding SEPTA GTFS file on https://transit.land/feed-registry/feeds/new [\#405](https://github.com/transitland/transitland-datastore/issues/405)
+- RoutesController\#index and ScheduleStopPairController\#index should include `route\_stop\_patterns` in query [\#391](https://github.com/transitland/transitland-datastore/issues/391)
+- RouteStopPatterns \(and improved route geometries\) [\#279](https://github.com/transitland/transitland-datastore/issues/279)
+
+**Merged pull requests:**
+
+- production release 4.5.1 [\#410](https://github.com/transitland/transitland-datastore/pull/410) ([drewda](https://github.com/drewda))
+- adding more information to CONTRIBUTING.md [\#409](https://github.com/transitland/transitland-datastore/pull/409) ([drewda](https://github.com/drewda))
+- update gems [\#403](https://github.com/transitland/transitland-datastore/pull/403) ([drewda](https://github.com/drewda))
+- update annotations [\#402](https://github.com/transitland/transitland-datastore/pull/402) ([drewda](https://github.com/drewda))
+- Feed Activation Worker [\#396](https://github.com/transitland/transitland-datastore/pull/396) ([irees](https://github.com/irees))
+- Route stop pattern controller updates [\#394](https://github.com/transitland/transitland-datastore/pull/394) ([doublestranded](https://github.com/doublestranded))
+- fix to RouteStopPattern show [\#393](https://github.com/transitland/transitland-datastore/pull/393) ([doublestranded](https://github.com/doublestranded))
+
+## [4.5.0](https://github.com/transitland/transitland-datastore/tree/4.5.0) (2016-02-09)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.4.2...4.5.0)
+
+**Fixed bugs:**
+
+- admin reset isn't clearing out `User`s [\#386](https://github.com/transitland/transitland-datastore/issues/386)
+- Rework RouteStopPattern.find\_rsp, mesh better with gtfs\_graph search/caching [\#380](https://github.com/transitland/transitland-datastore/issues/380)
+- Changeset::Error PG::ProgramLimitExceeded: ERROR:  index row size 3304 exceeds maximum 2712 for index "index\_current\_route\_stop\_patterns\_on\_trips" [\#373](https://github.com/transitland/transitland-datastore/issues/373)
+- Exit feed import if no agency\_id referenced operators found in feed [\#356](https://github.com/transitland/transitland-datastore/issues/356)
+- Changeset::Error: PG::ProgramLimitExceeded: ERROR:  index row size 2944 exceeds maximum 2712 for index "index\_current\_route\_stop\_patterns\_on\_identifiers" [\#355](https://github.com/transitland/transitland-datastore/issues/355)
+- wrong e-mail notifications are going out [\#347](https://github.com/transitland/transitland-datastore/issues/347)
+- staging can't send e-mail notifications through Mandrill [\#345](https://github.com/transitland/transitland-datastore/issues/345)
+- Fix Schedule Stop Pairs by Route Stop Pattern query [\#341](https://github.com/transitland/transitland-datastore/issues/341)
+- Fix RSP Geometry distance calculation for stops outside [\#337](https://github.com/transitland/transitland-datastore/issues/337)
+- `has\_a\_onestop\_id\_spec` sometimes fails based on `ActiveRecord::Relation` order [\#389](https://github.com/transitland/transitland-datastore/pull/389) ([drewda](https://github.com/drewda))
+
+**Closed issues:**
+
+- `has\_a\_onestop\_id\_spec` sometimes fails based on `ActiveRecord::Relation` order [\#388](https://github.com/transitland/transitland-datastore/issues/388)
+- Missing Route geometries generated from RSPs [\#384](https://github.com/transitland/transitland-datastore/issues/384)
+- Handle null gtfsAgencyId [\#374](https://github.com/transitland/transitland-datastore/issues/374)
+- Don't delete ChangePayloads by default [\#370](https://github.com/transitland/transitland-datastore/issues/370)
+- increase FeedInfo cache expiration \(and make it configurable by env variables\) [\#367](https://github.com/transitland/transitland-datastore/issues/367)
+- Caltrain agency\_id [\#364](https://github.com/transitland/transitland-datastore/issues/364)
+- Remove duplicate RSP trips [\#361](https://github.com/transitland/transitland-datastore/issues/361)
+- Partial Station Hierarchy [\#360](https://github.com/transitland/transitland-datastore/issues/360)
+- FeedInfo return remote request response code if exception [\#358](https://github.com/transitland/transitland-datastore/issues/358)
+- when a new `Feed` has been created, automatically enqueue its first fetch [\#353](https://github.com/transitland/transitland-datastore/issues/353)
+- validate that `User.email` is actually an e-mail address [\#349](https://github.com/transitland/transitland-datastore/issues/349)
+- RSPs should only be created from trips actually used by routes associated with found operators [\#344](https://github.com/transitland/transitland-datastore/issues/344)
+- Correctly fall back on missing shapes.txt [\#339](https://github.com/transitland/transitland-datastore/issues/339)
+- Changeset Entity Imported From Feed [\#338](https://github.com/transitland/transitland-datastore/issues/338)
+- Send an email when feed is imported and ready to go \(or fails\) [\#326](https://github.com/transitland/transitland-datastore/issues/326)
+- Send an email when a user submits a feed [\#325](https://github.com/transitland/transitland-datastore/issues/325)
+- enqueue a feed fetch after changeset application creates a new feed model [\#320](https://github.com/transitland/transitland-datastore/issues/320)
+- handle GTFS feeds with `calendar\_dates.txt` but no `calendars.txt` [\#308](https://github.com/transitland/transitland-datastore/issues/308)
+- send confirmation e-mail to User after they submit a changeset and after changeset is applied [\#281](https://github.com/transitland/transitland-datastore/issues/281)
+- add User data model and associate with Changesets [\#258](https://github.com/transitland/transitland-datastore/issues/258)
+- add Relation and RelationMember [\#17](https://github.com/transitland/transitland-datastore/issues/17)
+
+**Merged pull requests:**
+
+- admin reset isn't clearing out `User`s [\#387](https://github.com/transitland/transitland-datastore/pull/387) ([drewda](https://github.com/drewda))
+- Fix Route geometry generated from RSPs [\#385](https://github.com/transitland/transitland-datastore/pull/385) ([irees](https://github.com/irees))
+- update error messages [\#383](https://github.com/transitland/transitland-datastore/pull/383) ([meghanhade](https://github.com/meghanhade))
+- Updated route stop pattern distances [\#382](https://github.com/transitland/transitland-datastore/pull/382) ([doublestranded](https://github.com/doublestranded))
+- Find rsp refactor [\#381](https://github.com/transitland/transitland-datastore/pull/381) ([doublestranded](https://github.com/doublestranded))
+- Preserve ChangePayloads by default [\#379](https://github.com/transitland/transitland-datastore/pull/379) ([irees](https://github.com/irees))
+- Fix case where Feed.operators\_in\_feed gtfs\_agency\_id is nil [\#378](https://github.com/transitland/transitland-datastore/pull/378) ([irees](https://github.com/irees))
+- Fetch and create FeedVersion when a new Feed is created [\#376](https://github.com/transitland/transitland-datastore/pull/376) ([irees](https://github.com/irees))
+- Switch index type rsp trips [\#375](https://github.com/transitland/transitland-datastore/pull/375) ([doublestranded](https://github.com/doublestranded))
+- production release 4.5 [\#372](https://github.com/transitland/transitland-datastore/pull/372) ([drewda](https://github.com/drewda))
+- improve changeset notes [\#371](https://github.com/transitland/transitland-datastore/pull/371) ([drewda](https://github.com/drewda))
+- Partial Station Hierarchy [\#369](https://github.com/transitland/transitland-datastore/pull/369) ([irees](https://github.com/irees))
+- Increase FeedInfo cache expiration time and read from config [\#368](https://github.com/transitland/transitland-datastore/pull/368) ([irees](https://github.com/irees))
+- Fix\#355 [\#366](https://github.com/transitland/transitland-datastore/pull/366) ([doublestranded](https://github.com/doublestranded))
+- Update Caltrain sample feed gtfsAgencyId to 'CT' [\#365](https://github.com/transitland/transitland-datastore/pull/365) ([irees](https://github.com/irees))
+- Remove duplicate RSP trips [\#363](https://github.com/transitland/transitland-datastore/pull/363) ([doublestranded](https://github.com/doublestranded))
+- Failed FeedInfo should return request http response code in error [\#359](https://github.com/transitland/transitland-datastore/pull/359) ([irees](https://github.com/irees))
+- Fix missing operator in feed [\#357](https://github.com/transitland/transitland-datastore/pull/357) ([irees](https://github.com/irees))
+- Handle EntitiesImportedFromFeed relations in Changeset apply [\#354](https://github.com/transitland/transitland-datastore/pull/354) ([irees](https://github.com/irees))
+- validate that `User.email` is actually an e-mail address [\#350](https://github.com/transitland/transitland-datastore/pull/350) ([drewda](https://github.com/drewda))
+- putting the right e-mail notifications in the right places [\#348](https://github.com/transitland/transitland-datastore/pull/348) ([drewda](https://github.com/drewda))
+- fixing SMTP/Mandrill configuration [\#346](https://github.com/transitland/transitland-datastore/pull/346) ([drewda](https://github.com/drewda))
+- user controller now allows editing of all fields [\#343](https://github.com/transitland/transitland-datastore/pull/343) ([drewda](https://github.com/drewda))
+- closes \#341 [\#342](https://github.com/transitland/transitland-datastore/pull/342) ([doublestranded](https://github.com/doublestranded))
+- Update gtfs gem & resolve shape/calendar issues [\#340](https://github.com/transitland/transitland-datastore/pull/340) ([irees](https://github.com/irees))
+- production release 4.4.2 [\#334](https://github.com/transitland/transitland-datastore/pull/334) ([drewda](https://github.com/drewda))
+- add User model, associate with Changesets, set up e-mail notifications [\#304](https://github.com/transitland/transitland-datastore/pull/304) ([drewda](https://github.com/drewda))
+- Route stop pattern [\#249](https://github.com/transitland/transitland-datastore/pull/249) ([doublestranded](https://github.com/doublestranded))
+
 ## [4.4.2](https://github.com/transitland/transitland-datastore/tree/4.4.2) (2016-01-26)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.4.1...4.4.2)
 
@@ -205,7 +300,6 @@
 - searching by OnestopID should be case insensitive [\#23](https://github.com/transitland/transitland-datastore/issues/23)
 - apply/revert Changeset's [\#21](https://github.com/transitland/transitland-datastore/issues/21)
 - have Rails seeds automatically import the two included GTFS feeds \(SFMTA and VTA\) [\#18](https://github.com/transitland/transitland-datastore/issues/18)
-- add Relation and RelationMember [\#17](https://github.com/transitland/transitland-datastore/issues/17)
 - add Operator and OperatorServingStop [\#16](https://github.com/transitland/transitland-datastore/issues/16)
 - when importing from GTFS zips, create StopIdentifier's [\#15](https://github.com/transitland/transitland-datastore/issues/15)
 - basic Changeset data model [\#13](https://github.com/transitland/transitland-datastore/issues/13)
