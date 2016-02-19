@@ -104,12 +104,6 @@ class GTFSGraph
       #  log "Could not calculate distances for Route Stop Pattern: #{onestop_id}"
       #end
     end
-    log "Create changeset"
-    changeset = Changeset.create(
-      feed: @feed,
-      feed_version: @feed_version,
-      notes: "Changeset created by FeedEaterScheduleWorker for #{@feed.onestop_id} #{@feed_version.sha1}"
-    )
     log "Create: SSPs"
     total = 0
     ssps = []
@@ -135,23 +129,18 @@ class GTFSGraph
       ssps += ssp_trip
       # If chunk is big enough, create change payloads.
       if ssps.size >= CHANGE_PAYLOAD_MAX_ENTITIES
-        log  "  ssps: #{total} - #{total+ssps.size}"
-        total += ssps.size
-        create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) })
+        log  "  ssps: #{ssps.size}"
+        fail GTFSGraph::Error.new('Validation error') unless ssps.map(&:valid?).all?
+        ScheduleStopPair.import ssps, validate: false
         ssps = []
       end
     end
-    # Create any trailing payloads
     if ssps.size > 0
-      log  "  ssps: #{total} - #{total+ssps.size}"
-      total += ssps.size
-      create_change_payloads(changeset, 'scheduleStopPair', ssps.map { |e| make_change_ssp(e) })
+      log  "  ssps: #{ssps.size}"
+      fail GTFSGraph::Error.new('Validation error') unless ssps.map(&:valid?).all?
+      ScheduleStopPair.import ssps, validate: false
+      ssps = []
     end
-    log "Changeset apply"
-    t = Time.now
-    changeset.apply!
-    changeset.destroy_all_change_payloads
-    log "  apply done: total time: #{Time.now - t}"
   end
 
   def import_log
@@ -353,6 +342,7 @@ class GTFSGraph
 
   def load_gtfs_id_map(agency_map, route_map, stop_map, rsp_map)
     @gtfs_to_onestop_id.clear
+    @onestop_id_to_entity.clear
     # Populate GTFS entity to Onestop ID maps
     agency_map.each do |agency_id,onestop_id|
       @gtfs_to_onestop_id[@gtfs.agency(agency_id)] = onestop_id
@@ -370,12 +360,12 @@ class GTFSGraph
 
   ##### Create change payloads ######
 
-  def create_change_payloads(changeset, entity_type, entities)
+  def create_change_payloads(changeset, entity_type, entities, action: 'createUpdate')
     entities.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
       changes = chunk.map do |entity|
         entity.compact! # remove any nil values
         change = {}
-        change['action'] = 'createUpdate'
+        change['action'] = action
         change[entity_type] = entity
         change
       end
@@ -445,40 +435,6 @@ class GTFSGraph
     }
   end
 
-  def make_change_ssp(entity)
-    {
-      originOnestopId: entity.origin.onestop_id,
-      originTimezone: entity.origin_timezone,
-      originArrivalTime: entity.origin_arrival_time,
-      originDepartureTime: entity.origin_departure_time,
-      originDistTraveled: entity.origin_dist_traveled,
-      destinationOnestopId: entity.destination.onestop_id,
-      destinationTimezone: entity.destination_timezone,
-      destinationArrivalTime: entity.destination_arrival_time,
-      destinationDepartureTime: entity.destination_departure_time,
-      destinationDistTraveled: entity.destination_dist_traveled,
-      routeOnestopId: entity.route.onestop_id,
-      routeStopPatternOnestopId: entity.route_stop_pattern.onestop_id,
-      trip: entity.trip,
-      tripHeadsign: entity.trip_headsign,
-      tripShortName: entity.trip_short_name,
-      wheelchairAccessible: entity.wheelchair_accessible,
-      bikesAllowed: entity.bikes_allowed,
-      dropOffType: entity.drop_off_type,
-      pickupType: entity.pickup_type,
-      shapeDistTraveled: entity.shape_dist_traveled,
-      serviceStartDate: entity.service_start_date,
-      serviceEndDate: entity.service_end_date,
-      serviceDaysOfWeek: entity.service_days_of_week,
-      serviceAddedDates: entity.service_added_dates,
-      serviceExceptDates: entity.service_except_dates,
-      windowStart: entity.window_start,
-      windowEnd: entity.window_end,
-      originTimepointSource: entity.origin_timepoint_source,
-      destinationTimepointSource: entity.destination_timepoint_source
-    }
-  end
-
   def make_ssp(route, trip, origin, origin_dist_traveled, destination, destination_dist_traveled, route_stop_pattern)
     # Generate an edge between an origin and destination for a given route/trip
     route = find_by_gtfs_entity(route)
@@ -488,6 +444,9 @@ class GTFSGraph
     origin_dist_traveled = origin_dist_traveled
     destination_dist_traveled = destination_dist_traveled
     ssp = ScheduleStopPair.new(
+      # Feed
+      feed: @feed,
+      feed_version: @feed_version,
       # Origin
       origin: origin_stop,
       origin_timezone: origin_stop.timezone,
@@ -503,6 +462,8 @@ class GTFSGraph
       # Route
       route: route,
       route_stop_pattern: route_stop_pattern,
+      # Operator
+      operator: route.operator,
       # Trip
       trip: trip.id.presence,
       trip_headsign: (origin.stop_headsign || trip.trip_headsign).presence,
@@ -520,7 +481,6 @@ class GTFSGraph
       service_added_dates: service_period.added_dates,
       service_except_dates: service_period.except_dates
     )
-    route_stop_pattern.schedule_stop_pairs << ssp
     ssp
   end
 
@@ -552,16 +512,21 @@ end
 if __FILE__ == $0
   feed_onestop_id = ARGV[0] || 'f-9q9-caltrain'
   path = ARGV[1] || File.open(Rails.root.join('spec/support/example_gtfs_archives/f-9q9-caltrain.zip'))
-  import_level = 1
+  import_level = (ARGV[1].presence || 1).to_i
   ####
   feed = Feed.find_by_onestop_id!(feed_onestop_id)
   feed_version = feed.feed_versions.create!
   ####
+  t0 = Time.now
   graph = GTFSGraph.new(path, feed, feed_version)
   graph.create_change_osr(import_level)
+  t1 = Time.now
   if import_level >= 2
     graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map, rsp_map|
       graph.ssp_perform_async(trip_ids, agency_map, route_map, stop_map, rsp_map)
     end
   end
+  t2 = Time.now
+  puts "SSP Time: #{t2-t1}"
+  puts "Total Time: #{t2-t0}"
 end
