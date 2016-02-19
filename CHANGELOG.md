@@ -1,5 +1,40 @@
 # Change Log
 
+## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
+
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.6.0...HEAD)
+
+**Fixed bugs:**
+
+- SSP where\_active bug fix: returned all active feeds, not feed versions [\#431](https://github.com/transitland/transitland-datastore/issues/431)
+
+**Merged pull requests:**
+
+- SSP\#where\_active bug fix [\#432](https://github.com/transitland/transitland-datastore/pull/432) ([irees](https://github.com/irees))
+- production release 4.6.0 [\#425](https://github.com/transitland/transitland-datastore/pull/425) ([drewda](https://github.com/drewda))
+- update gems [\#423](https://github.com/transitland/transitland-datastore/pull/423) ([drewda](https://github.com/drewda))
+
+## [4.6.0](https://github.com/transitland/transitland-datastore/tree/4.6.0) (2016-02-18)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.5.1...4.6.0)
+
+**Fixed bugs:**
+
+- Convert email address to all lowercase [\#419](https://github.com/transitland/transitland-datastore/issues/419)
+- FeedFetch and FeedInfo services aren't handling GTFS archives hosted on GitHub [\#407](https://github.com/transitland/transitland-datastore/issues/407)
+
+**Closed issues:**
+
+- create SSPs directly in FeedEaterScheduleWorker + activate a feed version by import\_level in FeedActivationWorker [\#392](https://github.com/transitland/transitland-datastore/issues/392)
+- SSP Bulk Import [\#319](https://github.com/transitland/transitland-datastore/issues/319)
+
+**Merged pull requests:**
+
+- Convert email address to all lowercase [\#422](https://github.com/transitland/transitland-datastore/pull/422) ([drewda](https://github.com/drewda))
+- Fix FeedFetch: Operator has no stops [\#421](https://github.com/transitland/transitland-datastore/pull/421) ([irees](https://github.com/irees))
+- FeedFetch HTTPS [\#420](https://github.com/transitland/transitland-datastore/pull/420) ([irees](https://github.com/irees))
+- updating change log for 4.5.0 and 4.5.1 [\#412](https://github.com/transitland/transitland-datastore/pull/412) ([drewda](https://github.com/drewda))
+- ScheduleStopPair Direct Import [\#277](https://github.com/transitland/transitland-datastore/pull/277) ([drewda](https://github.com/drewda))
+
 ## [4.5.1](https://github.com/transitland/transitland-datastore/tree/4.5.1) (2016-02-12)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.5.0...4.5.1)
 
@@ -366,7 +401,6 @@
 - remove asset pipeline -- it's overkill for getting one CSS file into /admin [\#117](https://github.com/transitland/transitland-datastore/pull/117) ([drewda](https://github.com/drewda))
 - nest CSS and JS assets under /admin/assets [\#116](https://github.com/transitland/transitland-datastore/pull/116) ([drewda](https://github.com/drewda))
 - Changeset append [\#115](https://github.com/transitland/transitland-datastore/pull/115) ([irees](https://github.com/irees))
-- adding an admin dashboard under /admin & expose a way for admins to reset Datastore [\#113](https://github.com/transitland/transitland-datastore/pull/113) ([drewda](https://github.com/drewda))
 - Separate worker for GTFS artifacts [\#112](https://github.com/transitland/transitland-datastore/pull/112) ([irees](https://github.com/irees))
 - Rails 4.2.3 and gem updates [\#110](https://github.com/transitland/transitland-datastore/pull/110) ([drewda](https://github.com/drewda))
 - in dev, the DB connection pool is limited 5, so Sidekiq should run 5 threads [\#109](https://github.com/transitland/transitland-datastore/pull/109) ([drewda](https://github.com/drewda))
@@ -428,7 +462,6 @@
 - temporarily adding New Relic [\#50](https://github.com/transitland/transitland-datastore/pull/50) ([drewda](https://github.com/drewda))
 - Serializer caching [\#49](https://github.com/transitland/transitland-datastore/pull/49) ([drewda](https://github.com/drewda))
 - API: when listing OperatorsServingStop, include the operator name [\#48](https://github.com/transitland/transitland-datastore/pull/48) ([drewda](https://github.com/drewda))
-- CORS headers to allow all access [\#47](https://github.com/transitland/transitland-datastore/pull/47) ([drewda](https://github.com/drewda))
 - delete public files [\#46](https://github.com/transitland/transitland-datastore/pull/46) ([meghanhade](https://github.com/meghanhade))
 - change popup text color [\#45](https://github.com/transitland/transitland-datastore/pull/45) ([meghanhade](https://github.com/meghanhade))
 - disable zoom, disable fitbounds [\#44](https://github.com/transitland/transitland-datastore/pull/44) ([meghanhade](https://github.com/meghanhade))
