@@ -39,6 +39,7 @@ class RouteStopPattern < BaseRouteStopPattern
   self.table_name_prefix = 'current_'
 
   COORDINATE_PRECISION = 5
+  DISTANCE_PRECISION = 1
 
   belongs_to :route
   has_many :schedule_stop_pairs
@@ -142,7 +143,7 @@ class RouteStopPattern < BaseRouteStopPattern
           distances << 0.0
         else
           total_distance += RGeo::Feature.cast(splits[0], RouteStopPattern::GEOFACTORY).length
-          distances << total_distance.round(1)
+          distances << total_distance.round(DISTANCE_PRECISION)
         end
         cast_route = splits[1]
       end
