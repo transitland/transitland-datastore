@@ -441,8 +441,6 @@ class GTFSGraph
     origin_stop = find_by_gtfs_entity(@gtfs.stop(origin.stop_id))
     destination_stop = find_by_gtfs_entity(@gtfs.stop(destination.stop_id))
     service_period = @gtfs.service_period(trip.service_id)
-    origin_dist_traveled = origin_dist_traveled
-    destination_dist_traveled = destination_dist_traveled
     ssp = ScheduleStopPair.new(
       # Feed
       feed: @feed,
