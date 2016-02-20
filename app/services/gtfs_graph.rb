@@ -112,9 +112,9 @@ class GTFSGraph
       rsp = RouteStopPattern.find_by_onestop_id!(rsp_map[trip.trip_id])
       # Create SSPs for all stop_time edges
       ssp_trip = []
-      stop_times[0..-2].zip(stop_times[1..-1]).each_with_index do |e, i|
-        origin = e[0]
-        destination = e[1]
+      stop_times[0..-2].each_index do |i|
+        origin = stop_times[i]
+        destination = stop_times[i+1]
         origin_dist_traveled = nil
         destination_dist_traveled = nil
         if rsp_distances_map.include?(rsp.onestop_id)
