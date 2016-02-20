@@ -126,9 +126,7 @@ class RouteStopPattern < BaseRouteStopPattern
         # only the first and last stops are expected to have 1 split result instead of 2
         # So this might be an outlier stop. Another possibility might be 2 consecutive stops
         # having the same coordinates.
-        logger.info %Q(stop #{stop.onestop_id} for route #{self.route.onestop_id}
-                     within route stop pattern #{self.onestop_id}
-                     may be an outlier or indicate invalid geometry")
+        logger.info "stop #{stop.onestop_id} for route #{self.route.onestop_id} within route stop pattern #{self.onestop_id} may be an outlier or indicate invalid geometry"
         # TODO add interpolated distance at halfway and split line there?
         # if so, will need to take into account case of 2 consecutive stops having same location.
         if (i == 0 && splits[1].nil?)

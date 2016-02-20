@@ -98,11 +98,11 @@ class GTFSGraph
     rsp_distances_map = {}
     rsp_map.values.uniq.each do |onestop_id|
       rsp = RouteStopPattern.find_by_onestop_id!(onestop_id)
-      #begin
+      begin
         rsp_distances_map[onestop_id] = rsp.calculate_distances
-      #rescue StandardError
-      #  log "Could not calculate distances for Route Stop Pattern: #{onestop_id}"
-      #end
+      rescue StandardError
+        log "Could not calculate distances for Route Stop Pattern: #{onestop_id}"
+      end
     end
     log "Create: SSPs"
     total = 0
