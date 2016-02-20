@@ -10,6 +10,7 @@
 #  import_log        :text
 #  exception_log     :text
 #  validation_report :text
+#  import_level      :integer
 #
 # Indexes
 #
