@@ -146,8 +146,7 @@ class RouteStopPattern < BaseRouteStopPattern
         cast_route = splits[1]
       end
       if (i != 0 && distances[i-1] > distances[i])
-        logger.info %Q(stop #{self.stop_pattern[i]} occurs after stop #{self.stop_pattern[i-1]}
-                    but has a distance less than #{self.stop_pattern[i-1]})
+        logger.info "stop #{self.stop_pattern[i]} occurs after stop #{self.stop_pattern[i-1]} but has a distance less than #{self.stop_pattern[i-1]}"
       end
     end
     distances
