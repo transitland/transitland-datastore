@@ -21,7 +21,9 @@ class FeedEaterWorker
     feed_file_path = feed_version.file.local_path_copying_locally_if_needed
 
     # Create import record
-    feed_version_import = feed_version.feed_version_imports.create
+    feed_version_import = feed_version.feed_version_imports.create(
+      import_level: import_level
+    )
 
     # Validate
     unless Figaro.env.run_google_feedvalidator.present? &&
