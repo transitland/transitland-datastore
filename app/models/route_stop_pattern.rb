@@ -132,7 +132,6 @@ class RouteStopPattern < BaseRouteStopPattern
         if (i == 0 && splits[1].nil?)
           distances << 0.0
         elsif (i == self.stop_pattern.size - 1 && splits[0].nil?)
-          puts "TEST WORKING"
           distances << self[:geometry].length.round(DISTANCE_PRECISION)
         else
           distances << distances[i-1]

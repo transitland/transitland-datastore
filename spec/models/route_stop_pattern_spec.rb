@@ -288,6 +288,21 @@ describe RouteStopPattern do
                                                               a_value_within(0.1).of(17001.5107)])
     end
 
+    it 'assigns a fallback distance value of the geometry length to the last stop if it is an outlier' do
+      # If the last stop is not found to be after the geometry and thus added to the geometry, it can
+      # be an outlier if it is close enough to the geometry and before the penultimate stop, which would
+      # also be have to be an outlier itself.
+      last_stop_outlier = create(:stop,
+        onestop_id: "s-9q9hwtgq4s-last~outlier",
+        geometry: Stop::GEOFACTORY.point(-121.5, 37.3).to_s
+      )
+      @rsp.stop_pattern << last_stop_outlier.onestop_id
+      expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
+                                                              a_value_within(0.1).of(12617.9271),
+                                                              a_value_within(0.1).of(12617.9271),
+                                                              a_value_within(0.1).of(17001.5107)])
+    end
+
     it 'can calculate distances when two consecutive stop points are identical' do
       identical = create(:stop,
         onestop_id: "s-9q9hwtgq4s-sunnyvaleidentical",
