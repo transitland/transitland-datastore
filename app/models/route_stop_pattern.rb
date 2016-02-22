@@ -38,6 +38,9 @@ end
 class RouteStopPattern < BaseRouteStopPattern
   self.table_name_prefix = 'current_'
 
+  COORDINATE_PRECISION = 5
+  DISTANCE_PRECISION = 1
+
   belongs_to :route
   has_many :schedule_stop_pairs
   validates :geometry, :stop_pattern, presence: true
@@ -95,8 +98,17 @@ class RouteStopPattern < BaseRouteStopPattern
     )
   end
 
-  def simplify_geometry
-    self.geometry = RouteStopPattern.line_string(self.geometry[:coordinates].map { |c| c.map { |n| n.round(5) } })
+  def self.simplify_geometry(points)
+    points = self.set_precision(points)
+    self.remove_duplicate_points(points)
+  end
+
+  def self.set_precision(points)
+    points.map { |c| c.map { |n| n.round(COORDINATE_PRECISION) } }
+  end
+
+  def self.remove_duplicate_points(points)
+    points.chunk{ |c| c }.map(&:first)
   end
 
   def calculate_distances
@@ -114,9 +126,7 @@ class RouteStopPattern < BaseRouteStopPattern
         # only the first and last stops are expected to have 1 split result instead of 2
         # So this might be an outlier stop. Another possibility might be 2 consecutive stops
         # having the same coordinates.
-        logger.info %Q(stop #{stop.onestop_id} for route #{self.route.onestop_id}
-                     within route stop pattern #{self.onestop_id}
-                     may be an outlier or indicate invalid geometry")
+        logger.info "stop #{stop.onestop_id} for route #{self.route.onestop_id} within route stop pattern #{self.onestop_id} may be an outlier or indicate invalid geometry"
         # TODO add interpolated distance at halfway and split line there?
         # if so, will need to take into account case of 2 consecutive stops having same location.
         if (i == 0 && splits[1].nil?)
@@ -131,9 +141,12 @@ class RouteStopPattern < BaseRouteStopPattern
           distances << 0.0
         else
           total_distance += RGeo::Feature.cast(splits[0], RouteStopPattern::GEOFACTORY).length
-          distances << total_distance.round(1)
+          distances << total_distance.round(DISTANCE_PRECISION)
         end
         cast_route = splits[1]
+      end
+      if (i != 0 && distances[i-1] > distances[i])
+        logger.info "stop #{self.stop_pattern[i]} occurs after stop #{self.stop_pattern[i-1]} but has a distance less than #{self.stop_pattern[i-1]}"
       end
     end
     distances
@@ -145,10 +158,8 @@ class RouteStopPattern < BaseRouteStopPattern
   end
 
   def outlier_stop(spherical_stop)
-    cartesian_factory = RGeo::Cartesian::Factory.new(srid: 4326)
-    cartesian_line = RGeo::Feature.cast(self[:geometry], cartesian_factory)
-    cartesian_stop = RGeo::Feature.cast(spherical_stop, cartesian_factory)
-    closest_point = cartesian_line.closest_point(cartesian_stop)
+    cartesian_line = cartesian_cast(self[:geometry])
+    closest_point = cartesian_line.closest_point(cartesian_cast(spherical_stop))
     spherical_closest = RGeo::Feature.cast(closest_point, RouteStopPattern::GEOFACTORY)
     spherical_stop.distance(spherical_closest) > 100.0
   end
@@ -175,20 +186,22 @@ class RouteStopPattern < BaseRouteStopPattern
   end
 
   def tl_geometry(stop_points, issues)
-    # modify rsp geometry based on issues hash from evaluate_geometry
+    # modify rsp geometry based on issues array from evaluate_geometry
     if issues.include?(:empty)
       # create a new geometry from the trip stop points
-      self.geometry = RouteStopPattern.line_string(stop_points)
+      self.geometry = RouteStopPattern.line_string(RouteStopPattern.simplify_geometry(stop_points))
       self.is_generated = true
       self.is_modified = true
     end
     if issues.include?(:has_before_stop)
-      points = self.geometry[:coordinates].unshift(stop_points[0])
+      points = self.geometry[:coordinates].unshift(RouteStopPattern.set_precision([stop_points[0]])[0])
       self.geometry = RouteStopPattern.line_string(points)
+      self.is_modified = true
     end
     if issues.include?(:has_after_stop)
-      points = self.geometry[:coordinates] << stop_points[-1]
+      points = self.geometry[:coordinates] << RouteStopPattern.set_precision([stop_points[-1]])[0]
       self.geometry = RouteStopPattern.line_string(points)
+      self.is_modified = true
     end
     # more geometry modification can go here
   end
@@ -202,7 +215,7 @@ class RouteStopPattern < BaseRouteStopPattern
     raise ArgumentError.new('Need at least two stops') if stop_pattern.length < 2
     rsp = RouteStopPattern.new(
       stop_pattern: stop_pattern,
-      geometry: self.line_string(shape_points.chunk{|c| c}.map(&:first))
+      geometry: self.line_string(self.simplify_geometry(shape_points))
     )
     has_issues, issues = rsp.evaluate_geometry(trip, trip_stop_points)
     rsp.tl_geometry(trip_stop_points, issues) if has_issues

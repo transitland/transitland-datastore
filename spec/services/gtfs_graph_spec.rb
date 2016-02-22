@@ -1,5 +1,5 @@
-def load_feed(import_level=1)
-  feed_version = create(:feed_version_caltrain)
+def load_feed(feed_version_name, import_level=1)
+  feed_version = create(feed_version_name)
   feed = feed_version.feed
   graph = GTFSGraph.new(feed_version.file.path, feed, feed_version)
   graph.create_change_osr
@@ -26,7 +26,7 @@ describe GTFSGraph do
   end
 
   context 'can apply level 0 and 1 changesets' do
-    before(:each) { @feed, @feed_version = load_feed(1) }
+    before(:each) { @feed, @feed_version = load_feed(:feed_version_caltrain, 1) }
 
     it 'updated feed geometry' do
       geometry = [
@@ -85,6 +85,25 @@ describe GTFSGraph do
 
     it 'created known RouteStopPatterns' do
       expect(@feed.imported_route_stop_patterns.count).to eq(51)
+    end
+
+    it 'created known Route that traverses known Route Stop Patterns' do
+      r = @feed.imported_routes.find_by(onestop_id: 'r-9q9j-bullet')
+      expect(r.route_stop_patterns.size).to eq(12)
+      expect(r.route_stop_patterns.map(&:onestop_id)).to contain_exactly(
+        "r-9q9j-bullet-06b68d-289bc1",
+        "r-9q9j-bullet-078a92-c05b8d",
+        "r-9q9j-bullet-49de87-289bc1",
+        "r-9q9j-bullet-6168c2-289bc1",
+        "r-9q9j-bullet-752be5-289bc1",
+        "r-9q9j-bullet-761397-a2454f",
+        "r-9q9j-bullet-9a247a-a2454f",
+        "r-9q9j-bullet-c43c1d-289bc1",
+        "r-9q9j-bullet-cf14f2-a2454f",
+        "r-9q9j-bullet-d1201b-a2454f",
+        "r-9q9j-bullet-dea476-a2454f",
+        "r-9q9j-bullet-e11172-ba265d"
+      )
     end
 
     it 'created known Operator that serves known Routes' do
@@ -154,7 +173,7 @@ describe GTFSGraph do
 
   context 'can apply a level 2 changeset', import_level:2 do
 
-    before(:each) { @feed, @feed_version = load_feed(2) }
+    before(:each) { @feed, @feed_version = load_feed(:feed_version_caltrain, 2) }
 
     it 'created known ScheduleStopPairs' do
       expect(@feed.imported_schedule_stop_pairs.count).to eq(4661) # EXACTLY.
@@ -167,6 +186,7 @@ describe GTFSGraph do
         onestop_id: "s-9q8yycs6ku-22ndstreetcaltrainstation<70022"
       )
       route = @feed.imported_routes.find_by!(onestop_id: 'r-9q9-local')
+      route_stop_pattern = @feed.imported_route_stop_patterns.find_by!(onestop_id: 'r-9q9-local-260874-a2454f')
       operator = @feed.operators.find_by(onestop_id: 'o-9q9-caltrain')
       trip = '6507770-CT-14OCT-Caltrain-Saturday-02'
       found = @feed.imported_schedule_stop_pairs.where(
@@ -181,6 +201,7 @@ describe GTFSGraph do
       expect(s.origin).to eq(origin)
       expect(s.destination).to eq(destination)
       expect(s.route).to eq(route)
+      expect(s.route_stop_pattern).to eq(route_stop_pattern)
       expect(s.operator).to eq(operator)
       expect(s.trip).to eq(trip)
       expect(s.trip_headsign).to eq('San Jose Caltrain Station')
@@ -208,6 +229,36 @@ describe GTFSGraph do
       expect(s.destination_timepoint_source).to eq('gtfs_exact')
       expect(s.window_start).to eq('08:15:00')
       expect(s.window_end).to eq('08:20:00')
+    end
+  end
+
+  context 'distance calculation assignment' do
+
+    before(:each) { @feed, @feed_version = load_feed(:feed_version_vta, 2) }
+
+    it 'correctly assigned distances to schedule stop pairs containing stops repeated in its Route Stop Pattern' do
+      origin = @feed.imported_stops.find_by!(
+        onestop_id: "s-9q9kf4gkqz-greatmall~maintransitcenter"
+      )
+      destination = @feed.imported_stops.find_by!(
+        onestop_id: "s-9q9kf51txf-main~greatmallparkway"
+      )
+      route = @feed.imported_routes.find_by!(onestop_id: 'r-9q9k-66')
+      trip = '1930705'
+      first_found = @feed.imported_schedule_stop_pairs.where(
+        destination: origin,
+        route: route,
+        trip: trip
+      )
+      second_found = @feed.imported_schedule_stop_pairs.where(
+        origin: origin,
+        destination: destination,
+        route: route,
+        trip: trip
+      )
+      ssp1 = first_found.first
+      ssp2 = second_found.first
+      expect(ssp2.destination_dist_traveled).to be > ssp1.origin_dist_traveled
     end
   end
 end
