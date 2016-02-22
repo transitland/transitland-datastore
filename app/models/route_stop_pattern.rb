@@ -126,14 +126,13 @@ class RouteStopPattern < BaseRouteStopPattern
         # only the first and last stops are expected to have 1 split result instead of 2
         # So this might be an outlier stop. Another possibility might be 2 consecutive stops
         # having the same coordinates.
-        logger.info %Q(stop #{stop.onestop_id} for route #{self.route.onestop_id}
-                     within route stop pattern #{self.onestop_id}
-                     may be an outlier or indicate invalid geometry)
+        logger.info "stop #{stop.onestop_id} for route #{self.route.onestop_id} within route stop pattern #{self.onestop_id} may be an outlier or indicate invalid geometry"
         # TODO add interpolated distance at halfway and split line there?
         # if so, will need to take into account case of 2 consecutive stops having same location.
         if (i == 0 && splits[1].nil?)
           distances << 0.0
         elsif (i == self.stop_pattern.size - 1 && splits[0].nil?)
+          puts "TEST WORKING"
           distances << self[:geometry].length.round(DISTANCE_PRECISION)
         else
           distances << distances[i-1]
@@ -146,6 +145,9 @@ class RouteStopPattern < BaseRouteStopPattern
           distances << total_distance.round(DISTANCE_PRECISION)
         end
         cast_route = splits[1]
+      end
+      if (i != 0 && distances[i-1] > distances[i])
+        logger.info "stop #{self.stop_pattern[i]} occurs after stop #{self.stop_pattern[i-1]} but has a distance less than #{self.stop_pattern[i-1]}"
       end
     end
     if (distances[-1] > self[:geometry].length)
@@ -198,10 +200,12 @@ class RouteStopPattern < BaseRouteStopPattern
     if issues.include?(:has_before_stop)
       points = self.geometry[:coordinates].unshift(RouteStopPattern.set_precision([stop_points[0]])[0])
       self.geometry = RouteStopPattern.line_string(points)
+      self.is_modified = true
     end
     if issues.include?(:has_after_stop)
       points = self.geometry[:coordinates] << RouteStopPattern.set_precision([stop_points[-1]])[0]
       self.geometry = RouteStopPattern.line_string(points)
+      self.is_modified = true
     end
     # more geometry modification can go here
   end

@@ -57,6 +57,26 @@ FactoryGirl.define do
     end
   end
 
+  factory :feed_vta, class: Feed do
+    onestop_id 'f-9q9-vta'
+    url 'http://www.vta.org/sfc/servlet.shepherd/document/download/069A0000001NUea'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Santa Clara Valley Transportation Authority',
+        onestop_id: 'o-9q9-vta',
+        timezone: 'America/Los_Angeles',
+        website: 'http://www.vta.org/',
+        version: 1
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: 'VTA'
+      )
+    end
+  end
+
   factory :feed_bart, class: Feed do
     onestop_id 'f-9q9-bart'
     url 'http://www.bart.gov/dev/schedules/google_transit.zip'
