@@ -18,6 +18,11 @@ class GTFSGraph
     @onestop_id_to_entity = {}
   end
 
+  def cleanup
+    log "Cleanup any existing FeedVersion SSPs"
+    @feed_version.delete_schedule_stop_pairs!
+  end
+
   def create_change_osr(import_level=0)
     raise ArgumentError.new('import_level must be 0, 1, or 2.') unless (0..2).include?(import_level)
     log "Load GTFS"
