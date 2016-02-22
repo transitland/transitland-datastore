@@ -28,7 +28,7 @@ class FeedEaterScheduleWorker
       logger.info "FeedEaterScheduleWorker #{feed_onestop_id}: Saving successful schedule import"
       feed_schedule_import.succeeded
       if feed_schedule_import.all_succeeded?
-        FeedActivationWorker.perform_async(feed.onestop_id, feed_version.sha1)
+        FeedActivationWorker.perform_async(feed.onestop_id, feed_version.sha1, 2)
       end
     ensure
       feed_version.file.remove_any_local_cached_copies
