@@ -149,8 +149,7 @@ class RouteStopPattern < BaseRouteStopPattern
       end
     end
     if (distances[-1] > self[:geometry].length)
-      logger.info %Q(The last stop of Route Stop Pattern #{self.onestop_id}
-                  has a distance greater than the length of the geometry)
+      logger.info "The last stop of Route Stop Pattern #{self.onestop_id} has a distance greater than the length of the geometry"
     end
     distances
   end
