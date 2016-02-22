@@ -43,7 +43,7 @@ class FeedEaterWorker
     graph = nil
     begin
       graph = GTFSGraph.new(feed_file_path, feed, feed_version)
-      graph.create_change_osr(import_level)
+      graph.create_change_osr
       if import_level >= 2
         schedule_jobs = []
         graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map, rsp_map|

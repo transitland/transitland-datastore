@@ -2,13 +2,13 @@ def load_feed(import_level=1)
   feed_version = create(:feed_version_caltrain)
   feed = feed_version.feed
   graph = GTFSGraph.new(feed_version.file.path, feed, feed_version)
-  graph.create_change_osr(import_level)
+  graph.create_change_osr
   if import_level >= 2
     graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map, rsp_map|
       graph.ssp_perform_async(trip_ids, agency_map, route_map, stop_map, rsp_map)
     end
   end
-  feed.activate_feed_version(feed_version.sha1)
+  feed.activate_feed_version(feed_version.sha1, import_level)
   return feed, feed_version
 end
 
@@ -21,7 +21,7 @@ describe GTFSGraph do
       oif = feed.operators_in_feed.first
       oif.update!({gtfs_agency_id:'not-found'})
       graph = GTFSGraph.new(feed_version.file.path, feed, feed_version)
-      expect { graph.create_change_osr(1) }.to raise_error(GTFSGraph::Error)
+      expect { graph.create_change_osr }.to raise_error(GTFSGraph::Error)
     end
   end
 
