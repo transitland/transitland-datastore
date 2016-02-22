@@ -310,26 +310,18 @@ describe Feed do
       feed = create(:feed)
       fv = create(:feed_version, feed: feed)
       expect(feed.active_feed_version).to be nil
-      feed.activate_feed_version(fv.sha1)
+      feed.activate_feed_version(fv.sha1, 1)
       expect(feed.active_feed_version).to eq(fv)
     end
 
     it 'sets the active feed version and deactivates previous feed version' do
       feed = create(:feed)
       fv1 = create(:feed_version, feed: feed)
-      feed.activate_feed_version(fv1.sha1)
+      feed.activate_feed_version(fv1.sha1, 1)
       expect(feed.active_feed_version).to eq(fv1)
       fv2 = create(:feed_version, feed: feed)
-      feed.activate_feed_version(fv2.sha1)
+      feed.activate_feed_version(fv2.sha1, 1)
       expect(feed.active_feed_version).to eq(fv2)
-    end
-
-    it 'cannot activate current active_feed_version' do
-      feed = create(:feed)
-      fv1 = create(:feed_version, feed: feed)
-      feed.activate_feed_version(fv1.sha1)
-      expect(feed.active_feed_version).to eq(fv1)
-      expect{feed.activate_feed_version(fv1.sha1)}.to raise_error(Exception)
     end
   end
 end
