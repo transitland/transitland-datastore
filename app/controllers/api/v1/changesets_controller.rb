@@ -10,6 +10,7 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
     @changesets = Changeset.where('').include{change_payloads}
 
     @changesets = AllowFiltering.by_primary_key_ids(@changesets, params)
+    @changesets = AllowFiltering.by_boolean_attribute(@changesets, params, :applied)
 
     respond_to do |format|
       format.json do

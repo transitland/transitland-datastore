@@ -76,6 +76,7 @@ For a complete visualization of the Datastore's data model, see [doc/data-model.
 
 Example URL  | Parameters
 -------------|-----------
+`GET /api/v1/changesets?applied=false` | changesets that have not yet been applied
 `POST /api/v1/changesets` | include a [changeset payload](doc/changesets.md) in the request body
 `PUT /api/v1/changesets/32`<br/>(a Changeset can only be updated if it hasn't yet been applied)| include a [changeset payload](doc/changesets.md) in the request body ([secured](#api-authentication))
 `POST /api/v1/changesets/1/check` | ([secured](#api-authentication))

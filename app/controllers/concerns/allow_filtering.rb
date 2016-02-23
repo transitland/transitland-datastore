@@ -62,5 +62,21 @@ module AllowFiltering
     collection
   end
 
+  def self.by_boolean_attribute(collection, params, boolean_attribute_name)
+    if params[:applied].present?
+      conditions = {}
+      conditions[boolean_attribute_name] = case params[:applied]
+                  when 'true' then true
+                  when true then true
+                  when 1 then true
+                  when '1' then true
+                  when 'false' then false
+                  when false then false
+                  when '0' then false
+                  end
+      collection = collection.where(conditions)
+    end
+    collection
+  end
 
 end

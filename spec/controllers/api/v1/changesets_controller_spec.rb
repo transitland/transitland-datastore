@@ -5,13 +5,36 @@ describe Api::V1::ChangesetsController do
   end
 
   context 'GET index' do
-    it 'returns all stops when no parameters provided' do
+    it 'returns all changesets when no parameters provided' do
       create_list(:changeset, 2)
       get :index
       expect_json_types({ changesets: :array }) # TODO: remove root node?
       expect_json({ changesets: -> (changesets) {
         expect(changesets.length).to eq 2
       }})
+    end
+
+    context 'can filter to show applied changesets' do
+      before(:each) do
+        @applied_changesets = create_list(:changeset, 2, applied: true)
+        @not_applied_changesets = create_list(:changeset, 3, applied: false)
+      end
+
+      it 'true' do
+        get :index, applied: true
+        expect_json_types({ changesets: :array }) # TODO: remove root node?
+        expect_json({ changesets: -> (changesets) {
+          expect(changesets.length).to eq 2
+        }})
+      end
+
+      it 'false' do
+        get :index, applied: false
+        expect_json_types({ changesets: :array }) # TODO: remove root node?
+        expect_json({ changesets: -> (changesets) {
+          expect(changesets.length).to eq 3
+        }})
+      end
     end
   end
 
