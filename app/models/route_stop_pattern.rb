@@ -118,6 +118,7 @@ class RouteStopPattern < BaseRouteStopPattern
     total_distance = 0.0
     cartesian_factory = RGeo::Cartesian::Factory.new(srid: 4326)
     cast_route = RGeo::Feature.cast(self[:geometry], cartesian_factory)
+    geometry_length = self[:geometry].length
     self.stop_pattern.each_index do |i|
       stop = Stop.find_by_onestop_id!(self.stop_pattern[i])
       cast_stop = RGeo::Feature.cast(stop[:geometry], cartesian_factory)
@@ -126,13 +127,13 @@ class RouteStopPattern < BaseRouteStopPattern
         # only the first and last stops are expected to have 1 split result instead of 2
         # So this might be an outlier stop. Another possibility might be 2 consecutive stops
         # having the same coordinates.
-        logger.info "stop #{stop.onestop_id} for route #{self.route.onestop_id} within route stop pattern #{self.onestop_id} may be an outlier or indicate invalid geometry"
+        logger.info "stop #{stop.onestop_id}, number #{i+1}, within route stop pattern #{self.onestop_id} may be an outlier or indicate invalid geometry"
         # TODO add interpolated distance at halfway and split line there?
         # if so, will need to take into account case of 2 consecutive stops having same location.
         if (i == 0 && splits[1].nil?)
           distances << 0.0
-        elsif (i == self.stop_pattern.size - 1 && splits[1].nil?)
-          distances << RGeo::Feature.cast(splits[1], RouteStopPattern::GEOFACTORY).length
+        elsif (i == self.stop_pattern.size - 1 && splits[0].nil?)
+          distances << geometry_length.round(DISTANCE_PRECISION)
         else
           distances << distances[i-1]
         end
@@ -144,6 +145,9 @@ class RouteStopPattern < BaseRouteStopPattern
           distances << total_distance.round(DISTANCE_PRECISION)
         end
         cast_route = splits[1]
+      end
+      if (distances[i] > geometry_length)
+        logger.info "stop #{stop.onestop_id}, number #{i+1}, of route stop pattern #{self.onestop_id} has a distance greater than the length of the geometry"
       end
       if (i != 0 && distances[i-1] > distances[i])
         logger.info "stop #{self.stop_pattern[i]} occurs after stop #{self.stop_pattern[i-1]} but has a distance less than #{self.stop_pattern[i-1]}"
