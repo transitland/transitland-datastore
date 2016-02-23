@@ -288,10 +288,10 @@ describe RouteStopPattern do
                                                               a_value_within(0.1).of(17001.5107)])
     end
 
-    it 'assigns a fallback distance value of the geometry length to the last stop if it is an outlier' do
-      # If the last stop is not found to be after the geometry and thus added to the geometry, it can
+    it 'assign a fallback distance value equal to the geometry length to the last stop if it is an outlier' do
+      # If the last stop is not found to be after the geometry and thus not added to the geometry, it can
       # be an outlier if it is close enough to the geometry and before the penultimate stop, which would
-      # also be have to be an outlier itself.
+      # also be have to be an outlier itself (by having a nil result in its line split array).
       last_stop_outlier = create(:stop,
         onestop_id: "s-9q9hwtgq4s-last~outlier",
         geometry: Stop::GEOFACTORY.point(-121.5, 37.3).to_s
