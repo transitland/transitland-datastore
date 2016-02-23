@@ -27,7 +27,8 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
   include DownloadableCsv
 
   before_action :set_feed
-  before_action :set_feed_version, only: [:show]
+  before_action :set_feed_version, only: [:show, :update]
+  before_filter :require_api_auth_token, only: [:update]
 
   def index
     @feed_versions = @feed.feed_versions
@@ -53,7 +54,16 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
     render json: @feed_version
   end
 
+  def update
+    @feed_version.update!(feed_version_params)
+    render json: @feed_version
+  end
+
   private
+
+  def feed_version_params
+    params.require(:feed_version).permit(:import_level)
+  end
 
   def set_feed
     @feed = Feed.find_by!(onestop_id: params[:feed_id])
