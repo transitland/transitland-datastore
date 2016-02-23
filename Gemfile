@@ -38,7 +38,6 @@ gem 'email_validator'
 gem 'text'
 
 # authentication and authorization
-gem 'rack-cors', require: 'rack/cors'
 gem 'devise'
 
 # providing API
