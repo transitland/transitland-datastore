@@ -15,6 +15,7 @@
 #  imported_at            :datetime
 #  created_at             :datetime
 #  updated_at             :datetime
+#  import_level           :integer          default(0)
 #
 # Indexes
 #
