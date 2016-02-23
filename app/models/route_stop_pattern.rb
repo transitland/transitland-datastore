@@ -199,12 +199,12 @@ class RouteStopPattern < BaseRouteStopPattern
     end
     if issues.include?(:has_before_stop)
       points = self.geometry[:coordinates].unshift(RouteStopPattern.set_precision([stop_points[0]])[0])
-      self.geometry = RouteStopPattern.line_string(points)
+      self.geometry = RouteStopPattern.line_string(RouteStopPattern.simplify_geometry(points))
       self.is_modified = true
     end
     if issues.include?(:has_after_stop)
       points = self.geometry[:coordinates] << RouteStopPattern.set_precision([stop_points[-1]])[0]
-      self.geometry = RouteStopPattern.line_string(points)
+      self.geometry = RouteStopPattern.line_string(RouteStopPattern.simplify_geometry(points))
       self.is_modified = true
     end
     # more geometry modification can go here
