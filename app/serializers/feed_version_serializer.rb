@@ -30,6 +30,7 @@ class FeedVersionSerializer < ApplicationSerializer
              :tags,
              :fetched_at,
              :imported_at,
+             :import_level,
              :created_at,
              :updated_at,
              :feed_version_imports,
