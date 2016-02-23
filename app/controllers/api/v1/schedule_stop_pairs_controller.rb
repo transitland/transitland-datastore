@@ -59,6 +59,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
   include Geojson
   include JsonCollectionPagination
   include DownloadableCsv
+  include AllowFiltering
 
   before_action :set_schedule_stop_pairs
 
@@ -97,6 +98,12 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
 
   def set_schedule_stop_pairs
     @ssps = ScheduleStopPair.where('')
+
+    # Tags
+    @ssps = AllowFiltering.by_tag_keys_and_values(@ssps, params)
+    # Edges updated since
+    @ssps = AllowFiltering.by_updated_since(@ssps, params)
+
     # Feed Version, or default: All active Feed Versions
     if params[:feed_version_sha1]
       @ssps = @ssps.where(feed_version: FeedVersion.find_by(sha1: params[:feed_version_sha1]))
@@ -159,10 +166,6 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     # Stops in a bounding box
     if params[:bbox].present?
       @ssps = @ssps.where_origin_bbox(params[:bbox])
-    end
-    # Edges updated since
-    if params[:updated_since].present?
-      @ssps = @ssps.updated_since(params[:updated_since])
     end
     @ssps = @ssps.includes{[
       origin,

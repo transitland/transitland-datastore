@@ -2,17 +2,17 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
   include Geojson
   include JsonCollectionPagination
   include DownloadableCsv
+  include AllowFiltering
 
   before_action :set_feed, only: [:show]
 
   def index
     @feeds = Feed.where('').includes{[operators_in_feed, operators_in_feed.operator]}
 
-    if params[:tag_key].present? && params[:tag_value].present?
-      @feeds = @feeds.with_tag_equals(params[:tag_key], params[:tag_value])
-    elsif params[:tag_key].present?
-      @feeds = @feeds.with_tag(params[:tag_key])
-    elsif params[:bbox].present?
+    @feeds = AllowFiltering.by_onestop_id(@feeds, params)
+    @feeds = AllowFiltering.by_tag_keys_and_values(@feeds, params)
+
+    if params[:bbox].present?
       @feeds = @feeds.geometry_within_bbox(params[:bbox])
     end
 

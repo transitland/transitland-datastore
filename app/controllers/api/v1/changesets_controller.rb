@@ -1,12 +1,15 @@
 class Api::V1::ChangesetsController < Api::V1::BaseApiController
   include JsonCollectionPagination
   include DownloadableCsv
+  include AllowFiltering
 
   before_filter :require_api_auth_token, only: [:update, :check, :apply, :revert, :destroy]
   before_action :set_changeset, only: [:show, :update, :check, :apply, :revert, :destroy]
 
   def index
     @changesets = Changeset.where('').include{change_payloads}
+
+    @changesets = AllowFiltering.by_primary_key_ids(@changesets, params)
 
     respond_to do |format|
       format.json do

@@ -1,12 +1,34 @@
 class Api::V1::FeedVersionsController < Api::V1::BaseApiController
   include JsonCollectionPagination
   include DownloadableCsv
+  include AllowFiltering
 
   before_action :set_feed
   before_action :set_feed_version, only: [:show]
 
   def index
     @feed_versions = @feed.feed_versions
+
+    @feed_versions = AllowFiltering.by_updated_since(@feed_versions, params)
+
+    if params[:ids].present? || params[:sha1].present?
+      sha1s = []
+      if params[:sha1].present?
+        if params[:sha1].is_a?(Array) # for Ember Data
+          sha1s += params[:sha1]
+        elsif params[:sha1].is_a?(String)
+          sha1s += params[:sha1].split(',')
+        end
+      end
+      if params[:ids].present?
+        if params[:ids].is_a?(Array) # for Ember Data
+          sha1s += params[:ids]
+        elsif params[:ids].is_a?(String)
+          sha1s += params[:ids].split(',')
+        end
+      end
+      @feed_versions = @feed_versions.where(sha1: sha1s)
+    end
 
     respond_to do |format|
       format.json do

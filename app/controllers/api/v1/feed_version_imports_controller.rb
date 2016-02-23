@@ -1,8 +1,9 @@
 class Api::V1::FeedVersionImportsController < Api::V1::BaseApiController
   include JsonCollectionPagination
-  PER_PAGE = 1
-
+  include AllowFiltering
   include DownloadableCsv
+
+  PER_PAGE = 1
 
   before_action :set_feed
   before_action :set_feed_version
@@ -10,6 +11,8 @@ class Api::V1::FeedVersionImportsController < Api::V1::BaseApiController
 
   def index
     @feed_version_imports = @feed_version.feed_version_imports
+
+    @feed_version_imports = AllowFiltering.by_primary_key_ids(@feed_version_imports, params)
 
     respond_to do |format|
       format.json do
