@@ -122,7 +122,7 @@ class ScheduleStopPair < BaseScheduleStopPair
 
   # Active Feed Version
   scope :where_active, -> {
-    where(feed_version: FeedVersion.where(feed: Feed.where('active_feed_version_id >= 0')))
+    joins('INNER JOIN current_feeds ON feed_version_id = current_feeds.active_feed_version_id')
   }
 
   # Service active on a date

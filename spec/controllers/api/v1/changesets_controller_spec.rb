@@ -103,6 +103,15 @@ describe Api::V1::ChangesetsController do
       expect(User.count).to eq 1
       expect(Changeset.first.change_payloads.count).to eq 2
     end
+
+    it 'should be able to create a Changeset with an existing User author (even if email comes in different capitalization)' do
+      user = create(:user)
+      post :create, changeset: FactoryGirl.attributes_for(:changeset).merge({ user: { email: user.email.capitalize } })
+      expect(response.status).to eq 200
+      expect(Changeset.count).to eq 1
+      expect(User.count).to eq 1
+      expect(Changeset.first.user).to eq user
+    end
   end
 
   context 'POST destroy' do

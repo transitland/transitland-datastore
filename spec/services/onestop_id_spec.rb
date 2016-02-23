@@ -49,7 +49,70 @@ describe OnestopId do
   end
 
   context 'RouteStopPatternOnestopId' do
-    
+    context 'invalid arguments' do
+      it 'fails gracefully when given an invalid stop pattern' do
+        expect {
+          OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: 'r-the~route',
+                                                   geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]).to_s
+        }.to raise_error(ArgumentError)
+      end
+      it 'fails gracefully when given an invalid geometry' do
+        expect {
+          OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: 'r-9q9-the~route',
+                                                   stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2']).to_s
+        }.to raise_error(ArgumentError)
+      end
+      it 'fails gracefully when given an invalid route' do
+        expect {
+          OnestopId::RouteStopPatternOnestopId.new(stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2'],
+                                                   geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]).to_s
+        }.to raise_error(ArgumentError)
+      end
+    end
+
+    it 'handles route onestop id' do
+      onestop_id = OnestopId::RouteStopPatternOnestopId.new(
+            route_onestop_id: 'r-9q9-the~route',
+            stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2'],
+            geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]])
+      expect([onestop_id.geohash, onestop_id.name]).to match_array(['9q9','the~route'])
+    end
+
+    it 'produces the first 6 hexadecimal characters of the geometry MD5 hash' do
+      expect(OnestopId::RouteStopPatternOnestopId.new(
+            route_onestop_id: 'r-9q9-the~route',
+            stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2'],
+            geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]).geometry_hash
+      ).to eq('48fed0')
+    end
+
+    it 'produces the first 6 hexadecimal characters of the stop MD5 hash' do
+      expect(OnestopId::RouteStopPatternOnestopId.new(
+            route_onestop_id: 'r-9q9-the~route',
+            stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2'],
+            geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]).stop_hash
+      ).to eq('fca1a5')
+    end
+
+    context '#validate' do
+      it 'requires valid route onestop id' do
+        expect(
+            OnestopId::RouteStopPatternOnestopId.new(string: 'r-9q9-the~route!-fca1a5-48fed0').errors
+        ).to include 'invalid name'
+      end
+
+      it 'requires valid stop pattern hash prefix' do
+        expect(
+            OnestopId::RouteStopPatternOnestopId.new(string: 'r-9q9-the~route-fca1a5xx-48fed0').errors
+        ).to include 'invalid stop pattern hash'
+      end
+
+      it 'requires valid geometry hash prefix' do
+        expect(
+            OnestopId::RouteStopPatternOnestopId.new(string: 'r-9q9-the~route-fca1a5-x48fed0x').errors
+        ).to include 'invalid geometry hash'
+      end
+    end
   end
 
   context 'finder methods' do
