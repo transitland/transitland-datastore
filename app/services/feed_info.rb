@@ -45,7 +45,7 @@ class FeedInfo
       feed_visited_stops |= visited_stops
     end
     # feed
-    feed = Feed.from_gtfs(@url, feed_visited_stops)
+    feed = Feed.from_gtfs(@gtfs, url: @url)
     # operators
     operators = []
     @gtfs.agencies.each do |agency|
