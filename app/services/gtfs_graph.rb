@@ -213,10 +213,7 @@ class GTFSGraph
       next unless entity
       # Find: (child gtfs routes) to (tl routes)
       #   note: .compact because some gtfs routes are skipped.
-      routes = @gtfs.children(entity)
-        .map { |route| find_by_gtfs_entity(route) }
-        .compact
-        .to_set
+      routes = entity.routes.map { |route| find_by_gtfs_entity(route) }.compact.to_set
       # Find: (tl routes) to (serves tl stops)
       stops = routes
         .map { |route| route.serves }
@@ -250,11 +247,7 @@ class GTFSGraph
     log "  routes"
     @gtfs.routes.each do |entity|
       # Find: (child gtfs trips) to (child gtfs stops) to (tl stops)
-      stops = @gtfs.children(entity)
-        .map { |trip| @gtfs.children(trip) }
-        .reduce(Set.new, :+)
-        .map { |stop| find_by_gtfs_entity(stop) }
-        .to_set
+      stops = entity.stops.map { |stop| find_by_gtfs_entity(stop) }.to_set
       # Also serve parent stations...
       parent_stations = Set.new
       stops.each do |stop|
