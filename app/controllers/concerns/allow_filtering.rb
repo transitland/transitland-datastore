@@ -30,7 +30,7 @@ module AllowFiltering
       elsif params[:ids].is_a?(String)
         ids = params[:ids].split(',')
       end
-      collection = collection.where(ids: ids)
+      collection = collection.where(id: ids)
     end
     collection
   end
