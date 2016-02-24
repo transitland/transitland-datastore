@@ -222,7 +222,7 @@ class GTFSGraph
         .map { |route| route.serves }
         .reduce(Set.new, :+)
       # Create Operator from GTFS
-      operator = Operator.from_gtfs(entity, stops)
+      operator = Operator.from_gtfs(entity)
       operator.onestop_id = oif.operator.onestop_id # Override Onestop ID
       operator_original = operator # for merging geometry
       # ... or check if Operator exists, or another local Operator, or new.
@@ -267,7 +267,7 @@ class GTFSGraph
       next if stops.empty?
       # Search by similarity
       # ... or create route from GTFS
-      route = Route.from_gtfs(entity, stops)
+      route = Route.from_gtfs(entity)
       # ... check if Route exists, or another local Route, or new.
       route = find_by_entity(route)
       # Add references and identifiers

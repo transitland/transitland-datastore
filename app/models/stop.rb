@@ -250,9 +250,9 @@ class Stop < BaseStop
 
   ##### FromGTFS ####
   include FromGTFS
-  def self.from_gtfs(entity)
+  def self.from_gtfs(entity, attrs={})
     # GTFS Constructor
-    point = Stop::GEOFACTORY.point(entity.stop_lon, entity.stop_lat)
+    point = Stop::GEOFACTORY.point(*entity.coordinates)
     geohash = GeohashHelpers.encode(point, precision=GEOHASH_PRECISION)
     name = [entity.stop_name, entity.id, "unknown"]
       .select(&:present?)

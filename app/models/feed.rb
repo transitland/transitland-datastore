@@ -228,7 +228,7 @@ class Feed < BaseFeed
     end
     # name ||= entity.agencies.map(&:agency_name).join('-')
     name ||= Addressable::URI.parse(attrs[:url]).host.gsub(/[^a-zA-Z0-9]/, '')
-    # Create feed
+    # Create Feed
     attrs[:geometry] = geometry.to_geometry
     attrs[:onestop_id] = OnestopId.handler_by_model(self).new(
       geohash: geohash,
