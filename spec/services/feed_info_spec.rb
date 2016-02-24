@@ -44,6 +44,13 @@ describe FeedInfo do
       expect(feed.operators_in_feed.first.operator.onestop_id).to eq('o-9qs-demotransitauthority')
     end
 
+    it 'uses feed_info feed_id' do
+      feed, operators = nil, nil
+      fi = FeedInfo.new(url: example_url, path: example_feed_path)
+      fi.open do |feed_info|
+        feed, operators = feed_info.parse_feed_and_operators
+      end
+      expect(feed.onestop_id).to eq('f-9qs-example')
     end
 
     it 'parses operators' do
