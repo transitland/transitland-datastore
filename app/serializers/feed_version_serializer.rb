@@ -40,7 +40,10 @@ class FeedVersionSerializer < ApplicationSerializer
   end
 
   def feed_version_imports_url
-    api_v1_feed_feed_version_feed_version_imports_url(object.feed.onestop_id, object.sha1)
+    api_v1_feed_version_imports_url({
+      feed_onestop_id: object.feed.onestop_id,
+      feed_version_sha1: object.sha1
+    })
   end
 
 end

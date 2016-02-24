@@ -3,11 +3,10 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
   include DownloadableCsv
   include AllowFiltering
 
-  before_action :set_feed
   before_action :set_feed_version, only: [:show]
 
   def index
-    @feed_versions = @feed.feed_versions
+    @feed_versions = FeedVersion.where('')
 
     @feed_versions = AllowFiltering.by_updated_since(@feed_versions, params)
 
@@ -30,11 +29,16 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
       @feed_versions = @feed_versions.where(sha1: sha1s)
     end
 
+    if params[:feed_onestop_id].present?
+      feed_onestop_ids = params[:feed_onestop_id].split(',')
+      @feed_versions = @feed_versions.where(feed: Feed.where(onestop_id: feed_onestop_ids))
+    end
+
     respond_to do |format|
       format.json do
         render paginated_json_collection(
           @feed_versions,
-          Proc.new { |params| api_v1_feed_feed_versions_url(params) },
+          Proc.new { |params| api_v1_feed_versions_url(params) },
           params[:offset],
           params[:per_page],
           params[:total],
@@ -53,11 +57,7 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
 
   private
 
-  def set_feed
-    @feed = Feed.find_by!(onestop_id: params[:feed_id])
-  end
-
   def set_feed_version
-    @feed_version = @feed.feed_versions.find_by!(sha1: params[:id])
+    @feed_version = FeedVersion.find_by!(sha1: params[:id])
   end
 end

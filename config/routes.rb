@@ -33,11 +33,9 @@ Rails.application.routes.draw do
       resources :routes, only: [:index, :show]
       resources :route_stop_patterns, only: [:index, :show]
       resources :schedule_stop_pairs, only: [:index]
-      resources :feeds, only: [:index, :show] do
-        resources :feed_versions, only: [:index, :show] do
-          resources :feed_version_imports, only: [:index, :show]
-        end
-      end
+      resources :feeds, only: [:index, :show]
+      resources :feed_versions, only: [:index, :show]
+      resources :feed_version_imports, only: [:index, :show]
       post '/feeds/fetch_info', to: 'feeds#fetch_info'
       post '/webhooks/feed_fetcher', to: 'webhooks#feed_fetcher'
       post '/webhooks/feed_eater', to: 'webhooks#feed_eater'
