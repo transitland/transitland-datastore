@@ -27,7 +27,8 @@ class FeedVersionImportSerializer < ApplicationSerializer
              :exception_log,
              :validation_report,
              :created_at,
-             :updated_at
+             :updated_at,
+             :imported_from_changesets
 
   has_many :feed_schedule_imports
 
@@ -45,5 +46,9 @@ class FeedVersionImportSerializer < ApplicationSerializer
 
   def feed_version_url
     api_v1_feed_version_url(object.feed_version.sha1)
+  end
+
+  def imported_from_changesets
+    object.imported_from_changesets.map(&:id)
   end
 end

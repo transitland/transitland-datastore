@@ -7,7 +7,19 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   before_action :set_changeset, only: [:show, :update, :check, :apply, :revert, :destroy]
 
   def index
-    @changesets = Changeset.where('').include{change_payloads}
+    @changesets = Changeset.where('').include{[
+      change_payloads,
+      imported_from_feed,
+      imported_from_feed_version,
+      feeds_created_or_updated,
+      feeds_destroyed,
+      stops_created_or_updated,
+      stops_destroyed,
+      operators_created_or_updated,
+      operators_destroyed,
+      routes_created_or_updated,
+      routes_destroyed
+    ]}
 
     @changesets = AllowFiltering.by_primary_key_ids(@changesets, params)
     @changesets = AllowFiltering.by_boolean_attribute(@changesets, params, :applied)

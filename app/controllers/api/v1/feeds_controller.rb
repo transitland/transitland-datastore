@@ -7,7 +7,12 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
   before_action :set_feed, only: [:show]
 
   def index
-    @feeds = Feed.where('').includes{[operators_in_feed, operators_in_feed.operator]}
+    @feeds = Feed.where('').includes{[
+      operators_in_feed,
+      operators_in_feed.operator,
+      changesets_imported_from_this_feed,
+      active_feed_version
+    ]}
 
     @feeds = AllowFiltering.by_onestop_id(@feeds, params)
     @feeds = AllowFiltering.by_tag_keys_and_values(@feeds, params)

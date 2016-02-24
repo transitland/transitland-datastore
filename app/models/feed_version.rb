@@ -25,7 +25,7 @@
 class FeedVersion < ActiveRecord::Base
   belongs_to :feed, polymorphic: true
   has_many :feed_version_imports, -> { order 'created_at DESC' }, dependent: :destroy
-
+  has_many :changesets_imported_from_this_feed_version, class_name: 'Changeset'
   has_many :entities_imported_from_feed
   has_many :imported_operators, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'
   has_many :imported_stops, through: :entities_imported_from_feed, source: :entity, source_type: 'Stop'
@@ -49,6 +49,10 @@ class FeedVersion < ActiveRecord::Base
 
   def delete_schedule_stop_pairs!
     self.imported_schedule_stop_pairs.delete_all
+  end
+
+  def is_active_feed_version
+    !!self.feed.active_feed_version && (self.feed.active_feed_version == self)
   end
 
   private

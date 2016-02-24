@@ -8,7 +8,9 @@ class Api::V1::FeedVersionImportsController < Api::V1::BaseApiController
   before_action :set_feed_version_import, only: [:show]
 
   def index
-    @feed_version_imports = FeedVersionImport.where('')
+    @feed_version_imports = FeedVersionImport.where('').includes{[
+      imported_from_changesets
+    ]}
 
     @feed_version_imports = AllowFiltering.by_primary_key_ids(@feed_version_imports, params)
 

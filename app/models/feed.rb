@@ -69,6 +69,8 @@ class Feed < BaseFeed
   has_many :imported_route_stop_patterns, through: :entities_imported_from_feed, source: :entity, source_type: 'RouteStopPattern'
   has_many :imported_schedule_stop_pairs, class_name: 'ScheduleStopPair', dependent: :delete_all
 
+  has_many :changesets_imported_from_this_feed, class_name: 'Changeset'
+
   after_initialize :set_default_values
 
   after_create :after_create_async_fetch_feed_version

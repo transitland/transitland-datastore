@@ -19,7 +19,7 @@
 class FeedVersionImport < ActiveRecord::Base
   belongs_to :feed_version
   has_one :feed, through: :feed_version, source_type: 'Feed'
-
+  has_many :imported_from_changesets, through: :feed_version
   has_many :feed_schedule_imports, dependent: :destroy
 
   validates :feed_version, presence: true
