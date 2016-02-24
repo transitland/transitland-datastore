@@ -104,11 +104,8 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   end
 
   def changeset_params
-    params.require(:changeset).permit! # TODO: permit specific params
-  end
-
-  def change_params
-    params.require(:change).permit! # TODO: permit specific params
+    params.require(:changeset).permit!
+    # We'll rely on changeset JSON schemas to validate the incoming contents.
   end
 
 end
