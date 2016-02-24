@@ -54,8 +54,8 @@ class GTFSGraph
     ####
     log "Create changeset"
     changeset = Changeset.create(
-      feed: @feed,
-      feed_version: @feed_version,
+      imported_from_feed: @feed,
+      imported_from_feed_version: @feed_version,
       notes: "Changeset created by FeedEaterWorker for #{@feed.onestop_id} #{@feed_version.sha1}"
     )
     log "Create: Operators, Stops, Routes"

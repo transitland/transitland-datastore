@@ -28,8 +28,8 @@ class ChangesetSerializer < ApplicationSerializer
              :updated_at,
              :change_payloads,
              :user,
-             :feed_onestop_id,
-             :feed_version_sha1
+             :imported_from_feed_onestop_id,
+             :imported_from_feed_version_sha1
 
   def user
     object.user.id if object.user
@@ -39,12 +39,11 @@ class ChangesetSerializer < ApplicationSerializer
     object.change_payloads.pluck(:id)
   end
 
-  def feed_onestop_id
-    object.feed.try(:onestop_id)
+  def imported_from_feed_onestop_id
+    object.imported_from_feed.try(:onestop_id)
   end
 
-  def feed_version_sha1
-    object.feed_version.try(:sha1)
+  def imported_from_feed_version_sha1
+    object.imported_from_feed_version.try(:sha1)
   end
-
 end
