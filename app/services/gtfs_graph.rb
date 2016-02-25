@@ -282,7 +282,11 @@ class GTFSGraph
     # Route Stop Patterns
     log "  route stop patterns"
     rsps = Set.new
+    stop_times_with_shape_dist_traveled = 0
+    stop_times_count = 0
     @gtfs.trip_stop_times do |trip,stop_times|
+      stop_times_with_shape_dist_traveled += stop_times.count { |st| !st.shape_dist_traveled.nil?}
+      stop_times_count += stop_times.length
       feed_shape_points = @gtfs.shape_line(trip.shape_id) || []
       tl_stops = stop_times.map { |stop_time| find_by_gtfs_entity(@gtfs.stop(stop_time.stop_id)) }
       tl_route = find_by_gtfs_entity(@gtfs.parents(trip).first)
@@ -299,6 +303,7 @@ class GTFSGraph
       rsp.route = tl_route
       rsps << rsp
     end
+    log "#{stop_times_with_shape_dist_traveled} stop times with shape_dist_traveled found out of #{stop_times_count} total stop times" if stop_times_with_shape_dist_traveled > 0
     rsps
   end
 
