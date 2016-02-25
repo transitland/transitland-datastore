@@ -18,8 +18,10 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
       operators_created_or_updated,
       operators_destroyed,
       routes_created_or_updated,
-      routes_destroyed
+      routes_destroyed,
+      user
     ]}
+    # ^^^ that's a lot of queries. TODO: check performance.
 
     @changesets = AllowFiltering.by_primary_key_ids(@changesets, params)
     @changesets = AllowFiltering.by_boolean_attribute(@changesets, params, :applied)
