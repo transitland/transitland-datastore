@@ -27,6 +27,8 @@ class Api::V1::FeedVersionImportsController < Api::V1::BaseApiController
         render paginated_json_collection(
           @feed_version_imports,
           Proc.new { |params| api_v1_feed_version_imports_url(params) },
+          params[:sort_key],
+          params[:sort_order],
           params[:offset],
           params[:per_page],
           params[:total],

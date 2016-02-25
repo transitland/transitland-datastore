@@ -27,6 +27,8 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
         render paginated_json_collection(
           @feeds,
           Proc.new { |params| api_v1_feeds_url(params) },
+          params[:sort_key],
+          params[:sort_order],
           params[:offset],
           params[:per_page],
           params[:total],
