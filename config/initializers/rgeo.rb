@@ -77,6 +77,9 @@ module RGeo
         dist = distance_on_segment
         return target.distance(segment.e) if dist >= segment.length
         return target.distance(segment.s) if dist <= 0
+        diff = target_distance_from_departure - dist
+        # sometimes there can be a precision mismatch
+        return 0 if (diff < 0 && diff.abs < 0.00001 )
         ::Math.sqrt( target_distance_from_departure ** 2 - dist ** 2 )
       end
 
