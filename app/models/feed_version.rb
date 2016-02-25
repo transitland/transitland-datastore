@@ -85,7 +85,8 @@ class FeedVersion < ActiveRecord::Base
             feed_lang:           feed_info.feed_lang,
             feed_start_date:     feed_info.feed_start_date,
             feed_end_date:       feed_info.feed_end_date,
-            feed_version:        feed_info.feed_version
+            feed_version:        feed_info.feed_version,
+            feed_id:             feed_info.feed_id
           }
           feed_version_tags.delete_if { |k, v| v.blank? }
           self.tags = feed_version_tags

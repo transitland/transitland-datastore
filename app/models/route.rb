@@ -153,10 +153,12 @@ class Route < BaseRoute
 
   ##### FromGTFS ####
   include FromGTFS
-  def self.from_gtfs(entity, stops)
+  def self.from_gtfs(entity, attrs={})
     # GTFS Constructor
-    raise ArgumentError.new('Need at least one Stop') if stops.empty?
-    geohash = GeohashHelpers.fit(stops.map { |i| i[:geometry] })
+    coordinates = Stop::GEOFACTORY.collection(
+      entity.stops.map { |stop| Stop::GEOFACTORY.point(*stop.coordinates) }
+    )
+    geohash = GeohashHelpers.fit(coordinates)
     name = [entity.route_short_name, entity.route_long_name, entity.id, "unknown"]
       .select(&:present?)
       .first
@@ -168,7 +170,6 @@ class Route < BaseRoute
       name: name,
       onestop_id: onestop_id.to_s,
       vehicle_type: entity.route_type.to_i
-      # geometry:
     )
     # Copy over GTFS attributes to tags
     route.tags ||= {}

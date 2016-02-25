@@ -9,7 +9,7 @@ describe FeedInfoWorker do
     cachedata = Rails.cache.read(cachekey)
     expect(cachedata[:status]).to eq('complete')
     expect(cachedata[:url]).to eq(url)
-    expect(cachedata[:feed][:onestop_id]).to eq('f-9q9-wwwcaltraincom')
+    expect(cachedata[:feed][:onestop_id]).to eq('f-9q9-caltrain')
     expect(cachedata[:operators].size).to eq(1)
     expect(cachedata[:operators].first[:onestop_id]).to eq('o-9q9-caltrain')
   end
