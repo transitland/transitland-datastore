@@ -4,7 +4,10 @@ class FakePaginationCollection
     @offset = 0
     @limit = @items.size
   end
-  def order(key)
+  def column_names
+    ['id']
+  end
+  def reorder(key)
     @items = @items.sort
     self
   end
@@ -33,12 +36,12 @@ describe JsonCollectionPagination do
   let(:path_helper) { Proc.new { |params| "http://blah/offset=#{params[:offset]}" } }
   let(:collection) { FakePaginationCollection.new((0...10).to_a) }
   let(:collection_shuffle) { FakePaginationCollection.new((0...10).to_a.shuffle) }
-  let(:pager) { Proc.new { |offset,per_page,total| object.send(:paginated_json_collection, collection, path_helper, offset, per_page, total, {}) } }
+  let(:pager) { Proc.new { |offset,per_page,total| object.send(:paginated_json_collection, collection, path_helper, nil, nil, offset, per_page, total, {}) } }
 
   context 'paginated_json_collection' do
     it 'one page' do
       expect(
-        object.send(:paginated_json_collection, collection, path_helper, 0, 10, false, {})
+        object.send(:paginated_json_collection, collection, path_helper, nil, nil, 0, 10, false, {})
       ).to eq({
         json: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         meta: {
@@ -50,7 +53,7 @@ describe JsonCollectionPagination do
 
     it 'applies default sort order' do
       expect(
-        object.send(:paginated_json_collection, collection_shuffle, path_helper, 4, 4, false, {})
+        object.send(:paginated_json_collection, collection_shuffle, path_helper, nil, nil, 4, 4, false, {})
       ).to eq({
         json: [4,5,6,7],
         meta: {
@@ -64,7 +67,7 @@ describe JsonCollectionPagination do
 
     it 'has an optional total' do
       expect(
-        object.send(:paginated_json_collection, collection, path_helper, 0, 10, true, {})
+        object.send(:paginated_json_collection, collection, path_helper, nil, nil, 0, 10, true, {})
       ).to eq({
         json: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         meta: {
@@ -75,7 +78,7 @@ describe JsonCollectionPagination do
       })
 
       expect(
-        object.send(:paginated_json_collection, collection, path_helper, 0, 10, false, {})
+        object.send(:paginated_json_collection, collection, path_helper, nil, nil, 0, 10, false, {})
       ).to eq({
         json: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         meta: {
