@@ -8,7 +8,6 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
 
   def index
     @changesets = Changeset.where('').include{[
-      change_payloads,
       imported_from_feed,
       imported_from_feed_version,
       feeds_created_or_updated,

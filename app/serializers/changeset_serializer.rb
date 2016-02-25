@@ -44,7 +44,9 @@ class ChangesetSerializer < ApplicationSerializer
   end
 
   def change_payloads
-    object.change_payloads.map(&:id)
+    # NOTE: this is an n+1 query, but it let's
+    # us skip loading ChangePayload's into memory.
+    object.change_payloads.pluck(:id)
   end
 
   def imported_from_feed_onestop_id
