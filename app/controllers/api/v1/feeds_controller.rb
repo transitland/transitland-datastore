@@ -11,7 +11,8 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
       operators_in_feed,
       operators_in_feed.operator,
       changesets_imported_from_this_feed,
-      active_feed_version
+      active_feed_version,
+      feed_versions
     ]}
 
     @feeds = AllowFiltering.by_onestop_id(@feeds, params)
@@ -20,8 +21,6 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
     if params[:bbox].present?
       @feeds = @feeds.geometry_within_bbox(params[:bbox])
     end
-
-    @feeds = @feeds.includes{[operators_in_feed]}
 
     respond_to do |format|
       format.json do
