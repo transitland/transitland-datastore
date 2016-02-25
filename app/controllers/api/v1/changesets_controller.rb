@@ -70,6 +70,11 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
       raise Changeset::Error.new(@changeset, 'cannot update a Changeset that has already been applied')
     else
       user_params = changeset_params.delete(:user).try(:compact)
+
+      # NOTE: can't currently use this endpoint to edit existing payloads.
+      # Use PUT /api/v1/changeset/x/change_payloads instead.
+      changeset_params.delete(:change_payloads)
+
       @changeset.update!(changeset_params)
       if user_params.present?
         @changeset.set_user_by_params(user_params)
