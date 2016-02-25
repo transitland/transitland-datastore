@@ -21,7 +21,9 @@ class FeedEaterWorker
     feed_file_path = feed_version.file.local_path_copying_locally_if_needed
 
     # Create import record
-    feed_version_import = feed_version.feed_version_imports.create
+    feed_version_import = feed_version.feed_version_imports.create(
+      import_level: import_level
+    )
 
     # Validate
     unless Figaro.env.run_google_feedvalidator.present? &&
@@ -42,7 +44,7 @@ class FeedEaterWorker
       logger.info "FeedEaterWorker #{feed_onestop_id}: Importing feed at import level #{import_level}"
       graph = GTFSGraph.new(feed_file_path, feed, feed_version)
       graph.cleanup
-      graph.create_change_osr(import_level)
+      graph.create_change_osr
       if import_level >= 2
         schedule_jobs = []
         graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map, rsp_map|

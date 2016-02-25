@@ -10,6 +10,7 @@
 #  import_log        :text
 #  exception_log     :text
 #  validation_report :text
+#  import_level      :integer
 #
 # Indexes
 #
@@ -24,6 +25,7 @@ class FeedVersionImportSerializer < ApplicationSerializer
              :feed_version_url,
              :success,
              :import_log,
+             :import_level,
              :exception_log,
              :validation_report,
              :created_at,
