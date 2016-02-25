@@ -1,12 +1,15 @@
 class Api::V1::UsersController < Api::V1::BaseApiController
   include JsonCollectionPagination
   include DownloadableCsv
+  include AllowFiltering
 
   before_filter :require_api_auth_token
   before_action :set_user, only: [:show, :update, :destroy]
 
   def index
     @users = User.where('').include{changesets}
+
+    @users = AllowFiltering.by_primary_key_ids(@users, params)
 
     respond_to do |format|
       format.json do

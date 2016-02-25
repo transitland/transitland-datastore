@@ -10,6 +10,7 @@
 #  import_log        :text
 #  exception_log     :text
 #  validation_report :text
+#  import_level      :integer
 #
 # Indexes
 #
@@ -24,6 +25,7 @@ class FeedVersionImportSerializer < ApplicationSerializer
              :feed_version_url,
              :success,
              :import_log,
+             :import_level,
              :exception_log,
              :validation_report,
              :created_at,
@@ -44,6 +46,6 @@ class FeedVersionImportSerializer < ApplicationSerializer
   end
 
   def feed_version_url
-    api_v1_feed_feed_version_url(object.feed.onestop_id, object.feed_version.sha1)
+    api_v1_feed_version_url(object.feed_version.sha1)
   end
 end

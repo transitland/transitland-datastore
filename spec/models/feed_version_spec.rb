@@ -15,6 +15,7 @@
 #  imported_at            :datetime
 #  created_at             :datetime
 #  updated_at             :datetime
+#  import_level           :integer          default(0)
 #
 # Indexes
 #
@@ -54,6 +55,15 @@ describe FeedVersion do
       expect(@feed_version.imported_schedule_stop_pairs.count).to eq(0)
     end
 
+  end
+
+  it 'is active feed version' do
+    feed = create(:feed)
+    active_feed_version = create(:feed_version, feed: feed)
+    inactive_feed_version = create(:feed_version, feed: feed)
+    feed.update(active_feed_version: active_feed_version)
+    expect(active_feed_version.is_active_feed_version).to eq true
+    expect(inactive_feed_version.is_active_feed_version).to eq false
   end
 
 end

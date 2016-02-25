@@ -47,11 +47,19 @@
 #
 # Indexes
 #
-#  c_ssp_cu_in_changeset                                 (created_or_updated_in_changeset_id)
-#  c_ssp_destination                                     (destination_id)
-#  c_ssp_service_end_date                                (service_end_date)
-#  index_current_schedule_stop_pairs_on_feed_id          (feed_id)
-#  index_current_schedule_stop_pairs_on_feed_version_id  (feed_version_id)
+#  c_ssp_cu_in_changeset                                       (created_or_updated_in_changeset_id)
+#  c_ssp_destination                                           (destination_id)
+#  c_ssp_origin                                                (origin_id)
+#  c_ssp_route                                                 (route_id)
+#  c_ssp_service_end_date                                      (service_end_date)
+#  c_ssp_service_start_date                                    (service_start_date)
+#  c_ssp_trip                                                  (trip)
+#  index_current_schedule_stop_pairs_on_feed_id                (feed_id)
+#  index_current_schedule_stop_pairs_on_feed_version_id        (feed_version_id)
+#  index_current_schedule_stop_pairs_on_operator_id            (operator_id)
+#  index_current_schedule_stop_pairs_on_origin_departure_time  (origin_departure_time)
+#  index_current_schedule_stop_pairs_on_route_stop_pattern_id  (route_stop_pattern_id)
+#  index_current_schedule_stop_pairs_on_updated_at             (updated_at)
 #
 
 class ScheduleStopPairSerializer < ApplicationSerializer

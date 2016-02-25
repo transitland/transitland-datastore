@@ -50,7 +50,11 @@ class FeedSerializer < ApplicationSerializer
              :updated_at,
              :feed_versions_count,
              :feed_versions_url,
-             :feed_versions
+             :feed_versions,
+             :active_feed_version,
+             :import_level_of_active_feed_version,
+             :created_or_updated_in_changeset_id,
+             :changesets_imported_from_this_feed
 
   has_many :operators_in_feed
 
@@ -59,10 +63,26 @@ class FeedSerializer < ApplicationSerializer
   end
 
   def feed_versions_url
-    api_v1_feed_feed_versions_url(object.onestop_id) if object.persisted?
+    if object.persisted?
+      api_v1_feed_versions_url({
+        feed_onestop_id: object.onestop_id
+      })
+    end
   end
 
   def feed_versions
     object.feed_versions.pluck(:sha1) if object.persisted?
+  end
+
+  def active_feed_version
+    object.active_feed_version.try(:sha1)
+  end
+
+  def import_level_of_active_feed_version
+    object.active_feed_version.try(:import_level)
+  end
+
+  def changesets_imported_from_this_feed
+    object.changesets_imported_from_this_feed.map(&:id)
   end
 end

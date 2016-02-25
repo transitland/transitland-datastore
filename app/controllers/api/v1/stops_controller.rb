@@ -2,17 +2,18 @@ class Api::V1::StopsController < Api::V1::BaseApiController
   include Geojson
   include JsonCollectionPagination
   include DownloadableCsv
+  include AllowFiltering
 
   before_action :set_stop, only: [:show]
 
   def index
     @stops = Stop.where('')
 
-    if params[:identifier].present?
-      @stops = @stops.with_identifier_or_name(params[:identifier])
-    elsif params[:identifier_starts_with].present?
-      @stops = @stops.with_identifier_starting_with(params[:identifier_starts_with])
-    end
+    @stops = AllowFiltering.by_onestop_id(@stops, params)
+    @stops = AllowFiltering.by_tag_keys_and_values(@stops, params)
+    @stops = AllowFiltering.by_identifer_and_identifier_starts_with(@stops, params)
+    @stops = AllowFiltering.by_updated_since(@stops, params)
+
     if params[:servedBy].present?
       @stops = @stops.served_by(params[:servedBy].split(','))
     end
@@ -23,17 +24,6 @@ class Api::V1::StopsController < Api::V1::BaseApiController
     end
     if params[:bbox].present?
       @stops = @stops.geometry_within_bbox(params[:bbox])
-    end
-    if params[:onestop_id].present?
-      @stops = @stops.where(onestop_id: params[:onestop_id])
-    end
-    if params[:tag_key].present? && params[:tag_value].present?
-      @stops = @stops.with_tag_equals(params[:tag_key], params[:tag_value])
-    elsif params[:tag_key].present?
-      @stops = @stops.with_tag(params[:tag_key])
-    end
-    if params[:updated_since].present?
-      @stops = @stops.updated_since(params[:updated_since])
     end
 
     @stops = @stops.includes{[
