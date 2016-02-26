@@ -1,5 +1,5 @@
-def load_feed(feed_version_name, import_level=1)
-  feed_version = create(feed_version_name)
+def load_feed(feed_version_name: nil, feed_version: nil, import_level: 1)
+  feed_version = create(feed_version_name) if feed_version.nil?
   feed = feed_version.feed
   graph = GTFSGraph.new(feed_version.file.path, feed, feed_version)
   graph.create_change_osr
@@ -259,6 +259,32 @@ describe GTFSGraph do
       ssp1 = first_found.first
       ssp2 = second_found.first
       expect(ssp2.destination_dist_traveled).to be > ssp1.origin_dist_traveled
+    end
+  end
+
+  context 'new feed version integration' do
+
+    before(:each) {
+      @original_feed, @original_feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 2)
+      @feed_version_update = create(:feed_version_example_update)
+      @feed_version_update.feed = @original_feed
+      @original_feed.feed_versions << @feed_version_update
+      load_feed(feed_version: @feed_version_update, import_level: 2)
+    }
+
+    it 'does not delete previous feed version tl entities' do
+      expect(@original_feed.imported_routes.size).to eq 10
+    end
+
+    it 'reuses previous feed entities' do
+      @original_feed.imported_routes.each do |r|
+        puts r.onestop_id
+        puts r.vehicle_type
+      end
+    end
+
+    it 'creates a new tl entity not found in previous feed version' do
+
     end
   end
 end
