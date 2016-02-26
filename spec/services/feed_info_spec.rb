@@ -1,5 +1,6 @@
 describe FeedInfo do
-  let (:caltrain_url) { 'http://www.caltrain.com/Assets/GTFS/caltrain/GTFS-Caltrain-Devs.zip' }
+  let (:example_url) { 'https://developers.google.com/transit/gtfs/examples/sample-feed.zip' }
+  let (:example_feed_path) { Rails.root.join('spec/support/example_gtfs_archives/example.zip') }
 
   context '.new' do
     it 'requires url or path' do
@@ -9,8 +10,8 @@ describe FeedInfo do
 
   context '.open' do
     it 'downloads if path not provided' do
-      VCR.use_cassette('feed_fetch_caltrain') do
-        expect { FeedInfo.new(url: caltrain_url).open { |f| f } }.not_to raise_error
+      VCR.use_cassette('feed_fetch_example') do
+        expect { FeedInfo.new(url: example_url).open { |f| f } }.not_to raise_error
       end
     end
 
@@ -29,31 +30,39 @@ describe FeedInfo do
   end
 
   context '.parse' do
-    let (:path) { Rails.root.join('spec/support/example_gtfs_archives/f-9q9-caltrain.zip') }
-    let (:caltrain_feed_info) { FeedInfo.new(url: caltrain_url, path: path) }
-
     it 'parses feed' do
       feed, operators = nil, nil
-      caltrain_feed_info.open do |feed_info|
+      fi = FeedInfo.new(url: example_url, path: example_feed_path)
+      fi.open do |feed_info|
         feed, operators = feed_info.parse_feed_and_operators
       end
-      expect(feed.onestop_id).to eq('f-9q9-wwwcaltraincom')
-      expect(feed.url).to eq(caltrain_url)
+      expect(feed.onestop_id).to eq('f-9qs-example')
+      expect(feed.url).to eq(example_url)
       expect(feed.geometry).to be_truthy
       expect(feed.operators_in_feed.size).to eq(1)
-      expect(feed.operators_in_feed.first.gtfs_agency_id).to eq('caltrain-ca-us')
-      expect(feed.operators_in_feed.first.operator.onestop_id).to eq('o-9q9-caltrain')
+      expect(feed.operators_in_feed.first.gtfs_agency_id).to eq('DTA')
+      expect(feed.operators_in_feed.first.operator.onestop_id).to eq('o-9qs-demotransitauthority')
+    end
+
+    it 'uses feed_info feed_id' do
+      feed, operators = nil, nil
+      fi = FeedInfo.new(url: example_url, path: example_feed_path)
+      fi.open do |feed_info|
+        feed, operators = feed_info.parse_feed_and_operators
+      end
+      expect(feed.onestop_id).to eq('f-9qs-example')
     end
 
     it 'parses operators' do
       feed, operators = nil, nil
-      caltrain_feed_info.open do |feed_info|
+      fi = FeedInfo.new(url: example_url, path: example_feed_path)
+      fi.open do |feed_info|
         feed, operators = feed_info.parse_feed_and_operators
       end
       expect(operators.size).to eq(1)
       operator = operators.first
-      expect(operator.onestop_id).to eq('o-9q9-caltrain')
-      expect(operator.website).to eq('http://www.caltrain.com')
+      expect(operator.onestop_id).to eq('o-9qs-demotransitauthority')
+      expect(operator.website).to eq('http://google.com')
       expect(operator.timezone).to eq('America/Los_Angeles')
       expect(operator.geometry).to be_truthy
     end

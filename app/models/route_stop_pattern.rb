@@ -214,8 +214,7 @@ class RouteStopPattern < BaseRouteStopPattern
   scope :with_stops, -> (search_string) { where{stop_pattern.within(search_string)} }
 
   ##### FromGTFS ####
-  include FromGTFS
-  def self.from_gtfs(trip, route_onestop_id, stop_pattern, trip_stop_points, shape_points)
+  def self.create_from_gtfs(trip, route_onestop_id, stop_pattern, trip_stop_points, shape_points)
     raise ArgumentError.new('Need at least two stops') if stop_pattern.length < 2
     rsp = RouteStopPattern.new(
       stop_pattern: stop_pattern,

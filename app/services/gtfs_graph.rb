@@ -208,16 +208,13 @@ class GTFSGraph
       next unless entity
       # Find: (child gtfs routes) to (tl routes)
       #   note: .compact because some gtfs routes are skipped.
-      routes = @gtfs.children(entity)
-        .map { |route| find_by_gtfs_entity(route) }
-        .compact
-        .to_set
+      routes = entity.routes.map { |route| find_by_gtfs_entity(route) }.compact.to_set
       # Find: (tl routes) to (serves tl stops)
       stops = routes
         .map { |route| route.serves }
         .reduce(Set.new, :+)
       # Create Operator from GTFS
-      operator = Operator.from_gtfs(entity, stops)
+      operator = Operator.from_gtfs(entity)
       operator.onestop_id = oif.operator.onestop_id # Override Onestop ID
       operator_original = operator # for merging geometry
       # ... or check if Operator exists, or another local Operator, or new.
@@ -245,11 +242,7 @@ class GTFSGraph
     log "  routes"
     @gtfs.routes.each do |entity|
       # Find: (child gtfs trips) to (child gtfs stops) to (tl stops)
-      stops = @gtfs.children(entity)
-        .map { |trip| @gtfs.children(trip) }
-        .reduce(Set.new, :+)
-        .map { |stop| find_by_gtfs_entity(stop) }
-        .to_set
+      stops = entity.stops.map { |stop| find_by_gtfs_entity(stop) }.to_set
       # Also serve parent stations...
       parent_stations = Set.new
       stops.each do |stop|
@@ -262,7 +255,7 @@ class GTFSGraph
       next if stops.empty?
       # Search by similarity
       # ... or create route from GTFS
-      route = Route.from_gtfs(entity, stops)
+      route = Route.from_gtfs(entity)
       # ... check if Route exists, or another local Route, or new.
       route = find_by_entity(route)
       # Add references and identifiers
@@ -290,7 +283,7 @@ class GTFSGraph
       # temporary RouteStopPattern
       trip_stop_points = tl_stops.map { |s| s.geometry[:coordinates] }
       # determine if RouteStopPattern exists
-      test_rsp = RouteStopPattern.from_gtfs(trip, tl_route.onestop_id, stop_pattern, trip_stop_points, feed_shape_points)
+      test_rsp = RouteStopPattern.create_from_gtfs(trip, tl_route.onestop_id, stop_pattern, trip_stop_points, feed_shape_points)
       rsp = find_by_entity(test_rsp)
       log "   #{rsp.onestop_id}"  if test_rsp.equal?(rsp)
       add_identifier(rsp, 'trip', trip)
