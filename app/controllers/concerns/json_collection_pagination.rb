@@ -14,6 +14,8 @@ module JsonCollectionPagination
     per_page = (per_page.presence || self.class::PER_PAGE).to_i
     include_total = (total == true || total == 'true')
     meta = {
+        sort_key: sort_key,
+        sort_order: sort_order,
         offset: offset,
         per_page: per_page
     }
@@ -27,6 +29,8 @@ module JsonCollectionPagination
     # Previous and next page
     if offset > 0
       meta[:prev] = path_helper.call(params.merge({
+        sort_key: sort_key,
+        sort_order: sort_order,
         offset: (offset - per_page) >= 0 ? (offset - per_page) : 0,
         per_page: per_page,
         total: total
@@ -34,6 +38,8 @@ module JsonCollectionPagination
     end
     if data.size > per_page
       meta[:next] = path_helper.call(params.merge({
+        sort_key: sort_key,
+        sort_order: sort_order,
         offset: offset + per_page,
         per_page: per_page,
         total: total

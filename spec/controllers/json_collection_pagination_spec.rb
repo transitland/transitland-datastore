@@ -49,22 +49,10 @@ describe JsonCollectionPagination do
       ).to eq({
         json: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         meta: {
+          sort_key: :id,
+          sort_order: :asc,
           offset: 0,
           per_page: 10
-        }
-      })
-    end
-
-    it 'applies default sort order' do
-      expect(
-        object.send(:paginated_json_collection, collection_shuffle, path_helper, nil, nil, 4, 4, false, {})
-      ).to eq({
-        json: [4,5,6,7],
-        meta: {
-          offset: 4,
-          per_page: 4,
-          next: 'http://blah/offset=8',
-          prev: 'http://blah/offset=0'
         }
       })
     end
@@ -75,17 +63,9 @@ describe JsonCollectionPagination do
       ).to eq({
         json: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
         meta: {
+          sort_key: :id,
+          sort_order: :asc,
           total: 10,
-          offset: 0,
-          per_page: 10
-        }
-      })
-
-      expect(
-        object.send(:paginated_json_collection, collection, path_helper, nil, nil, 0, 10, false, {})
-      ).to eq({
-        json: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-        meta: {
           offset: 0,
           per_page: 10
         }
