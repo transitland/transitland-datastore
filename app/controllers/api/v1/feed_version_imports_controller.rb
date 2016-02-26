@@ -3,8 +3,6 @@ class Api::V1::FeedVersionImportsController < Api::V1::BaseApiController
   include AllowFiltering
   include DownloadableCsv
 
-  PER_PAGE = 1
-
   before_action :set_feed_version_import, only: [:show]
 
   def index

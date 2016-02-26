@@ -6,7 +6,7 @@ describe Api::V1::FeedVersionImportsController do
       expect_json_types({ feed_version_imports: :array })
       expect_json({
         feed_version_imports: -> (feed_version_imports) {
-          expect(feed_version_imports.length).to eq 1
+          expect(feed_version_imports.length).to eq 2
         },
         meta: {
           total: 2
