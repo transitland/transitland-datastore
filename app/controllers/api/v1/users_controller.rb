@@ -16,6 +16,8 @@ class Api::V1::UsersController < Api::V1::BaseApiController
         render paginated_json_collection(
           @users,
           Proc.new { |params| api_v1_users_url(params) },
+          params[:sort_key],
+          params[:sort_order],
           params[:offset],
           params[:per_page],
           params[:total],

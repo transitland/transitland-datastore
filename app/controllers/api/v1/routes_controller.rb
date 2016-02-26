@@ -49,6 +49,8 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
         render paginated_json_collection(
           @routes,
           Proc.new { |params| api_v1_routes_url(params) },
+          params[:sort_key],
+          params[:sort_order],
           params[:offset],
           params[:per_page],
           params[:total],
