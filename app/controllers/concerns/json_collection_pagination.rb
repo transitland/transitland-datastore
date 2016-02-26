@@ -4,8 +4,8 @@ module JsonCollectionPagination
 
   def paginated_json_collection(collection, path_helper, sort_key, sort_order, offset, per_page, total, params)
     #changing from order to reorder to discard previous ordering
-    sort_key = sort_key.presence || :id
-    sort_order = sort_order == 'desc' ? :desc : :asc
+    sort_key = (sort_key.presence || :id).to_sym
+    sort_order = sort_order.to_s == 'desc' ? :desc : :asc
     fail ArgumentError.new('Invalid sort_key') unless collection.column_names.include?(sort_key.to_s)
     collection = collection.reorder(sort_key => sort_order)
 
