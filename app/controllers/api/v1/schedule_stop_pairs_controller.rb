@@ -86,7 +86,10 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
             :route_stop_pattern_onestop_id,
             :operator_onestop_id,
             :bbox,
-            :updated_since
+            :updated_since,
+            :feed_version_sha1,
+            :feed_onestop_id,
+            :import_level
           )
         )
       end
