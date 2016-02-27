@@ -1,5 +1,13 @@
 # Change Log
 
+## [4.7.1](https://github.com/transitland/transitland-datastore/tree/4.7.1) (2016-02-27)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.0...4.7.1)
+
+**Merged pull requests:**
+
+- SSP controller: pass new query params to prev/next links [\#459](https://github.com/transitland/transitland-datastore/pull/459) ([irees](https://github.com/irees))
+- production release 4.7 [\#442](https://github.com/transitland/transitland-datastore/pull/442) ([drewda](https://github.com/drewda))
+
 ## [4.7.0](https://github.com/transitland/transitland-datastore/tree/4.7.0) (2016-02-26)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.6.0...4.7.0)
 
