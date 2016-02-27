@@ -9,6 +9,8 @@ Transitland models each trip between two stops as an edge, called a `ScheduleSto
 | route_onestop_id             | Onestop ID | Route |
 | operator_onestop_id          | Onestop ID | Operator |
 | origin_onestop_id            | Onestop ID | Origin stop |
+| feed_onestop_id              | Onestop ID | Feed |
+| feed_version_sha1            | String | Feed Version |
 | origin_timezone              | String | Origin stop timezone |
 | origin_arrival_time          | Time | Time vehicle arrives at origin from previous stop |
 | origin_departure_time        | Time | Time vehicle leaves origin |
@@ -35,6 +37,10 @@ Transitland models each trip between two stops as an edge, called a `ScheduleSto
 | pickup_type                  | Enum | Passenger pickup |
 | active                       | Boolean | SSPs from active FeedVersions |
 | import_level                 | Integer | SSPs from FeedVersion with import_level |
+
+### Active vs. inactive Feed Versions
+
+Each Feed may only have a single active Feed Version at a time, generally the most recent version fetched and imported. By default, only SSPs for active Feed Versions are returned. However, a specific Feed Version can be explicitly specified using feed_version_sha1, returning only SSPs for that Feed Version, even if it is not the currently active version.
 
 ### Data types
 

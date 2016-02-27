@@ -2,15 +2,17 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
   include Geojson
   include JsonCollectionPagination
   include DownloadableCsv
+  include AllowFiltering
 
   before_action :set_route_stop_pattern, only: [:show]
 
   def index
     @rsps = RouteStopPattern.where('')
 
-    if params[:onestop_id].present?
-      @rsps = @rsps.where(onestop_id: params[:onestop_id])
-    end
+    @rsps = AllowFiltering.by_onestop_id(@rsps, params)
+    @rsps = AllowFiltering.by_tag_keys_and_values(@rsps, params)
+    @rsps = AllowFiltering.by_identifer_and_identifier_starts_with(@rsps, params)
+    @rsps = AllowFiltering.by_updated_since(@rsps, params)
 
     if params[:bbox].present?
       @rsps = @rsps.geometry_within_bbox(params[:bbox])
@@ -39,6 +41,8 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
         render paginated_json_collection(
           @rsps,
           Proc.new { |params| api_v1_route_stop_patterns_url(params) },
+          params[:sort_key],
+          params[:sort_order],
           params[:offset],
           params[:per_page],
           params[:total],

@@ -18,8 +18,12 @@ class GTFSGraph
     @onestop_id_to_entity = {}
   end
 
-  def create_change_osr(import_level=0)
-    raise ArgumentError.new('import_level must be 0, 1, or 2.') unless (0..2).include?(import_level)
+  def cleanup
+    log "Cleanup any existing FeedVersion SSPs"
+    @feed_version.delete_schedule_stop_pairs!
+  end
+
+  def create_change_osr
     log "Load GTFS"
     @gtfs.load_graph
     log "Load TL"
@@ -49,8 +53,8 @@ class GTFSGraph
     ####
     log "Create changeset"
     changeset = Changeset.create(
-      feed: @feed,
-      feed_version: @feed_version,
+      imported_from_feed: @feed,
+      imported_from_feed_version: @feed_version,
       notes: "Changeset created by FeedEaterWorker for #{@feed.onestop_id} #{@feed_version.sha1}"
     )
     log "Create: Operators, Stops, Routes"
@@ -59,18 +63,14 @@ class GTFSGraph
     @feed.set_bounding_box_from_stops(stops)
     # FIXME: Run through changeset
     @feed.save!
-    if import_level >= 0
-      log "  operators: #{operators.size}"
-      create_change_payloads(changeset, 'operator', operators.map { |e| make_change_operator(e) })
-    end
-    if import_level >= 1
-      log "  stops: #{stops.size}"
-      create_change_payloads(changeset, 'stop', stops.map { |e| make_change_stop(e) })
-      log "  routes: #{routes.size}"
-      create_change_payloads(changeset, 'route', routes.map { |e| make_change_route(e) })
-      log "  route geometries: #{rsps.size}"
-      create_change_payloads(changeset, 'routeStopPattern', rsps.map { |e| make_change_rsp(e) })
-    end
+    log "  operators: #{operators.size}"
+    create_change_payloads(changeset, 'operator', operators.map { |e| make_change_operator(e) })
+    log "  stops: #{stops.size}"
+    create_change_payloads(changeset, 'stop', stops.map { |e| make_change_stop(e) })
+    log "  routes: #{routes.size}"
+    create_change_payloads(changeset, 'route', routes.map { |e| make_change_route(e) })
+    log "  route geometries: #{rsps.size}"
+    create_change_payloads(changeset, 'routeStopPattern', rsps.map { |e| make_change_rsp(e) })
     log "Changeset apply"
     t = Time.now
     changeset.apply!
@@ -101,7 +101,7 @@ class GTFSGraph
       begin
         rsp_distances_map[onestop_id] = rsp.calculate_distances
       rescue StandardError
-        log "Could not calculate distances #{onestop_id}"
+        log "Could not calculate distances for Route Stop Pattern: #{onestop_id}"
       end
     end
     log "Create: SSPs"
@@ -112,8 +112,16 @@ class GTFSGraph
       rsp = RouteStopPattern.find_by_onestop_id!(rsp_map[trip.trip_id])
       # Create SSPs for all stop_time edges
       ssp_trip = []
-      stop_times[0..-2].zip(stop_times[1..-1]).each do |origin,destination|
-        ssp_trip << make_ssp(route, trip, origin, destination, rsp, rsp_distances_map[rsp.onestop_id])
+      stop_times[0..-2].each_index do |i|
+        origin = stop_times[i]
+        destination = stop_times[i+1]
+        origin_dist_traveled = nil
+        destination_dist_traveled = nil
+        if rsp_distances_map.include?(rsp.onestop_id)
+          origin_dist_traveled = rsp_distances_map[rsp.onestop_id][i]
+          destination_dist_traveled = rsp_distances_map[rsp.onestop_id][i+1]
+        end
+        ssp_trip << make_ssp(route, trip, origin, origin_dist_traveled, destination, destination_dist_traveled, rsp)
       end
       # Interpolate stop_times
       ScheduleStopPair.interpolate(ssp_trip)
@@ -200,16 +208,13 @@ class GTFSGraph
       next unless entity
       # Find: (child gtfs routes) to (tl routes)
       #   note: .compact because some gtfs routes are skipped.
-      routes = @gtfs.children(entity)
-        .map { |route| find_by_gtfs_entity(route) }
-        .compact
-        .to_set
+      routes = entity.routes.map { |route| find_by_gtfs_entity(route) }.compact.to_set
       # Find: (tl routes) to (serves tl stops)
       stops = routes
         .map { |route| route.serves }
         .reduce(Set.new, :+)
       # Create Operator from GTFS
-      operator = Operator.from_gtfs(entity, stops)
+      operator = Operator.from_gtfs(entity)
       operator.onestop_id = oif.operator.onestop_id # Override Onestop ID
       operator_original = operator # for merging geometry
       # ... or check if Operator exists, or another local Operator, or new.
@@ -237,11 +242,7 @@ class GTFSGraph
     log "  routes"
     @gtfs.routes.each do |entity|
       # Find: (child gtfs trips) to (child gtfs stops) to (tl stops)
-      stops = @gtfs.children(entity)
-        .map { |trip| @gtfs.children(trip) }
-        .reduce(Set.new, :+)
-        .map { |stop| find_by_gtfs_entity(stop) }
-        .to_set
+      stops = entity.stops.map { |stop| find_by_gtfs_entity(stop) }.to_set
       # Also serve parent stations...
       parent_stations = Set.new
       stops.each do |stop|
@@ -254,7 +255,7 @@ class GTFSGraph
       next if stops.empty?
       # Search by similarity
       # ... or create route from GTFS
-      route = Route.from_gtfs(entity, stops)
+      route = Route.from_gtfs(entity)
       # ... check if Route exists, or another local Route, or new.
       route = find_by_entity(route)
       # Add references and identifiers
@@ -269,23 +270,28 @@ class GTFSGraph
     # Route Stop Patterns
     log "  route stop patterns"
     rsps = Set.new
+    stop_times_with_shape_dist_traveled = 0
+    stop_times_count = 0
     @gtfs.trip_stop_times do |trip,stop_times|
+      stop_times_with_shape_dist_traveled += stop_times.count { |st| !st.shape_dist_traveled.nil?}
+      stop_times_count += stop_times.length
       feed_shape_points = @gtfs.shape_line(trip.shape_id) || []
       tl_stops = stop_times.map { |stop_time| find_by_gtfs_entity(@gtfs.stop(stop_time.stop_id)) }
       tl_route = find_by_gtfs_entity(@gtfs.parents(trip).first)
       stop_pattern = tl_stops.map(&:onestop_id)
       next if stop_pattern.empty?
       # temporary RouteStopPattern
-      trip_stop_points = tl_stops.map {|s| s.geometry[:coordinates]}
+      trip_stop_points = tl_stops.map { |s| s.geometry[:coordinates] }
       # determine if RouteStopPattern exists
-      rsp = find_by_entity(
-        RouteStopPattern.from_gtfs(trip, tl_route.onestop_id, stop_pattern, trip_stop_points, feed_shape_points)
-      )
+      test_rsp = RouteStopPattern.create_from_gtfs(trip, tl_route.onestop_id, stop_pattern, trip_stop_points, feed_shape_points)
+      rsp = find_by_entity(test_rsp)
+      log "   #{rsp.onestop_id}"  if test_rsp.equal?(rsp)
       add_identifier(rsp, 'trip', trip)
       rsp.trips << trip.trip_id unless rsp.trips.include?(trip.trip_id)
       rsp.route = tl_route
       rsps << rsp
     end
+    log "#{stop_times_with_shape_dist_traveled} stop times with shape_dist_traveled found out of #{stop_times_count} total stop times" if stop_times_with_shape_dist_traveled > 0
     rsps
   end
 
@@ -427,18 +433,12 @@ class GTFSGraph
     }
   end
 
-  def make_ssp(route, trip, origin, destination, route_stop_pattern, rsp_stop_distances)
+  def make_ssp(route, trip, origin, origin_dist_traveled, destination, destination_dist_traveled, route_stop_pattern)
     # Generate an edge between an origin and destination for a given route/trip
     route = find_by_gtfs_entity(route)
     origin_stop = find_by_gtfs_entity(@gtfs.stop(origin.stop_id))
     destination_stop = find_by_gtfs_entity(@gtfs.stop(destination.stop_id))
     service_period = @gtfs.service_period(trip.service_id)
-    origin_dist_traveled = nil
-    destination_dist_traveled = nil
-    if rsp_stop_distances
-        origin_dist_traveled = rsp_stop_distances[route_stop_pattern.stop_pattern.index(origin_stop.onestop_id)]
-        destination_dist_traveled = rsp_stop_distances[route_stop_pattern.stop_pattern.index(destination_stop.onestop_id)]
-    end
     ssp = ScheduleStopPair.new(
       # Feed
       feed: @feed,
@@ -515,7 +515,7 @@ if __FILE__ == $0
   ####
   t0 = Time.now
   graph = GTFSGraph.new(path, feed, feed_version)
-  graph.create_change_osr(import_level)
+  graph.create_change_osr
   t1 = Time.now
   if import_level >= 2
     graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map, rsp_map|

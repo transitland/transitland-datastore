@@ -59,6 +59,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
   include Geojson
   include JsonCollectionPagination
   include DownloadableCsv
+  include AllowFiltering
 
   before_action :set_schedule_stop_pairs
 
@@ -68,6 +69,8 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
         render paginated_json_collection(
           @ssps,
           Proc.new { |params| api_v1_schedule_stop_pairs_url(params) },
+          params[:sort_key],
+          params[:sort_order],
           params[:offset],
           params[:per_page],
           params[:total],
@@ -96,14 +99,30 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
   private
 
   def set_schedule_stop_pairs
-    # FeedVersion Import level
     @ssps = ScheduleStopPair.where('')
-    if params[:import_level].present?
-      @ssps = @ssps.where_import_level(params[:import_level])
+
+    # Tags
+    @ssps = AllowFiltering.by_tag_keys_and_values(@ssps, params)
+    # Edges updated since
+    @ssps = AllowFiltering.by_updated_since(@ssps, params)
+
+    # Feed Version, or default: All active Feed Versions
+    if params[:feed_version_sha1]
+      @ssps = @ssps.where(feed_version: FeedVersion.find_by(sha1: params[:feed_version_sha1]))
+    else
+      @ssps = @ssps.where_active
     end
-    # FeedVersion Active
+    # Explicitly use active Feed Versions
     if params[:active].presence == 'true'
       @ssps = @ssps.where_active
+    end
+    # Feed
+    if params[:feed_onestop_id]
+      @ssps = @ssps.where(feed: Feed.find_by_onestop_id!(params[:feed_onestop_id]))
+    end
+    # FeedVersion Import level
+    if params[:import_level].present?
+      @ssps = @ssps.where_import_level(params[:import_level])
     end
     # Service on a date
     if params[:date].present?
@@ -149,10 +168,6 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     # Stops in a bounding box
     if params[:bbox].present?
       @ssps = @ssps.where_origin_bbox(params[:bbox])
-    end
-    # Edges updated since
-    if params[:updated_since].present?
-      @ssps = @ssps.updated_since(params[:updated_since])
     end
     @ssps = @ssps.includes{[
       origin,

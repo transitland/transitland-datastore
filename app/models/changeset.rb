@@ -66,8 +66,8 @@ class Changeset < ActiveRecord::Base
   has_many :route_stop_patterns_destroyed, class_name: 'OldRouteStopPattern', foreign_key: 'destroyed_in_changeset_id'
 
   belongs_to :user, autosave: true
-  belongs_to :feed
-  belongs_to :feed_version
+  belongs_to :imported_from_feed, class_name: 'Feed', foreign_key: 'feed_id'
+  belongs_to :imported_from_feed_version, class_name: 'FeedVersion', foreign_key: 'feed_version_id'
 
   def set_user_by_params(user_params)
     self.user = User.find_or_initialize_by(email: user_params[:email].downcase)
@@ -137,12 +137,12 @@ class Changeset < ActiveRecord::Base
         end
         self.update(applied: true, applied_at: Time.now)
         # Create any feed-entity associations
-        if feed && feed_version
+        if self.imported_from_feed && self.imported_from_feed_version
           eiff_batch = []
           self.entities_created_or_updated do |entity|
             eiff_batch << entity
               .entities_imported_from_feed
-              .new(feed: feed, feed_version: feed_version)
+              .new(feed: self.imported_from_feed, feed_version: self.imported_from_feed_version)
             if eiff_batch.size >= 1000
               EntityImportedFromFeed.import eiff_batch
               eiff_batch = []

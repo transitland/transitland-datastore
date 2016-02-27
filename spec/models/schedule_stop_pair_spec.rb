@@ -39,10 +39,11 @@
 #  bikes_allowed                      :boolean
 #  pickup_type                        :string
 #  drop_off_type                      :string
-#  active                             :boolean
 #  route_stop_pattern_id              :integer
 #  origin_dist_traveled               :float
 #  destination_dist_traveled          :float
+#  feed_id                            :integer
+#  feed_version_id                    :integer
 #
 # Indexes
 #
@@ -53,7 +54,8 @@
 #  c_ssp_service_end_date                                      (service_end_date)
 #  c_ssp_service_start_date                                    (service_start_date)
 #  c_ssp_trip                                                  (trip)
-#  index_current_schedule_stop_pairs_on_active                 (active)
+#  index_current_schedule_stop_pairs_on_feed_id                (feed_id)
+#  index_current_schedule_stop_pairs_on_feed_version_id        (feed_version_id)
 #  index_current_schedule_stop_pairs_on_operator_id            (operator_id)
 #  index_current_schedule_stop_pairs_on_origin_departure_time  (origin_departure_time)
 #  index_current_schedule_stop_pairs_on_route_stop_pattern_id  (route_stop_pattern_id)
@@ -157,12 +159,13 @@ RSpec.describe ScheduleStopPair, type: :model do
   context 'scopes' do
     it 'where_active' do
       feed = create(:feed)
-      feed_version = create(:feed_version, feed: feed)
-      feed.update!(active_feed_version: feed_version)
-      ssp1 = create(:schedule_stop_pair, feed_version: feed_version, feed: feed)
-      ssp2 = create(:schedule_stop_pair)
+      feed_version1 = create(:feed_version, feed: feed)
+      feed_version2 = create(:feed_version, feed: feed)
+      feed.update!(active_feed_version: feed_version2)
+      ssp1 = create(:schedule_stop_pair, feed_version: feed_version1, feed: feed)
+      ssp2 = create(:schedule_stop_pair, feed_version: feed_version2, feed: feed)
       expect(ScheduleStopPair.all).to match_array([ssp1, ssp2])
-      expect(ScheduleStopPair.where_active).to match_array([ssp1])
+      expect(ScheduleStopPair.where_active).to match_array([ssp2])
     end
 
     it 'where_import_level' do

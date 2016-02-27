@@ -28,23 +28,64 @@ class ChangesetSerializer < ApplicationSerializer
              :updated_at,
              :change_payloads,
              :user,
-             :feed_onestop_id,
-             :feed_version_sha1
+             :imported_from_feed_onestop_id,
+             :imported_from_feed_version_sha1,
+             :feeds_created_or_updated,
+             :feeds_destroyed,
+             :stops_created_or_updated,
+             :stops_destroyed,
+             :operators_created_or_updated,
+             :operators_destroyed,
+             :routes_created_or_updated,
+             :routes_destroyed
 
   def user
     object.user.id if object.user
   end
 
   def change_payloads
+    # NOTE: this is an n+1 query, but it let's
+    # us skip loading ChangePayload's into memory.
     object.change_payloads.pluck(:id)
   end
 
-  def feed_onestop_id
-    object.feed.try(:onestop_id)
+  def imported_from_feed_onestop_id
+    object.imported_from_feed.try(:onestop_id)
   end
 
-  def feed_version_sha1
-    object.feed_version.try(:sha1)
+  def imported_from_feed_version_sha1
+    object.imported_from_feed_version.try(:sha1)
   end
 
+  def feeds_created_or_updated
+    object.feeds_created_or_updated.map(&:onestop_id)
+  end
+
+  def feeds_destroyed
+    object.feeds_destroyed.map(&:onestop_id)
+  end
+
+  def stops_created_or_updated
+    object.stops_created_or_updated.map(&:onestop_id)
+  end
+
+  def stops_destroyed
+    object.stops_destroyed.map(&:onestop_id)
+  end
+
+  def operators_created_or_updated
+    object.operators_created_or_updated.map(&:onestop_id)
+  end
+
+  def operators_destroyed
+    object.operators_destroyed.map(&:onestop_id)
+  end
+
+  def routes_created_or_updated
+    object.routes_created_or_updated.map(&:onestop_id)
+  end
+
+  def routes_destroyed
+    object.routes_destroyed.map(&:onestop_id)
+  end
 end

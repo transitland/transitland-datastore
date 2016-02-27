@@ -74,10 +74,14 @@ module RGeo
 
       def distance_from_segment
         return 0 if segment.contains_point?(target)
-        dist = distance_on_segment
-        return target.distance(segment.e) if dist >= segment.length
-        return target.distance(segment.s) if dist <= 0
-        ::Math.sqrt( target_distance_from_departure ** 2 - dist ** 2 )
+        dist_on_seg = distance_on_segment
+        t_dist_from_departure = target_distance_from_departure
+        return target.distance(segment.e) if dist_on_seg >= segment.length
+        return target.distance(segment.s) if dist_on_seg <= 0
+        diff = t_dist_from_departure - dist_on_seg
+        # sometimes there can be a precision mismatch
+        return 0 if (diff < 0 && diff.abs < 0.00001 )
+        ::Math.sqrt( t_dist_from_departure ** 2 - dist_on_seg ** 2 )
       end
 
       def target_distance_from_departure

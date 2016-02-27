@@ -10,6 +10,7 @@
 #  import_log        :text
 #  exception_log     :text
 #  validation_report :text
+#  import_level      :integer
 #
 # Indexes
 #
@@ -19,7 +20,6 @@
 class FeedVersionImport < ActiveRecord::Base
   belongs_to :feed_version
   has_one :feed, through: :feed_version, source_type: 'Feed'
-
   has_many :feed_schedule_imports, dependent: :destroy
 
   validates :feed_version, presence: true

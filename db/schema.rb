@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160211002327) do
+ActiveRecord::Schema.define(version: 20160219230742) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -292,6 +292,7 @@ ActiveRecord::Schema.define(version: 20160211002327) do
     t.text     "import_log"
     t.text     "exception_log"
     t.text     "validation_report"
+    t.integer  "import_level"
   end
 
   add_index "feed_version_imports", ["feed_version_id"], name: "index_feed_version_imports_on_feed_version_id", using: :btree

@@ -15,6 +15,7 @@
 #  imported_at            :datetime
 #  created_at             :datetime
 #  updated_at             :datetime
+#  import_level           :integer          default(0)
 #
 # Indexes
 #
@@ -29,17 +30,31 @@ class FeedVersionSerializer < ApplicationSerializer
              :tags,
              :fetched_at,
              :imported_at,
+             :import_level,
              :created_at,
              :updated_at,
              :feed_version_imports,
-             :feed_version_imports_url
+             :feed_version_imports_url,
+             :import_level,
+             :is_active_feed_version,
+             :changesets_imported_from_this_feed_version
 
   def feed_version_imports
-    object.feed_version_imports.pluck(:id)
+    object.feed_version_imports.map(&:id)
   end
 
   def feed_version_imports_url
-    api_v1_feed_feed_version_feed_version_imports_url(object.feed.onestop_id, object.sha1)
+    api_v1_feed_version_imports_url({
+      feed_onestop_id: object.feed.onestop_id,
+      feed_version_sha1: object.sha1
+    })
   end
 
+  def is_active_feed_version
+    object.is_active_feed_version
+  end
+
+  def changesets_imported_from_this_feed_version
+    object.changesets_imported_from_this_feed_version.map(&:id)
+  end
 end
