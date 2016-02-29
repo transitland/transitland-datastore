@@ -1,18 +1,58 @@
 # Change Log
 
-## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
-
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.6.0...HEAD)
-
-**Fixed bugs:**
-
-- SSP where\_active bug fix: returned all active feeds, not feed versions [\#431](https://github.com/transitland/transitland-datastore/issues/431)
+## [4.7.1](https://github.com/transitland/transitland-datastore/tree/4.7.1) (2016-02-27)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.0...4.7.1)
 
 **Merged pull requests:**
 
+- SSP controller: pass new query params to prev/next links [\#459](https://github.com/transitland/transitland-datastore/pull/459) ([irees](https://github.com/irees))
+- production release 4.7 [\#442](https://github.com/transitland/transitland-datastore/pull/442) ([drewda](https://github.com/drewda))
+
+## [4.7.0](https://github.com/transitland/transitland-datastore/tree/4.7.0) (2016-02-26)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.6.0...4.7.0)
+
+**Fixed bugs:**
+
+- distance\_from\_segment failing, causing distance calculations to fail [\#449](https://github.com/transitland/transitland-datastore/issues/449)
+- Null values for SSP distances [\#447](https://github.com/transitland/transitland-datastore/issues/447)
+- Fix last stop distance calc edge case [\#435](https://github.com/transitland/transitland-datastore/issues/435)
+- SSP where\_active bug fix: returned all active feeds, not feed versions [\#431](https://github.com/transitland/transitland-datastore/issues/431)
+- Incorrect distances saved in SSP when stop is repeated [\#418](https://github.com/transitland/transitland-datastore/issues/418)
+
+**Closed issues:**
+
+- Disk space leaks [\#455](https://github.com/transitland/transitland-datastore/issues/455)
+- FeedVersionImports should probably list more than 1 per page [\#453](https://github.com/transitland/transitland-datastore/issues/453)
+- Add sortkey/sortorder to paginated controllers [\#440](https://github.com/transitland/transitland-datastore/issues/440)
+- FeedEater: Delete any existing SSPs for FeedVersion before starting [\#429](https://github.com/transitland/transitland-datastore/issues/429)
+- FeedVersionImport: include import\_level [\#428](https://github.com/transitland/transitland-datastore/issues/428)
+- SSP controller: where\_active default scope [\#427](https://github.com/transitland/transitland-datastore/issues/427)
+- Feed activation: do not delete old SSPs [\#426](https://github.com/transitland/transitland-datastore/issues/426)
+- Some problems with API endpoint [\#416](https://github.com/transitland/transitland-datastore/issues/416)
+- FeedVersion import\_level should be editable [\#397](https://github.com/transitland/transitland-datastore/issues/397)
+- RSP followup improvements [\#336](https://github.com/transitland/transitland-datastore/issues/336)
+
+**Merged pull requests:**
+
+- FeedVersionImports PER\_PAGE [\#458](https://github.com/transitland/transitland-datastore/pull/458) ([irees](https://github.com/irees))
+- Distance calculation remove dup sqrt [\#457](https://github.com/transitland/transitland-datastore/pull/457) ([doublestranded](https://github.com/doublestranded))
+- Add controller sorting [\#454](https://github.com/transitland/transitland-datastore/pull/454) ([meghanhade](https://github.com/meghanhade))
+- logging for number of stop times with shape\_dist\_traveled if present [\#452](https://github.com/transitland/transitland-datastore/pull/452) ([doublestranded](https://github.com/doublestranded))
+- Create Feed Onestop ID using GTFS feed\_id [\#451](https://github.com/transitland/transitland-datastore/pull/451) ([irees](https://github.com/irees))
+- failsafe distance\_to\_segment value 0 if precision mismatch [\#450](https://github.com/transitland/transitland-datastore/pull/450) ([doublestranded](https://github.com/doublestranded))
+- line points are de-duplicated after stop points are added [\#448](https://github.com/transitland/transitland-datastore/pull/448) ([doublestranded](https://github.com/doublestranded))
+- API updates for Dispatcher [\#443](https://github.com/transitland/transitland-datastore/pull/443) ([drewda](https://github.com/drewda))
+- import\_level improvements [\#439](https://github.com/transitland/transitland-datastore/pull/439) ([irees](https://github.com/irees))
+- Improved Feed Version activation & SSP cleanup [\#438](https://github.com/transitland/transitland-datastore/pull/438) ([irees](https://github.com/irees))
+- Is modified for before after stops [\#437](https://github.com/transitland/transitland-datastore/pull/437) ([doublestranded](https://github.com/doublestranded))
+- Fix rsp last stop distance calc [\#436](https://github.com/transitland/transitland-datastore/pull/436) ([doublestranded](https://github.com/doublestranded))
+- SSP controller default scope and new query params [\#434](https://github.com/transitland/transitland-datastore/pull/434) ([irees](https://github.com/irees))
+- Repeating stops distance calc fix [\#433](https://github.com/transitland/transitland-datastore/pull/433) ([doublestranded](https://github.com/doublestranded))
 - SSP\#where\_active bug fix [\#432](https://github.com/transitland/transitland-datastore/pull/432) ([irees](https://github.com/irees))
 - production release 4.6.0 [\#425](https://github.com/transitland/transitland-datastore/pull/425) ([drewda](https://github.com/drewda))
+- added rsp logging line in load\_tl\_route\_stop\_patterns [\#424](https://github.com/transitland/transitland-datastore/pull/424) ([doublestranded](https://github.com/doublestranded))
 - update gems [\#423](https://github.com/transitland/transitland-datastore/pull/423) ([drewda](https://github.com/drewda))
+- Rsp followup improvements [\#413](https://github.com/transitland/transitland-datastore/pull/413) ([doublestranded](https://github.com/doublestranded))
 
 ## [4.6.0](https://github.com/transitland/transitland-datastore/tree/4.6.0) (2016-02-18)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.5.1...4.6.0)
@@ -304,7 +344,15 @@
 - cosmetic updates for locate service changes [\#191](https://github.com/transitland/transitland-datastore/pull/191) ([kevinkreiser](https://github.com/kevinkreiser))
 
 ## [4.1.0](https://github.com/transitland/transitland-datastore/tree/4.1.0) (2015-10-02)
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.0.0...4.1.0)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.1.0.rc1...4.1.0)
+
+**Merged pull requests:**
+
+- Feed update bbox [\#192](https://github.com/transitland/transitland-datastore/pull/192) ([irees](https://github.com/irees))
+- route changeset callbacks conflicting [\#190](https://github.com/transitland/transitland-datastore/pull/190) ([drewda](https://github.com/drewda))
+
+## [4.1.0.rc1](https://github.com/transitland/transitland-datastore/tree/4.1.0.rc1) (2015-10-01)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.0.0...4.1.0.rc1)
 
 **Closed issues:**
 
@@ -312,8 +360,6 @@
 
 **Merged pull requests:**
 
-- Feed update bbox [\#192](https://github.com/transitland/transitland-datastore/pull/192) ([irees](https://github.com/irees))
-- route changeset callbacks conflicting [\#190](https://github.com/transitland/transitland-datastore/pull/190) ([drewda](https://github.com/drewda))
 - upgrade Celluloid dependency [\#189](https://github.com/transitland/transitland-datastore/pull/189) ([drewda](https://github.com/drewda))
 - Schedule stop pair interpolation [\#188](https://github.com/transitland/transitland-datastore/pull/188) ([irees](https://github.com/irees))
 - DatastoreAdmin clears out OperatorInFeed tables [\#186](https://github.com/transitland/transitland-datastore/pull/186) ([drewda](https://github.com/drewda))
@@ -401,6 +447,7 @@
 - remove asset pipeline -- it's overkill for getting one CSS file into /admin [\#117](https://github.com/transitland/transitland-datastore/pull/117) ([drewda](https://github.com/drewda))
 - nest CSS and JS assets under /admin/assets [\#116](https://github.com/transitland/transitland-datastore/pull/116) ([drewda](https://github.com/drewda))
 - Changeset append [\#115](https://github.com/transitland/transitland-datastore/pull/115) ([irees](https://github.com/irees))
+- adding an admin dashboard under /admin & expose a way for admins to reset Datastore [\#113](https://github.com/transitland/transitland-datastore/pull/113) ([drewda](https://github.com/drewda))
 - Separate worker for GTFS artifacts [\#112](https://github.com/transitland/transitland-datastore/pull/112) ([irees](https://github.com/irees))
 - Rails 4.2.3 and gem updates [\#110](https://github.com/transitland/transitland-datastore/pull/110) ([drewda](https://github.com/drewda))
 - in dev, the DB connection pool is limited 5, so Sidekiq should run 5 threads [\#109](https://github.com/transitland/transitland-datastore/pull/109) ([drewda](https://github.com/drewda))
@@ -462,6 +509,7 @@
 - temporarily adding New Relic [\#50](https://github.com/transitland/transitland-datastore/pull/50) ([drewda](https://github.com/drewda))
 - Serializer caching [\#49](https://github.com/transitland/transitland-datastore/pull/49) ([drewda](https://github.com/drewda))
 - API: when listing OperatorsServingStop, include the operator name [\#48](https://github.com/transitland/transitland-datastore/pull/48) ([drewda](https://github.com/drewda))
+- CORS headers to allow all access [\#47](https://github.com/transitland/transitland-datastore/pull/47) ([drewda](https://github.com/drewda))
 - delete public files [\#46](https://github.com/transitland/transitland-datastore/pull/46) ([meghanhade](https://github.com/meghanhade))
 - change popup text color [\#45](https://github.com/transitland/transitland-datastore/pull/45) ([meghanhade](https://github.com/meghanhade))
 - disable zoom, disable fitbounds [\#44](https://github.com/transitland/transitland-datastore/pull/44) ([meghanhade](https://github.com/meghanhade))

@@ -3,8 +3,6 @@ class Api::V1::FeedVersionImportsController < Api::V1::BaseApiController
   include AllowFiltering
   include DownloadableCsv
 
-  PER_PAGE = 1
-
   before_action :set_feed_version_import, only: [:show]
 
   def index
@@ -27,6 +25,8 @@ class Api::V1::FeedVersionImportsController < Api::V1::BaseApiController
         render paginated_json_collection(
           @feed_version_imports,
           Proc.new { |params| api_v1_feed_version_imports_url(params) },
+          params[:sort_key],
+          params[:sort_order],
           params[:offset],
           params[:per_page],
           params[:total],

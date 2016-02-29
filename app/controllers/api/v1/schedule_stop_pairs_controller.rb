@@ -69,6 +69,8 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
         render paginated_json_collection(
           @ssps,
           Proc.new { |params| api_v1_schedule_stop_pairs_url(params) },
+          params[:sort_key],
+          params[:sort_order],
           params[:offset],
           params[:per_page],
           params[:total],
@@ -84,7 +86,10 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
             :route_stop_pattern_onestop_id,
             :operator_onestop_id,
             :bbox,
-            :updated_since
+            :updated_since,
+            :feed_version_sha1,
+            :feed_onestop_id,
+            :import_level
           )
         )
       end
