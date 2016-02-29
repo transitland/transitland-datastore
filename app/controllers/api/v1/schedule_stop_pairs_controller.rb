@@ -125,7 +125,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     end
     # FeedVersion Import level
     if params[:import_level].present?
-      @ssps = @ssps.where_import_level(params[:import_level])
+      @ssps = @ssps.where_import_level(params[:import_level].split(','))
     end
     # Service on a date
     if params[:date].present?
