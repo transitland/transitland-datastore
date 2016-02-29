@@ -52,6 +52,7 @@ class FeedSerializer < ApplicationSerializer
              :feed_versions_url,
              :feed_versions,
              :active_feed_version,
+             :active_feed_version_import_level,
              :import_level_of_active_feed_version,
              :created_or_updated_in_changeset_id,
              :changesets_imported_from_this_feed
@@ -76,6 +77,10 @@ class FeedSerializer < ApplicationSerializer
 
   def active_feed_version
     object.active_feed_version.try(:sha1)
+  end
+
+  def active_feed_version_import_level
+    object.active_feed_version.try(:import_level)
   end
 
   def import_level_of_active_feed_version
