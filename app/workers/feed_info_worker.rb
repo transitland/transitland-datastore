@@ -5,9 +5,9 @@ class FeedInfoWorker
   sidekiq_options :retry => false
 
   def perform(url, cachekey)
-    feed, operators = nil, nil
+    feed, operators = nil, []
+    warnings = []
     errors = []
-    response = {}
     begin
       feed_info = FeedInfo.new(url: url)
       feed_info.open do |f|
@@ -38,8 +38,26 @@ class FeedInfoWorker
       response[:feed] = FeedSerializer.new(feed).as_json
       response[:operators] = operators.map { |o| OperatorSerializer.new(o).as_json }
     end
+
+    if feed && feed.persisted?
+      warnings << {
+        feed_onestop_id: feed.onestop_id,
+        message: "Existing feed: #{feed.onestop_id}"
+      }
+    end
+    operators.each do |operator|
+      if operator && operator.persisted?
+        warnings << {
+          operator_onestop_id: operator.onestop_id,
+          message: "Existing operator: #{operator.onestop_id}"
+        }
+      end
+    end
+
+    response = {}
     response[:status] = errors.size > 0 ? 'error' : 'complete'
     response[:errors] = errors
+    response[:warnings] = warnings
     response[:url] = url
     Rails.cache.write(cachekey, response, expires_in: FeedInfo::CACHE_EXPIRATION)
   end
