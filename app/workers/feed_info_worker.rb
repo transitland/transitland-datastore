@@ -34,11 +34,8 @@ class FeedInfoWorker
         exception: e.class.name,
         message: 'There was a problem downloading or processing from this URL.'
       }
-    else
-      response[:feed] = FeedSerializer.new(feed).as_json
-      response[:operators] = operators.map { |o| OperatorSerializer.new(o).as_json }
     end
-
+    
     if feed && feed.persisted?
       warnings << {
         feed_onestop_id: feed.onestop_id,
@@ -55,6 +52,8 @@ class FeedInfoWorker
     end
 
     response = {}
+    response[:feed] = FeedSerializer.new(feed).as_json
+    response[:operators] = operators.map { |o| OperatorSerializer.new(o).as_json }
     response[:status] = errors.size > 0 ? 'error' : 'complete'
     response[:errors] = errors
     response[:warnings] = warnings
