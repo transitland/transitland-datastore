@@ -26,7 +26,7 @@ describe GTFSGraph do
   end
 
   context 'can apply level 0 and 1 changesets' do
-    before(:each) { @feed, @feed_version = load_feed(:feed_version_caltrain, 1) }
+    before(:each) { @feed, @feed_version = load_feed(feed_version_name: :feed_version_caltrain, import_level: 1) }
 
     it 'updated feed geometry' do
       geometry = [
@@ -173,7 +173,7 @@ describe GTFSGraph do
 
   context 'can apply a level 2 changeset', import_level:2 do
 
-    before(:each) { @feed, @feed_version = load_feed(:feed_version_caltrain, 2) }
+    before(:each) { @feed, @feed_version = load_feed(feed_version_name: :feed_version_caltrain, import_level: 2) }
 
     it 'created known ScheduleStopPairs' do
       expect(@feed.imported_schedule_stop_pairs.count).to eq(4661) # EXACTLY.
@@ -234,7 +234,7 @@ describe GTFSGraph do
 
   context 'distance calculation assignment' do
 
-    before(:each) { @feed, @feed_version = load_feed(:feed_version_vta, 2) }
+    before(:each) { @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta, import_level: 2) }
 
     it 'correctly assigned distances to schedule stop pairs containing stops repeated in its Route Stop Pattern' do
       origin = @feed.imported_stops.find_by!(
@@ -273,18 +273,21 @@ describe GTFSGraph do
     }
 
     it 'does not delete previous feed version tl entities' do
-      expect(@original_feed.imported_routes.size).to eq 10
+      expect(@original_feed.imported_routes.size).to eq 11
+      route = @original_feed.imported_routes.find_by(onestop_id: 'r-9qscy-10')
+      expect(@original_feed.imported_routes).to include(route)
     end
 
     it 'reuses previous feed entities' do
       @original_feed.imported_routes.each do |r|
-        puts r.onestop_id
-        puts r.vehicle_type
+        #puts r.onestop_id
+        #puts r.vehicle_type
       end
     end
 
     it 'creates a new tl entity not found in previous feed version' do
-
+      route = @original_feed.imported_routes.find_by(onestop_id: 'r-9qscy-60')
+      expect(route).to be_truthy
     end
   end
 end
