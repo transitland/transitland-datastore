@@ -14,6 +14,7 @@
 #  geometry                           :geography({:srid geometry, 4326
 #  identifiers                        :string           default([]), is an Array
 #  vehicle_type                       :integer
+#  color                              :string           default("FFFFFF")
 #
 # Indexes
 #
@@ -171,12 +172,13 @@ class Route < BaseRoute
       onestop_id: onestop_id.to_s,
       vehicle_type: entity.route_type.to_i
     )
+    route.color = entity.route_color || route.color
     # Copy over GTFS attributes to tags
     route.tags ||= {}
     route.tags[:route_long_name] = entity.route_long_name
     route.tags[:route_desc] = entity.route_desc
     route.tags[:route_url] = entity.route_url
-    route.tags[:route_color] = entity.route_color
+    #route.tags[:route_color] = entity.route_color
     route.tags[:route_text_color] = entity.route_text_color
     route
   end

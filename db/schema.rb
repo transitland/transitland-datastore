@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160219230742) do
+ActiveRecord::Schema.define(version: 20160301214615) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -155,8 +155,9 @@ ActiveRecord::Schema.define(version: 20160219230742) do
     t.datetime  "created_at"
     t.datetime  "updated_at"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
-    t.string    "identifiers",                                                                                    default: [], array: true
+    t.string    "identifiers",                                                                                    default: [],       array: true
     t.integer   "vehicle_type"
+    t.string    "color",                                                                                          default: "FFFFFF"
   end
 
   add_index "current_routes", ["created_or_updated_in_changeset_id"], name: "c_route_cu_in_changeset", using: :btree
@@ -453,6 +454,7 @@ ActiveRecord::Schema.define(version: 20160219230742) do
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.string    "identifiers",                                                                                    default: [], array: true
     t.integer   "vehicle_type"
+    t.string    "color"
   end
 
   add_index "old_routes", ["created_or_updated_in_changeset_id"], name: "o_route_cu_in_changeset", using: :btree

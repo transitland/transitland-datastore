@@ -14,6 +14,7 @@
 #  geometry                           :geography({:srid geometry, 4326
 #  identifiers                        :string           default([]), is an Array
 #  vehicle_type                       :integer
+#  color                              :string           default("FFFFFF")
 #
 # Indexes
 #
