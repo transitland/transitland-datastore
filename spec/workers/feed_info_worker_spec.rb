@@ -14,6 +14,20 @@ describe FeedInfoWorker do
     expect(cachedata[:operators].first[:onestop_id]).to eq('o-9q9-caltrain')
   end
 
+  it 'warns for existing feed' do
+    existing_feed = create(:feed_example)
+    url = 'https://developers.google.com/transit/gtfs/examples/sample-feed.zip'
+    cachekey = 'test'
+    Rails.cache.delete(cachekey)
+    VCR.use_cassette('feed_fetch_example') do
+      FeedInfoWorker.new.perform(url, cachekey)
+    end
+    cachedata = Rails.cache.read(cachekey)
+    expect(cachedata[:warnings].size).to eq(2)
+    keys = cachedata[:warnings].map(&:keys).flatten
+    expect(keys).to include(:feed_onestop_id, :operator_onestop_id)
+  end
+
   it 'fails with 404' do
     url = 'http://www.bart.gov/this-is-a-bad-url.zip'
     cachekey = 'test'
