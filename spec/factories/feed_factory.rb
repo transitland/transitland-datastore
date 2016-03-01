@@ -99,7 +99,7 @@ FactoryGirl.define do
   end
 
   factory :feed_example, class: Feed do
-    onestop_id 'f-9qs-example'
+    onestop_id 'f-9qs-demotransitauthority'
     url 'http://www.bart.gov/dev/schedules/google_transit.zip'
     version 1
     after :create do |feed, evaluator|
