@@ -29,13 +29,18 @@ class FeedInfo
   def parse_feed_and_operators
     # feed
     feed = Feed.from_gtfs(@gtfs, url: @url)
+    feed = Feed.find_by_onestop_id(feed.onestop_id) || feed
     # operators
     operators = []
     @gtfs.agencies.each do |agency|
       next if agency.stops.size == 0
       operator = Operator.from_gtfs(agency)
+      operator = Operator.find_by_onestop_id(operator.onestop_id) || operator
       operators << operator
-      feed.operators_in_feed.new(gtfs_agency_id: agency.id, operator: operator, id: nil)
+      feed.operators_in_feed.find_or_initialize_by(
+        gtfs_agency_id: agency.id,
+        operator: operator
+      )
     end
     # done
     return [feed, operators]
