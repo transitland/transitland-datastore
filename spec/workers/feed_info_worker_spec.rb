@@ -15,11 +15,11 @@ describe FeedInfoWorker do
   end
 
   it 'warns for existing feed' do
-    existing_feed = create(:feed_example)
-    url = 'https://developers.google.com/transit/gtfs/examples/sample-feed.zip'
+    existing_feed = create(:feed_caltrain)
+    url = 'http://www.caltrain.com/Assets/GTFS/caltrain/GTFS-Caltrain-Devs.zip'
     cachekey = 'test'
     Rails.cache.delete(cachekey)
-    VCR.use_cassette('feed_fetch_example') do
+    VCR.use_cassette('feed_fetch_caltrain') do
       FeedInfoWorker.new.perform(url, cachekey)
     end
     cachedata = Rails.cache.read(cachekey)
