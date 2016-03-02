@@ -20,6 +20,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       get '/onestop_id/:onestop_id', to: 'onestop_id#show'
+      get '/activity_updates', to: 'activity_updates#index'
       resources :changesets, only: [:index, :show, :create, :update, :destroy] do
         member do
           post 'check'
