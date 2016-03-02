@@ -278,11 +278,9 @@ describe GTFSGraph do
       expect(@original_feed.imported_routes).to include(route)
     end
 
-    it 'reuses previous feed entities' do
-      @original_feed.imported_routes.each do |r|
-        #puts r.onestop_id
-        #puts r.vehicle_type
-      end
+    it 'updates previous matching feed version entities with new attribute values' do
+      route = @original_feed.imported_routes.find_by(onestop_id: 'r-9qscy-10')
+      #expect(route.vehicle_type).to eq 'rail'
     end
 
     it 'creates a new tl entity not found in previous feed version' do
