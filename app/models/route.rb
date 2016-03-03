@@ -14,7 +14,7 @@
 #  geometry                           :geography({:srid geometry, 4326
 #  identifiers                        :string           default([]), is an Array
 #  vehicle_type                       :integer
-#  color                              :string           default("FFFFFF")
+#  color                              :string
 #
 # Indexes
 #
@@ -132,6 +132,16 @@ class Route < BaseRoute
   belongs_to :operator
 
   validates :name, presence: true
+  validate :validate_color_attr
+
+  def validate_color_attr
+    errors.add(:color, "invalid color") unless Route.color_valid?(self.color)
+  end
+
+  def self.color_valid?(color)
+    return true if color.to_s.empty?
+    !!(/^[0-9A-F]{6}$/.match(color))
+  end
 
   scope :operated_by, -> (model_or_onestop_id) {
     if model_or_onestop_id.is_a?(Operator)
@@ -172,13 +182,12 @@ class Route < BaseRoute
       onestop_id: onestop_id.to_s,
       vehicle_type: entity.route_type.to_i
     )
-    route.color = entity.route_color || route.color
+    route.color = entity.route_color.upcase if entity.route_color && Route.color_valid?(entity.route_color.upcase)
     # Copy over GTFS attributes to tags
     route.tags ||= {}
     route.tags[:route_long_name] = entity.route_long_name
     route.tags[:route_desc] = entity.route_desc
     route.tags[:route_url] = entity.route_url
-    #route.tags[:route_color] = entity.route_color
     route.tags[:route_text_color] = entity.route_text_color
     route
   end

@@ -410,6 +410,7 @@ class GTFSGraph
     {
       onestopId: entity.onestop_id,
       name: entity.name,
+      color: entity.color,
       identifiedBy: entity.identified_by.uniq,
       operatedBy: entity.operator.onestop_id,
       vehicleType: entity.vehicle_type,

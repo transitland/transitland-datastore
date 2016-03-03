@@ -155,9 +155,9 @@ ActiveRecord::Schema.define(version: 20160301214615) do
     t.datetime  "created_at"
     t.datetime  "updated_at"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
-    t.string    "identifiers",                                                                                    default: [],       array: true
+    t.string    "identifiers",                                                                                    default: [], array: true
     t.integer   "vehicle_type"
-    t.string    "color",                                                                                          default: "FFFFFF"
+    t.string    "color"
   end
 
   add_index "current_routes", ["created_or_updated_in_changeset_id"], name: "c_route_cu_in_changeset", using: :btree
