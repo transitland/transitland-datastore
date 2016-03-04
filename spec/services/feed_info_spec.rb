@@ -2,26 +2,31 @@ describe FeedInfo do
   let (:example_url) { 'https://developers.google.com/transit/gtfs/examples/sample-feed.zip' }
   let (:example_feed_path) { Rails.root.join('spec/support/example_gtfs_archives/example.zip') }
 
-  context '.new' do
+  context '#new' do
     it 'requires url or path' do
       expect { FeedInfo.new }.to raise_error(ArgumentError)
     end
   end
 
-  context '.open' do
+  context '#open' do
     it 'downloads if path not provided' do
       VCR.use_cassette('feed_fetch_example') do
-        expect { FeedInfo.new(url: example_url).open { |f| f } }.not_to raise_error
+        expect { FeedInfo.new(url: example_url).download { |f| f } }.not_to raise_error
       end
     end
+  end
 
+  context '#download' do
     # SocketError is below where VCR can test. Disabled for now.
     # it 'fails with bad host' do
     #   url = 'http://test.example.com/gtfs.zip'
     #   expect { FeedInfo.new(url: url).open { |f| f } }.to raise_error(SocketError)
     # end
+  end
 
+  context '#process' do
     it 'raises exception on bad gtfs' do
+      # Tests using .open; todo: include an invalid gtfs in spec support.
       url_binary = 'http://httpbin.org/stream-bytes/1024?seed=0'
       VCR.use_cassette('feed_fetch_download_binary') do
         expect { FeedInfo.new(url: url_binary).open { |f| f } }.to raise_error(GTFS::InvalidSourceException)
@@ -38,7 +43,7 @@ describe FeedInfo do
     end
   end
 
-  context '.parse' do
+  context '#parse_feed_and_operators' do
     it 'parses feed' do
       feed, operators = nil, nil
       fi = FeedInfo.new(url: example_url, path: example_feed_path)
