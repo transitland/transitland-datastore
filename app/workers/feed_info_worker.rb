@@ -5,14 +5,25 @@ class FeedInfoWorker
   sidekiq_options :retry => false
 
   def perform(url, cachekey)
+    @url = url
+    @cachekey = cachekey
+    @progress_checkpoint = 0.0
+    progress_download = lambda { |count,total,entity| progress_check('downloading', count, total, entity) }
+    progress_process = lambda { |count,total,entity| progress_check('processing', count, total, entity) }
     feed, operators = nil, nil
     errors = []
     response = {}
     begin
-      feed_info = FeedInfo.new(url: url)
-      feed_info.open do |f|
-        feed, operators = f.parse_feed_and_operators
+      feed_info = FeedInfo.new(url: @url)
+
+      progress_update('downloading', 0.0)
+      feed_info.download(progress: progress_download) do |feed_info|
+        progress_update('processing', 0.0)
+        feed_info.process(progress: progress_process) do |feed_info|
+          feed, operators = feed_info.parse_feed_and_operators
+        end
       end
+
     rescue GTFS::InvalidSourceException => e
       errors << {
         exception: 'InvalidSourceException',
@@ -40,9 +51,28 @@ class FeedInfoWorker
     end
     response[:status] = errors.size > 0 ? 'error' : 'complete'
     response[:errors] = errors
-    response[:url] = url
-    Rails.cache.write(cachekey, response, expires_in: FeedInfo::CACHE_EXPIRATION)
+    response[:url] = @url
+    Rails.cache.write(@cachekey, response, expires_in: FeedInfo::CACHE_EXPIRATION)
+    response
   end
+
+  private
+
+  def progress_check(status, count, total, entity)
+    current = count / total.to_f
+    if (current - @progress_checkpoint) >= 0.1
+      progress_update(status, current)
+    end
+  end
+
+  def progress_update(status, current)
+    current = 1.0 if current > 1.0
+    @progress_checkpoint = current
+    cachedata = {status: status, url: @url, progress: current}
+    Rails.cache.write(@cachekey, cachedata, expires_in: FeedInfo::CACHE_EXPIRATION)
+    puts cachedata
+  end
+
 end
 
 if __FILE__ == $0
