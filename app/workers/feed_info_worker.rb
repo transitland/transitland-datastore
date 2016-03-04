@@ -8,22 +8,24 @@ class FeedInfoWorker
     @url = url
     @cachekey = cachekey
     @progress_checkpoint = 0.0
-    progress_download = lambda { |count,total,entity| progress_check('downloading', count, total, entity) }
-    progress_process = lambda { |count,total,entity| progress_check('processing', count, total, entity) }
+    # Partials
+    progress_downloading = lambda { |count,total| progress_check('downloading', count, total) }
+    progress_processing = lambda { |count,total,entity| progress_check('processing', count, total) }
+    # Download & parse feed
     feed, operators = nil, nil
     errors = []
     response = {}
     begin
       feed_info = FeedInfo.new(url: @url)
-
       progress_update('downloading', 0.0)
-      feed_info.download(progress: progress_download) do |feed_info|
+      feed_info.download(progress: progress_downloading) do |feed_info|
+        progress_update('downloading', 1.0)
         progress_update('processing', 0.0)
-        feed_info.process(progress: progress_process) do |feed_info|
+        feed_info.process(progress: progress_processing) do |feed_info|
+          progress_update('processing', 1.0)
           feed, operators = feed_info.parse_feed_and_operators
         end
       end
-
     rescue GTFS::InvalidSourceException => e
       errors << {
         exception: 'InvalidSourceException',
@@ -58,7 +60,8 @@ class FeedInfoWorker
 
   private
 
-  def progress_check(status, count, total, entity)
+  def progress_check(status, count, total)
+    # Update upgress if more than 10% work done since last update
     current = count / total.to_f
     if (current - @progress_checkpoint) >= 0.1
       progress_update(status, current)
@@ -66,19 +69,20 @@ class FeedInfoWorker
   end
 
   def progress_update(status, current)
+    # Write progress to cache
     current = 1.0 if current > 1.0
     @progress_checkpoint = current
-    cachedata = {status: status, url: @url, progress: current}
+    cachedata = {
+      status: status,
+      url: @url,
+      progress: current
+    }
     Rails.cache.write(@cachekey, cachedata, expires_in: FeedInfo::CACHE_EXPIRATION)
-    puts cachedata
   end
-
 end
 
 if __FILE__ == $0
-  require 'sidekiq/testing'
   ActiveRecord::Base.logger = Logger.new(STDOUT)
   url = ARGV[0] || "http://www.caltrain.com/Assets/GTFS/caltrain/GTFS-Caltrain-Devs.zip"
-  FeedInfoWorker.perform_async(url, 'asdf')
-  FeedInfoWorker.drain
+  FeedInfoWorker.new.perform(url, 'test')
 end
