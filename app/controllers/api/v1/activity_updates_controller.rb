@@ -1,10 +1,10 @@
 class Api::V1::ActivityUpdatesController < Api::V1::BaseApiController
+  HOURS = 7 * 24
+
   def index
-    hours = params[:hours] || (24 * 7)
-
-    raise ArgumentError, "hours must be positive" if hours < 0
-
-    @activity_updates = ActivityUpdates.updates_since(hours.hours.ago)
+    @activity_updates = Rails.cache.fetch("activity_updates", expires_in: 1.minute) do
+      ActivityUpdates.updates_since(HOURS.hours.ago)
+    end
 
     respond_to do |format|
       format.json { render json: @activity_updates }
