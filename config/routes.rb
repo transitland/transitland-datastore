@@ -19,6 +19,7 @@ Rails.application.routes.default_url_options = default_url_options
 Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
+      get '/', to: 'apidocs#index'
       get '/onestop_id/:onestop_id', to: 'onestop_id#show'
       resources :changesets, only: [:index, :show, :create, :update, :destroy] do
         member do

@@ -239,6 +239,11 @@ class ScheduleStopPair < BaseScheduleStopPair
     params
   end
 
+  include Swagger::Blocks
+  swagger_schema :ScheduleStopPair do
+    # TODO
+  end
+
   # Interpolate
   def self.interpolate(ssps, method=:linear)
     groups = []

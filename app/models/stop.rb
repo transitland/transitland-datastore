@@ -36,6 +36,17 @@ end
 class Stop < BaseStop
   self.table_name_prefix = 'current_'
 
+  include Swagger::Blocks
+  swagger_schema :Stop do
+    key :required, [:onestop_id, :name]
+    property :onestop_id do
+      key :type, :string
+    end
+    property :name do
+      key :type, :string
+    end
+  end
+
   GEOHASH_PRECISION = 10
 
   include HasAOnestopId
@@ -106,6 +117,11 @@ class Stop < BaseStop
       route_serving_stop.destroy_making_history(changeset: changeset)
     end
     return true
+  end
+
+  include Swagger::Blocks
+  swagger_schema :Stop do
+    # TODO
   end
 
   # Operators serving this stop

@@ -6,6 +6,32 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   before_filter :require_api_auth_token, only: [:update, :check, :apply, :revert, :destroy]
   before_action :set_changeset, only: [:show, :update, :check, :apply, :revert, :destroy]
 
+  # GET /changesets
+  include Swagger::Blocks
+  swagger_path '/changesets' do
+    operation :get do
+      key :tags, ['changeset']
+      key :name, :tags
+      key :summary, 'Returns all changesets with filtering and sorting'
+      key :produces, ['application/json']
+      parameter do
+        key :name, :applied
+        key :in, :query
+        key :description, 'Filter for feeds that have (or have not) been applied'
+        key :required, false
+        key :type, :boolean
+      end
+      response 200 do
+        # key :description, 'stop response'
+        schema do
+          key :type, :array
+          items do
+            key :'$ref', :Changeset
+          end
+        end
+      end
+    end
+  end
   def index
     @changesets = Changeset.where('').include{[
       imported_from_feed,
@@ -44,6 +70,29 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
     end
   end
 
+  # POST /changesets
+  include Swagger::Blocks
+  swagger_path '/changesets' do
+    operation :post do
+      key :tags, ['changeset']
+      key :name, :tags
+      key :summary, 'Create a changeset'
+      key :produces, ['application/json']
+      # parameter do
+      #   key :name, :applied
+      #   key :in, :body
+      #   key :description, 'Filter for feeds that have (or have not) been applied'
+      #   key :required, false
+      #   key :type, :boolean
+      # end
+      response 200 do
+        # key :description, 'stop response'
+        schema do
+          key :'$ref', :Changeset
+        end
+      end
+    end
+  end
   def create
     user_params = changeset_params.delete(:user).try(:compact)
     change_payload_params = changeset_params.delete(:change_payloads).try(:compact)
@@ -61,11 +110,66 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
     return render json: @changeset
   end
 
+  # DELETE /changesets/{id}
+  include Swagger::Blocks
+  swagger_path '/changesets/{id}' do
+    operation :delete do
+      key :tags, ['changeset']
+      key :name, :tags
+      key :summary, 'Delete a changeset'
+      key :description, 'Requires API authentication.'
+      key :produces, ['application/json']
+      parameter do
+        key :name, :id
+        key :in, :url
+        key :description, 'ID for changeset'
+        key :required, true
+        key :type, :integer
+      end
+      response 200 do
+        # key :description, 'stop response'
+        # schema do
+        #   key :'$ref', :Changeset
+        # end
+      end
+      security do
+        key :api_auth_token, []
+      end
+    end
+  end
   def destroy
     @changeset.destroy!
     render json: {}, status: :no_content
   end
 
+  # PUT /changesets/{id}
+  include Swagger::Blocks
+  swagger_path '/changesets/{id}' do
+    operation :put do
+      key :tags, ['changeset']
+      key :name, :tags
+      key :summary, 'Edit a changeset'
+      key :description, 'Requires API authentication.'
+      key :produces, ['application/json']
+      parameter do
+        key :name, :id
+        key :in, :url
+        key :description, 'ID for changeset'
+        key :required, true
+        key :type, :integer
+      end
+      # TODO: body parameters
+      response 200 do
+        # key :description, 'stop response'
+        schema do
+          key :'$ref', :Changeset
+        end
+      end
+      security do
+        key :api_auth_token, []
+      end
+    end
+  end
   def update
     if @changeset.applied
       raise Changeset::Error.new(@changeset, 'cannot update a Changeset that has already been applied')
@@ -85,15 +189,98 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
     end
   end
 
+  # GET /changesets/{id}
+  include Swagger::Blocks
+  swagger_path '/changesets/{id}' do
+    operation :get do
+      key :tags, ['changeset']
+      key :name, :tags
+      key :summary, 'Returns a single changeset'
+      key :produces, ['application/json']
+      parameter do
+        key :name, :id
+        key :in, :url
+        key :description, 'ID for changeset'
+        key :required, true
+        key :type, :integer
+      end
+      # TODO: body parameters
+      response 200 do
+        # key :description, 'stop response'
+        schema do
+          key :'$ref', :Changeset
+        end
+      end
+      security do
+        key :api_auth_token, []
+      end
+    end
+  end
   def show
     render json: @changeset
   end
 
+  # POST /changesets/{id}/check
+  include Swagger::Blocks
+  swagger_path '/changesets/{id}/check' do
+    operation :post do
+      key :tags, ['changeset']
+      key :name, :tags
+      key :summary, 'Check whether a changeset will cleanly apply'
+      key :description, 'Requires API authentication.'
+      key :produces, ['application/json']
+      parameter do
+        key :name, :id
+        key :in, :url
+        key :description, 'ID for changeset'
+        key :required, true
+        key :type, :integer
+      end
+      # TODO: body parameters
+      response 200 do
+        # key :description, 'stop response'
+        # schema do
+        #   key :'$ref', :Changeset
+        # end
+      end
+      security do
+        key :api_auth_token, []
+      end
+    end
+  end
   def check
     trial_succeeds = @changeset.trial_succeeds?
     render json: { trialSucceeds: trial_succeeds }
   end
 
+  # POST /changesets/{id}/apply
+  include Swagger::Blocks
+  swagger_path '/changesets/{id}/apply' do
+    operation :put do
+      key :tags, ['changeset']
+      key :name, :tags
+      key :summary, 'Apply a changeset'
+      key :description, 'Requires API authentication.'
+      key :produces, ['application/json']
+      parameter do
+        key :name, :id
+        key :in, :url
+        key :description, 'ID for changeset'
+        key :required, true
+        key :type, :integer
+      end
+      # TODO: body parameters
+      response 200 do
+        # key :description, 'stop response'
+        # schema do
+        #   key :'$ref', :Changeset
+        # end
+      end
+      security do
+        key :api_auth_token, []
+      end
+    end
+  end
   def apply
     applied = @changeset.apply!
     render json: { applied: applied }

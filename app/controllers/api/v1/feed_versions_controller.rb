@@ -30,6 +30,42 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
   before_action :set_feed_version, only: [:show, :update]
   before_filter :require_api_auth_token, only: [:update]
 
+  include Swagger::Blocks
+  swagger_path '/feed_versions' do
+    operation :get do
+      key :tags, ['feed']
+      key :name, :tags
+      key :summary, 'Returns all feed versions with filtering and sorting'
+      key :produces, [
+        'application/json',
+        'application/vnd.geo+json',
+        'text/csv'
+      ]
+      parameter do
+        key :name, :onestop_id
+        key :in, :query
+        key :description, 'Onestop ID(s) to filter by'
+        key :required, false
+        key :type, :string
+      end
+      parameter do
+        key :name, :servedBy
+        key :in, :query
+        key :description, 'operator Onestop ID(s) to filter by'
+        key :required, false
+        key :type, :string
+      end
+      response 200 do
+        # key :description, 'stop response'
+        schema do
+          key :type, :array
+          items do
+            key :'$ref', :FeedVersion
+          end
+        end
+      end
+    end
+  end
   def index
     @feed_versions = FeedVersion.where('').includes{[
       feed,
@@ -83,10 +119,61 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
     end
   end
 
+  include Swagger::Blocks
+  swagger_path '/feed_versions/{sha1}' do
+    operation :get do
+      key :tags, ['feed']
+      key :name, :tags
+      key :summary, 'Returns a single feed version'
+      key :produces, ['application/json']
+      parameter do
+        key :name, :sha1
+        key :in, :path
+        key :description, 'SHA1 hash for feed version'
+        key :required, true
+        key :type, :string
+      end
+      response 200 do
+        # key :description, 'stop response'
+        schema do
+          key :'$ref', :FeedVersion
+        end
+      end
+    end
+  end
   def show
     render json: @feed_version
   end
 
+  include Swagger::Blocks
+  swagger_path '/feed_versions/{sha1}' do
+    operation :put do
+      key :tags, ['feed']
+      key :name, :tags
+      key :summary, "Set a feed version's import level"
+      key :produces, ['application/json']
+      parameter do
+        key :name, :sha1
+        key :in, :path
+        key :description, 'SHA1 hash for feed version'
+        key :required, true
+        key :type, :string
+      end
+      parameter do
+        key :name, :import_level
+        key :in, :body
+        key :description, 'Import level to set for feed version'
+        key :required, true
+        key :type, :integer
+      end
+      response 200 do
+        # key :description, 'stop response'
+        schema do
+          key :'$ref', :FeedVersion
+        end
+      end
+    end
+  end
   def update
     @feed_version.update!(feed_version_params)
     render json: @feed_version

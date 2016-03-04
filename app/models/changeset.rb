@@ -36,6 +36,11 @@ class Changeset < ActiveRecord::Base
 
   include CanBeSerializedToCsv
 
+  include Swagger::Blocks
+  swagger_schema :Changeset do
+    # TODO
+  end
+
   has_many :feeds_created_or_updated, class_name: 'Feed', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :feeds_destroyed, class_name: 'OldFeed', foreign_key: 'destroyed_in_changeset_id'
 

@@ -30,6 +30,11 @@ class User < ActiveRecord::Base
          :recoverable,
          :trackable
 
+  include Swagger::Blocks
+  swagger_schema :User do
+    # TODO
+  end
+
   has_many :changesets
 
   validates :email, presence: true, uniqueness: true, email: true

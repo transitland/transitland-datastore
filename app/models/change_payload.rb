@@ -16,6 +16,11 @@
 class ChangePayload < ActiveRecord::Base
   include HasAJsonPayload
 
+  include Swagger::Blocks
+  swagger_schema :ChangePayload do
+    # TODO
+  end
+
   belongs_to :changeset
 
   after_initialize :set_default_values

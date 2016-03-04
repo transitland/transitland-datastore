@@ -44,7 +44,7 @@ class RouteStopPattern < BaseRouteStopPattern
   belongs_to :route
   has_many :schedule_stop_pairs
   validates :geometry, :stop_pattern, presence: true
-  validates :onestop_id, uniqueness: true, on: create
+  validates :onestop_id, uniqueness: true, on: :create
   validate :has_at_least_two_stops,
     :geometry_has_at_least_two_coords
 
@@ -90,6 +90,11 @@ class RouteStopPattern < BaseRouteStopPattern
     if attrs[:id].present?
       find(attrs[:id])
     end
+  end
+
+  include Swagger::Blocks
+  swagger_schema :RouteStopPattern do
+    # TODO
   end
 
   def self.line_string(points)

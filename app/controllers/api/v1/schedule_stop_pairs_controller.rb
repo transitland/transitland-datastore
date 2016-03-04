@@ -63,6 +63,32 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
 
   before_action :set_schedule_stop_pairs
 
+  # GET /schedule_stop_pairs
+  include Swagger::Blocks
+  swagger_path '/schedule_stop_pairs' do
+    operation :get do
+      key :tags, ['schedule']
+      key :name, :tags
+      key :summary, 'Returns all schedule stop pairs with filtering and sorting'
+      key :produces, ['application/json']
+      # parameter do
+      #   key :name, :servedBy
+      #   key :in, :query
+      #   key :description, 'operator Onestop ID(s) to filter by'
+      #   key :required, false
+      #   key :type, :string
+      # end
+      response 200 do
+        # key :description, 'stop response'
+        schema do
+          key :type, :array
+          items do
+            key :'$ref', :ScheduleStopPair
+          end
+        end
+      end
+    end
+  end
   def index
     respond_to do |format|
       format.json do

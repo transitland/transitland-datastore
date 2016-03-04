@@ -23,6 +23,11 @@
 #
 
 class FeedVersion < ActiveRecord::Base
+  include Swagger::Blocks
+  swagger_schema :FeedVersion do
+    # TODO
+  end
+
   belongs_to :feed, polymorphic: true
   has_many :feed_version_imports, -> { order 'created_at DESC' }, dependent: :destroy
   has_many :changesets_imported_from_this_feed_version, class_name: 'Changeset'

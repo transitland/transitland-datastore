@@ -6,6 +6,36 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
 
   before_action :set_feed, only: [:show]
 
+  # GET /feeds
+  include Swagger::Blocks
+  swagger_path '/feeds' do
+    operation :get do
+      key :tags, ['feed']
+      key :name, :tags
+      key :summary, 'Returns all feeds with filtering and sorting'
+      key :produces, [
+        'application/json',
+        'application/vnd.geo+json',
+        'text/csv'
+      ]
+      parameter do
+        key :name, :onestop_id
+        key :in, :query
+        key :description, 'Onestop ID(s) to filter by'
+        key :required, false
+        key :type, :string
+      end
+      response 200 do
+        # key :description, 'stop response'
+        schema do
+          key :type, :array
+          items do
+            key :'$ref', :Feed
+          end
+        end
+      end
+    end
+  end
   def index
     @feeds = Feed.where('').includes{[
       operators_in_feed,
@@ -44,10 +74,60 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
     end
   end
 
+  # GET /feeds/{onestop_id}
+  include Swagger::Blocks
+  swagger_path '/feeds/{onestop_id}' do
+    operation :get do
+      key :tags, ['feed']
+      key :name, :tags
+      key :summary, 'Returns a single feed'
+      key :produces, [
+        'application/json',
+        # TODO: 'application/vnd.geo+json'
+      ]
+      parameter do
+        key :name, :onestop_id
+        key :in, :path
+        key :description, 'Onestop ID for feed'
+        key :required, true
+        key :type, :string
+      end
+      response 200 do
+        # key :description, 'stop response'
+        schema do
+          key :'$ref', :FeedVersion
+        end
+      end
+    end
+  end
   def show
     render json: @feed
   end
 
+  # POST /feeds/fetch_info
+  include Swagger::Blocks
+  swagger_path '/feeds/fetch_info' do
+    operation :post do
+      key :tags, ['feed']
+      key :name, :tags
+      key :summary, 'Fetch feed from URL and parse its contents'
+      key :description, 'Used by Transitland Feed Registry to parse a feed, in prepartion for adding the feed to the Datastore.'
+      key :produces, ['application/json']
+      parameter do
+        key :name, :url
+        key :in, :body
+        key :description, 'URL from which to fetch GTFS feed'
+        key :required, true
+        key :type, :string
+      end
+      response 200 do
+        # key :description, 'stop response'
+        schema do
+          # key :'$ref', :FeedVersion
+        end
+      end
+    end
+  end
   def fetch_info
     url = params[:url]
     raise Exception.new('invalid URL') if url.empty?

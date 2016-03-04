@@ -18,6 +18,11 @@
 #
 
 class FeedVersionImport < ActiveRecord::Base
+  include Swagger::Blocks
+  swagger_schema :FeedVersionImport do
+    # TODO
+  end
+
   belongs_to :feed_version
   has_one :feed, through: :feed_version, source_type: 'Feed'
   has_many :feed_schedule_imports, dependent: :destroy
