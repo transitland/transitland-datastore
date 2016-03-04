@@ -146,6 +146,9 @@ class RouteStopPattern < BaseRouteStopPattern
           total_distance += RGeo::Feature.cast(splits[0], RouteStopPattern::GEOFACTORY).length
           distances << total_distance.round(DISTANCE_PRECISION)
         end
+        if (i != 0 && distances[i-1] == distances[i])
+          logger.info "stop #{self.stop_pattern[i]} has the same distance as #{self.stop_pattern[i-1]}, which may indicate a segment matching issue."
+        end
         cast_route = splits[1]
       end
       if (distances[i] > geometry_length)
