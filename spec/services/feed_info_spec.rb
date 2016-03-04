@@ -27,6 +27,15 @@ describe FeedInfo do
         expect { FeedInfo.new(url: url_binary).open { |f| f } }.to raise_error(GTFS::InvalidSourceException)
       end
     end
+
+    it 'passes progress callback' do
+      processed = 0
+      progress = lambda { |count, total, entity| processed += 1 }
+      FeedInfo
+        .new(url: example_url, path: example_feed_path)
+        .process(progress: progress) { |f| f }
+      expect(processed).to eq(54)
+    end
   end
 
   context '.parse' do
