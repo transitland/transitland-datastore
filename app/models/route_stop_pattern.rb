@@ -32,7 +32,7 @@ class BaseRouteStopPattern < ActiveRecord::Base
 
   include IsAnEntityImportedFromFeeds
 
-  attr_accessor :traversed_by, :passable_distances
+  attr_accessor :traversed_by, :distance_issues
 end
 
 class RouteStopPattern < BaseRouteStopPattern
@@ -115,7 +115,7 @@ class RouteStopPattern < BaseRouteStopPattern
     # TODO: potential issue with nearest stop segment matching after subsequent stop
     # TODO: investigate 'boundary' lat/lng possibilities
     distances = []
-    self.passable_distances = true
+    self.distance_issues = 0
     total_distance = 0.0
     cartesian_factory = RGeo::Cartesian::Factory.new(srid: 4326)
     cast_route = RGeo::Feature.cast(self[:geometry], cartesian_factory)
@@ -129,7 +129,7 @@ class RouteStopPattern < BaseRouteStopPattern
         # So this might be an outlier stop. Another possibility might be 2 consecutive stops
         # having the same coordinates.
         logger.info "stop #{stop.onestop_id}, number #{i+1}, within route stop pattern #{self.onestop_id} may be an outlier or indicate invalid geometry"
-        self.passable_distances = false
+        self.distance_issues += 1
         # TODO add interpolated distance at halfway and split line there?
         # if so, will need to take into account case of 2 consecutive stops having same location.
         if (i == 0 && splits[1].nil?)
@@ -148,16 +148,18 @@ class RouteStopPattern < BaseRouteStopPattern
         end
         if (i != 0 && distances[i-1] == distances[i])
           logger.info "stop #{self.stop_pattern[i]} has the same distance as #{self.stop_pattern[i-1]}, which may indicate a segment matching issue."
+          self.distance_issues += 1
         end
         cast_route = splits[1]
       end
       if (distances[i] > geometry_length)
         logger.info "stop #{stop.onestop_id}, number #{i+1}, of route stop pattern #{self.onestop_id} has a distance greater than the length of the geometry"
-        self.passable_distances = false
+        # we'll be lenient if this difference is less than 5 meters.
+        self.distance_issues += 1 if ((distances[i] - geometry_length) > 5.0)
       end
       if (i != 0 && distances[i-1] > distances[i])
         logger.info "stop #{self.stop_pattern[i]} occurs after stop #{self.stop_pattern[i-1]} but has a distance less than #{self.stop_pattern[i-1]}"
-        self.passable_distances = false
+        self.distance_issues += 1
       end
     end
     distances
