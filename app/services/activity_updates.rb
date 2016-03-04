@@ -2,7 +2,7 @@ class ActivityUpdates
   include Singleton
 
   def self.updates_since(since=24.hours.ago)
-    updates = changesets_created(since) + changesets_applied(since) + feeds_imported(since) + feeds_versions_fetched(since)
+    updates = changesets_created(since) + changesets_updated(since) + changesets_applied(since) + feeds_imported(since) + feeds_versions_fetched(since)
     updates.sort_by { |update| update[:at_datetime] }.reverse
   end
 
@@ -57,7 +57,7 @@ class ActivityUpdates
   end
 
   def self.feeds_imported(since)
-    feed_version_imports = Feed.where("created_at > ?", since)
+    feed_version_imports = FeedVersionImport.where("created_at > ?", since)
     updates = feed_version_imports.map do |feed_version_import|
       success_word = feed_version_import.success ? 'successfully' : 'unsuccessfully'
       note = "#{success_word} at level #{feed_version_import.import_level}"
@@ -77,13 +77,14 @@ class ActivityUpdates
     feed_versions = FeedVersion.where("created_at > ?", since)
     updates = feed_versions.map do |feed_version|
       note = "
-        calendar runs from #{feed_version.earliest_calendar_date}
-        to #{feed_version.latest_calendar_date}
+        New feed version with SHA1 hash #{feed_version.sha1}.
+        Calendar runs from #{feed_version.earliest_calendar_date}
+        to #{feed_version.latest_calendar_date}.
       ".squish
       {
-        id: "fv-#{feed_version.id}-created",
-        entity_type: 'feed_version',
-        entity_id: feed_version.sha1,
+        id: "f-#{feed_version.feed.onestop_id}-fetched",
+        entity_type: 'feed',
+        entity_id: feed_version.feed.onestop_id,
         entity_action: 'fetched',
         note: note,
         at_datetime: feed_version.created_at
