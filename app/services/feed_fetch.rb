@@ -1,17 +1,20 @@
 require 'net/http'
 
 module FeedFetch
-  def self.download_to_tempfile(url, maxsize=nil)
+  def self.download_to_tempfile(url, maxsize: nil, progress: nil)
+    progress ||= lambda { |count, total| }
     fetch(url) do |response|
+      count = 0
+      total = response.content_length
       file = Tempfile.new(['fetched-feed', '.zip'])
       file.binmode
-      total = 0
       begin
         response.read_body do |chunk|
           file.write(chunk)
-          total += chunk.size
+          count += chunk.size
+          progress.call(count, total)
         end
-        raise IOError.new('Exceeds maximum file size') if (maxsize && total > maxsize)
+        raise IOError.new('Exceeds maximum file size') if (maxsize && count > maxsize)
         file.close
         yield file.path
       ensure

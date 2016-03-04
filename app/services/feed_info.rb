@@ -10,7 +10,7 @@ class FeedInfo
   end
 
   def download(progress: nil, &block)
-    FeedFetch.download_to_tempfile(@url) do |path|
+    FeedFetch.download_to_tempfile(@url, progress: progress) do |path|
       @path = path
       block.call self
     end
