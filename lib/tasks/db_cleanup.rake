@@ -1,6 +1,6 @@
 namespace :db do
   namespace :cleanup do
-    desc 'Deleting entities belonging only to inactive feed versions. [0] : logging mode, [1] : delete mode.'
+    desc 'Deleting entities belonging only to inactive feed versions ([0]: logging mode, [1]: delete mode).'
     task :cleanup_unreferenced_entities, [:mode] => [:environment] do |t, args|
       args.with_defaults(:mode => 0)
       mode = args[:mode].to_i
@@ -41,6 +41,12 @@ namespace :db do
         puts "Error: #{$!.message}"
         puts $!.backtrace
       end
+    end
+
+    desc 'Deleting ScheduleStopPairs belonging only to inactive feed versions ([0]: logging mode, [1]: delete mode).'
+    task :cleanup_unreferenced_ssps, [:mode] => [:environment] do |t, args|
+      # TODO:
+      # ScheduleStopPair.where(feed_version: FeedVersion.where.not(id: Feed.select(:active_feed_version_id)))
     end
   end
 end
