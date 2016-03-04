@@ -9,20 +9,26 @@ class FeedInfo
     @gtfs = nil
   end
 
+  def download(progress: nil, &block)
+    FeedFetch.download_to_tempfile(@url) do |path|
+      @path = path
+      block.call self
+    end
+  end
+
+  def process(progress: nil, &block)
+    @gtfs = GTFS::Source.build(@path, {strict: false})
+    @gtfs.load_graph(&progress)
+    block.call self
+  end
+
   def open(&block)
     if @gtfs
-      yield self
+      block.call self
     elsif @path
-      @gtfs = GTFS::Source.build(@path, {strict: false})
-      @gtfs.load_graph
-      yield self
+      process { |i| open(&block) }
     elsif @url
-      FeedFetch.download_to_tempfile(@url) do |path|
-        @path = path
-        @gtfs = GTFS::Source.build(@path, {strict: false})
-        @gtfs.load_graph
-        yield self
-      end
+      download { |i| open(&block) }
     end
   end
 
