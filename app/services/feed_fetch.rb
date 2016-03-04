@@ -26,7 +26,7 @@ module FeedFetch
 
   private
 
-  def self.fetch(url, limit=10, timeout=60, &block)
+  def self.fetch(url, limit:10, timeout:60, &block)
     # http://ruby-doc.org/stdlib-2.2.3/libdoc/net/http/rdoc/Net/HTTP.html
     # You should choose a better exception.
     # Some improvements inspired by
@@ -44,8 +44,8 @@ module FeedFetch
       when Net::HTTPRedirection then
         fetch(
           response['location'],
-          limit=limit-1,
-          timeout=timeout,
+          limit:limit-1,
+          timeout:timeout,
           &block
         )
       when Net::HTTPSuccess then
