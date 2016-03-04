@@ -188,6 +188,7 @@ class Route < BaseRoute
     route.tags[:route_long_name] = entity.route_long_name
     route.tags[:route_desc] = entity.route_desc
     route.tags[:route_url] = entity.route_url
+    route.tags[:route_color] = entity.route_color
     route.tags[:route_text_color] = entity.route_text_color
     route
   end
