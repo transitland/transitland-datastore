@@ -107,7 +107,7 @@ class GTFSGraph
         rsps_with_issues += 1
       end
     end
-    score = ((rsp_map.values.size - rsps_with_issues)/rsp_map.values.size.to_f).round(3) rescue score = 1.0
+    score = ((rsp_map.values.size - rsps_with_issues)/rsp_map.values.size.to_f).round(5) rescue score = 1.0
     log "#{rsps_with_issues} Route Stop Patterns out of #{rsp_map.values.size} had issues with distance calculation. Valhalla Import Score: #{score}"
     log "Create: SSPs"
     total = 0
