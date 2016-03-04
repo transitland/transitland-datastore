@@ -9,7 +9,7 @@ class ActivityUpdates
   private
 
   def self.changesets_created(since)
-    changesets = Changeset.where("created_at > ?", since)
+    changesets = Changeset.where("created_at > ?", since).includes(:user)
     updates = changesets.map do |changeset|
       {
         id: "c-#{changeset.id}-created",
@@ -25,7 +25,7 @@ class ActivityUpdates
   end
 
   def self.changesets_updated(since)
-    changesets = Changeset.where("updated_at > ?", since)
+    changesets = Changeset.where("updated_at > ?", since).includes(:user)
     updates = changesets.map do |changeset|
       {
         id: "c-#{changeset.id}-updated",
@@ -41,7 +41,7 @@ class ActivityUpdates
   end
 
   def self.changesets_applied(since)
-    changesets = Changeset.where("applied_at > ?", since)
+    changesets = Changeset.where("applied_at > ?", since).includes(:user)
     updates = changesets.map do |changeset|
       {
         id: "c-#{changeset.id}-applied",
