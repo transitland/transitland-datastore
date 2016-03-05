@@ -125,7 +125,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     end
     # FeedVersion Import level
     if params[:import_level].present?
-      @ssps = @ssps.where_import_level(params[:import_level].split(','))
+      @ssps = @ssps.where_import_level(AllowFiltering.param_as_array(params, :import_level))
     end
     # Service on a date
     if params[:date].present?
@@ -139,16 +139,16 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     end
     # Service between stops
     if params[:origin_onestop_id].present?
-      origin_stops = Stop.find_by_onestop_ids!(params[:origin_onestop_id].split(','))
+      origin_stops = Stop.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :origin_onestop_id))
       @ssps = @ssps.where(origin: origin_stops)
     end
     if params[:destination_onestop_id].present?
-      destination_stops = Stop.find_by_onestop_ids!(params[:destination_onestop_id].split(','))
+      destination_stops = Stop.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :destination_onestop_id))
       @ssps = @ssps.where(destination: destination_stops)
     end
     # Departing between...
     if params[:origin_departure_between].present?
-      t1, t2 = params[:origin_departure_between].split(',')
+      t1, t2 = AllowFiltering.param_as_array(params, :origin_departure_between)
       @ssps = @ssps.where_origin_departure_between(t1, t2)
     end
     # Service by trip id
@@ -157,15 +157,15 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     end
     # Service on a route
     if params[:route_onestop_id].present?
-      routes = Route.find_by_onestop_ids!(params[:route_onestop_id].split(','))
+      routes = Route.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :route_onestop_id))
       @ssps = @ssps.where(route: routes)
     end
     if params[:route_stop_pattern_onestop_id].present?
-      rsps = RouteStopPattern.find_by_onestop_ids!(params[:route_stop_pattern_onestop_id].split(','))
+      rsps = RouteStopPattern.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :route_stop_pattern_onestop_id))
       @ssps = @ssps.where(route_stop_pattern: rsps)
     end
     if params[:operator_onestop_id].present?
-      operators = Operator.find_by_onestop_ids!(params[:operator_onestop_id].split(','))
+      operators = Operator.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :operator_onestop_id))
       @ssps = @ssps.where(operator: operators)
     end
     # Stops in a bounding box
