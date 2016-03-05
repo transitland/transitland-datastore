@@ -143,6 +143,10 @@ class Route < BaseRoute
     !!(/^[0-9A-F]{6}$/.match(color))
   end
 
+  def self.color_from_gtfs(route_color)
+    route_color.upcase if route_color && Route.color_valid?(route_color.upcase)
+  end
+
   scope :operated_by, -> (model_or_onestop_id) {
     if model_or_onestop_id.is_a?(Operator)
       where(operator: model_or_onestop_id)
@@ -182,7 +186,7 @@ class Route < BaseRoute
       onestop_id: onestop_id.to_s,
       vehicle_type: entity.route_type.to_i
     )
-    route.color = entity.route_color.upcase if entity.route_color && Route.color_valid?(entity.route_color.upcase)
+    route.color = Route.color_from_gtfs(entity.route_color)
     # Copy over GTFS attributes to tags
     route.tags ||= {}
     route.tags[:route_long_name] = entity.route_long_name
