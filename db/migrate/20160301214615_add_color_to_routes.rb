@@ -4,7 +4,7 @@ class AddColorToRoutes < ActiveRecord::Migration
     add_column :old_routes, :color, :string
     [Route, OldRoute].each do |route|
       route.find_each do |r|
-         r.color = Route.color_from_gtfs(r.tags[:route_color])
+         r.color = Route.color_from_gtfs(r.tags['route_color'])
          r.save!
       end
     end
