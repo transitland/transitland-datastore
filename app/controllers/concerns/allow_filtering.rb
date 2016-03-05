@@ -52,7 +52,6 @@ module AllowFiltering
     collection
   end
 
-
   def self.by_identifer_and_identifier_starts_with(collection, params)
     if params[:identifier].present?
       collection = collection.with_identifier_or_name(params[:identifier])
@@ -77,6 +76,24 @@ module AllowFiltering
       collection = collection.where(conditions)
     end
     collection
+  end
+
+  def self.by_attribute_array(collection, params, attribute_name)
+    values = param_as_array(params, attribute_name)
+    if values.present?
+      collection = collection.where({attribute_name => values})
+    end
+    collection
+  end
+
+  def self.param_as_array(params, attribute_name)
+    values = []
+    value = params[attribute_name]
+    if value.present?
+      (values += value) if value.is_a?(Array)
+      (values += value.split(',')) if value.is_a?(String)
+    end
+    values
   end
 
 end
