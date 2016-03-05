@@ -13,7 +13,7 @@ namespace :db do
             route_serving_stops = RouteServingStop.where(route_id: entities_to_delete_ids)
             puts "Found #{route_serving_stops.size} RouteServingStops to delete."
             if (mode == 1 && !route_serving_stops.empty?)
-              puts "Deleting RouteServingStops."
+              puts "Deleting unreferenced RouteServingStops."
               route_serving_stops.delete_all
             end
           end
@@ -21,19 +21,19 @@ namespace :db do
             operator_serving_stops = OperatorServingStop.where(stop_id: entities_to_delete_ids)
             puts "Found #{operator_serving_stops.size} OperatorServingStops to delete."
             if (mode == 1 && !operator_serving_stops.empty?)
-              puts "Deleting OperatorServingStops."
+              puts "Deleting unreferenced OperatorServingStops."
               operator_serving_stops.delete_all
             end
           end
           entities_imported = EntityImportedFromFeed.where(entity_id: entities_to_delete_ids, entity_type: entity.to_s)
           puts "Found #{entities_imported.size} EntityImportedFromFeed #{entity.to_s}s to delete."
           if (mode && !entities_imported.empty?)
-            puts "Deleting EntityImportedFromFeed #{entity.to_s}s."
+            puts "Deleting unreferenced EntityImportedFromFeed #{entity.to_s}s."
             entities_imported.delete_all
           end
           puts "Found #{entities_to_delete.size} #{entity.to_s}s to delete."
           if (mode == 1 && !entities_to_delete.empty?)
-            puts "Deleting #{entity.to_s}s."
+            puts "Deleting unreferenced #{entity.to_s}s."
             entities_to_delete.each { |e| e.delete }
           end
         end
