@@ -416,6 +416,7 @@ class GTFSGraph
       onestopId: entity.onestop_id,
       name: entity.name,
       identifiedBy: entity.identified_by,
+      color: entity.color,
       operatedBy: entity.operator.onestop_id,
       vehicleType: entity.vehicle_type,
       serves: entity.serves.map(&:onestop_id),
