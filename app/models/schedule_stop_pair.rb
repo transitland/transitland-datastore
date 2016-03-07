@@ -226,8 +226,7 @@ class ScheduleStopPair < BaseScheduleStopPair
       :origin_onestop_id,
       :destination_onestop_id,
       :route_onestop_id,
-      :route_stop_pattern_onestop_id,
-      :imported_from_feed
+      :route_stop_pattern_onestop_id
     ]
   })
   def self.find_by_attributes(attrs = {})

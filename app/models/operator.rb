@@ -71,8 +71,7 @@ class Operator < BaseOperator
       :serves,
       :does_not_serve,
       :identified_by,
-      :not_identified_by,
-      :imported_from_feed
+      :not_identified_by
     ]
   })
   def self.after_create_making_history(created_model, changeset)

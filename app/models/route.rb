@@ -74,8 +74,7 @@ class Route < BaseRoute
       :does_not_serve,
       :operated_by,
       :identified_by,
-      :not_identified_by,
-      :imported_from_feed
+      :not_identified_by
     ]
   })
 

@@ -74,7 +74,6 @@ class Stop < BaseStop
       :not_served_by,
       :identified_by,
       :not_identified_by,
-      :imported_from_feed
     ]
   })
   def self.after_create_making_history(created_model, changeset)
