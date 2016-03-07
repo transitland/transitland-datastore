@@ -1,64 +1,117 @@
+# Create a concrete class for testing
+class TestOnestopId < OnestopId::OnestopIdBase
+  PREFIX = :s
+  MODEL = Stop
+  NUM_COMPONENTS = 3
+end
+
 describe OnestopId do
   it 'fails gracefully when given an invalid geometry' do
     expect {
-      OnestopId.new('Retiro Station', '-58.374722 -34.591389')
+      TestOnestopId.new('Retiro Station', '-58.374722 -34.591389')
     }.to raise_error(ArgumentError)
 
     expect {
-      OnestopId.new('Retiro Station', [-58.374722,-34.591389])
+      TestOnestopId.new('Retiro Station', [-58.374722,-34.591389])
+    }.to raise_error(ArgumentError)
+    expect {
+      TestOnestopId.new(name: 'Retiro Station')
+    }.to raise_error(ArgumentError)
+    expect {
+      TestOnestopId.new(geohash: '9q9')
     }.to raise_error(ArgumentError)
   end
 
-  context 'create' do
+  context '#geohash' do
     it 'filters geohashes' do
       expect(
-        OnestopId.new(entity_prefix: 's', geohash: 'a9q9', name: 'test').to_s
+        TestOnestopId.new(geohash: 'a9q9', name: 'test').to_s
       ).to eq('s-9q9-test')
-    end
-    it 'filters names' do
-      expect(
-        OnestopId.new(entity_prefix: 's', geohash: '9q9', name: 'Foo Bar!').to_s
-      ).to eq('s-9q9-foobar')
-    end
-    it 'filters names at' do
-      expect(
-        OnestopId.new(entity_prefix: 's', geohash: '9q9', name: 'foo@bar').to_s
-      ).to eq('s-9q9-foo~bar')
     end
   end
 
-  context 'validation' do
-    it 'must not be blank' do
-      is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string('')
-      expect(is_a_valid_onestop_id).to be false
-      expect(errors).to include 'must not be blank'
+  context '#name' do
+    it 'allows only letters, digits, ~, @ in name' do
+      expect(TestOnestopId.new(geohash: '9q9', name: 'foo bar').to_s).to eq('s-9q9-foobar')
+      expect(TestOnestopId.new(geohash: '9q9', name: 'foo bar!').to_s).to eq('s-9q9-foobar')
+      expect(TestOnestopId.new(geohash: '9q9', name: 'foo~bar').to_s).to eq('s-9q9-foo~bar')
+      expect(TestOnestopId.new(geohash: '9q9', name: 'foo~bar0').to_s).to eq('s-9q9-foo~bar0')
     end
-    it 'must start with "s-" as its 1st component' do
-      is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string('69y7pwu-RetSta', expected_entity_type: 'stop')
-      expect(is_a_valid_onestop_id).to be false
-      expect(errors).to include 'must start with "s" as its 1st component'
+  end
+
+  context '#validate' do
+    it 'requires valid geohash' do
+      expect(TestOnestopId.new(geohash: 'a@', name: 'test').errors).to include 'invalid geohash'
+    end
+    it 'requires name' do
+      expect(TestOnestopId.new(geohash: '9q9', name: '!').errors).to include 'invalid name'
+    end
+  end
+
+  context 'RouteStopPatternOnestopId' do
+    context 'invalid arguments' do
+      it 'fails gracefully when given an invalid stop pattern' do
+        expect {
+          OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: 'r-the~route',
+                                                   geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]).to_s
+        }.to raise_error(ArgumentError)
+      end
+      it 'fails gracefully when given an invalid geometry' do
+        expect {
+          OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: 'r-9q9-the~route',
+                                                   stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2']).to_s
+        }.to raise_error(ArgumentError)
+      end
+      it 'fails gracefully when given an invalid route' do
+        expect {
+          OnestopId::RouteStopPatternOnestopId.new(stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2'],
+                                                   geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]).to_s
+        }.to raise_error(ArgumentError)
+      end
     end
 
-    it 'must include 3 components separated by hyphens ("-")' do
-      is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string('s-69y7pwuRetSta')
-      expect(is_a_valid_onestop_id).to be false
-      expect(errors).to include 'must include 3 components separated by hyphens ("-")'
+    it 'handles route onestop id' do
+      onestop_id = OnestopId::RouteStopPatternOnestopId.new(
+            route_onestop_id: 'r-9q9-the~route',
+            stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2'],
+            geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]])
+      expect([onestop_id.geohash, onestop_id.name]).to match_array(['9q9','the~route'])
     end
 
-    it 'must include a valid geohash as its 2nd component, after "s-"' do
-      is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string('s-69y@7pwu-RetSta')
-      expect(is_a_valid_onestop_id).to be false
-      expect(errors).to include 'must include a valid geohash as its 2nd component'
+    it 'produces the first 6 hexadecimal characters of the geometry MD5 hash' do
+      expect(OnestopId::RouteStopPatternOnestopId.new(
+            route_onestop_id: 'r-9q9-the~route',
+            stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2'],
+            geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]).geometry_hash
+      ).to eq('48fed0')
     end
 
-    it 'must include only letters, digits, and ~ or @ in its abbreviated name (the 3rd component)' do
-      is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string('s-9y7pwu-RetSt#a')
-      expect(is_a_valid_onestop_id).to be false
-      expect(errors).to include 'must include only letters, digits, and ~ or @ in its abbreviated name (the 3rd component)'
-      is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string('s-9y7pwu-RetSt~a')
-      expect(is_a_valid_onestop_id).to be true
-      is_a_valid_onestop_id, errors = OnestopId.validate_onestop_id_string('s-9y7pwu-RetSt@a')
-      expect(is_a_valid_onestop_id).to be true
+    it 'produces the first 6 hexadecimal characters of the stop MD5 hash' do
+      expect(OnestopId::RouteStopPatternOnestopId.new(
+            route_onestop_id: 'r-9q9-the~route',
+            stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2'],
+            geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]).stop_hash
+      ).to eq('fca1a5')
+    end
+
+    context '#validate' do
+      it 'requires valid route onestop id' do
+        expect(
+            OnestopId::RouteStopPatternOnestopId.new(string: 'r-9q9-the~route!-fca1a5-48fed0').errors
+        ).to include 'invalid name'
+      end
+
+      it 'requires valid stop pattern hash prefix' do
+        expect(
+            OnestopId::RouteStopPatternOnestopId.new(string: 'r-9q9-the~route-fca1a5xx-48fed0').errors
+        ).to include 'invalid stop pattern hash'
+      end
+
+      it 'requires valid geometry hash prefix' do
+        expect(
+            OnestopId::RouteStopPatternOnestopId.new(string: 'r-9q9-the~route-fca1a5-x48fed0x').errors
+        ).to include 'invalid geometry hash'
+      end
     end
   end
 
@@ -68,7 +121,6 @@ describe OnestopId do
       @bosworth_diamond = create(:stop, onestop_id: 's-9q8y-BosDiam', geometry: 'POINT(-122.434011 37.733595)', name: 'Bosworth + Diamond')
       @metro_embarcadero = create(:stop, onestop_id: 's-9q8y-MetEmb', geometry: 'POINT(-122.396431 37.793152)', name: 'Metro Embarcadero')
       @gilman_paul_3rd = create(:stop, onestop_id: 's-9q8y-GilPaul3rd', geometry: 'POINT(-122.395644 37.722413)', name: 'Gilman + Paul + 3rd St.')
-
       @sfmta = create(:operator, onestop_id: 'o-9q8y-SFMTA', geometry: 'POINT(-122.395644 37.722413)', name: 'SFMTA')
     end
 

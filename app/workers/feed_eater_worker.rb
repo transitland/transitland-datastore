@@ -21,7 +21,9 @@ class FeedEaterWorker
     feed_file_path = feed_version.file.local_path_copying_locally_if_needed
 
     # Create import record
-    feed_version_import = feed_version.feed_version_imports.create
+    feed_version_import = feed_version.feed_version_imports.create(
+      import_level: import_level
+    )
 
     # Validate
     unless Figaro.env.run_google_feedvalidator.present? &&
@@ -37,22 +39,23 @@ class FeedEaterWorker
     end
 
     # Import feed
-    logger.info "FeedEaterWorker #{feed_onestop_id}: Importing feed at import level #{import_level}"
     graph = nil
     begin
+      logger.info "FeedEaterWorker #{feed_onestop_id}: Importing feed at import level #{import_level}"
       graph = GTFSGraph.new(feed_file_path, feed, feed_version)
-      graph.create_change_osr(import_level)
+      graph.cleanup
+      graph.create_change_osr
       if import_level >= 2
         schedule_jobs = []
-        graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map|
+        graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map, rsp_map|
           # Create FeedScheduleImport record for FESW job
           feed_schedule_import = feed_version_import.feed_schedule_imports.create!
           # Don't enqueue immediately to avoid races
-          schedule_jobs << [feed_schedule_import.id, trip_ids, agency_map, route_map, stop_map]
+          schedule_jobs << [feed_schedule_import.id, trip_ids, agency_map, route_map, stop_map, rsp_map]
         end
-        schedule_jobs.each do |feed_schedule_import_id, trip_ids, agency_map, route_map, stop_map|
+        schedule_jobs.each do |feed_schedule_import_id, trip_ids, agency_map, route_map, stop_map, rsp_map|
           logger.info "FeedEaterWorker #{feed_onestop_id}: Enqueue schedule job"
-          FeedEaterScheduleWorker.perform_async(feed.onestop_id, feed_version.sha1, feed_schedule_import_id, trip_ids, agency_map, route_map, stop_map)
+          FeedEaterScheduleWorker.perform_async(feed.onestop_id, feed_version.sha1, feed_schedule_import_id, trip_ids, agency_map, route_map, stop_map, rsp_map)
         end
       end
     rescue Exception => e
@@ -76,4 +79,15 @@ class FeedEaterWorker
       feed_version_import.update(import_log: graph.try(:import_log))
     end
   end
+end
+
+
+if __FILE__ == $0
+  require 'sidekiq/testing'
+  Sidekiq::Testing.inline!
+  ActiveRecord::Base.logger = Logger.new(STDOUT)
+  feed_onestop_id = ARGV[0] || 'f-9q9-caltrain'
+  import_level = (ARGV[1].presence || 1).to_i
+  FeedFetcherWorker.new.perform(feed_onestop_id)
+  FeedEaterWorker.perform_async(feed_onestop_id, nil, import_level)
 end

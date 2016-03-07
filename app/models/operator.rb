@@ -123,25 +123,25 @@ class Operator < BaseOperator
 
   ##### FromGTFS ####
   include FromGTFS
-  def self.from_gtfs(entity, stops)
+  def self.from_gtfs(entity, attrs={})
     # GTFS Constructor
-    raise ArgumentError.new('Need at least one Stop') if stops.empty?
-    geohash = GeohashHelpers.fit(stops.map { |i| i[:geometry] })
-    geometry = Operator.convex_hull(stops, as: :wkt, projected: false)
+    coordinates = Stop::GEOFACTORY.collection(
+      entity.stops.map { |stop| Stop::GEOFACTORY.point(*stop.coordinates) }
+    )
+    geohash = GeohashHelpers.fit(coordinates)
+    geometry = RGeo::Cartesian::BoundingBox.create_from_geometry(coordinates)
+    # Generate third Onestop ID component
     name = [entity.agency_name, entity.id, "unknown"]
       .select(&:present?)
       .first
-    onestop_id = OnestopId.new(
-      entity_prefix: 'o',
+    # Create Operator
+    attrs[:geometry] = geometry.to_geometry
+    attrs[:name] = name
+    attrs[:onestop_id] = OnestopId.handler_by_model(self).new(
       geohash: geohash,
       name: name
     )
-    operator = Operator.new(
-      name: name,
-      onestop_id: onestop_id.to_s,
-    )
-    operator[:geometry] = geometry
-    # Copy over GTFS attributes to tags
+    operator = Operator.new(attrs)
     operator.tags ||= {}
     operator.tags[:agency_phone] = entity.agency_phone
     operator.tags[:agency_lang] = entity.agency_lang

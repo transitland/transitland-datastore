@@ -2,7 +2,7 @@
 http_interactions:
 - request:
     method: get
-    uri: http://httpbin.org/get
+    uri: http://httpbin.org/status/404
     body:
       encoding: US-ASCII
       string: ''
@@ -15,17 +15,17 @@ http_interactions:
       - Ruby
   response:
     status:
-      code: 200
-      message: OK
+      code: 404
+      message: NOT FOUND
     headers:
       Server:
       - nginx
       Date:
-      - Wed, 09 Dec 2015 00:39:40 GMT
+      - Fri, 22 Jan 2016 23:59:28 GMT
       Content-Type:
-      - application/json
+      - text/html; charset=utf-8
       Content-Length:
-      - '247'
+      - '0'
       Connection:
       - keep-alive
       Access-Control-Allow-Origin:
@@ -34,10 +34,7 @@ http_interactions:
       - 'true'
     body:
       encoding: UTF-8
-      string: "{\n  \"args\": {}, \n  \"headers\": {\n    \"Accept\": \"*/*\", \n
-        \   \"Accept-Encoding\": \"gzip;q=1.0,deflate;q=0.6,identity;q=0.3\", \n    \"Host\":
-        \"httpbin.org\", \n    \"User-Agent\": \"Ruby\"\n  }, \n  \"origin\": \"172.125.87.109\",
-        \n  \"url\": \"http://httpbin.org/get\"\n}\n"
+      string: ''
     http_version: 
-  recorded_at: Wed, 09 Dec 2015 00:39:40 GMT
-recorded_with: VCR 3.0.0
+  recorded_at: Fri, 22 Jan 2016 23:59:28 GMT
+recorded_with: VCR 3.0.1

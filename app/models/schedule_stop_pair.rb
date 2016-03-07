@@ -39,7 +39,11 @@
 #  bikes_allowed                      :boolean
 #  pickup_type                        :string
 #  drop_off_type                      :string
-#  active                             :boolean
+#  route_stop_pattern_id              :integer
+#  origin_dist_traveled               :float
+#  destination_dist_traveled          :float
+#  feed_id                            :integer
+#  feed_version_id                    :integer
 #
 # Indexes
 #
@@ -50,15 +54,16 @@
 #  c_ssp_service_end_date                                      (service_end_date)
 #  c_ssp_service_start_date                                    (service_start_date)
 #  c_ssp_trip                                                  (trip)
-#  index_current_schedule_stop_pairs_on_active                 (active)
+#  index_current_schedule_stop_pairs_on_feed_id                (feed_id)
+#  index_current_schedule_stop_pairs_on_feed_version_id        (feed_version_id)
 #  index_current_schedule_stop_pairs_on_operator_id            (operator_id)
 #  index_current_schedule_stop_pairs_on_origin_departure_time  (origin_departure_time)
+#  index_current_schedule_stop_pairs_on_route_stop_pattern_id  (route_stop_pattern_id)
 #  index_current_schedule_stop_pairs_on_updated_at             (updated_at)
 #
 
 class BaseScheduleStopPair < ActiveRecord::Base
   self.abstract_class = true
-  include IsAnEntityImportedFromFeeds
 
   extend Enumerize
   enumerize :origin_timepoint_source, in: [
@@ -85,6 +90,9 @@ class ScheduleStopPair < BaseScheduleStopPair
   belongs_to :destination, class_name: "Stop"
   belongs_to :route
   belongs_to :operator
+  belongs_to :route_stop_pattern
+  belongs_to :feed
+  belongs_to :feed_version
 
   # Required relations and attributes
   before_validation :filter_service_range
@@ -109,6 +117,16 @@ class ScheduleStopPair < BaseScheduleStopPair
   include UpdatedSince
 
   # Scopes
+  # Feed Version Import Level
+  scope :where_import_level, -> (import_level) {
+    where(feed_version: FeedVersion.where(import_level: import_level))
+  }
+
+  # Active Feed Version
+  scope :where_active, -> {
+    joins('INNER JOIN current_feeds ON feed_version_id = current_feeds.active_feed_version_id')
+  }
+
   # Service active on a date
   scope :where_service_on_date, -> (date) {
     date = date.is_a?(Date) ? date : Date.parse(date)
@@ -126,6 +144,11 @@ class ScheduleStopPair < BaseScheduleStopPair
   scope :where_service_from_date, -> (date) {
     date = date.is_a?(Date) ? date : Date.parse(date)
     where("service_end_date >= ?", date)
+  }
+
+  scope :where_service_before_date, -> (date) {
+    date = date.is_a?(Date) ? date : Date.parse(date)
+    where("service_start_date <= ?", date)
   }
 
   # Service trips_out in a bbox
@@ -158,6 +181,10 @@ class ScheduleStopPair < BaseScheduleStopPair
 
   def destination_onestop_id=(value)
     self.destination = Stop.find_by!(onestop_id: value)
+  end
+
+  def route_stop_pattern_onestop_id=(value)
+    self.route_stop_pattern = RouteStopPattern.find_by_onestop_id!(value)
   end
 
   def service_on_date?(date)
@@ -199,6 +226,7 @@ class ScheduleStopPair < BaseScheduleStopPair
       :origin_onestop_id,
       :destination_onestop_id,
       :route_onestop_id,
+      :route_stop_pattern_onestop_id,
       :imported_from_feed
     ]
   })
@@ -212,18 +240,12 @@ class ScheduleStopPair < BaseScheduleStopPair
     {
       origin_onestop_id: :origin,
       destination_onestop_id: :destination,
-      route_onestop_id: :route
+      route_onestop_id: :route,
+      route_stop_pattern_onestop_id: :route_stop_pattern
     }.each do |k,v|
+      next if params[k].nil?
       cache[params[k]] ||= OnestopId.find!(params[k])
       params[v] = cache[params.delete(k)]
-    end
-    if params[:imported_from_feed]
-      feed_onestop_id = params[:imported_from_feed][:onestop_id]
-      feed_version_id = params[:imported_from_feed][:sha1]
-      cache[feed_onestop_id] ||= OnestopId.find!(feed_onestop_id)
-      cache[feed_version_id] ||= cache[feed_onestop_id].feed_versions.find_by!(sha1: feed_version_id)
-      params[:imported_from_feed][:feed] = cache[feed_onestop_id]
-      params[:imported_from_feed][:feed_version] = cache[feed_version_id]
     end
     params[:operator] = params[:route].operator
     params

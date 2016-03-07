@@ -59,6 +59,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
   include Geojson
   include JsonCollectionPagination
   include DownloadableCsv
+  include AllowFiltering
 
   before_action :set_schedule_stop_pairs
 
@@ -68,20 +69,27 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
         render paginated_json_collection(
           @ssps,
           Proc.new { |params| api_v1_schedule_stop_pairs_url(params) },
+          params[:sort_key],
+          params[:sort_order],
           params[:offset],
           params[:per_page],
           params[:total],
           params.slice(
             :date,
             :service_from_date,
+            :service_before_date,
             :origin_onestop_id,
             :destination_onestop_id,
             :origin_departure_between,
             :trip,
             :route_onestop_id,
+            :route_stop_pattern_onestop_id,
             :operator_onestop_id,
             :bbox,
-            :updated_since
+            :updated_since,
+            :feed_version_sha1,
+            :feed_onestop_id,
+            :import_level
           )
         )
       end
@@ -94,7 +102,31 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
   private
 
   def set_schedule_stop_pairs
-    @ssps = ScheduleStopPair.where(active: true)
+    @ssps = ScheduleStopPair.where('')
+
+    # Tags
+    @ssps = AllowFiltering.by_tag_keys_and_values(@ssps, params)
+    # Edges updated since
+    @ssps = AllowFiltering.by_updated_since(@ssps, params)
+
+    # Feed Version, or default: All active Feed Versions
+    if params[:feed_version_sha1]
+      @ssps = @ssps.where(feed_version: FeedVersion.find_by(sha1: params[:feed_version_sha1]))
+    else
+      @ssps = @ssps.where_active
+    end
+    # Explicitly use active Feed Versions
+    if params[:active].presence == 'true'
+      @ssps = @ssps.where_active
+    end
+    # Feed
+    if params[:feed_onestop_id]
+      @ssps = @ssps.where(feed: Feed.find_by_onestop_id!(params[:feed_onestop_id]))
+    end
+    # FeedVersion Import level
+    if params[:import_level].present?
+      @ssps = @ssps.where_import_level(AllowFiltering.param_as_array(params, :import_level))
+    end
     # Service on a date
     if params[:date].present?
       @ssps = @ssps.where_service_on_date(params[:date])
@@ -102,18 +134,21 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     if params[:service_from_date].present?
       @ssps = @ssps.where_service_from_date(params[:service_from_date])
     end
+    if params[:service_before_date].present?
+      @ssps = @ssps.where_service_before_date(params[:service_before_date])
+    end
     # Service between stops
     if params[:origin_onestop_id].present?
-      origin_stops = Stop.where(onestop_id: params[:origin_onestop_id].split(','))
+      origin_stops = Stop.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :origin_onestop_id))
       @ssps = @ssps.where(origin: origin_stops)
     end
     if params[:destination_onestop_id].present?
-      destination_stops = Stop.where(onestop_id: params[:destination_onestop_id].split(','))
+      destination_stops = Stop.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :destination_onestop_id))
       @ssps = @ssps.where(destination: destination_stops)
     end
     # Departing between...
     if params[:origin_departure_between].present?
-      t1, t2 = params[:origin_departure_between].split(',')
+      t1, t2 = AllowFiltering.param_as_array(params, :origin_departure_between)
       @ssps = @ssps.where_origin_departure_between(t1, t2)
     end
     # Service by trip id
@@ -122,26 +157,29 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     end
     # Service on a route
     if params[:route_onestop_id].present?
-      routes = Route.where(onestop_id: params[:route_onestop_id].split(','))
+      routes = Route.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :route_onestop_id))
       @ssps = @ssps.where(route: routes)
     end
+    if params[:route_stop_pattern_onestop_id].present?
+      rsps = RouteStopPattern.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :route_stop_pattern_onestop_id))
+      @ssps = @ssps.where(route_stop_pattern: rsps)
+    end
     if params[:operator_onestop_id].present?
-      operators = Stop.where(onestop_id: params[:operator_onestop_id].split(','))
+      operators = Operator.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :operator_onestop_id))
       @ssps = @ssps.where(operator: operators)
     end
     # Stops in a bounding box
     if params[:bbox].present?
       @ssps = @ssps.where_origin_bbox(params[:bbox])
     end
-    # Edges updated since
-    if params[:updated_since].present?
-      @ssps = @ssps.updated_since(params[:updated_since])
-    end
     @ssps = @ssps.includes{[
       origin,
       destination,
       route,
-      operator
+      route_stop_pattern,
+      operator,
+      feed,
+      feed_version
     ]}
   end
 end

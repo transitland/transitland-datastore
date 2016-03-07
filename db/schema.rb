@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20151223172515) do
+ActiveRecord::Schema.define(version: 20160219230742) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -33,7 +33,14 @@ ActiveRecord::Schema.define(version: 20151223172515) do
     t.datetime "applied_at"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "user_id"
+    t.integer  "feed_id"
+    t.integer  "feed_version_id"
   end
+
+  add_index "changesets", ["feed_id"], name: "index_changesets_on_feed_id", using: :btree
+  add_index "changesets", ["feed_version_id"], name: "index_changesets_on_feed_version_id", using: :btree
+  add_index "changesets", ["user_id"], name: "index_changesets_on_user_id", using: :btree
 
   create_table "current_feeds", force: :cascade do |t|
     t.string    "onestop_id"
@@ -115,6 +122,29 @@ ActiveRecord::Schema.define(version: 20151223172515) do
   add_index "current_operators_serving_stop", ["stop_id", "operator_id"], name: "index_current_operators_serving_stop_on_stop_id_and_operator_id", unique: true, using: :btree
   add_index "current_operators_serving_stop", ["stop_id"], name: "index_current_operators_serving_stop_on_stop_id", using: :btree
 
+  create_table "current_route_stop_patterns", force: :cascade do |t|
+    t.string    "onestop_id"
+    t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
+    t.hstore    "tags"
+    t.string    "stop_pattern",                                                                                   default: [],                 array: true
+    t.integer   "version"
+    t.boolean   "is_generated",                                                                                   default: false
+    t.boolean   "is_modified",                                                                                    default: false
+    t.string    "trips",                                                                                          default: [],                 array: true
+    t.string    "identifiers",                                                                                    default: [],                 array: true
+    t.datetime  "created_at",                                                                                                     null: false
+    t.datetime  "updated_at",                                                                                                     null: false
+    t.integer   "created_or_updated_in_changeset_id"
+    t.integer   "route_id"
+  end
+
+  add_index "current_route_stop_patterns", ["created_or_updated_in_changeset_id"], name: "c_rsp_cu_in_changeset", using: :btree
+  add_index "current_route_stop_patterns", ["identifiers"], name: "index_current_route_stop_patterns_on_identifiers", using: :gin
+  add_index "current_route_stop_patterns", ["onestop_id"], name: "index_current_route_stop_patterns_on_onestop_id", using: :btree
+  add_index "current_route_stop_patterns", ["route_id"], name: "index_current_route_stop_patterns_on_route_id", using: :btree
+  add_index "current_route_stop_patterns", ["stop_pattern"], name: "index_current_route_stop_patterns_on_stop_pattern", using: :gin
+  add_index "current_route_stop_patterns", ["trips"], name: "index_current_route_stop_patterns_on_trips", using: :gin
+
   create_table "current_routes", force: :cascade do |t|
     t.string    "onestop_id"
     t.string    "name"
@@ -188,16 +218,22 @@ ActiveRecord::Schema.define(version: 20151223172515) do
     t.boolean  "bikes_allowed"
     t.string   "pickup_type"
     t.string   "drop_off_type"
-    t.boolean  "active"
+    t.integer  "route_stop_pattern_id"
+    t.float    "origin_dist_traveled"
+    t.float    "destination_dist_traveled"
+    t.integer  "feed_id"
+    t.integer  "feed_version_id"
   end
 
-  add_index "current_schedule_stop_pairs", ["active"], name: "index_current_schedule_stop_pairs_on_active", using: :btree
   add_index "current_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "c_ssp_cu_in_changeset", using: :btree
   add_index "current_schedule_stop_pairs", ["destination_id"], name: "c_ssp_destination", using: :btree
+  add_index "current_schedule_stop_pairs", ["feed_id"], name: "index_current_schedule_stop_pairs_on_feed_id", using: :btree
+  add_index "current_schedule_stop_pairs", ["feed_version_id"], name: "index_current_schedule_stop_pairs_on_feed_version_id", using: :btree
   add_index "current_schedule_stop_pairs", ["operator_id"], name: "index_current_schedule_stop_pairs_on_operator_id", using: :btree
   add_index "current_schedule_stop_pairs", ["origin_departure_time"], name: "index_current_schedule_stop_pairs_on_origin_departure_time", using: :btree
   add_index "current_schedule_stop_pairs", ["origin_id"], name: "c_ssp_origin", using: :btree
   add_index "current_schedule_stop_pairs", ["route_id"], name: "c_ssp_route", using: :btree
+  add_index "current_schedule_stop_pairs", ["route_stop_pattern_id"], name: "index_current_schedule_stop_pairs_on_route_stop_pattern_id", using: :btree
   add_index "current_schedule_stop_pairs", ["service_end_date"], name: "c_ssp_service_end_date", using: :btree
   add_index "current_schedule_stop_pairs", ["service_start_date"], name: "c_ssp_service_start_date", using: :btree
   add_index "current_schedule_stop_pairs", ["trip"], name: "c_ssp_trip", using: :btree
@@ -256,6 +292,7 @@ ActiveRecord::Schema.define(version: 20151223172515) do
     t.text     "import_log"
     t.text     "exception_log"
     t.text     "validation_report"
+    t.integer  "import_level"
   end
 
   add_index "feed_version_imports", ["feed_version_id"], name: "index_feed_version_imports_on_feed_version_id", using: :btree
@@ -273,6 +310,7 @@ ActiveRecord::Schema.define(version: 20151223172515) do
     t.datetime "imported_at"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "import_level",           default: 0
   end
 
   add_index "feed_versions", ["feed_type", "feed_id"], name: "index_feed_versions_on_feed_type_and_feed_id", using: :btree
@@ -373,6 +411,33 @@ ActiveRecord::Schema.define(version: 20151223172515) do
   add_index "old_operators_serving_stop", ["operator_type", "operator_id"], name: "operators_serving_stop_operator", using: :btree
   add_index "old_operators_serving_stop", ["stop_type", "stop_id"], name: "operators_serving_stop_stop", using: :btree
 
+  create_table "old_route_stop_patterns", force: :cascade do |t|
+    t.string    "onestop_id"
+    t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
+    t.hstore    "tags"
+    t.string    "stop_pattern",                                                                                   default: [],                 array: true
+    t.integer   "version"
+    t.boolean   "is_generated",                                                                                   default: false
+    t.boolean   "is_modified",                                                                                    default: false
+    t.string    "trips",                                                                                          default: [],                 array: true
+    t.string    "identifiers",                                                                                    default: [],                 array: true
+    t.datetime  "created_at",                                                                                                     null: false
+    t.datetime  "updated_at",                                                                                                     null: false
+    t.integer   "created_or_updated_in_changeset_id"
+    t.integer   "destroyed_in_changeset_id"
+    t.integer   "route_id"
+    t.string    "route_type"
+    t.integer   "current_id"
+  end
+
+  add_index "old_route_stop_patterns", ["created_or_updated_in_changeset_id"], name: "o_rsp_cu_in_changeset", using: :btree
+  add_index "old_route_stop_patterns", ["current_id"], name: "index_old_route_stop_patterns_on_current_id", using: :btree
+  add_index "old_route_stop_patterns", ["identifiers"], name: "index_old_route_stop_patterns_on_identifiers", using: :gin
+  add_index "old_route_stop_patterns", ["onestop_id"], name: "index_old_route_stop_patterns_on_onestop_id", using: :btree
+  add_index "old_route_stop_patterns", ["route_type", "route_id"], name: "index_old_route_stop_patterns_on_route_type_and_route_id", using: :btree
+  add_index "old_route_stop_patterns", ["stop_pattern"], name: "index_old_route_stop_patterns_on_stop_pattern", using: :gin
+  add_index "old_route_stop_patterns", ["trips"], name: "index_old_route_stop_patterns_on_trips", using: :gin
+
   create_table "old_routes", force: :cascade do |t|
     t.string    "onestop_id"
     t.string    "name"
@@ -460,16 +525,22 @@ ActiveRecord::Schema.define(version: 20151223172515) do
     t.boolean  "bikes_allowed"
     t.string   "pickup_type"
     t.string   "drop_off_type"
-    t.boolean  "active"
+    t.integer  "route_stop_pattern_id"
+    t.float    "origin_dist_traveled"
+    t.float    "destination_dist_traveled"
+    t.integer  "feed_id"
+    t.integer  "feed_version_id"
   end
 
-  add_index "old_schedule_stop_pairs", ["active"], name: "index_old_schedule_stop_pairs_on_active", using: :btree
   add_index "old_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "o_ssp_cu_in_changeset", using: :btree
   add_index "old_schedule_stop_pairs", ["current_id"], name: "index_old_schedule_stop_pairs_on_current_id", using: :btree
   add_index "old_schedule_stop_pairs", ["destination_type", "destination_id"], name: "o_ssp_destination", using: :btree
   add_index "old_schedule_stop_pairs", ["destroyed_in_changeset_id"], name: "o_ssp_d_in_changeset", using: :btree
+  add_index "old_schedule_stop_pairs", ["feed_id"], name: "index_old_schedule_stop_pairs_on_feed_id", using: :btree
+  add_index "old_schedule_stop_pairs", ["feed_version_id"], name: "index_old_schedule_stop_pairs_on_feed_version_id", using: :btree
   add_index "old_schedule_stop_pairs", ["operator_id"], name: "index_old_schedule_stop_pairs_on_operator_id", using: :btree
   add_index "old_schedule_stop_pairs", ["origin_type", "origin_id"], name: "o_ssp_origin", using: :btree
+  add_index "old_schedule_stop_pairs", ["route_stop_pattern_id"], name: "index_old_schedule_stop_pairs_on_route_stop_pattern_id", using: :btree
   add_index "old_schedule_stop_pairs", ["route_type", "route_id"], name: "o_ssp_route", using: :btree
   add_index "old_schedule_stop_pairs", ["service_end_date"], name: "o_ssp_service_end_date", using: :btree
   add_index "old_schedule_stop_pairs", ["service_start_date"], name: "o_ssp_service_start_date", using: :btree
@@ -496,6 +567,27 @@ ActiveRecord::Schema.define(version: 20151223172515) do
   add_index "old_stops", ["destroyed_in_changeset_id"], name: "stops_d_in_changeset_id_index", using: :btree
   add_index "old_stops", ["geometry"], name: "index_old_stops_on_geometry", using: :gist
   add_index "old_stops", ["identifiers"], name: "index_old_stops_on_identifiers", using: :gin
+
+  create_table "users", force: :cascade do |t|
+    t.string   "email",                                  null: false
+    t.string   "name"
+    t.string   "affiliation"
+    t.string   "user_type"
+    t.string   "encrypted_password",     default: "",    null: false
+    t.string   "reset_password_token"
+    t.datetime "reset_password_sent_at"
+    t.integer  "sign_in_count",          default: 0,     null: false
+    t.datetime "current_sign_in_at"
+    t.datetime "last_sign_in_at"
+    t.string   "current_sign_in_ip"
+    t.string   "last_sign_in_ip"
+    t.datetime "created_at",                             null: false
+    t.datetime "updated_at",                             null: false
+    t.boolean  "admin",                  default: false
+  end
+
+  add_index "users", ["email"], name: "index_users_on_email", unique: true, using: :btree
+  add_index "users", ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true, using: :btree
 
   add_foreign_key "change_payloads", "changesets"
 end

@@ -27,7 +27,7 @@ module TransitlandDatastore
     config.middleware.insert_before 0, "Rack::Cors" do
       allow do
         origins '*'
-        resource '*', :headers => :any, :methods => [:get, :post, :put, :patch, :options]
+        resource '*', headers: :any, methods: [:get, :post, :put, :patch, :delete, :options]
       end
     end
 
@@ -35,5 +35,38 @@ module TransitlandDatastore
 
     # https://github.com/carrierwaveuploader/carrierwave/issues/1576
     config.active_record.raise_in_transactional_callbacks = true
+
+    # e-mail
+    HOST = 'mapzen.com' # TODO: change to 'transit.land'
+    config.action_mailer.default_url_options = { host: HOST }
+    if Rails.env.development?
+      # Send mail to mailcatcher gem
+      config.action_mailer.delivery_method = :smtp
+      config.action_mailer.smtp_settings = {
+        address: "localhost",
+        port: 1025
+      }
+      config.action_mailer.raise_delivery_errors = false
+    elsif Rails.env.test?
+      # Tell Action Mailer not to deliver emails to the real world.
+      # The :test delivery method accumulates sent emails in the
+      # ActionMailer::Base.deliveries array.
+      config.action_mailer.delivery_method = :test
+    elsif Rails.env.staging? || Rails.env.production?
+      # Ignore bad email addresses and do not raise email delivery errors.
+      # Set this to true and configure the email server for immediate delivery to raise delivery errors.
+      # config.action_mailer.raise_delivery_errors = false
+
+      # use Mandrill to send e-mail
+      config.action_mailer.smtp_settings = {
+          address: "smtp.mandrillapp.com",
+          port: 587,
+          enable_starttls_auto: true,
+          user_name: Figaro.env.mandrill_user_name,
+          password: Figaro.env.mandrill_password,
+          authentication: :plain,
+          domain: HOST
+        }
+    end
   end
 end

@@ -2,7 +2,13 @@ class Api::V1::WebhooksController < Api::V1::BaseApiController
   before_filter :require_api_auth_token
 
   def feed_fetcher
-    workers = Feed.async_fetch_all_feeds
+    if params[:feed_onestop_id].present?
+      workers = [
+        Feed.find_by_onestop_id!(params[:feed_onestop_id]).async_fetch_feed_version
+      ]
+    else
+      workers = Feed.async_fetch_all_feeds
+    end
     if workers
       render json: {
         code: 200,
@@ -34,4 +40,5 @@ class Api::V1::WebhooksController < Api::V1::BaseApiController
       raise 'FeedEaterWorker could not be created or enqueued.'
     end
   end
+
 end

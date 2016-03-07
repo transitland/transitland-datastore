@@ -47,20 +47,6 @@ class BaseFeed < ActiveRecord::Base
 end
 
 class Feed < BaseFeed
-  class FetchError < StandardError
-    attr_accessor :feed, :error_messages, :backtrace
-
-    def initialize(feed, error_messages, backtrace=[])
-      @feed = feed
-      @error_messages = error_messages
-      @backtrace = backtrace
-    end
-
-    def to_s
-      "Feed::FetchError for #{feed.onestop_id}: #{@error_messages.join(', ')}"
-    end
-  end
-
   self.table_name_prefix = 'current_'
 
   include HasAOnestopId
@@ -80,8 +66,14 @@ class Feed < BaseFeed
   has_many :imported_stops, through: :entities_imported_from_feed, source: :entity, source_type: 'Stop'
   has_many :imported_routes, through: :entities_imported_from_feed, source: :entity, source_type: 'Route'
   has_many :imported_schedule_stop_pairs, through: :entities_imported_from_feed, source: :entity, source_type: 'ScheduleStopPair'
+  has_many :imported_route_stop_patterns, through: :entities_imported_from_feed, source: :entity, source_type: 'RouteStopPattern'
+  has_many :imported_schedule_stop_pairs, class_name: 'ScheduleStopPair', dependent: :delete_all
+
+  has_many :changesets_imported_from_this_feed, class_name: 'Changeset'
 
   after_initialize :set_default_values
+
+  after_create :after_create_async_fetch_feed_version
 
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
@@ -147,67 +139,57 @@ class Feed < BaseFeed
     begin
       logger.info "Fetching feed #{onestop_id} from #{url}"
       @fetched_at = DateTime.now
-
-      # download from URL using Carrierwave
-      new_feed_version = self.feed_versions.create(
-        remote_file_url: self.url,
-        fetched_at: @fetched_at
-      )
-
-      feed_version_to_return = nil
-
-      if new_feed_version.persisted?
-        logger.info "File downloaded from #{url} has a new sha1 hash"
-        feed_version_to_return = new_feed_version
-      else
-        logger.info "File downloaded from #{url} raises errors: #{new_feed_version.errors.full_messages}"
-        if new_feed_version.errors.full_messages.include? "Sha1 has already been taken"
-          feed_version_to_return = self.feed_versions.find_by(sha1: new_feed_version.sha1)
+      FeedFetch.download_to_tempfile(self.url) do |path|
+        sha1_for_new_tempfile = Digest::SHA1.file(path).hexdigest
+        existing_feed_version_with_same_sha1 = self.feed_versions.find_by(
+          sha1: sha1_for_new_tempfile
+        )
+        if existing_feed_version_with_same_sha1
+          logger.info "File downloaded from #{url} has an existing sha1 hash"
+          return existing_feed_version_with_same_sha1
         else
-          raise Feed::FetchError.new(self, new_feed_version.errors.full_messages)
+          logger.info "File downloaded from #{url} has a new sha1 hash"
+          new_feed_version = self.feed_versions.create(
+            file: File.open(path),
+            fetched_at: @fetched_at
+          )
+          return new_feed_version
         end
       end
-
-      return feed_version_to_return
     rescue Exception => e
       @fetch_exception_log = e.message
       if e.backtrace.present?
         @fetch_exception_log << "\n"
-        @fetch_exception_log << e.backtrace
+        @fetch_exception_log << e.backtrace.join("\n")
       end
       logger.error @fetch_exception_log
       return nil
     ensure
-      unless new_feed_version.persisted?
-        new_feed_version.destroy # don't keep this new FeedVersion record around in memory
-      end
-
       self.update(
-        latest_fetch_exception_log: @fetch_exception_log || nil,
+        latest_fetch_exception_log: @fetch_exception_log,
         last_fetched_at: @fetched_at
       )
     end
   end
 
-  def activate_feed_version(feed_version_sha1)
+  def activate_feed_version(feed_version_sha1, import_level)
     self.transaction do
       feed_version = self.feed_versions.find_by!(sha1: feed_version_sha1)
-      raise Exception.new('Cannot activate already active feed') if feed_version == self.active_feed_version
-      feed_version.activate_schedule_stop_pairs!
-      self.active_feed_version.delete_schedule_stop_pairs! if self.active_feed_version
-      self.update(
-        active_feed_version: feed_version,
-        last_imported_at: feed_version.imported_at
-      )
+      self.update!(active_feed_version: feed_version)
+      feed_version.update!(import_level: import_level)
     end
   end
 
   def self.async_fetch_all_feeds
     workers = []
     Feed.find_each do |feed|
-      workers << FeedFetcherWorker.perform_async(feed.onestop_id)
+      workers << feed.async_fetch_feed_version
     end
     workers
+  end
+
+  def async_fetch_feed_version
+    FeedFetcherWorker.perform_async(onestop_id)
   end
 
   def set_bounding_box_from_stops(stops)
@@ -232,25 +214,41 @@ class Feed < BaseFeed
 
   ##### FromGTFS ####
   include FromGTFS
-  def self.from_gtfs(url, stops)
-    # GTFS Constructor
-    raise ArgumentError.new('Need at least one Stop') if stops.empty?
-    geohash = GeohashHelpers.fit(stops.map { |i| i[:geometry] })
-    name = Addressable::URI.parse(url).host.gsub(/[^a-zA-Z0-9]/, '')
-    onestop_id = OnestopId.new(
-      entity_prefix: 'f',
+  def self.from_gtfs(entity, attrs={})
+    # Entity is a feed.
+    visited_stops = Set.new
+    entity.agencies.each { |agency| visited_stops |= agency.stops }
+    coordinates = Stop::GEOFACTORY.collection(
+      visited_stops.map { |stop| Stop::GEOFACTORY.point(*stop.coordinates) }
+    )
+    geohash = GeohashHelpers.fit(coordinates)
+    geometry = RGeo::Cartesian::BoundingBox.create_from_geometry(coordinates)
+    # Generate third Onestop ID component
+    feed_id = nil
+    if entity.file_present?('feed_info.txt')
+      feed_info = entity.feed_infos.first
+      feed_id = feed_info.feed_id if feed_info
+    end
+    name_agencies = entity.agencies.select { |agency| agency.stops.size > 0 }.map(&:agency_name).join('~')
+    name_url = Addressable::URI.parse(attrs[:url]).host.gsub(/[^a-zA-Z0-9]/, '') if attrs[:url]
+    name = feed_id.presence || name_agencies.presence || name_url.presence || 'unknown'
+    # Create Feed
+    attrs[:geometry] = geometry.to_geometry
+    attrs[:onestop_id] = OnestopId.handler_by_model(self).new(
       geohash: geohash,
       name: name
     )
-    feed = Feed.new(
-      onestop_id: onestop_id.to_s,
-      url: url
-    )
-    feed.set_bounding_box_from_stops(stops)
+    feed = Feed.new(attrs)
+    feed.tags ||= {}
+    feed.tags[:feed_id] = feed_id if feed_id
     feed
   end
 
   private
+
+  def after_create_async_fetch_feed_version
+    async_fetch_feed_version if Figaro.env.auto_fetch_feed_version.presence == 'true'
+  end
 
   def set_default_values
     if self.new_record?

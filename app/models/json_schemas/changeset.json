@@ -49,6 +49,14 @@
                 "$ref": "./schedule_stop_pair.json"
               }
             }
+          },
+          {
+            "required": ["routeStopPattern"],
+            "properties": {
+              "routeStopPattern": {
+                "$ref": "./route_stop_pattern.json"
+              }
+            }
           }
         ],
         "properties": {

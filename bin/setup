@@ -9,6 +9,9 @@ Dir.chdir APP_ROOT do
   system 'gem install bundler --conservative'
   system 'bundle check || bundle install'
 
+  puts '== Installing mailcatcher for testing e-mail notifications =='
+  system 'gem install mailcatcher'
+
   puts "\n== Installing Python dependences =="
   system 'virtualenv virtualenv'
   system 'virtualenv/bin/pip install -r requirements.txt --upgrade'

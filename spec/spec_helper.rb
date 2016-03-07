@@ -18,6 +18,7 @@ require 'ffaker'
 require 'byebug'
 require 'vcr'
 require 'webmock/rspec'
+require 'factory_girl_rails'
 
 ActiveRecord::Migration.maintain_test_schema!
 
@@ -27,6 +28,10 @@ VCR.configure do |c|
   c.cassette_library_dir = File.join(File.dirname(__FILE__), '/support/vcr_cassettes')
   c.hook_into :webmock
   c.configure_rspec_metadata!
+end
+
+RSpec::Sidekiq.configure do |config|
+  config.warn_when_jobs_not_processed_by_sidekiq = false
 end
 
 RSpec.configure do |config|

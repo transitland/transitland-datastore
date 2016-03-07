@@ -39,7 +39,11 @@
 #  bikes_allowed                      :boolean
 #  pickup_type                        :string
 #  drop_off_type                      :string
-#  active                             :boolean
+#  route_stop_pattern_id              :integer
+#  origin_dist_traveled               :float
+#  destination_dist_traveled          :float
+#  feed_id                            :integer
+#  feed_version_id                    :integer
 #
 # Indexes
 #
@@ -50,9 +54,11 @@
 #  c_ssp_service_end_date                                      (service_end_date)
 #  c_ssp_service_start_date                                    (service_start_date)
 #  c_ssp_trip                                                  (trip)
-#  index_current_schedule_stop_pairs_on_active                 (active)
+#  index_current_schedule_stop_pairs_on_feed_id                (feed_id)
+#  index_current_schedule_stop_pairs_on_feed_version_id        (feed_version_id)
 #  index_current_schedule_stop_pairs_on_operator_id            (operator_id)
 #  index_current_schedule_stop_pairs_on_origin_departure_time  (origin_departure_time)
+#  index_current_schedule_stop_pairs_on_route_stop_pattern_id  (route_stop_pattern_id)
 #  index_current_schedule_stop_pairs_on_updated_at             (updated_at)
 #
 
@@ -60,7 +66,10 @@ class ScheduleStopPairSerializer < ApplicationSerializer
   attributes :origin_onestop_id,
              :destination_onestop_id,
              :route_onestop_id,
+             :route_stop_pattern_onestop_id,
              :operator_onestop_id,
+             :feed_onestop_id,
+             :feed_version_sha1,
              :origin_timezone,
              :destination_timezone,
              :trip,
@@ -76,6 +85,8 @@ class ScheduleStopPairSerializer < ApplicationSerializer
              :origin_departure_time,
              :destination_arrival_time,
              :destination_departure_time,
+             :origin_dist_traveled,
+             :destination_dist_traveled,
              :service_start_date,
              :service_end_date,
              :service_added_dates,
@@ -88,6 +99,14 @@ class ScheduleStopPairSerializer < ApplicationSerializer
              :created_at,
              :updated_at
 
+  def feed_onestop_id
+    object.feed.try(:onestop_id)
+  end
+
+  def feed_version_sha1
+    object.feed_version.try(:sha1)
+  end
+
   def origin_onestop_id
     object.origin.try(:onestop_id)
   end
@@ -98,6 +117,10 @@ class ScheduleStopPairSerializer < ApplicationSerializer
 
   def route_onestop_id
     object.route.try(:onestop_id)
+  end
+
+  def route_stop_pattern_onestop_id
+    object.route_stop_pattern.try(:onestop_id)
   end
 
   def operator_onestop_id

@@ -9,6 +9,8 @@ Transitland models each trip between two stops as an edge, called a `ScheduleSto
 | route_onestop_id             | Onestop ID | Route |
 | operator_onestop_id          | Onestop ID | Operator |
 | origin_onestop_id            | Onestop ID | Origin stop |
+| feed_onestop_id              | Onestop ID | Feed |
+| feed_version_sha1            | String | Feed Version |
 | origin_timezone              | String | Origin stop timezone |
 | origin_arrival_time          | Time | Time vehicle arrives at origin from previous stop |
 | origin_departure_time        | Time | Time vehicle leaves origin |
@@ -33,6 +35,12 @@ Transitland models each trip between two stops as an edge, called a `ScheduleSto
 | bikes_allowed                | Boolean | Bike accessible: true, false, or null (unknown) |
 | drop_off_type                | Enum | Passenger drop-off |
 | pickup_type                  | Enum | Passenger pickup |
+| active                       | Boolean | SSPs from active FeedVersions |
+| import_level                 | Integer | SSPs from FeedVersion with import_level |
+
+### Active vs. inactive Feed Versions
+
+Each Feed may only have a single active Feed Version at a time, generally the most recent version fetched and imported. By default, only SSPs for active Feed Versions are returned. However, a specific Feed Version can be explicitly specified using feed_version_sha1, returning only SSPs for that Feed Version, even if it is not the currently active version.
 
 ### Data types
 
@@ -63,6 +71,7 @@ The main ScheduleStopPair API endpoint is [/api/v1/schedule_stop_pairs](http://t
 | operator_onestop_id      | Onestop ID | Operator. Accepts multiple separated by commas. | [on BART](http://transit.land/api/v1/schedule_stop_pairs?operator_onestop_id=o-9q9-bart) |
 | service_date             | Date | Service operates on a date | [valid on 2015-10-26](http://transit.land/api/v1/schedule_stop_pairs?date=2015-10-26) |
 | service_from_date        | Date | Service operates on a date, or in the future | [valid on and after 2015-10-26](http://transit.land/api/v1/schedule_stop_pairs?service_from_date=2015-10-26) |
+| service_before_date      | Date | Service operates up to and including date | [valid on and before 2015-11-30](http://transit.land/api/v1/schedule_stop_pairs?service_before_date=2015-11-30) |
 | origin_departure_between | Time,Time | Origin departure time between two times | [departing between 07:00 - 09:00](http://transit.land/api/v1/schedule_stop_pairs?origin_departure_between=07:00:00,09:00:00) |
 | trip                     | String | Trip identifier | [on trip '03SFO11SUN'](http://transit.land/api/v1/schedule_stop_pairs?trip=03SFO11SUN) |
 | bbox                     | Lon1,Lat1,Lon2,Lat2 | Origin Stop within bounding box | [in the Bay Area](http://transit.land/api/v1/schedule_stop_pairs?bbox=-123.057,36.701,-121.044,38.138)

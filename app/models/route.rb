@@ -118,12 +118,16 @@ class Route < BaseRoute
     routes_serving_stop.each do |route_serving_stop|
       route_serving_stop.destroy_making_history(changeset: changeset)
     end
+    route_stop_patterns.each do |route_stop_pattern|
+      route_stop_pattern.destroy_making_history(changeset: changeset)
+    end
     return true
   end
 
   has_many :routes_serving_stop
   has_many :stops, through: :routes_serving_stop
   has_many :schedule_stop_pairs
+  has_many :route_stop_patterns
   belongs_to :operator
 
   validates :name, presence: true
@@ -139,21 +143,26 @@ class Route < BaseRoute
     end
   }
 
+  scope :traverses, -> (route_stop_pattern_onestop_id) {
+    where(id: RouteStopPattern.select(:route_id).where(onestop_id: route_stop_pattern_onestop_id))
+  }
+
   scope :stop_within_bbox, -> (bbox) {
     where(id: RouteServingStop.select(:route_id).where(stop: Stop.geometry_within_bbox(bbox)))
   }
 
   ##### FromGTFS ####
   include FromGTFS
-  def self.from_gtfs(entity, stops)
+  def self.from_gtfs(entity, attrs={})
     # GTFS Constructor
-    raise ArgumentError.new('Need at least one Stop') if stops.empty?
-    geohash = GeohashHelpers.fit(stops.map { |i| i[:geometry] })
+    coordinates = Stop::GEOFACTORY.collection(
+      entity.stops.map { |stop| Stop::GEOFACTORY.point(*stop.coordinates) }
+    )
+    geohash = GeohashHelpers.fit(coordinates)
     name = [entity.route_short_name, entity.route_long_name, entity.id, "unknown"]
       .select(&:present?)
       .first
-    onestop_id = OnestopId.new(
-      entity_prefix: 'r',
+    onestop_id = OnestopId.handler_by_model(self).new(
       geohash: geohash,
       name: name
     )
@@ -161,7 +170,6 @@ class Route < BaseRoute
       name: name,
       onestop_id: onestop_id.to_s,
       vehicle_type: entity.route_type.to_i
-      # geometry:
     )
     # Copy over GTFS attributes to tags
     route.tags ||= {}

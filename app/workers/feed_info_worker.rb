@@ -5,27 +5,43 @@ class FeedInfoWorker
   sidekiq_options :retry => false
 
   def perform(url, cachekey)
-    error, feed, operators = nil, nil, nil
+    feed, operators = nil, nil
+    errors = []
+    response = {}
     begin
-      FeedInfo.download_to_tempfile(url, maxsize=100*1024*1024) do |filename|
-        feed, operators = FeedInfo.parse_feed_and_operators(url, filename)
+      feed_info = FeedInfo.new(url: url)
+      feed_info.open do |f|
+        feed, operators = f.parse_feed_and_operators
       end
+    rescue GTFS::InvalidSourceException => e
+      errors << {
+        exception: 'InvalidSourceException',
+        message: 'This file does not appear to be a valid GTFS feed. Contact Transitland for more help.'
+      }
+    rescue SocketError => e
+      errors << {
+        exception: 'SocketError',
+        message: 'There was a problem downloading the file. Check the address and try again, or contact the transit operator for more help.'
+      }
+    rescue Net::HTTPServerException => e
+      errors << {
+        exception: 'HTTPServerException',
+        message: "There was an error downloading the file. The transit operator server responded with: #{e.to_s}.",
+        response_code: e.response.code
+      }
     rescue StandardError => e
-      data = {
-        status: 'error',
-        url: url,
+      errors << {
         exception: e.class.name,
-        message: e.to_s
+        message: 'There was a problem downloading or processing from this URL.'
       }
     else
-      data = {
-        status: 'complete',
-        url: url,
-        feed: FeedSerializer.new(feed).as_json,
-        operators: operators.map { |o| OperatorSerializer.new(o).as_json }
-      }
+      response[:feed] = FeedSerializer.new(feed).as_json
+      response[:operators] = operators.map { |o| OperatorSerializer.new(o).as_json }
     end
-    Rails.cache.write(cachekey, data, expires_in: FeedInfo::CACHE_EXPIRATION)
+    response[:status] = errors.size > 0 ? 'error' : 'complete'
+    response[:errors] = errors
+    response[:url] = url
+    Rails.cache.write(cachekey, response, expires_in: FeedInfo::CACHE_EXPIRATION)
   end
 end
 

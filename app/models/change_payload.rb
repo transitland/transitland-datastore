@@ -51,23 +51,31 @@ class ChangePayload < ActiveRecord::Base
 
   def apply!
     cache = {}
+    changes = []
     entity_types = {
       feed: Feed,
       stop: Stop,
       operator: Operator,
       route: Route,
-      schedule_stop_pair: ScheduleStopPair
+      schedule_stop_pair: ScheduleStopPair,
+      route_stop_pattern: RouteStopPattern
     }
     (payload_as_ruby_hash[:changes] || []).each do |change|
       (entity_types.keys & change.keys).each do |entity_type|
-        entity_types[entity_type].apply_change(
-          changeset: changeset,
-          attrs: change[entity_type],
-          action: change[:action],
-          cache: cache
-        )
+        changes << [entity_type, change[:action], change[entity_type]]
       end
     end
+    changes
+      .chunk { |entity_type, action, change| [entity_type, action] }
+      .each { | chunk_key, chunked_changes |
+        entity_type, action = chunk_key
+        # puts "Applying... #{entity_type}, #{action}, #{chunked_changes.size}"
+        entity_types[entity_type].apply_changes(
+          changeset: changeset,
+          action: action,
+          changes: chunked_changes.map(&:last)
+        )
+      }
   end
 
   def revert!

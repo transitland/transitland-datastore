@@ -15,6 +15,7 @@
 #  imported_at            :datetime
 #  created_at             :datetime
 #  updated_at             :datetime
+#  import_level           :integer          default(0)
 #
 # Indexes
 #
@@ -30,7 +31,7 @@ describe FeedVersion do
 
   it 'reads earliest and latest dates from calendars.txt' do
     feed_version = create(:feed_version_bart)
-    expect(feed_version.earliest_calendar_date).to eq Date.parse('2015-09-14')
+    expect(feed_version.earliest_calendar_date).to eq Date.parse('2013-11-28')
     expect(feed_version.latest_calendar_date).to eq Date.parse('2017-01-01')
   end
 
@@ -45,34 +46,24 @@ describe FeedVersion do
   context 'imported_schedule_stop_pairs' do
     before(:each) do
       @feed_version = create(:feed_version)
-      @ssp = create(:schedule_stop_pair)
-      EntityImportedFromFeed.create!(
-        entity: @ssp,
-        feed: @feed_version.feed,
-        feed_version: @feed_version
-      )
-    end
-
-    it '#activate_schedule_stop_pairs' do
-      expect(@ssp.active).to be nil
-      @feed_version.activate_schedule_stop_pairs!
-      expect(@ssp.reload.active).to be true
-    end
-
-    it '#deactivate_schedule_stop_pairs' do
-      @ssp.update(active: true)
-      expect(@ssp.active).to be true
-      @feed_version.deactivate_schedule_stop_pairs!
-      expect(@ssp.reload.active).to be false
+      @ssp = create(:schedule_stop_pair, feed: @feed_version.feed, feed_version: @feed_version)
     end
 
     it '#delete_schedule_stop_pairs' do
       @feed_version.delete_schedule_stop_pairs!
-      expect(@feed_version.imported_schedule_stop_pairs.count).to eq(0)
-      expect(EntityImportedFromFeed.where(feed: @feed_version.feed, feed_version: @feed_version, entity_type: 'ScheduleStopPair').count).to eq(0)
       expect(ScheduleStopPair.exists?(@ssp.id)).to be false
+      expect(@feed_version.imported_schedule_stop_pairs.count).to eq(0)
     end
 
+  end
+
+  it 'is active feed version' do
+    feed = create(:feed)
+    active_feed_version = create(:feed_version, feed: feed)
+    inactive_feed_version = create(:feed_version, feed: feed)
+    feed.update(active_feed_version: active_feed_version)
+    expect(active_feed_version.is_active_feed_version).to eq true
+    expect(inactive_feed_version.is_active_feed_version).to eq false
   end
 
 end

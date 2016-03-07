@@ -15,6 +15,7 @@
 #  imported_at            :datetime
 #  created_at             :datetime
 #  updated_at             :datetime
+#  import_level           :integer          default(0)
 #
 # Indexes
 #
@@ -24,12 +25,12 @@
 class FeedVersion < ActiveRecord::Base
   belongs_to :feed, polymorphic: true
   has_many :feed_version_imports, -> { order 'created_at DESC' }, dependent: :destroy
-
+  has_many :changesets_imported_from_this_feed_version, class_name: 'Changeset'
   has_many :entities_imported_from_feed
   has_many :imported_operators, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'
   has_many :imported_stops, through: :entities_imported_from_feed, source: :entity, source_type: 'Stop'
   has_many :imported_routes, through: :entities_imported_from_feed, source: :entity, source_type: 'Route'
-  has_many :imported_schedule_stop_pairs, through: :entities_imported_from_feed, source: :entity, source_type: 'ScheduleStopPair'
+  has_many :imported_schedule_stop_pairs, class_name: 'ScheduleStopPair', dependent: :delete_all
 
   mount_uploader :file, FeedVersionUploader
 
@@ -39,34 +40,19 @@ class FeedVersion < ActiveRecord::Base
 
   def succeeded(timestamp)
     self.update(imported_at: timestamp)
-    self.feed.activate_feed_version(self.sha1)
+    self.feed.update(last_imported_at: self.imported_at)
   end
 
   def failed
     self.delete_schedule_stop_pairs!
   end
 
-  def activate_schedule_stop_pairs!
-    self.imported_schedule_stop_pairs.update_all(active: true)
-  end
-
-  def deactivate_schedule_stop_pairs!
-    self.imported_schedule_stop_pairs.update_all(active: false)
-  end
-
   def delete_schedule_stop_pairs!
-    # A call to "imported_schedule_stop_pairs.delete_all" deletes the records
-    # in the EIFF join table, not the SSPs. So, follow through join to delete.
-    # http://api.rubyonrails.org/classes/ActiveRecord/Associations/ClassMethods.html
-    # PostgreSQL supports joins in delete with "USING".
-    # http://www.postgresql.org/docs/9.0/static/sql-delete.html
-    ScheduleStopPair
-      .joins(:entities_imported_from_feed)
-      .where(entities_imported_from_feed: {feed_version: self, feed: self.feed, entity_type: 'ScheduleStopPair'})
-      .delete_all
-    EntityImportedFromFeed
-      .where(feed_version: self, feed: self.feed, entity_type: 'ScheduleStopPair')
-      .delete_all
+    self.imported_schedule_stop_pairs.delete_all
+  end
+
+  def is_active_feed_version
+    !!self.feed.active_feed_version && (self.feed.active_feed_version == self)
   end
 
   private
@@ -81,8 +67,9 @@ class FeedVersion < ActiveRecord::Base
   def read_gtfs_calendar_dates
     if file.present? && file_changed?
       gtfs_file = GTFS::Source.build(file.path, {strict: false})
-      self.earliest_calendar_date ||= gtfs_file.calendars.map {|c| c.start_date}.min
-      self.latest_calendar_date   ||= gtfs_file.calendars.map {|c| c.end_date}.max
+      start_date, end_date = gtfs_file.service_period_range
+      self.earliest_calendar_date ||= start_date
+      self.latest_calendar_date ||= end_date
     end
   end
 
@@ -98,7 +85,8 @@ class FeedVersion < ActiveRecord::Base
             feed_lang:           feed_info.feed_lang,
             feed_start_date:     feed_info.feed_start_date,
             feed_end_date:       feed_info.feed_end_date,
-            feed_version:        feed_info.feed_version
+            feed_version:        feed_info.feed_version,
+            feed_id:             feed_info.feed_id
           }
           feed_version_tags.delete_if { |k, v| v.blank? }
           self.tags = feed_version_tags

@@ -2,7 +2,7 @@
 http_interactions:
 - request:
     method: get
-    uri: http://httpbin.org/get
+    uri: https://httpbin.org/get
     body:
       encoding: US-ASCII
       string: ''
@@ -21,11 +21,11 @@ http_interactions:
       Server:
       - nginx
       Date:
-      - Wed, 09 Dec 2015 00:08:12 GMT
+      - Tue, 16 Feb 2016 21:59:29 GMT
       Content-Type:
       - application/json
       Content-Length:
-      - '247'
+      - '248'
       Connection:
       - keep-alive
       Access-Control-Allow-Origin:
@@ -37,7 +37,7 @@ http_interactions:
       string: "{\n  \"args\": {}, \n  \"headers\": {\n    \"Accept\": \"*/*\", \n
         \   \"Accept-Encoding\": \"gzip;q=1.0,deflate;q=0.6,identity;q=0.3\", \n    \"Host\":
         \"httpbin.org\", \n    \"User-Agent\": \"Ruby\"\n  }, \n  \"origin\": \"172.125.87.109\",
-        \n  \"url\": \"http://httpbin.org/get\"\n}\n"
+        \n  \"url\": \"https://httpbin.org/get\"\n}\n"
     http_version: 
-  recorded_at: Wed, 09 Dec 2015 00:08:12 GMT
-recorded_with: VCR 3.0.0
+  recorded_at: Tue, 16 Feb 2016 21:59:29 GMT
+recorded_with: VCR 3.0.1
