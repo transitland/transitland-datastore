@@ -36,6 +36,9 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     if params[:bbox].present?
       @routes = @routes.stop_within_bbox(params[:bbox])
     end
+    if params[:color].present?
+      @routes = @routes.where(color: params[:color])
+    end
 
     @routes = @routes.includes{[
       operator,
@@ -54,7 +57,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
           params[:offset],
           params[:per_page],
           params[:total],
-          params.slice(:identifier, :identifier_starts_with, :operatedBy, :vehicle_type, :bbox, :onestop_id, :tag_key, :tag_value)
+          params.slice(:identifier, :identifier_starts_with, :operatedBy, :color, :vehicle_type, :bbox, :onestop_id, :tag_key, :tag_value)
         )
       end
       format.geojson do
