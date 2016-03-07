@@ -215,10 +215,9 @@ class GTFSGraph
       #   note: .compact because some gtfs routes are skipped.
       routes = entity.routes.map { |route| find_by_gtfs_entity(route) }.compact.to_set
       # Find: (tl routes) to (serves tl stops)
-      stops = routes.
-              map(&:serves).
-              reduce(Set.new, :+).
-              map { |i| find_by_onestop_id(i) }
+      stops = routes
+        .map { |route| route.serves }
+        .reduce(Set.new, :+)
       # Create Operator from GTFS
       operator = Operator.from_gtfs(entity)
       operator.onestop_id = oif.operator.onestop_id # Override Onestop ID
@@ -230,9 +229,9 @@ class GTFSGraph
       # Copy Operator timezone to fill missing Stop timezones
       stops.each { |stop| stop.timezone ||= operator.timezone }
       # Add references and identifiers
-      routes.each { |route| route.operated_by = operator.onestop_id }
+      routes.each { |route| route.operator = operator }
       operator.serves ||= Set.new
-      operator.serves |= routes.map(&:onestop_id)
+      operator.serves |= routes
       add_identifier(operator, 'o', entity)
       # Cache Operator
       # Add to found operators
@@ -451,14 +450,12 @@ class GTFSGraph
       feed_version: @feed_version,
       # Origin
       origin: origin_stop,
-      origin_onestop_id: origin_stop.onestop_id,
       origin_timezone: origin_stop.timezone,
       origin_arrival_time: origin.arrival_time.presence,
       origin_departure_time: origin.departure_time.presence,
       origin_dist_traveled: origin_dist_traveled,
       # Destination
       destination: destination_stop,
-      destination_onestop_id: destination_stop.onestop_id,
       destination_timezone: destination_stop.timezone,
       destination_arrival_time: destination.arrival_time.presence,
       destination_departure_time: destination.departure_time.presence,
