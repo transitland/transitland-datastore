@@ -67,4 +67,31 @@ describe FeedInfo do
       expect(operator.geometry).to be_truthy
     end
   end
+
+  context 'Create Changeset' do
+    it 'as_change' do
+      feed, operators = nil, nil
+      fi = FeedInfo.new(url: example_url, path: example_feed_path)
+      fi.open do |feed_info|
+        feed, operators = feed_info.parse_feed_and_operators
+      end
+      # Create changes
+      changes = []
+      operators.each do |operator|
+        changes << {action: 'createUpdate', operator: operator.as_change.compact}
+      end
+      changes << {action: 'createUpdate', feed: feed.as_change.compact}
+      # Apply
+      changeset = Changeset.create!
+      change_payload = ChangePayload.create!(
+        changeset: changeset,
+        payload: {changes: changes}
+      )
+      changeset.apply!
+      # Test
+      f = Feed.find_by_onestop_id!(feed.onestop_id)
+      expect(f.onestop_id).to eq feed.onestop_id
+      expect(f.operators.map(&:onestop_id)).to match_array(operators.map(&:onestop_id))
+    end
+  end
 end
