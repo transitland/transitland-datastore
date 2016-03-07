@@ -392,7 +392,7 @@ class GTFSGraph
     {
       onestopId: entity.onestop_id,
       name: entity.name,
-      identifiedBy: entity.identified_by.uniq,
+      identifiedBy: entity.identified_by,
       geometry: entity.geometry,
       tags: entity.tags || {},
       timezone: entity.timezone,
@@ -404,7 +404,7 @@ class GTFSGraph
     {
       onestopId: entity.onestop_id,
       name: entity.name,
-      identifiedBy: entity.identified_by.uniq,
+      identifiedBy: entity.identified_by,
       geometry: entity.geometry,
       tags: entity.tags || {},
       timezone: entity.timezone
@@ -415,7 +415,7 @@ class GTFSGraph
     {
       onestopId: entity.onestop_id,
       name: entity.name,
-      identifiedBy: entity.identified_by.uniq,
+      identifiedBy: entity.identified_by,
       operatedBy: entity.operator.onestop_id,
       vehicleType: entity.vehicle_type,
       serves: entity.serves.map(&:onestop_id),
@@ -427,7 +427,7 @@ class GTFSGraph
   def make_change_rsp(entity)
     {
       onestopId: entity.onestop_id,
-      identifiedBy: entity.identified_by.uniq,
+      identifiedBy: entity.identified_by,
       stopPattern: entity.stop_pattern,
       geometry: entity.geometry,
       isGenerated: entity.is_generated,
