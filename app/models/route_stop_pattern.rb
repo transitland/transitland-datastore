@@ -128,7 +128,7 @@ class RouteStopPattern < BaseRouteStopPattern
         # only the first and last stops are expected to have 1 split result instead of 2
         # So this might be an outlier stop. Another possibility might be 2 consecutive stops
         # having the same coordinates.
-        logger.info "stop #{stop.onestop_id}, number #{i+1}, within route stop pattern #{self.onestop_id} may be an outlier or indicate invalid geometry"
+        logger.info "Distance issue: stop #{stop.onestop_id}, number #{i+1}, within route stop pattern #{self.onestop_id} may be an outlier or indicate invalid geometry"
         self.distance_issues += 1
         # TODO add interpolated distance at halfway and split line there?
         # if so, will need to take into account case of 2 consecutive stops having same location.
@@ -157,15 +157,15 @@ class RouteStopPattern < BaseRouteStopPattern
     distances.each_index do |i|
       if (i != 0)
         if (distances[i-1] == distances[i])
-          logger.info "stop #{self.stop_pattern[i]} has the same distance as #{self.stop_pattern[i-1]}, which may indicate a segment matching issue."
+          logger.info "Distance issue: stop #{self.stop_pattern[i]} has the same distance as #{self.stop_pattern[i-1]}, which may indicate a segment matching issue."
           self.distance_issues += 1
         elsif (distances[i-1] > distances[i])
-          logger.info "stop #{self.stop_pattern[i]} occurs after stop #{self.stop_pattern[i-1]} but has a distance less than #{self.stop_pattern[i-1]}"
+          logger.info "Distance issue: stop #{self.stop_pattern[i]} occurs after stop #{self.stop_pattern[i-1]} but has a distance less than #{self.stop_pattern[i-1]}"
           self.distance_issues += 1
         end
       end
       if (distances[i] > geometry_length)
-        logger.info "stop #{stop.onestop_id}, number #{i+1}, of route stop pattern #{self.onestop_id} has a distance greater than the length of the geometry"
+        logger.info "Distance issue: stop #{stop.onestop_id}, number #{i+1}, of route stop pattern #{self.onestop_id} has a distance greater than the length of the geometry"
         # we'll be lenient if this difference is less than 5 meters.
         self.distance_issues += 1 if ((distances[i] - geometry_length) > 5.0)
       end
