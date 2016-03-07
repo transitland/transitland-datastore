@@ -146,23 +146,30 @@ class RouteStopPattern < BaseRouteStopPattern
           total_distance += RGeo::Feature.cast(splits[0], RouteStopPattern::GEOFACTORY).length
           distances << total_distance.round(DISTANCE_PRECISION)
         end
-        if (i != 0 && distances[i-1] == distances[i])
+        cast_route = splits[1]
+      end
+    end
+    distances
+  end
+
+  def evaluate_distances(distances)
+    geometry_length = self[:geometry].length
+    distances.each_index do |i|
+      if (i != 0)
+        if (distances[i-1] == distances[i])
           logger.info "stop #{self.stop_pattern[i]} has the same distance as #{self.stop_pattern[i-1]}, which may indicate a segment matching issue."
           self.distance_issues += 1
+        elsif (distances[i-1] > distances[i])
+          logger.info "stop #{self.stop_pattern[i]} occurs after stop #{self.stop_pattern[i-1]} but has a distance less than #{self.stop_pattern[i-1]}"
+          self.distance_issues += 1
         end
-        cast_route = splits[1]
       end
       if (distances[i] > geometry_length)
         logger.info "stop #{stop.onestop_id}, number #{i+1}, of route stop pattern #{self.onestop_id} has a distance greater than the length of the geometry"
         # we'll be lenient if this difference is less than 5 meters.
         self.distance_issues += 1 if ((distances[i] - geometry_length) > 5.0)
       end
-      if (i != 0 && distances[i-1] > distances[i])
-        logger.info "stop #{self.stop_pattern[i]} occurs after stop #{self.stop_pattern[i-1]} but has a distance less than #{self.stop_pattern[i-1]}"
-        self.distance_issues += 1
-      end
     end
-    distances
   end
 
   def cartesian_cast(geometry)
