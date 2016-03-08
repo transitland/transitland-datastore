@@ -14,6 +14,7 @@
 #  geometry                           :geography({:srid geometry, 4326
 #  identifiers                        :string           default([]), is an Array
 #  vehicle_type                       :integer
+#  color                              :string
 #
 # Indexes
 #
@@ -82,6 +83,40 @@ describe Route do
       expect(Route.geometry_within_bbox(@bbox_should_contain_stop_not_geom)).to match_array([])
       expect(Route.geometry_within_bbox(@bbox_should_neither_contain_stop_nor_geom)).to match_array([])
       expect(Route.geometry_within_bbox(@bbox_should_contain_geom_only)).to match_array([@route])
+    end
+
+    context 'validate route color' do
+      before(:each) do
+        @route = create(:route)
+      end
+
+      it 'validates true an acceptable color' do
+        @route.color = 'FFFF33'
+        expect(@route.valid?).to be true
+        expect(@route.errors).to match_array([])
+
+        @route.color = ''
+        expect(@route.valid?).to be true
+        expect(@route.errors).to match_array([])
+      end
+
+      it 'validates false a color with the wrong length' do
+        @route.color = 'AAA'
+        expect(@route.valid?).to be false
+        expect(@route.errors.messages[:color]).to include 'invalid color'
+      end
+
+      it 'validates false a color with lower case letters' do
+        @route.color = 'FFaF33'
+        expect(@route.valid?).to be false
+        expect(@route.errors.messages[:color]).to include 'invalid color'
+      end
+
+      it 'validates false a color with the wrong characters' do
+        @route.color = 'FF%F33'
+        expect(@route.valid?).to be false
+        expect(@route.errors.messages[:color]).to include 'invalid color'
+      end
     end
   end
 end

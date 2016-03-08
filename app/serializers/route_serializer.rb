@@ -14,6 +14,7 @@
 #  geometry                           :geography({:srid geometry, 4326
 #  identifiers                        :string           default([]), is an Array
 #  vehicle_type                       :integer
+#  color                              :string
 #
 # Indexes
 #
@@ -31,6 +32,7 @@ class RouteSerializer < CurrentEntitySerializer
              :name,
              :vehicle_type,
              :geometry,
+             :color,
              :tags,
              :operated_by_onestop_id,
              :operated_by_name,
