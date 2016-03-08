@@ -157,10 +157,10 @@ class RouteStopPattern < BaseRouteStopPattern
     distances.each_index do |i|
       if (i != 0)
         if (distances[i-1] == distances[i])
-          logger.info "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}, has the same distance as #{self.stop_pattern[i-1]}, which may indicate a segment matching issue."
+          logger.info "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}, of route stop pattern #{self.onestop_id} has the same distance as #{self.stop_pattern[i-1]}, which may indicate a segment matching issue."
           self.distance_issues += 1
         elsif (distances[i-1] > distances[i])
-          logger.info "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}, occurs after stop #{self.stop_pattern[i-1]} but has a distance less than #{self.stop_pattern[i-1]}"
+          logger.info "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}, of route stop pattern #{self.onestop_id} occurs after stop #{self.stop_pattern[i-1]} but has a distance less than #{self.stop_pattern[i-1]}"
           self.distance_issues += 1
         end
       end
