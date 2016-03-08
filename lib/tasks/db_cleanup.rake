@@ -32,6 +32,7 @@ namespace :db do
             entities_imported.delete_all
           end
           puts "Found #{entities_to_delete.size} #{entity.to_s}s to delete."
+          entities_to_delete.each { |e| puts " #{entity.to_s}: #{e.onestop_id}" }
           if (mode == 1 && !entities_to_delete.empty?)
             puts "Deleting unreferenced #{entity.to_s}s."
             entities_to_delete.each { |e| e.delete }
