@@ -1,8 +1,16 @@
 class Api::V1::StopsController < Api::V1::BaseApiController
-  include Geojson
   include JsonCollectionPagination
   include DownloadableCsv
   include AllowFiltering
+  include Geojson
+  GEOJSON_ENTITY_PROPERTIES = Proc.new { |properties, entity|
+    # title property to follow GeoJSON simple style spec
+    properties[:name] = entity.name
+
+    properties[:timezone] = entity.timezone
+    properties[:operators_serving_stop] = entity.operators_serving_stop.map(&:onestop_id)
+    properties[:routes_serving_stop] = entity.routes_serving_stop.map(&:onestop_id)
+  }
 
   before_action :set_stop, only: [:show]
 
@@ -50,7 +58,7 @@ class Api::V1::StopsController < Api::V1::BaseApiController
         )
       end
       format.geojson do
-        render json: Geojson.from_entity_collection(@stops)
+        render json: Geojson.from_entity_collection(@stops, &GEOJSON_ENTITY_PROPERTIES)
       end
       format.csv do
         return_downloadable_csv(@stops, 'stops')
@@ -59,7 +67,14 @@ class Api::V1::StopsController < Api::V1::BaseApiController
   end
 
   def show
-    render json: @stop
+    respond_to do |format|
+      format.json do
+        render json: @stop
+      end
+      format.geojson do
+        render json: Geojson.from_entity(@stop, &GEOJSON_ENTITY_PROPERTIES)
+      end
+    end
   end
 
   private
