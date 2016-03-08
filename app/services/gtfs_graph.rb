@@ -101,6 +101,7 @@ class GTFSGraph
       rsp = RouteStopPattern.find_by_onestop_id!(onestop_id)
       begin
         rsp_distances_map[onestop_id] = rsp.calculate_distances
+        rsp.evaluate_distances(rsp_distances_map[onestop_id])
         rsps_with_issues += 1 if rsp.distance_issues > 0
       rescue StandardError
         log "Could not calculate distances for Route Stop Pattern: #{onestop_id}"
