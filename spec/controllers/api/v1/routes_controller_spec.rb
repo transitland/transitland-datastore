@@ -147,7 +147,7 @@ describe Api::V1::RoutesController do
   end
 
   describe 'GET show' do
-    context 'as JSON'
+    context 'as JSON' do
       it 'returns stops by OnestopID' do
         get :show, id: 'r-9q8y-richmond~dalycity~millbrae'
         expect_json_types({
@@ -168,17 +168,17 @@ describe Api::V1::RoutesController do
       end
     end
 
-    # context 'as GeoJSON' do
-    #   it 'should return GeoJSON for a single route' do
-    #     get :show, id: 'r-9q8y-richmond~dalycity~millbrae', format: :geojson
-    #     expect_json({
-    #       type: 'Feature',
-    #       properties: -> (properties) {
-    #         expect(properties[:onestop_id]).to eq 'r-9q8y-richmond~dalycity~millbrae'
-    #         expect(properties[:title]).to eq 'Richmond - Daly City/Millbrae'
-    #       }
-    #     })
-    #   end
+    context 'as GeoJSON' do
+      it 'should return GeoJSON for a single route' do
+        get :show, id: 'r-9q8y-richmond~dalycity~millbrae', format: :geojson
+        expect_json({
+          type: 'Feature',
+          properties: -> (properties) {
+            expect(properties[:onestop_id]).to eq 'r-9q8y-richmond~dalycity~millbrae'
+            expect(properties[:title]).to eq 'Richmond - Daly City/Millbrae'
+          }
+        })
+      end
     end
   end
 end
