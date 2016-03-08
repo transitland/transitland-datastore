@@ -19,9 +19,9 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
     properties[:latest_fetch_exception_log] = entity.latest_fetch_exception_log
     properties[:import_status] = entity.import_status
     properties[:last_imported_at] = entity.last_imported_at
-    properties[:feed_versions_count] = entity.feed_versions_count
+    properties[:feed_versions_count] = entity.feed_versions.count
     properties[:active_feed_version] = entity.active_feed_version
-    properties[:import_level_of_active_feed_version] = entity.import_level_of_active_feed_version
+    properties[:import_level_of_active_feed_version] = entity.active_feed_version.try(:import_level)
     properties[:created_or_updated_in_changeset_id] = entity.created_or_updated_in_changeset_id
   }
 

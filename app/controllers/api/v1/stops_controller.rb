@@ -5,11 +5,11 @@ class Api::V1::StopsController < Api::V1::BaseApiController
   include Geojson
   GEOJSON_ENTITY_PROPERTIES = Proc.new { |properties, entity|
     # title property to follow GeoJSON simple style spec
-    properties[:name] = entity.name
+    properties[:title] = entity.name
 
     properties[:timezone] = entity.timezone
-    properties[:operators_serving_stop] = entity.operators_serving_stop.map(&:onestop_id)
-    properties[:routes_serving_stop] = entity.routes_serving_stop.map(&:onestop_id)
+    properties[:operators_serving_stop] = entity.operators.map(&:onestop_id).try(:uniq)
+    properties[:routes_serving_stop] = entity.routes.map(&:onestop_id).try(:uniq)
   }
 
   before_action :set_stop, only: [:show]
