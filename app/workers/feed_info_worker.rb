@@ -66,7 +66,7 @@ class FeedInfoWorker
     # Update upgress if more than 10% work done since last update
     return if total.to_f == 0
     current = count / total.to_f
-    if (current - @progress_checkpoint) >= 0.1
+    if (current - @progress_checkpoint) >= 0.05
       progress_update(status, current)
     end
   end
