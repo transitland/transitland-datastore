@@ -63,6 +63,8 @@ class GTFSGraph
     @feed.set_bounding_box_from_stops(stops)
     # FIXME: Run through changeset
     @feed.save!
+    # Clear out serves; can't find routes that don't exist yet.
+    operators.each { |operator| operator.serves = nil }
     log "  operators: #{operators.size}"
     add_change_payloads(changeset, operators)
     log "  stops: #{stops.size}"
@@ -227,7 +229,7 @@ class GTFSGraph
       # Copy Operator timezone to fill missing Stop timezones
       stops.each { |stop| stop.timezone ||= operator.timezone }
       # Add references and identifiers
-      routes.each { |route| route.operator = operator }
+      routes.each { |route| route.operated_by = operator.onestop_id }
       operator.serves ||= Set.new
       operator.serves |= routes.map(&:onestop_id)
       add_identifier(operator, 'o', entity)
