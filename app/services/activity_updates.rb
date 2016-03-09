@@ -25,7 +25,7 @@ class ActivityUpdates
   end
 
   def self.changesets_updated(since)
-    changesets = Changeset.where("updated_at > ?", since).includes(:user)
+    changesets = Changeset.where("updated_at > ?", since).where("created_at <> updated_at").includes(:user)
     updates = changesets.map do |changeset|
       {
         id: "c-#{changeset.id}-updated",
