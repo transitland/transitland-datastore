@@ -1,8 +1,19 @@
 class Api::V1::RoutesController < Api::V1::BaseApiController
-  include Geojson
   include JsonCollectionPagination
   include DownloadableCsv
   include AllowFiltering
+  include Geojson
+  GEOJSON_ENTITY_PROPERTIES = Proc.new { |properties, entity|
+    # properties for GeoJSON simple style spec
+    properties[:title] = entity.name
+    properties[:stroke] = "##{entity.color}" if entity.color.present?
+
+    properties[:vehicle_type] = entity.vehicle_type
+    properties[:color] = entity.color
+    properties[:operated_by_onestop_id] = entity.operator.try(:onestop_id)
+    properties[:operated_by_name] = entity.operator.try(:name)
+    properties[:route_stop_patterns_by_onestop_id] = entity.route_stop_patterns.map(&:onestop_id)
+  }
 
   before_action :set_route, only: [:show]
 
@@ -36,6 +47,9 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     if params[:bbox].present?
       @routes = @routes.stop_within_bbox(params[:bbox])
     end
+    if params[:color].present?
+      @routes = @routes.where(color: params[:color])
+    end
 
     @routes = @routes.includes{[
       operator,
@@ -54,11 +68,11 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
           params[:offset],
           params[:per_page],
           params[:total],
-          params.slice(:identifier, :identifier_starts_with, :operatedBy, :vehicle_type, :bbox, :onestop_id, :tag_key, :tag_value)
+          params.slice(:identifier, :identifier_starts_with, :operatedBy, :color, :vehicle_type, :bbox, :onestop_id, :tag_key, :tag_value)
         )
       end
       format.geojson do
-        render json: Geojson.from_entity_collection(@routes)
+        render json: Geojson.from_entity_collection(@routes, &GEOJSON_ENTITY_PROPERTIES)
       end
       format.csv do
         return_downloadable_csv(@routes, 'routes')
@@ -68,7 +82,12 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
 
   def show
     respond_to do |format|
-      format.json { render json: @route }
+      format.json do
+        render json: @route
+      end
+      format.geojson do
+        render json: Geojson.from_entity(@route, &GEOJSON_ENTITY_PROPERTIES)
+      end
     end
   end
 

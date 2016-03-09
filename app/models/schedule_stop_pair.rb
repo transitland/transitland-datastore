@@ -119,7 +119,7 @@ class ScheduleStopPair < BaseScheduleStopPair
   # Scopes
   # Feed Version Import Level
   scope :where_import_level, -> (import_level) {
-    where(feed_version: FeedVersion.where(import_level: import_level.to_i))
+    where(feed_version: FeedVersion.where(import_level: import_level))
   }
 
   # Active Feed Version

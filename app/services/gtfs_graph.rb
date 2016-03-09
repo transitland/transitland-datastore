@@ -74,7 +74,6 @@ class GTFSGraph
     log "Changeset apply"
     t = Time.now
     changeset.apply!
-    changeset.destroy_all_change_payloads
     log "  apply done: time #{Time.now - t}"
   end
 
@@ -96,14 +95,19 @@ class GTFSGraph
     trips = trip_ids.map { |trip_id| @gtfs.trip(trip_id) }
     log "Calculating distances"
     rsp_distances_map = {}
+    rsps_with_issues = 0
     rsp_map.values.uniq.each do |onestop_id|
       rsp = RouteStopPattern.find_by_onestop_id!(onestop_id)
       begin
         rsp_distances_map[onestop_id] = rsp.calculate_distances
+        rsps_with_issues += 1 if rsp.distance_issues > 0
       rescue StandardError
         log "Could not calculate distances for Route Stop Pattern: #{onestop_id}"
+        rsps_with_issues += 1
       end
     end
+    score = ((rsp_map.values.size - rsps_with_issues)/rsp_map.values.size.to_f).round(5) rescue score = 1.0
+    log "#{rsps_with_issues} Route Stop Patterns out of #{rsp_map.values.size} had issues with distance calculation. Valhalla Import Score: #{score}"
     log "Create: SSPs"
     total = 0
     ssps = []
@@ -410,6 +414,7 @@ class GTFSGraph
     {
       onestopId: entity.onestop_id,
       name: entity.name,
+      color: entity.color,
       identifiedBy: entity.identified_by.uniq,
       operatedBy: entity.operator.onestop_id,
       vehicleType: entity.vehicle_type,
@@ -511,7 +516,7 @@ if __FILE__ == $0
   import_level = (ARGV[2].presence || 1).to_i
   ####
   feed = Feed.find_by_onestop_id!(feed_onestop_id)
-  feed_version = feed.feed_versions.create!
+  feed_version = feed.feed_versions.create!(file: File.open(path))
   ####
   t0 = Time.now
   graph = GTFSGraph.new(path, feed, feed_version)
