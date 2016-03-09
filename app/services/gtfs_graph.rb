@@ -64,11 +64,11 @@ class GTFSGraph
     # FIXME: Run through changeset
     @feed.save!
     log "  operators: #{operators.size}"
-    create_change_payloads(changeset, 'operator', operators.map { |e| make_change_operator(e) })
+    add_change_payloads(changeset, operators)
     log "  stops: #{stops.size}"
-    create_change_payloads(changeset, 'stop', stops.map { |e| make_change_stop(e) })
+    add_change_payloads(changeset, stops)
     log "  routes: #{routes.size}"
-    create_change_payloads(changeset, 'route', routes.map { |e| make_change_route(e) })
+    add_change_payloads(changeset, routes)
     log "  route geometries: #{rsps.size}"
     create_change_payloads(changeset, 'routeStopPattern', rsps.map { |e| make_change_rsp(e) })
     log "Changeset apply"
@@ -361,6 +361,28 @@ class GTFSGraph
 
   ##### Create change payloads ######
 
+  def add_change_payloads(changeset, entities)
+    entities.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
+      changes = []
+      chunk.each do |entity|
+        changes << {
+          :action => :createUpdate,
+          entity.class.name.camelize(:lower) => entity.as_change.as_json.compact
+        }
+      end
+      begin
+        c = ChangePayload.create!(
+          changeset: changeset,
+          payload: {changes: changes}
+        )
+      rescue StandardError => e
+        log "Error: #{e.message}"
+        log "Payload:"
+        log changes.to_json
+      end
+    end
+  end
+
   def create_change_payloads(changeset, entity_type, entities, action: 'createUpdate')
     entities.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
       changes = chunk.map do |entity|
@@ -384,43 +406,6 @@ class GTFSGraph
         raise e
       end
     end
-  end
-
-  def make_change_operator(entity)
-    {
-      onestopId: entity.onestop_id,
-      name: entity.name,
-      identifiedBy: entity.identified_by,
-      geometry: entity.geometry,
-      tags: entity.tags || {},
-      timezone: entity.timezone,
-      website: entity.website
-    }
-  end
-
-  def make_change_stop(entity)
-    {
-      onestopId: entity.onestop_id,
-      name: entity.name,
-      identifiedBy: entity.identified_by,
-      geometry: entity.geometry,
-      tags: entity.tags || {},
-      timezone: entity.timezone
-    }
-  end
-
-  def make_change_route(entity)
-    {
-      onestopId: entity.onestop_id,
-      name: entity.name,
-      identifiedBy: entity.identified_by,
-      color: entity.color,
-      operatedBy: entity.operator.onestop_id,
-      vehicleType: entity.vehicle_type,
-      serves: entity.serves.map(&:onestop_id),
-      tags: entity.tags || {},
-      geometry: entity.geometry
-    }
   end
 
   def make_change_rsp(entity)
