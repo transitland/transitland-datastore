@@ -32,8 +32,8 @@ class GTFSGraph
     rsps = load_tl_route_stop_patterns
     operators = load_tl_operators
     fail GTFSGraph::Error.new('No agencies found that match operators_in_feed') unless operators.size > 0
-    routes = operators.map { |operator| operator.serves }.reduce(Set.new, :+)
-    stops = routes.map { |route| route.serves }.reduce(Set.new, :+)
+    routes = operators.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
+    stops = routes.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
     rsps = rsps.select { |rsp| routes.include?(rsp.route) }
     # Update route geometries
     route_rsps = {}
@@ -215,9 +215,7 @@ class GTFSGraph
       #   note: .compact because some gtfs routes are skipped.
       routes = entity.routes.map { |route| find_by_gtfs_entity(route) }.compact.to_set
       # Find: (tl routes) to (serves tl stops)
-      stops = routes
-        .map { |route| route.serves }
-        .reduce(Set.new, :+)
+      stops = routes.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
       # Create Operator from GTFS
       operator = Operator.from_gtfs(entity)
       operator.onestop_id = oif.operator.onestop_id # Override Onestop ID
@@ -231,7 +229,7 @@ class GTFSGraph
       # Add references and identifiers
       routes.each { |route| route.operator = operator }
       operator.serves ||= Set.new
-      operator.serves |= routes
+      operator.serves |= routes.map(&:onestop_id)
       add_identifier(operator, 'o', entity)
       # Cache Operator
       # Add to found operators
@@ -265,7 +263,7 @@ class GTFSGraph
       route = find_by_entity(route)
       # Add references and identifiers
       route.serves ||= Set.new
-      route.serves |= stops
+      route.serves |= stops.map(&:onestop_id)
       add_identifier(route, 'r', entity)
       log "    #{route.onestop_id}: #{route.name}"
     end
