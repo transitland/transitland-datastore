@@ -1,5 +1,19 @@
 # Change Log
 
+## [4.7.3](https://github.com/transitland/transitland-datastore/tree/4.7.3) (2016-03-08)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.2...4.7.3)
+
+**Closed issues:**
+
+- FeedEater: Keep change payloads [\#493](https://github.com/transitland/transitland-datastore/issues/493)
+- improve GeoJSON endpoints [\#398](https://github.com/transitland/transitland-datastore/issues/398)
+
+**Merged pull requests:**
+
+- FeedEater: Keep change payloads [\#491](https://github.com/transitland/transitland-datastore/pull/491) ([irees](https://github.com/irees))
+- improve GeoJSON endpoints [\#489](https://github.com/transitland/transitland-datastore/pull/489) ([drewda](https://github.com/drewda))
+- production release 4.7.2 [\#485](https://github.com/transitland/transitland-datastore/pull/485) ([drewda](https://github.com/drewda))
+
 ## [4.7.2](https://github.com/transitland/transitland-datastore/tree/4.7.2) (2016-03-08)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.1...4.7.2)
 
