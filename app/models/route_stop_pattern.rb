@@ -32,7 +32,7 @@ class BaseRouteStopPattern < ActiveRecord::Base
 
   include IsAnEntityImportedFromFeeds
 
-  attr_accessor :traversed_by, :distance_issues, :first_stop_before_geom, :last_stop_after_geom
+  attr_accessor :traversed_by, :distance_issues, :first_stop_before_geom
 end
 
 class RouteStopPattern < BaseRouteStopPattern
@@ -140,7 +140,7 @@ class RouteStopPattern < BaseRouteStopPattern
           distances << distances[i-1]
         end
       else
-        if splits[0].nil?
+        if (i == 0 && self.first_stop_before_geom) || splits[0].nil?
           distances << 0.0
         else
           total_distance += RGeo::Feature.cast(splits[0], RouteStopPattern::GEOFACTORY).length
@@ -208,7 +208,6 @@ class RouteStopPattern < BaseRouteStopPattern
   def tl_geometry(stop_points, issues)
     # modify rsp geometry based on issues array from evaluate_geometry
     self.first_stop_before_geom = false
-    self.last_stop_after_geom = false
     if issues.include?(:empty)
       # create a new geometry from the trip stop points
       self.geometry = RouteStopPattern.line_string(RouteStopPattern.simplify_geometry(stop_points))
@@ -217,9 +216,6 @@ class RouteStopPattern < BaseRouteStopPattern
     end
     if issues.include?(:has_before_stop)
       self.first_stop_before_geom = true
-    end
-    if issues.include?(:has_after_stop)
-      self.last_stop_after_geom = true
     end
     # more geometry modification can go here
   end
