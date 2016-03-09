@@ -112,47 +112,38 @@ class RouteStopPattern < BaseRouteStopPattern
   end
 
   def calculate_distances
-    # TODO: potential issue with nearest stop segment matching after subsequent stop
-    # TODO: investigate 'boundary' lat/lng possibilities
     distances = []
-    self.distance_issues = 0
-    total_distance = 0.0
-    cartesian_factory = RGeo::Cartesian::Factory.new(srid: 4326)
-    cast_route = RGeo::Feature.cast(self[:geometry], cartesian_factory)
-    geometry_length = self[:geometry].length
+    route = cartesian_cast(self[:geometry])
+    num_segments = route.coordinates.size - 1
+    a = 0
+    b = 0
+    c = 0
     self.stop_pattern.each_index do |i|
-      stop = Stop.find_by_onestop_id!(self.stop_pattern[i])
-      cast_stop = RGeo::Feature.cast(stop[:geometry], cartesian_factory)
-      splits = cast_route.split_at_point(cast_stop)
-      if (splits[0].nil? && i != 0) || (splits[1].nil? && i != self.stop_pattern.size - 1)
-        # only the first and last stops are expected to have 1 split result instead of 2
-        # So this might be an outlier stop. Another possibility might be 2 consecutive stops
-        # having the same coordinates.
-        logger.info "Distance issue (line splitting): stop #{stop.onestop_id}, number #{i+1}, within route stop pattern #{self.onestop_id} may be an outlier or indicate invalid geometry"
-        self.distance_issues += 1
-        # TODO add interpolated distance at halfway and split line there?
-        # if so, will need to take into account case of 2 consecutive stops having same location.
-        if (i == 0 && splits[1].nil?)
-          distances << 0.0
-        elsif (i == self.stop_pattern.size - 1 && splits[0].nil?)
-          distances << geometry_length.round(DISTANCE_PRECISION)
-        else
-          distances << distances[i-1]
-        end
+      this_stop = Stop.find_by_onestop_id!(self.stop_pattern[i])
+      this_stop = cartesian_cast(this_stop[:geometry])
+      locators = route.locators(this_stop)
+      if (i != self.stop_pattern.size - 1)
+        next_stop = Stop.find_by_onestop_id!(self.stop_pattern[i+1])
+        next_stop = cartesian_cast(next_stop[:geometry])
+        next_stop_locators = route.locators(next_stop)
+        next_stop_nearest_locator = next_stop_locators.min_by(&:distance_from_segment)
+        c = next_stop_locators.index(next_stop_nearest_locator)
       else
-        if splits[0].nil?
-          distances << 0.0
-        else
-          total_distance += RGeo::Feature.cast(splits[0], RouteStopPattern::GEOFACTORY).length
-          distances << total_distance.round(DISTANCE_PRECISION)
-        end
-        cast_route = splits[1]
+        c = num_segments - 1
       end
+      nearest_locator = locators[a..c].min_by(&:distance_from_segment)
+      b = locators.index(nearest_locator)
+      nearest_point = nearest_locator.interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326))
+      nearest_point = [nearest_point.x, nearest_point.y]
+      points = b == 0 ? [route.coordinates[0], nearest_point] : route.line_subset(0, b-1).coordinates << nearest_point
+      distances << RouteStopPattern.line_string(points).length
+      a = b
     end
     distances
   end
 
   def evaluate_distances(distances)
+    self.distance_issues = 0
     geometry_length = self[:geometry].length
     distances.each_index do |i|
       if (i != 0)
@@ -190,8 +181,7 @@ class RouteStopPattern < BaseRouteStopPattern
     if trip.shape_id.nil? || self.geometry[:coordinates].empty?
       issues << :empty
     else
-      cartesian_factory = RGeo::Cartesian::Factory.new(srid: 4326)
-      cartesian_line = RGeo::Feature.cast(self[:geometry], cartesian_factory)
+      cartesian_line = cartesian_cast(self[:geometry])
       first_stop = RouteStopPattern::GEOFACTORY.point(stop_points[0][0],stop_points[0][1])
       if cartesian_line.before?(first_stop) || outlier_stop(first_stop)
         issues << :has_before_stop
