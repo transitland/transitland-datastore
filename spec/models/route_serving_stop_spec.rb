@@ -47,7 +47,7 @@ describe RouteServingStop do
             route: {
               onestopId: 'r-9q8y-19Express',
               name: 'Fictional 19th Ave. Express',
-              operatedBy: 'o-9q8y-SFMTA',
+              operated_by: 'o-9q8y-SFMTA',
               serves: ['s-9q8yt4b-19Hollway'],
               geometry: {
                 type: 'MultiLineString',

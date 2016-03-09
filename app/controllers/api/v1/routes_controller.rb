@@ -25,8 +25,10 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     @routes = AllowFiltering.by_identifer_and_identifier_starts_with(@routes, params)
     @routes = AllowFiltering.by_updated_since(@routes, params)
 
-    if params[:operatedBy].present?
-      @routes = @routes.operated_by(params[:operatedBy])
+    if params[:operated_by].present? || params[:operatedBy].present?
+      # we previously allowed `operatedBy`, so we'll continue to honor that for the time being
+      operator_onestop_id = params[:operated_by] || params[:operatedBy]
+      @routes = @routes.operated_by(operator_onestop_id)
     end
     if params[:traverses].present?
       @routes = @routes.traverses(params[:traverses].split(','))
@@ -68,7 +70,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
           params[:offset],
           params[:per_page],
           params[:total],
-          params.slice(:identifier, :identifier_starts_with, :operatedBy, :color, :vehicle_type, :bbox, :onestop_id, :tag_key, :tag_value)
+          params.slice(:identifier, :identifier_starts_with, :operated_by, :color, :vehicle_type, :bbox, :onestop_id, :tag_key, :tag_value)
         )
       end
       format.geojson do
