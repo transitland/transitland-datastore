@@ -9,6 +9,7 @@
       "type": "string",
       "format": "feed-onestop-id"
     },
+    "geometry": { "type": "object" },
     "name": { "type": "string" },
     "tags": { "type": "object" },
     "url": { "type": "string" },
