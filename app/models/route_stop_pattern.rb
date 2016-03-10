@@ -120,8 +120,8 @@ class RouteStopPattern < BaseRouteStopPattern
     b = 0
     c = 0
     self.stop_pattern.each_index do |i|
-      this_stop = Stop.find_by_onestop_id!(self.stop_pattern[i])
-      this_stop = cartesian_cast(this_stop[:geometry])
+      spherical_stop = Stop.find_by_onestop_id!(self.stop_pattern[i])
+      this_stop = cartesian_cast(spherical_stop[:geometry])
       locators = route.locators(this_stop)
       if (i != self.stop_pattern.size - 1)
         next_stop = Stop.find_by_onestop_id!(self.stop_pattern[i+1])
@@ -133,13 +133,18 @@ class RouteStopPattern < BaseRouteStopPattern
         c = num_segments - 1
       end
       nearest_locator = locators[a..c].min_by(&:distance_from_segment)
-      # handling outlier stops
-      # nearest_locator.target_distance_from_departure > OUTLIER_THRESHOLD
       b = locators.index(nearest_locator)
       nearest_point = nearest_locator.interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326))
-      nearest_point = [nearest_point.x, nearest_point.y]
-      points = b == 0 ? [route.coordinates[0], nearest_point] : route.line_subset(0, b-1).coordinates << nearest_point
-      distances << RouteStopPattern.line_string(points).length
+      # handling outlier stops
+      distance_to_line = spherical_stop[:geometry].distance(RGeo::Feature.cast(nearest_point, RouteStopPattern::GEOFACTORY))
+      if distance_to_line > OUTLIER_THRESHOLD
+        logger.info "Distance issue: Found outlier stop #{self.stop_pattern[i]} in route stop pattern #{self.onestop_id}. Distance to line: #{distance_to_line}"
+        distances << distances[i-1] if i!=0
+      else
+        nearest_point = [nearest_point.x, nearest_point.y]
+        points = b == 0 ? [route.coordinates[0], nearest_point] : route.line_subset(0, b-1).coordinates << nearest_point
+        distances << RouteStopPattern.line_string(points).length
+      end
       a = b
     end
     distances

@@ -128,6 +128,11 @@ class GTFSGraph
           origin_dist_traveled = rsp_distances_map[rsp.onestop_id][i]
           destination_dist_traveled = rsp_distances_map[rsp.onestop_id][i+1]
         end
+        # if !origin.shape_dist_traveled.nil? && !destination.shape_dist_traveled.nil?
+        #   puts rsp.onestop_id
+        #   puts "#{origin.stop_id} #{rsp.stop_pattern[i]} #{origin_dist_traveled} #{origin.shape_dist_traveled}"
+        #   puts "#{destination.stop_id} #{rsp.stop_pattern[i+1]} #{destination_dist_traveled} #{destination.shape_dist_traveled}"
+        # end
         ssp_trip << make_ssp(route, trip, origin, origin_dist_traveled, destination, destination_dist_traveled, rsp)
       end
       # Interpolate stop_times
@@ -280,7 +285,7 @@ class GTFSGraph
     stop_times_with_shape_dist_traveled = 0
     stop_times_count = 0
     @gtfs.trip_stop_times do |trip,stop_times|
-      stop_times_with_shape_dist_traveled += stop_times.count { |st| !st.shape_dist_traveled.nil?}
+      stop_times_with_shape_dist_traveled += stop_times.count { |st| !st.shape_dist_traveled.to_s.empty?}
       stop_times_count += stop_times.length
       feed_shape_points = @gtfs.shape_line(trip.shape_id) || []
       tl_stops = stop_times.map { |stop_time| find_by_gtfs_entity(@gtfs.stop(stop_time.stop_id)) }
