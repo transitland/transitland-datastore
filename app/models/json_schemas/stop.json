@@ -3,12 +3,14 @@
   "title": "Transitland Datastore Stop",
   "type": "object",
   "required": ["onestopId"],
+  "additionalProperties": false,
   "properties": {
     "onestopId": {
       "type": "string",
       "format": "stop-onestop-id"
     },
     "geometry": { "type": "object" },
+    "timezone": { "type": "string" },
     "tags": { "type": "object" },
     "name": { "type": "string" },
     "identifiedBy": {
