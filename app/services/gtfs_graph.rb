@@ -72,7 +72,7 @@ class GTFSGraph
     log "  routes: #{routes.size}"
     add_change_payloads(changeset, routes)
     log "  route geometries: #{rsps.size}"
-    create_change_payloads(changeset, 'routeStopPattern', rsps.map { |e| make_change_rsp(e) })
+    add_change_payloads(changeset, rsps)
     log "Changeset apply"
     t = Time.now
     changeset.apply!
@@ -383,45 +383,6 @@ class GTFSGraph
         log changes.to_json
       end
     end
-  end
-
-  def create_change_payloads(changeset, entity_type, entities, action: 'createUpdate')
-    entities.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
-      changes = chunk.map do |entity|
-        entity.compact! # remove any nil values
-        change = {}
-        change['action'] = action
-        change[entity_type] = entity
-        change
-      end
-      begin
-        ChangePayload.create!(
-          changeset: changeset,
-          payload: {
-            changes: changes
-          }
-        )
-      rescue Exception => e
-        log "Error: #{e.message}"
-        log "Payload:"
-        log changes.to_json
-        raise e
-      end
-    end
-  end
-
-  def make_change_rsp(entity)
-    {
-      onestopId: entity.onestop_id,
-      identifiedBy: entity.identified_by,
-      stopPattern: entity.stop_pattern,
-      geometry: entity.geometry,
-      isGenerated: entity.is_generated,
-      isModified: entity.is_modified,
-      trips: entity.trips,
-      traversedBy: entity.route.onestop_id,
-      tags: entity.tags || {}
-    }
   end
 
   def make_ssp(route, trip, origin, origin_dist_traveled, destination, destination_dist_traveled, route_stop_pattern)
