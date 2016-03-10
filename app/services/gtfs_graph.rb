@@ -280,7 +280,7 @@ class GTFSGraph
     stop_times_with_shape_dist_traveled = 0
     stop_times_count = 0
     @gtfs.trip_stop_times do |trip,stop_times|
-      stop_times_with_shape_dist_traveled += stop_times.count { |st| !st.shape_dist_traveled.nil?}
+      stop_times_with_shape_dist_traveled += stop_times.count { |st| !st.shape_dist_traveled.to_s.empty? }
       stop_times_count += stop_times.length
       feed_shape_points = @gtfs.shape_line(trip.shape_id) || []
       tl_stops = stop_times.map { |stop_time| find_by_gtfs_entity(@gtfs.stop(stop_time.stop_id)) }
