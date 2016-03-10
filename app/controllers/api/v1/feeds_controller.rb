@@ -83,7 +83,7 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
     cachekey = "feeds/fetch_info/#{url}"
     cachedata = Rails.cache.read(cachekey)
     if !cachedata
-      cachedata = {status: 'processing', url: url}
+      cachedata = {status: 'queued', url: url}
       Rails.cache.write(cachekey, cachedata, expires_in: FeedInfo::CACHE_EXPIRATION)
       FeedInfoWorker.perform_async(url, cachekey)
     end
