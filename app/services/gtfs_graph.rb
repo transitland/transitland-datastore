@@ -76,7 +76,6 @@ class GTFSGraph
     log "Changeset apply"
     t = Time.now
     changeset.apply!
-    changeset.destroy_all_change_payloads
     log "  apply done: time #{Time.now - t}"
   end
 
@@ -464,7 +463,7 @@ if __FILE__ == $0
   import_level = (ARGV[2].presence || 1).to_i
   ####
   feed = Feed.find_by_onestop_id!(feed_onestop_id)
-  feed_version = feed.feed_versions.create!
+  feed_version = feed.feed_versions.create!(file: File.open(path))
   ####
   t0 = Time.now
   graph = GTFSGraph.new(path, feed, feed_version)
