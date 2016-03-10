@@ -126,7 +126,7 @@ class RouteStopPattern < BaseRouteStopPattern
         next_stop = Stop.find_by_onestop_id!(self.stop_pattern[i+1])
         next_stop = cartesian_cast(next_stop[:geometry])
         next_stop_locators = route.locators(next_stop)
-        next_stop_nearest_locator = next_stop_locators.min_by(&:distance_from_segment)
+        next_stop_nearest_locator = next_stop_locators[a..num_segments-1].min_by(&:distance_from_segment)
         c = next_stop_locators.index(next_stop_nearest_locator)
       else
         c = num_segments - 1
@@ -148,14 +148,19 @@ class RouteStopPattern < BaseRouteStopPattern
     distances.each_index do |i|
       if (i != 0)
         if (distances[i-1] == distances[i])
-          logger.info "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}, of route stop pattern #{self.onestop_id} has the same distance as #{self.stop_pattern[i-1]}, which may indicate a segment matching issue or outlier stop."
-          self.distance_issues += 1
+          unless self.stop_pattern[i].eql? self.stop_pattern[i-1]
+            puts "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}, of route stop pattern #{self.onestop_id} has the same distance as #{self.stop_pattern[i-1]}, which may indicate a segment matching issue or outlier stop."
+            logger.info "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}, of route stop pattern #{self.onestop_id} has the same distance as #{self.stop_pattern[i-1]}, which may indicate a segment matching issue or outlier stop."
+            self.distance_issues += 1
+          end
         elsif (distances[i-1] > distances[i])
+          puts "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}, of route stop pattern #{self.onestop_id} occurs after stop #{self.stop_pattern[i-1]} but has a distance less than #{self.stop_pattern[i-1]}"
           logger.info "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}, of route stop pattern #{self.onestop_id} occurs after stop #{self.stop_pattern[i-1]} but has a distance less than #{self.stop_pattern[i-1]}"
           self.distance_issues += 1
         end
       end
       if (distances[i] > geometry_length)
+        puts "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}, of route stop pattern #{self.onestop_id} has a distance greater than the length of the geometry"
         logger.info "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}, of route stop pattern #{self.onestop_id} has a distance greater than the length of the geometry"
         # we'll be lenient if this difference is less than 5 meters.
         self.distance_issues += 1 if ((distances[i] - geometry_length) > 5.0)
