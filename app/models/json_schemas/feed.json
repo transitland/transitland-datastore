@@ -3,7 +3,6 @@
   "title": "Transitland Datastore Feed",
   "type": "object",
   "required": ["onestopId"],
-  "additionalProperties": false,
   "properties": {
     "onestopId": {
       "type": "string",
