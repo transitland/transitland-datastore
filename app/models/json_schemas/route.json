@@ -3,6 +3,7 @@
   "title": "Transitland Datastore Route",
   "type": "object",
   "required": ["onestopId"],
+  "additionalProperties": false,
   "properties": {
     "onestopId": {
       "type": "string",
