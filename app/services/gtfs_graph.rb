@@ -290,6 +290,7 @@ class GTFSGraph
       # determine if RouteStopPattern exists
       test_rsp = RouteStopPattern.create_from_gtfs(trip, tl_route.onestop_id, stop_pattern, trip_stop_points, feed_shape_points)
       rsp = find_by_entity(test_rsp)
+      rsp.traversed_by = tl_route.onestop_id
       log "   #{rsp.onestop_id}"  if test_rsp.equal?(rsp)
       add_identifier(rsp, 'trip', trip)
       rsp.trips << trip.trip_id unless rsp.trips.include?(trip.trip_id)
