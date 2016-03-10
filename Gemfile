@@ -82,6 +82,7 @@ gem 'vcr', group: :test
 gem 'webmock', group: :test
 gem 'airborne', group: :test
 gem 'mock_redis', group: :test # used by sidekiq-unique-jobs
+gem 'timecop', group: :test
 
 # deployment
 gem 'aws-sdk', group: [:staging, :production]

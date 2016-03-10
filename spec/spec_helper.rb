@@ -19,6 +19,7 @@ require 'byebug'
 require 'vcr'
 require 'webmock/rspec'
 require 'factory_girl_rails'
+require 'timecop'
 
 ActiveRecord::Migration.maintain_test_schema!
 

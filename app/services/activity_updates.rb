@@ -3,7 +3,7 @@ class ActivityUpdates
 
   def self.updates_since(since=24.hours.ago)
     updates = changesets_created(since) + changesets_updated(since) + changesets_applied(since) + feeds_imported(since) + feeds_versions_fetched(since)
-    updates.sort_by { |update| update[:at_datetime] }.reverse
+    updates.sort_by { |update| update[:at_datetime] }
   end
 
   private
