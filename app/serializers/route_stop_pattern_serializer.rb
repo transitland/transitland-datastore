@@ -32,6 +32,7 @@ class RouteStopPatternSerializer < CurrentEntitySerializer
              :route_onestop_id,
              :stop_pattern,
              :geometry,
+             :color,
              :is_generated,
              :is_modified,
              :created_at,
@@ -40,5 +41,9 @@ class RouteStopPatternSerializer < CurrentEntitySerializer
              :tags
    def route_onestop_id
      object.route.onestop_id
+   end
+
+   def color
+     object.route.color
    end
 end
