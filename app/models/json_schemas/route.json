@@ -16,6 +16,7 @@
     "name": { "type": "string" },
     "tags": { "type": "object" },
     "color": { "type": "string" },
+    "geometry": { "type": "object" },
     "vehicleType": {
       "type": ["string", "integer"],
       "format": "vehicle-type"
