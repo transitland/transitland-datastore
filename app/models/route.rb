@@ -76,6 +76,9 @@ class Route < BaseRoute
       :operated_by,
       :identified_by,
       :not_identified_by
+    ],
+    protected_attributes: [
+      :identifiers
     ]
   })
 

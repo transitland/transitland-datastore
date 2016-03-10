@@ -74,6 +74,10 @@ class Stop < BaseStop
       :not_served_by,
       :identified_by,
       :not_identified_by,
+    ],
+    protected_attributes: [
+      :identifiers,
+      :last_conflated_at
     ]
   })
   def self.after_create_making_history(created_model, changeset)

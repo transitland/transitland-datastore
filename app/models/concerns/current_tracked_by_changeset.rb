@@ -97,35 +97,28 @@ module CurrentTrackedByChangeset
     end
 
     def changeable_attributes
+      # Allow editing of attribute, minus foreign keys and protected attrs
+      # TODO: read directly from JSON schema?
+      # Convert everything to symbol
       @changeable_attributes ||= (
-        attribute_names +
-        @virtual_attributes -
-        reflections.values.map(&:foreign_key) -
-        %w(
-          id
-          created_at
-          updated_at
-          created_or_destroyed_in_changeset_id
-          destroyed_in_changeset_id
-          version
-          identifiers
-        )
-      ).map(&:to_sym)
-    end
-
-    def changeable_associated_models
-      @changeable_associated_models ||= (self.reflections.keys - [:created_or_updated_in_changeset, :destroyed_in_changeset])
+        attribute_names.map(&:to_sym) +
+        @virtual_attributes.map(&:to_sym) -
+        @protected_attributes.map(&:to_sym) -
+        reflections.values.map(&:foreign_key).map(&:to_sym) -
+        [:id, :created_at, :updated_at, :version]
+      )
     end
 
     private
 
-    def current_tracked_by_changeset(kind_of_model_tracked: nil, virtual_attributes: [])
+    def current_tracked_by_changeset(kind_of_model_tracked: nil, virtual_attributes: [], protected_attributes: [])
       if [:onestop_entity, :relationship].include?(kind_of_model_tracked)
         @kind_of_model_tracked = kind_of_model_tracked
       else
         raise ArgumentError.new("must specify whether it's an entity or a relationship being tracked")
       end
       @virtual_attributes = virtual_attributes
+      @protected_attributes = protected_attributes
     end
   end
 

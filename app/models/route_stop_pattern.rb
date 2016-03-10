@@ -74,6 +74,9 @@ class RouteStopPattern < BaseRouteStopPattern
       :identified_by,
       :not_identified_by,
       :traversed_by
+    ],
+    protected_attributes: [
+      :identifiers
     ]
   })
   class << RouteStopPattern

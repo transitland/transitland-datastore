@@ -72,6 +72,9 @@ class Operator < BaseOperator
       :does_not_serve,
       :identified_by,
       :not_identified_by
+    ],
+    protected_attributes: [
+      :identifiers
     ]
   })
   def self.after_create_making_history(created_model, changeset)
