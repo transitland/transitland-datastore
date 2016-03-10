@@ -143,7 +143,7 @@ class RouteStopPattern < BaseRouteStopPattern
       else
         nearest_point = [nearest_point.x, nearest_point.y]
         points = b == 0 ? [route.coordinates[0], nearest_point] : route.line_subset(0, b-1).coordinates << nearest_point
-        distances << RouteStopPattern.line_string(points).length
+        distances << RouteStopPattern.line_string(points).length.round(DISTANCE_PRECISION)
       end
       a = b
     end
