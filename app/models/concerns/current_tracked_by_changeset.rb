@@ -108,6 +108,7 @@ module CurrentTrackedByChangeset
           created_or_destroyed_in_changeset_id
           destroyed_in_changeset_id
           version
+          identifiers
         )
       ).map(&:to_sym)
     end
