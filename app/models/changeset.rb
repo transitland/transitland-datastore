@@ -162,11 +162,17 @@ class Changeset < ActiveRecord::Base
       end
     end
     # Now that the transaction is complete and has been committed,
-    # we can do some async tasks like conflate stops with OSM.
+    # we can do some async tasks like conflate stops with OSM...
     if Figaro.env.auto_conflate_stops_with_osm.present? &&
        Figaro.env.auto_conflate_stops_with_osm == 'true' &&
        self.stops_created_or_updated.count > 0
       ConflateStopsWithOsmWorker.perform_async(self.stops_created_or_updated.map(&:id))
+    end
+    # ...and fetching any new feeds
+    if Figaro.env.auto_fetch_feed_version.presence == 'true'
+      self.feeds_created_or_updated.each do |created_or_updated_feed|
+        created_or_updated_feed.async_fetch_feed_version
+      end
     end
     true
   end
