@@ -7,26 +7,32 @@ describe ActivityUpdates do
     Timecop.freeze(5.minutes.ago) do
       @c1 = create(:changeset, user: user)
     end
-    expect(ActivityUpdates.updates_since).to eq([
-      {
-        id: "c-#{@c2.id}-created",
-        entity_type: 'changeset',
-        entity_id: @c2.id,
-        entity_action: 'created',
-        by_user_id: User.first.id,
-        note: @c2.notes,
-        at_datetime: @c2.created_at
-      },
-      {
-        id: "c-#{@c1.id}-created",
-        entity_type: 'changeset',
-        entity_id: @c1.id,
-        entity_action: 'created',
-        by_user_id: User.first.id,
-        note: @c1.notes,
-        at_datetime: @c1.created_at
-      }
+    expect(ActivityUpdates.updates_since.map {|u| u[:id] }).to eq([
+      "c-#{@c2.id}-created",
+      "c-#{@c1.id}-created",
     ])
+    expect(ActivityUpdates.updates_since.map {|u| u[:entity_id] }).to eq([
+      @c2.id,
+      @c1.id
+    ])
+    expect(ActivityUpdates.updates_since.map {|u| u[:entity_type] }).to eq([
+      "changeset",
+      "changeset",
+    ])
+    expect(ActivityUpdates.updates_since.map {|u| u[:entity_action] }).to eq([
+      "created",
+      "created"
+    ])
+    expect(ActivityUpdates.updates_since.map {|u| u[:by_user_id] }).to eq([
+      User.first.id,
+      User.first.id
+    ])
+    expect(ActivityUpdates.updates_since.map {|u| u[:note] }).to eq([
+      @c2.notes,
+      @c1.notes
+    ])
+    expect(ActivityUpdates.updates_since[0][:at_datetime]).to be_within(1.second).of(@c2.created_at)
+    expect(ActivityUpdates.updates_since[1][:at_datetime]).to be_within(1.second).of(@c1.created_at)
   end
 
   it 'lists changesets updated' do
