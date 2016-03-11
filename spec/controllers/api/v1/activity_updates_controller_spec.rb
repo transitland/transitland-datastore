@@ -1,5 +1,32 @@
 describe Api::V1::ActivityUpdatesController do
   context 'GET index' do
-    
+    before(:each) do
+      Timecop.travel(5.minutes.ago) do
+        @c1 = create(:changeset)
+        @f = create(:feed)
+        @fv = create(:feed_version, feed: @f)
+      end
+      Timecop.travel(3.minutes.ago) do
+        @c2 = create(:changeset)
+        @fvi = create(:feed_version_import, feed_version: @fv)
+      end
+      @c1.update(notes: 'new note')
+    end
+    context 'as JSON' do
+      it 'returns a list of recent updates' do
+        get :index
+        expect_json(activity_updates: -> (activity_updates) {
+          expect(activity_updates.length).to eq 5
+        })
+      end
+    end
+
+    context 'as RSS' do
+      it 'returns a list of recent updates' do
+        get :index, format: :rss
+        expect(response.content_type).to eq 'application/rss+xml'
+        expect(response).to be_ok
+      end
+    end
   end
 end

@@ -3,7 +3,7 @@ class ActivityUpdates
 
   def self.updates_since(since=24.hours.ago)
     updates = changesets_created(since) + changesets_updated(since) + changesets_applied(since) + feeds_imported(since) + feeds_versions_fetched(since)
-    updates.sort_by { |update| update[:at_datetime] }
+    updates.sort_by { |update| update[:at_datetime] }.reverse
   end
 
   private
@@ -25,7 +25,9 @@ class ActivityUpdates
   end
 
   def self.changesets_updated(since)
-    changesets = Changeset.where("updated_at > ?", since).where("created_at <> updated_at").includes(:user)
+    changesets = Changeset.where("updated_at > ?", since)
+                          .where("updated_at <> created_at")
+                          .includes(:user)
     updates = changesets.map do |changeset|
       {
         id: "c-#{changeset.id}-updated",
@@ -34,7 +36,7 @@ class ActivityUpdates
         entity_action: 'updated',
         by_user_id: changeset.user.try(:id),
         note: changeset.notes,
-        at_datetime: changeset.created_at
+        at_datetime: changeset.updated_at
       }
     end
     updates || []
@@ -50,7 +52,7 @@ class ActivityUpdates
         entity_action: 'applied',
         by_user_id: changeset.user.try(:id),
         note: changeset.notes,
-        at_datetime: changeset.updated_at
+        at_datetime: changeset.applied_at
       }
     end
     updates || []
@@ -82,7 +84,7 @@ class ActivityUpdates
         to #{feed_version.latest_calendar_date}.
       ".squish
       {
-        id: "f-#{feed_version.feed.onestop_id}-fetched",
+        id: "fv-#{feed_version.sha1}-created",
         entity_type: 'feed',
         entity_id: feed_version.feed.onestop_id,
         entity_action: 'fetched',

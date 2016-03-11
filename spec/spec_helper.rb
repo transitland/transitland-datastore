@@ -20,6 +20,7 @@ require 'vcr'
 require 'webmock/rspec'
 require 'factory_girl_rails'
 require 'timecop'
+Timecop.safe_mode = true
 
 ActiveRecord::Migration.maintain_test_schema!
 
