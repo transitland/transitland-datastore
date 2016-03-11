@@ -41,6 +41,8 @@ class FeedInfo
       next if agency.stops.size == 0
       operator = Operator.from_gtfs(agency)
       operators << operator
+      feed.includes_operators ||= []
+      feed.includes_operators << {gtfsAgencyId: agency.id, operatorOnestopId: operator.onestop_id}
       feed.operators_in_feed.new(gtfs_agency_id: agency.id, operator: operator, id: nil)
     end
     # done
