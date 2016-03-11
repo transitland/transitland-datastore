@@ -123,15 +123,25 @@ class RouteStopPattern < BaseRouteStopPattern
       spherical_stop = Stop.find_by_onestop_id!(self.stop_pattern[i])
       this_stop = cartesian_cast(spherical_stop[:geometry])
       locators = route.locators(this_stop)
-      if (i != self.stop_pattern.size - 1)
-        next_stop = Stop.find_by_onestop_id!(self.stop_pattern[i+1])
-        next_stop = cartesian_cast(next_stop[:geometry])
+
+      if i != self.stop_pattern.size - 1
+        next_spherical_stop = Stop.find_by_onestop_id!(self.stop_pattern[i+1])
+        next_stop = cartesian_cast(next_spherical_stop[:geometry])
         next_stop_locators = route.locators(next_stop)
         next_stop_nearest_locator = next_stop_locators[a..num_segments-1].min_by(&:distance_from_segment)
-        c = next_stop_locators.index(next_stop_nearest_locator)
+        next_nearest_point = next_stop_nearest_locator.interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326))
+        next_distance_to_line = next_spherical_stop[:geometry].distance(RGeo::Feature.cast(next_nearest_point, RouteStopPattern::GEOFACTORY))
+        next_c = next_stop_locators.index(next_stop_nearest_locator)
+        # handles case where next stop matches to previously visited segment
+        if next_distance_to_line < OUTLIER_THRESHOLD && next_c >= c
+          c = next_c
+        else
+          c = num_segments - 1
+        end
       else
         c = num_segments - 1
       end
+
       nearest_locator = locators[a..c].min_by(&:distance_from_segment)
       b = locators.index(nearest_locator)
       nearest_point = nearest_locator.interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326))
@@ -144,8 +154,8 @@ class RouteStopPattern < BaseRouteStopPattern
         nearest_point = [nearest_point.x, nearest_point.y]
         points = b == 0 ? [route.coordinates[0], nearest_point] : route.line_subset(0, b-1).coordinates << nearest_point
         distances << RouteStopPattern.line_string(points).length
+        a = b
       end
-      a = b
     end
     distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
   end
