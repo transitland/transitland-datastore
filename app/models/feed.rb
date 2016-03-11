@@ -78,7 +78,13 @@ class Feed < BaseFeed
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
-    virtual_attributes: [:includes_operators, :does_not_include_operators]
+    virtual_attributes: [
+      :includes_operators,
+      :does_not_include_operators
+    ],
+    protected_attributes: [
+      :identifiers
+    ]
   })
   def self.after_create_making_history(created_model, changeset)
     created_model.includes_operators.each do |included_operator|

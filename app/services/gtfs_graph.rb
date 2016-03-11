@@ -32,8 +32,8 @@ class GTFSGraph
     rsps = load_tl_route_stop_patterns
     operators = load_tl_operators
     fail GTFSGraph::Error.new('No agencies found that match operators_in_feed') unless operators.size > 0
-    routes = operators.map { |operator| operator.serves }.reduce(Set.new, :+)
-    stops = routes.map { |route| route.serves }.reduce(Set.new, :+)
+    routes = operators.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
+    stops = routes.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
     rsps = rsps.select { |rsp| routes.include?(rsp.route) }
     # Update route geometries
     route_rsps = {}
@@ -63,14 +63,16 @@ class GTFSGraph
     @feed.set_bounding_box_from_stops(stops)
     # FIXME: Run through changeset
     @feed.save!
+    # Clear out serves; can't find routes that don't exist yet.
+    operators.each { |operator| operator.serves = nil }
     log "  operators: #{operators.size}"
-    create_change_payloads(changeset, 'operator', operators.map { |e| make_change_operator(e) })
+    add_change_payloads(changeset, operators)
     log "  stops: #{stops.size}"
-    create_change_payloads(changeset, 'stop', stops.map { |e| make_change_stop(e) })
+    add_change_payloads(changeset, stops)
     log "  routes: #{routes.size}"
-    create_change_payloads(changeset, 'route', routes.map { |e| make_change_route(e) })
+    add_change_payloads(changeset, routes)
     log "  route geometries: #{rsps.size}"
-    create_change_payloads(changeset, 'routeStopPattern', rsps.map { |e| make_change_rsp(e) })
+    add_change_payloads(changeset, rsps)
     log "Changeset apply"
     t = Time.now
     changeset.apply!
@@ -214,9 +216,7 @@ class GTFSGraph
       #   note: .compact because some gtfs routes are skipped.
       routes = entity.routes.map { |route| find_by_gtfs_entity(route) }.compact.to_set
       # Find: (tl routes) to (serves tl stops)
-      stops = routes
-        .map { |route| route.serves }
-        .reduce(Set.new, :+)
+      stops = routes.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
       # Create Operator from GTFS
       operator = Operator.from_gtfs(entity)
       operator.onestop_id = oif.operator.onestop_id # Override Onestop ID
@@ -228,9 +228,9 @@ class GTFSGraph
       # Copy Operator timezone to fill missing Stop timezones
       stops.each { |stop| stop.timezone ||= operator.timezone }
       # Add references and identifiers
-      routes.each { |route| route.operator = operator }
+      routes.each { |route| route.operated_by = operator.onestop_id }
       operator.serves ||= Set.new
-      operator.serves |= routes
+      operator.serves |= routes.map(&:onestop_id)
       add_identifier(operator, 'o', entity)
       # Cache Operator
       # Add to found operators
@@ -264,7 +264,7 @@ class GTFSGraph
       route = find_by_entity(route)
       # Add references and identifiers
       route.serves ||= Set.new
-      route.serves |= stops
+      route.serves |= stops.map(&:onestop_id)
       add_identifier(route, 'r', entity)
       log "    #{route.onestop_id}: #{route.name}"
     end
@@ -289,6 +289,7 @@ class GTFSGraph
       # determine if RouteStopPattern exists
       test_rsp = RouteStopPattern.create_from_gtfs(trip, tl_route.onestop_id, stop_pattern, trip_stop_points, feed_shape_points)
       rsp = find_by_entity(test_rsp)
+      rsp.traversed_by = tl_route.onestop_id
       log "   #{rsp.onestop_id}"  if test_rsp.equal?(rsp)
       add_identifier(rsp, 'trip', trip)
       rsp.trips << trip.trip_id unless rsp.trips.include?(trip.trip_id)
@@ -362,80 +363,26 @@ class GTFSGraph
 
   ##### Create change payloads ######
 
-  def create_change_payloads(changeset, entity_type, entities, action: 'createUpdate')
+  def add_change_payloads(changeset, entities)
     entities.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
-      changes = chunk.map do |entity|
-        entity.compact! # remove any nil values
-        change = {}
-        change['action'] = action
-        change[entity_type] = entity
-        change
+      changes = []
+      chunk.each do |entity|
+        changes << {
+          :action => :createUpdate,
+          entity.class.name.camelize(:lower) => entity.as_change.as_json.compact
+        }
       end
       begin
-        ChangePayload.create!(
+        c = ChangePayload.create!(
           changeset: changeset,
-          payload: {
-            changes: changes
-          }
+          payload: {changes: changes}
         )
-      rescue Exception => e
+      rescue StandardError => e
         log "Error: #{e.message}"
         log "Payload:"
         log changes.to_json
-        raise e
       end
     end
-  end
-
-  def make_change_operator(entity)
-    {
-      onestopId: entity.onestop_id,
-      name: entity.name,
-      identifiedBy: entity.identified_by.uniq,
-      geometry: entity.geometry,
-      tags: entity.tags || {},
-      timezone: entity.timezone,
-      website: entity.website
-    }
-  end
-
-  def make_change_stop(entity)
-    {
-      onestopId: entity.onestop_id,
-      name: entity.name,
-      identifiedBy: entity.identified_by.uniq,
-      geometry: entity.geometry,
-      tags: entity.tags || {},
-      timezone: entity.timezone
-    }
-  end
-
-  def make_change_route(entity)
-    {
-      onestopId: entity.onestop_id,
-      name: entity.name,
-      color: entity.color,
-      identifiedBy: entity.identified_by.uniq,
-      operatedBy: entity.operator.onestop_id,
-      vehicleType: entity.vehicle_type,
-      serves: entity.serves.map(&:onestop_id),
-      tags: entity.tags || {},
-      geometry: entity.geometry
-    }
-  end
-
-  def make_change_rsp(entity)
-    {
-      onestopId: entity.onestop_id,
-      identifiedBy: entity.identified_by.uniq,
-      stopPattern: entity.stop_pattern,
-      geometry: entity.geometry,
-      isGenerated: entity.is_generated,
-      isModified: entity.is_modified,
-      trips: entity.trips,
-      traversedBy: entity.route.onestop_id,
-      tags: entity.tags || {}
-    }
   end
 
   def make_ssp(route, trip, origin, origin_dist_traveled, destination, destination_dist_traveled, route_stop_pattern)
