@@ -137,7 +137,7 @@ class RouteStopPattern < BaseRouteStopPattern
       nearest_point = nearest_locator.interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326))
       # handling outlier stops
       distance_to_line = spherical_stop[:geometry].distance(RGeo::Feature.cast(nearest_point, RouteStopPattern::GEOFACTORY))
-      if distance_to_line > OUTLIER_THRESHOLD
+      if (distance_to_line > OUTLIER_THRESHOLD && i!=0)
         logger.info "Distance issue: Found outlier stop #{self.stop_pattern[i]} in route stop pattern #{self.onestop_id}. Distance to line: #{distance_to_line}"
         distances << distances[i-1] if i!=0
       else
@@ -165,9 +165,9 @@ class RouteStopPattern < BaseRouteStopPattern
           self.distance_issues += 1
         end
       end
+      # we'll be lenient if this difference is less than 5 meters.
       if (distances[i] > geometry_length && (distances[i] - geometry_length) > 5.0)
         logger.info "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}, of route stop pattern #{self.onestop_id} has a distance #{distances[i]} greater than the length of the geometry, #{geometry_length}"
-        # we'll be lenient if this difference is less than 5 meters.
         self.distance_issues += 1
       end
     end
