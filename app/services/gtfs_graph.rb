@@ -128,11 +128,6 @@ class GTFSGraph
           origin_dist_traveled = rsp_distances_map[rsp.onestop_id][i]
           destination_dist_traveled = rsp_distances_map[rsp.onestop_id][i+1]
         end
-        # if !origin.shape_dist_traveled.nil? && !destination.shape_dist_traveled.nil?
-        #   puts rsp.onestop_id
-        #   puts "#{origin.stop_id} #{rsp.stop_pattern[i]} #{origin_dist_traveled} #{origin.shape_dist_traveled}"
-        #   puts "#{destination.stop_id} #{rsp.stop_pattern[i+1]} #{destination_dist_traveled} #{destination.shape_dist_traveled}"
-        # end
         ssp_trip << make_ssp(route, trip, origin, origin_dist_traveled, destination, destination_dist_traveled, rsp)
       end
       # Interpolate stop_times
