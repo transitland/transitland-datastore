@@ -24,8 +24,9 @@
 
 FactoryGirl.define do
   factory :feed_version do
-  sha1 { SecureRandom.hex(32) }
-  feed
+    sha1 { SecureRandom.hex(32) }
+    feed
+
     factory :feed_version_caltrain do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/f-9q9-caltrain.zip')) }
       association :feed, factory: :feed_caltrain
