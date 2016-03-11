@@ -49,7 +49,7 @@ module JsonCollectionPagination
     # Return results, errors, and meta
     data = {
       json: {
-        collection.model.name.underscore.pluralize => data[0...per_page],
+        collection.model.name.underscore.pluralize.to_sym => data[0...per_page],
         meta: meta
       }
     }
