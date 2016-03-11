@@ -2,7 +2,7 @@ module JsonCollectionPagination
   extend ActiveSupport::Concern
   PER_PAGE ||= 50
 
-  def paginated_json_collection(collection, path_helper, sort_key, sort_order, offset, per_page, total, params, meta={})
+  def paginated_json_collection(collection, path_helper, sort_key, sort_order, offset, per_page, total, params, errors=[])
     #changing from order to reorder to discard previous ordering
     sort_key = (sort_key.presence || :id).to_sym
     sort_order = sort_order.to_s == 'desc' ? :desc : :asc
@@ -13,12 +13,12 @@ module JsonCollectionPagination
     offset = (offset.presence || 0).to_i
     per_page = (per_page.presence || self.class::PER_PAGE).to_i
     include_total = (total == true || total == 'true')
-    meta.merge!({
+    meta = {
         sort_key: sort_key,
         sort_order: sort_order,
         offset: offset,
         per_page: per_page
-    })
+    }
     meta[:total] = collection.count if include_total
 
     # Get the current page of results.
@@ -46,7 +46,14 @@ module JsonCollectionPagination
       }))
     end
 
-    # Return results + meta
-    { json: data[0...per_page], meta: meta }
+    # Return results, errors, and meta
+    data = {
+      json: {
+        collection.model.name.underscore.pluralize => data[0...per_page],
+        meta: meta
+      }
+    }
+    data[:json][:errors] = errors if errors.length > 0
+    data
   end
 end

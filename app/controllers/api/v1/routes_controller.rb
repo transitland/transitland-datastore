@@ -25,12 +25,17 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     @routes = AllowFiltering.by_identifer_and_identifier_starts_with(@routes, params)
     @routes = AllowFiltering.by_updated_since(@routes, params)
 
-    meta = {}
+    errors = []
 
     if params[:operated_by].present? || params[:operatedBy].present?
       # we previously allowed `operatedBy`, so we'll continue to honor that for the time being
       operator_onestop_id = params[:operated_by] || params[:operatedBy]
-      meta[:warnings] = ['"operatedBy" query paramater is deprecated. Please use "operated_by" in the future.'] if params[:operatedBy].present?
+      if params[:operatedBy].present?
+        errors << {
+          exception: 'QueryParamDeprecation',
+          message: "'operatedBy' query paramater is deprecated. Please use 'operated_by' in the future."
+        }
+      end
       @routes = @routes.operated_by(operator_onestop_id)
     end
     if params[:traverses].present?
@@ -74,7 +79,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
           params[:per_page],
           params[:total],
           params.slice(:identifier, :identifier_starts_with, :operated_by, :color, :vehicle_type, :bbox, :onestop_id, :tag_key, :tag_value),
-          meta
+          errors
         )
       end
       format.geojson do
