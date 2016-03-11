@@ -166,7 +166,7 @@ class RouteStopPattern < BaseRouteStopPattern
         end
       end
       if (distances[i] > geometry_length)
-        logger.info "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}, of route stop pattern #{self.onestop_id} has a distance greater than the length of the geometry"
+        logger.info "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}, of route stop pattern #{self.onestop_id} has a distance #{distances[i]} greater than the length of the geometry, #{geometry_length}"
         # we'll be lenient if this difference is less than 5 meters.
         self.distance_issues += 1 if ((distances[i] - geometry_length) > 5.0)
       end
