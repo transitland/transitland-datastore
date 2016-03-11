@@ -32,7 +32,7 @@ The algorithm to compute these distances runs as follows:
   2. Initialize an evaluation line geometry and set it to the complete Route Stop Pattern line geometry.
 
   3. For each stop in the stop pattern:
-    1. If the stop is the first stop, determine whether or not it is located "before" the line geometry (see below). If so, or if the stop point is the first endpoint of the line geometry, then set the stop distance to 0.0 and continue. Otherwise, continue with 2.
+    1. If the stop is the first stop, determine whether or not it is located "before" the line geometry (see below). If so, or if the stop point is the first endpoint of the line geometry, then set the stop distance to 0.0 and continue. Otherwise, continue with 3.
     2. If the stop is the last stop, determine whether or not it is located "after" the line geometry (see below). If so, or if the stop point is the last endpoint of the line geometry, add the remaining line distance to the total distance counter and assign the total distance value to the last stop and break. This value should be approximately the length of the line geometry.
     3. Find its nearest point to the line geometry. This is accomplished by projecting the stop point
     and line into Cartesian coordinates, finding the nearest line segment to the stop point, and then finding
