@@ -1,5 +1,39 @@
 # Change Log
 
+## [4.7.4](https://github.com/transitland/transitland-datastore/tree/4.7.4) (2016-03-11)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.3...4.7.4)
+
+**Fixed bugs:**
+
+- FeedsController\#show should throw 404 when feed not found [\#500](https://github.com/transitland/transitland-datastore/issues/500)
+
+**Closed issues:**
+
+- GtfsGraph refactoring [\#288](https://github.com/transitland/transitland-datastore/issues/288)
+
+**Merged pull requests:**
+
+- FeedsController\#show should throw 404 when feed not found [\#501](https://github.com/transitland/transitland-datastore/pull/501) ([drewda](https://github.com/drewda))
+- Bump gtfs gem; fixes process leak [\#499](https://github.com/transitland/transitland-datastore/pull/499) ([irees](https://github.com/irees))
+- Upgrade to Rails 4.2.6 \(and update misc. gems\) [\#496](https://github.com/transitland/transitland-datastore/pull/496) ([drewda](https://github.com/drewda))
+- production release 4.7.3 [\#494](https://github.com/transitland/transitland-datastore/pull/494) ([drewda](https://github.com/drewda))
+- Feed info progress bar [\#480](https://github.com/transitland/transitland-datastore/pull/480) ([irees](https://github.com/irees))
+- Changeset "as\_change" [\#301](https://github.com/transitland/transitland-datastore/pull/301) ([irees](https://github.com/irees))
+
+## [4.7.3](https://github.com/transitland/transitland-datastore/tree/4.7.3) (2016-03-09)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.2...4.7.3)
+
+**Closed issues:**
+
+- FeedEater: Keep change payloads [\#493](https://github.com/transitland/transitland-datastore/issues/493)
+- improve GeoJSON endpoints [\#398](https://github.com/transitland/transitland-datastore/issues/398)
+
+**Merged pull requests:**
+
+- FeedEater: Keep change payloads [\#491](https://github.com/transitland/transitland-datastore/pull/491) ([irees](https://github.com/irees))
+- improve GeoJSON endpoints [\#489](https://github.com/transitland/transitland-datastore/pull/489) ([drewda](https://github.com/drewda))
+- production release 4.7.2 [\#485](https://github.com/transitland/transitland-datastore/pull/485) ([drewda](https://github.com/drewda))
+
 ## [4.7.2](https://github.com/transitland/transitland-datastore/tree/4.7.2) (2016-03-08)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.1...4.7.2)
 

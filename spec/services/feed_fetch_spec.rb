@@ -35,7 +35,7 @@ describe FeedFetch do
     it 'follows a redirect no more than limit times' do
       VCR.use_cassette('feed_fetch_redirect_fail') do
         expect {
-          FeedFetch.fetch(url_redirect_many, 2) { |resp| response = JSON.parse(resp.read_body) }
+          FeedFetch.fetch(url_redirect_many, limit:2) { |resp| response = JSON.parse(resp.read_body) }
         }.to raise_error(ArgumentError)
       end
     end
@@ -43,7 +43,7 @@ describe FeedFetch do
     it 'raises errors' do
       VCR.use_cassette('feed_fetch_404') do
         expect {
-          FeedFetch.fetch(url_404, 2) { |resp| response = JSON.parse(resp.read_body) }
+          FeedFetch.fetch(url_404, limit:2) { |resp| response = JSON.parse(resp.read_body) }
         }.to raise_error(Net::HTTPServerException)
       end
     end
@@ -77,7 +77,7 @@ describe FeedFetch do
     it 'allows files smaller than maximum size' do
       VCR.use_cassette('feed_fetch_download_binary') do
         data = nil
-        FeedFetch.download_to_tempfile(url_binary, maxsize=2048) { |filename| data = File.read(filename) }
+        FeedFetch.download_to_tempfile(url_binary, maxsize:2048) { |filename| data = File.read(filename) }
         expect(Digest::MD5.new.update(data).hexdigest).to eq('355c7ebd00db307b91ecd23a4215174a')
       end
     end
@@ -85,7 +85,7 @@ describe FeedFetch do
     it 'raises error if response larger than maximum size' do
       VCR.use_cassette('feed_fetch_download_binary') do
         expect {
-          FeedFetch.download_to_tempfile(url_binary, maxsize=128) { |filename| }
+          FeedFetch.download_to_tempfile(url_binary, maxsize:128) { |filename| }
         }.to raise_error(IOError)
       end
     end
