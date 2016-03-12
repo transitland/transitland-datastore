@@ -7,7 +7,6 @@ Transitland models each trip between two stops as an edge, called a `ScheduleSto
 | Attribute                    | Type | Description |
 |------------------------------|------|-------------|
 | route_onestop_id             | Onestop ID | Route |
-| route_stop_pattern_onestop_id | Onestop ID | Route Stop Pattern |
 | operator_onestop_id          | Onestop ID | Operator |
 | origin_onestop_id            | Onestop ID | Origin stop |
 | feed_onestop_id              | Onestop ID | Feed |
@@ -16,13 +15,11 @@ Transitland models each trip between two stops as an edge, called a `ScheduleSto
 | origin_arrival_time          | Time | Time vehicle arrives at origin from previous stop |
 | origin_departure_time        | Time | Time vehicle leaves origin |
 | origin_timepoint_source      | Enum | Origin timepoint source |
-| origin_dist_traveled         | Number | Distance in meters along the associated Route Stop Pattern line geometry |
 | destination_onestop_id       | Onestop ID | Destination stop |
 | destination_timezone         | String | Destination stop timezone |
 | destination_arrival_time     | Time | Time vehicle arrives at destination |
 | destination_departure_time   | Time | Time vehicle leaves destination for next stop |
 | destination_timepoint_source | Enum | Destination timepoint source |
-| destination_dist_traveled    | Number | Distance in meters along the associated Route Stop Pattern line geometry |
 | window_start                 | Time | The previous known exact timepoint |
 | window_end                   | Time | The next known exact timepoint |
 | trip                         | String | A text label for a sequence of edges |
@@ -71,7 +68,6 @@ The main ScheduleStopPair API endpoint is [/api/v1/schedule_stop_pairs](http://t
 | origin_onestop_id        | Onestop ID | Origin Stop. Accepts multiple separated by commas. | [from Embarcadero BART](http://transit.land/api/v1/schedule_stop_pairs?origin_onestop_id=s-9q8znb12j1-embarcadero) |
 | destination_onestop_id   | Onestop ID | Destination Stop. Accepts multiple separated by commas. | [to Montgomery St. BART](http://transit.land/api/v1/schedule_stop_pairs?destination_onestop_id=s-9q8yyxq427-montgomeryst)
 | route_onestop_id         | Onestop ID | Route. Accepts multiple separated by commas. | [on Muni N](http://transit.land/api/v1/schedule_stop_pairs?route_onestop_id=r-9q8y-n) |
-| route_stop_pattern_onestop_id | Onestop ID | Route Stop Pattern. Accepts multiple separated by commas. | [with Route Stop Pattern](http://transit.land/api/v1/schedule_stop_pairs?route_stop_pattern_onestop_id=r-9q8y-n-21866a-06d86d) |
 | operator_onestop_id      | Onestop ID | Operator. Accepts multiple separated by commas. | [on BART](http://transit.land/api/v1/schedule_stop_pairs?operator_onestop_id=o-9q9-bart) |
 | service_date             | Date | Service operates on a date | [valid on 2015-10-26](http://transit.land/api/v1/schedule_stop_pairs?date=2015-10-26) |
 | service_from_date        | Date | Service operates on a date, or in the future | [valid on and after 2015-10-26](http://transit.land/api/v1/schedule_stop_pairs?service_from_date=2015-10-26) |
