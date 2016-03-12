@@ -1,6 +1,8 @@
 describe Api::V1::ActivityUpdatesController do
   context 'GET index' do
     before(:each) do
+      Rails.cache.clear
+
       Timecop.travel(5.minutes.ago) do
         @c1 = create(:changeset)
         @f = create(:feed)
@@ -8,15 +10,30 @@ describe Api::V1::ActivityUpdatesController do
       end
       Timecop.travel(3.minutes.ago) do
         @c2 = create(:changeset)
-        @fvi = create(:feed_version_import, feed_version: @fv)
+        @fvi = create(:feed_version_import, feed_version: @fv, feed: @f)
       end
       @c1.update(notes: 'new note')
     end
+
     context 'as JSON' do
       it 'returns a list of recent updates' do
         get :index
         expect_json(activity_updates: -> (activity_updates) {
           expect(activity_updates.length).to eq 5
+        })
+      end
+
+      it 'can filter by feed' do
+        get :index, feed: @f.onestop_id
+        expect_json(activity_updates: -> (activity_updates) {
+          expect(activity_updates.length).to eq 2
+        })
+      end
+
+      it 'can filter by changeset' do
+        get :index, changeset: @c1.id
+        expect_json(activity_updates: -> (activity_updates) {
+          expect(activity_updates.length).to eq 2
         })
       end
     end
