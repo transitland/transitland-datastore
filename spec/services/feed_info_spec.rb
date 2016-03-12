@@ -65,7 +65,7 @@ describe FeedInfo do
         feed, operators = feed_info.parse_feed_and_operators
       end
       expect(feed.onestop_id).to eq('f-9qs-example')
-      feed_geometry = {
+      expect_geometry = {
         type: 'Polygon',
         coordinates: [[
           [-117.133162, 36.425288],
@@ -75,7 +75,13 @@ describe FeedInfo do
           [-117.133162, 36.425288]
         ]]
       }
-      expect(feed.geometry).to eq(feed_geometry)
+      expect(feed.geometry[:type]).to eq(expect_geometry[:type])
+      feed.geometry[:coordinates][0]
+        .zip(expect_geometry[:coordinates][0])
+        .each { |a,b|
+          expect(a[0]).to be_within(0.001).of(b[0])
+          expect(a[1]).to be_within(0.001).of(b[1])
+        }
     end
 
     it 'parses operators' do
@@ -89,7 +95,7 @@ describe FeedInfo do
       expect(operator.onestop_id).to eq('o-9qs-demotransitauthority')
       expect(operator.website).to eq('http://google.com')
       expect(operator.timezone).to eq('America/Los_Angeles')
-      operator_geometry = {
+      expect_geometry = {
         type: 'Polygon',
         coordinates: [[
           [-117.133162, 36.42528800000001],
@@ -100,7 +106,13 @@ describe FeedInfo do
           [-117.133162, 36.42528800000001]
         ]]
       }
-      expect(operator.geometry).to eq(operator_geometry)
+      expect(operator.geometry[:type]).to eq(expect_geometry[:type])
+      operator.geometry[:coordinates][0]
+        .zip(expect_geometry[:coordinates][0])
+        .each { |a,b|
+          expect(a[0]).to be_within(0.001).of(b[0])
+          expect(a[1]).to be_within(0.001).of(b[1])
+        }
     end
   end
 
