@@ -65,6 +65,17 @@ describe FeedInfo do
         feed, operators = feed_info.parse_feed_and_operators
       end
       expect(feed.onestop_id).to eq('f-9qs-example')
+      feed_geometry = {
+        type: 'Polygon',
+        coordinates: [[
+          [-117.133162, 36.425288],
+          [-116.40094, 36.425288],
+          [-116.40094, 36.915682],
+          [-117.133162, 36.915682],
+          [-117.133162, 36.425288]
+        ]]
+      }
+      expect(feed.geometry).to eq(feed_geometry)
     end
 
     it 'parses operators' do
@@ -78,7 +89,18 @@ describe FeedInfo do
       expect(operator.onestop_id).to eq('o-9qs-demotransitauthority')
       expect(operator.website).to eq('http://google.com')
       expect(operator.timezone).to eq('America/Los_Angeles')
-      expect(operator.geometry).to be_truthy
+      operator_geometry = {
+        type: 'Polygon',
+        coordinates: [[
+          [-117.133162, 36.42528800000001],
+          [-116.81797, 36.88107999999998],
+          [-116.76821000000001, 36.914893],
+          [-116.751677, 36.91568199999999],
+          [-116.40093999999999, 36.64149599999999],
+          [-117.133162, 36.42528800000001]
+        ]]
+      }
+      expect(operator.geometry).to eq(operator_geometry)
     end
   end
 
