@@ -55,6 +55,14 @@ class FeedVersion < ActiveRecord::Base
     !!self.feed.active_feed_version && (self.feed.active_feed_version == self)
   end
 
+  def async_feed_eater(import_level=0)
+    FeedEaterWorker.perform_async(
+      self.feed.onestop_id,
+      self.sha1,
+      import_level
+    )
+  end
+
   private
 
   def compute_and_set_hashes
