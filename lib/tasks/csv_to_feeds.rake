@@ -45,9 +45,12 @@ task :csv_to_feeds, [:filename, :column] => [:environment] do |t, args|
   end
 
   # Create changeset
+  payload = {changes: changes}
   changeset = Changeset.create!
   ChangePayload.create!(
     changeset: changeset,
-    payload: {changes: changes}
+    payload: payload
   )
+  puts "====== JSON Payload ======"
+  puts payload.to_json
 end
