@@ -84,6 +84,8 @@ gem 'airborne', group: :test
 gem 'mock_redis', group: :test # used by sidekiq-unique-jobs
 gem 'timecop', group: :test
 gem 'rspec_junit_formatter', '0.2.2', group: :test
+# ^ for CircleCI: https://circleci.com/docs/test-metadata#rspec
+
 # deployment
 gem 'aws-sdk', group: [:staging, :production]
 
