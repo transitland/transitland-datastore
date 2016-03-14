@@ -37,7 +37,7 @@ describe Api::V1::StopsController do
         }})
       end
 
-      context 'returns stop by served_by' do
+      context 'returns stop by servedBy' do
         before(:each) do
           @bart = create(:operator, name: 'BART')
           @sfmta = create(:operator, name: 'SFMTA')
@@ -50,14 +50,14 @@ describe Api::V1::StopsController do
         end
 
         it 'with an operator Onestop ID' do
-          get :index, served_by: @bart.onestop_id
+          get :index, servedBy: @bart.onestop_id
           expect_json({ stops: -> (stops) {
             expect(stops.map { |stop| stop[:onestop_id] }).to match_array([@metro_embarcadero.onestop_id])
           }})
         end
 
         it 'with an operator and a route Onestop ID' do
-          get :index, served_by: "#{@bart.onestop_id},#{@sfmta_route.onestop_id}"
+          get :index, servedBy: "#{@bart.onestop_id},#{@sfmta_route.onestop_id}"
           expect_json({ stops: -> (stops) {
             expect(stops.map { |stop| stop[:onestop_id] }).to match_array([@metro_embarcadero, @gilman_paul_3rd].map(&:onestop_id))
           }})
