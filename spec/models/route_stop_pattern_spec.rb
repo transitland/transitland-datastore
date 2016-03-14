@@ -296,7 +296,7 @@ describe RouteStopPattern do
       @rsp.stop_pattern << last_stop_outlier.onestop_id
       expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(12617.9271),
-                                                              a_value_within(0.1).of(12617.9271),
+                                                              a_value_within(0.1).of(17001.5107),
                                                               a_value_within(0.1).of(17001.5107)])
     end
 

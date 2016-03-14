@@ -100,14 +100,14 @@ class GTFSGraph
     uniq_rsps = rsp_map.values.uniq
     uniq_rsps.each do |onestop_id|
       rsp = RouteStopPattern.find_by_onestop_id!(onestop_id)
-      begin
+      #begin
         rsp_distances_map[onestop_id] = rsp.calculate_distances
         rsp.evaluate_distances(rsp_distances_map[onestop_id])
         rsps_with_issues += 1 if rsp.distance_issues > 0
-      rescue StandardError
-        log "Could not calculate distances for Route Stop Pattern: #{onestop_id}"
-        rsps_with_issues += 1
-      end
+      #rescue StandardError
+      #  log "Could not calculate distances for Route Stop Pattern: #{onestop_id}"
+      #  rsps_with_issues += 1
+      #end
     end
     score = ((uniq_rsps.size - rsps_with_issues)/uniq_rsps.size.to_f).round(5) rescue score = 1.0
     log "#{rsps_with_issues} Route Stop Patterns out of #{rsp_map.values.uniq.size} had issues with distance calculation. Valhalla Import Score: #{score}"
