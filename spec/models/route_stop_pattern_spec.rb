@@ -245,7 +245,7 @@ describe RouteStopPattern do
       )
     end
 
-    it 'can calculate distances when a stop is before the first point of a geometry' do
+    it 'calculates the distance of the first stop to be 0 if it is before the first point of a geometry' do
       @rsp.stop_pattern = @rsp.stop_pattern.unshift(create(:stop,
         onestop_id: "s-9q9hwp6epk-before~geometry",
         geometry: Stop::GEOFACTORY.point(-121.5, 37.30).to_s
@@ -254,23 +254,26 @@ describe RouteStopPattern do
       has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
       @rsp.tl_geometry(stop_points, issues)
       expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
-                                                       a_value_within(0.1).of(35756.9),
-                                                       a_value_within(0.1).of(48374.9),
-                                                       a_value_within(0.1).of(52758.4)])
+                                                       a_value_within(0.1).of(0.0),
+                                                       a_value_within(0.1).of(12617.9),
+                                                       a_value_within(0.1).of(17001.5)])
     end
 
-    it 'can calculate distances when a stop is after the last point of a geometry' do
+    it 'calculates the distance of the last stop to be the length of the line geometry if it is after the last point of the geometry' do
       @rsp.stop_pattern << create(:stop,
        onestop_id: "s-9q9hwp6epk-after~geometry",
        geometry: Stop::GEOFACTORY.point(-122.1, 37.41).to_s
       ).onestop_id
-      stop_points = @rsp.geometry[:coordinates] << [-122.1, 37.41]
-      has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
-      @rsp.tl_geometry(stop_points, issues)
-      expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.2),
-                                                       a_value_within(0.1).of(12618.2),
-                                                       a_value_within(0.1).of(17001.7),
-                                                       a_value_within(0.1).of(19759.1)])
+      #stop_points = @rsp.geometry[:coordinates] << [-122.1, 37.41]
+      @rsp.geometry = RouteStopPattern.line_string(@rsp.geometry[:coordinates] << [-122.09, 37.401])
+      #has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
+      #@rsp.tl_geometry(stop_points, issues)
+      distances = @rsp.calculate_distances
+      expect(distances[3]).to be_within(0.1).of(@rsp[:geometry].length)
+      expect(distances).to match_array([a_value_within(0.1).of(0.0),
+                                                       a_value_within(0.1).of(12617.9),
+                                                       a_value_within(0.1).of(17001.5),
+                                                       a_value_within(0.1).of(18447.4)])
     end
 
     it 'can continue distance calculation when a stop is an outlier' do
