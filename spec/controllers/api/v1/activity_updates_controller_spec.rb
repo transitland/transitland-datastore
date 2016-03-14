@@ -30,10 +30,25 @@ describe Api::V1::ActivityUpdatesController do
         })
       end
 
+      it 'can filter by multiple feeds' do
+        fv2 = create(:feed_version)
+        get :index, feed: "#{@f.onestop_id},#{fv2.feed.onestop_id}"
+        expect_json(activity_updates: -> (activity_updates) {
+          expect(activity_updates.length).to eq 3
+        })
+      end
+
       it 'can filter by changeset' do
         get :index, changeset: @c1.id
         expect_json(activity_updates: -> (activity_updates) {
           expect(activity_updates.length).to eq 2
+        })
+      end
+
+      it 'can filter by multiple changesets' do
+        get :index, changeset: "#{@c1.id},#{@c2.id}"
+        expect_json(activity_updates: -> (activity_updates) {
+          expect(activity_updates.length).to eq 3
         })
       end
     end

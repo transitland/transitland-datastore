@@ -7,13 +7,15 @@ class Api::V1::ActivityUpdatesController < Api::V1::BaseApiController
     end
 
     if params[:feed].present?
+      feed_onestop_ids = params[:feed].split(',')
       @activity_updates.select! do |update|
-        update[:entity_type] == 'feed' && update[:entity_id] == params[:feed]
+        update[:entity_type] == 'feed' && feed_onestop_ids.include?(update[:entity_id])
       end
     end
     if params[:changeset].present?
+      changeset_ids = params[:changeset].split(',').map(&:to_i)
       @activity_updates.select! do |update|
-        update[:entity_type] == 'changeset' && update[:entity_id] == params[:changeset].to_i
+        update[:entity_type] == 'changeset' && changeset_ids.include?(update[:entity_id])
       end
     end
 
