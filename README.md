@@ -96,7 +96,7 @@ Example URL  | Parameters
 `GET /api/v1/stops?identifier_starts_with=gtfs://f-9q9` | `identifier_starts_with` can be any type of stop identifier fragment
 `GET /api/v1/stops?lon=-121.977772198&lat=37.413530093&r=100` | `lon` is longitude; `lat` is latitude; `r` is radius of search in meters (if not specified, defaults to 100 meters)
 `GET /api/v1/stops?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
-`GET /api/v1/stops?servedBy=o-9q9-BART,r-9q8y-richmond~dalycity~millbrae` | `servedBy` can be any number of Onestop ID's for operators and routes
+`GET /api/v1/stops?served_by=o-9q9-BART,r-9q8y-richmond~dalycity~millbrae` | `served_by` can be any number of Onestop ID's for operators and routes
 `GET /api/v1/stops?tag_key=wheelchair_boarding` | find all stops that have a tag of `tag_key` with any value
 `GET /api/v1/stops?tag_key=wheelchair_boarding&tag_value=1` | find all stops that have a tag of `tag_key` and a value of `tag_value`
 `GET /api/v1/operators` | none required
@@ -109,7 +109,7 @@ Example URL  | Parameters
 `GET /api/v1/routes` | none required
 `GET /api/v1/routes?identifier=19X` | `identifier` can be any type of route identifier
 `GET /api/v1/routes?identifier_starts_with=gtfs://f-9q9` | `identifier_starts_with` can be any type of route identifier fragment
-`GET /api/v1/routes?operatedBy=o-9q9-BART` | `operatedBy` is a Onestop ID for an operator/agency
+`GET /api/v1/routes?operated_by=o-9q9-BART` | `operated_by` is a Onestop ID for an operator/agency
 `GET /api/v1/routes?vehicle_type=bus,4` | find all routes with vehicle type(s) by integer or string. Possible values defined by the GTFS spec for [the `route_type` column](https://developers.google.com/transit/gtfs/reference#routes_route_type_field) and [the Extended GTFS Route Types](https://support.google.com/transitpartners/answer/3520902). Separate multiple vehicle types by commas.
 `GET /api/v1/routes?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
 `GET /api/v1/routes?tag_key=route_color` | find all routes that have a tag of `tag_key` with any value
@@ -155,7 +155,7 @@ Pagination for JSON endpoints:
 
 Format:
 - by default, responses are paginated JSON
-- specify `.geojson` instead for GeoJSON on some endpoints. For example: `/api/v1/stops.geojson?bbox=-122.4183,37.7758,-122.4120,37.7858` and `/api/v1/routes.geojson?operatedBy=o-9q9-bayarearapidtransit`
+- specify `.geojson` instead for GeoJSON on some endpoints. For example: `/api/v1/stops.geojson?bbox=-122.4183,37.7758,-122.4120,37.7858` and `/api/v1/routes.geojson?operated_by=o-9q9-bayarearapidtransit`
 
 ## Running the FeedEater pipeline
 
