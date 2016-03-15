@@ -46,7 +46,7 @@ module JsonCollectionPagination
       }))
     end
 
-    # Return results and and meta
-    { json: data[0...per_page], meta: meta}
+    # Return results + meta
+    { json: data[0...per_page], meta: meta }
   end
 end

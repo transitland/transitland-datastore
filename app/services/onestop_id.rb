@@ -172,18 +172,10 @@ module OnestopId
   end
 
   def self.find(onestop_id)
-    begin
-      handler_by_string(string: onestop_id)::MODEL.find_by(onestop_id: onestop_id)
-    rescue NameError
-      raise ActiveRecord::RecordNotFound, 'invalid Onestop ID'
-    end
+    handler_by_string(string: onestop_id)::MODEL.find_by(onestop_id: onestop_id)
   end
 
   def self.find!(onestop_id)
-    begin
-      handler_by_string(string: onestop_id)::MODEL.find_by!(onestop_id: onestop_id)
-    rescue NameError
-      raise ActiveRecord::RecordNotFound, 'invalid Onestop ID'
-    end
+    handler_by_string(string: onestop_id)::MODEL.find_by!(onestop_id: onestop_id)
   end
 end

@@ -70,7 +70,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
           params[:offset],
           params[:per_page],
           params[:total],
-          params.slice(:identifier, :identifier_starts_with, :operated_by, :color, :vehicle_type, :bbox, :onestop_id, :tag_key, :tag_value)
+          params.slice(:identifier, :identifier_starts_with, :operated_by, :operatedBy, :color, :vehicle_type, :bbox, :onestop_id, :tag_key, :tag_value)
         )
       end
       format.geojson do

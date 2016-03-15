@@ -318,6 +318,9 @@ GEM
       rspec (~> 3.0, >= 3.0.0)
       sidekiq (>= 2.4.0)
     rspec-support (3.4.1)
+    rspec_junit_formatter (0.2.2)
+      builder (< 4)
+      rspec-core (>= 2, < 4, != 2.12.0)
     rubocop (0.37.2)
       parser (>= 2.3.0.4, < 3.0)
       powerpack (~> 0.1)
@@ -433,6 +436,7 @@ DEPENDENCIES
   rgeo-geojson
   rspec-rails
   rspec-sidekiq
+  rspec_junit_formatter (= 0.2.2)
   rubocop
   rubocop-rspec
   sentry-raven

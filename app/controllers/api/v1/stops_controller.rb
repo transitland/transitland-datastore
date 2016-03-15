@@ -59,7 +59,7 @@ class Api::V1::StopsController < Api::V1::BaseApiController
           params[:offset],
           params[:per_page],
           params[:total],
-          params.slice(:identifier, :identifier_starts_with, :served_by, :lat, :lon, :r, :bbox, :onestop_id, :tag_key, :tag_value)
+          params.slice(:identifier, :identifier_starts_with, :served_by, :servedBy, :lat, :lon, :r, :bbox, :onestop_id, :tag_key, :tag_value)
         )
       end
       format.geojson do

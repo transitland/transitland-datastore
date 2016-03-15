@@ -21,8 +21,7 @@ if LogStasher.enabled?
       :lat,
       :lon,
       :onestop_id,
-      :operated_by,
-      :operatedBy, # deprecated
+      :operatedBy,
       :operator_onestop_id,
       :origin_departure_between,
       :origin_onestop_id,
@@ -30,8 +29,6 @@ if LogStasher.enabled?
       :route_onestop_id,
       :service_from_date,
       :service_before_date,
-      :served_by,
-      :servedBy, # deprecated
       :tag_key,
       :tag_value,
       :trip,

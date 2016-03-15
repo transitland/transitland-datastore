@@ -127,17 +127,17 @@ class Operator < BaseOperator
   include FromGTFS
   def self.from_gtfs(entity, attrs={})
     # GTFS Constructor
-    coordinates = Stop::GEOFACTORY.collection(
-      entity.stops.map { |stop| Stop::GEOFACTORY.point(*stop.coordinates) }
+    # Convert to TL Stops so geometry projection works properly...
+    tl_stops = entity.stops.map { |stop| Stop.new(geometry: Stop::GEOFACTORY.point(*stop.coordinates)) }
+    geohash = GeohashHelpers.fit(
+      Stop::GEOFACTORY.collection(tl_stops.map { |stop| stop[:geometry] })
     )
-    geohash = GeohashHelpers.fit(coordinates)
-    geometry = RGeo::Cartesian::BoundingBox.create_from_geometry(coordinates)
     # Generate third Onestop ID component
     name = [entity.agency_name, entity.id, "unknown"]
       .select(&:present?)
       .first
     # Create Operator
-    attrs[:geometry] = geometry.to_geometry
+    attrs[:geometry] = Operator.convex_hull(tl_stops, projected: false)
     attrs[:name] = name
     attrs[:onestop_id] = OnestopId.handler_by_model(self).new(
       geohash: geohash,

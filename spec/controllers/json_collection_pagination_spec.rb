@@ -4,9 +4,6 @@ class FakePaginationCollection
     @offset = 0
     @limit = @items.size
   end
-  def model
-    RSpec::Mocks::Double.new 'model', name: 'Fake'
-  end
   def column_names
     ['id']
   end
