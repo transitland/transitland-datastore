@@ -50,14 +50,12 @@ describe JsonCollectionPagination do
       expect(
         object.send(:paginated_json_collection, collection, path_helper, nil, nil, 0, 10, false, {})
       ).to eq({
-        json: {
-          fakes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-          meta: {
-            sort_key: :id,
-            sort_order: :asc,
-            offset: 0,
-            per_page: 10
-          }
+        json: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        meta: {
+          sort_key: :id,
+          sort_order: :asc,
+          offset: 0,
+          per_page: 10
         }
       })
     end
@@ -66,22 +64,20 @@ describe JsonCollectionPagination do
       expect(
         object.send(:paginated_json_collection, collection, path_helper, nil, nil, 0, 10, true, {})
       ).to eq({
-        json: {
-          fakes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-          meta: {
-            sort_key: :id,
-            sort_order: :asc,
-            total: 10,
-            offset: 0,
-            per_page: 10
-          }
+        json: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        meta: {
+          sort_key: :id,
+          sort_order: :asc,
+          total: 10,
+          offset: 0,
+          per_page: 10
         }
       })
     end
 
     it 'sorts ascending' do
       expect(
-        object.send(:paginated_json_collection, collection, path_helper, 'id', 'asc', 0, 10, false, {})[:json][:fakes]
+        object.send(:paginated_json_collection, collection, path_helper, 'id', 'asc', 0, 10, false, {})[:json]
       ).to eq(
         [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
       )
@@ -89,7 +85,7 @@ describe JsonCollectionPagination do
 
     it 'sorts descending' do
       expect(
-        object.send(:paginated_json_collection, collection, path_helper, 'id', 'desc', 0, 10, false, {})[:json][:fakes]
+        object.send(:paginated_json_collection, collection, path_helper, 'id', 'desc', 0, 10, false, {})[:json]
       ).to eq(
         [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
       )
@@ -102,46 +98,23 @@ describe JsonCollectionPagination do
     end
 
     it 'has a next page' do
-      expect(pager.call(0,1,false)[:json][:meta][:next]).to eq('http://blah/offset=1')
-      expect(pager.call(0,4,false)[:json][:meta][:next]).to eq('http://blah/offset=4')
-      expect(pager.call(4,4,false)[:json][:meta][:next]).to eq('http://blah/offset=8')
-      expect(pager.call(8,4,false)[:json][:meta][:next]).to be_nil
-      expect(pager.call(0,10,false)[:json][:meta][:next]).to be_nil
+      expect(pager.call(0,1,false)[:meta][:next]).to eq('http://blah/offset=1')
+      expect(pager.call(0,4,false)[:meta][:next]).to eq('http://blah/offset=4')
+      expect(pager.call(4,4,false)[:meta][:next]).to eq('http://blah/offset=8')
+      expect(pager.call(8,4,false)[:meta][:next]).to be_nil
+      expect(pager.call(0,10,false)[:meta][:next]).to be_nil
     end
 
     it 'has a previous page' do
-      expect(pager.call(0,1,false)[:json][:meta][:prev]).to be_nil
-      expect(pager.call(0,4,false)[:json][:meta][:prev]).to be_nil
-      expect(pager.call(4,4,false)[:json][:meta][:prev]).to eq('http://blah/offset=0')
-      expect(pager.call(8,4,false)[:json][:meta][:prev]).to eq('http://blah/offset=4')
-      expect(pager.call(0,10,false)[:json][:meta][:prev]).to be_nil
+      expect(pager.call(0,1,false)[:meta][:prev]).to be_nil
+      expect(pager.call(0,4,false)[:meta][:prev]).to be_nil
+      expect(pager.call(4,4,false)[:meta][:prev]).to eq('http://blah/offset=0')
+      expect(pager.call(8,4,false)[:meta][:prev]).to eq('http://blah/offset=4')
+      expect(pager.call(0,10,false)[:meta][:prev]).to be_nil
     end
 
     it 'will not underflow offset' do
-      expect(pager.call(5,10,false)[:json][:meta][:prev]).to eq('http://blah/offset=0')
-    end
-
-    it 'can include error messages' do
-      errors = [
-        {
-          exception: 'ArgumentError',
-          message: 'This is the error.'
-        }
-      ]
-      expect(
-        object.send(:paginated_json_collection, collection, path_helper, nil, nil, 0, 10, false, {}, errors)
-      ).to eq({
-        json: {
-          fakes: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-          meta: {
-            sort_key: :id,
-            sort_order: :asc,
-            offset: 0,
-            per_page: 10
-          },
-          errors: errors
-        }
-      })
+      expect(pager.call(5,10,false)[:meta][:prev]).to eq('http://blah/offset=0')
     end
   end
 end

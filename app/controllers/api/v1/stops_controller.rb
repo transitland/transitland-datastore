@@ -22,19 +22,11 @@ class Api::V1::StopsController < Api::V1::BaseApiController
     @stops = AllowFiltering.by_identifer_and_identifier_starts_with(@stops, params)
     @stops = AllowFiltering.by_updated_since(@stops, params)
 
-    errors = []
-
     if params[:served_by].present? || params[:servedBy].present?
       # we previously allowed `servedBy`, so we'll continue to honor that for the time being
       operator_onestop_ids = []
       operator_onestop_ids += params[:served_by].split(',') if params[:served_by].present?
-      if params[:servedBy].present?
-        operator_onestop_ids += params[:servedBy].split(',')
-        errors << {
-          exception: 'QueryParamDeprecation',
-          message: "'servedBy' query paramater is deprecated. Please use 'served_by' in the future."
-        }
-      end
+      operator_onestop_ids += params[:servedBy].split(',') if params[:servedBy].present?
       operator_onestop_ids.uniq!
       @stops = @stops.served_by(operator_onestop_ids)
     end
@@ -67,8 +59,7 @@ class Api::V1::StopsController < Api::V1::BaseApiController
           params[:offset],
           params[:per_page],
           params[:total],
-          params.slice(:identifier, :identifier_starts_with, :served_by, :lat, :lon, :r, :bbox, :onestop_id, :tag_key, :tag_value),
-          errors
+          params.slice(:identifier, :identifier_starts_with, :served_by, :lat, :lon, :r, :bbox, :onestop_id, :tag_key, :tag_value)
         )
       end
       format.geojson do
