@@ -211,39 +211,50 @@ describe RouteStopPattern do
                                                               a_value_within(0.1).of(17001.5107)])
     end
 
-    # it 'can calculate distances by matching stops to the right segments if considered sequentially' do
-    #   first_stop = create(:stop,
-    #     onestop_id: "s-dqcjq9vgbv-A",
-    #     geometry: Stop::GEOFACTORY.point(-77.050171, 38.901890).to_s
-    #   )
-    #   second_stop = create(:stop,
-    #     onestop_id: "s-dqcjq9vc13-B",
-    #     geometry: Stop::GEOFACTORY.point(-77.050155, 38.901394).to_s
-    #   )
-    #   @loop_rsp = RouteStopPattern.new(
-    #     stop_pattern: [first_stop.onestop_id, second_stop.onestop_id],
-    #     geometry: RouteStopPattern.line_string(
-    #       [[-77.050176, 38.900751],
-    #       [-77.050187, 38.901394],
-    #       [-77.050187, 38.901920],
-    #       [-77.050702, 38.902195],
-    #       [-77.050777, 38.902638],
-    #       [-77.050401, 38.903005],
-    #       [-77.049961, 38.903034],
-    #       [-77.049634, 38.902901],
-    #       [-77.049473, 38.902638],
-    #       [-77.049527, 38.902312],
-    #       [-77.049725, 38.902078],
-    #       [-77.050069, 38.901978],
-    #       [-77.050074, 38.901389],
-    #       [-77.050048, 38.900776]]
-    #     )
-    #   )
-    #   expect(@loop_rsp.calculate_distances).to match_array(
-    #     [a_value_within(0.1).of(126.80),
-    #      a_value_within(0.1).of(553.56)]
-    #   )
-    # end
+    it 'can accurately calculate distances when a stop matches to a segment before the previous stop\'s matching segment' do
+      # from sfmta
+      first_stop = create(:stop,
+        onestop_id: "s-9q8yu61fz4-judahst~46thave",
+        geometry: Stop::GEOFACTORY.point(-122.505832, 37.760493).to_s
+      )
+      second_stop = create(:stop,
+        onestop_id: "s-9q8yu4pdj1-judah~laplaya~oceanbeach",
+        geometry: Stop::GEOFACTORY.point(-122.509011, 37.760363).to_s
+      )
+      third_stop = create(:stop,
+        onestop_id: "s-9q8yu4pbft-judah~laplaya~oceanbeach",
+        geometry: Stop::GEOFACTORY.point(-122.508777, 37.76017).to_s
+      )
+
+      @tricky_rsp = RouteStopPattern.new(
+        stop_pattern: [first_stop.onestop_id, second_stop.onestop_id, third_stop.onestop_id],
+        geometry: RouteStopPattern.line_string(
+          [[-122.50056,37.76067],
+          [-122.50164,37.76062],
+          [-122.5027,37.76057],
+          [-122.50378,37.76052],
+          [-122.50485,37.76048],
+          [-122.50592,37.76043],
+          [-122.50699,37.76038],
+          [-122.50807,37.76033],
+          [-122.50814,37.76036],
+          [-122.50853,37.76035],
+          [-122.5091,37.76033],
+          [-122.50918,37.76032],
+          [-122.50925,37.76029],
+          [-122.50928,37.76023],
+          [-122.50929,37.76018],
+          [-122.50927,37.76012],
+          [-122.50925,37.76009],
+          [-122.50921,37.76006],
+          [-122.50917,37.76005],
+          [-122.50913,37.76004],
+          [-122.50908,37.76004]]
+        )
+      )
+      distances = @tricky_rsp.calculate_distances
+      expect(distances[2]).to be > distances[1]
+    end
 
     it 'calculates the distance of the first stop to be 0 if it is before the first point of a geometry' do
       @rsp.stop_pattern = @rsp.stop_pattern.unshift(create(:stop,
