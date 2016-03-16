@@ -1,8 +1,29 @@
 class Api::V1::FeedsController < Api::V1::BaseApiController
-  include Geojson
   include JsonCollectionPagination
   include DownloadableCsv
   include AllowFiltering
+  include Geojson
+  GEOJSON_ENTITY_PROPERTIES = Proc.new { |properties, entity|
+    # title property to follow GeoJSON simple style spec
+    properties[:title] = "Feed #{entity.onestop_id}"
+
+    properties[:url] = entity.url
+    properties[:feed_format] = entity.feed_format
+    properties[:license_name] = entity.license_name
+    properties[:license_url] = entity.license_url
+    properties[:license_use_without_attribution] = entity.license_use_without_attribution
+    properties[:license_create_derived_product] = entity.license_create_derived_product
+    properties[:license_redistribute] = entity.license_redistribute
+    properties[:license_attribution_text] = entity.license_attribution_text
+    properties[:last_fetched_at] = entity.last_fetched_at
+    properties[:latest_fetch_exception_log] = entity.latest_fetch_exception_log
+    properties[:import_status] = entity.import_status
+    properties[:last_imported_at] = entity.last_imported_at
+    properties[:feed_versions_count] = entity.feed_versions.count
+    properties[:active_feed_version] = entity.active_feed_version
+    properties[:import_level_of_active_feed_version] = entity.active_feed_version.try(:import_level)
+    properties[:created_or_updated_in_changeset_id] = entity.created_or_updated_in_changeset_id
+  }
 
   before_action :set_feed, only: [:show]
 
@@ -36,7 +57,7 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
         )
       end
       format.geojson do
-        render json: Geojson.from_entity_collection(@feeds)
+        render json: Geojson.from_entity_collection(@feeds, &GEOJSON_ENTITY_PROPERTIES)
       end
       format.csv do
         return_downloadable_csv(@feeds, 'feeds')
@@ -45,7 +66,14 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
   end
 
   def show
-    render json: @feed
+    respond_to do |format|
+      format.json do
+        render json: @feed
+      end
+      format.geojson do
+        render json: Geojson.from_entity(@feed, &GEOJSON_ENTITY_PROPERTIES)
+      end
+    end
   end
 
   def fetch_info
@@ -55,7 +83,7 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
     cachekey = "feeds/fetch_info/#{url}"
     cachedata = Rails.cache.read(cachekey)
     if !cachedata
-      cachedata = {status: 'processing', url: url}
+      cachedata = {status: 'queued', url: url}
       Rails.cache.write(cachekey, cachedata, expires_in: FeedInfo::CACHE_EXPIRATION)
       FeedInfoWorker.perform_async(url, cachekey)
     end
@@ -69,7 +97,7 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
   private
 
   def set_feed
-    @feed = Feed.find_by(onestop_id: params[:id])
+    @feed = Feed.find_by_onestop_id!(params[:id])
   end
 
 end

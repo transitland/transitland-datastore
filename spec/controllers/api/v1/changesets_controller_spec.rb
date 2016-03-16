@@ -204,12 +204,7 @@ describe Api::V1::ChangesetsController do
             action: 'createUpdate',
             stop: {
               onestopId: 's-9q8yt4b-1AvHoS',
-              name: '1st Ave. & Holloway Street',
-              operatorsServingStop: [
-                {
-                  operatorOnestopId: 'o-9q8y-SFMTA'
-                }
-              ]
+              name: '1st Ave. & Holloway Street'
             }
           }
         ]

@@ -32,7 +32,7 @@ class BaseRouteStopPattern < ActiveRecord::Base
 
   include IsAnEntityImportedFromFeeds
 
-  attr_accessor :traversed_by
+  attr_accessor :traversed_by, :distance_issues, :first_stop_before_geom
 end
 
 class RouteStopPattern < BaseRouteStopPattern
@@ -71,10 +71,12 @@ class RouteStopPattern < BaseRouteStopPattern
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
     virtual_attributes: [
-      :imported_from_feed,
       :identified_by,
       :not_identified_by,
       :traversed_by
+    ],
+    protected_attributes: [
+      :identifiers
     ]
   })
   class << RouteStopPattern
@@ -115,6 +117,7 @@ class RouteStopPattern < BaseRouteStopPattern
     # TODO: potential issue with nearest stop segment matching after subsequent stop
     # TODO: investigate 'boundary' lat/lng possibilities
     distances = []
+    self.distance_issues = 0
     total_distance = 0.0
     cartesian_factory = RGeo::Cartesian::Factory.new(srid: 4326)
     cast_route = RGeo::Feature.cast(self[:geometry], cartesian_factory)
@@ -127,7 +130,8 @@ class RouteStopPattern < BaseRouteStopPattern
         # only the first and last stops are expected to have 1 split result instead of 2
         # So this might be an outlier stop. Another possibility might be 2 consecutive stops
         # having the same coordinates.
-        logger.info "stop #{stop.onestop_id}, number #{i+1}, within route stop pattern #{self.onestop_id} may be an outlier or indicate invalid geometry"
+        logger.info "Distance issue (line splitting): stop #{stop.onestop_id}, number #{i+1}, within route stop pattern #{self.onestop_id} may be an outlier or indicate invalid geometry"
+        self.distance_issues += 1
         # TODO add interpolated distance at halfway and split line there?
         # if so, will need to take into account case of 2 consecutive stops having same location.
         if (i == 0 && splits[1].nil?)
@@ -138,7 +142,7 @@ class RouteStopPattern < BaseRouteStopPattern
           distances << distances[i-1]
         end
       else
-        if splits[0].nil?
+        if (i == 0 && self.first_stop_before_geom) || splits[0].nil?
           distances << 0.0
         else
           total_distance += RGeo::Feature.cast(splits[0], RouteStopPattern::GEOFACTORY).length
@@ -146,14 +150,28 @@ class RouteStopPattern < BaseRouteStopPattern
         end
         cast_route = splits[1]
       end
-      if (distances[i] > geometry_length)
-        logger.info "stop #{stop.onestop_id}, number #{i+1}, of route stop pattern #{self.onestop_id} has a distance greater than the length of the geometry"
-      end
-      if (i != 0 && distances[i-1] > distances[i])
-        logger.info "stop #{self.stop_pattern[i]} occurs after stop #{self.stop_pattern[i-1]} but has a distance less than #{self.stop_pattern[i-1]}"
-      end
     end
     distances
+  end
+
+  def evaluate_distances(distances)
+    geometry_length = self[:geometry].length
+    distances.each_index do |i|
+      if (i != 0)
+        if (distances[i-1] == distances[i])
+          logger.info "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}, of route stop pattern #{self.onestop_id} has the same distance as #{self.stop_pattern[i-1]}, which may indicate a segment matching issue or outlier stop."
+          self.distance_issues += 1
+        elsif (distances[i-1] > distances[i])
+          logger.info "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}, of route stop pattern #{self.onestop_id} occurs after stop #{self.stop_pattern[i-1]} but has a distance less than #{self.stop_pattern[i-1]}"
+          self.distance_issues += 1
+        end
+      end
+      if (distances[i] > geometry_length && (distances[i] - geometry_length) > 5.0)
+        logger.info "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}, of route stop pattern #{self.onestop_id} has a distance #{distances[i]} greater than the length of the geometry, #{geometry_length}"
+        # we'll be lenient if this difference is less than 5 meters.
+        self.distance_issues += 1
+      end
+    end
   end
 
   def cartesian_cast(geometry)
@@ -191,6 +209,7 @@ class RouteStopPattern < BaseRouteStopPattern
 
   def tl_geometry(stop_points, issues)
     # modify rsp geometry based on issues array from evaluate_geometry
+    self.first_stop_before_geom = false
     if issues.include?(:empty)
       # create a new geometry from the trip stop points
       self.geometry = RouteStopPattern.line_string(RouteStopPattern.simplify_geometry(stop_points))
@@ -198,14 +217,7 @@ class RouteStopPattern < BaseRouteStopPattern
       self.is_modified = true
     end
     if issues.include?(:has_before_stop)
-      points = self.geometry[:coordinates].unshift(RouteStopPattern.set_precision([stop_points[0]])[0])
-      self.geometry = RouteStopPattern.line_string(RouteStopPattern.simplify_geometry(points))
-      self.is_modified = true
-    end
-    if issues.include?(:has_after_stop)
-      points = self.geometry[:coordinates] << RouteStopPattern.set_precision([stop_points[-1]])[0]
-      self.geometry = RouteStopPattern.line_string(RouteStopPattern.simplify_geometry(points))
-      self.is_modified = true
+      self.first_stop_before_geom = true
     end
     # more geometry modification can go here
   end

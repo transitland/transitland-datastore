@@ -1,5 +1,65 @@
 # Change Log
 
+## [4.7.4](https://github.com/transitland/transitland-datastore/tree/4.7.4) (2016-03-11)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.3...4.7.4)
+
+**Fixed bugs:**
+
+- FeedsController\#show should throw 404 when feed not found [\#500](https://github.com/transitland/transitland-datastore/issues/500)
+
+**Closed issues:**
+
+- GtfsGraph refactoring [\#288](https://github.com/transitland/transitland-datastore/issues/288)
+
+**Merged pull requests:**
+
+- FeedsController\#show should throw 404 when feed not found [\#501](https://github.com/transitland/transitland-datastore/pull/501) ([drewda](https://github.com/drewda))
+- Bump gtfs gem; fixes process leak [\#499](https://github.com/transitland/transitland-datastore/pull/499) ([irees](https://github.com/irees))
+- Upgrade to Rails 4.2.6 \(and update misc. gems\) [\#496](https://github.com/transitland/transitland-datastore/pull/496) ([drewda](https://github.com/drewda))
+- production release 4.7.3 [\#494](https://github.com/transitland/transitland-datastore/pull/494) ([drewda](https://github.com/drewda))
+- Feed info progress bar [\#480](https://github.com/transitland/transitland-datastore/pull/480) ([irees](https://github.com/irees))
+- Changeset "as\_change" [\#301](https://github.com/transitland/transitland-datastore/pull/301) ([irees](https://github.com/irees))
+
+## [4.7.3](https://github.com/transitland/transitland-datastore/tree/4.7.3) (2016-03-09)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.2...4.7.3)
+
+**Closed issues:**
+
+- FeedEater: Keep change payloads [\#493](https://github.com/transitland/transitland-datastore/issues/493)
+- improve GeoJSON endpoints [\#398](https://github.com/transitland/transitland-datastore/issues/398)
+
+**Merged pull requests:**
+
+- FeedEater: Keep change payloads [\#491](https://github.com/transitland/transitland-datastore/pull/491) ([irees](https://github.com/irees))
+- improve GeoJSON endpoints [\#489](https://github.com/transitland/transitland-datastore/pull/489) ([drewda](https://github.com/drewda))
+- production release 4.7.2 [\#485](https://github.com/transitland/transitland-datastore/pull/485) ([drewda](https://github.com/drewda))
+
+## [4.7.2](https://github.com/transitland/transitland-datastore/tree/4.7.2) (2016-03-08)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.1...4.7.2)
+
+**Implemented enhancements:**
+
+- Route color model attribute [\#468](https://github.com/transitland/transitland-datastore/issues/468)
+- Add single logging metric for determining Valhalla import use [\#466](https://github.com/transitland/transitland-datastore/issues/466)
+
+**Closed issues:**
+
+- Unreferenced entity cleanup [\#473](https://github.com/transitland/transitland-datastore/issues/473)
+- SSP controller: Allow multiple import\_level [\#465](https://github.com/transitland/transitland-datastore/issues/465)
+- Feed serializer: add active\_feed\_version\_import\_level [\#461](https://github.com/transitland/transitland-datastore/issues/461)
+
+**Merged pull requests:**
+
+- Entity cleanup more logging [\#486](https://github.com/transitland/transitland-datastore/pull/486) ([doublestranded](https://github.com/doublestranded))
+- update gems [\#484](https://github.com/transitland/transitland-datastore/pull/484) ([drewda](https://github.com/drewda))
+- Rsp single metric log [\#483](https://github.com/transitland/transitland-datastore/pull/483) ([doublestranded](https://github.com/doublestranded))
+- logging for equal consecutive distances and segment mismatch case [\#482](https://github.com/transitland/transitland-datastore/pull/482) ([doublestranded](https://github.com/doublestranded))
+- Unreferenced entity cleanup [\#479](https://github.com/transitland/transitland-datastore/pull/479) ([doublestranded](https://github.com/doublestranded))
+- Route color [\#478](https://github.com/transitland/transitland-datastore/pull/478) ([doublestranded](https://github.com/doublestranded))
+- SSP controller: allow multiple import\_level's [\#467](https://github.com/transitland/transitland-datastore/pull/467) ([irees](https://github.com/irees))
+- Update gems and upgrade to Rails 4.2.5.2 [\#462](https://github.com/transitland/transitland-datastore/pull/462) ([drewda](https://github.com/drewda))
+- Production release 4.7.1 [\#460](https://github.com/transitland/transitland-datastore/pull/460) ([irees](https://github.com/irees))
+
 ## [4.7.1](https://github.com/transitland/transitland-datastore/tree/4.7.1) (2016-02-27)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.0...4.7.1)
 
