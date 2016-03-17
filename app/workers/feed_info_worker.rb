@@ -53,14 +53,14 @@ class FeedInfoWorker
 
     if feed && feed.persisted?
       warnings << {
-        feed_onestop_id: feed.onestop_id,
+        onestop_id: feed.onestop_id,
         message: "Existing feed: #{feed.onestop_id}"
       }
     end
     operators.each do |operator|
       if operator && operator.persisted?
         warnings << {
-          operator_onestop_id: operator.onestop_id,
+          onestop_id: operator.onestop_id,
           message: "Existing operator: #{operator.onestop_id}"
         }
       end
