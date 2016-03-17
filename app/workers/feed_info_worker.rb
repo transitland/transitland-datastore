@@ -12,7 +12,7 @@ class FeedInfoWorker
     progress_downloading = lambda { |count,total| progress_check('downloading', count, total) }
     progress_parsing = lambda { |count,total,entity| progress_check('parsing', count, total) }
     # Download & parse feed
-    feed, operators = nil, nil
+    feed, operators = nil, []
     errors = []
     warnings = []
     begin
