@@ -211,6 +211,66 @@ describe RouteStopPattern do
                                                               a_value_within(0.1).of(17001.5107)])
     end
 
+    it '#distance_along_line_to_nearest' do
+      cartesian_line = @rsp.cartesian_cast(@rsp[:geometry])
+      # this is the midpoint between stop_a and stop_b, with a little offset
+      target_point = @rsp.cartesian_cast(Stop::GEOFACTORY.point(-121.9664615, 37.36))
+      locators = cartesian_line.locators(target_point)
+      i = @rsp.nearest_segment_index(locators, target_point, 0, locators.size-1)
+      nearest_point = @rsp.nearest_point(locators, i)
+      expect(@rsp.distance_along_line_to_nearest(cartesian_line, nearest_point, i)).to be_within(0.1).of(6508.84)
+    end
+
+    it '#nearest_segment_index' do
+
+    end
+
+    it 'calculates the first stop distance correctly' do
+      # from sfmta and for regression
+      first_stop = create(:stop,
+        onestop_id: "s-9q8ywshemn-baconst~sanbrunoave",
+        geometry: Stop::GEOFACTORY.point(-122.403269,37.727645).to_s
+      )
+      second_stop = create(:stop,
+        onestop_id: "s-9q8ywsmbr8-phelpsst~donnerave",
+        geometry: Stop::GEOFACTORY.point(-122.40144,37.72847).to_s
+      )
+      @odd_rsp = RouteStopPattern.new(
+        stop_pattern: [first_stop.onestop_id,
+                       second_stop.onestop_id],
+        geometry: RouteStopPattern.line_string(
+          [[-122.40488,37.72806],
+          [-122.4046,37.72738],
+          [-122.4036,37.72764],
+          [-122.40264,37.72789],
+          [-122.40231,37.72798],
+          [-122.40222,37.72811],
+          [-122.40196,37.72796],
+          [-122.4014,37.72859],
+          [-122.40084,37.72921],
+          [-122.40028,37.72984],
+          [-122.39988,37.73029],
+          [-122.39985,37.73038],
+          [-122.40029,37.7314],
+          [-122.4003,37.73148],
+          [-122.39943,37.7317],
+          [-122.3994,37.73182],
+          [-122.39868,37.73253],
+          [-122.39824,37.73279],
+          [-122.39789,37.73299],
+          [-122.3977,37.73328],
+          [-122.39761,37.73325],
+          [-122.39708,37.73276],
+          [-122.39687,37.73262],
+          [-122.3965,37.73243]]
+      ))
+      stop_points = @odd_rsp.stop_pattern.map { |s| Stop.find_by_onestop_id!(s).geometry[:coordinates] }
+      has_issues, issues = @odd_rsp.evaluate_geometry(@trip, stop_points)
+      @odd_rsp.tl_geometry(stop_points, issues)
+      distances = @odd_rsp.calculate_distances
+      expect(distances[0]).to be_within(0.1).of(201.1)
+    end
+
     it 'can accurately calculate distances when a stop is repeated' do
       # from vta
       first_stop = create(:stop,
