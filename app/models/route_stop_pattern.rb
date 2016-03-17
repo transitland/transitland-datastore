@@ -32,7 +32,7 @@ class BaseRouteStopPattern < ActiveRecord::Base
 
   include IsAnEntityImportedFromFeeds
 
-  attr_accessor :traversed_by, :distance_issues, :first_stop_before_geom
+  attr_accessor :traversed_by, :distance_issues, :first_stop_before_geom, :last_stop_after_geom
 end
 
 class RouteStopPattern < BaseRouteStopPattern
@@ -163,20 +163,34 @@ class RouteStopPattern < BaseRouteStopPattern
       stop_spherical = Stop.find_by_onestop_id!(self.stop_pattern[i])
       this_stop = cartesian_cast(stop_spherical[:geometry])
 
-      if i != self.stop_pattern.size - 1
-        next_stop_spherical = Stop.find_by_onestop_id!(self.stop_pattern[i+1])
-        next_stop = cartesian_cast(next_stop_spherical[:geometry])
-        next_stop_locators = route.locators(next_stop)
-        next_nearest_seg_index = calculate_nearest_segment_index(next_stop_locators, next_stop, a, num_segments-1, first=false)
-        next_nearest_point = calculate_nearest_point(next_stop_locators, next_nearest_seg_index)
-        distance_to_line = distance_to_nearest_point(next_stop_spherical, next_nearest_point)
-        if test_distance(distance_to_line)
-          c = next_nearest_seg_index
+      if i == 0
+        if self.first_stop_before_geom
+          distances << 0.0
+          next
+        end
+      elsif i == self.stop_pattern.size - 1
+        if self.last_stop_after_geom
+          distances << self[:geometry].length
+          break
         else
           c = num_segments - 1
         end
       else
-        c = num_segments - 1
+        if i + 1 == self.stop_pattern.size - 1 && self.last_stop_after_geom
+          c = num_segments - 1
+        else
+          next_stop_spherical = Stop.find_by_onestop_id!(self.stop_pattern[i+1])
+          next_stop = cartesian_cast(next_stop_spherical[:geometry])
+          next_stop_locators = route.locators(next_stop)
+          next_nearest_seg_index = calculate_nearest_segment_index(next_stop_locators, next_stop, a, num_segments-1, first=false)
+          next_nearest_point = calculate_nearest_point(next_stop_locators, next_nearest_seg_index)
+          distance_to_line = distance_to_nearest_point(next_stop_spherical, next_nearest_point)
+          if test_distance(distance_to_line)
+            c = next_nearest_seg_index
+          else
+            c = num_segments - 1
+          end
+        end
       end
 
       locators = route.locators(this_stop)
@@ -191,12 +205,12 @@ class RouteStopPattern < BaseRouteStopPattern
 
       distance_to_line = distance_to_nearest_point(stop_spherical, nearest_point)
       if !test_distance(distance_to_line)
+        logger.info "Distance issue: Found outlier stop #{self.stop_pattern[i]} in route stop pattern #{self.onestop_id}. Distance to line: #{distance_to_line}"
         if (i==0)
           distances << 0.0
         elsif (i==self.stop_pattern.size-1)
           distances << self[:geometry].length
         else
-          logger.info "Distance issue: Found outlier stop #{self.stop_pattern[i]} in route stop pattern #{self.onestop_id}. Distance to line: #{distance_to_line}"
           distances << distances[i-1]
         end
       else
@@ -273,6 +287,9 @@ class RouteStopPattern < BaseRouteStopPattern
     end
     if issues.include?(:has_before_stop)
       self.first_stop_before_geom = true
+    end
+    if issues.include?(:has_after_stop)
+      self.last_stop_after_geom = true
     end
     # more geometry modification can go here
   end

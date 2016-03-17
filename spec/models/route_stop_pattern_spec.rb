@@ -319,8 +319,10 @@ describe RouteStopPattern do
           [-121.904285,37.420512]]
         )
       )
+      stop_points = @repeated_rsp.stop_pattern.map { |s| Stop.find_by_onestop_id!(s).geometry[:coordinates] }
+      has_issues, issues = @repeated_rsp.evaluate_geometry(@trip, stop_points)
+      @repeated_rsp.tl_geometry(stop_points, issues)
       distances = @repeated_rsp.calculate_distances
-      puts distances
       expect(distances[3]).to be > distances[1]
     end
 
@@ -365,6 +367,9 @@ describe RouteStopPattern do
           [-122.50908,37.76004]]
         )
       )
+      stop_points = @tricky_rsp.stop_pattern.map { |s| Stop.find_by_onestop_id!(s).geometry[:coordinates] }
+      has_issues, issues = @tricky_rsp.evaluate_geometry(@trip, stop_points)
+      @tricky_rsp.tl_geometry(stop_points, issues)
       distances = @tricky_rsp.calculate_distances
       expect(distances[2]).to be > distances[1]
     end
