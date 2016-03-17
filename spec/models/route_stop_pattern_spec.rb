@@ -222,7 +222,16 @@ describe RouteStopPattern do
     end
 
     it '#nearest_segment_index' do
-
+      coords = @rsp.geometry[:coordinates].concat [stop_b.geometry[:coordinates],stop_a.geometry[:coordinates]]
+      @rsp.geometry = RouteStopPattern.line_string(coords)
+      cartesian_line = @rsp.cartesian_cast(@rsp[:geometry])
+      # this is the midpoint between stop_a and stop_b, with a little offset
+      target_point = @rsp.cartesian_cast(Stop::GEOFACTORY.point(-121.9664615, 37.36))
+      locators = cartesian_line.locators(target_point)
+      i = @rsp.nearest_segment_index(locators, target_point, 0, locators.size - 1)
+      expect(i).to eq 0
+      i = @rsp.nearest_segment_index(locators, target_point, 0, locators.size - 1, first=false)
+      expect(i).to eq locators.size - 1
     end
 
     it 'calculates the first stop distance correctly' do

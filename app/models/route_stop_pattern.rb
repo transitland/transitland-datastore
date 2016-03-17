@@ -132,8 +132,9 @@ class RouteStopPattern < BaseRouteStopPattern
       # make sure to get the first minimum if 'first' is true
       s + seg_distances.index(seg_distances.min)
     else
+      seg_distances = results.map(&:distance_from_segment)
       # otherwise get the last minimum if there are multiple values
-      s + results.rindex(results.min_by(&:distance_from_segment))
+      s + seg_distances.rindex(seg_distances.min)
     end
   end
 
@@ -207,7 +208,7 @@ class RouteStopPattern < BaseRouteStopPattern
       distance_to_line = distance_to_nearest_point(stop_spherical, nearest_point)
       if !test_distance(distance_to_line)
         logger.info "Distance issue: Found outlier stop #{self.stop_pattern[i]} in route stop pattern #{self.onestop_id}. Distance to line: #{distance_to_line}"
-        self.distance_issues += 1
+        #self.distance_issues += 1
         if (i==0)
           distances << 0.0
         elsif (i==self.stop_pattern.size-1)
