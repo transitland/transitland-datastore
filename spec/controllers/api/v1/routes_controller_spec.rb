@@ -131,26 +131,54 @@ describe Api::V1::RoutesController do
         expect(response.body).to include([@richmond_millbrae_route.onestop_id, @richmond_millbrae_route.name, @sfmta.name, @sfmta.onestop_id].join(','))
       end
     end
+
+    context 'as GeoJSON' do
+      it 'should return GeoJSON for all routes' do
+        get :index, format: :geojson
+        expect_json({
+          type: 'FeatureCollection',
+          features: -> (features) {
+            expect(features.first[:properties][:onestop_id]).to eq 'r-9q8y-richmond~dalycity~millbrae'
+            expect(features.first[:properties][:title]).to eq 'Richmond - Daly City/Millbrae'
+          }
+        })
+      end
+    end
   end
 
   describe 'GET show' do
-    it 'returns stops by OnestopID' do
-      get :show, id: 'r-9q8y-richmond~dalycity~millbrae'
-      expect_json_types({
-        onestop_id: :string,
-        geometry: :object,
-        name: :string,
-        created_at: :date,
-        updated_at: :date
-      })
-      expect_json({ onestop_id: -> (onestop_id) {
-        expect(onestop_id).to eq 'r-9q8y-richmond~dalycity~millbrae'
-      }})
+    context 'as JSON' do
+      it 'returns stops by OnestopID' do
+        get :show, id: 'r-9q8y-richmond~dalycity~millbrae'
+        expect_json_types({
+          onestop_id: :string,
+          geometry: :object,
+          name: :string,
+          created_at: :date,
+          updated_at: :date
+        })
+        expect_json({ onestop_id: -> (onestop_id) {
+          expect(onestop_id).to eq 'r-9q8y-richmond~dalycity~millbrae'
+        }})
+      end
+
+      it 'returns a 404 when not found' do
+        get :show, id: 'ntd9015-2053'
+        expect(response.status).to eq 404
+      end
     end
 
-    it 'returns a 404 when not found' do
-      get :show, id: 'ntd9015-2053'
-      expect(response.status).to eq 404
+    context 'as GeoJSON' do
+      it 'should return GeoJSON for a single route' do
+        get :show, id: 'r-9q8y-richmond~dalycity~millbrae', format: :geojson
+        expect_json({
+          type: 'Feature',
+          properties: -> (properties) {
+            expect(properties[:onestop_id]).to eq 'r-9q8y-richmond~dalycity~millbrae'
+            expect(properties[:title]).to eq 'Richmond - Daly City/Millbrae'
+          }
+        })
+      end
     end
   end
 end

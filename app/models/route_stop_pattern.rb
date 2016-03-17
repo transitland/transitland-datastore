@@ -72,10 +72,12 @@ class RouteStopPattern < BaseRouteStopPattern
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
     virtual_attributes: [
-      :imported_from_feed,
       :identified_by,
       :not_identified_by,
       :traversed_by
+    ],
+    protected_attributes: [
+      :identifiers
     ]
   })
   class << RouteStopPattern
