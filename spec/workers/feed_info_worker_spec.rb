@@ -24,8 +24,7 @@ describe FeedInfoWorker do
     end
     cachedata = Rails.cache.read(cachekey)
     expect(cachedata[:warnings].size).to eq(2)
-    keys = cachedata[:warnings].map(&:keys).flatten
-    expect(keys).to include(:feed_onestop_id, :operator_onestop_id)
+    cachedata[:warnings].each { |warning| expect(warning.keys).to match_array([:onestop_id, :message])}
   end
 
   it 'fails with 404' do
