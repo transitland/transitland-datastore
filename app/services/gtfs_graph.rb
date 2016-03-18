@@ -66,13 +66,21 @@ class GTFSGraph
     # Clear out serves; can't find routes that don't exist yet.
     operators.each { |operator| operator.serves = nil }
     log "  operators: #{operators.size}"
-    add_change_payloads(changeset, operators)
-    log "  stops: #{stops.size}"
-    add_change_payloads(changeset, stops)
-    log "  routes: #{routes.size}"
-    add_change_payloads(changeset, routes)
-    log "  route geometries: #{rsps.size}"
-    add_change_payloads(changeset, rsps)
+    begin
+      changeset.create_change_payloads(operators)
+      log "  stops: #{stops.size}"
+      changeset.create_change_payloads(stops)
+      log "  routes: #{routes.size}"
+      changeset.create_change_payloads(routes)
+      log "  route geometries: #{rsps.size}"
+      changeset.create_change_payloads(rsps)
+    rescue ChangesetError => e
+      log "Error: #{e.message}"
+      log "Payload:"
+      e.change_payloads.each do |change_payload|
+        log change_payload.to_json
+      end
+    end
     log "Changeset apply"
     t = Time.now
     changeset.apply!
@@ -366,28 +374,6 @@ class GTFSGraph
   end
 
   ##### Create change payloads ######
-
-  def add_change_payloads(changeset, entities)
-    entities.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
-      changes = []
-      chunk.each do |entity|
-        changes << {
-          :action => :createUpdate,
-          entity.class.name.camelize(:lower) => entity.as_change.as_json.compact
-        }
-      end
-      begin
-        c = ChangePayload.create!(
-          changeset: changeset,
-          payload: {changes: changes}
-        )
-      rescue StandardError => e
-        log "Error: #{e.message}"
-        log "Payload:"
-        log changes.to_json
-      end
-    end
-  end
 
   def make_ssp(route, trip, origin, origin_dist_traveled, destination, destination_dist_traveled, route_stop_pattern)
     # Generate an edge between an origin and destination for a given route/trip

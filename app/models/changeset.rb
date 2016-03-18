@@ -23,8 +23,9 @@ class Changeset < ActiveRecord::Base
   class Error < StandardError
     attr_accessor :changeset, :message, :backtrace
 
-    def initialize(changeset, message, backtrace=[])
+    def initialize(changeset: nil, change_payloads: [], message: '', backtrace: [])
       @changeset = changeset
+      @change_payloads = change_payloads
       @message = message
       @backtrace = backtrace
     end
@@ -33,6 +34,8 @@ class Changeset < ActiveRecord::Base
       "Changeset::Error #{@message}"
     end
   end
+
+  CHANGE_PAYLOAD_MAX_ENTITIES = Figaro.env.feed_eater_change_payload_max_entities.try(:to_i) || 1_000
 
   include CanBeSerializedToCsv
 
@@ -123,13 +126,36 @@ class Changeset < ActiveRecord::Base
     trial_succeeds
   end
 
+  def create_change_payloads(entities)
+    entities.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
+      changes = []
+      chunk.each do |entity|
+        changes << {
+          :action => :createUpdate,
+          entity.class.name.camelize(:lower) => entity.as_change.as_json.compact
+        }
+      end
+      begin
+        change_payloads = self.change_payloads.create!(payload: {changes: changes})
+      rescue StandardError => e
+        fail Changeset::Error.new(
+          changeset: self,
+          change_payloads: change_payloads,
+          message: e.message,
+          backtrace: e.backtrace
+        )
+      end
+      change_payloads
+    end
+  end
+
   def destroy_all_change_payloads
     # Destroy change payloads
     change_payloads.destroy_all
   end
 
   def apply!
-    fail Changeset::Error.new(self, 'has already been applied.') if applied
+    fail Changeset::Error.new(changeset: self, message: 'has already been applied.') if applied
     Changeset.transaction do
       begin
         change_payloads.each do |change_payload|
@@ -153,7 +179,7 @@ class Changeset < ActiveRecord::Base
       rescue
         logger.error "Error applying Changeset #{self.id}: #{$!.message}"
         logger.error $!.backtrace
-        raise Changeset::Error.new(self, $!.message, $!.backtrace)
+        raise Changeset::Error.new(changeset: self, message: $!.message, backtrace: $!.backtrace)
       end
     end
     unless Figaro.env.send_changeset_emails_to_users.presence == 'false'
@@ -180,9 +206,9 @@ class Changeset < ActiveRecord::Base
   def revert!
     if applied
       # TODO: write it
-      raise Changeset::Error.new(self, "cannot revert. This functionality doesn't exist yet.")
+      raise Changeset::Error.new(changeset: self, message: "cannot revert. This functionality doesn't exist yet.")
     else
-      raise Changeset::Error.new(self, 'cannot revert. This changeset has not been applied yet.')
+      raise Changeset::Error.new(changeset: self, message: 'cannot revert. This changeset has not been applied yet.')
     end
   end
 

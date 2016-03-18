@@ -54,7 +54,7 @@ class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
   end
 
   def changeset_applied_lock
-    raise Changeset::Error.new(@changeset, 'cannot update a Changeset that has already been applied') if @changeset.applied
+    raise Changeset::Error.new(changeset: @changeset, message: 'cannot update a Changeset that has already been applied') if @changeset.applied
   end
 
   def set_changeset

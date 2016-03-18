@@ -123,6 +123,10 @@ class Operator < BaseOperator
 
   validates :name, presence: true
 
+  def recompute_convex_hull_around_stops
+    Operator.convex_hull(self.stops, projected: false)
+  end
+
   ##### FromGTFS ####
   include FromGTFS
   def self.from_gtfs(entity, attrs={})
