@@ -111,6 +111,21 @@ describe Api::V1::RoutesController do
           expect(routes.length).to eq 0
         }})
       end
+
+      it 'returns all routes with a defined color' do
+        get :index, color: 'true'
+        expect_json({ routes: -> (routes) {
+          expect(routes.length).to eq 0
+        }})
+      end
+
+      it 'returns all routes with a specified color' do
+        Route.first.update(color: 'CCEEFF')
+        get :index, color: 'cceeff'
+        expect_json({ routes: -> (routes) {
+          expect(routes.length).to eq 1
+        }})
+      end
     end
 
     context 'as CSV' do
