@@ -12,7 +12,7 @@
           "operator": {
             "onestopId": "o-9q9-vta",
             "name": "Santa Clara Valley Transportation Authority",
-            "short_name": "VTA",
+            "shortName": "VTA",
             "identifiedBy": ["usntd://9013"],
             "country": "United States",
             "state": "California",
