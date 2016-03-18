@@ -10,7 +10,7 @@
       "format": "operator-onestop-id"
     },
     "name": { "type": "string" },
-    "short_name": { "type": "string" },
+    "shortName": { "type": "string" },
     "country": { "type": "string" },
     "state": { "type": "string" },
     "metro": { "type": "string" },
