@@ -86,7 +86,7 @@ class GTFSGraph
     rsps.each do |rsp|
       begin
         stops = rsp.stop_pattern.map { |onestop_id| find_by_onestop_id(onestop_id) }
-        rsp.calculate_distances(stops)
+        rsp.calculate_distances(stops=stops)
         rsp.evaluate_distances
         rsps_with_issues += 1 if rsp.distance_issues > 0
       rescue StandardError
