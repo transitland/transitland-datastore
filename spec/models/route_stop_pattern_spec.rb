@@ -27,6 +27,21 @@
 #  index_current_route_stop_patterns_on_trips         (trips)
 #
 
+# duplicate of gtfs_graph_spec function
+def load_feed(feed_version_name, import_level=1)
+  feed_version = create(feed_version_name)
+  feed = feed_version.feed
+  graph = GTFSGraph.new(feed_version.file.path, feed, feed_version)
+  graph.create_change_osr
+  if import_level >= 2
+    graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map, rsp_map|
+      graph.ssp_perform_async(trip_ids, agency_map, route_map, stop_map, rsp_map)
+    end
+  end
+  feed.activate_feed_version(feed_version.sha1, import_level)
+  return feed, feed_version
+end
+
 describe RouteStopPattern do
   let(:stop_1) { create(:stop,
     onestop_id: "s-9q8yw8y448-bayshorecaltrainstation",
@@ -235,7 +250,7 @@ describe RouteStopPattern do
     end
 
     it 'calculates the first stop distance correctly' do
-      # from sfmta and for regression
+      # from sfmta and for regression. case where stop is not an 'after' stop
       first_stop = create(:stop,
         onestop_id: "s-9q8ywshemn-baconst~sanbrunoave",
         geometry: Stop::GEOFACTORY.point(-122.403269,37.727645).to_s
@@ -511,6 +526,12 @@ describe RouteStopPattern do
                                                               a_value_within(0.1).of(12617.9271),
                                                               a_value_within(0.1).of(12617.9271),
                                                               a_value_within(0.1).of(17001.5107)])
+    end
+
+    it 'handles the sfmta, route 23, rsp r-9q8y-23-e51455-1b44d1 case' do
+      @feed, @feed_version = load_feed(:feed_version_sfmta_23, 1)
+      rsp = @feed.imported_route_stop_patterns[0]
+      puts rsp.calculate_distances
     end
   end
 
