@@ -77,6 +77,26 @@ FactoryGirl.define do
     end
   end
 
+  factory :feed_sfmta_23, class: Feed do
+    onestop_id 'f-9q8y-sfmta'
+    url 'http://archives.sfmta.com/transitdata/google_transit.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'San Francisco Municipal Transportation Agency',
+        onestop_id: 'o-9q8y-sfmta',
+        timezone: 'America/Los_Angeles',
+        website: 'http://www.sfmta.com/',
+        version: 1
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: 'SFMTA'
+      )
+    end
+  end
+
   factory :feed_bart, class: Feed do
     onestop_id 'f-9q9-bart'
     url 'http://www.bart.gov/dev/schedules/google_transit.zip'
