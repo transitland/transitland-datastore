@@ -77,7 +77,7 @@ FactoryGirl.define do
     end
   end
 
-  factory :feed_sfmta_23, class: Feed do
+  factory :feed_sfmta, class: Feed do
     onestop_id 'f-9q8y-sfmta'
     url 'http://archives.sfmta.com/transitdata/google_transit.zip'
     version 1
