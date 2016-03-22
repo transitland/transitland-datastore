@@ -30,6 +30,7 @@ class GTFSGraph
     load_tl_stops
     load_tl_routes
     rsps = load_tl_route_stop_patterns
+    puts "ROUTE STOP PATTERNS #{rsps.size}"
     operators = load_tl_operators
     fail GTFSGraph::Error.new('No agencies found that match operators_in_feed') unless operators.size > 0
     routes = operators.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }

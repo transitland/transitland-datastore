@@ -234,7 +234,7 @@ describe GTFSGraph do
 
   context 'distance calculation assignment' do
 
-    before(:each) { @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta, import_level: 2) }
+    before(:each) { @feed, @feed_version = load_feed(:feed_version_vta_1930705, 2) }
 
     it 'correctly assigned distances to schedule stop pairs containing stops repeated in its Route Stop Pattern' do
       origin = @feed.imported_stops.find_by!(
