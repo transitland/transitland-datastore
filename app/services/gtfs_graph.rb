@@ -30,12 +30,12 @@ class GTFSGraph
     load_tl_stops
     load_tl_routes
     rsps = load_tl_route_stop_patterns
+    calculate_rsp_distances(rsps)
     operators = load_tl_operators
     fail GTFSGraph::Error.new('No agencies found that match operators_in_feed') unless operators.size > 0
     routes = operators.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
     stops = routes.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
     rsps = rsps.select { |rsp| routes.include?(rsp.route) }
-    calculate_rsp_distances(rsps)
     # Update route geometries
     route_rsps = {}
     rsps.each do |rsp|
@@ -83,13 +83,11 @@ class GTFSGraph
   def calculate_rsp_distances(rsps)
     log "Calculating distances"
     rsps_with_issues = 0
-    stops_with_issues = 0
-    rsps.each do |onestop_id|
-      rsp = RouteStopPattern.find_by_onestop_id!(onestop_id)
+    rsps.each do |rsp|
       begin
-        rsp.calculate_distances
+        stops = rsp.stop_pattern.map { |onestop_id| find_by_onestop_id(onestop_id) }
+        rsp.calculate_distances(stops)
         rsp.evaluate_distances
-        stops_with_issues += rsp.distance_issues
         rsps_with_issues += 1 if rsp.distance_issues > 0
       rescue StandardError
         log "Could not calculate distances for Route Stop Pattern: #{onestop_id}"
