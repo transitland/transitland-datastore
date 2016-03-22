@@ -28,16 +28,18 @@ Each Schedule Stop Pair will be associated to a RouteStopPattern. In addition, t
 The algorithm to compute these distances runs as follows:
 
   For each stop in the Route Stop Pattern:
-    If this stop (the current stop) is the first stop, and is found to lie before the geometry, set the distance to 0.0 m and continue.
-    If this stop is the last stop and is found to lie after the geometry, set the distance to the length of the line and end.
+    * If this stop (the current stop) is the first stop, and is found to lie before the geometry (a 'before' stop), set the distance to 0.0 m and continue.
+    * If this stop is the last stop and is found to lie after the geometry (an 'after' stop), set the distance to the length of the line and end.
 
-    Otherwise, gather the list of segments of the line. Let:
-    `a` = the index of the segment of the nearest matching segment for the previous stop.
-    `c` = the index of the segment of the nearest matching segment for the next stop, between the segment at `a` and the last segment, inclusive. If the current stop is the last stop in the sequence, or is the penultimate stop and the next, last stop lies after the geometry, let `c` = the index of the last segment.
-    Calculate `b`, the index of the nearest matching segment of the segments between `a` and `c`, inclusive.
-    With `b`, calculate the nearest point on the segment from the current stop, and then calculate the distance along the line to the nearest point by adding the distances of the segments up to, but not including, `b`, and the distance from the end of the segment before `b` to the nearest point. If this computed distance is less than the previous stop's computed distance, recompute `b` and the distance using `c` = the last segment index.
-    If the final computed nearest point on the line is greater than 100 meters away from the stop, set the stop distance to be the previous stop distance.
-    Set `a` equal to `b` and continue with the next stop.
+    * Otherwise, gather the list of segments of the line. Let:
+      1.  `a` = the index of the segment of the nearest matching segment for the previous stop.
+      2.  `c` = the index of the segment of the nearest matching segment for the next stop, between the segment at `a` and the last segment, inclusive. If the current stop is the last stop in the sequence, or is the penultimate stop and the next, last stop lies after the geometry, let `c` = the index of the last segment.
+      3.  Calculate `b`, the index of the nearest matching segment of the segments between `a` and `c`, inclusive.
+      4.  With `b`, calculate the nearest point on the segment from the current stop, and then calculate the distance along the line to the nearest point by adding the distances of the segments up to, but not including, `b`, and the distance from the end of the segment before `b` to the nearest point.
+      5.  If the computed distance from 4. is less than the previous stop's computed distance, recompute `b` and the distance using `c` = the last segment index.
+      6.  If the final computed nearest point on the line is greater than 100 meters away from the stop, just set the stop distance to be the previous stop distance.
+
+    * Set `a` equal to `b` and continue with the next stop.
 
 
 ### Before and After Stops
