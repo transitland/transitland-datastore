@@ -157,7 +157,8 @@ class RouteStopPattern < BaseRouteStopPattern
     distance < OUTLIER_THRESHOLD
   end
 
-  def calculate_distances(stops)
+  def calculate_distances(stops=nil)
+    stops = self.stop_pattern.map {|onestop_id| Stop.find_by_onestop_id!(onestop_id) }if stops.nil?
     self.distance_issues = 0
     route = cartesian_cast(self[:geometry])
     num_segments = route.coordinates.size - 1
