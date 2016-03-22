@@ -157,21 +157,20 @@ class RouteStopPattern < BaseRouteStopPattern
     distance < OUTLIER_THRESHOLD
   end
 
-  def calculate_distances
+  def calculate_distances(stops)
     self.distance_issues = 0
     route = cartesian_cast(self[:geometry])
     num_segments = route.coordinates.size - 1
     a = 0
     b = 0
     c = 0
-    self.stop_pattern.each_index do |i|
-      stop_spherical = Stop.find_by_onestop_id!(self.stop_pattern[i])
+    stops.each_index do |i|
+      stop_spherical = stops[i]
       this_stop = cartesian_cast(stop_spherical[:geometry])
-
       if i == 0 && self.first_stop_before_geom
         self.stop_distances << 0.0
         next
-      elsif i == self.stop_pattern.size - 1
+      elsif i == stops.size - 1
         if self.last_stop_after_geom
           self.stop_distances << self[:geometry].length
           break
@@ -179,10 +178,10 @@ class RouteStopPattern < BaseRouteStopPattern
           c = num_segments - 1
         end
       else
-        if (i + 1 == self.stop_pattern.size - 1) && self.last_stop_after_geom
+        if (i + 1 == stops.size - 1) && self.last_stop_after_geom
           c = num_segments - 1
         else
-          next_stop_spherical = Stop.find_by_onestop_id!(self.stop_pattern[i+1])
+          next_stop_spherical = stops[i+1]
           next_stop = cartesian_cast(next_stop_spherical[:geometry])
           next_stop_locators = route.locators(next_stop)
           next_nearest_seg_index = nearest_segment_index(next_stop_locators, next_stop, a, num_segments-1, first=false)
@@ -200,7 +199,7 @@ class RouteStopPattern < BaseRouteStopPattern
       b = nearest_segment_index(locators, this_stop, a, c)
       nearest_point = nearest_point(locators, b)
       distance = distance_along_line_to_nearest(route, nearest_point, b)
-      if (i!=0 && distance <= self.stop_distances[i-1] && !self.stop_pattern[i].eql?(self.stop_pattern[i-1]))
+      if (i!=0 && distance <= self.stop_distances[i-1] && !stops[i].onestop_id.eql?(stops[i-1].onestop_id))
         b = nearest_segment_index(locators, this_stop, a, num_segments - 1)
         nearest_point = nearest_point(locators, b)
         distance = distance_along_line_to_nearest(route, nearest_point, b)
@@ -208,11 +207,11 @@ class RouteStopPattern < BaseRouteStopPattern
 
       distance_to_line = distance_to_nearest_point(stop_spherical, nearest_point)
       if !test_distance(distance_to_line)
-        logger.info "Distance issue: Found outlier stop #{self.stop_pattern[i]} in route stop pattern #{self.onestop_id}. Distance to line: #{distance_to_line}"
+        logger.info "Distance issue: Found outlier stop #{stops[i].onestop_id} in route stop pattern #{self.onestop_id}. Distance to line: #{distance_to_line}"
         self.distance_issues += 1
         if (i==0)
           self.stop_distances << 0.0
-        elsif (i==self.stop_pattern.size-1)
+        elsif (i==stops.size-1)
           self.stop_distances << self[:geometry].length
         else
           self.stop_distances << self.stop_distances[i-1]

@@ -32,6 +32,7 @@ class RouteStopPatternSerializer < CurrentEntitySerializer
   attributes :onestop_id,
              :route_onestop_id,
              :stop_pattern,
+             :stop_distances,
              :geometry,
              :color,
              :is_generated,
