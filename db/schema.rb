@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160301214615) do
+ActiveRecord::Schema.define(version: 20160322005507) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -136,6 +136,7 @@ ActiveRecord::Schema.define(version: 20160301214615) do
     t.datetime  "updated_at",                                                                                                     null: false
     t.integer   "created_or_updated_in_changeset_id"
     t.integer   "route_id"
+    t.float     "stop_distances",                                                                                 default: [],                 array: true
   end
 
   add_index "current_route_stop_patterns", ["created_or_updated_in_changeset_id"], name: "c_rsp_cu_in_changeset", using: :btree
@@ -429,6 +430,7 @@ ActiveRecord::Schema.define(version: 20160301214615) do
     t.integer   "route_id"
     t.string    "route_type"
     t.integer   "current_id"
+    t.float     "stop_distances",                                                                                 default: [],                 array: true
   end
 
   add_index "old_route_stop_patterns", ["created_or_updated_in_changeset_id"], name: "o_rsp_cu_in_changeset", using: :btree
