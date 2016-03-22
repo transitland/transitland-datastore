@@ -16,6 +16,7 @@
 #  updated_at                         :datetime         not null
 #  created_or_updated_in_changeset_id :integer
 #  route_id                           :integer
+#  stop_distances                     :float            default([]), is an Array
 #
 # Indexes
 #
