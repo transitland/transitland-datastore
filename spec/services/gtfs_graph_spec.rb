@@ -91,17 +91,17 @@ describe GTFSGraph do
       r = @feed.imported_routes.find_by(onestop_id: 'r-9q9j-bullet')
       expect(r.route_stop_patterns.size).to eq(12)
       expect(r.route_stop_patterns.map(&:onestop_id)).to contain_exactly(
-        "r-9q9j-bullet-06b68d-289bc1",
+        "r-9q9j-bullet-06b68d-0bca5d",
         "r-9q9j-bullet-078a92-c05b8d",
-        "r-9q9j-bullet-49de87-289bc1",
-        "r-9q9j-bullet-6168c2-289bc1",
-        "r-9q9j-bullet-752be5-289bc1",
-        "r-9q9j-bullet-761397-a2454f",
-        "r-9q9j-bullet-9a247a-a2454f",
-        "r-9q9j-bullet-c43c1d-289bc1",
-        "r-9q9j-bullet-cf14f2-a2454f",
-        "r-9q9j-bullet-d1201b-a2454f",
-        "r-9q9j-bullet-dea476-a2454f",
+        "r-9q9j-bullet-49de87-0bca5d",
+        "r-9q9j-bullet-6168c2-0bca5d",
+        "r-9q9j-bullet-752be5-0bca5d",
+        "r-9q9j-bullet-761397-6e2d1a",
+        "r-9q9j-bullet-9a247a-6e2d1a",
+        "r-9q9j-bullet-c43c1d-0bca5d",
+        "r-9q9j-bullet-cf14f2-6e2d1a",
+        "r-9q9j-bullet-d1201b-6e2d1a",
+        "r-9q9j-bullet-dea476-6e2d1a",
         "r-9q9j-bullet-e11172-ba265d"
       )
     end
@@ -186,7 +186,7 @@ describe GTFSGraph do
         onestop_id: "s-9q8yycs6ku-22ndstreetcaltrainstation<70022"
       )
       route = @feed.imported_routes.find_by!(onestop_id: 'r-9q9-local')
-      route_stop_pattern = @feed.imported_route_stop_patterns.find_by!(onestop_id: 'r-9q9-local-260874-a2454f')
+      route_stop_pattern = @feed.imported_route_stop_patterns.find_by!(onestop_id: 'r-9q9-local-260874-6e2d1a')
       operator = @feed.operators.find_by(onestop_id: 'o-9q9-caltrain')
       trip = '6507770-CT-14OCT-Caltrain-Saturday-02'
       found = @feed.imported_schedule_stop_pairs.where(

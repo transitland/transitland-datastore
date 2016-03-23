@@ -17,6 +17,7 @@ Every entity has a globally unique [Onestop ID](https://github.com/transitland/o
 * `Operator`
 * `Stop`
 * `Route`
+* `RouteStopPattern`
 
 The Datastore uses [changesets](doc/changesets.md) to track additions/edits/removals of entities.
 
@@ -95,7 +96,7 @@ Example URL  | Parameters
 `GET /api/v1/stops?identifier_starts_with=gtfs://f-9q9` | `identifier_starts_with` can be any type of stop identifier fragment
 `GET /api/v1/stops?lon=-121.977772198&lat=37.413530093&r=100` | `lon` is longitude; `lat` is latitude; `r` is radius of search in meters (if not specified, defaults to 100 meters)
 `GET /api/v1/stops?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
-`GET /api/v1/stops?servedBy=o-9q9-BART,r-9q8y-richmond~dalycity~millbrae` | `servedBy` can be any number of Onestop ID's for operators and routes
+`GET /api/v1/stops?served_by=o-9q9-BART,r-9q8y-richmond~dalycity~millbrae` | `served_by` can be any number of Onestop ID's for operators and routes
 `GET /api/v1/stops?tag_key=wheelchair_boarding` | find all stops that have a tag of `tag_key` with any value
 `GET /api/v1/stops?tag_key=wheelchair_boarding&tag_value=1` | find all stops that have a tag of `tag_key` and a value of `tag_value`
 `GET /api/v1/operators` | none required
@@ -108,11 +109,17 @@ Example URL  | Parameters
 `GET /api/v1/routes` | none required
 `GET /api/v1/routes?identifier=19X` | `identifier` can be any type of route identifier
 `GET /api/v1/routes?identifier_starts_with=gtfs://f-9q9` | `identifier_starts_with` can be any type of route identifier fragment
-`GET /api/v1/routes?operatedBy=o-9q9-BART` | `operatedBy` is a Onestop ID for an operator/agency
+`GET /api/v1/routes?operated_by=o-9q9-BART` | `operated_by` is a Onestop ID for an operator/agency
 `GET /api/v1/routes?vehicle_type=bus,4` | find all routes with vehicle type(s) by integer or string. Possible values defined by the GTFS spec for [the `route_type` column](https://developers.google.com/transit/gtfs/reference#routes_route_type_field) and [the Extended GTFS Route Types](https://support.google.com/transitpartners/answer/3520902). Separate multiple vehicle types by commas.
 `GET /api/v1/routes?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
 `GET /api/v1/routes?tag_key=route_color` | find all routes that have a tag of `tag_key` with any value
 `GET /api/v1/routes?tag_key=route_color&tag_value=FEF0B5` | find all routes that have a tag of `tag_key` and a value of `tag_value`
+`GET /api/v1/routes?traverses=r-9q9-pittsburg~baypoint~sfia~millbrae-49ae87-5ae164` | find all routes having specified route stop patterns
+`GET /api/v1/route_stop_patterns` | none required
+`GET /api/v1/route_stop_patterns?traversed_by=r-9q8y-richmond~dalycity~millbrae` | find all Route Stop Patterns belonging to route
+`GET /api/v1/route_stop_patterns?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
+`GET /api/v1/route_stop_patterns?stops_visited=s-dr5rec3weg-whitehallferryterminal,s-dr5r4rn32w-stgeorgeferryterminal` | any one or more stop Onestop IDs, separated by comma. Finds Route Stop Patterns with stops_visited in stop_pattern.
+`GET /api/v1/route_stop_patterns?trips=01SFO10,02SFO10` | any one or more trip ids, separated by comma. Finds Route Stop Patterns with specified trips in trips.
 `POST /api/v1/webhooks/feed_fetcher` | ([secured](#api-authentication)) fetches all feeds
 `POST /api/v1/webhooks/feed_fetcher?feed_onestop_id=f-9q9-caltrain` | ([secured](#api-authentication)) fetches only one feed
 `POST /api/v1/webhooks/feed_eater?feed_onestop_id=f-9q9-caltrain,feed_version_sha1=ab1e6ac73943082803f110df4b0fdd63a1d6b9f7` | ([secured](#api-authentication))
@@ -148,7 +155,7 @@ Pagination for JSON endpoints:
 
 Format:
 - by default, responses are paginated JSON
-- specify `.geojson` instead for GeoJSON on some endpoints. For example: `/api/v1/stops.geojson?bbox=-122.4183,37.7758,-122.4120,37.7858` and `/api/v1/routes.geojson?operatedBy=o-9q9-bayarearapidtransit`
+- specify `.geojson` instead for GeoJSON on some endpoints. For example: `/api/v1/stops.geojson?bbox=-122.4183,37.7758,-122.4120,37.7858` and `/api/v1/routes.geojson?operated_by=o-9q9-bayarearapidtransit`
 
 ## Running the FeedEater pipeline
 
