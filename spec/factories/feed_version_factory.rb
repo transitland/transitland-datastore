@@ -46,8 +46,12 @@ FactoryGirl.define do
       association :feed, factory: :feed_example
     end
 
-    factory :feed_version_example_update do
-      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example-update.zip')) }
+    factory :feed_version_example_update_add do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example-update-add.zip')) }
+    end
+
+    factory :feed_version_example_update_delete do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example-update-delete.zip')) }
     end
   end
 end
