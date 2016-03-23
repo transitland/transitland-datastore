@@ -142,5 +142,32 @@ describe FeedInfo do
       expect(f.onestop_id).to eq feed.onestop_id
       expect(f.operators.map(&:onestop_id)).to match_array(operators.map(&:onestop_id))
     end
+
+    it 'finds existing feeds' do
+      existing_feed = create(:feed_example)
+      feed, operators = nil, nil
+      fi = FeedInfo.new(url: example_url, path: example_feed_path)
+      fi.open do |feed_info|
+        feed, operators = feed_info.parse_feed_and_operators
+      end
+      expect(feed.persisted?).to be true
+    end
+
+    it 'finds existing operators' do
+      existing_operator = create(
+        :operator,
+        name: 'Demo Transit Authority',
+        onestop_id: 'o-9qs-demotransitauthority',
+        timezone: 'America/Los_Angeles',
+        website: 'http://www.google.com',
+        version: 1
+      )
+      feed, operators = nil, nil
+      fi = FeedInfo.new(url: example_url, path: example_feed_path)
+      fi.open do |feed_info|
+        feed, operators = feed_info.parse_feed_and_operators
+      end
+      expect(operators.all?(&:persisted?)).to be true
+    end
   end
 end
