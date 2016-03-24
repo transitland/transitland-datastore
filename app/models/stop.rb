@@ -125,6 +125,13 @@ class Stop < BaseStop
   has_many :stops_out, through: :trips_out, source: :destination
   has_many :stops_in, through: :trips_in, source: :origin
 
+  scope :where_import_level, -> (import_level) {
+    joins(:entities_imported_from_feed)
+      .where(entities_imported_from_feed: {
+        feed_version_id: FeedVersion.where(import_level: import_level).ids
+      })
+  }
+
   # Add service from an Operator or Route
   scope :served_by, -> (onestop_ids_and_models) {
     operators = []
