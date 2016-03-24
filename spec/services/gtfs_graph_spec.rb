@@ -282,12 +282,6 @@ describe GTFSGraph do
       expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-60')).to be_truthy
     end
 
-    it 'updates previous matching feed version entities with new attribute values' do
-      expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-10').vehicle_type).to eq 'bus'
-      load_feed(feed_version: @feed_version_update_add, import_level: 2)
-      expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-10').vehicle_type).to eq 'rail'
-    end
-
     it 'does not delete a previous feed version entity' do
       expect(@feed.imported_routes.size).to eq 5
       expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-10')).to be_truthy
