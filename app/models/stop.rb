@@ -27,9 +27,6 @@
 
 class BaseStop < ActiveRecord::Base
   self.abstract_class = true
-
-  include IsAnEntityImportedFromFeeds
-
   attr_accessor :served_by, :not_served_by
 end
 
@@ -43,6 +40,7 @@ class Stop < BaseStop
   include HasAGeographicGeometry
   include HasTags
   include UpdatedSince
+  include IsAnEntityImportedFromFeeds
 
   include CanBeSerializedToCsv
   def self.csv_column_names
