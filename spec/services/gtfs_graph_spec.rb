@@ -299,5 +299,11 @@ describe GTFSGraph do
       load_feed(feed_version: @feed_version_update_add, import_level: 2)
       expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-10').vehicle_type).to eq 'rail'
     end
+
+    it 'does not modify previous matching feed version entitie\'s unchangeable attributes' do
+      original_creation_time = @feed.imported_stops.find_by_onestop_id('s-9qscv9zzb5-bullfrogdemo').created_at
+      load_feed(feed_version: @feed_version_update_add, import_level: 2)
+      expect(@feed_version_update_add.imported_stops.find_by_onestop_id('s-9qscv9zzb5-bullfrogdemo').created_at).to eq original_creation_time
+    end
   end
 end
