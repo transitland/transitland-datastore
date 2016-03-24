@@ -189,6 +189,11 @@ describe RouteStopPattern do
       @trip = GTFS::Trip.new(trip_id: 'test', shape_id: 'test')
     end
 
+    it 'stores distances in stop_distances attribute' do
+      @rsp.calculate_distances
+      expect(@rsp.stop_distances.count).to eq 3
+    end
+
     it 'can calculate distances when the geometry and stop coordinates are equal' do
       expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(12617.9271),
@@ -532,7 +537,6 @@ describe RouteStopPattern do
     it 'handles the sfmta, route 23, rsp r-9q8y-23-e51455-1b44d1 case' do
       @feed, @feed_version = load_feed(:feed_version_sfmta_23, 1)
       rsp = @feed.imported_route_stop_patterns[0]
-      puts rsp.calculate_distances
     end
   end
 
