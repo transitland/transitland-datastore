@@ -41,6 +41,10 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
       @rsps = @rsps.with_stops(params[:stops_visited])
     end
 
+    if params[:import_level].present?
+      @rsps = @rsps.where_import_level(AllowFiltering.param_as_array(params, :import_level))
+    end
+
     @rsps = @rsps.includes{[
       route,
       imported_from_feeds,
@@ -57,7 +61,13 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
           params[:offset],
           params[:per_page],
           params[:total],
-          params.slice(:onestop_id, :traversed_by, :trip, :bbox, :stop_visited)
+          params.slice(
+            :onestop_id,
+            :traversed_by,
+            :trip,
+            :bbox,
+            :stop_visited
+          )
         )
       end
       format.geojson do

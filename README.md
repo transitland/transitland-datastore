@@ -99,6 +99,7 @@ Example URL  | Parameters
 `GET /api/v1/stops?served_by=o-9q9-BART,r-9q8y-richmond~dalycity~millbrae` | `served_by` can be any number of Onestop ID's for operators and routes
 `GET /api/v1/stops?tag_key=wheelchair_boarding` | find all stops that have a tag of `tag_key` with any value
 `GET /api/v1/stops?tag_key=wheelchair_boarding&tag_value=1` | find all stops that have a tag of `tag_key` and a value of `tag_value`
+`GET /api/v1/stops?import_level=4` | find all stops with a given import level
 `GET /api/v1/operators` | none required
 `GET /api/v1/operators?identifier=SFMUNI` | `identifier` can be any type of operator identifier
 `GET /api/v1/operators?identifier_starts_with=gtfs://f-9q9` | `identifier_starts_with` can be any type of operator identifier fragment
@@ -106,6 +107,7 @@ Example URL  | Parameters
 `GET /api/v1/operators?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
 `GET /api/v1/operators?tag_key=agency_timezone` | find all operators that have a tag of `tag_key` with any value
 `GET /api/v1/operators?tag_key=agency_timezone&tag_value=America/Los_Angeles` | find all operators that have a tag of `tag_key` and a value of `tag_value`
+`GET /api/v1/operators?import_level=4` | find all operators with a given import level
 `GET /api/v1/routes` | none required
 `GET /api/v1/routes?identifier=19X` | `identifier` can be any type of route identifier
 `GET /api/v1/routes?identifier_starts_with=gtfs://f-9q9` | `identifier_starts_with` can be any type of route identifier fragment
@@ -115,6 +117,7 @@ Example URL  | Parameters
 `GET /api/v1/routes?tag_key=route_color` | find all routes that have a tag of `tag_key` with any value
 `GET /api/v1/routes?tag_key=route_color&tag_value=FEF0B5` | find all routes that have a tag of `tag_key` and a value of `tag_value`
 `GET /api/v1/routes?traverses=r-9q9-pittsburg~baypoint~sfia~millbrae-49ae87-5ae164` | find all routes having specified route stop patterns
+`GET /api/v1/routes?import_level=4` | find all routes with a given import level
 `GET /api/v1/route_stop_patterns` | none required
 `GET /api/v1/route_stop_patterns?traversed_by=r-9q8y-richmond~dalycity~millbrae` | find all Route Stop Patterns belonging to route
 `GET /api/v1/route_stop_patterns?bbox=-122.4183,37.7758,-122.4120,37.7858` | `bbox` is a search bounding box with southwest longitude, southwest latitude, northeast longitude, northeast latitude (separated by commas)
