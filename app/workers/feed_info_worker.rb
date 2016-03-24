@@ -12,9 +12,9 @@ class FeedInfoWorker
     progress_downloading = lambda { |count,total| progress_check('downloading', count, total) }
     progress_parsing = lambda { |count,total,entity| progress_check('parsing', count, total) }
     # Download & parse feed
-    feed, operators = nil, nil
+    feed, operators = nil, []
     errors = []
-    response = {}
+    warnings = []
     begin
       feed_info = FeedInfo.new(url: @url)
       progress_update('downloading', 0.0)
@@ -49,14 +49,31 @@ class FeedInfoWorker
         exception: e.class.name,
         message: 'There was a problem downloading or processing from this URL.'
       }
-    else
-      response[:feed] = FeedSerializer.new(feed).as_json
-      response[:operators] = operators.map { |o| OperatorSerializer.new(o).as_json }
     end
+
+    if feed && feed.persisted?
+      warnings << {
+        onestop_id: feed.onestop_id,
+        message: "Existing feed: #{feed.onestop_id}"
+      }
+    end
+    operators.each do |operator|
+      if operator && operator.persisted?
+        warnings << {
+          onestop_id: operator.onestop_id,
+          message: "Existing operator: #{operator.onestop_id}"
+        }
+      end
+    end
+
+    response = {}
+    response[:feed] = FeedSerializer.new(feed).as_json
+    response[:operators] = operators.map { |o| OperatorSerializer.new(o).as_json }
     response[:status] = errors.size > 0 ? 'error' : 'complete'
     response[:errors] = errors
-    response[:url] = @url
-    Rails.cache.write(@cachekey, response, expires_in: FeedInfo::CACHE_EXPIRATION)
+    response[:warnings] = warnings
+    response[:url] = url
+    Rails.cache.write(cachekey, response, expires_in: FeedInfo::CACHE_EXPIRATION)
     response
   end
 

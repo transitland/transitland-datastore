@@ -12,7 +12,7 @@
           "operator": {
             "onestopId": "o-9q9-actransit",
             "name": "Alameda-Contra Costa Transit District",
-            "short_name": "AC Transit",
+            "shortName": "AC Transit",
             "identifiedBy": ["usntd://9014"],
             "country": "United States",
             "state": "California",
