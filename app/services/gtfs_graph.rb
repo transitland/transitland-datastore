@@ -181,7 +181,7 @@ class GTFSGraph
     log "  stops"
     # Create parent stops first
     @gtfs.stops.reject(&:parent_station).each do |gtfs_stop|
-      stop = find_by_entity(Stop.from_gtfs(gtfs_stop))
+      stop = find_and_update_entity(Stop.from_gtfs(gtfs_stop))
       add_identifier(stop, 's', gtfs_stop)
       log "    Station: #{stop.onestop_id}: #{stop.name}"
     end
@@ -199,7 +199,7 @@ class GTFSGraph
         stop.tags[:parent_station] = parent_stop.onestop_id
       end
       # index
-      stop = find_by_entity(stop)
+      stop = find_and_update_entity(stop)
       add_identifier(stop, 's', gtfs_stop)
       #
       log "    Stop: #{stop.onestop_id}: #{stop.name}"
@@ -222,13 +222,7 @@ class GTFSGraph
       # Find: (tl routes) to (serves tl stops)
       stops = routes.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
       # Create Operator from GTFS
-      operator = Operator.from_gtfs(entity)
-      operator.onestop_id = oif.operator.onestop_id # Override Onestop ID
-      operator_original = operator # for merging geometry
-      # ... or check if Operator exists, or another local Operator, or new.
-      operator = find_by_entity(operator)
-      # Merge convex hulls
-      operator[:geometry] = Operator.convex_hull([operator, operator_original], as: :wkt, projected: false)
+      operator = find_and_update_entity(Operator.from_gtfs(entity))
       # Copy Operator timezone to fill missing Stop timezones
       stops.each { |stop| stop.timezone ||= operator.timezone }
       # Add references and identifiers
@@ -292,7 +286,7 @@ class GTFSGraph
       trip_stop_points = tl_stops.map { |s| s.geometry[:coordinates] }
       # determine if RouteStopPattern exists
       test_rsp = RouteStopPattern.create_from_gtfs(trip, tl_route.onestop_id, stop_pattern, trip_stop_points, feed_shape_points)
-      rsp = find_by_entity(test_rsp)
+      rsp = find_and_update_entity(test_rsp)
       rsp.traversed_by = tl_route.onestop_id
       log "   #{rsp.onestop_id}"  if test_rsp.equal?(rsp)
       add_identifier(rsp, 'trip', trip)
