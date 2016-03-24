@@ -1,5 +1,5 @@
-def load_feed(feed_version_name, import_level=1)
-  feed_version = create(feed_version_name)
+def load_feed(feed_version_name: nil, feed_version: nil, import_level: 1)
+  feed_version = create(feed_version_name) if feed_version.nil?
   feed = feed_version.feed
   graph = GTFSGraph.new(feed_version.file.path, feed, feed_version)
   graph.create_change_osr
@@ -26,7 +26,7 @@ describe GTFSGraph do
   end
 
   context 'can apply level 0 and 1 changesets' do
-    before(:each) { @feed, @feed_version = load_feed(:feed_version_caltrain, 1) }
+    before(:each) { @feed, @feed_version = load_feed(feed_version_name: :feed_version_caltrain, import_level: 1) }
 
     it 'updated feed geometry' do
       geometry = [
@@ -173,7 +173,7 @@ describe GTFSGraph do
 
   context 'can apply a level 2 changeset', import_level:2 do
 
-    before(:each) { @feed, @feed_version = load_feed(:feed_version_caltrain, 2) }
+    before(:each) { @feed, @feed_version = load_feed(feed_version_name: :feed_version_caltrain, import_level: 2) }
 
     it 'created known ScheduleStopPairs' do
       expect(@feed.imported_schedule_stop_pairs.count).to eq(4661) # EXACTLY.
@@ -234,7 +234,7 @@ describe GTFSGraph do
 
   context 'distance calculation assignment' do
 
-    before(:each) { @feed, @feed_version = load_feed(:feed_version_vta, 2) }
+    before(:each) { @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta_1930705, import_level: 2) }
 
     it 'correctly assigned distances to schedule stop pairs containing stops repeated in its Route Stop Pattern' do
       origin = @feed.imported_stops.find_by!(
@@ -259,6 +259,39 @@ describe GTFSGraph do
       ssp1 = first_found.first
       ssp2 = second_found.first
       expect(ssp2.destination_dist_traveled).to be > ssp1.origin_dist_traveled
+    end
+  end
+
+  context 'new feed version integration' do
+
+    before(:each) {
+      @feed, @original_feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 2)
+      @feed_version_update_add = create(:feed_version_example_update_add, feed: @feed)
+      @feed_version_update_delete = create(:feed_version_example_update_delete, feed: @feed)
+    }
+
+    it 'creates a new tl entity not found in previous feed version' do
+      expect(@feed.imported_routes.size).to eq 5
+      expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-60')).to be_falsey
+      load_feed(feed_version: @feed_version_update_add, import_level: 2)
+      expect(@feed.imported_routes.size).to eq 11
+      expect(@feed.imported_routes.uniq.size).to eq 6
+      expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-60')).to be_truthy
+    end
+
+    it 'does not delete a previous feed version entity' do
+      expect(@feed.imported_routes.size).to eq 5
+      expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-10')).to be_truthy
+      load_feed(feed_version: @feed_version_update_delete, import_level: 2)
+      expect(@original_feed_version.imported_routes.find_by_onestop_id('r-9qscy-10')).to be_truthy
+      expect(@feed_version_update_delete.imported_routes.find_by_onestop_id('r-9qscy-10')).to be_falsey
+      expect(@feed.imported_routes.size).to eq 10
+    end
+
+    it 'updates previous matching feed version entities with new attribute values' do
+      expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-10').vehicle_type).to eq 'bus'
+      load_feed(feed_version: @feed_version_update_add, import_level: 2)
+      expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-10').vehicle_type).to eq 'rail'
     end
   end
 end

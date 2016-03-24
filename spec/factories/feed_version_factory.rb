@@ -36,19 +36,42 @@ FactoryGirl.define do
       association :feed, factory: :feed_bart
     end
 
-    factory :feed_version_vta do
+    factory :feed_version_vta_1930705 do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/vta-trip-1930705-gtfs.zip')) }
+      association :feed, factory: :feed_vta
+    end
+
+    factory :feed_version_vta_1930691 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/vta-trip-1930691-gtfs.zip')) }
       association :feed, factory: :feed_vta
     end
 
     factory :feed_version_sfmta_23 do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/sfmta-route-23.zip')) }
-      association :feed, factory: :feed_sfmta_23
+      association :feed, factory: :feed_sfmta
+    end
+
+    factory :feed_version_sfmta_6731593 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/sfmta-trip-6731593.zip')) }
+      association :feed, factory: :feed_sfmta
+    end
+
+    factory :feed_version_sfmta_6720619 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/sfmta-trip-6720619.zip')) }
+      association :feed, factory: :feed_sfmta
     end
 
     factory :feed_version_example do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example.zip')) }
       association :feed, factory: :feed_example
+    end
+
+    factory :feed_version_example_update_add do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example-update-add.zip')) }
+    end
+
+    factory :feed_version_example_update_delete do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example-update-delete.zip')) }
     end
   end
 end

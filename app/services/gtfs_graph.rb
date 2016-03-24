@@ -261,9 +261,9 @@ class GTFSGraph
       next if stops.empty?
       # Search by similarity
       # ... or create route from GTFS
-      route = Route.from_gtfs(entity)
       # ... check if Route exists, or another local Route, or new.
-      route = find_by_entity(route)
+      route = find_and_update_entity(Route.from_gtfs(entity))
+      # route = find_by_entity(route)
       # Add references and identifiers
       route.serves ||= Set.new
       route.serves |= stops.map(&:onestop_id)
@@ -304,6 +304,22 @@ class GTFSGraph
 
   def find_by_gtfs_entity(entity)
     find_by_onestop_id(@gtfs_to_onestop_id[entity])
+  end
+
+  def find_and_update_entity(entity)
+    onestop_id = entity.onestop_id
+    cached_entity = @onestop_id_to_entity[onestop_id]
+    if cached_entity
+      entity = cached_entity
+    else
+      found_entity = OnestopId.find(onestop_id)
+      if found_entity
+        found_entity.merge(entity)
+        entity = found_entity
+      end
+    end
+    @onestop_id_to_entity[onestop_id] = entity
+    entity
   end
 
   def find_by_entity(entity)

@@ -50,7 +50,11 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
       @routes = @routes.stop_within_bbox(params[:bbox])
     end
     if params[:color].present?
-      @routes = @routes.where(color: params[:color])
+      if ['true', true].include?(params[:color])
+        @routes = @routes.where.not(color: nil)
+      else
+        @routes = @routes.where(color: params[:color].upcase)
+      end
     end
 
     @routes = @routes.includes{[
