@@ -33,8 +33,6 @@ end
 class Stop < BaseStop
   self.table_name_prefix = 'current_'
 
-  GEOHASH_PRECISION = 10
-
   include HasAOnestopId
   include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
@@ -254,7 +252,7 @@ class Stop < BaseStop
   def self.from_gtfs(entity, attrs={})
     # GTFS Constructor
     point = Stop::GEOFACTORY.point(*entity.coordinates)
-    geohash = GeohashHelpers.encode(point, precision=GEOHASH_PRECISION)
+    geohash = GeohashHelpers.encode(point)
     name = [entity.stop_name, entity.id, "unknown"]
       .select(&:present?)
       .first
