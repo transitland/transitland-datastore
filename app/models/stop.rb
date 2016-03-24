@@ -27,9 +27,6 @@
 
 class BaseStop < ActiveRecord::Base
   self.abstract_class = true
-
-  include IsAnEntityImportedFromFeeds
-
   attr_accessor :served_by, :not_served_by
 end
 
@@ -43,6 +40,7 @@ class Stop < BaseStop
   include HasAGeographicGeometry
   include HasTags
   include UpdatedSince
+  include IsAnEntityImportedFromFeeds
 
   include CanBeSerializedToCsv
   def self.csv_column_names
@@ -124,13 +122,6 @@ class Stop < BaseStop
   has_many :trips_in, class_name: ScheduleStopPair, foreign_key: "destination_id"
   has_many :stops_out, through: :trips_out, source: :destination
   has_many :stops_in, through: :trips_in, source: :origin
-
-  scope :where_import_level, -> (import_level) {
-    joins(:entities_imported_from_feed)
-      .where(entities_imported_from_feed: {
-        feed_version_id: FeedVersion.where(import_level: import_level).ids
-      })
-  }
 
   # Add service from an Operator or Route
   scope :served_by, -> (onestop_ids_and_models) {
