@@ -28,8 +28,8 @@
 #
 
 # duplicate of gtfs_graph_spec function
-def load_feed(feed_version_name, import_level=1)
-  feed_version = create(feed_version_name)
+def load_feed(feed_version_name: nil, feed_version: nil, import_level: 1)
+  feed_version = create(feed_version_name) if feed_version.nil?
   feed = feed_version.feed
   graph = GTFSGraph.new(feed_version.file.path, feed, feed_version)
   graph.create_change_osr
@@ -252,20 +252,19 @@ describe RouteStopPattern do
     it 'calculates the first stop distance correctly' do
       # from sfmta route 54 and for regression. case where first stop is not a 'before' stop
       # see docs/first_stop_correct_distance.png
-      @feed, @feed_version = load_feed(:feed_version_sfmta_6720619, 2)
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_sfmta_6720619, import_level: 2)
       rsp = @feed.imported_route_stop_patterns[0]
       stop_points = rsp.stop_pattern.map { |s| Stop.find_by_onestop_id!(s).geometry[:coordinates] }
       # using the fake trip with shape id
       has_issues, issues = rsp.evaluate_geometry(@trip, stop_points)
       rsp.tl_geometry(stop_points, issues)
       distances = rsp.calculate_distances
-      puts rsp.stop_pattern[0]
       expect(distances[0]).to be_within(0.1).of(201.1)
     end
 
     it 'can accurately calculate distances when a stop is repeated.' do
       # from f-9q9-vta, r-9q9k-66. see docs/repeated_stop_vta_66.png
-      @feed, @feed_version = load_feed(:feed_version_vta_1930705, 2)
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta_1930705, import_level: 2)
       repeated_rsp = @feed.imported_route_stop_patterns[0]
       stop_points = repeated_rsp.stop_pattern.map { |s| Stop.find_by_onestop_id!(s).geometry[:coordinates] }
       # using the fake trip with shape id
@@ -277,7 +276,7 @@ describe RouteStopPattern do
 
     it 'can accurately calculate distances when a stop matches to a segment before the previous stop\'s matching segment' do
       # from sfmta, N-OWL route. See docs/previous_segment_1_sfmta_n~owl.png and docs/previous_segment_2_sfmta_n~owl.png
-      @feed, @feed_version = load_feed(:feed_version_sfmta_6731593, 2)
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_sfmta_6731593, import_level: 2)
       tricky_rsp = @feed.imported_route_stop_patterns[0]
       stop_points = tricky_rsp.stop_pattern.map { |s| Stop.find_by_onestop_id!(s).geometry[:coordinates] }
       # using the fake trip with shape id
@@ -358,9 +357,9 @@ describe RouteStopPattern do
     end
 
     it 'handles the sfmta, route 23, rsp r-9q8y-23-e51455-1b44d1 case' do
-      @feed, @feed_version = load_feed(:feed_version_sfmta_23, 1)
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_sfmta_23, import_level: 1)
       rsp = @feed.imported_route_stop_patterns[0]
-      #puts rsp.calculate_distances
+      # TODO: tweak algorithm to handle this case and fill out spec
     end
   end
 
