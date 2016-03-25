@@ -61,6 +61,16 @@ FactoryGirl.define do
       association :feed, factory: :feed_sfmta
     end
 
+    factory :feed_version_nycdotsiferry do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/siferry-gtfs.zip')) }
+      association :feed, factory: :feed_nycdotsiferry
+    end
+
+    factory :feed_version_actransit do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/actransit-trip-4538321-1603SP-D4-Weekday-99.zip')) }
+      association :feed, factory: :feed_actransit
+    end
+
     factory :feed_version_example do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example.zip')) }
       association :feed, factory: :feed_example

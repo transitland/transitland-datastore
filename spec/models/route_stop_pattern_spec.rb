@@ -249,6 +249,18 @@ describe RouteStopPattern do
       expect(i).to eq locators.size - 1
     end
 
+    it 'accurately correctly the distances of nyc staten island ferry 2-stop routes with before/after stops' do
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_nycdotsiferry, import_level: 2)
+      expect(@feed.imported_route_stop_patterns[0].calculate_distances).to match_array([0.0, 8138.0])
+      expect(@feed.imported_route_stop_patterns[1].calculate_distances).to match_array([3.2, 8141.2])
+    end
+
+    it 'accurately calculates the distances of a route line that loops back over itself' do
+      # see docs/actransit-route-677.png
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_actransit, import_level: 2)
+      expect(@feed.imported_route_stop_patterns[0].calculate_distances[14..18]).to match_array([4809.3, 5147.2, 5619.5, 6404.2, 8569.0])
+    end
+
     it 'calculates the first stop distance correctly' do
       # from sfmta route 54 and for regression. case where first stop is not a 'before' stop
       # see docs/first_stop_correct_distance.png
