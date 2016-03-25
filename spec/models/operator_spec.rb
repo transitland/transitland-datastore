@@ -44,4 +44,27 @@ describe Operator do
     expect(Operator.with_identifier_or_name('SFMTA')).to match_array([sfmta])
   end
 
+  it 'can recompute convex hull around stops' do
+    operator = create(:operator)
+    operator.stops << create(:stop, geometry: { type: "Point", coordinates: [-73.88031005859375, 40.865756786006806] })
+    operator.stops << create(:stop, geometry: { type: "Point", coordinates: [-73.85833740234374, 40.724364221722716] })
+    operator.stops << create(:stop, geometry: { type: "Point", coordinates: [-73.97369384765625, 40.76598152771282] })
+    operator.stops << create(:stop, geometry: { type: "Point", coordinates: [-74.0753173828125, 40.73268976628568] })
+    operator.stops << create(:stop, geometry: { type: "Point", coordinates: [-73.97369384765625, 40.68063802521456] })
+    operator.stops << create(:stop, geometry: { type: "Point", coordinates: [-73.94210815429688, 40.74621655456364] })
+    # test response created using http://turfjs.org/static/docs/module-turf_convex.html
+    expect(operator.recompute_convex_hull_around_stops).to eq({
+      coordinates: [
+        [
+          [-73.97369384765625, 40.68063802521456],
+          [-74.07531738281251, 40.73268976628566],
+          [-73.88031005859375, 40.8657567860068],
+          [-73.85833740234374, 40.7243642217227],
+          [-73.97369384765625, 40.68063802521456]
+        ]
+      ],
+      type: "Polygon"
+    })
+  end
+
 end
