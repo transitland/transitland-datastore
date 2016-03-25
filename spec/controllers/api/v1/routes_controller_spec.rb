@@ -85,7 +85,7 @@ describe Api::V1::RoutesController do
         bart = create(:operator, name: 'BART', onestop_id: 'o-9q9-BART')
         @richmond_millbrae_route.update(operator: bart)
 
-        get :index, operated_by: 'o-9q9-BART'
+        get :index, operatedBy: 'o-9q9-BART'
         expect_json({ routes: -> (routes) {
           expect(routes.first[:onestop_id]).to eq 'r-9q8y-richmond~dalycity~millbrae'
         }})
@@ -109,6 +109,21 @@ describe Api::V1::RoutesController do
         get :index, traverses: 'r-9q8y-test-45cad3-46d384'
         expect_json({ routes: -> (routes) {
           expect(routes.length).to eq 0
+        }})
+      end
+
+      it 'returns all routes with a defined color' do
+        get :index, color: 'true'
+        expect_json({ routes: -> (routes) {
+          expect(routes.length).to eq 0
+        }})
+      end
+
+      it 'returns all routes with a specified color' do
+        Route.first.update(color: 'CCEEFF')
+        get :index, color: 'cceeff'
+        expect_json({ routes: -> (routes) {
+          expect(routes.length).to eq 1
         }})
       end
     end

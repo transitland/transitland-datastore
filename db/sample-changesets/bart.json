@@ -12,7 +12,7 @@
           "operator": {
             "onestopId": "o-9q9-bart",
             "name": "Bay Area Rapid Transit",
-            "short_name": "BART",
+            "shortName": "BART",
             "identifiedBy": [
               "usntd://9003"
             ],
