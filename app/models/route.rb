@@ -29,6 +29,7 @@
 
 class BaseRoute < ActiveRecord::Base
   self.abstract_class = true
+  include IsAnEntityImportedFromFeeds
   attr_accessor :serves, :does_not_serve, :operated_by
 
   extend Enumerize
@@ -46,7 +47,6 @@ class Route < BaseRoute
   include HasAGeographicGeometry
   include HasTags
   include UpdatedSince
-  include IsAnEntityImportedFromFeeds
 
   include CanBeSerializedToCsv
   def self.csv_column_names

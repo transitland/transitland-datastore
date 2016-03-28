@@ -38,9 +38,6 @@ class Api::V1::StopsController < Api::V1::BaseApiController
     if params[:bbox].present?
       @stops = @stops.geometry_within_bbox(params[:bbox])
     end
-    if params[:import_level].present?
-      @stops = @stops.where_import_level(AllowFiltering.param_as_array(params, :import_level))
-    end
 
     @stops = @stops.includes{[
       operators_serving_stop,
@@ -62,20 +59,7 @@ class Api::V1::StopsController < Api::V1::BaseApiController
           params[:offset],
           params[:per_page],
           params[:total],
-          params.slice(
-            :identifier,
-            :identifier_starts_with,
-            :served_by,
-            :servedBy,
-            :lat,
-            :lon,
-            :r,
-            :bbox,
-            :onestop_id,
-            :tag_key,
-            :tag_value,
-            :import_level
-          )
+          params.slice(:identifier, :identifier_starts_with, :served_by, :servedBy, :lat, :lon, :r, :bbox, :onestop_id, :tag_key, :tag_value)
         )
       end
       format.geojson do
