@@ -35,9 +35,6 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
     if params[:bbox].present?
       @operators = @operators.geometry_within_bbox(params[:bbox])
     end
-    if params[:import_level].present?
-      @operators = @operators.where_import_level(AllowFiltering.param_as_array(params, :import_level))
-    end
 
     @operators = @operators.includes{[
       imported_from_feeds,
@@ -55,18 +52,7 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
           params[:offset],
           params[:per_page],
           params[:total],
-          params.slice(
-            :identifier,
-            :identifier_starts_with,
-            :lat,
-            :lon,
-            :r,
-            :bbox,
-            :onestop_id,
-            :tag_key,
-            :tag_value,
-            :import_level
-          )
+          params.slice(:identifier, :identifier_starts_with, :lat, :lon, :r, :bbox, :onestop_id, :tag_key, :tag_value)
         )
       end
       format.geojson do

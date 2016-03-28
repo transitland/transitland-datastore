@@ -56,9 +56,6 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
         @routes = @routes.where(color: params[:color].upcase)
       end
     end
-    if params[:import_level].present?
-      @routes = @routes.where_import_level(AllowFiltering.param_as_array(params, :import_level))
-    end
 
     @routes = @routes.includes{[
       operator,
@@ -77,19 +74,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
           params[:offset],
           params[:per_page],
           params[:total],
-          params.slice(
-            :identifier,
-            :identifier_starts_with,
-            :operated_by,
-            :operatedBy,
-            :color,
-            :vehicle_type,
-            :bbox,
-            :onestop_id,
-            :tag_key,
-            :tag_value,
-            :import_level
-          )
+          params.slice(:identifier, :identifier_starts_with, :operated_by, :operatedBy, :color, :vehicle_type, :bbox, :onestop_id, :tag_key, :tag_value)
         )
       end
       format.geojson do

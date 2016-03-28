@@ -13,8 +13,6 @@ module OnestopId
     PREFIX = nil
     MODEL = nil
     NUM_COMPONENTS = 3
-    MAX_LENGTH = 64
-    GEOHASH_MAX_LENGTH = 10
 
     attr_accessor :geohash, :name
 
@@ -34,11 +32,7 @@ module OnestopId
     end
 
     def to_s
-      [
-        self.class::PREFIX,
-        @geohash[0...self.class::GEOHASH_MAX_LENGTH],
-        @name
-      ].join(COMPONENT_SEPARATOR)[0...self.class::MAX_LENGTH]
+      [self.class::PREFIX, @geohash, @name].join(COMPONENT_SEPARATOR)
     end
 
     def validate
@@ -119,13 +113,7 @@ module OnestopId
     end
 
     def to_s
-      [
-        self.class::PREFIX,
-        @geohash[0...self.class::GEOHASH_MAX_LENGTH],
-        @name,
-        @stop_hash,
-        @geometry_hash
-      ].join(COMPONENT_SEPARATOR)[0...self.class::MAX_LENGTH]
+      [self.class::PREFIX, @geohash, @name, @stop_hash, @geometry_hash].join(COMPONENT_SEPARATOR)
     end
 
     def validate

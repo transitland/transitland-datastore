@@ -77,6 +77,26 @@ FactoryGirl.define do
     end
   end
 
+  factory :feed_sfmta, class: Feed do
+    onestop_id 'f-9q8y-sfmta'
+    url 'http://archives.sfmta.com/transitdata/google_transit.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'San Francisco Municipal Transportation Agency',
+        onestop_id: 'o-9q8y-sfmta',
+        timezone: 'America/Los_Angeles',
+        website: 'http://www.sfmta.com/',
+        version: 1
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: 'SFMTA'
+      )
+    end
+  end
+
   factory :feed_bart, class: Feed do
     onestop_id 'f-9q9-bart'
     url 'http://www.bart.gov/dev/schedules/google_transit.zip'
@@ -94,6 +114,48 @@ FactoryGirl.define do
       feed.operators_in_feed.create(
         operator: operator,
         gtfs_agency_id: 'BART'
+      )
+    end
+  end
+
+  factory :feed_actransit, class: Feed do
+    onestop_id 'f-9q9-actransit'
+    url 'http://www.actransit.org/wp-content/uploads/GTFSMar202016b.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Alameda-Contra Costa Transit District',
+        short_name: 'AC Transit',
+        onestop_id: 'o-9q9-actransit',
+        timezone: 'America/Los_Angeles',
+        website: 'http://www.actransit.org/',
+        version: 1
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: 'AC Transit'
+      )
+    end
+  end
+
+  factory :feed_nycdotsiferry, class: Feed do
+    onestop_id 'f-dr5r7-nycdotsiferry'
+    url 'http://www.nyc.gov/html/dot/downloads/misc/siferry-gtfs.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'New York City Department of Transportation',
+        short_name: 'NYC DOT',
+        onestop_id: 'o-dr5r7-nycdot',
+        timezone: 'America/New_York',
+        website: 'http://nyc.gov/dot',
+        version: 1
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: 'NYC DOT'
       )
     end
   end

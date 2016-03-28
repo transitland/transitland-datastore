@@ -30,6 +30,7 @@
 class BaseRouteStopPattern < ActiveRecord::Base
   self.abstract_class = true
 
+  include IsAnEntityImportedFromFeeds
 
   attr_accessor :traversed_by, :distance_issues, :first_stop_before_geom, :last_stop_after_geom
 end
@@ -65,7 +66,6 @@ class RouteStopPattern < BaseRouteStopPattern
   include HasAGeographicGeometry
   include HasTags
   include UpdatedSince
-  include IsAnEntityImportedFromFeeds
 
   # Tracked by changeset
   include CurrentTrackedByChangeset
@@ -121,6 +121,7 @@ class RouteStopPattern < BaseRouteStopPattern
   def nearest_segment_index(locators, point, s, e, first=true, side_filter=false, side=1)
     # 'side' must be positive or negative, but not zero. positive
     # will match targets to the right of the segment direction; negative left.
+    side *= -1 # there seems to be a bug in RGeo which gives the reverse of the documented value.
     if side_filter
       results = locators[s..e].select { |locator|  locator.segment.side(point)*side >= 0 }
       results = locators[s..e] if results.empty?

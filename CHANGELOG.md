@@ -1,36 +1,12 @@
 # Change Log
 
-## [4.7.7](https://github.com/transitland/transitland-datastore/tree/4.7.7) (2016-03-24)
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.6...4.7.7)
+## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-**Closed issues:**
-
-- limit Onestop IDs to 64 characters in length [\#512](https://github.com/transitland/transitland-datastore/issues/512)
-
-**Merged pull requests:**
-
-- Maximum Onestop ID Length [\#533](https://github.com/transitland/transitland-datastore/pull/533) ([irees](https://github.com/irees))
-
-## [4.7.6](https://github.com/transitland/transitland-datastore/tree/4.7.6) (2016-03-24)
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.5...4.7.6)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.5...HEAD)
 
 **Fixed bugs:**
 
-- Operator JSON schema fix: shortName [\#524](https://github.com/transitland/transitland-datastore/issues/524)
 - AC Transit re-import fails [\#520](https://github.com/transitland/transitland-datastore/issues/520)
-
-**Closed issues:**
-
-- Import levels for operator, route, stop, rsp [\#472](https://github.com/transitland/transitland-datastore/issues/472)
-- FeedInfo: Warning for existing Feed or Operator [\#471](https://github.com/transitland/transitland-datastore/issues/471)
-- an integration test that tests a new version of a feed being imported [\#400](https://github.com/transitland/transitland-datastore/issues/400)
-
-**Merged pull requests:**
-
-- Entity import level scope [\#529](https://github.com/transitland/transitland-datastore/pull/529) ([irees](https://github.com/irees))
-- Feed import integration tests, Phase 1 [\#527](https://github.com/transitland/transitland-datastore/pull/527) ([doublestranded](https://github.com/doublestranded))
-- production release 4.7.5 [\#519](https://github.com/transitland/transitland-datastore/pull/519) ([drewda](https://github.com/drewda))
-- FeedInfo: Warning for existing Feed or Operator [\#470](https://github.com/transitland/transitland-datastore/pull/470) ([irees](https://github.com/irees))
 
 ## [4.7.5](https://github.com/transitland/transitland-datastore/tree/4.7.5) (2016-03-18)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.4...4.7.5)

@@ -31,7 +31,11 @@
 
 class BaseOperator < ActiveRecord::Base
   self.abstract_class = true
+
   attr_accessor :serves, :does_not_serve
+
+  include IsAnEntityImportedFromFeeds
+
   validates :website, format: { with: URI.regexp }, if: Proc.new { |operator| operator.website.present? }
 end
 
@@ -43,7 +47,6 @@ class Operator < BaseOperator
   include HasAGeographicGeometry
   include HasTags
   include UpdatedSince
-  include IsAnEntityImportedFromFeeds
 
   include CanBeSerializedToCsv
   def self.csv_column_names

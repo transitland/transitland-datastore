@@ -27,18 +27,22 @@
 
 class BaseStop < ActiveRecord::Base
   self.abstract_class = true
+
+  include IsAnEntityImportedFromFeeds
+
   attr_accessor :served_by, :not_served_by
 end
 
 class Stop < BaseStop
   self.table_name_prefix = 'current_'
 
+  GEOHASH_PRECISION = 10
+
   include HasAOnestopId
   include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
   include HasTags
   include UpdatedSince
-  include IsAnEntityImportedFromFeeds
 
   include CanBeSerializedToCsv
   def self.csv_column_names
@@ -252,7 +256,7 @@ class Stop < BaseStop
   def self.from_gtfs(entity, attrs={})
     # GTFS Constructor
     point = Stop::GEOFACTORY.point(*entity.coordinates)
-    geohash = GeohashHelpers.encode(point)
+    geohash = GeohashHelpers.encode(point, precision=GEOHASH_PRECISION)
     name = [entity.stop_name, entity.id, "unknown"]
       .select(&:present?)
       .first

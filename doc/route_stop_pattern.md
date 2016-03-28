@@ -27,21 +27,22 @@ Each Schedule Stop Pair will be associated to a RouteStopPattern. In addition, t
 
 The algorithm to compute these distances runs as follows:
 
-  1. Initialize the total distance traveled counter to 0.0.
+  Set integer values `a`, `b`, and `c` to 0. These will correspond to index values of segments in a list.
 
-  2. Initialize an evaluation line geometry and set it to the complete Route Stop Pattern line geometry.
+  For each stop in the Route Stop Pattern:
+    * If this stop (the current stop) is the first stop, and is found to lie before the geometry (a 'before' stop), set the distance to 0.0 m and continue.
+    * If this stop is the last stop and is found to lie after the geometry (an 'after' stop), set the distance to the length of the line and end the iteration.
 
-  3. For each stop in the stop pattern:
-    1. If the stop is the first stop, determine whether or not it is located "before" the line geometry (see below). If so, or if the stop point is the first endpoint of the line geometry, then set the stop distance to 0.0 and continue. Otherwise, continue with 3.
-    2. If the stop is the last stop, determine whether or not it is located "after" the line geometry (see below). If so, or if the stop point is the last endpoint of the line geometry, add the remaining line distance to the total distance counter and assign the total distance value to the last stop and break. This value should be approximately the length of the line geometry.
-    3. Find its nearest point to the line geometry. This is accomplished by projecting the stop point
-    and line into Cartesian coordinates, finding the nearest line segment to the stop point, and then finding
-    the nearest point on that segment.
-    4. Once the nearest point is found, split the line at this point into two.
-    5. For the first half of the split, project the segments back into spherical coordinates to calculate their lengths. Sum these lengths and add that sum to the total distance counter. Store the current stop's distance as the updated total distance counter.
-    6. The second half of the split is now the evaluation line geometry. Repeat step 3 (stop pattern iteration) with this evaluation line and with the next stop in the stop pattern.
+    * Otherwise, gather the list of segments of the line. Let:
+      1.  `a` = the index of the segment list of the nearest matching segment for the previous stop. Keep `a` at 0 if the current stop is the first.
+      2.  `c` = the index of the segment list of the nearest matching segment for the next stop, between the segment at `a` and the last segment, inclusive. If the current stop is the last stop in the sequence, or is the penultimate stop and the next, last stop lies after the geometry, or if the next stop is an outlier (further than 100 m away from the line), let `c` = the index of the last segment.
+      3.  Calculate `b`, the index of the nearest matching segment of the segment list between `a` and `c`, inclusive.
+      4.  With `b`, calculate the nearest point on the segment from the current stop, and then calculate the distance along the line to the nearest point by adding the distances of the segments up to, but not including, `b`, and the distance from the end of the segment before `b` to the nearest point.
+      5.  If the computed distance from 4. is less than the previous stop's computed distance, recompute `b` and the distance using `c` = the last segment index.
+      6.  If the final computed nearest point on the line is greater than 100 meters away from the stop, just set the stop distance to be: 0.0 if the current stop is first, the length of the line geometry if the stop is last, or the previous stop distance otherwise. This could indicate a problem with the stop or line geometry, and it is logged for further evaluation.
 
-  The algorithm should never run out of evaluation line to split, since we add the last stop point to the line geometry if it is found after the line geometry. If there is a complication in the split computation, this should indicate an outlier stop, the result is logged, and that stop receives a distance value equal to the previous stop.
+    * Set `a` equal to `b` and continue with the next stop.
+
 
 ### Before and After Stops
 A stop is considered to be before (after) a Route Stop Pattern line geometry if its point satisfies one of two conditions:

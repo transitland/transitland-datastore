@@ -234,7 +234,7 @@ describe GTFSGraph do
 
   context 'distance calculation assignment' do
 
-    before(:each) { @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta, import_level: 2) }
+    before(:each) { @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta_1930705, import_level: 2) }
 
     it 'correctly assigned distances to schedule stop pairs containing stops repeated in its Route Stop Pattern' do
       origin = @feed.imported_stops.find_by!(
@@ -268,9 +268,6 @@ describe GTFSGraph do
       @feed, @original_feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 2)
       @feed_version_update_add = create(:feed_version_example_update_add, feed: @feed)
       @feed_version_update_delete = create(:feed_version_example_update_delete, feed: @feed)
-      # @feed_version_update.feed = @original_feed
-      # @original_feed.feed_versions << @feed_version_update
-      # load_feed(feed_version: @feed_version_update, import_level: 2)
     }
 
     it 'creates a new tl entity not found in previous feed version' do
@@ -289,6 +286,12 @@ describe GTFSGraph do
       expect(@original_feed_version.imported_routes.find_by_onestop_id('r-9qscy-10')).to be_truthy
       expect(@feed_version_update_delete.imported_routes.find_by_onestop_id('r-9qscy-10')).to be_falsey
       expect(@feed.imported_routes.size).to eq 10
+    end
+
+    it 'updates previous matching feed version entities with new attribute values' do
+      expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-10').vehicle_type).to eq 'bus'
+      load_feed(feed_version: @feed_version_update_add, import_level: 2)
+      expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-10').vehicle_type).to eq 'rail'
     end
   end
 end
