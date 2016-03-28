@@ -12,7 +12,7 @@
           "operator": {
             "onestopId": "o-dr5r7-nycdot",
             "name": "New York City Department of Transportation",
-            "short_name": "NYC DOT",
+            "shortName": "NYC DOT",
             "identifiedBy": ["usntd://2082"],
             "country": "United States",
             "state": "New York",
