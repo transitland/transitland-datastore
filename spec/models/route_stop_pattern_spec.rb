@@ -255,10 +255,16 @@ describe RouteStopPattern do
       expect(@feed.imported_route_stop_patterns[1].calculate_distances).to match_array([3.2, 8141.2])
     end
 
+    # it 'accurately calculates the distances of a route with stops along the part that traversed over itself in the opposite direction' do
+    #   # see docs/actransit-route-677.png
+    #   @feed, @feed_version = load_feed(feed_version_name: :feed_version_actransit, import_level: 2)
+    #   expect(@feed.imported_route_stop_patterns[0].calculate_distances[14..18]).to match_array([4809.3, 5147.2, 5619.5, 6404.2, 8569.0])
+    # end
+
     it 'accurately calculates the distances of a route with stops along the part that traversed over itself in the opposite direction' do
-      # see docs/actransit-route-677.png
-      @feed, @feed_version = load_feed(feed_version_name: :feed_version_actransit, import_level: 2)
-      expect(@feed.imported_route_stop_patterns[0].calculate_distances[14..18]).to match_array([4809.3, 5147.2, 5619.5, 6404.2, 8569.0])
+      # see docs/rome_01_part_1.png and docs/rome_01_part_2.png
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_rome, import_level: 2)
+      expect(@feed.imported_route_stop_patterns[0].calculate_distances).to match_array([0.6,639.6,817.5,1034.9,1250.2,1424.2,1793.5,1929.2,2162.2,2429.9,2579.6,2735.3,3022.6,3217.8,3407.3,3646.6,3804.4,3969.1,4128.3,4302.6,4482.1,4586.9,4869.5,5242.7,5510.4,5695.6,5871.4,6112.9,6269.6,6334.1,6528.8,6715.4,6863.0,7140.2,7689.8])
     end
 
     it 'calculates the first stop distance correctly' do

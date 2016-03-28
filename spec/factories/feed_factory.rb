@@ -139,6 +139,27 @@ FactoryGirl.define do
     end
   end
 
+  factory :feed_rome, class: Feed do
+    onestop_id 'f-sr2-datimuoviromait'
+    url 'http://dati.muovi.roma.it/gtfs/google_transit.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Roma Servizi per la Mobilità s.r.l.',
+        short_name: '',
+        onestop_id: 'o-sr2-romaserviziperlamobilitsrl',
+        timezone: 'Europe/Rome',
+        website: 'http://www.agenziamobilita.roma.it',
+        version: 1
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: 'MOBILITA'
+      )
+    end
+  end
+
   factory :feed_nycdotsiferry, class: Feed do
     onestop_id 'f-dr5r7-nycdotsiferry'
     url 'http://www.nyc.gov/html/dot/downloads/misc/siferry-gtfs.zip'
