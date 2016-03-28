@@ -12,7 +12,7 @@
           "operator": {
             "onestopId": "o-9q8y-sfmta",
             "name": "San Francisco Municipal Transportation Agency",
-            "shortName": "SFMTA",
+            "short_name": "SFMTA",
             "identifiedBy": ["usntd://9015"],
             "country": "United States",
             "state": "California",

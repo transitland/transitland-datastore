@@ -14,19 +14,6 @@ describe FeedInfoWorker do
     expect(cachedata[:operators].first[:onestop_id]).to eq('o-9q9-caltrain')
   end
 
-  it 'warns for existing feed' do
-    existing_feed = create(:feed_caltrain)
-    url = 'http://www.caltrain.com/Assets/GTFS/caltrain/GTFS-Caltrain-Devs.zip'
-    cachekey = 'test'
-    Rails.cache.delete(cachekey)
-    VCR.use_cassette('feed_fetch_caltrain') do
-      FeedInfoWorker.new.perform(url, cachekey)
-    end
-    cachedata = Rails.cache.read(cachekey)
-    expect(cachedata[:warnings].size).to eq(2)
-    cachedata[:warnings].each { |warning| expect(warning.keys).to match_array([:onestop_id, :message])}
-  end
-
   it 'fails with 404' do
     url = 'http://www.bart.gov/this-is-a-bad-url.zip'
     cachekey = 'test'

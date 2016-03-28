@@ -12,7 +12,7 @@
           "operator": {
             "onestopId": "o-dr5r-nyct",
             "name": "MTA New York City Transit",
-            "shortName": "NYCT",
+            "short_name": "NYCT",
             "identifiedBy": ["usntd://2008"],
             "country": "United States",
             "state": "New York",

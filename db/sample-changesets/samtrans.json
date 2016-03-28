@@ -12,7 +12,7 @@
           "operator": {
             "onestopId": "o-9q8-samtrans",
             "name": "San Mateo County Transit District",
-            "shortName": "Samtrans",
+            "short_name": "Samtrans",
             "identifiedBy": ["usntd://9009"],
             "country": "United States",
             "state": "California",
