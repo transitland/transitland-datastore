@@ -1,8 +1,8 @@
 # Transitland RouteStopPattern
 
-Transitland models route geometries by breaking them into individual components called Route Stop Patterns. These components are uniquely defined by a route, a stop pattern, and a line geometry; all three derived from the trip routes, trip stop sequences, and shapes of a GTFS feed. Because of this, it is possible to have two distinct Route Stop Patterns within one route, both sharing the same line geometry but having different stop patterns, and vice versa. Individual Route Stop Patterns also have records of the GTFS trips and the single shape used to create them; a typical Route Stop Pattern will reference back to one or many trips having the same stop pattern, but only references the one shape shared by those trips. When a Route Stop Pattern's trips have no shapes or empty shapes, there will be no shape reference.
+Transitland models route geometries by breaking them into individual components called `RouteStopPattern`s or RSPs. These components are uniquely defined by a route, a stop pattern, and a line geometry; all three derived from the trip routes, trip stop sequences, and shapes of a GTFS feed. Because of this, it is possible to have two distinct RSPs within one route, both sharing the same line geometry but having different stop patterns, and vice versa. Individual RSPs also have records of the GTFS trips and the single shape used to create them; a typical RSP will reference back to one or many trips having the same stop pattern, but only references the one shape shared by those trips. When a RSP's trips have no shapes or empty shapes, there will be no shape reference.
 
-Route Stop Patterns may also modify the original shape line geometry if necessary. When this is done, a Boolean value named `is_modified` will be set to true. Currently, the line geometry is only modified when it is generated as the result of missing its original GTFS shape id or shape points. In this case, the line geometry becomes the sequential points of the stop pattern, and a separate boolean named `is_generated` will be set to true.
+RSPs may also modify the original shape line geometry if necessary. When this is done, a Boolean value named `is_modified` will be set to true. Currently, the line geometry is only modified when it is generated as the result of missing its original GTFS shape id or shape points. In this case, the line geometry becomes the sequential points of the stop pattern, and a separate boolean named `is_generated` will be set to true.
 
 ## RouteStopPattern Data Model
 
@@ -19,33 +19,42 @@ Route Stop Patterns may also modify the original shape line geometry if necessar
 | is_generated                 | Boolean  | Geometry has been created because the original shape reference or coordinates are missing. Currently, geometries are auto-generated solely from the stop points.   |
 
 ### Onestop ID
-RouteStopPatterns are uniquely identified by a Onestop Id, but the composition of this id is different from that of
-Route, Stop, Feed, and Operator Onestop Ids. The RouteStopPattern Onestop Id has 5 components instead of 3, with each component separated by a dash just as the ids of the latter Transitland entities. The first 3 components are exactly the Route Onestop Id of the Route to which the RouteStopPattern belongs to. The fourth component is the first 6 hexadecimal characters of the MD5 hash produced from the stop pattern string (stop onestop id's separated by comma). The fifth component is the first 6 hexadecimal characters of the MD5 hash produced from geometry coordinates as a string (coordinates separated by comma).
+RSPs are uniquely identified by a Onestop Id, but the composition of this id is different from that of
+Route, Stop, Feed, and Operator Onestop Ids. The RSP Onestop Id has 5 components instead of 3, with each component separated by a dash just as the ids of the latter Transitland entities. The first 3 components are exactly the Route Onestop Id of the Route to which the RSP belongs to. The fourth component is the first 6 hexadecimal characters of the MD5 hash produced from the stop pattern string (stop onestop id's separated by comma). The fifth component is the first 6 hexadecimal characters of the MD5 hash produced from geometry coordinates as a string (coordinates separated by comma).
 
 ### Distance calculation algorithm
-Each Schedule Stop Pair will be associated to a RouteStopPattern. In addition, two attributes have been added to Schedule Stop Pair: origin_distance_traveled and destination_distance_traveled. These are the distances, in meters rounded to the nearest decimeter, of the origin and destination stops along the line geometry from the start point.
+Each Schedule Stop Pair will be associated to a RSP. In addition, two attributes have been added to Schedule Stop Pair: origin_distance_traveled and destination_distance_traveled. These are the distances, in meters rounded to the nearest decimeter, of the origin and destination stops along the line geometry from the start point.
 
 The algorithm to compute these distances runs as follows:
 
   Set integer values `a`, `b`, and `c` to 0. These will correspond to index values of segments in a list.
 
-  For each stop in the Route Stop Pattern:
-    * If this stop (the current stop) is the first stop, and is found to lie before the geometry (a 'before' stop), set the distance to 0.0 m and continue.
-    * If this stop is the last stop and is found to lie after the geometry (an 'after' stop), set the distance to the length of the line and end the iteration.
+  For each stop in the RSP:
+    1.  If this stop (the current stop) is the first stop, and is found to lie [before](#before) the geometry, set the distance to 0.0 m and continue.
+    2.  If this stop is the last stop and is found to lie [after](#before) the geometry, set the distance to the length of the line and end the iteration.
 
-    * Otherwise, gather the list of segments of the line. Let:
-      1.  `a` = the index of the segment list of the nearest matching segment for the previous stop. Keep `a` at 0 if the current stop is the first.
-      2.  `c` = the index of the segment list of the nearest matching segment for the next stop, between the segment at `a` and the last segment, inclusive. If the current stop is the last stop in the sequence, or is the penultimate stop and the next, last stop lies after the geometry, or if the next stop is an outlier (further than 100 m away from the line), let `c` = the index of the last segment.
-      3.  Calculate `b`, the index of the nearest matching segment of the segment list between `a` and `c`, inclusive.
+    3.  Otherwise, gather the list of segments of the line. Let:
+      1.  `a` = the index of the nearest matching segment for the previous stop. Keep `a` at 0 if the current stop is the first.
+      2.  `c` = the index of the nearest matching segment for the next stop, between the segment at `a` and the last segment, inclusive. If the current stop matches any of these characteristics:
+        * is the last stop in the sequence
+        * is the penultimate stop and the next and last stop lies [after](#before) the geometry
+        * has a next stop that is an outlier (further than 100 m away from the line),
+      let `c` = the index of the last segment.
+      3.  Calculate `b`, the index of the nearest matching segment between `a` and `c`, inclusive.
       4.  With `b`, calculate the nearest point on the segment from the current stop, and then calculate the distance along the line to the nearest point by adding the distances of the segments up to, but not including, `b`, and the distance from the end of the segment before `b` to the nearest point.
       5.  If the computed distance from 4. is less than the previous stop's computed distance, recompute `b` and the distance using `c` = the last segment index.
-      6.  If the final computed nearest point on the line is greater than 100 meters away from the stop, just set the stop distance to be: 0.0 if the current stop is first, the length of the line geometry if the stop is last, or the previous stop distance otherwise. This could indicate a problem with the stop or line geometry, and it is logged for further evaluation.
+      6.  If the final computed nearest point on the line is greater than 100 meters away from the stop, just set the stop distance to be:
+        * 0.0 if the current stop is first
+        * the length of the line geometry if the stop is last
+        * the previous stop distance otherwise.
+      This could indicate a problem with the stop or line geometry, and it is logged for further evaluation.
 
-    * Set `a` equal to `b` and continue with the next stop.
+    4.  Set `a` equal to `b` and continue with the next stop.
 
 
+<a name="before"></a>
 ### Before and After Stops
-A stop is considered to be before (after) a Route Stop Pattern line geometry if its point satisfies one of two conditions:
+A stop is considered to be before (after) a RSP line geometry if its point satisfies one of two conditions:
 
 1. It is found on the opposite side of the line that is perpendicular to the first (last) line segment and that passes through the first (last) endpoint of the segment.
 
@@ -75,15 +84,15 @@ Not before:
 
 ## Query parameters
 
-The main RouteStopPattern API endpoint is [/api/v1/route_stop_patterns](http://transit.land/api/v1/route_stop_patterns). It accepts the following query parameters, which may be freely combined.
+The main RSP API endpoint is [/api/v1/route_stop_patterns](http://transit.land/api/v1/route_stop_patterns). It accepts the following query parameters, which may be freely combined.
 
 | Query parameter        | Type | Description | Example |
 |------------------------|------|-------------|---------|
-| onestop_id             | Onestop ID | RouteStopPattern. | (http://transit.land/api/v1/route_stop_patterns?onestop_id=r-9q9-pittsburg~baypoint~sfia~millbrae-49ae87-5ae164) |
+| onestop_id             | Onestop ID | RSP. | (http://transit.land/api/v1/route_stop_patterns?onestop_id=r-9q9-pittsburg~baypoint~sfia~millbrae-49ae87-5ae164) |
 | traversed_by   | Onestop ID | Route. Accepts multiple route onestop ids separated by commas. | [belonging to Route Pittsburg/Bay Point - SFIA/Millbrae](http://transit.land/api/v1/route_stop_patterns?traversed_by=r-9q9-pittsburg~baypoint~sfia~millbrae)
 | stops_visited  | Onestop ID | Stop. Accepts multiple separated by commas. | [Having stop MacArthur](http://transit.land/api/v1/route_stop_patterns?stops_visited=s-9q9p1wrwrp-macarthur)
 | trips | String | Derived from trip. Accepts multiple trips ids separated by commas. | [Having trips ](http://transit.land/api/v1/route_stop_patterns?trips=01SFO10,96SFO10)
-| bbox                     | Lon1,Lat1,Lon2,Lat2 | Route Stop Patterns within bounding box | [in the Bay Area](http://transit.land/api/v1/route_stop_patterns?bbox=-123.057,36.701,-121.044,38.138)
+| bbox                     | Lon1,Lat1,Lon2,Lat2 | RSPs within bounding box | [in the Bay Area](http://transit.land/api/v1/route_stop_patterns?bbox=-123.057,36.701,-121.044,38.138)
 
 ## Response format
 
