@@ -118,27 +118,6 @@ FactoryGirl.define do
     end
   end
 
-  factory :feed_actransit, class: Feed do
-    onestop_id 'f-9q9-actransit'
-    url 'http://www.actransit.org/wp-content/uploads/GTFSMar202016b.zip'
-    version 1
-    after :create do |feed, evaluator|
-      operator = create(
-        :operator,
-        name: 'Alameda-Contra Costa Transit District',
-        short_name: 'AC Transit',
-        onestop_id: 'o-9q9-actransit',
-        timezone: 'America/Los_Angeles',
-        website: 'http://www.actransit.org/',
-        version: 1
-      )
-      feed.operators_in_feed.create(
-        operator: operator,
-        gtfs_agency_id: 'AC Transit'
-      )
-    end
-  end
-
   factory :feed_rome, class: Feed do
     onestop_id 'f-sr2-datimuoviromait'
     url 'http://dati.muovi.roma.it/gtfs/google_transit.zip'
