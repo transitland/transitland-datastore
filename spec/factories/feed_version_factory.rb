@@ -16,6 +16,7 @@
 #  created_at             :datetime
 #  updated_at             :datetime
 #  import_level           :integer          default(0)
+#  url                    :string
 #
 # Indexes
 #
