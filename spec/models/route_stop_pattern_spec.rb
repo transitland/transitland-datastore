@@ -27,21 +27,6 @@
 #  index_current_route_stop_patterns_on_trips         (trips)
 #
 
-# duplicate of gtfs_graph_spec function
-def load_feed(feed_version_name: nil, feed_version: nil, import_level: 1)
-  feed_version = create(feed_version_name) if feed_version.nil?
-  feed = feed_version.feed
-  graph = GTFSGraph.new(feed_version.file.path, feed, feed_version)
-  graph.create_change_osr
-  if import_level >= 2
-    graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map, rsp_map|
-      graph.ssp_perform_async(trip_ids, agency_map, route_map, stop_map, rsp_map)
-    end
-  end
-  feed.activate_feed_version(feed_version.sha1, import_level)
-  return feed, feed_version
-end
-
 describe RouteStopPattern do
   let(:stop_1) { create(:stop,
     onestop_id: "s-9q8yw8y448-bayshorecaltrainstation",
@@ -255,15 +240,15 @@ describe RouteStopPattern do
       expect(@feed.imported_route_stop_patterns[1].calculate_distances).to match_array([3.2, 8141.2])
     end
 
-    it 'accurately calculates the distances of a route with stops along the part that traversed over itself in the opposite direction' do
+    it 'accurately calculates the distances of a route with stops along the line that traversed over itself in the opposite direction' do
       # see docs/rome_01_part_1.png and docs/rome_01_part_2.png
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_rome, import_level: 2)
       expect(@feed.imported_route_stop_patterns[0].calculate_distances).to match_array([0.6,639.6,817.5,1034.9,1250.2,1424.2,1793.5,1929.2,2162.2,2429.9,2579.6,2735.3,3022.6,3217.8,3407.3,3646.6,3804.4,3969.1,4128.3,4302.6,4482.1,4586.9,4869.5,5242.7,5510.4,5695.6,5871.4,6112.9,6269.6,6334.1,6528.8,6715.4,6863.0,7140.2,7689.8])
     end
 
-    it 'accurately calculates distances of a route line that loops over itself and stops are closest to segment on opposite side' do
+    it 'accurately calculates the distances of a route with stops along the line that traversed over itself in the opposite direction, but closest match was segment in opposite direction' do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta_1965654, import_level: 2)
-      puts @feed.imported_route_stop_patterns[0].calculate_distances
+      expect(@feed.imported_route_stop_patterns[0].calculate_distances).to match_array([0.0,1490.8,1818.6,2478.0,2928.5,3167.2,3584.7,4079.4,4360.6,4784.1,4970.5,5168.1,5340.5,5599.0,6023.2,6483.9,6770.0,7469.3])
     end
 
     it 'calculates the first stop distance correctly' do
@@ -371,12 +356,6 @@ describe RouteStopPattern do
                                                               a_value_within(0.1).of(12617.9271),
                                                               a_value_within(0.1).of(12617.9271),
                                                               a_value_within(0.1).of(17001.5107)])
-    end
-
-    it 'handles the sfmta, route 23, rsp r-9q8y-23-e51455-1b44d1 case' do
-      @feed, @feed_version = load_feed(feed_version_name: :feed_version_sfmta_23, import_level: 1)
-      rsp = @feed.imported_route_stop_patterns[0]
-      # TODO: tweak algorithm to handle this case and fill out spec
     end
   end
 
