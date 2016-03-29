@@ -62,7 +62,7 @@ module RGeo
         diff = t_dist_from_departure - dist_on_seg
         # sometimes there can be a precision mismatch
         return 0 if (diff < 0 && diff.abs < 0.00001 )
-        ::Math.sqrt( t_dist_from_departure ** 2 - dist_on_seg ** 2 )
+        ::Math.sqrt( t_dist_from_departure ** 2 - dist_on_seg ** 2 ).round(5)
       end
 
       def target_distance_from_departure
