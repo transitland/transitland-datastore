@@ -1,4 +1,4 @@
-# Transitland `RouteStopPattern`
+# Transitland RouteStopPattern
 
 Transitland models route geometries by breaking them into individual components called RouteStopPatterns, or sometimes RSPs. RouteStopPatterns are uniquely defined by a route, a stop pattern, and a line geometry; all three derived from the trip routes, trip stop sequences, and shapes of a GTFS feed. Because of this, it is possible to have two distinct RouteStopPatterns within one route, both sharing the same line geometry but having different stop patterns, and vice versa. Individual RouteStopPatterns also have records of the GTFS trips and the single shape used to create them; a typical RouteStopPattern will reference back to one or many trips having the same stop pattern, but only references the one shape shared by those trips. When a RouteStopPattern's trips have no shapes or empty shapes, there will be no shape reference.
 
@@ -23,7 +23,7 @@ RouteStopPatterns are uniquely identified by a Onestop Id, but the composition o
 Route, Stop, Feed, and Operator Onestop Ids. The RouteStopPattern Onestop Id has 5 components instead of 3, with each component separated by a dash just as the ids of the latter Transitland entities. The first 3 components are exactly the Route Onestop Id of the Route to which the RouteStopPattern belongs to. The fourth component is the first 6 hexadecimal characters of the MD5 hash produced from the stop pattern string (stop onestop id's separated by comma). The fifth component is the first 6 hexadecimal characters of the MD5 hash produced from geometry coordinates as a string (coordinates separated by comma).
 
 ### Distance calculation algorithm
-Each [`ScheduleStopPair`](schedule_api.md) will be associated to a RouteStopPattern. In addition, two attributes have been added to ScheduleStopPair: origin_distance_traveled and destination_distance_traveled. These are the distances, in meters rounded to the nearest decimeter, of the origin and destination stops along the line geometry from the start point.
+Each [`ScheduleStopPair`](schedule_api.md) will be associated to a RouteStopPattern. In addition, two attributes have been added to ScheduleStopPair: `origin_distance_traveled` and `destination_distance_traveled`. These are the distances, in meters rounded to the nearest decimeter, of the origin and destination stops along the line geometry from the start point.
 
 The algorithm to compute these distances runs as follows:
   1.  Set integer values `a`, `b`, and `c` to 0. These will correspond to index values of segments in a list.
@@ -32,7 +32,7 @@ The algorithm to compute these distances runs as follows:
     2.  If this stop is the last stop and is found to lie [after](#before-and-after-stops) the geometry, set the distance to the length of the line and end the stop iteration.
     3.  Otherwise, gather the list of segments of the line. Let:
        1.  `a` = the index of the nearest matching segment for the previous stop. Keep `a` at 0 if the current stop is the first.
-       2.  `c` = the index of the nearest matching segment for the next stop, between the segment at `a` and the last segment, inclusive. Let `c` = the index of the last segment if the current stop matches any of these characteristics:  
+       2.  `c` = the index of the nearest matching segment for the next stop, between the segment at `a` and the last line segment, inclusive. Let `c` = the index of the last segment if the current stop matches any of these characteristics:  
 
            <dl><dt>is the last stop in the sequence</dt>
            <dt>is the penultimate stop, and the next and last stop lies after the geometry</dt>
@@ -40,7 +40,7 @@ The algorithm to compute these distances runs as follows:
        3.  Calculate `b`, the index of the nearest matching segment between `a` and `c`, inclusive.  
        4.  With `b`, calculate the nearest point on the segment from the current stop, and then calculate the distance along the line to the nearest point by adding the distances of the segments up to, but not including, `b`, and the distance from the end of the segment before `b` to the nearest point.  
        5.  If the computed distance is less than the previous stop's computed distance, recompute `b` and the distance using `c` = the last segment index.  
-       6.  If the final computed nearest point on the line is greater than 100 meters away from the stop, this could indicate a problem with the stop or line geometry, and it is logged for further evaluation. Then set the stop distance to be:  
+       6.  If the final computed nearest point on the line is greater than 100 meters away from the stop, there could be a problem with the stop or line geometry, and it is logged for further evaluation. Then set the stop distance to be:  
 
             <dl><dt>0.0 if the current stop is first</dt>
             <dt>the length of the line geometry if the stop is last</dt>
