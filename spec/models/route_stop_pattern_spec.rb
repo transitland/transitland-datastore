@@ -261,6 +261,11 @@ describe RouteStopPattern do
       expect(@feed.imported_route_stop_patterns[0].calculate_distances).to match_array([0.6,639.6,817.5,1034.9,1250.2,1424.2,1793.5,1929.2,2162.2,2429.9,2579.6,2735.3,3022.6,3217.8,3407.3,3646.6,3804.4,3969.1,4128.3,4302.6,4482.1,4586.9,4869.5,5242.7,5510.4,5695.6,5871.4,6112.9,6269.6,6334.1,6528.8,6715.4,6863.0,7140.2,7689.8])
     end
 
+    it 'accurately calculates distances of a route line that loops over itself and stops are closest to segment on opposite side' do
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta_1965654, import_level: 2)
+      puts @feed.imported_route_stop_patterns[0].calculate_distances
+    end
+
     it 'calculates the first stop distance correctly' do
       # from sfmta route 54 and for regression. case where first stop is not a 'before' stop
       # see docs/first_stop_correct_distance.png
