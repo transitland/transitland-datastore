@@ -28,14 +28,14 @@ Each Schedule Stop Pair will be associated to a RouteStopPattern. In addition, t
 The algorithm to compute these distances runs as follows:
   1.  Set integer values `a`, `b`, and `c` to 0. These will correspond to index values of segments in a list.
   2.  For each stop in the RouteStopPattern:
-    1.  If this stop (the current stop) is the first stop, and is found to lie [before](#before) the geometry, set the distance to 0.0 m and continue.
-    2.  If this stop is the last stop and is found to lie [after](#before) the geometry, set the distance to the length of the line and end the iteration.
+    1.  If this stop (the current stop) is the first stop, and is found to lie [before](#before-and-after-stops) the geometry, set the distance to 0.0 m and continue.
+    2.  If this stop is the last stop and is found to lie [after](#before-and-after-stops) the geometry, set the distance to the length of the line and end the iteration.
     3.  Otherwise, gather the list of segments of the line. Let:
        1.  `a` = the index of the nearest matching segment for the previous stop. Keep `a` at 0 if the current stop is the first.
        2.  `c` = the index of the nearest matching segment for the next stop, between the segment at `a` and the last segment, inclusive. Let `c` = the index of the last segment if the current stop matches any of these characteristics:  
 
            <dl><dt>is the last stop in the sequence</dt>
-           <dt>is the penultimate stop, and the next and last stop lies [after](#before) the geometry</dt>
+           <dt>is the penultimate stop, and the next and last stop lies after the geometry</dt>
            <dt>has a next stop that is an outlier (further than 100 m away from the line)</dt></dl>
        3.  Calculate `b`, the index of the nearest matching segment between `a` and `c`, inclusive.  
        4.  With `b`, calculate the nearest point on the segment from the current stop, and then calculate the distance along the line to the nearest point by adding the distances of the segments up to, but not including, `b`, and the distance from the end of the segment before `b` to the nearest point.  
@@ -47,7 +47,6 @@ The algorithm to compute these distances runs as follows:
             <dt>the previous stop distance otherwise.</dt></dl>
     4.  Set `a` equal to `b` and continue with the next stop.
 
-<a name="before"></a>
 ### Before and After Stops
 A stop is considered to be before (after) a RouteStopPattern line geometry if its point satisfies one of two conditions:
 
