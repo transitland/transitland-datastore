@@ -17,15 +17,14 @@ class FeedEaterWorker
       feed_version = feed.feed_versions.first!
     end
 
-    # make sure to have local copy of file
-    feed_file_path = feed_version.file.local_path_copying_locally_if_needed
-
-    # Create import record
+  # Create import record
     feed_version_import = feed_version.feed_version_imports.create(
       import_level: import_level
     )
 
     # Validate
+    # make sure to have local copy of file
+    feed_file_path = feed_version.file.local_path_copying_locally_if_needed
     unless Figaro.env.run_google_feedvalidator.present? &&
            Figaro.env.run_google_feedvalidator == 'false'
       logger.info "FeedEaterWorker #{feed_onestop_id}: Validating feed"
@@ -42,7 +41,7 @@ class FeedEaterWorker
     graph = nil
     begin
       logger.info "FeedEaterWorker #{feed_onestop_id}: Importing feed at import level #{import_level}"
-      graph = GTFSGraph.new(feed_file_path, feed, feed_version)
+      graph = GTFSGraph.new(feed, feed_version)
       graph.cleanup
       graph.create_change_osr
       if import_level >= 2

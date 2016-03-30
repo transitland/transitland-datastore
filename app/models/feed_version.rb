@@ -64,6 +64,24 @@ class FeedVersion < ActiveRecord::Base
     )
   end
 
+  def feed_eater(import_level=0)
+    FeedEaterWorker.new.perform(
+      self.feed.onestop_id,
+      self.sha1,
+      import_level
+    )
+  end
+
+  def open_gtfs(options={})
+    fail StandardError.new('no file') unless file.present?
+    fragment = (url || '').partition('#').last
+    file_path = file.local_path_copying_locally_if_needed
+    if !fragment.blank?
+      file_path = file_path + '#' + fragment
+    end
+    GTFS::ZipSource.new(file_path, options)
+  end
+
   private
 
   def compute_and_set_hashes
@@ -75,7 +93,7 @@ class FeedVersion < ActiveRecord::Base
 
   def read_gtfs_calendar_dates
     if file.present? && file_changed?
-      gtfs_file = GTFS::Source.build(file.path, {strict: false})
+      gtfs_file = open_gtfs({strict: false})
       start_date, end_date = gtfs_file.service_period_range
       self.earliest_calendar_date ||= start_date
       self.latest_calendar_date ||= end_date
@@ -84,7 +102,7 @@ class FeedVersion < ActiveRecord::Base
 
   def read_gtfs_feed_info
     if file.present? && file_changed?
-      gtfs_file = GTFS::Source.build(file.path, {strict: false})
+      gtfs_file = open_gtfs({strict: false})
       begin
         if gtfs_file.feed_infos.count > 0
           feed_info = gtfs_file.feed_infos[0]
