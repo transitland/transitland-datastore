@@ -155,6 +155,7 @@ class Feed < BaseFeed
           logger.info "File downloaded from #{url} has a new sha1 hash"
           new_feed_version = self.feed_versions.create(
             file: File.open(path),
+            url: self.url,
             fetched_at: @fetched_at
           )
           return new_feed_version
