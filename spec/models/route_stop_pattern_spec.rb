@@ -234,213 +234,58 @@ describe RouteStopPattern do
       expect(i).to eq locators.size - 1
     end
 
+    it 'accurately correctly the distances of nyc staten island ferry 2-stop routes with before/after stops' do
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_nycdotsiferry, import_level: 2)
+      expect(@feed.imported_route_stop_patterns[0].calculate_distances).to match_array([0.0, 8138.0])
+      expect(@feed.imported_route_stop_patterns[1].calculate_distances).to match_array([3.2, 8141.2])
+    end
+
+    it 'accurately calculates the distances of a route with stops along the line that traversed over itself in the opposite direction' do
+      # see docs/rome_01_part_1.png and docs/rome_01_part_2.png
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_rome, import_level: 2)
+      expect(@feed.imported_route_stop_patterns[0].calculate_distances).to match_array([0.6,639.6,817.5,1034.9,1250.2,1424.2,1793.5,1929.2,2162.2,2429.9,2579.6,2735.3,3022.6,3217.8,3407.3,3646.6,3804.4,3969.1,4128.3,4302.6,4482.1,4586.9,4869.5,5242.7,5510.4,5695.6,5871.4,6112.9,6269.6,6334.1,6528.8,6715.4,6863.0,7140.2,7689.8])
+    end
+
+    it 'accurately calculates the distances of a route with stops along the line that traversed over itself in the opposite direction, but closest match was segment in opposite direction' do
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta_1965654, import_level: 2)
+      expect(@feed.imported_route_stop_patterns[0].calculate_distances).to match_array([0.0,1490.8,1818.6,2478.0,2928.5,3167.2,3584.7,4079.4,4360.6,4784.1,4970.5,5168.1,5340.5,5599.0,6023.2,6483.9,6770.0,7469.3])
+    end
+
     it 'calculates the first stop distance correctly' do
-      # from sfmta and for regression
-      first_stop = create(:stop,
-        onestop_id: "s-9q8ywshemn-baconst~sanbrunoave",
-        geometry: Stop::GEOFACTORY.point(-122.403269,37.727645).to_s
-      )
-      second_stop = create(:stop,
-        onestop_id: "s-9q8ywsmbr8-phelpsst~donnerave",
-        geometry: Stop::GEOFACTORY.point(-122.40144,37.72847).to_s
-      )
-      @odd_rsp = RouteStopPattern.new(
-        stop_pattern: [first_stop.onestop_id,
-                       second_stop.onestop_id],
-        geometry: RouteStopPattern.line_string(
-          [[-122.40488,37.72806],
-          [-122.4046,37.72738],
-          [-122.4036,37.72764],
-          [-122.40264,37.72789],
-          [-122.40231,37.72798],
-          [-122.40222,37.72811],
-          [-122.40196,37.72796],
-          [-122.4014,37.72859],
-          [-122.40084,37.72921],
-          [-122.40028,37.72984],
-          [-122.39988,37.73029],
-          [-122.39985,37.73038],
-          [-122.40029,37.7314],
-          [-122.4003,37.73148],
-          [-122.39943,37.7317],
-          [-122.3994,37.73182],
-          [-122.39868,37.73253],
-          [-122.39824,37.73279],
-          [-122.39789,37.73299],
-          [-122.3977,37.73328],
-          [-122.39761,37.73325],
-          [-122.39708,37.73276],
-          [-122.39687,37.73262],
-          [-122.3965,37.73243]]
-      ))
-      stop_points = @odd_rsp.stop_pattern.map { |s| Stop.find_by_onestop_id!(s).geometry[:coordinates] }
-      has_issues, issues = @odd_rsp.evaluate_geometry(@trip, stop_points)
-      @odd_rsp.tl_geometry(stop_points, issues)
-      distances = @odd_rsp.calculate_distances
+      # from sfmta route 54 and for regression. case where first stop is not a 'before' stop
+      # see docs/first_stop_correct_distance.png
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_sfmta_6720619, import_level: 2)
+      rsp = @feed.imported_route_stop_patterns[0]
+      stop_points = rsp.stop_pattern.map { |s| Stop.find_by_onestop_id!(s).geometry[:coordinates] }
+      # using the fake trip with shape id
+      has_issues, issues = rsp.evaluate_geometry(@trip, stop_points)
+      rsp.tl_geometry(stop_points, issues)
+      distances = rsp.calculate_distances
       expect(distances[0]).to be_within(0.1).of(201.1)
     end
 
-    it 'can accurately calculate distances when a stop is repeated' do
-      # from vta
-      first_stop = create(:stop,
-        onestop_id: "s-9q9kf43sce-main~abel",
-        geometry: Stop::GEOFACTORY.point(-121.9021635, 37.4106536).to_s
-      )
-      second_stop = create(:stop,
-        onestop_id: "s-9q9kf51txf-main~greatmallparkway",
-        geometry: Stop::GEOFACTORY.point(-121.9019025, 37.41489919).to_s
-      )
-      third_stop = create(:stop,
-        onestop_id: "s-9q9kf4gkqz-greatmall~maintransitcenter",
-        geometry: Stop::GEOFACTORY.point(-121.8995438, 37.41333833).to_s
-      )
-      fourth_stop = create(:stop,
-        onestop_id: "s-9q9kf51txf-main~greatmallparkway",
-        geometry: Stop::GEOFACTORY.point(-121.9019025, 37.41489919).to_s
-      )
-      fifth_stop = create(:stop,
-        onestop_id: "s-9q9kf5bqpy-main~curtisfs",
-        geometry: Stop::GEOFACTORY.point(-121.903617, 37.41912585).to_s
-      )
-
-      @repeated_rsp = RouteStopPattern.new(
-        stop_pattern: [first_stop.onestop_id,
-                       second_stop.onestop_id,
-                       third_stop.onestop_id,
-                       fourth_stop.onestop_id,
-                       fifth_stop.onestop_id],
-        geometry: RouteStopPattern.line_string(
-          [[-121.902442,37.409873],
-          [-121.902364,37.41048],
-          [-121.902276,37.410613],
-          [-121.902255,37.411024],
-          [-121.902233,37.411126],
-          [-121.902182,37.411215],
-          [-121.902105,37.41129],
-          [ -121.902045,37.411327],
-          [-121.902015,37.411378],
-          [-121.901963,37.411617],
-          [-121.9018,37.412433],
-          [-121.901654,37.413186],
-          [-121.901646,37.413442],
-          [-121.901676,37.41367],
-          [-121.901723,37.413893],
-          [-121.901779,37.414145],
-          [-121.901839,37.414425],
-          [-121.901912,37.414718],
-          [-121.901982,37.414977],
-          [-121.902015,37.415099],
-          [-121.902082,37.415362],
-          [-121.902168,37.415638],
-          [-121.902284,37.415919],
-          [-121.902477,37.416388],
-          [-121.90218,37.416462],
-          [-121.902084,37.416482],
-          [-121.902022,37.416495],
-          [-121.901977,37.416433],
-          [-121.90193,37.416357],
-          [-121.90193,37.416301],
-          [-121.901953,37.41613],
-          [-121.901524,37.414463],
-          [-121.901429,37.414368],
-          [-121.901344,37.414312],
-          [-121.901272,37.414275],
-          [-121.901189,37.414262],
-          [-121.900919,37.414262],
-          [-121.900781,37.414244],
-          [-121.900675,37.414226],
-          [-121.900546,37.41416],
-          [-121.900385,37.414083],
-          [-121.900122,37.41393],
-          [-121.899954,37.413833],
-          [-121.899784,37.413734],
-          [-121.899624,37.413641],
-          [-121.899377,37.413497],
-          [-121.899273,37.413429],
-          [-121.899234,37.413382],
-          [-121.899234,37.413326],
-          [-121.899267,37.413266],
-          [-121.89933,37.413231],
-          [-121.899395,37.413219],
-          [-121.899474,37.41324],
-          [-121.899544,37.413288],
-          [-121.899573,37.413303],
-          [-121.899761,37.413407],
-          [-121.899927,37.413497],
-          [-121.900079,37.413579],
-          [-121.900426,37.413567],
-          [-121.900862,37.413833],
-          [-121.901122,37.413991],
-          [-121.901619,37.414293],
-          [-121.901839,37.414425],
-          [-121.901912,37.414718],
-          [-121.901982,37.414977],
-          [-121.902015,37.415099],
-          [-121.902082,37.415362],
-          [-121.902168,37.415638],
-          [-121.902284,37.415919],
-          [-121.902477,37.416388],
-          [-121.90251,37.416468],
-          [-121.902599,37.416664],
-          [-121.902691,37.416734],
-          [-121.903595,37.418843],
-          [-121.904069,37.419916],
-          [-121.904285,37.420512]]
-        )
-      )
-      stop_points = @repeated_rsp.stop_pattern.map { |s| Stop.find_by_onestop_id!(s).geometry[:coordinates] }
-      has_issues, issues = @repeated_rsp.evaluate_geometry(@trip, stop_points)
-      @repeated_rsp.tl_geometry(stop_points, issues)
-      distances = @repeated_rsp.calculate_distances
-      expect(distances[3]).to be > distances[1]
+    it 'can accurately calculate distances when a stop is repeated.' do
+      # from f-9q9-vta, r-9q9k-66. see docs/repeated_stop_vta_66.png
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta_1930705, import_level: 2)
+      repeated_rsp = @feed.imported_route_stop_patterns[0]
+      stop_points = repeated_rsp.stop_pattern.map { |s| Stop.find_by_onestop_id!(s).geometry[:coordinates] }
+      # using the fake trip with shape id
+      has_issues, issues = repeated_rsp.evaluate_geometry(@trip, stop_points)
+      repeated_rsp.tl_geometry(stop_points, issues)
+      distances = repeated_rsp.calculate_distances
+      expect(distances[77]).to be > distances[75]
     end
 
     it 'can accurately calculate distances when a stop matches to a segment before the previous stop\'s matching segment' do
-      # from sfmta
-      first_stop = create(:stop,
-        onestop_id: "s-9q8yu61fz4-judahst~46thave",
-        geometry: Stop::GEOFACTORY.point(-122.505832, 37.760493).to_s
-      )
-      second_stop = create(:stop,
-        onestop_id: "s-9q8yu4pdj1-judah~laplaya~oceanbeach",
-        geometry: Stop::GEOFACTORY.point(-122.509011, 37.760363).to_s
-      )
-      third_stop = create(:stop,
-        onestop_id: "s-9q8yu4pbft-judah~laplaya~oceanbeach",
-        geometry: Stop::GEOFACTORY.point(-122.508777, 37.76017).to_s
-      )
-
-      @tricky_rsp = RouteStopPattern.new(
-        stop_pattern: [first_stop.onestop_id, second_stop.onestop_id, third_stop.onestop_id],
-        geometry: RouteStopPattern.line_string(
-          [[-122.50056,37.76067],
-          [-122.50164,37.76062],
-          [-122.5027,37.76057],
-          [-122.50378,37.76052],
-          [-122.50485,37.76048],
-          [-122.50592,37.76043],
-          [-122.50699,37.76038],
-          [-122.50807,37.76033],
-          [-122.50814,37.76036],
-          [-122.50853,37.76035],
-          [-122.5091,37.76033],
-          [-122.50918,37.76032],
-          [-122.50925,37.76029],
-          [-122.50928,37.76023],
-          [-122.50929,37.76018],
-          [-122.50927,37.76012],
-          [-122.50925,37.76009],
-          [-122.50921,37.76006],
-          [-122.50917,37.76005],
-          [-122.50913,37.76004],
-          [-122.50908,37.76004]]
-        )
-      )
-      stop_points = @tricky_rsp.stop_pattern.map { |s| Stop.find_by_onestop_id!(s).geometry[:coordinates] }
-      has_issues, issues = @tricky_rsp.evaluate_geometry(@trip, stop_points)
-      @tricky_rsp.tl_geometry(stop_points, issues)
-      distances = @tricky_rsp.calculate_distances
-      expect(distances[2]).to be > distances[1]
+      # from sfmta, N-OWL route. See docs/previous_segment_1_sfmta_n~owl.png and docs/previous_segment_2_sfmta_n~owl.png
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_sfmta_6731593, import_level: 2)
+      tricky_rsp = @feed.imported_route_stop_patterns[0]
+      stop_points = tricky_rsp.stop_pattern.map { |s| Stop.find_by_onestop_id!(s).geometry[:coordinates] }
+      # using the fake trip with shape id
+      has_issues, issues = tricky_rsp.evaluate_geometry(@trip, stop_points)
+      tricky_rsp.tl_geometry(stop_points, issues)
+      distances = tricky_rsp.calculate_distances
+      expect(distances[-1]).to be > distances[-2]
     end
 
     it 'calculates the distance of the first stop to be 0 if it is before the first point of a geometry' do
