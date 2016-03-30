@@ -137,8 +137,6 @@ class GTFSGraph
           destination_dist_traveled = rsp.stop_distances[i+1]
         rescue StandardError
           log "problem with rsp #{rsp.onestop_id} stop_distances index"
-          origin_dist_traveled = nil
-          destination_dist_traveled = nil
         end
         ssp_trip << make_ssp(route, trip, origin, origin_dist_traveled, destination, destination_dist_traveled, rsp)
       end
