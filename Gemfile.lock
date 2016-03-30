@@ -439,6 +439,7 @@ DEPENDENCIES
   rspec_junit_formatter (= 0.2.2)
   rubocop
   rubocop-rspec
+  ruby-progressbar
   sentry-raven
   sidekiq (< 5)
   sidekiq-limit_fetch
