@@ -17,6 +17,12 @@
         "format": "stop-onestop-id"
       }
     },
+    "stopDistances": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
     "isModified": {
       "type": "boolean"
     },
