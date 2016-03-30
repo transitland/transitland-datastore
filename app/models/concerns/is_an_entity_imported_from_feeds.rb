@@ -9,6 +9,7 @@ module IsAnEntityImportedFromFeeds
       .where(entities_imported_from_feed: {
         feed_version_id: FeedVersion.where(import_level: import_level).ids
       })
+      .distinct
     }
   end
 end
