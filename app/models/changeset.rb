@@ -176,10 +176,10 @@ class Changeset < ActiveRecord::Base
           end
           EntityImportedFromFeed.import eiff_batch
         end
-      rescue
-        logger.error "Error applying Changeset #{self.id}: #{$!.message}"
-        logger.error $!.backtrace
-        raise Changeset::Error.new(changeset: self, message: $!.message, backtrace: $!.backtrace)
+      rescue => e
+        logger.error "Error applying Changeset #{self.id}: #{e.message}"
+        logger.error e.backtrace
+        raise Changeset::Error.new(changeset: self, message: e.message, backtrace: e.backtrace)
       end
     end
     unless Figaro.env.send_changeset_emails_to_users.presence == 'false'

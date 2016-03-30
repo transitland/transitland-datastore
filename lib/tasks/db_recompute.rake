@@ -4,8 +4,6 @@ namespace :db do
     task :operator_geometries, [:mode] => [:environment] do |t, args|
       args.with_defaults(mode: 0)
       mode = args[:mode].to_i
-      changeset = Changeset.create(notes: 'Recomputing operator convex hulls using `db:recompute:operator_geometries` rake task')
-      puts "Creating changeset ##{changeset.id}"
       operators_with_updated_geometries = []
       puts "Recomputing operator geometries"
       progress_bar = ProgressBar.create(
@@ -35,9 +33,12 @@ namespace :db do
       end
       puts log_messages.join("\n")
       if operators_with_updated_geometries.length == 0
-        puts "No operators need to be updated. So we've destroyed the changeset."
-        changeset.destroy!
+        puts "No operators need to be updated."
       else
+        changeset = Changeset.create(
+          notes: 'Recomputing operator convex hulls using `db:recompute:operator_geometries` rake task'
+        )
+        puts "Created changeset ##{changeset.id}"
         changeset.create_change_payloads(operators_with_updated_geometries)
         puts "New geometries computed for #{operators_with_updated_geometries.count} operator(s)"
         if mode == 1
