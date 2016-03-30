@@ -3,6 +3,8 @@ class TestOnestopId < OnestopId::OnestopIdBase
   PREFIX = :s
   MODEL = Stop
   NUM_COMPONENTS = 3
+  GEOHASH_MAX_LENGTH = 5
+  MAX_LENGTH = 32
 end
 
 describe OnestopId do
@@ -20,6 +22,26 @@ describe OnestopId do
     expect {
       TestOnestopId.new(geohash: '9q9')
     }.to raise_error(ArgumentError)
+  end
+
+  context 'max length' do
+    it 'truncates beyond maximum length' do
+      expect(
+        TestOnestopId.new(
+          geohash: '9q9',
+          name: 'pneumonoultramicroscopicsilicovolcanoconiosis'
+        ).to_s
+      ).to eq('s-9q9-pneumonoultramicroscopicsi')
+    end
+
+    it 'truncates beyond maximum geohash length' do
+      expect(
+        TestOnestopId.new(
+          geohash: '1234567890',
+          name: 'name'
+        ).to_s
+      ).to eq('s-12345-name')
+    end
   end
 
   context '#geohash' do

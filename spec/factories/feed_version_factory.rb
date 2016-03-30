@@ -46,9 +46,9 @@ FactoryGirl.define do
       association :feed, factory: :feed_vta
     end
 
-    factory :feed_version_sfmta_23 do
-      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/sfmta-route-23.zip')) }
-      association :feed, factory: :feed_sfmta
+    factory :feed_version_vta_1965654 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/vta-trip-1965654-gtfs.zip')) }
+      association :feed, factory: :feed_vta
     end
 
     factory :feed_version_sfmta_6731593 do
@@ -59,6 +59,16 @@ FactoryGirl.define do
     factory :feed_version_sfmta_6720619 do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/sfmta-trip-6720619.zip')) }
       association :feed, factory: :feed_sfmta
+    end
+
+    factory :feed_version_nycdotsiferry do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/siferry-gtfs.zip')) }
+      association :feed, factory: :feed_nycdotsiferry
+    end
+
+    factory :feed_version_rome do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/rome-trip-754_4655513.zip')) }
+      association :feed, factory: :feed_rome
     end
 
     factory :feed_version_example do

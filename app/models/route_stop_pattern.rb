@@ -31,7 +31,6 @@
 class BaseRouteStopPattern < ActiveRecord::Base
   self.abstract_class = true
 
-  include IsAnEntityImportedFromFeeds
 
   attr_accessor :traversed_by, :distance_issues, :first_stop_before_geom, :last_stop_after_geom
 end
@@ -67,6 +66,7 @@ class RouteStopPattern < BaseRouteStopPattern
   include HasAGeographicGeometry
   include HasTags
   include UpdatedSince
+  include IsAnEntityImportedFromFeeds
 
   # Tracked by changeset
   include CurrentTrackedByChangeset
