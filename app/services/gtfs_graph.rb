@@ -84,14 +84,19 @@ class GTFSGraph
     log "Calculating distances"
     rsps_with_issues = 0
     rsps.each do |rsp|
+      stops = rsp.stop_pattern.map { |onestop_id| find_by_onestop_id(onestop_id) }
       begin
-        stops = rsp.stop_pattern.map { |onestop_id| find_by_onestop_id(onestop_id) }
         rsp.calculate_distances(stops=stops)
         rsp.evaluate_distances
         rsps_with_issues += 1 if rsp.distance_issues > 0
       rescue StandardError
-        log "Could not calculate distances for Route Stop Pattern: #{onestop_id}"
+        log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
         rsps_with_issues += 1
+        begin
+          rsp.fallback_distances(stops=stops)
+        rescue StandardError
+          rsp.stop_distances = Array.new(rsp.stop_pattern.size)
+        end
       end
     end
     score = ((rsps.size - rsps_with_issues)/rsps.size.to_f).round(5) rescue score = 1.0
@@ -127,8 +132,14 @@ class GTFSGraph
         destination = stop_times[i+1]
         origin_dist_traveled = nil
         destination_dist_traveled = nil
-        origin_dist_traveled = rsp.stop_distances[i]
-        destination_dist_traveled = rsp.stop_distances[i+1]
+        begin
+          origin_dist_traveled = rsp.stop_distances[i]
+          destination_dist_traveled = rsp.stop_distances[i+1]
+        rescue StandardError
+          log "problem with rsp #{rsp.onestop_id} stop_distances index"
+          origin_dist_traveled = nil
+          destination_dist_traveled = nil
+        end
         ssp_trip << make_ssp(route, trip, origin, origin_dist_traveled, destination, destination_dist_traveled, rsp)
       end
       # Interpolate stop_times

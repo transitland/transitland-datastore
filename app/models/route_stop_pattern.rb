@@ -47,7 +47,8 @@ class RouteStopPattern < BaseRouteStopPattern
   validates :geometry, :stop_pattern, presence: true
   validates :onestop_id, uniqueness: true, on: create
   validate :has_at_least_two_stops,
-    :geometry_has_at_least_two_coords
+    :geometry_has_at_least_two_coords,
+    :correct_stop_distances_length
 
   def has_at_least_two_stops
     if stop_pattern.length < 2
@@ -58,6 +59,12 @@ class RouteStopPattern < BaseRouteStopPattern
   def geometry_has_at_least_two_coords
     if geometry.nil? || self[:geometry].num_points < 2
       errors.add(:geometry, 'RouteStopPattern needs a geometry with least 2 coordinates')
+    end
+  end
+
+  def correct_stop_distances_length
+    if stop_pattern.size != stop_distances.size
+      errors.add(:stop_distances, 'RouteStopPattern stop_distances size must equal stop_pattern size')
     end
   end
 
@@ -157,9 +164,21 @@ class RouteStopPattern < BaseRouteStopPattern
     distance < OUTLIER_THRESHOLD
   end
 
+  def fallback_distances(stops=nil)
+    self.stop_distances = [0.0]
+    total_distance = 0.0
+    stops = self.stop_pattern.map {|onestop_id| Stop.find_by_onestop_id!(onestop_id) } if stops.nil?
+    stops.each_cons(2) do |stop1, stop2|
+      total_distance += stop1[:geometry].distance(stop2[:geometry])
+      self.stop_distances << total_distance
+    end
+    self.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
+  end
+
   def calculate_distances(stops=nil)
-    stops = self.stop_pattern.map {|onestop_id| Stop.find_by_onestop_id!(onestop_id) }if stops.nil?
+    stops = self.stop_pattern.map {|onestop_id| Stop.find_by_onestop_id!(onestop_id) } if stops.nil?
     self.distance_issues = 0
+    self.stop_distances = []
     route = cartesian_cast(self[:geometry])
     num_segments = route.coordinates.size - 1
     a = 0

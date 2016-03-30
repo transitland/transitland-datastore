@@ -69,7 +69,7 @@ describe RouteStopPattern do
   context 'creation' do
 
     it 'can be created' do
-      rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id)
+      rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, stop_distances: Array.new(@sp.size))
       expect(RouteStopPattern.exists?(rsp.id)).to be true
       expect(RouteStopPattern.find(rsp.id).stop_pattern).to match_array(@sp)
       expect(RouteStopPattern.find(rsp.id).geometry[:coordinates]).to eq @geom.points.map{|p| [p.x,p.y]}
@@ -122,7 +122,7 @@ describe RouteStopPattern do
   context 'new import' do
     before(:each) do
       @route = create(:route, onestop_id: route_onestop_id)
-      @saved_rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, route: @route)
+      @saved_rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, route: @route, stop_distances: Array.new(@sp.size))
       import_sp = [ stop_a.onestop_id, stop_b.onestop_id, stop_c.onestop_id ]
       import_geometry = RouteStopPattern.line_string([stop_a.geometry[:coordinates],
                                                       stop_b.geometry[:coordinates],
@@ -140,7 +140,7 @@ describe RouteStopPattern do
   end
 
   it 'can be found by stops' do
-    rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id)
+    rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, stop_distances: Array.new(@sp.size))
     expect(RouteStopPattern.with_stops('s-9q8yw8y448-bayshorecaltrainstation')).to match_array([rsp])
     expect(RouteStopPattern.with_stops('s-9q8yw8y448-bayshorecaltrainstation,s-9q8yyugptw-sanfranciscocaltrainstation')).to match_array([rsp])
     expect(RouteStopPattern.with_stops('s-9q9k659e3r-sanjosecaltrainstation')).to match_array([])
@@ -148,7 +148,7 @@ describe RouteStopPattern do
   end
 
   it 'can be found by trips' do
-    rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, trips: ['trip1','trip2'])
+    rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, trips: ['trip1','trip2'], stop_distances: Array.new(@sp.size))
     expect(RouteStopPattern.with_trips('trip1')).to match_array([rsp])
     expect(RouteStopPattern.with_trips('trip1,trip2')).to match_array([rsp])
     expect(RouteStopPattern.with_trips('trip3')).to match_array([])
@@ -172,6 +172,13 @@ describe RouteStopPattern do
                                                              stop_pattern: @sp,
                                                              geometry_coords: @geom.coordinates).to_s
       @trip = GTFS::Trip.new(trip_id: 'test', shape_id: 'test')
+    end
+
+    it '#fallback_distances' do
+      @rsp.fallback_distances
+      expect(@rsp.stop_distances).to match_array([a_value_within(0.1).of(0.0),
+                                                              a_value_within(0.1).of(12617.9),
+                                                              a_value_within(0.1).of(17001.5)])
     end
 
     it 'stores distances in stop_distances attribute' do
@@ -240,7 +247,7 @@ describe RouteStopPattern do
       expect(i).to eq locators.size - 1
     end
 
-    it 'accurately correctly the distances of nyc staten island ferry 2-stop routes with before/after stops' do
+    it 'accurately calculates the distances of nyc staten island ferry 2-stop routes with before/after stops' do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_nycdotsiferry, import_level: 2)
       expect(@feed.imported_route_stop_patterns[0].calculate_distances).to match_array([0.0, 8138.0])
       expect(@feed.imported_route_stop_patterns[1].calculate_distances).to match_array([3.2, 8141.2])
