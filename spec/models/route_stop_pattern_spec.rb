@@ -16,6 +16,7 @@
 #  updated_at                         :datetime         not null
 #  created_or_updated_in_changeset_id :integer
 #  route_id                           :integer
+#  stop_distances                     :float            default([]), is an Array
 #
 # Indexes
 #
@@ -76,9 +77,16 @@ describe RouteStopPattern do
 
     it 'cannot be created when stop_pattern has less than two stops' do
       sp = [stop_1.onestop_id]
-      rsp = expect(build(:route_stop_pattern, stop_pattern: sp, geometry: @geom, onestop_id: @onestop_id)
+      expect(build(:route_stop_pattern, stop_pattern: sp, geometry: @geom, onestop_id: @onestop_id)
         .valid?
       ).to be false
+    end
+
+    it 'cannot be created when stop_distances size does not match stop_pattern size' do
+      rsp = build(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id)
+      rsp.stop_distances = []
+      expect(rsp.valid?).to be false
+      expect(rsp.errors[:stop_distances].size).to eq(1)
     end
 
     it 'cannot be created when geometry has less than two points' do
@@ -92,7 +100,7 @@ describe RouteStopPattern do
         points.map {|lon, lat| RouteStopPattern::GEOFACTORY.point(lon, lat)}
       )
       rsp.geometry = geom
-      rsp = expect(rsp.valid?).to be false
+      expect(rsp.valid?).to be false
     end
   end
 
@@ -173,6 +181,19 @@ describe RouteStopPattern do
       @trip = GTFS::Trip.new(trip_id: 'test', shape_id: 'test')
     end
 
+    it '#fallback_distances' do
+      expect(@rsp.stop_distances).to match_array([])
+      @rsp.fallback_distances
+      expect(@rsp.stop_distances).to match_array([a_value_within(0.1).of(0.0),
+                                                              a_value_within(0.1).of(12617.9),
+                                                              a_value_within(0.1).of(17001.5)])
+    end
+
+    it 'stores distances in stop_distances attribute' do
+      @rsp.calculate_distances
+      expect(@rsp.stop_distances.count).to eq 3
+    end
+
     it 'can calculate distances when the geometry and stop coordinates are equal' do
       expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(12617.9271),
@@ -234,7 +255,7 @@ describe RouteStopPattern do
       expect(i).to eq locators.size - 1
     end
 
-    it 'accurately correctly the distances of nyc staten island ferry 2-stop routes with before/after stops' do
+    it 'accurately calculates the distances of nyc staten island ferry 2-stop routes with before/after stops' do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_nycdotsiferry, import_level: 2)
       expect(@feed.imported_route_stop_patterns[0].calculate_distances).to match_array([0.0, 8138.0])
       expect(@feed.imported_route_stop_patterns[1].calculate_distances).to match_array([3.2, 8141.2])

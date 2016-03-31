@@ -12,6 +12,7 @@ RouteStopPatterns may also modify the original shape line geometry if necessary.
 | route_onestop_id             | Onestop ID | Route |
 | geometry                     | Geography  | LineString |
 | stop_pattern                 | Onestop ID array  | List of stops along geometry in trip order. Stops may reappear. |
+| stop_distances               | Number array | List of distances in meters of stop_pattern stops along geometry. |
 | identifiers                  | String array  | List of identifiers. |
 | trips                        | String array  | List of trip ids  |
 | tags                         | Hstore   | Associated shape id   |
