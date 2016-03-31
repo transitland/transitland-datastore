@@ -92,11 +92,7 @@ class GTFSGraph
       rescue StandardError
         log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
         rsps_with_issues += 1
-        begin
-          rsp.fallback_distances(stops=stops)
-        rescue StandardError
-          rsp.stop_distances = Array.new(rsp.stop_pattern.size)
-        end
+        rsp.fallback_distances(stops=stops)
       end
     end
     score = ((rsps.size - rsps_with_issues)/rsps.size.to_f).round(5) rescue score = 1.0

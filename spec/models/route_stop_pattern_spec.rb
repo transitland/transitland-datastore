@@ -69,7 +69,7 @@ describe RouteStopPattern do
   context 'creation' do
 
     it 'can be created' do
-      rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, stop_distances: Array.new(@sp.size))
+      rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id)
       expect(RouteStopPattern.exists?(rsp.id)).to be true
       expect(RouteStopPattern.find(rsp.id).stop_pattern).to match_array(@sp)
       expect(RouteStopPattern.find(rsp.id).geometry[:coordinates]).to eq @geom.points.map{|p| [p.x,p.y]}
@@ -77,9 +77,16 @@ describe RouteStopPattern do
 
     it 'cannot be created when stop_pattern has less than two stops' do
       sp = [stop_1.onestop_id]
-      rsp = expect(build(:route_stop_pattern, stop_pattern: sp, geometry: @geom, onestop_id: @onestop_id)
+      expect(build(:route_stop_pattern, stop_pattern: sp, geometry: @geom, onestop_id: @onestop_id)
         .valid?
       ).to be false
+    end
+
+    it 'cannot be created when stop_distances size does not match stop_pattern size' do
+      rsp = build(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id)
+      rsp.stop_distances = []
+      expect(rsp.valid?).to be false
+      expect(rsp.errors[:stop_distances].size).to eq(1)
     end
 
     it 'cannot be created when geometry has less than two points' do
@@ -93,7 +100,7 @@ describe RouteStopPattern do
         points.map {|lon, lat| RouteStopPattern::GEOFACTORY.point(lon, lat)}
       )
       rsp.geometry = geom
-      rsp = expect(rsp.valid?).to be false
+      expect(rsp.valid?).to be false
     end
   end
 
@@ -122,7 +129,7 @@ describe RouteStopPattern do
   context 'new import' do
     before(:each) do
       @route = create(:route, onestop_id: route_onestop_id)
-      @saved_rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, route: @route, stop_distances: Array.new(@sp.size))
+      @saved_rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, route: @route)
       import_sp = [ stop_a.onestop_id, stop_b.onestop_id, stop_c.onestop_id ]
       import_geometry = RouteStopPattern.line_string([stop_a.geometry[:coordinates],
                                                       stop_b.geometry[:coordinates],
@@ -140,7 +147,7 @@ describe RouteStopPattern do
   end
 
   it 'can be found by stops' do
-    rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, stop_distances: Array.new(@sp.size))
+    rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id)
     expect(RouteStopPattern.with_stops('s-9q8yw8y448-bayshorecaltrainstation')).to match_array([rsp])
     expect(RouteStopPattern.with_stops('s-9q8yw8y448-bayshorecaltrainstation,s-9q8yyugptw-sanfranciscocaltrainstation')).to match_array([rsp])
     expect(RouteStopPattern.with_stops('s-9q9k659e3r-sanjosecaltrainstation')).to match_array([])
@@ -148,7 +155,7 @@ describe RouteStopPattern do
   end
 
   it 'can be found by trips' do
-    rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, trips: ['trip1','trip2'], stop_distances: Array.new(@sp.size))
+    rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, trips: ['trip1','trip2'])
     expect(RouteStopPattern.with_trips('trip1')).to match_array([rsp])
     expect(RouteStopPattern.with_trips('trip1,trip2')).to match_array([rsp])
     expect(RouteStopPattern.with_trips('trip3')).to match_array([])
@@ -175,6 +182,7 @@ describe RouteStopPattern do
     end
 
     it '#fallback_distances' do
+      expect(@rsp.stop_distances).to match_array([])
       @rsp.fallback_distances
       expect(@rsp.stop_distances).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(12617.9),
