@@ -17,6 +17,9 @@
 #  updated_at             :datetime
 #  import_level           :integer          default(0)
 #  url                    :string
+#  file_raw               :string
+#  sha1_raw               :string
+#  md5_raw                :string
 #
 # Indexes
 #
@@ -34,6 +37,7 @@ class FeedVersion < ActiveRecord::Base
   has_many :imported_schedule_stop_pairs, class_name: 'ScheduleStopPair', dependent: :delete_all
 
   mount_uploader :file, FeedVersionUploader
+  mount_uploader :file_raw, FeedVersionUploaderRaw
 
   validates :sha1, uniqueness: true
 
@@ -72,14 +76,19 @@ class FeedVersion < ActiveRecord::Base
     )
   end
 
-  def open_gtfs(options={})
-    fail StandardError.new('no file') unless file.present?
+  def open_gtfs
+    fail StandardError.new('No file') unless file.present?
+    GTFS::ZipSource.new(file.local_path_copying_locally_if_needed, {strict: false})
+  end
+
+  def open_gtfs_raw
+    fail StandardError.new('No file') unless file_raw.present?
+    file_path = file_raw.local_path_copying_locally_if_needed
     fragment = (url || '').partition('#').last
-    file_path = file.local_path_copying_locally_if_needed
     if !fragment.blank?
       file_path = file_path + '#' + fragment
     end
-    GTFS::ZipSource.new(file_path, options)
+    GTFS::ZipSource.new(file_path, {strict: false})
   end
 
   private
@@ -89,11 +98,15 @@ class FeedVersion < ActiveRecord::Base
       self.sha1 = Digest::SHA1.file(file.path).hexdigest
       self.md5  = Digest::MD5.file(file.path).hexdigest
     end
+    if file_raw.present? && file_raw_changed?
+      self.sha1_raw = Digest::SHA1.file(file_raw.path).hexdigest
+      self.md5_raw  = Digest::MD5.file(file_raw.path).hexdigest
+    end
   end
 
   def read_gtfs_calendar_dates
     if file.present? && file_changed?
-      gtfs_file = open_gtfs({strict: false})
+      gtfs_file = open_gtfs
       start_date, end_date = gtfs_file.service_period_range
       self.earliest_calendar_date ||= start_date
       self.latest_calendar_date ||= end_date
@@ -102,7 +115,7 @@ class FeedVersion < ActiveRecord::Base
 
   def read_gtfs_feed_info
     if file.present? && file_changed?
-      gtfs_file = open_gtfs({strict: false})
+      gtfs_file = open_gtfs
       begin
         if gtfs_file.feed_infos.count > 0
           feed_info = gtfs_file.feed_infos[0]
