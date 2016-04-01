@@ -91,6 +91,16 @@ class FeedVersion < ActiveRecord::Base
     GTFS::ZipSource.new(file_path, {strict: false})
   end
 
+  def create_normalized
+    tmp_file = Tempfile.new(['normalized','.zip'])
+    tmp_file_path = tmp_file.path
+    tmp_file.close
+    tmp_file.unlink
+    f = open_gtfs_raw
+    f.create_archive(tmp_file_path)
+    tmp_file_path
+  end
+
   private
 
   def compute_and_set_hashes
