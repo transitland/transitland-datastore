@@ -94,6 +94,7 @@ gem 'sentry-raven', group: [:staging, :production]
 # logging
 gem 'logstasher'
 gem 'sidekiq-logging-json', github: 'transitland/Sidekiq-Logging-JSON', tag: '7ea0db4'
+gem 'ruby-progressbar'
 
 # database query performance monitoring/analysis
 gem 'bullet', group: :development
