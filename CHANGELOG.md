@@ -1,5 +1,29 @@
 # Change Log
 
+## [4.7.8](https://github.com/transitland/transitland-datastore/tree/4.7.8) (2016-03-31)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.7...4.7.8)
+
+**Implemented enhancements:**
+
+- Distance Calculation 2.0 Documentation and Tweaks [\#530](https://github.com/transitland/transitland-datastore/issues/530)
+- Refactor Distance Calculation [\#477](https://github.com/transitland/transitland-datastore/issues/477)
+
+**Fixed bugs:**
+
+- where\_import\_level should return unique results [\#537](https://github.com/transitland/transitland-datastore/issues/537)
+
+**Closed issues:**
+
+- rebuild operator convex hulls on production [\#516](https://github.com/transitland/transitland-datastore/issues/516)
+
+**Merged pull requests:**
+
+- Rsp distance caching [\#541](https://github.com/transitland/transitland-datastore/pull/541) ([doublestranded](https://github.com/doublestranded))
+- Fix duplicate import\_level results [\#539](https://github.com/transitland/transitland-datastore/pull/539) ([irees](https://github.com/irees))
+- Distance calc 2 refinements [\#535](https://github.com/transitland/transitland-datastore/pull/535) ([doublestranded](https://github.com/doublestranded))
+- Production release 4.7.7 [\#534](https://github.com/transitland/transitland-datastore/pull/534) ([irees](https://github.com/irees))
+- rake task to rebuild operator convex hulls [\#521](https://github.com/transitland/transitland-datastore/pull/521) ([drewda](https://github.com/drewda))
+
 ## [4.7.7](https://github.com/transitland/transitland-datastore/tree/4.7.7) (2016-03-24)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.6...4.7.7)
 
@@ -21,7 +45,7 @@
 
 **Closed issues:**
 
-- Import levels for operator, route, stop, rsp [\#472](https://github.com/transitland/transitland-datastore/issues/472)
+- Import levels query parameter for operator, route, stop, rsp API endpoints [\#472](https://github.com/transitland/transitland-datastore/issues/472)
 - FeedInfo: Warning for existing Feed or Operator [\#471](https://github.com/transitland/transitland-datastore/issues/471)
 - an integration test that tests a new version of a feed being imported [\#400](https://github.com/transitland/transitland-datastore/issues/400)
 
