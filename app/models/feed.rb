@@ -140,41 +140,42 @@ class Feed < BaseFeed
   end
 
   def fetch_and_return_feed_version
+    fetched_at = DateTime.now
+    fetch_exception_log = nil
+    feed_version = nil
     begin
       logger.info "Fetching feed #{onestop_id} from #{url}"
-      @fetched_at = DateTime.now
       FeedFetch.download_to_tempfile(self.url) do |path|
-        sha1_for_new_tempfile = Digest::SHA1.file(path).hexdigest
-        existing_feed_version_with_same_sha1 = self.feed_versions.find_by(
-          sha1: sha1_for_new_tempfile
+        feed_version = self.feed_versions.new(
+          url: self.url,
+          fetched_at: fetched_at,
+          file_raw: File.open(path)
         )
-        if existing_feed_version_with_same_sha1
-          logger.info "File downloaded from #{url} has an existing sha1 hash"
-          return existing_feed_version_with_same_sha1
+        feed_version.file = File.open(feed_version.create_normalized)
+        feed_version.send(:compute_and_set_hashes)
+        feed_version = self.feed_versions.find_by(sha1: feed_version.sha1) || feed_version
+        if feed_version.persisted?
+          logger.info "File downloaded from #{url} has an existing sha1 hash: #{feed_version.sha1}"
         else
-          logger.info "File downloaded from #{url} has a new sha1 hash"
-          new_feed_version = self.feed_versions.create(
-            file: File.open(path),
-            url: self.url,
-            fetched_at: @fetched_at
-          )
-          return new_feed_version
+          logger.info "File downloaded from #{url} has a new sha1 hash: #{feed_version.sha1}"
+          feed_version.save!
         end
       end
     rescue Exception => e
-      @fetch_exception_log = e.message
+      fetch_exception_log = e.message
       if e.backtrace.present?
-        @fetch_exception_log << "\n"
-        @fetch_exception_log << e.backtrace.join("\n")
+        fetch_exception_log << "\n"
+        fetch_exception_log << e.backtrace.join("\n")
       end
-      logger.error @fetch_exception_log
-      return nil
+      logger.error fetch_exception_log
+      feed_version = nil
     ensure
       self.update(
-        latest_fetch_exception_log: @fetch_exception_log,
-        last_fetched_at: @fetched_at
+        latest_fetch_exception_log: fetch_exception_log,
+        last_fetched_at: fetched_at
       )
     end
+    feed_version
   end
 
   def activate_feed_version(feed_version_sha1, import_level)
