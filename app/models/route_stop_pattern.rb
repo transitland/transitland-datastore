@@ -335,7 +335,6 @@ class RouteStopPattern < BaseRouteStopPattern
     )
     rsp.onestop_id = onestop_id.to_s
     rsp.tags ||= {}
-    rsp.tags[:shape_id] = trip.shape_id
     rsp
   end
 end

@@ -306,7 +306,7 @@ class GTFSGraph
       rsp = find_by_entity(test_rsp)
       rsp.traversed_by = tl_route.onestop_id
       log "   #{rsp.onestop_id}"  if test_rsp.equal?(rsp)
-      add_identifier(rsp, 'trip', trip)
+      add_identifier(rsp, 'shape', @gtfs.shape(trip.shape_id))
       rsp.trips << trip.trip_id unless rsp.trips.include?(trip.trip_id)
       rsp.route = tl_route
       rsps << rsp
@@ -354,7 +354,7 @@ class GTFSGraph
     @gtfs.agencies.each { |e| agency_map[e.id] = @gtfs_to_onestop_id[e]}
     @gtfs.routes.each   { |e| route_map[e.id]  = @gtfs_to_onestop_id[e]}
     @gtfs.stops.each    { |e| stop_map[e.id]   = @gtfs_to_onestop_id[e]}
-    @gtfs.trips.each    { |e| rsp_map[e.id]    = @gtfs_to_onestop_id[e]}
+    @gtfs.each_shape   { |e| rsp_map[e.id]    = @gtfs_to_onestop_id[e]}
     [agency_map, route_map, stop_map, rsp_map]
   end
 
