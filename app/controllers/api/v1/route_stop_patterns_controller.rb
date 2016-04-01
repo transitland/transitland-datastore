@@ -10,6 +10,7 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
 
     properties[:route_onestop_id] = entity.route.onestop_id
     properties[:stop_pattern] = entity.stop_pattern
+    properties[:stop_distances] = entity.stop_distances
     properties[:is_generated] = entity.is_generated
     properties[:is_modified] = entity.is_modified
     properties[:color] = entity.route.color
