@@ -188,20 +188,18 @@ module CurrentTrackedByChangeset
   end
 
   def merge(other)
-    self.assign_attributes(
-      HashHelpers::merge_hashes(
-        existing_hash: self.changeable_attributes_as_a_cloned_hash,
-        incoming_hash: other.changeable_attributes_as_a_cloned_hash,
-      )
-    )
+    # Merge another instance into self
+    self.merge_in_attributes(other.changeable_attributes_as_a_cloned_hash)
   end
 
   def merge_in_attributes(new_attrs)
-    merged_attrs = HashHelpers::merge_hashes(
-      existing_hash: self.changeable_attributes_as_a_cloned_hash,
-      incoming_hash: new_attrs
+    # Merge attributes into self
+    self.assign_attributes(
+      HashHelpers::merge_hashes(
+        existing_hash: self.changeable_attributes_as_a_cloned_hash,
+        incoming_hash: new_attrs
+      )
     )
-    self.assign_attributes(merged_attrs)
   end
 
   def changeable_attributes_as_a_cloned_hash
