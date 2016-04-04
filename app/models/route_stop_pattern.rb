@@ -234,7 +234,8 @@ class RouteStopPattern < BaseRouteStopPattern
         elsif (i==stops.size-1)
           self.stop_distances << self[:geometry].length
         else
-          self.stop_distances << self.stop_distances[i-1]
+          # interpolate using half the distance between previous and next stop
+          self.stop_distances << self.stop_distances[i-1] + stops[i-1][:geometry].distance(stops[i+1][:geometry])/2.0
         end
       else
         self.stop_distances << distance
