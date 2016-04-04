@@ -354,7 +354,7 @@ class GTFSGraph
     @gtfs.agencies.each { |e| agency_map[e.id] = @gtfs_to_onestop_id[e]}
     @gtfs.routes.each   { |e| route_map[e.id]  = @gtfs_to_onestop_id[e]}
     @gtfs.stops.each    { |e| stop_map[e.id]   = @gtfs_to_onestop_id[e]}
-    @gtfs.trips.each    { |e| rsp_map[e.id]    = @gtfs_to_onestop_id[e]}
+    @gtfs.trips.each    { |e| rsp_map[e.id]    = @gtfs_to_onestop_id[e] unless @gtfs_to_onestop_id[e].blank?}
     [agency_map, route_map, stop_map, rsp_map]
   end
 
