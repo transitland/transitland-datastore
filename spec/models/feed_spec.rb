@@ -237,11 +237,6 @@ describe Feed do
         VCR.use_cassette('feed_fetch_caltrain') do
           feed_versions << feed.fetch_and_return_feed_version
         end
-        fv = feed_versions.last
-        puts "=== #{fv.sha1_raw} / #{fv.sha1} ==="
-        Zip::File.open(fv.file.path) do |zipfile|
-          zipfile.entries.each { |e| puts "#{e.name}: #{e.mtime}" }
-        end
         sleep 5
       end
       fv1, fv2 = feed_versions
