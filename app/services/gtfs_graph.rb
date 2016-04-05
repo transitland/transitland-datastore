@@ -14,6 +14,7 @@ class GTFSGraph
     @log = []
     # GTFS entity to Onestop ID
     @gtfs_to_onestop_id = {}
+
     # TL Indexed by Onestop ID
     @onestop_id_to_entity = {}
   end
@@ -121,6 +122,7 @@ class GTFSGraph
     @gtfs.routes
     @gtfs.stops
     @gtfs.trips
+    @gtfs.shapes
     load_gtfs_id_map(agency_map, route_map, stop_map, rsp_map)
     trips = trip_ids.map { |trip_id| @gtfs.trip(trip_id) }
     log "Create: SSPs"
@@ -306,7 +308,13 @@ class GTFSGraph
       rsp = find_by_entity(test_rsp)
       rsp.traversed_by = tl_route.onestop_id
       log "   #{rsp.onestop_id}"  if test_rsp.equal?(rsp)
-      add_identifier(rsp, 'shape', @gtfs.shape(trip.shape_id))
+      identifier = OnestopId::create_identifier(
+        @feed.onestop_id,
+        'shape',
+        trip.shape_id
+      )
+      rsp.add_identifier(identifier)
+      @gtfs_to_onestop_id[trip] = rsp.onestop_id
       rsp.trips << trip.trip_id unless rsp.trips.include?(trip.trip_id)
       rsp.route = tl_route
       rsps << rsp
