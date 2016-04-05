@@ -122,7 +122,6 @@ class GTFSGraph
     @gtfs.routes
     @gtfs.stops
     @gtfs.trips
-    @gtfs.shapes
     load_gtfs_id_map(agency_map, route_map, stop_map, rsp_map)
     trips = trip_ids.map { |trip_id| @gtfs.trip(trip_id) }
     log "Create: SSPs"
