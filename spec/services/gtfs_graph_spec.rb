@@ -256,27 +256,42 @@ describe GTFSGraph do
       @feed, @original_feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 2)
       @feed_version_update_add = create(:feed_version_example_update_add, feed: @feed)
       @feed_version_update_delete = create(:feed_version_example_update_delete, feed: @feed)
-      # @feed_version_update.feed = @original_feed
-      # @original_feed.feed_versions << @feed_version_update
-      # load_feed(feed_version: @feed_version_update, import_level: 2)
     }
 
     it 'creates a new tl entity not found in previous feed version' do
+      expect(@feed.imported_stops.size).to eq 9
       expect(@feed.imported_routes.size).to eq 5
       expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-60')).to be_falsey
       load_feed(feed_version: @feed_version_update_add, import_level: 2)
       expect(@feed.imported_routes.size).to eq 11
+      expect(@feed.imported_stops.size).to eq 19
       expect(@feed.imported_routes.uniq.size).to eq 6
       expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-60')).to be_truthy
+      expect(@feed.imported_stops.find_by_onestop_id('s-9qt1hbwder-newstop')).to be_truthy
     end
 
     it 'does not delete a previous feed version entity' do
       expect(@feed.imported_routes.size).to eq 5
+      expect(@feed.imported_stops.size).to eq 9
       expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-10')).to be_truthy
       load_feed(feed_version: @feed_version_update_delete, import_level: 2)
       expect(@original_feed_version.imported_routes.find_by_onestop_id('r-9qscy-10')).to be_truthy
       expect(@feed_version_update_delete.imported_routes.find_by_onestop_id('r-9qscy-10')).to be_falsey
+      expect(@feed_version_update_delete.imported_stops.find_by_onestop_id('s-9qsczn2rk0-emainst~sirvingstdemo')).to be_falsey
       expect(@feed.imported_routes.size).to eq 10
+      expect(@feed.imported_stops.size).to eq 17
+    end
+
+    it 'updates previous matching feed version entities with new attribute values' do
+      expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-10').vehicle_type).to eq 'bus'
+      load_feed(feed_version: @feed_version_update_add, import_level: 2)
+      expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-10').vehicle_type).to eq 'rail'
+    end
+
+    it 'does not modify previous matching feed version entitie\'s unchangeable attributes' do
+      original_creation_time = @feed.imported_stops.find_by_onestop_id('s-9qscv9zzb5-bullfrogdemo').created_at
+      load_feed(feed_version: @feed_version_update_add, import_level: 2)
+      expect(@feed_version_update_add.imported_stops.find_by_onestop_id('s-9qscv9zzb5-bullfrogdemo').created_at).to eq original_creation_time
     end
   end
 end
