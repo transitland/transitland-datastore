@@ -300,7 +300,15 @@ class GTFSGraph
       rsp = find_and_update_entity(test_rsp)
       rsp.traversed_by = tl_route.onestop_id
       log "   #{rsp.onestop_id}"  if test_rsp.equal?(rsp)
-      add_identifier(rsp, 'trip', trip)
+      unless trip.shape_id.blank?
+        identifier = OnestopId::create_identifier(
+          @feed.onestop_id,
+          'shape',
+          trip.shape_id
+        )
+        rsp.add_identifier(identifier)
+      end
+      @gtfs_to_onestop_id[trip] = rsp.onestop_id
       rsp.trips << trip.trip_id unless rsp.trips.include?(trip.trip_id)
       rsp.route = tl_route
       rsps << rsp
