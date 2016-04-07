@@ -233,7 +233,13 @@ class GTFSGraph
       # Find: (tl routes) to (serves tl stops)
       stops = routes.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
       # Create Operator from GTFS
-      operator = find_and_update_entity(Operator.from_gtfs(entity))
+      operator = Operator.from_gtfs(entity)
+      operator.onestop_id = oif.operator.onestop_id # Override Onestop ID
+      operator_original = operator # for merging geometry
+      # ... or check if Operator exists, or another local Operator, or new.
+      operator = find_by_entity(operator)
+      # Merge convex hulls
+      operator[:geometry] = Operator.convex_hull([operator, operator_original], as: :wkt, projected: false)
       # Copy Operator timezone to fill missing Stop timezones
       stops.each { |stop| stop.timezone ||= operator.timezone }
       # Add references and identifiers
