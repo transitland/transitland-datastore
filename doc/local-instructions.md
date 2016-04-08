@@ -1,4 +1,6 @@
-# How to Run and Test Locally
+# Local Instructions
+
+These are instructions for how to run the Datastore application and its associated processes for local development. These are not instructions for how to set up your own hosted instance (which, anyways, is not the point of this centralized, community-run web "property").
 
 ## To Develop Locally
 
@@ -20,7 +22,7 @@
 
    Note that any values in `config/database.yml` can also be overwritten with environment variables---useful if you're running a production server.
 
-   The tokens you specify in `config/application.yml` will be used for [API Authentication](#api-authentication).
+   The tokens you specify in `config/application.yml` will be used for [API Authentication](authentication.md#api).
 
 3. Create and initialize the database:
 
@@ -29,24 +31,18 @@
   bundle exec rake db:setup
   ````
 
-4. **Optional** Add sample data to the database (includes [a few operators, stops, and routes in the SF Bay Area](db/sample-changesets/sf-bay-area.json)):
+4. Start the server and background queue: `bundle exec foreman start`
 
-  ````
-  bundle exec rake db:seed
-  ````
-
-5. Start the server and background queue: `bundle exec foreman start`
-
-6. If you're going to be coding, please read more about our [development practices](doc/development-practices.md).
+5. If you're going to be coding, please read more about our [development practices](development-practices.md).
 
 ## To Run Tests Locally
 
 1. Run the full test suite: `bundle exec rake`
 2. To view coverage report: `open coverage/index.html`
 
-## Running the FeedEater pipeline locally
+## To Import Feeds Locally
 
-First load feed and operator records from the sample changesets included in this repository: `bundle exec rake db:load:sample_changesets` (***These files will be removed in the near future.***)
+First load feed and operator records from the sample changesets included in this repository: `bundle exec rake db:load:sample_changesets`
 
 Now start the server and background queue and fetch feed files from their URLs:
 
@@ -69,7 +65,7 @@ To import a feed:
 - to import the latest feed version: `POST /api/v1/webhooks/feed_eater?feed_onestop_id=f-9q9-caltrain`
 - to import a specific feed version: `POST /api/v1/webhooks/feed_eater?feed_onestop_id=f-9q9-caltrain&feed_version_sha1=ab1e6ac73943082803f110df4b0fdd63a1d6b9f7`
 
-Note that these endpoint requires [API authentication](#api-authentication).
+Note that these endpoint requires [API authentication](authentication.md#api).
 
 To check the status of background workers, you can view Sidekiq's dashboard at: `/admin/sidekiq`. In production and staging environments, accessing the dashboard will require the user name and password specified in `/config/application.yml` or by environment variable.
 
