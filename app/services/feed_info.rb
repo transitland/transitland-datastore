@@ -2,34 +2,19 @@ class FeedInfo
 
   CACHE_EXPIRATION = Float(Figaro.env.feed_info_cache_expiration.presence || 14400)
 
-  def initialize(url: nil, path: nil)
+  attr_accessor :url, :source, :gtfs
+
+  def initialize(url: nil, source: nil, gtfs: nil)
     fail ArgumentError.new('must provide url') unless url.present?
     @url = url.to_s.strip
-    @path = path
-    @gtfs = nil
+    @source = source
+    @gtfs = gtfs
   end
 
-  def download(progress: nil, &block)
-    FeedFetch.download_to_tempfile(@url, progress: progress) do |path|
-      @path = path
-      block.call self
-    end
-  end
-
-  def process(progress: nil, &block)
-    @gtfs = GTFS::Source.build(@path, {strict: false})
-    @gtfs.load_graph(&progress)
-    block.call self
-  end
-
-  def open(&block)
-    if @gtfs
-      block.call self
-    elsif @path
-      process { |i| open(&block) }
-    elsif @url
-      download { |i| open(&block) }
-    end
+  def open
+    @gtfs ||= GTFS::Source.build(@source || @url, {strict: false})
+    @gtfs.load_graph
+    yield self
   end
 
   def parse_feed_and_operators
