@@ -28,7 +28,7 @@ gem 'whenever', require: false # to manage crontab
 # data model
 gem 'squeel'
 gem 'enumerize'
-gem 'gtfs', github: 'transitland/gtfs', tag: '39e8125d166850b7240b2491ae89d85b4a6feab2'
+gem 'gtfs', github: 'transitland/gtfs', tag: '2077a290306035ca9e6c89ae1362fe6ea1cdf255'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 gem 'json-schema', '2.5.2' # running into problems with 2.6.0
