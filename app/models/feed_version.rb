@@ -82,8 +82,6 @@ class FeedVersion < ActiveRecord::Base
     @gtfs
   end
 
-  private
-
   def create_normalized_archive
     # Create a temporary filename
     tmp_file = Tempfile.new(['normalized','.zip'])
@@ -97,6 +95,8 @@ class FeedVersion < ActiveRecord::Base
     # Return temporary path
     tmp_file_path
   end
+
+  private
 
   def compute_and_set_hashes
     if file.present? && file_changed?

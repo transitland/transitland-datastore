@@ -152,7 +152,7 @@ class Feed < BaseFeed
         fetched_at: fetched_at,
         file_raw: File.open(feed_raw.archive)
       )
-      feed_version.file = File.open(feed_version.create_normalized)
+      feed_version.file = File.open(feed_version.create_normalized_archive)
       feed_version.valid? # compute hashes
       feed_version = self.feed_versions.find_by(sha1: feed_version.sha1) || feed_version
       if feed_version.persisted?
