@@ -111,8 +111,8 @@ class FeedVersion < ActiveRecord::Base
 
   def read_gtfs_calendar_dates
     if file.present? && file_changed?
-      gtfs_file = open_gtfs
-      start_date, end_date = gtfs_file.service_period_range
+      gtfs = open_gtfs
+      start_date, end_date = gtfs.service_period_range
       self.earliest_calendar_date ||= start_date
       self.latest_calendar_date ||= end_date
     end
@@ -120,10 +120,10 @@ class FeedVersion < ActiveRecord::Base
 
   def read_gtfs_feed_info
     if file.present? && file_changed?
-      gtfs_file = open_gtfs
+      gtfs = open_gtfs
       begin
-        if gtfs_file.feed_infos.count > 0
-          feed_info = gtfs_file.feed_infos[0]
+        if gtfs.feed_infos.count > 0
+          feed_info = gtfs.feed_infos[0]
           feed_version_tags = {
             feed_publisher_name: feed_info.feed_publisher_name,
             feed_publisher_url:  feed_info.feed_publisher_url,
