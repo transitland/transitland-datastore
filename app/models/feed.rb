@@ -145,21 +145,21 @@ class Feed < BaseFeed
     feed_version = nil
     begin
       logger.info "Fetching feed #{onestop_id} from #{url}"
-      FeedFetch.download_to_tempfile(self.url) do |path|
-        feed_version = self.feed_versions.new(
-          url: self.url,
-          fetched_at: fetched_at,
-          file_raw: File.open(path)
-        )
-        feed_version.file = File.open(feed_version.create_normalized)
-        feed_version.send(:compute_and_set_hashes)
-        feed_version = self.feed_versions.find_by(sha1: feed_version.sha1) || feed_version
-        if feed_version.persisted?
-          logger.info "File downloaded from #{url} has an existing sha1 hash: #{feed_version.sha1}"
-        else
-          logger.info "File downloaded from #{url} has a new sha1 hash: #{feed_version.sha1}"
-          feed_version.save!
-        end
+      feed_raw = GTFS::Source.build(self.url)
+      feed_normalized = nil
+      feed_version = self.feed_versions.new(
+        url: self.url,
+        fetched_at: fetched_at,
+        file_raw: File.open(feed_raw.archive)
+      )
+      feed_version.file = File.open(feed_version.create_normalized)
+      feed_version.valid? # compute hashes
+      feed_version = self.feed_versions.find_by(sha1: feed_version.sha1) || feed_version
+      if feed_version.persisted?
+        logger.info "File downloaded from #{url} has an existing sha1 hash: #{feed_version.sha1}"
+      else
+        logger.info "File downloaded from #{url} has a new sha1 hash: #{feed_version.sha1}"
+        feed_version.save!
       end
     rescue Exception => e
       fetch_exception_log = e.message

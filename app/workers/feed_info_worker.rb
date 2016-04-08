@@ -9,25 +9,20 @@ class FeedInfoWorker
     @cachekey = cachekey
     @progress_checkpoint = 0.0
     # Partials
-    progress_downloading = lambda { |count,total| progress_check('downloading', count, total) }
-    progress_parsing = lambda { |count,total,entity| progress_check('parsing', count, total) }
+    progress_download = lambda { |count,total| progress_check('downloading', count, total) }
+    progress_graph = lambda { |count,total,entity| progress_check('parsing', count, total) }
     # Download & parse feed
     feed, operators = nil, []
     errors = []
     warnings = []
     begin
-      feed_info = FeedInfo.new(url: @url)
-      progress_update('downloading', 0.0)
-      feed_info.download(progress: progress_downloading) do |feed_info|
-        progress_update('downloading', 1.0)
-        progress_update('parsing', 0.0)
-        feed_info.process(progress: progress_parsing) do |feed_info|
-          progress_update('parsing', 1.0)
-          progress_update('processing', 0.0)
-          feed, operators = feed_info.parse_feed_and_operators
-          progress_update('processing', 1.0)
-        end
-      end
+      source = GTFS::Source.build(
+        @url,
+        progress_download: progress_download,
+        progress_graph: progress_graph
+      )
+      feed_info = FeedInfo.new(url: @url, feed: source)
+      feed, operators = feed_info.parse_feed_and_operators
     rescue GTFS::InvalidSourceException => e
       errors << {
         exception: 'InvalidSourceException',
