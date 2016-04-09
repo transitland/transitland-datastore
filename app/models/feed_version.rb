@@ -63,6 +63,15 @@ class FeedVersion < ActiveRecord::Base
     )
   end
 
+  def download_url
+    if self.feed.license_redistribute.presence == 'no'
+      nil
+    else
+      # we don't want to include any query parameters
+      self.file.url.split('?').first
+    end
+  end
+
   private
 
   def compute_and_set_hashes
