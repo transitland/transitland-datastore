@@ -66,7 +66,7 @@ class FeedVersion < ActiveRecord::Base
   def download_url
     if self.feed.license_redistribute.presence == 'no'
       nil
-    else
+    elsif self.try(:file).try(:url)
       # we don't want to include any query parameters
       self.file.url.split('?').first
     end
