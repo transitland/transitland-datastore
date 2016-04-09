@@ -66,4 +66,19 @@ describe FeedVersion do
     expect(inactive_feed_version.is_active_feed_version).to eq false
   end
 
+  context 'download url' do
+    it 'is included by default' do
+      feed = create(:feed)
+      feed_version = create(:feed_version, feed: feed)
+      allow(feed_version).to receive_message_chain(:file, :url).and_return('http://cloudfront.com/file/f-9q9-bart.zip?auth=1')
+      expect(feed_version.download_url).to eq('http://cloudfront.com/file/f-9q9-bart.zip')
+    end
+
+    it "isn't included for feeds that don't allow redistribution" do
+      feed = create(:feed, license_redistribute: 'no')
+      feed_version = create(:feed_version, feed: feed)
+      allow(feed_version).to receive_message_chain(:file, :url).and_return('http://cloudfront.com/')
+      expect(feed_version.download_url).to be_nil
+    end
+  end
 end
