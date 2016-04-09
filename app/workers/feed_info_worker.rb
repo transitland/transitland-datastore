@@ -19,26 +19,32 @@ class FeedInfoWorker
       gtfs = GTFS::Source.build(
         @url,
         progress_download: progress_download,
-        progress_graph: progress_graph
+        progress_graph: progress_graph,
+        strict: false
       )
       gtfs.load_graph
       feed_info = FeedInfo.new(url: @url, gtfs: gtfs)
       feed, operators = feed_info.parse_feed_and_operators
+    rescue GTFS::InvalidURLException => e
+      errors << {
+        exception: 'InvalidURLException',
+        message: 'There was a problem downloading the file. Check the address and try again, or contact the transit operator for more help.'
+      }
+    rescue GTFS::InvalidResponseException => e
+      errors << {
+        exception: 'InvalidResponseException',
+        message: "There was an error downloading the file. The transit operator server responded with: #{e.to_s}.",
+        response_code: e.response_code
+      }
+    rescue GTFS::InvalidZipException => e
+      errors << {
+        exception: 'InvalidZipException',
+        message: 'The zip file appears to be corrupt.'
+      }
     rescue GTFS::InvalidSourceException => e
       errors << {
         exception: 'InvalidSourceException',
         message: 'This file does not appear to be a valid GTFS feed. Contact Transitland for more help.'
-      }
-    rescue SocketError => e
-      errors << {
-        exception: 'SocketError',
-        message: 'There was a problem downloading the file. Check the address and try again, or contact the transit operator for more help.'
-      }
-    rescue Net::HTTPServerException => e
-      errors << {
-        exception: 'HTTPServerException',
-        message: "There was an error downloading the file. The transit operator server responded with: #{e.to_s}.",
-        response_code: e.response.code
       }
     rescue StandardError => e
       errors << {
