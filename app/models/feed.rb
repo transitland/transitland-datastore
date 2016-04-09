@@ -145,7 +145,7 @@ class Feed < BaseFeed
     feed_version = nil
     begin
       logger.info "Fetching feed #{onestop_id} from #{url}"
-      feed_raw = GTFS::Source.build(self.url)
+      feed_raw = GTFS::Source.build(self.url, {strict: false})
       feed_normalized = nil
       feed_version = self.feed_versions.new(
         url: self.url,
