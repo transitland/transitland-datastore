@@ -168,7 +168,6 @@ class Feed < BaseFeed
         fetch_exception_log << e.backtrace.join("\n")
       end
       logger.error fetch_exception_log
-      feed_version = nil
     ensure
       self.update(
         latest_fetch_exception_log: fetch_exception_log,
