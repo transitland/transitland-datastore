@@ -97,24 +97,36 @@ module CurrentTrackedByChangeset
     end
 
     def changeable_attributes
-      @changeable_attributes ||= (self.attribute_names + @virtual_attributes - ['id', 'created_at', 'updated_at', 'created_or_updated_in_changeset_id', 'destroyed_in_changeset_id', 'version']).map(&:to_sym)
-    end
-
-    def changeable_associated_models
-      @changeable_associated_models ||= (self.reflections.keys - [:created_or_updated_in_changeset, :destroyed_in_changeset])
+      # Allow editing of attribute, minus foreign keys and protected attrs
+      # TODO: read directly from JSON schema?
+      # Convert everything to symbol
+      @changeable_attributes ||= (
+        attribute_names.map(&:to_sym) +
+        @virtual_attributes.map(&:to_sym) -
+        @protected_attributes.map(&:to_sym) -
+        reflections.values.map(&:foreign_key).map(&:to_sym) -
+        [:id, :created_at, :updated_at, :version]
+      )
     end
 
     private
 
-    def current_tracked_by_changeset(kind_of_model_tracked: nil, virtual_attributes: [])
+    def current_tracked_by_changeset(kind_of_model_tracked: nil, virtual_attributes: [], protected_attributes: [])
       if [:onestop_entity, :relationship].include?(kind_of_model_tracked)
         @kind_of_model_tracked = kind_of_model_tracked
       else
         raise ArgumentError.new("must specify whether it's an entity or a relationship being tracked")
       end
-
       @virtual_attributes = virtual_attributes
+      @protected_attributes = protected_attributes
     end
+  end
+
+  def as_change
+    Hash[
+      slice(*self.class.changeable_attributes).
+      map { |k, v| [k.to_s.camelize(:lower).to_sym, v] }
+    ]
   end
 
   def before_destroy_making_history(changeset, old_model)
@@ -175,12 +187,19 @@ module CurrentTrackedByChangeset
     end
   end
 
+  def merge(other)
+    # Merge another instance into self
+    self.merge_in_attributes(other.changeable_attributes_as_a_cloned_hash)
+  end
+
   def merge_in_attributes(new_attrs)
-    merged_attrs = HashHelpers::merge_hashes(
-      existing_hash: self.changeable_attributes_as_a_cloned_hash,
-      incoming_hash: new_attrs
+    # Merge attributes into self
+    self.assign_attributes(
+      HashHelpers::merge_hashes(
+        existing_hash: self.changeable_attributes_as_a_cloned_hash,
+        incoming_hash: new_attrs
+      )
     )
-    self.assign_attributes(merged_attrs)
   end
 
   def changeable_attributes_as_a_cloned_hash

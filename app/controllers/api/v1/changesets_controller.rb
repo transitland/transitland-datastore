@@ -172,7 +172,7 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   end
   def update
     if @changeset.applied
-      raise Changeset::Error.new(@changeset, 'cannot update a Changeset that has already been applied')
+      raise Changeset::Error.new(changeset: @changeset, message: 'cannot update a Changeset that has already been applied')
     else
       user_params = changeset_params.delete(:user).try(:compact)
 

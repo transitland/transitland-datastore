@@ -16,6 +16,7 @@
 #  updated_at                         :datetime         not null
 #  created_or_updated_in_changeset_id :integer
 #  route_id                           :integer
+#  stop_distances                     :float            default([]), is an Array
 #
 # Indexes
 #
@@ -30,9 +31,8 @@
 class BaseRouteStopPattern < ActiveRecord::Base
   self.abstract_class = true
 
-  include IsAnEntityImportedFromFeeds
 
-  attr_accessor :traversed_by
+  attr_accessor :traversed_by, :distance_issues, :first_stop_before_geom, :last_stop_after_geom
 end
 
 class RouteStopPattern < BaseRouteStopPattern
@@ -40,13 +40,15 @@ class RouteStopPattern < BaseRouteStopPattern
 
   COORDINATE_PRECISION = 5
   DISTANCE_PRECISION = 1
+  OUTLIER_THRESHOLD = 100
 
   belongs_to :route
   has_many :schedule_stop_pairs
   validates :geometry, :stop_pattern, presence: true
   validates :onestop_id, uniqueness: true, on: :create
   validate :has_at_least_two_stops,
-    :geometry_has_at_least_two_coords
+    :geometry_has_at_least_two_coords,
+    :correct_stop_distances_length
 
   def has_at_least_two_stops
     if stop_pattern.length < 2
@@ -60,21 +62,30 @@ class RouteStopPattern < BaseRouteStopPattern
     end
   end
 
+  def correct_stop_distances_length
+    if stop_pattern.size != stop_distances.size
+      errors.add(:stop_distances, 'RouteStopPattern stop_distances size must equal stop_pattern size')
+    end
+  end
+
   include HasAOnestopId
   include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
   include HasTags
   include UpdatedSince
+  include IsAnEntityImportedFromFeeds
 
   # Tracked by changeset
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
     virtual_attributes: [
-      :imported_from_feed,
       :identified_by,
       :not_identified_by,
       :traversed_by
+    ],
+    protected_attributes: [
+      :identifiers
     ]
   })
   class << RouteStopPattern
@@ -116,49 +127,149 @@ class RouteStopPattern < BaseRouteStopPattern
     points.chunk{ |c| c }.map(&:first)
   end
 
-  def calculate_distances
-    # TODO: potential issue with nearest stop segment matching after subsequent stop
-    # TODO: investigate 'boundary' lat/lng possibilities
-    distances = []
+  def nearest_point(locators, nearest_seg_index)
+    locators[nearest_seg_index].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326))
+  end
+
+  def nearest_segment_index(locators, point, s, e, first=true, side_filter=false, side=1)
+    # 'side' must be positive or negative, but not zero. positive
+    # will match targets to the right of the segment direction; negative left.
+    side *= -1 # there seems to be a bug in RGeo which gives the reverse of the documented value.
+    if side_filter
+      results = locators[s..e].select { |locator|  locator.segment.side(point)*side >= 0 }
+      results = locators[s..e] if results.empty?
+    else
+      results = locators[s..e]
+    end
+    if first
+      seg_distances = results.map(&:distance_from_segment)
+      # make sure to get the first minimum if 'first' is true and there are multiple values
+      s + seg_distances.index(seg_distances.min)
+    else
+      seg_distances = results.map(&:distance_from_segment)
+      # otherwise get the last minimum if there are multiple values
+      s + seg_distances.rindex(seg_distances.min)
+    end
+  end
+
+  def distance_along_line_to_nearest(cartesian_route, nearest_point, nearest_seg_index)
+    if nearest_seg_index == 0
+      points = [cartesian_route.coordinates[0], [nearest_point.x, nearest_point.y]]
+    else
+      points = cartesian_route.line_subset(0, nearest_seg_index-1).coordinates << [nearest_point.x, nearest_point.y]
+    end
+    RouteStopPattern.line_string(points).length
+  end
+
+  def distance_to_nearest_point(stop_point_spherical, nearest_point)
+    stop_point_spherical[:geometry].distance(RGeo::Feature.cast(nearest_point, RouteStopPattern::GEOFACTORY))
+  end
+
+  def test_distance(distance)
+    distance < OUTLIER_THRESHOLD
+  end
+
+  def fallback_distances(stops=nil)
+    self.stop_distances = [0.0]
     total_distance = 0.0
-    cartesian_factory = RGeo::Cartesian::Factory.new(srid: 4326)
-    cast_route = RGeo::Feature.cast(self[:geometry], cartesian_factory)
-    geometry_length = self[:geometry].length
-    self.stop_pattern.each_index do |i|
-      stop = Stop.find_by_onestop_id!(self.stop_pattern[i])
-      cast_stop = RGeo::Feature.cast(stop[:geometry], cartesian_factory)
-      splits = cast_route.split_at_point(cast_stop)
-      if (splits[0].nil? && i != 0) || (splits[1].nil? && i != self.stop_pattern.size - 1)
-        # only the first and last stops are expected to have 1 split result instead of 2
-        # So this might be an outlier stop. Another possibility might be 2 consecutive stops
-        # having the same coordinates.
-        logger.info "stop #{stop.onestop_id}, number #{i+1}, within route stop pattern #{self.onestop_id} may be an outlier or indicate invalid geometry"
-        # TODO add interpolated distance at halfway and split line there?
-        # if so, will need to take into account case of 2 consecutive stops having same location.
-        if (i == 0 && splits[1].nil?)
-          distances << 0.0
-        elsif (i == self.stop_pattern.size - 1 && splits[0].nil?)
-          distances << geometry_length.round(DISTANCE_PRECISION)
+    stops = self.stop_pattern.map {|onestop_id| Stop.find_by_onestop_id!(onestop_id) } if stops.nil?
+    stops.each_cons(2) do |stop1, stop2|
+      total_distance += stop1[:geometry].distance(stop2[:geometry])
+      self.stop_distances << total_distance
+    end
+    self.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
+  end
+
+  def calculate_distances(stops=nil)
+    stops = self.stop_pattern.map {|onestop_id| Stop.find_by_onestop_id!(onestop_id) } if stops.nil?
+    self.distance_issues = 0
+    self.stop_distances = []
+    route = cartesian_cast(self[:geometry])
+    num_segments = route.coordinates.size - 1
+    a = 0
+    b = 0
+    c = 0
+    stops.each_index do |i|
+      stop_spherical = stops[i]
+      this_stop = cartesian_cast(stop_spherical[:geometry])
+      if i == 0 && self.first_stop_before_geom
+        self.stop_distances << 0.0
+        next
+      elsif i == stops.size - 1
+        if self.last_stop_after_geom
+          self.stop_distances << self[:geometry].length
+          break
         else
-          distances << distances[i-1]
+          c = num_segments - 1
         end
       else
-        if splits[0].nil?
-          distances << 0.0
+        if (i + 1 == stops.size - 1) && self.last_stop_after_geom
+          c = num_segments - 1
         else
-          total_distance += RGeo::Feature.cast(splits[0], RouteStopPattern::GEOFACTORY).length
-          distances << total_distance.round(DISTANCE_PRECISION)
+          next_stop_spherical = stops[i+1]
+          next_stop = cartesian_cast(next_stop_spherical[:geometry])
+          next_stop_locators = route.locators(next_stop)
+          next_nearest_seg_index = nearest_segment_index(next_stop_locators, next_stop, a, num_segments-1, first=false)
+          next_nearest_point = nearest_point(next_stop_locators, next_nearest_seg_index)
+          distance_to_line = distance_to_nearest_point(next_stop_spherical, next_nearest_point)
+          if test_distance(distance_to_line)
+            c = next_nearest_seg_index
+          else
+            c = num_segments - 1
+          end
         end
-        cast_route = splits[1]
       end
-      if (distances[i] > geometry_length)
-        logger.info "stop #{stop.onestop_id}, number #{i+1}, of route stop pattern #{self.onestop_id} has a distance greater than the length of the geometry"
+
+      locators = route.locators(this_stop)
+      b = nearest_segment_index(locators, this_stop, a, c)
+      nearest_point = nearest_point(locators, b)
+      distance = distance_along_line_to_nearest(route, nearest_point, b)
+      if (i!=0 && distance <= self.stop_distances[i-1] && !stops[i].onestop_id.eql?(stops[i-1].onestop_id))
+        b = nearest_segment_index(locators, this_stop, a, num_segments - 1)
+        nearest_point = nearest_point(locators, b)
+        distance = distance_along_line_to_nearest(route, nearest_point, b)
       end
-      if (i != 0 && distances[i-1] > distances[i])
-        logger.info "stop #{self.stop_pattern[i]} occurs after stop #{self.stop_pattern[i-1]} but has a distance less than #{self.stop_pattern[i-1]}"
+
+      distance_to_line = distance_to_nearest_point(stop_spherical, nearest_point)
+      if !test_distance(distance_to_line)
+        logger.info "Distance issue: Found outlier stop #{stops[i].onestop_id} in route stop pattern #{self.onestop_id}. Distance to line: #{distance_to_line}"
+        self.distance_issues += 1
+        if (i==0)
+          self.stop_distances << 0.0
+        elsif (i==stops.size-1)
+          self.stop_distances << self[:geometry].length
+        else
+          # interpolate using half the distance between previous and next stop
+          self.stop_distances << self.stop_distances[i-1] + stops[i-1][:geometry].distance(stops[i+1][:geometry])/2.0
+        end
+      else
+        self.stop_distances << distance
+      end
+      a = b
+    end
+    self.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
+  end
+
+  def evaluate_distances
+    geometry_length = self[:geometry].length
+    self.stop_distances.each_index do |i|
+      if (i != 0)
+        if (self.stop_distances[i-1] == self.stop_distances[i])
+          unless self.stop_pattern[i].eql? self.stop_pattern[i-1]
+            logger.info "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}/#{self.stop_pattern.size}, of route stop pattern #{self.onestop_id} has the same distance as #{self.stop_pattern[i-1]}, which may indicate a segment matching issue or outlier stop."
+            self.distance_issues += 1
+          end
+        elsif (self.stop_distances[i-1] > self.stop_distances[i])
+          logger.info "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}/#{self.stop_pattern.size}, of route stop pattern #{self.onestop_id} occurs after stop #{self.stop_pattern[i-1]} but has a distance less than #{self.stop_pattern[i-1]}"
+          self.distance_issues += 1
+        end
+      end
+      # we'll be lenient if this difference is less than 5 meters.
+      if (self.stop_distances[i] > geometry_length && (self.stop_distances[i] - geometry_length) > 5.0)
+        logger.info "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}/#{self.stop_pattern.size}, of route stop pattern #{self.onestop_id} has a distance #{self.stop_distances[i]} greater than the length of the geometry, #{geometry_length}"
+        self.distance_issues += 1
       end
     end
-    distances
   end
 
   def cartesian_cast(geometry)
@@ -170,7 +281,7 @@ class RouteStopPattern < BaseRouteStopPattern
     cartesian_line = cartesian_cast(self[:geometry])
     closest_point = cartesian_line.closest_point(cartesian_cast(spherical_stop))
     spherical_closest = RGeo::Feature.cast(closest_point, RouteStopPattern::GEOFACTORY)
-    spherical_stop.distance(spherical_closest) > 100.0
+    spherical_stop.distance(spherical_closest) > OUTLIER_THRESHOLD
   end
 
   def evaluate_geometry(trip, stop_points)
@@ -179,8 +290,7 @@ class RouteStopPattern < BaseRouteStopPattern
     if trip.shape_id.nil? || self.geometry[:coordinates].empty?
       issues << :empty
     else
-      cartesian_factory = RGeo::Cartesian::Factory.new(srid: 4326)
-      cartesian_line = RGeo::Feature.cast(self[:geometry], cartesian_factory)
+      cartesian_line = cartesian_cast(self[:geometry])
       first_stop = RouteStopPattern::GEOFACTORY.point(stop_points[0][0],stop_points[0][1])
       if cartesian_line.before?(first_stop) || outlier_stop(first_stop)
         issues << :has_before_stop
@@ -196,6 +306,7 @@ class RouteStopPattern < BaseRouteStopPattern
 
   def tl_geometry(stop_points, issues)
     # modify rsp geometry based on issues array from evaluate_geometry
+    self.first_stop_before_geom = false
     if issues.include?(:empty)
       # create a new geometry from the trip stop points
       self.geometry = RouteStopPattern.line_string(RouteStopPattern.simplify_geometry(stop_points))
@@ -203,14 +314,10 @@ class RouteStopPattern < BaseRouteStopPattern
       self.is_modified = true
     end
     if issues.include?(:has_before_stop)
-      points = self.geometry[:coordinates].unshift(RouteStopPattern.set_precision([stop_points[0]])[0])
-      self.geometry = RouteStopPattern.line_string(RouteStopPattern.simplify_geometry(points))
-      self.is_modified = true
+      self.first_stop_before_geom = true
     end
     if issues.include?(:has_after_stop)
-      points = self.geometry[:coordinates] << RouteStopPattern.set_precision([stop_points[-1]])[0]
-      self.geometry = RouteStopPattern.line_string(RouteStopPattern.simplify_geometry(points))
-      self.is_modified = true
+      self.last_stop_after_geom = true
     end
     # more geometry modification can go here
   end
@@ -234,7 +341,6 @@ class RouteStopPattern < BaseRouteStopPattern
     )
     rsp.onestop_id = onestop_id.to_s
     rsp.tags ||= {}
-    rsp.tags[:shape_id] = trip.shape_id
     rsp
   end
 end

@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.2.5.2'
+gem 'rails', '4.2.6'
 
 # Transitland Datastore components
 path 'components' do
@@ -28,7 +28,7 @@ gem 'whenever', require: false # to manage crontab
 # data model
 gem 'squeel'
 gem 'enumerize'
-gem 'gtfs', github: 'transitland/gtfs', tag: 'e6631a37151fef988adbb5606e582a34376a2a23'
+gem 'gtfs', github: 'transitland/gtfs', tag: 'd4e155a65875352530ba41fbf7db1e11fe58de3a'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 gem 'json-schema', '2.5.2' # running into problems with 2.6.0
@@ -42,7 +42,7 @@ gem 'rack-cors', require: 'rack/cors'
 gem 'devise'
 
 # providing API
-gem 'active_model_serializers', '0.9.4'
+gem 'active_model_serializers', '0.9.5'
 gem 'oj'
 gem 'oj_mimic_json'
 gem 'swagger-blocks'
@@ -83,6 +83,8 @@ gem 'vcr', group: :test
 gem 'webmock', group: :test
 gem 'airborne', group: :test
 gem 'mock_redis', group: :test # used by sidekiq-unique-jobs
+gem 'rspec_junit_formatter', '0.2.2', group: :test
+# ^ for CircleCI: https://circleci.com/docs/test-metadata#rspec
 
 # deployment
 gem 'aws-sdk', group: [:staging, :production]
@@ -93,6 +95,7 @@ gem 'sentry-raven', group: [:staging, :production]
 # logging
 gem 'logstasher'
 gem 'sidekiq-logging-json', github: 'transitland/Sidekiq-Logging-JSON', tag: '7ea0db4'
+gem 'ruby-progressbar'
 
 # database query performance monitoring/analysis
 gem 'bullet', group: :development

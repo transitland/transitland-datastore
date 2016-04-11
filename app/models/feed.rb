@@ -78,12 +78,16 @@ class Feed < BaseFeed
 
   after_initialize :set_default_values
 
-  after_create :after_create_async_fetch_feed_version
-
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
-    virtual_attributes: [:includes_operators, :does_not_include_operators]
+    virtual_attributes: [
+      :includes_operators,
+      :does_not_include_operators
+    ],
+    protected_attributes: [
+      :identifiers
+    ]
   })
   def self.after_create_making_history(created_model, changeset)
     created_model.includes_operators.each do |included_operator|
@@ -250,10 +254,6 @@ class Feed < BaseFeed
   end
 
   private
-
-  def after_create_async_fetch_feed_version
-    async_fetch_feed_version if Figaro.env.auto_fetch_feed_version.presence == 'true'
-  end
 
   def set_default_values
     if self.new_record?

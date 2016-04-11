@@ -1,8 +1,20 @@
 class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
-  include Geojson
   include JsonCollectionPagination
   include DownloadableCsv
   include AllowFiltering
+  include Geojson
+  GEOJSON_ENTITY_PROPERTIES = Proc.new { |properties, entity|
+    # properties for GeoJSON simple style spec
+    properties[:title] = "Route stop pattern #{entity.onestop_id}"
+    properties[:stroke] = "##{entity.route.color}" if entity.route.color.present?
+
+    properties[:route_onestop_id] = entity.route.onestop_id
+    properties[:stop_pattern] = entity.stop_pattern
+    properties[:stop_distances] = entity.stop_distances
+    properties[:is_generated] = entity.is_generated
+    properties[:is_modified] = entity.is_modified
+    properties[:color] = entity.route.color
+  }
 
   before_action :set_route_stop_pattern, only: [:show]
 
@@ -56,6 +68,10 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
       @rsps = @rsps.with_stops(params[:stops_visited])
     end
 
+    if params[:import_level].present?
+      @rsps = @rsps.where_import_level(AllowFiltering.param_as_array(params, :import_level))
+    end
+
     @rsps = @rsps.includes{[
       route,
       imported_from_feeds,
@@ -72,17 +88,17 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
           params[:offset],
           params[:per_page],
           params[:total],
-          params.slice(:onestop_id, :traversed_by, :trip, :bbox, :stop_visited)
+          params.slice(
+            :onestop_id,
+            :traversed_by,
+            :trip,
+            :bbox,
+            :stop_visited
+          )
         )
       end
       format.geojson do
-        append = Proc.new { |properties, entity|
-          properties[:route_onestop_id] = entity.route.onestop_id
-          properties[:stop_pattern] = entity.stop_pattern
-          properties[:is_generated] = entity.is_generated
-          properties[:is_modified] = entity.is_modified
-        }
-        render json: Geojson.from_entity_collection(@rsps, &append)
+        render json: Geojson.from_entity_collection(@rsps, &GEOJSON_ENTITY_PROPERTIES)
       end
     end
   end
@@ -112,7 +128,12 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
   end
   def show
     respond_to do |format|
-      format.json { render json: @route_stop_pattern }
+      format.json do
+        render json: @route_stop_pattern
+      end
+      format.geojson do
+        render json: Geojson.from_entity(@route_stop_pattern, &GEOJSON_ENTITY_PROPERTIES)
+      end
     end
   end
 

@@ -31,11 +31,7 @@
 
 class BaseOperator < ActiveRecord::Base
   self.abstract_class = true
-
   attr_accessor :serves, :does_not_serve
-
-  include IsAnEntityImportedFromFeeds
-
   validates :website, format: { with: URI.regexp }, if: Proc.new { |operator| operator.website.present? }
 end
 
@@ -47,6 +43,7 @@ class Operator < BaseOperator
   include HasAGeographicGeometry
   include HasTags
   include UpdatedSince
+  include IsAnEntityImportedFromFeeds
 
   include CanBeSerializedToCsv
   def self.csv_column_names
@@ -71,8 +68,10 @@ class Operator < BaseOperator
       :serves,
       :does_not_serve,
       :identified_by,
-      :not_identified_by,
-      :imported_from_feed
+      :not_identified_by
+    ],
+    protected_attributes: [
+      :identifiers
     ]
   })
   def self.after_create_making_history(created_model, changeset)
@@ -126,21 +125,25 @@ class Operator < BaseOperator
 
   validates :name, presence: true
 
+  def recompute_convex_hull_around_stops
+    Operator.convex_hull(self.stops, projected: false)
+  end
+
   ##### FromGTFS ####
   include FromGTFS
   def self.from_gtfs(entity, attrs={})
     # GTFS Constructor
-    coordinates = Stop::GEOFACTORY.collection(
-      entity.stops.map { |stop| Stop::GEOFACTORY.point(*stop.coordinates) }
+    # Convert to TL Stops so geometry projection works properly...
+    tl_stops = entity.stops.map { |stop| Stop.new(geometry: Stop::GEOFACTORY.point(*stop.coordinates)) }
+    geohash = GeohashHelpers.fit(
+      Stop::GEOFACTORY.collection(tl_stops.map { |stop| stop[:geometry] })
     )
-    geohash = GeohashHelpers.fit(coordinates)
-    geometry = RGeo::Cartesian::BoundingBox.create_from_geometry(coordinates)
     # Generate third Onestop ID component
     name = [entity.agency_name, entity.id, "unknown"]
       .select(&:present?)
       .first
     # Create Operator
-    attrs[:geometry] = geometry.to_geometry
+    attrs[:geometry] = Operator.convex_hull(tl_stops, projected: false)
     attrs[:name] = name
     attrs[:onestop_id] = OnestopId.handler_by_model(self).new(
       geohash: geohash,

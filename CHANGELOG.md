@@ -1,5 +1,197 @@
 # Change Log
 
+## [4.7.10](https://github.com/transitland/transitland-datastore/tree/4.7.10) (2016-04-09)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.9...4.7.10)
+
+**Fixed bugs:**
+
+- re-import of an existing feed now fails when operator has customized Onestop ID [\#552](https://github.com/transitland/transitland-datastore/issues/552)
+- README includes a link that no longer works [\#498](https://github.com/transitland/transitland-datastore/issues/498)
+
+**Closed issues:**
+
+- allow download of feed versions from CDN [\#404](https://github.com/transitland/transitland-datastore/issues/404)
+
+**Merged pull requests:**
+
+- allow download of feed versions from CDN [\#555](https://github.com/transitland/transitland-datastore/pull/555) ([drewda](https://github.com/drewda))
+- move docs to website [\#554](https://github.com/transitland/transitland-datastore/pull/554) ([drewda](https://github.com/drewda))
+- fix for: re-import of an existing feed now fails when operator has customized Onestop ID [\#553](https://github.com/transitland/transitland-datastore/pull/553) ([drewda](https://github.com/drewda))
+
+## [4.7.9](https://github.com/transitland/transitland-datastore/tree/4.7.9) (2016-04-06)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.8...4.7.9)
+
+**Closed issues:**
+
+- Handling trips with no rsp generation [\#543](https://github.com/transitland/transitland-datastore/issues/543)
+- GTFS Graph: Update entity attributes on subsequent imports of a feed/feed version [\#464](https://github.com/transitland/transitland-datastore/issues/464)
+- the transitland@mapzen.com user shouldn't get notifications about changeset creation and application [\#411](https://github.com/transitland/transitland-datastore/issues/411)
+- RouteStopPatterns: store shape ID in identifiers \(rather than tags\) [\#401](https://github.com/transitland/transitland-datastore/issues/401)
+
+**Merged pull requests:**
+
+- Shape identifiers [\#550](https://github.com/transitland/transitland-datastore/pull/550) ([doublestranded](https://github.com/doublestranded))
+- update gems [\#548](https://github.com/transitland/transitland-datastore/pull/548) ([drewda](https://github.com/drewda))
+- Interpolation of outlier stops [\#547](https://github.com/transitland/transitland-datastore/pull/547) ([doublestranded](https://github.com/doublestranded))
+- adding stop\_distances to rsp geojson properties [\#546](https://github.com/transitland/transitland-datastore/pull/546) ([doublestranded](https://github.com/doublestranded))
+- Handle trips without Route Stop Patterns [\#544](https://github.com/transitland/transitland-datastore/pull/544) ([doublestranded](https://github.com/doublestranded))
+- Production release 4.7.8 [\#542](https://github.com/transitland/transitland-datastore/pull/542) ([irees](https://github.com/irees))
+- Feed transition entity updates [\#536](https://github.com/transitland/transitland-datastore/pull/536) ([doublestranded](https://github.com/doublestranded))
+
+## [4.7.8](https://github.com/transitland/transitland-datastore/tree/4.7.8) (2016-03-31)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.7...4.7.8)
+
+**Implemented enhancements:**
+
+- Distance Calculation 2.0 Documentation and Tweaks [\#530](https://github.com/transitland/transitland-datastore/issues/530)
+- Refactor Distance Calculation [\#477](https://github.com/transitland/transitland-datastore/issues/477)
+
+**Fixed bugs:**
+
+- where\_import\_level should return unique results [\#537](https://github.com/transitland/transitland-datastore/issues/537)
+
+**Closed issues:**
+
+- rebuild operator convex hulls on production [\#516](https://github.com/transitland/transitland-datastore/issues/516)
+
+**Merged pull requests:**
+
+- Rsp distance caching [\#541](https://github.com/transitland/transitland-datastore/pull/541) ([doublestranded](https://github.com/doublestranded))
+- Fix duplicate import\_level results [\#539](https://github.com/transitland/transitland-datastore/pull/539) ([irees](https://github.com/irees))
+- Distance calc 2 refinements [\#535](https://github.com/transitland/transitland-datastore/pull/535) ([doublestranded](https://github.com/doublestranded))
+- Production release 4.7.7 [\#534](https://github.com/transitland/transitland-datastore/pull/534) ([irees](https://github.com/irees))
+- rake task to rebuild operator convex hulls [\#521](https://github.com/transitland/transitland-datastore/pull/521) ([drewda](https://github.com/drewda))
+
+## [4.7.7](https://github.com/transitland/transitland-datastore/tree/4.7.7) (2016-03-24)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.6...4.7.7)
+
+**Closed issues:**
+
+- limit Onestop IDs to 64 characters in length [\#512](https://github.com/transitland/transitland-datastore/issues/512)
+
+**Merged pull requests:**
+
+- Maximum Onestop ID Length [\#533](https://github.com/transitland/transitland-datastore/pull/533) ([irees](https://github.com/irees))
+
+## [4.7.6](https://github.com/transitland/transitland-datastore/tree/4.7.6) (2016-03-24)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.5...4.7.6)
+
+**Fixed bugs:**
+
+- Operator JSON schema fix: shortName [\#524](https://github.com/transitland/transitland-datastore/issues/524)
+- AC Transit re-import fails [\#520](https://github.com/transitland/transitland-datastore/issues/520)
+
+**Closed issues:**
+
+- Import levels query parameter for operator, route, stop, rsp API endpoints [\#472](https://github.com/transitland/transitland-datastore/issues/472)
+- FeedInfo: Warning for existing Feed or Operator [\#471](https://github.com/transitland/transitland-datastore/issues/471)
+- an integration test that tests a new version of a feed being imported [\#400](https://github.com/transitland/transitland-datastore/issues/400)
+
+**Merged pull requests:**
+
+- Entity import level scope [\#529](https://github.com/transitland/transitland-datastore/pull/529) ([irees](https://github.com/irees))
+- Feed import integration tests, Phase 1 [\#527](https://github.com/transitland/transitland-datastore/pull/527) ([doublestranded](https://github.com/doublestranded))
+- production release 4.7.5 [\#519](https://github.com/transitland/transitland-datastore/pull/519) ([drewda](https://github.com/drewda))
+- FeedInfo: Warning for existing Feed or Operator [\#470](https://github.com/transitland/transitland-datastore/pull/470) ([irees](https://github.com/irees))
+
+## [4.7.5](https://github.com/transitland/transitland-datastore/tree/4.7.5) (2016-03-18)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.4...4.7.5)
+
+**Implemented enhancements:**
+
+- Distance Calculation 2.0 [\#515](https://github.com/transitland/transitland-datastore/issues/515)
+- Evaluate distances separate method [\#509](https://github.com/transitland/transitland-datastore/issues/509)
+- Stop adding first/last stops to route stop pattern geometry [\#490](https://github.com/transitland/transitland-datastore/issues/490)
+
+**Fixed bugs:**
+
+- `route\_stop\_patterns\_by\_onestop\_id` should appear for routes [\#510](https://github.com/transitland/transitland-datastore/issues/510)
+- Evaluate distances separate method [\#509](https://github.com/transitland/transitland-datastore/issues/509)
+- automatic fetch of newly created feeds fails [\#488](https://github.com/transitland/transitland-datastore/issues/488)
+
+**Closed issues:**
+
+- improve API queries for route color [\#514](https://github.com/transitland/transitland-datastore/issues/514)
+- Operator.from\_gtfs convex hull [\#508](https://github.com/transitland/transitland-datastore/issues/508)
+- route `operatedBy` and stop `servedBy` query params should be under\_scored, rather than camelCased [\#475](https://github.com/transitland/transitland-datastore/issues/475)
+- FeedInfo "progress bar" [\#441](https://github.com/transitland/transitland-datastore/issues/441)
+- Route Stop Pattern documentation [\#415](https://github.com/transitland/transitland-datastore/issues/415)
+
+**Merged pull requests:**
+
+- Operator schema shortName [\#523](https://github.com/transitland/transitland-datastore/pull/523) ([irees](https://github.com/irees))
+- update gems [\#522](https://github.com/transitland/transitland-datastore/pull/522) ([drewda](https://github.com/drewda))
+- allow users to query API for all routes that have a color defined [\#518](https://github.com/transitland/transitland-datastore/pull/518) ([drewda](https://github.com/drewda))
+- Stop ordered segment matching [\#517](https://github.com/transitland/transitland-datastore/pull/517) ([doublestranded](https://github.com/doublestranded))
+- try \#2 on deprecating `operatedBy` and `servedBy` [\#513](https://github.com/transitland/transitland-datastore/pull/513) ([drewda](https://github.com/drewda))
+- CSV Bulk Import [\#507](https://github.com/transitland/transitland-datastore/pull/507) ([irees](https://github.com/irees))
+- No added stops to rsp geom [\#506](https://github.com/transitland/transitland-datastore/pull/506) ([doublestranded](https://github.com/doublestranded))
+- Eval distances [\#505](https://github.com/transitland/transitland-datastore/pull/505) ([doublestranded](https://github.com/doublestranded))
+- test metadata for CircleCI [\#504](https://github.com/transitland/transitland-datastore/pull/504) ([drewda](https://github.com/drewda))
+- fix for: automatic fetch of newly created feeds fails [\#503](https://github.com/transitland/transitland-datastore/pull/503) ([drewda](https://github.com/drewda))
+- production release 4.7.4 [\#502](https://github.com/transitland/transitland-datastore/pull/502) ([drewda](https://github.com/drewda))
+- route `operatedBy` and stop `servedBy` query params should be under\_scored, rather than camelCased [\#495](https://github.com/transitland/transitland-datastore/pull/495) ([drewda](https://github.com/drewda))
+
+## [4.7.4](https://github.com/transitland/transitland-datastore/tree/4.7.4) (2016-03-11)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.3...4.7.4)
+
+**Fixed bugs:**
+
+- FeedsController\#show should throw 404 when feed not found [\#500](https://github.com/transitland/transitland-datastore/issues/500)
+
+**Closed issues:**
+
+- GtfsGraph refactoring [\#288](https://github.com/transitland/transitland-datastore/issues/288)
+
+**Merged pull requests:**
+
+- FeedsController\#show should throw 404 when feed not found [\#501](https://github.com/transitland/transitland-datastore/pull/501) ([drewda](https://github.com/drewda))
+- Bump gtfs gem; fixes process leak [\#499](https://github.com/transitland/transitland-datastore/pull/499) ([irees](https://github.com/irees))
+- Upgrade to Rails 4.2.6 \(and update misc. gems\) [\#496](https://github.com/transitland/transitland-datastore/pull/496) ([drewda](https://github.com/drewda))
+- production release 4.7.3 [\#494](https://github.com/transitland/transitland-datastore/pull/494) ([drewda](https://github.com/drewda))
+- Feed info progress bar [\#480](https://github.com/transitland/transitland-datastore/pull/480) ([irees](https://github.com/irees))
+- Changeset "as\_change" [\#301](https://github.com/transitland/transitland-datastore/pull/301) ([irees](https://github.com/irees))
+
+## [4.7.3](https://github.com/transitland/transitland-datastore/tree/4.7.3) (2016-03-09)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.2...4.7.3)
+
+**Closed issues:**
+
+- FeedEater: Keep change payloads [\#493](https://github.com/transitland/transitland-datastore/issues/493)
+- improve GeoJSON endpoints [\#398](https://github.com/transitland/transitland-datastore/issues/398)
+
+**Merged pull requests:**
+
+- FeedEater: Keep change payloads [\#491](https://github.com/transitland/transitland-datastore/pull/491) ([irees](https://github.com/irees))
+- improve GeoJSON endpoints [\#489](https://github.com/transitland/transitland-datastore/pull/489) ([drewda](https://github.com/drewda))
+- production release 4.7.2 [\#485](https://github.com/transitland/transitland-datastore/pull/485) ([drewda](https://github.com/drewda))
+
+## [4.7.2](https://github.com/transitland/transitland-datastore/tree/4.7.2) (2016-03-08)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.1...4.7.2)
+
+**Implemented enhancements:**
+
+- Route color model attribute [\#468](https://github.com/transitland/transitland-datastore/issues/468)
+- Add single logging metric for determining Valhalla import use [\#466](https://github.com/transitland/transitland-datastore/issues/466)
+
+**Closed issues:**
+
+- Unreferenced entity cleanup [\#473](https://github.com/transitland/transitland-datastore/issues/473)
+- SSP controller: Allow multiple import\_level [\#465](https://github.com/transitland/transitland-datastore/issues/465)
+- Feed serializer: add active\_feed\_version\_import\_level [\#461](https://github.com/transitland/transitland-datastore/issues/461)
+
+**Merged pull requests:**
+
+- Entity cleanup more logging [\#486](https://github.com/transitland/transitland-datastore/pull/486) ([doublestranded](https://github.com/doublestranded))
+- update gems [\#484](https://github.com/transitland/transitland-datastore/pull/484) ([drewda](https://github.com/drewda))
+- Rsp single metric log [\#483](https://github.com/transitland/transitland-datastore/pull/483) ([doublestranded](https://github.com/doublestranded))
+- logging for equal consecutive distances and segment mismatch case [\#482](https://github.com/transitland/transitland-datastore/pull/482) ([doublestranded](https://github.com/doublestranded))
+- Unreferenced entity cleanup [\#479](https://github.com/transitland/transitland-datastore/pull/479) ([doublestranded](https://github.com/doublestranded))
+- Route color [\#478](https://github.com/transitland/transitland-datastore/pull/478) ([doublestranded](https://github.com/doublestranded))
+- SSP controller: allow multiple import\_level's [\#467](https://github.com/transitland/transitland-datastore/pull/467) ([irees](https://github.com/irees))
+- Update gems and upgrade to Rails 4.2.5.2 [\#462](https://github.com/transitland/transitland-datastore/pull/462) ([drewda](https://github.com/drewda))
+- Production release 4.7.1 [\#460](https://github.com/transitland/transitland-datastore/pull/460) ([irees](https://github.com/irees))
+
 ## [4.7.1](https://github.com/transitland/transitland-datastore/tree/4.7.1) (2016-02-27)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.0...4.7.1)
 
@@ -72,6 +264,7 @@
 - Convert email address to all lowercase [\#422](https://github.com/transitland/transitland-datastore/pull/422) ([drewda](https://github.com/drewda))
 - Fix FeedFetch: Operator has no stops [\#421](https://github.com/transitland/transitland-datastore/pull/421) ([irees](https://github.com/irees))
 - FeedFetch HTTPS [\#420](https://github.com/transitland/transitland-datastore/pull/420) ([irees](https://github.com/irees))
+- Rsp documentation [\#414](https://github.com/transitland/transitland-datastore/pull/414) ([doublestranded](https://github.com/doublestranded))
 - updating change log for 4.5.0 and 4.5.1 [\#412](https://github.com/transitland/transitland-datastore/pull/412) ([drewda](https://github.com/drewda))
 - ScheduleStopPair Direct Import [\#277](https://github.com/transitland/transitland-datastore/pull/277) ([drewda](https://github.com/drewda))
 

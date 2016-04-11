@@ -8,6 +8,6 @@ If you are trying to report an issue adding a feed to Transitland using the Feed
 
 ## Datastore code
 
-Interested specifically in the Datastore code? Follow [the installation instructions for local development](README.md#to-develop-locally). Also, [read more about our development practices](doc/development-practices.md).
+Interested specifically in the Datastore code? Follow [the installation instructions for local development](doc/local-instructions.md). Also, [read more about our development practices](doc/development-practices.md).
 
 You're welcome to follow issues on this repository. We especially welcome your involvement on tickets tagged `help wanted`.

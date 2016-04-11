@@ -27,9 +27,6 @@
 
 class BaseStop < ActiveRecord::Base
   self.abstract_class = true
-
-  include IsAnEntityImportedFromFeeds
-
   attr_accessor :served_by, :not_served_by
 end
 
@@ -54,6 +51,7 @@ class Stop < BaseStop
   include HasAGeographicGeometry
   include HasTags
   include UpdatedSince
+  include IsAnEntityImportedFromFeeds
 
   include CanBeSerializedToCsv
   def self.csv_column_names
@@ -85,7 +83,10 @@ class Stop < BaseStop
       :not_served_by,
       :identified_by,
       :not_identified_by,
-      :imported_from_feed
+    ],
+    protected_attributes: [
+      :identifiers,
+      :last_conflated_at
     ]
   })
   def self.after_create_making_history(created_model, changeset)
@@ -269,7 +270,7 @@ class Stop < BaseStop
   def self.from_gtfs(entity, attrs={})
     # GTFS Constructor
     point = Stop::GEOFACTORY.point(*entity.coordinates)
-    geohash = GeohashHelpers.encode(point, precision=GEOHASH_PRECISION)
+    geohash = GeohashHelpers.encode(point)
     name = [entity.stop_name, entity.id, "unknown"]
       .select(&:present?)
       .first

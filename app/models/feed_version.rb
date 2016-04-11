@@ -60,6 +60,23 @@ class FeedVersion < ActiveRecord::Base
     !!self.feed.active_feed_version && (self.feed.active_feed_version == self)
   end
 
+  def async_feed_eater(import_level=0)
+    FeedEaterWorker.perform_async(
+      self.feed.onestop_id,
+      self.sha1,
+      import_level
+    )
+  end
+
+  def download_url
+    if self.feed.license_redistribute.presence == 'no'
+      nil
+    elsif self.try(:file).try(:url)
+      # we don't want to include any query parameters
+      self.file.url.split('?').first
+    end
+  end
+
   private
 
   def compute_and_set_hashes

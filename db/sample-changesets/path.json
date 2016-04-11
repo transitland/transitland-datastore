@@ -12,7 +12,7 @@
           "operator": {
             "onestopId": "o-dr5r-path",
             "name": "Port Authority Trans-Hudson",
-            "short_name": "PATH",
+            "shortName": "PATH",
             "identifiedBy": ["usntd://2075"],
             "country": "United States",
             "state": "New York",

@@ -119,7 +119,7 @@ class ScheduleStopPair < BaseScheduleStopPair
   # Scopes
   # Feed Version Import Level
   scope :where_import_level, -> (import_level) {
-    where(feed_version: FeedVersion.where(import_level: import_level.to_i))
+    where(feed_version: FeedVersion.where(import_level: import_level))
   }
 
   # Active Feed Version
@@ -158,13 +158,25 @@ class ScheduleStopPair < BaseScheduleStopPair
   }
 
   # Handle mapping from onestop_id to id
+  def route_onestop_id
+    route.onestop_id
+  end
+
   def route_onestop_id=(value)
     self.route = Route.find_by!(onestop_id: value)
     self.operator = route.operator
   end
 
+  def origin_onestop_id
+    origin.onestop_id
+  end
+
   def origin_onestop_id=(value)
     self.origin = Stop.find_by!(onestop_id: value)
+  end
+
+  def destination_onestop_id
+    destination.onestop_id
   end
 
   def destination_onestop_id=(value)
@@ -214,8 +226,7 @@ class ScheduleStopPair < BaseScheduleStopPair
       :origin_onestop_id,
       :destination_onestop_id,
       :route_onestop_id,
-      :route_stop_pattern_onestop_id,
-      :imported_from_feed
+      :route_stop_pattern_onestop_id
     ]
   })
   def self.find_by_attributes(attrs = {})

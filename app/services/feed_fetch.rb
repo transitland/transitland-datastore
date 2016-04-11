@@ -1,17 +1,20 @@
 require 'net/http'
 
 module FeedFetch
-  def self.download_to_tempfile(url, maxsize=nil)
+  def self.download_to_tempfile(url, maxsize: nil, progress: nil)
+    progress ||= lambda { |count, total| }
     fetch(url) do |response|
+      count = 0
+      total = response.content_length
       file = Tempfile.new(['fetched-feed', '.zip'])
       file.binmode
-      total = 0
       begin
         response.read_body do |chunk|
           file.write(chunk)
-          total += chunk.size
+          count += chunk.size
+          progress.call(count, total)
         end
-        raise IOError.new('Exceeds maximum file size') if (maxsize && total > maxsize)
+        raise IOError.new('Exceeds maximum file size') if (maxsize && count > maxsize)
         file.close
         yield file.path
       ensure
@@ -23,7 +26,7 @@ module FeedFetch
 
   private
 
-  def self.fetch(url, limit=10, timeout=60, &block)
+  def self.fetch(url, limit:10, timeout:60, &block)
     # http://ruby-doc.org/stdlib-2.2.3/libdoc/net/http/rdoc/Net/HTTP.html
     # You should choose a better exception.
     # Some improvements inspired by
@@ -41,8 +44,8 @@ module FeedFetch
       when Net::HTTPRedirection then
         fetch(
           response['location'],
-          limit=limit-1,
-          timeout=timeout,
+          limit:limit-1,
+          timeout:timeout,
           &block
         )
       when Net::HTTPSuccess then

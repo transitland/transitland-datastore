@@ -1,17 +1,3 @@
-def load_feed(feed_version_name, import_level=1)
-  feed_version = create(feed_version_name)
-  feed = feed_version.feed
-  graph = GTFSGraph.new(feed_version.file.path, feed, feed_version)
-  graph.create_change_osr
-  if import_level >= 2
-    graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map, rsp_map|
-      graph.ssp_perform_async(trip_ids, agency_map, route_map, stop_map, rsp_map)
-    end
-  end
-  feed.activate_feed_version(feed_version.sha1, import_level)
-  return feed, feed_version
-end
-
 describe GTFSGraph do
 
   context 'load operators' do
@@ -26,7 +12,7 @@ describe GTFSGraph do
   end
 
   context 'can apply level 0 and 1 changesets' do
-    before(:each) { @feed, @feed_version = load_feed(:feed_version_caltrain, 1) }
+    before(:each) { @feed, @feed_version = load_feed(feed_version_name: :feed_version_caltrain, import_level: 1) }
 
     it 'updated feed geometry' do
       geometry = [
@@ -91,19 +77,24 @@ describe GTFSGraph do
       r = @feed.imported_routes.find_by(onestop_id: 'r-9q9j-bullet')
       expect(r.route_stop_patterns.size).to eq(12)
       expect(r.route_stop_patterns.map(&:onestop_id)).to contain_exactly(
-        "r-9q9j-bullet-06b68d-289bc1",
+        "r-9q9j-bullet-06b68d-0bca5d",
         "r-9q9j-bullet-078a92-c05b8d",
-        "r-9q9j-bullet-49de87-289bc1",
-        "r-9q9j-bullet-6168c2-289bc1",
-        "r-9q9j-bullet-752be5-289bc1",
-        "r-9q9j-bullet-761397-a2454f",
-        "r-9q9j-bullet-9a247a-a2454f",
-        "r-9q9j-bullet-c43c1d-289bc1",
-        "r-9q9j-bullet-cf14f2-a2454f",
-        "r-9q9j-bullet-d1201b-a2454f",
-        "r-9q9j-bullet-dea476-a2454f",
+        "r-9q9j-bullet-49de87-0bca5d",
+        "r-9q9j-bullet-6168c2-0bca5d",
+        "r-9q9j-bullet-752be5-0bca5d",
+        "r-9q9j-bullet-761397-6e2d1a",
+        "r-9q9j-bullet-9a247a-6e2d1a",
+        "r-9q9j-bullet-c43c1d-0bca5d",
+        "r-9q9j-bullet-cf14f2-6e2d1a",
+        "r-9q9j-bullet-d1201b-6e2d1a",
+        "r-9q9j-bullet-dea476-6e2d1a",
         "r-9q9j-bullet-e11172-ba265d"
       )
+    end
+
+    it 'calculated and stored distances for Route Stop Patterns' do
+      puts @feed.imported_route_stop_patterns[0].onestop_id
+      expect(@feed.imported_route_stop_patterns[0].stop_distances).to match_array([46.1, 2565.9, 8002.4, 14688.5, 17656.6, 21810.1, 24362.9, 26122.0, 28428.0, 30576.9, 32583.5, 35274.7, 37262.8, 40756.8, 44607.6, 46357.8, 48369.9, 50918.5, 54858.4, 57964.7, 62275.7, 65457.2, 71336.4, 75359.4])
     end
 
     it 'created known Operator that serves known Routes' do
@@ -173,9 +164,8 @@ describe GTFSGraph do
 
   context 'can apply a level 2 changeset', import_level:2 do
 
-    before(:each) { @feed, @feed_version = load_feed(:feed_version_caltrain, 2) }
-
     it 'created known ScheduleStopPairs' do
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_caltrain, import_level: 2)
       expect(@feed.imported_schedule_stop_pairs.count).to eq(4661) # EXACTLY.
       expect(@feed_version.imported_schedule_stop_pairs.pluck(:id)).to match_array(@feed.imported_schedule_stop_pairs.pluck(:id))
       # Find a UNIQUE SSP, by origin, destination, route, trip.
@@ -186,7 +176,7 @@ describe GTFSGraph do
         onestop_id: "s-9q8yycs6ku-22ndstreetcaltrainstation<70022"
       )
       route = @feed.imported_routes.find_by!(onestop_id: 'r-9q9-local')
-      route_stop_pattern = @feed.imported_route_stop_patterns.find_by!(onestop_id: 'r-9q9-local-260874-a2454f')
+      route_stop_pattern = @feed.imported_route_stop_patterns.find_by!(onestop_id: 'r-9q9-local-260874-6e2d1a')
       operator = @feed.operators.find_by(onestop_id: 'o-9q9-caltrain')
       trip = '6507770-CT-14OCT-Caltrain-Saturday-02'
       found = @feed.imported_schedule_stop_pairs.where(
@@ -218,6 +208,8 @@ describe GTFSGraph do
       expect(s.origin_departure_time).to eq('08:15:00')
       expect(s.destination_arrival_time).to eq('08:20:00')
       expect(s.destination_departure_time).to eq('08:20:00')
+      expect(s.origin_dist_traveled).to eq 46.1
+      expect(s.destination_dist_traveled).to eq 2565.9
       expect(s.service_days_of_week).to match_array(
         [false, false, false, false, false, true, false]
       )
@@ -230,13 +222,9 @@ describe GTFSGraph do
       expect(s.window_start).to eq('08:15:00')
       expect(s.window_end).to eq('08:20:00')
     end
-  end
-
-  context 'distance calculation assignment' do
-
-    before(:each) { @feed, @feed_version = load_feed(:feed_version_vta, 2) }
 
     it 'correctly assigned distances to schedule stop pairs containing stops repeated in its Route Stop Pattern' do
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta_1930705, import_level: 2)
       origin = @feed.imported_stops.find_by!(
         onestop_id: "s-9q9kf4gkqz-greatmall~maintransitcenter"
       )
@@ -259,6 +247,51 @@ describe GTFSGraph do
       ssp1 = first_found.first
       ssp2 = second_found.first
       expect(ssp2.destination_dist_traveled).to be > ssp1.origin_dist_traveled
+    end
+  end
+
+  context 'new feed version integration' do
+
+    before(:each) {
+      @feed, @original_feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 2)
+      @feed_version_update_add = create(:feed_version_example_update_add, feed: @feed)
+      @feed_version_update_delete = create(:feed_version_example_update_delete, feed: @feed)
+    }
+
+    it 'creates a new tl entity not found in previous feed version' do
+      expect(@feed.imported_stops.size).to eq 9
+      expect(@feed.imported_routes.size).to eq 5
+      expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-60')).to be_falsey
+      load_feed(feed_version: @feed_version_update_add, import_level: 2)
+      expect(@feed.imported_routes.size).to eq 11
+      expect(@feed.imported_stops.size).to eq 19
+      expect(@feed.imported_routes.uniq.size).to eq 6
+      expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-60')).to be_truthy
+      expect(@feed.imported_stops.find_by_onestop_id('s-9qt1hbwder-newstop')).to be_truthy
+    end
+
+    it 'does not delete a previous feed version entity' do
+      expect(@feed.imported_routes.size).to eq 5
+      expect(@feed.imported_stops.size).to eq 9
+      expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-10')).to be_truthy
+      load_feed(feed_version: @feed_version_update_delete, import_level: 2)
+      expect(@original_feed_version.imported_routes.find_by_onestop_id('r-9qscy-10')).to be_truthy
+      expect(@feed_version_update_delete.imported_routes.find_by_onestop_id('r-9qscy-10')).to be_falsey
+      expect(@feed_version_update_delete.imported_stops.find_by_onestop_id('s-9qsczn2rk0-emainst~sirvingstdemo')).to be_falsey
+      expect(@feed.imported_routes.size).to eq 10
+      expect(@feed.imported_stops.size).to eq 17
+    end
+
+    it 'updates previous matching feed version entities with new attribute values' do
+      expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-10').vehicle_type).to eq 'bus'
+      load_feed(feed_version: @feed_version_update_add, import_level: 2)
+      expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-10').vehicle_type).to eq 'rail'
+    end
+
+    it 'does not modify previous matching feed version entitie\'s unchangeable attributes' do
+      original_creation_time = @feed.imported_stops.find_by_onestop_id('s-9qscv9zzb5-bullfrogdemo').created_at
+      load_feed(feed_version: @feed_version_update_add, import_level: 2)
+      expect(@feed_version_update_add.imported_stops.find_by_onestop_id('s-9qscv9zzb5-bullfrogdemo').created_at).to eq original_creation_time
     end
   end
 end

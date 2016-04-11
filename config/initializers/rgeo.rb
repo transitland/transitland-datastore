@@ -7,31 +7,12 @@ end
 module RGeo
   module Cartesian
     module LineStringMethods
-
-      def split_at_point(target)
-        nearest_locator = nearest_locator(target)
-        index = _segments.index(nearest_locator.segment)
-        seg_point = nearest_locator.interpolate_point(factory)
-        if index == 0 && seg_point.eql?(_segments[0].s)
-          return [nil, factory.line_string([_segments[0].s] + _segments.map {|s| s.e})]
-        elsif index == (_segments.length - 1) && seg_point.eql?(_segments[index].e)
-          return [factory.line_string([_segments[0].s] + _segments.map {|s| s.e}), nil]
-        end
-        points1 = [_segments[0].s] + _segments[0...index].map {|s| s.e} + [seg_point]
-        points2 = _segments[index..-1].map {|s| s.e}
-        if !seg_point.eql?(_segments[index].e)
-          points2.unshift(seg_point)
-        end
-        [factory.line_string(points1), factory.line_string(points2)]
-      end
-
       def closest_point(target)
         nearest_locator(target).interpolate_point(factory)
       end
 
-      def distance_from_departure_to_segment(segment)
-        index = _segments.index(segment)
-        _segments[0...index].inject(0.0){ |sum_, seg_| sum_ + seg_.length }
+      def line_subset(start_index, stop_index)
+        factory.line_string([_segments[start_index].s] + _segments[start_index..stop_index].map {|s| s.e})
       end
 
       def nearest_locator(target)
@@ -81,7 +62,7 @@ module RGeo
         diff = t_dist_from_departure - dist_on_seg
         # sometimes there can be a precision mismatch
         return 0 if (diff < 0 && diff.abs < 0.00001 )
-        ::Math.sqrt( t_dist_from_departure ** 2 - dist_on_seg ** 2 )
+        ::Math.sqrt( t_dist_from_departure ** 2 - dist_on_seg ** 2 ).round(5)
       end
 
       def target_distance_from_departure

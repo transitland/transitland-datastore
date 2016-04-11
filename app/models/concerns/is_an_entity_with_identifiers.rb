@@ -15,12 +15,12 @@ module IsAnEntityWithIdentifiers
   end
 
   def add_identifier(identifier)
-    self.identified_by ||= []
+    self.identified_by ||= Set.new
     self.identified_by << identifier
   end
 
   def remove_identifier(identifier)
-    self.not_identified_by ||= []
+    self.not_identified_by ||= Set.new
     self.not_identified_by << identifier
   end
 
