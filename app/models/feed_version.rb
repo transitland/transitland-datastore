@@ -67,15 +67,7 @@ class FeedVersion < ActiveRecord::Base
       import_level
     )
   end
-
-  def feed_eater(import_level=0)
-    FeedEaterWorker.new.perform(
-      self.feed.onestop_id,
-      self.sha1,
-      import_level
-    )
-  end
-
+  
   def open_gtfs
     fail StandardError.new('No file') unless file.present?
     @gtfs ||= GTFS::Source.build(file.local_path_copying_locally_if_needed, {strict: false})

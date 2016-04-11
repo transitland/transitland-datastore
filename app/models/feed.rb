@@ -146,7 +146,6 @@ class Feed < BaseFeed
     begin
       logger.info "Fetching feed #{onestop_id} from #{url}"
       feed_raw = GTFS::Source.build(self.url, {strict: false})
-      feed_normalized = nil
       feed_version = self.feed_versions.new(
         url: self.url,
         fetched_at: fetched_at,
@@ -161,7 +160,7 @@ class Feed < BaseFeed
         logger.info "File downloaded from #{url} has a new sha1 hash: #{feed_version.sha1}"
         feed_version.save!
       end
-    rescue Exception => e
+    rescue StandardError => e
       fetch_exception_log = e.message
       if e.backtrace.present?
         fetch_exception_log << "\n"
