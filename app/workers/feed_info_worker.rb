@@ -102,10 +102,3 @@ class FeedInfoWorker
     Rails.cache.write(@cachekey, cachedata, expires_in: FeedInfo::CACHE_EXPIRATION)
   end
 end
-
-if __FILE__ == $0
-  ActiveRecord::Base.logger = Logger.new(STDOUT)
-  url = ARGV[0] || "http://www.caltrain.com/Assets/GTFS/caltrain/GTFS-Caltrain-Devs.zip"
-  FeedInfoWorker.new.perform(url, 'test')
-  puts Rails.cache.read('test').to_json
-end

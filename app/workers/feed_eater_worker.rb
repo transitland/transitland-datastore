@@ -79,16 +79,3 @@ class FeedEaterWorker
     end
   end
 end
-
-
-if __FILE__ == $0
-  require 'sidekiq/testing'
-  Sidekiq::Testing.inline!
-  ActiveRecord::Base.logger = Logger.new(STDOUT)
-  feed_onestop_id = ARGV[0] || 'f-9q9-caltrain'
-  path = ARGV[1] || File.open(Rails.root.join('spec/support/example_gtfs_archives/f-9q9-caltrain.zip'))
-  import_level = (ARGV[2].presence || 1).to_i
-  feed = Feed.find_by_onestop_id!(feed_onestop_id)
-  feed_version = feed.feed_versions.create!(file: File.open(path))
-  FeedEaterWorker.perform_async(feed.onestop_id, feed_version.sha1, import_level)
-end

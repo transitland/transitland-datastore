@@ -460,25 +460,3 @@ class GTFSGraph
     end
   end
 end
-
-if __FILE__ == $0
-  feed_onestop_id = ARGV[0] || 'f-9q9-caltrain'
-  path = ARGV[1] || File.open(Rails.root.join('spec/support/example_gtfs_archives/f-9q9-caltrain.zip'))
-  import_level = (ARGV[2].presence || 1).to_i
-  ####
-  feed = Feed.find_by_onestop_id!(feed_onestop_id)
-  feed_version = feed.feed_versions.create!(file: File.open(path))
-  ####
-  t0 = Time.now
-  graph = GTFSGraph.new(feed, feed_version)
-  graph.create_change_osr
-  t1 = Time.now
-  if import_level >= 2
-    graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map, rsp_map|
-      graph.ssp_perform_async(trip_ids, agency_map, route_map, stop_map, rsp_map)
-    end
-  end
-  t2 = Time.now
-  puts "SSP Time: #{t2-t1}"
-  puts "Total Time: #{t2-t0}"
-end
