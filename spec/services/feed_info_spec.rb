@@ -1,6 +1,6 @@
 describe FeedInfo do
   let (:example_url) { 'https://developers.google.com/transit/gtfs/examples/sample-feed.zip' }
-  let (:example_feed_path) { Rails.root.join('spec/support/example_gtfs_archives/example.zip') }
+  let (:example_feed_path) { Rails.root.join('spec/support/example_gtfs_archives/example.zip').to_s }
 
   context '#new' do
     it 'requires url or path' do

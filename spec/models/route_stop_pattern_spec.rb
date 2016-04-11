@@ -262,7 +262,8 @@ describe RouteStopPattern do
     end
 
     it 'accurately calculates the distances of a route with stops along the line that traversed over itself in the opposite direction' do
-      # see docs/rome_01_part_1.png and docs/rome_01_part_2.png
+      # see https://transit.land/documentation/datastore/rome_01_part_1.png
+      # and https://transit.land/documentation/datastore/rome_01_part_2.png
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_rome, import_level: 2)
       expect(@feed.imported_route_stop_patterns[0].calculate_distances).to match_array([0.6,639.6,817.5,1034.9,1250.2,1424.2,1793.5,1929.2,2162.2,2429.9,2579.6,2735.3,3022.6,3217.8,3407.3,3646.6,3804.4,3969.1,4128.3,4302.6,4482.1,4586.9,4869.5,5242.7,5510.4,5695.6,5871.4,6112.9,6269.6,6334.1,6528.8,6715.4,6863.0,7140.2,7689.8])
     end
@@ -274,7 +275,7 @@ describe RouteStopPattern do
 
     it 'calculates the first stop distance correctly' do
       # from sfmta route 54 and for regression. case where first stop is not a 'before' stop
-      # see docs/first_stop_correct_distance.png
+      # see https://transit.land/documentation/datastore/first_stop_correct_distance.png
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_sfmta_6720619, import_level: 2)
       rsp = @feed.imported_route_stop_patterns[0]
       stop_points = rsp.stop_pattern.map { |s| Stop.find_by_onestop_id!(s).geometry[:coordinates] }
@@ -286,7 +287,8 @@ describe RouteStopPattern do
     end
 
     it 'can accurately calculate distances when a stop is repeated.' do
-      # from f-9q9-vta, r-9q9k-66. see docs/repeated_stop_vta_66.png
+      # from f-9q9-vta, r-9q9k-66.
+      # see https://transit.land/documentation/datastore/repeated_stop_vta_66.png
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta_1930705, import_level: 2)
       repeated_rsp = @feed.imported_route_stop_patterns[0]
       stop_points = repeated_rsp.stop_pattern.map { |s| Stop.find_by_onestop_id!(s).geometry[:coordinates] }
@@ -298,7 +300,9 @@ describe RouteStopPattern do
     end
 
     it 'can accurately calculate distances when a stop matches to a segment before the previous stop\'s matching segment' do
-      # from sfmta, N-OWL route. See docs/previous_segment_1_sfmta_n~owl.png and docs/previous_segment_2_sfmta_n~owl.png
+      # from sfmta, N-OWL route.
+      # See https://transit.land/documentation/datastore/previous_segment_1_sfmta_n~owl.png
+      # and https://transit.land/documentation/datastore/previous_segment_2_sfmta_n~owl.png
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_sfmta_6731593, import_level: 2)
       tricky_rsp = @feed.imported_route_stop_patterns[0]
       stop_points = tricky_rsp.stop_pattern.map { |s| Stop.find_by_onestop_id!(s).geometry[:coordinates] }
@@ -348,7 +352,7 @@ describe RouteStopPattern do
                            stop_c.onestop_id]
       expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(12617.9271),
-                                                              a_value_within(0.1).of(12617.9271),
+                                                              a_value_within(0.1).of(14809.7),
                                                               a_value_within(0.1).of(17001.5107)])
     end
 
