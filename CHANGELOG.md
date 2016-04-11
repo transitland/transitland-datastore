@@ -1,5 +1,23 @@
 # Change Log
 
+## [4.7.10](https://github.com/transitland/transitland-datastore/tree/4.7.10) (2016-04-09)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.9...4.7.10)
+
+**Fixed bugs:**
+
+- re-import of an existing feed now fails when operator has customized Onestop ID [\#552](https://github.com/transitland/transitland-datastore/issues/552)
+- README includes a link that no longer works [\#498](https://github.com/transitland/transitland-datastore/issues/498)
+
+**Closed issues:**
+
+- allow download of feed versions from CDN [\#404](https://github.com/transitland/transitland-datastore/issues/404)
+
+**Merged pull requests:**
+
+- allow download of feed versions from CDN [\#555](https://github.com/transitland/transitland-datastore/pull/555) ([drewda](https://github.com/drewda))
+- move docs to website [\#554](https://github.com/transitland/transitland-datastore/pull/554) ([drewda](https://github.com/drewda))
+- fix for: re-import of an existing feed now fails when operator has customized Onestop ID [\#553](https://github.com/transitland/transitland-datastore/pull/553) ([drewda](https://github.com/drewda))
+
 ## [4.7.9](https://github.com/transitland/transitland-datastore/tree/4.7.9) (2016-04-06)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.8...4.7.9)
 
