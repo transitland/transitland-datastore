@@ -40,6 +40,7 @@ class FeedVersion < ActiveRecord::Base
   mount_uploader :file_raw, FeedVersionUploaderRaw
 
   validates :sha1, presence: true, uniqueness: true
+  validates :feed, presence: true
 
   before_validation :compute_and_set_hashes, :read_gtfs_calendar_dates, :read_gtfs_feed_info
 
