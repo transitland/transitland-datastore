@@ -42,7 +42,7 @@ gem 'rack-cors', require: 'rack/cors'
 gem 'devise'
 
 # providing API
-gem 'active_model_serializers', '0.9.4'
+gem 'active_model_serializers', '0.9.5'
 gem 'oj'
 gem 'oj_mimic_json'
 
@@ -94,6 +94,7 @@ gem 'sentry-raven', group: [:staging, :production]
 # logging
 gem 'logstasher'
 gem 'sidekiq-logging-json', github: 'transitland/Sidekiq-Logging-JSON', tag: '7ea0db4'
+gem 'ruby-progressbar'
 
 # database query performance monitoring/analysis
 gem 'bullet', group: :development
