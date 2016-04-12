@@ -92,6 +92,7 @@ class FeedVersion < ActiveRecord::Base
     end
     # Compute hashes
     compute_and_set_hashes
+  end
 
   def download_url
     if self.feed.license_redistribute.presence == 'no'
