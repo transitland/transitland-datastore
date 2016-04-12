@@ -13,11 +13,12 @@ class FeedInfo
 
   def open
     @gtfs ||= GTFS::Source.build(@source || @url, {strict: false})
-    @gtfs.load_graph
     yield self
   end
 
   def parse_feed_and_operators
+    # Ensure gtfs graph is loaded
+    @gtfs.load_graph
     # feed
     feed = Feed.from_gtfs(@gtfs, url: @url)
     feed = Feed.find_by_onestop_id(feed.onestop_id) || Feed.find_by(url: @url) || feed

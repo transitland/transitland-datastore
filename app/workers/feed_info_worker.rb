@@ -16,13 +16,13 @@ class FeedInfoWorker
     errors = []
     warnings = []
     begin
+      # Pass in progress_download, progress_graph callbacks
       gtfs = GTFS::Source.build(
         @url,
         progress_download: progress_download,
         progress_graph: progress_graph,
         strict: false
       )
-      gtfs.load_graph
       feed_info = FeedInfo.new(url: @url, gtfs: gtfs)
       feed, operators = feed_info.parse_feed_and_operators
     rescue GTFS::InvalidURLException => e
