@@ -67,25 +67,30 @@ class FeedVersion < ActiveRecord::Base
       import_level
     )
   end
-  
+
   def open_gtfs
     fail StandardError.new('No file') unless file.present?
     @gtfs ||= GTFS::Source.build(file.local_path_copying_locally_if_needed, {strict: false})
     @gtfs
   end
 
-  def create_normalized_archive
-    # Create a temporary filename
+
+  def fetch_and_normalize
+    fail StandardError.new('Files exist') if (file.present? || file_raw.present?)
+    # Download the raw feed
+    gtfs_raw = GTFS::Source.build(self.url, {strict: false})
+    # Normalize the feed
     tmp_file = Tempfile.new(['normalized','.zip'])
     tmp_file_path = tmp_file.path
     tmp_file.close
     tmp_file.unlink
-    # Open the raw feed
-    # Write the normalized feed to temporary path
-    feed_raw = GTFS::Source.build(file_raw.local_path_copying_locally_if_needed, {strict: false})
-    feed_raw.create_archive(tmp_file_path)
-    # Return temporary path
-    tmp_file_path
+    gtfs_raw.create_archive(tmp_file_path)
+    gtfs_normalized = GTFS::Source.build(tmp_file_path, {strict: false})
+    # Update
+    self.file = File.open(gtfs_normalized.archive)
+    self.file_raw = File.open(gtfs_raw.archive)
+    # Compute hashes
+    compute_and_set_hashes
   end
 
   private
