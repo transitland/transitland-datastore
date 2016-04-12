@@ -27,10 +27,14 @@
 #
 
 describe FeedVersion do
-  let (:example_url) { 'https://developers.google.com/transit/gtfs/examples/sample-feed.zip' }
-  let (:example_feed_path) { Rails.root.join('spec/support/example_gtfs_archives/example.zip').to_s }
-  let (:example_sha1_raw) { "4e5e6a2668d12cca29c89a969d73e05e625d9596" }
-  let (:example_sha1) { "068494206f0de49c8c831b5196026ce35911a4bb" }
+  let (:example_url)              { 'http://localhost:8000/example.zip' }
+  let (:example_sha1_raw)         { '2a7503435dcedeec8e61c2e705f6098e560e6bc6' }
+  let (:example_sha1)             { '5edc7750991beda77e9f2fd7da2e3329253f199f' }
+  let (:example_nested_flat)      { 'http://localhost:8000/example_nested.zip#example_nested/example' }
+  let (:example_nested_zip)       { 'http://localhost:8000/example_nested.zip#example_nested/nested/example.zip' }
+  let (:example_nested_sha1_raw)  { '65d278fdd3f5a9fae775a283ef6ca2cb7b961add' }
+  let (:example_nested_sha1_flat) { '5edc7750991beda77e9f2fd7da2e3329253f199f' }
+  let (:example_nested_sha1_zip)  { '5edc7750991beda77e9f2fd7da2e3329253f199f' }
 
   context '#compute_and_set_hashes' do
     it 'computes file hashes' do
@@ -63,7 +67,7 @@ describe FeedVersion do
       feed_version = FeedVersion.new(url: example_url)
       expect(feed_version.sha1).to be nil
       expect(feed_version.fetched_at).to be nil
-      VCR.use_cassette('feed_fetch_example') do
+      VCR.use_cassette('feed_fetch_example_local') do
         feed_version.fetch_and_normalize
       end
       expect(feed_version.sha1_raw).to eq example_sha1_raw
@@ -72,16 +76,38 @@ describe FeedVersion do
 
     it 'normalizes feed' do
       feed_version = FeedVersion.new(url: example_url)
-      VCR.use_cassette('feed_fetch_example') do
+      VCR.use_cassette('feed_fetch_example_local') do
         feed_version.fetch_and_normalize
       end
       expect(feed_version.sha1).to eq example_sha1
       expect(feed_version.fetched_at).to be_truthy
     end
 
+    it 'normalizes nested gtfs zip' do
+      feed_version = FeedVersion.new(url: example_nested_zip)
+      VCR.use_cassette('feed_fetch_nested') do
+        feed_version.fetch_and_normalize
+      end
+      expect(feed_version.sha1).to eq example_nested_sha1_zip
+      expect(feed_version.sha1_raw).to eq example_nested_sha1_raw
+      expect(feed_version.fetched_at).to be_truthy
+    end
+
+    it 'normalizes nested gtfs flat' do
+      feed_version = FeedVersion.new(url: example_nested_flat)
+      VCR.use_cassette('feed_fetch_nested') do
+        feed_version.fetch_and_normalize
+      end
+      expect(feed_version.sha1).to eq example_nested_sha1_flat
+      expect(feed_version.sha1_raw).to eq example_nested_sha1_raw
+      expect(feed_version.fetched_at).to be_truthy
+    end
+
     it 'fails if files already exist' do
       feed_version = create(:feed_version_bart)
-      expect { feed_version.fetch_and_normalize }.to raise_error(StandardError)
+      VCR.use_cassette('feed_fetch_bart') do
+        expect { feed_version.fetch_and_normalize }.to raise_error(StandardError)
+      end
     end
   end
 
