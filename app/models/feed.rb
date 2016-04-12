@@ -160,10 +160,10 @@ class Feed < BaseFeed
         last_fetched_at: feed_version.fetched_at || DateTime.now
       )
     end
-    # Return if error; will fail if no sha1 from a successful fetch.
-    return unless feed_version.valid?
     # Check for known Feed Version
     feed_version = self.feed_versions.find_by(sha1: feed_version.sha1) || feed_version
+    # Return if there was not a successful fetch.
+    return unless feed_version.valid?
     if feed_version.persisted?
       logger.info "File downloaded from #{url} has an existing sha1 hash: #{feed_version.sha1}"
     else
