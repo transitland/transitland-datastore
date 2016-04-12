@@ -140,27 +140,16 @@ class Feed < BaseFeed
   end
 
   def fetch_and_return_feed_version
+    # Check Feed URL for new files.
     fetched_at = DateTime.now
     fetch_exception_log = nil
-    feed_version = nil
+    feed_version = FeedVersion.new(feed: self, url: self.url, fetched_at: fetched_at)
+    logger.info "Fetching feed #{onestop_id} from #{url}"
+    # Try to fetch and normalize feed; log error
     begin
-      logger.info "Fetching feed #{onestop_id} from #{url}"
-      feed_raw = GTFS::Source.build(self.url, {strict: false})
-      feed_version = self.feed_versions.new(
-        url: self.url,
-        fetched_at: fetched_at,
-        file_raw: File.open(feed_raw.archive)
-      )
-      feed_version.file = File.open(feed_version.create_normalized_archive)
-      feed_version.valid? # compute hashes
-      feed_version = self.feed_versions.find_by(sha1: feed_version.sha1) || feed_version
-      if feed_version.persisted?
-        logger.info "File downloaded from #{url} has an existing sha1 hash: #{feed_version.sha1}"
-      else
-        logger.info "File downloaded from #{url} has a new sha1 hash: #{feed_version.sha1}"
-        feed_version.save!
-      end
-    rescue StandardError => e
+      feed_version.fetch_and_normalize
+    rescue GTFS::InvalidSourceException => e
+      feed_version = nil
       fetch_exception_log = e.message
       if e.backtrace.present?
         fetch_exception_log << "\n"
@@ -173,6 +162,17 @@ class Feed < BaseFeed
         last_fetched_at: fetched_at
       )
     end
+    # Return if error
+    return if feed_version.nil?
+    # Check for known Feed Version
+    feed_version = self.feed_versions.find_by(sha1: feed_version.sha1) || feed_version
+    if feed_version.persisted?
+      logger.info "File downloaded from #{url} has an existing sha1 hash: #{feed_version.sha1}"
+    else
+      logger.info "File downloaded from #{url} has a new sha1 hash: #{feed_version.sha1}"
+      feed_version.save!
+    end
+    # Return found/created FeedVersion
     feed_version
   end
 
