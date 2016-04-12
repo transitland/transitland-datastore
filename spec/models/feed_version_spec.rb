@@ -27,6 +27,11 @@
 #
 
 describe FeedVersion do
+  let (:example_url) { 'https://developers.google.com/transit/gtfs/examples/sample-feed.zip' }
+  let (:example_feed_path) { Rails.root.join('spec/support/example_gtfs_archives/example.zip').to_s }
+  let (:example_sha1_raw) { "4e5e6a2668d12cca29c89a969d73e05e625d9596" }
+  let (:example_sha1) { "068494206f0de49c8c831b5196026ce35911a4bb" }
+
   context '#compute_and_set_hashes' do
     it 'computes file hashes' do
       feed_version = create(:feed_version_bart)
@@ -50,6 +55,33 @@ describe FeedVersion do
       expect(feed_version.tags['feed_version']).to eq '36'
       expect(feed_version.tags['feed_publisher_url']).to eq 'http://www.bart.gov'
       expect(feed_version.tags['feed_publisher_name']).to eq 'Bay Area Rapid Transit'
+    end
+  end
+
+  context '#fetch_and_normalize' do
+    it 'downloads feed' do
+      feed_version = FeedVersion.new(url: example_url)
+      expect(feed_version.sha1).to be nil
+      expect(feed_version.fetched_at).to be nil
+      VCR.use_cassette('feed_fetch_example') do
+        feed_version.fetch_and_normalize
+      end
+      expect(feed_version.sha1_raw).to eq example_sha1_raw
+      expect(feed_version.fetched_at).to be_truthy
+    end
+
+    it 'normalizes feed' do
+      feed_version = FeedVersion.new(url: example_url)
+      VCR.use_cassette('feed_fetch_example') do
+        feed_version.fetch_and_normalize
+      end
+      expect(feed_version.sha1).to eq example_sha1
+      expect(feed_version.fetched_at).to be_truthy
+    end
+
+    it 'fails if files already exist' do
+      feed_version = create(:feed_version_bart)
+      expect { feed_version.fetch_and_normalize }.to raise_error(StandardError)
     end
   end
 
