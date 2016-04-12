@@ -28,10 +28,10 @@ describe FeedInfoWorker do
   end
 
   it 'fails with 404' do
-    url = 'http://www.bart.gov/this-is-a-bad-url.zip'
+    url = 'http://httpbin.org/status/404'
     cachekey = 'test'
     Rails.cache.delete(cachekey)
-    VCR.use_cassette('feed_fetch_bart_404') do
+    VCR.use_cassette('feed_fetch_404') do
       FeedInfoWorker.new.perform(url, cachekey)
     end
     cachedata = Rails.cache.read(cachekey)
