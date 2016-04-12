@@ -39,7 +39,7 @@ class FeedVersion < ActiveRecord::Base
   mount_uploader :file, FeedVersionUploader
   mount_uploader :file_raw, FeedVersionUploaderRaw
 
-  validates :sha1, uniqueness: true
+  validates :sha1, presence: true, uniqueness: true
 
   before_validation :compute_and_set_hashes, :read_gtfs_calendar_dates, :read_gtfs_feed_info
 
@@ -85,6 +85,7 @@ class FeedVersion < ActiveRecord::Base
       gtfs_raw.create_archive(tmp_file_path)
       gtfs_normalized = GTFS::Source.build(tmp_file_path, {strict: false})
       # Update
+      self.fetched_at = DateTime.now
       self.file = File.open(gtfs_normalized.archive)
       self.file_raw = File.open(gtfs_raw.archive)
     end
