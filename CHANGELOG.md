@@ -1,5 +1,21 @@
 # Change Log
 
+## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
+
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.11...HEAD)
+
+**Closed issues:**
+
+- Feeds controller: last\_imported\_at [\#556](https://github.com/transitland/transitland-datastore/issues/556)
+
+## [4.7.11](https://github.com/transitland/transitland-datastore/tree/4.7.11) (2016-04-13)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.10...4.7.11)
+
+**Merged pull requests:**
+
+- Feed query last updated since [\#557](https://github.com/transitland/transitland-datastore/pull/557) ([irees](https://github.com/irees))
+- production release 4.7.10 [\#551](https://github.com/transitland/transitland-datastore/pull/551) ([drewda](https://github.com/drewda))
+
 ## [4.7.10](https://github.com/transitland/transitland-datastore/tree/4.7.10) (2016-04-09)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.9...4.7.10)
 
