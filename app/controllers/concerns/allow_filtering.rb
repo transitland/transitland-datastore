@@ -82,7 +82,7 @@ module AllowFiltering
     value = params[param_name]
     attribute_name ||= param_name
     if value.present?
-      value = value.is_a?(Date) ? value : Date.parse(value)
+      value = value.is_a?(DateTime) ? value : DateTime.parse(value)
       collection = collection.where(
         collection.arel_table[attribute_name].gteq(value)
       )
