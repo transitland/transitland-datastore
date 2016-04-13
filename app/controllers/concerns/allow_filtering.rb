@@ -84,7 +84,7 @@ module AllowFiltering
     if value.present?
       value = value.is_a?(Date) ? value : Date.parse(value)
       collection = collection.where(
-        collection.arel_table[attribute_name].gt(value)
+        collection.arel_table[attribute_name].gteq(value)
       )
     end
     collection
