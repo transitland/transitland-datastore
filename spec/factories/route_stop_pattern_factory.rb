@@ -16,6 +16,7 @@
 #  updated_at                         :datetime         not null
 #  created_or_updated_in_changeset_id :integer
 #  route_id                           :integer
+#  stop_distances                     :float            default([]), is an Array
 #
 # Indexes
 #
@@ -35,6 +36,7 @@ FactoryGirl.define do
       Stop::GEOFACTORY.point(-122.38666, 37.599787)
     ])}
     stop_pattern {[Faker::OnestopId.stop, Faker::OnestopId.stop]}
+    stop_distances {[nil,nil]}
     version 1
     association :route, factory: :route
     after(:build) { |rsp|
@@ -54,6 +56,7 @@ FactoryGirl.define do
       's-9q8zzf1nks-richmond',
       's-9q8vzhbf8h-millbrae'
     ]}
+    stop_distances {[nil,nil]}
     version 1
     association :route, factory: :route, onestop_id: 'r-9q8y-richmond~dalycity~millbrae', name: 'Richmond - Daly City/Millbrae'
     after(:build) { |rsp_bart|
