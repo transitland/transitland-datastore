@@ -6,11 +6,11 @@ class GTFSGraph
   CHANGE_PAYLOAD_MAX_ENTITIES = Figaro.env.feed_eater_change_payload_max_entities.try(:to_i) || 1_000
   STOP_TIMES_MAX_LOAD = Figaro.env.feed_eater_stop_times_max_load.try(:to_i) || 100_000
 
-  def initialize(filename, feed, feed_version)
+  def initialize(feed, feed_version)
     # GTFS Graph / TransitLand wrapper
     @feed = feed
     @feed_version = feed_version
-    @gtfs = GTFS::LocalSource.new(filename, {strict: false})
+    @gtfs = @feed_version.open_gtfs
     @log = []
     # GTFS entity to Onestop ID
     @gtfs_to_onestop_id = {}
@@ -472,26 +472,4 @@ class GTFSGraph
       :ask_driver
     end
   end
-end
-
-if __FILE__ == $0
-  feed_onestop_id = ARGV[0] || 'f-9q9-caltrain'
-  path = ARGV[1] || File.open(Rails.root.join('spec/support/example_gtfs_archives/f-9q9-caltrain.zip'))
-  import_level = (ARGV[2].presence || 1).to_i
-  ####
-  feed = Feed.find_by_onestop_id!(feed_onestop_id)
-  feed_version = feed.feed_versions.create!(file: File.open(path))
-  ####
-  t0 = Time.now
-  graph = GTFSGraph.new(path, feed, feed_version)
-  graph.create_change_osr
-  t1 = Time.now
-  if import_level >= 2
-    graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map, rsp_map|
-      graph.ssp_perform_async(trip_ids, agency_map, route_map, stop_map, rsp_map)
-    end
-  end
-  t2 = Time.now
-  puts "SSP Time: #{t2-t1}"
-  puts "Total Time: #{t2-t0}"
 end

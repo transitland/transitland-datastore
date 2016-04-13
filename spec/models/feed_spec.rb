@@ -217,17 +217,14 @@ describe Feed do
     end
 
     it 'logs fetch errors' do
-      feed = create(:feed_caltrain)
-      VCR.use_cassette('feed_fetch_caltrain') do
-        @feed_version1 = feed.fetch_and_return_feed_version
+      feed = create(:feed_caltrain, url: 'http://httpbin.org/status/404')
+      expect(feed.feed_versions.count).to eq 0
+      VCR.use_cassette('feed_fetch_404') do
+        feed.fetch_and_return_feed_version
       end
-      feed.update(url: 'http://www.bart.gov/this-is-a-bad-url.zip')
-      VCR.use_cassette('feed_fetch_bart_404') do
-        @feed_version2 = feed.fetch_and_return_feed_version
-      end
-      expect(feed.feed_versions.count).to eq 1
+      expect(feed.feed_versions.count).to eq 0
       expect(feed.latest_fetch_exception_log).to be_present
-      expect(feed.latest_fetch_exception_log).to include('404 "Not Found"')
+      expect(feed.latest_fetch_exception_log).to include('404')
     end
   end
 
