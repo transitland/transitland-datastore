@@ -226,20 +226,6 @@ describe Feed do
       expect(feed.latest_fetch_exception_log).to be_present
       expect(feed.latest_fetch_exception_log).to include('404')
     end
-
-    it 'creates normalized feed with stable sha1' do
-      feed = create(:feed_caltrain)
-      feed_versions = []
-      2.times.each do |i|
-        VCR.use_cassette('feed_fetch_caltrain') do
-          feed_versions << feed.fetch_and_return_feed_version
-        end
-        sleep 5
-      end
-      fv1, fv2 = feed_versions
-      expect(fv1.id).to eq(fv2.id)
-      expect(fv1.sha1).to eq(fv2.sha1)
-    end
   end
 
   context '#async_fetch_feed_version' do
