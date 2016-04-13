@@ -239,7 +239,7 @@ class GTFSGraph
       # ... or check if Operator exists, or another local Operator, or new.
       operator = find_by_entity(operator)
       # Merge convex hulls
-      # operator[:geometry] = Operator.convex_hull([operator, operator_original], as: :wkt, projected: false)
+      operator[:geometry] = Operator.convex_hull([operator, operator_original], as: :wkt, projected: false)
       # Copy Operator timezone to fill missing Stop timezones
       stops.each { |stop| stop.timezone ||= operator.timezone }
       # Add references and identifiers
