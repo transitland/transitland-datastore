@@ -60,6 +60,9 @@ RSpec.configure do |config|
   end
 end
 
+# create directory used for local test cache
+FileUtils.mkdir_p(Rails.root.join('tmp', 'cache'))
+
 def clear_carrierwave_attachments
   FileUtils.rm_rf(Rails.root.join('public', 'uploads', 'test'))
 end
