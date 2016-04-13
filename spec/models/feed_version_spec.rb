@@ -79,7 +79,7 @@ describe FeedVersion do
       VCR.use_cassette('feed_fetch_example_local') do
         feed_version.fetch_and_normalize
       end
-      expect(feed_version.sha1_raw).to eq example_sha1_raw
+      expect(feed_version.sha1).to eq example_sha1_raw
       expect(feed_version.fetched_at).to be_truthy
     end
 

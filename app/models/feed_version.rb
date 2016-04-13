@@ -77,18 +77,24 @@ class FeedVersion < ActiveRecord::Base
 
   def fetch_and_normalize
     fail StandardError.new('Files exist') if (file.present? || file_raw.present?)
+    # Update fetched time
+    self.fetched_at = DateTime.now
     # Download the raw feed
     gtfs_raw = GTFS::Source.build(self.url, {strict: false})
-    # Get temporary path
-    Dir.mktmpdir do |dir|
-      tmp_file_path = File.join(dir, 'normalized.zip')
-      # Create normalize archive
-      gtfs_raw.create_archive(tmp_file_path)
-      gtfs_normalized = GTFS::Source.build(tmp_file_path, {strict: false})
-      # Update
-      self.fetched_at = DateTime.now
-      self.file = File.open(gtfs_normalized.archive)
-      self.file_raw = File.open(gtfs_raw.archive)
+    # Do we need to normalize?
+    if self.url_fragment
+      # Get temporary path
+      Dir.mktmpdir do |dir|
+        tmp_file_path = File.join(dir, 'normalized.zip')
+        # Create normalize archive
+        gtfs_raw.create_archive(tmp_file_path)
+        gtfs_normalized = GTFS::Source.build(tmp_file_path, {strict: false})
+        # Update
+        self.file = File.open(gtfs_normalized.archive)
+        self.file_raw = File.open(gtfs_raw.archive)
+      end
+    else
+      self.file = File.open(gtfs_raw.archive)
     end
     # Compute hashes
     compute_and_set_hashes
