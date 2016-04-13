@@ -78,6 +78,18 @@ module AllowFiltering
     collection
   end
 
+  def self.by_attribute_since(collection, params, param_name, attribute_name=nil)
+    value = params[param_name]
+    attribute_name ||= param_name
+    if value.present?
+      value = value.is_a?(Date) ? value : Date.parse(value)
+      collection = collection.where(
+        collection.arel_table[attribute_name].gt(value)
+      )
+    end
+    collection
+  end
+
   def self.by_attribute_array(collection, params, attribute_name)
     values = param_as_array(params, attribute_name)
     if values.present?
