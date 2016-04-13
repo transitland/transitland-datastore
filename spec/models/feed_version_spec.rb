@@ -32,9 +32,6 @@ describe FeedVersion do
   let (:example_nested_zip)       { 'http://localhost:8000/example_nested.zip#example_nested/nested/example.zip' }
   let (:example_sha1_raw)         { '2a7503435dcedeec8e61c2e705f6098e560e6bc6' }
   let (:example_nested_sha1_raw)  { '65d278fdd3f5a9fae775a283ef6ca2cb7b961add' }
-  # let (:example_sha1)             { '5edc7750991beda77e9f2fd7da2e3329253f199f' }
-  # let (:example_nested_sha1_flat) { '5edc7750991beda77e9f2fd7da2e3329253f199f' }
-  # let (:example_nested_sha1_zip)  { '5edc7750991beda77e9f2fd7da2e3329253f199f' }
 
   context '#compute_and_set_hashes' do
     it 'computes file hashes' do
@@ -59,6 +56,18 @@ describe FeedVersion do
       expect(feed_version.tags['feed_version']).to eq '36'
       expect(feed_version.tags['feed_publisher_url']).to eq 'http://www.bart.gov'
       expect(feed_version.tags['feed_publisher_name']).to eq 'Bay Area Rapid Transit'
+    end
+  end
+
+  context '#url_fragment' do
+    it 'returns fragment present' do
+      feed_version = FeedVersion.new(url: example_nested_zip)
+      expect(feed_version.url_fragment).to eq('example_nested/nested/example.zip')
+    end
+
+    it 'returns nil if not present' do
+      feed_version = FeedVersion.new(url: example_url)
+      expect(feed_version.url_fragment).to be nil
     end
   end
 

@@ -94,6 +94,10 @@ class FeedVersion < ActiveRecord::Base
     compute_and_set_hashes
   end
 
+  def url_fragment
+    (self.url || "").partition("#").last.presence
+  end
+
   def download_url
     if self.feed.license_redistribute.presence == 'no'
       nil
