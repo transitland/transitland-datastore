@@ -103,6 +103,21 @@ describe FeedVersion do
       expect(feed_version.fetched_at).to be_truthy
     end
 
+    it 'normalizes consistent sha1' do
+      feed_versions = []
+      2.times.each do |i|
+        feed_version = FeedVersion.new(url: example_nested_flat)
+        VCR.use_cassette('feed_fetch_nested') do
+          feed_version.fetch_and_normalize
+        end
+        feed_versions << feed_version
+        sleep 5
+      end
+      fv1, fv2 = feed_versions
+      expect(fv1.sha1).to eq fv2.sha1
+      expect(fv1.fetched_at).not_to eq(fv2.fetched_at)
+    end
+
     it 'fails if files already exist' do
       feed_version = create(:feed_version_bart)
       VCR.use_cassette('feed_fetch_bart') do
