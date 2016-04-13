@@ -26,6 +26,24 @@ describe Api::V1::FeedsController do
           }
         })
       end
+
+      it 'query: last_imported_since' do
+        feeds = create_list(:feed, 3)
+        past = DateTime.parse('2015-01-01')
+        now = DateTime.parse('2016-01-01')
+        future = DateTime.parse('2017-01-01')
+        feed = feeds.last
+        feed.update!(last_imported_at: now)
+        feed.feed_versions.create!
+        feed.feed_versions.last.feed_version_imports.create!
+        get :index, last_imported_since: past
+        expect_json({feeds: -> (feeds) {expect(feeds.size).to eq(1)}})
+        get :index, last_imported_since: now
+        expect_json({feeds: -> (feeds) {expect(feeds.size).to eq(1)}})
+        get :index, last_imported_since: future
+        expect_json({feeds: -> (feeds) {expect(feeds.size).to eq(0)}})
+      end
+
     end
   end
 
