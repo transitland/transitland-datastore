@@ -6,7 +6,7 @@ describe GTFSGraph do
       feed = feed_version.feed
       oif = feed.operators_in_feed.first
       oif.update!({gtfs_agency_id:'not-found'})
-      graph = GTFSGraph.new(feed_version.file.path, feed, feed_version)
+      graph = GTFSGraph.new(feed, feed_version)
       expect { graph.create_change_osr }.to raise_error(GTFSGraph::Error)
     end
   end

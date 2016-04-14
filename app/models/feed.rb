@@ -140,40 +140,38 @@ class Feed < BaseFeed
   end
 
   def fetch_and_return_feed_version
+    # Check Feed URL for new files.
+    fetch_exception_log = nil
+    feed_version = FeedVersion.new(feed: self, url: self.url)
+    logger.info "Fetching feed #{onestop_id} from #{url}"
+    # Try to fetch and normalize feed; log error
     begin
-      logger.info "Fetching feed #{onestop_id} from #{url}"
-      @fetched_at = DateTime.now
-      FeedFetch.download_to_tempfile(self.url) do |path|
-        sha1_for_new_tempfile = Digest::SHA1.file(path).hexdigest
-        existing_feed_version_with_same_sha1 = self.feed_versions.find_by(
-          sha1: sha1_for_new_tempfile
-        )
-        if existing_feed_version_with_same_sha1
-          logger.info "File downloaded from #{url} has an existing sha1 hash"
-          return existing_feed_version_with_same_sha1
-        else
-          logger.info "File downloaded from #{url} has a new sha1 hash"
-          new_feed_version = self.feed_versions.create(
-            file: File.open(path),
-            fetched_at: @fetched_at
-          )
-          return new_feed_version
-        end
-      end
-    rescue Exception => e
-      @fetch_exception_log = e.message
+      feed_version.fetch_and_normalize
+    rescue GTFS::InvalidSourceException => e
+      fetch_exception_log = e.message
       if e.backtrace.present?
-        @fetch_exception_log << "\n"
-        @fetch_exception_log << e.backtrace.join("\n")
+        fetch_exception_log << "\n"
+        fetch_exception_log << e.backtrace.join("\n")
       end
-      logger.error @fetch_exception_log
-      return nil
+      logger.error fetch_exception_log
     ensure
       self.update(
-        latest_fetch_exception_log: @fetch_exception_log,
-        last_fetched_at: @fetched_at
+        latest_fetch_exception_log: fetch_exception_log,
+        last_fetched_at: feed_version.fetched_at || DateTime.now
       )
     end
+    # Check for known Feed Version
+    feed_version = self.feed_versions.find_by(sha1: feed_version.sha1) || feed_version
+    # Return if there was not a successful fetch.
+    return unless feed_version.valid?
+    if feed_version.persisted?
+      logger.info "File downloaded from #{url} has an existing sha1 hash: #{feed_version.sha1}"
+    else
+      logger.info "File downloaded from #{url} has a new sha1 hash: #{feed_version.sha1}"
+      feed_version.save!
+    end
+    # Return found/created FeedVersion
+    feed_version
   end
 
   def activate_feed_version(feed_version_sha1, import_level)

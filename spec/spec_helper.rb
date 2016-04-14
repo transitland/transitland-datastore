@@ -38,7 +38,7 @@ end
 
 RSpec.configure do |config|
   config.mock_with :rspec
-
+  config.filter_run_excluding :optional => true
   config.infer_spec_type_from_file_location!
 
   config.include FactoryGirl::Syntax::Methods

@@ -16,6 +16,10 @@
 #  created_at             :datetime
 #  updated_at             :datetime
 #  import_level           :integer          default(0)
+#  url                    :string
+#  file_raw               :string
+#  sha1_raw               :string
+#  md5_raw                :string
 #
 # Indexes
 #
