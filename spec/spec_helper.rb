@@ -19,6 +19,8 @@ require 'byebug'
 require 'vcr'
 require 'webmock/rspec'
 require 'factory_girl_rails'
+require 'timecop'
+Timecop.safe_mode = true
 
 ActiveRecord::Migration.maintain_test_schema!
 
@@ -57,6 +59,9 @@ RSpec.configure do |config|
     clear_carrierwave_attachments
   end
 end
+
+# create directory used for local test cache
+FileUtils.mkdir_p(Rails.root.join('tmp', 'cache'))
 
 def clear_carrierwave_attachments
   FileUtils.rm_rf(Rails.root.join('public', 'uploads', 'test'))
