@@ -34,8 +34,8 @@ describe Api::V1::FeedsController do
         future = DateTime.parse('2017-01-01')
         feed = feeds.last
         feed.update!(last_imported_at: now)
-        feed.feed_versions.create!
-        feed.feed_versions.last.feed_version_imports.create!
+        feed_version = create(:feed_version, feed: feed)
+        feed_version.feed_version_imports.create!
         get :index, last_imported_since: past
         expect_json({feeds: -> (feeds) {expect(feeds.size).to eq(1)}})
         get :index, last_imported_since: now
