@@ -28,6 +28,7 @@
 class BaseStop < ActiveRecord::Base
   self.abstract_class = true
   attr_accessor :served_by, :not_served_by
+  validates :timezone, presence: true
 end
 
 class Stop < BaseStop
