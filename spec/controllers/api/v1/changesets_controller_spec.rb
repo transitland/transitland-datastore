@@ -186,7 +186,8 @@ describe Api::V1::ChangesetsController do
         changes: [
           action: 'destroy',
           stop: {
-            onestopId: 's-5b2-Fake'
+            onestopId: 's-5b2-Fake',
+            timezone: 'America/Los_Angeles'
           }
         ]
       })
@@ -204,7 +205,8 @@ describe Api::V1::ChangesetsController do
             action: 'createUpdate',
             stop: {
               onestopId: 's-9q8yt4b-1AvHoS',
-              name: '1st Ave. & Holloway Street'
+              name: '1st Ave. & Holloway Street',
+              timezone: 'America/Los_Angeles'
             }
           }
         ]
