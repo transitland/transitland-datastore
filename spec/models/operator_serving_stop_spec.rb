@@ -33,7 +33,8 @@ describe OperatorServingStop do
             action: 'createUpdate',
             stop: {
               onestopId: 's-9q8yt4b-19Hollway',
-              name: '19th Ave & Holloway St'
+              name: '19th Ave & Holloway St',
+              timezone: 'America/Los_Angeles'
             }
           },
           {
