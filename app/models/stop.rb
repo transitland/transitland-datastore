@@ -37,6 +37,8 @@ end
 class Stop < BaseStop
   self.table_name_prefix = 'current_'
 
+  attr_accessor :parent_stop_onestop_id
+
   include HasAOnestopId
   include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
@@ -74,6 +76,7 @@ class Stop < BaseStop
       :not_served_by,
       :identified_by,
       :not_identified_by,
+      :parent_stop_onestop_id
     ],
     protected_attributes: [
       :identifiers,
@@ -81,6 +84,10 @@ class Stop < BaseStop
     ]
   })
   def self.after_create_making_history(created_model, changeset)
+    if created_model.parent_stop_onestop_id
+      created_model.parent_stop = Stop.find_by(onestop_id: created_model.parent_stop_onestop_id)
+      created_model.save!
+    end
     OperatorRouteStopRelationship.manage_multiple(
       stop: {
         served_by: created_model.served_by || [],
@@ -284,6 +291,52 @@ class Stop < BaseStop
   def clean_attributes
     self.name.strip! if self.name.present?
   end
+end
+
+class StopStation < Stop
+  current_tracked_by_changeset({
+    kind_of_model_tracked: :onestop_entity,
+    virtual_attributes: [
+      :served_by,
+      :not_served_by,
+      :identified_by,
+      :not_identified_by,
+      :imported_from_feed
+    ]
+  })
+  # Station relations
+  has_many :stop_egresss, class_name: 'StopEgress', foreign_key: :parent_stop_id
+  has_many :stop_platforms, class_name: 'StopPlatform', foreign_key: :parent_stop_id
+end
+
+class StopPlatform < Stop
+  current_tracked_by_changeset({
+    kind_of_model_tracked: :onestop_entity,
+    virtual_attributes: [
+      :served_by,
+      :not_served_by,
+      :identified_by,
+      :not_identified_by,
+      :imported_from_feed,
+      :parent_stop_onestop_id
+    ]
+  })
+  belongs_to :parent_stop, class_name: 'Stop'
+end
+
+class StopEgress < Stop
+  current_tracked_by_changeset({
+    kind_of_model_tracked: :onestop_entity,
+    virtual_attributes: [
+      :served_by,
+      :not_served_by,
+      :identified_by,
+      :not_identified_by,
+      :imported_from_feed,
+      :parent_stop_onestop_id
+    ]
+  })
+  belongs_to :parent_station, class_name: 'Stop'
 end
 
 class OldStop < BaseStop
