@@ -147,7 +147,7 @@ describe Api::V1::OperatorsController do
       })
     end
 
-    it 'returns a list of all metros with counts for each' do
+    it 'returns a list of all tags with counts and values for each' do
       Operator.first.update(tags: {
         fast: 'always',
         free: 'true'
@@ -159,13 +159,12 @@ describe Api::V1::OperatorsController do
         allows_food: 'false'
       })
       get :aggregate
-      puts response.body
       expect_json('tags.fast.count', 2)
       expect_json('tags.fast.values', ['always', 'never'])
       expect_json('tags.free.count', 1)
       expect_json('tags.free.values', ['true'])
-      expect_json('tags.free.allows_food.count', 1)
-      expect_json('tags.free.allows_food.values', ['false'])
+      expect_json('tags.allows_food.count', 1)
+      expect_json('tags.allows_food.values', ['false'])
     end
   end
 end

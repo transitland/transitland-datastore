@@ -115,7 +115,6 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
 
   def count_values(array_of_hashes)
     return_hash = {}
-    binding.pry
     counts_hash = array_of_hashes.reduce(Hash.new(0)) do |counts, key|
       counts[key] += 1
       counts
@@ -131,10 +130,10 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
 
   def count_and_gather_values(array_of_hashes)
     return_hash = {}
-    uniq_keys = array_of_hashes.map(&:keys).flatten.uniq
+    keys = array_of_hashes.map(&:keys).flatten
     values_by_key = group_values_by_key(array_of_hashes)
-    counts_by_key = count_values(uniq_keys)
-    uniq_keys.each do |key|
+    counts_by_key = count_values(keys)
+    keys.uniq.each do |key|
       return_hash[key] = {
         count: counts_by_key[key][:count],
         values: values_by_key[key]
@@ -145,8 +144,8 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
 
   def group_values_by_key(array_of_hashes)
     counts_hash = array_of_hashes.reduce(Hash.new {|h,k| h[k]=Set.new}) do |aggregate_hash, incoming_hash|
-      if incoming_hash.keys.first.present?
-        aggregate_hash[incoming_hash.keys.first] << incoming_hash.values.first
+      incoming_hash.each do |key, value|
+        aggregate_hash[key] << value
       end
       aggregate_hash
     end
