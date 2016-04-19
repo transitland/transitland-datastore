@@ -28,8 +28,8 @@ describe ActivityUpdates do
       User.first.id
     ])
     expect(ActivityUpdates.updates_since.map {|u| u[:note] }).to eq([
-      @c2.notes,
-      @c1.notes
+      "Changeset ##{@c2.id} created. Includes notes: #{@c2.notes}",
+      "Changeset ##{@c1.id} created. Includes notes: #{@c1.notes}"
     ])
     expect(ActivityUpdates.updates_since[0][:at_datetime]).to be_within(1.second).of(@c2.created_at)
     expect(ActivityUpdates.updates_since[1][:at_datetime]).to be_within(1.second).of(@c1.created_at)
@@ -57,6 +57,11 @@ describe ActivityUpdates do
       "updated",
       "created",
       "created"
+    ])
+    expect(ActivityUpdates.updates_since.map {|u| u[:note] }).to eq([
+      "Changeset ##{@c1.id} updated. Includes notes: #{@c1.notes}",
+      "Changeset ##{@c2.id} created. Includes notes: #{@c2.notes}",
+      "Changeset ##{@c1.id} created. Includes notes: #{@c1.notes}"
     ])
   end
 

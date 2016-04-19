@@ -17,7 +17,7 @@ class ActivityUpdates
         entity_id: changeset.id,
         entity_action: 'created',
         by_user_id: changeset.user.try(:id),
-        note: changeset.notes,
+        note: "Changeset ##{changeset.id} created. Includes notes: #{changeset.notes}",
         at_datetime: changeset.created_at
       }
     end
@@ -38,7 +38,7 @@ class ActivityUpdates
         entity_id: changeset.id,
         entity_action: 'updated',
         by_user_id: changeset.user.try(:id),
-        note: changeset.notes,
+        note: "Changeset ##{changeset.id} updated. Includes notes: #{changeset.notes}",
         at_datetime: changeset.updated_at
       }
     end
@@ -54,7 +54,7 @@ class ActivityUpdates
         entity_id: changeset.id,
         entity_action: 'applied',
         by_user_id: changeset.user.try(:id),
-        note: changeset.notes,
+        note: "Changeset ##{changeset.id} applied. Includes notes: #{changeset.notes}",
         at_datetime: changeset.applied_at
       }
     end
@@ -65,7 +65,11 @@ class ActivityUpdates
     feed_version_imports = FeedVersionImport.where("created_at > ?", since)
     updates = feed_version_imports.map do |feed_version_import|
       success_word = feed_version_import.success ? 'successfully' : 'unsuccessfully'
-      note = "#{success_word} at level #{feed_version_import.import_level}"
+      note = "
+        Feed #{feed_version_import.feed.onestop_id} version
+        with SHA1 hash #{feed_version_import.feed_version.sha1}
+        #{success_word} imported at level #{feed_version_import.import_level}
+      ".squish
       {
         id: "fvi-#{feed_version_import.id}-created",
         entity_type: 'feed',
@@ -82,7 +86,8 @@ class ActivityUpdates
     feed_versions = FeedVersion.where("created_at > ?", since)
     updates = feed_versions.map do |feed_version|
       note = "
-        New feed version with SHA1 hash #{feed_version.sha1}.
+        New version of #{feed_version.feed.onestop_id} feed
+        with SHA1 hash #{feed_version.sha1} fetched.
         Calendar runs from #{feed_version.earliest_calendar_date}
         to #{feed_version.latest_calendar_date}.
       ".squish
