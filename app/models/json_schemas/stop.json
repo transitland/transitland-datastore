@@ -13,6 +13,9 @@
     "timezone": { "type": "string" },
     "tags": { "type": "object" },
     "name": { "type": "string" },
+    "parentStopOnestopId": {
+      "type": "string"
+    },
     "identifiedBy": {
       "type": "array",
       "uniqueItems": true,

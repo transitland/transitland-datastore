@@ -27,6 +27,30 @@
             }
           },
           {
+            "required": ["stopStation"],
+            "properties": {
+              "stopStation": {
+                "$ref": "./stop.json"
+              }
+            }
+          },
+          {
+            "required": ["stopPlatform"],
+            "properties": {
+              "stopPlatform": {
+                "$ref": "./stop.json"
+              }
+            }
+          },
+          {
+            "required": ["StopEgress"],
+            "properties": {
+              "stopPlatform": {
+                "$ref": "./stop.json"
+              }
+            }
+          },          
+          {
             "required": ["operator"],
             "properties": {
               "operator": {
