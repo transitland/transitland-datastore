@@ -42,6 +42,10 @@ class Api::V1::BaseApiController < ApplicationController
     raise ActionController::RoutingError.new("No route matches #{request.env['REQUEST_METHOD']} /api/#{params[:unmatched_route]}")
   end
 
+  def default_url_options
+    TransitlandDatastore::Application.base_url_options
+  end
+
   private
 
   def require_api_auth_token
