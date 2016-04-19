@@ -1,4 +1,6 @@
 class Api::V1::OperatorsController < Api::V1::BaseApiController
+  AGGREGATE_CACHE_KEY = 'operators_aggregate_json'
+
   include JsonCollectionPagination
   include DownloadableCsv
   include AllowFiltering
@@ -89,7 +91,67 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
     end
   end
 
+  def aggregate
+    # this cache will also be busted whenever an operator is saved
+    aggregate_json = Rails.cache.fetch(AGGREGATE_CACHE_KEY, expires_in: 1.day) do
+      json = {
+        country: {},
+        state: {},
+        metro: {},
+        timezone: {},
+        tags: {}
+      }
+      json[:country] = count_values(Operator.pluck(:country))
+      json[:state] = count_values(Operator.pluck(:state))
+      json[:metro] = count_values(Operator.pluck(:metro))
+      json[:timezone] = count_values(Operator.pluck(:timezone))
+      json[:tags] = count_and_gather_values(Operator.pluck(:tags))
+      json
+    end
+    render json: aggregate_json
+  end
+
   private
+
+  def count_values(array_of_hashes)
+    return_hash = {}
+    binding.pry
+    counts_hash = array_of_hashes.reduce(Hash.new(0)) do |counts, key|
+      counts[key] += 1
+      counts
+    end
+    counts_hash.sort_by { |key, value| -value }.to_h # descending order
+    counts_hash.each do |key, value|
+      return_hash[key] = {
+        count: value
+      }
+    end
+    return_hash
+  end
+
+  def count_and_gather_values(array_of_hashes)
+    return_hash = {}
+    uniq_keys = array_of_hashes.map(&:keys).flatten.uniq
+    values_by_key = group_values_by_key(array_of_hashes)
+    counts_by_key = count_values(uniq_keys)
+    uniq_keys.each do |key|
+      return_hash[key] = {
+        count: counts_by_key[key][:count],
+        values: values_by_key[key]
+      }
+    end
+    return_hash
+  end
+
+  def group_values_by_key(array_of_hashes)
+    counts_hash = array_of_hashes.reduce(Hash.new {|h,k| h[k]=Set.new}) do |aggregate_hash, incoming_hash|
+      if incoming_hash.keys.first.present?
+        aggregate_hash[incoming_hash.keys.first] << incoming_hash.values.first
+      end
+      aggregate_hash
+    end
+    counts_hash.sort_by { |key, value| -value.count }.to_h # descending order
+  end
 
   def set_operator
     @operator = Operator.find_by_onestop_id!(params[:id])
