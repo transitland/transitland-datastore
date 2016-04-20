@@ -33,6 +33,13 @@ module OnestopId
       @name = name
     end
 
+    def self.match?(value)
+      if value && value.length > 0
+        split = value.split(COMPONENT_SEPARATOR)
+        split[0].to_sym == self::PREFIX && split.size == self::NUM_COMPONENTS
+      end
+    end
+
     def to_s
       [
         self.class::PREFIX,
@@ -152,20 +159,14 @@ module OnestopId
     end
   end
 
-  LOOKUP = Hash[OnestopId::OnestopIdBase.descendants.map { |c| [[c::PREFIX, c::NUM_COMPONENTS], c] }]
   LOOKUP_MODEL = Hash[OnestopId::OnestopIdBase.descendants.map { |c| [c::MODEL, c] }]
 
   def self.handler_by_string(string: nil)
-    if string && string.length > 0
-      split = string.split(COMPONENT_SEPARATOR)
-      prefix = split[0].to_sym
-      num_components = split.size
-      LOOKUP[[prefix, num_components]]
-    end
+    OnestopId::OnestopIdBase.descendants.select { |cls| cls.match?(string) }.first
   end
 
   def self.handler_by_model(model)
-    LOOKUP_MODEL[model]
+    OnestopId::OnestopIdBase.descendants.select { |cls| cls::MODEL == model }.first
   end
 
   def self.create_identifier(feed_onestop_id, entity_prefix, entity_id)
