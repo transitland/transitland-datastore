@@ -89,6 +89,33 @@ module OnestopId
   class StopOnestopId < OnestopIdBase
     PREFIX = :s
     MODEL = Stop
+    def self.match?(value)
+      false
+    end
+  end
+
+  class StopStationOnestopId < OnestopIdBase
+    PREFIX = :s
+    MODEL = StopStation
+    def self.match?(value)
+      super && !value.include?('<') && !value.include?('>')
+    end
+  end
+
+  class StopEgressOnestopId < OnestopIdBase
+    PREFIX = :s
+    MODEL = StopEgress
+    def self.match?(value)
+      super && value.include?('<')
+    end
+  end
+
+  class StopPlatformOnestopId < OnestopIdBase
+    PREFIX = :s
+    MODEL = StopPlatform
+    def self.match?(value)
+      super && value.include?('>')
+    end
   end
 
   class RouteOnestopId < OnestopIdBase
