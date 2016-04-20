@@ -70,7 +70,7 @@
             "licenseRedistribute": "yes",
             "includesOperators": [
               {
-                "gtfsAgencyId": "CT",
+                "gtfsAgencyId": "caltrain-ca-us",
                 "operatorOnestopId": "o-9q9-caltrain"
               }
             ]
