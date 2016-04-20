@@ -11,6 +11,7 @@ class GTFSGraph
     @feed = feed
     @feed_version = feed_version
     @gtfs = @feed_version.open_gtfs
+    @qc = QualityCheck.new
     @log = []
     # GTFS entity to Onestop ID
     @gtfs_to_onestop_id = {}
@@ -318,6 +319,10 @@ class GTFSGraph
       rsp.trips << trip.trip_id unless rsp.trips.include?(trip.trip_id)
       rsp.route = tl_route
       rsps << rsp
+
+      tl_stops.each do |stop|
+        @qc.outlier_stop(stop, rsp)
+      end
     end
     log "#{stop_times_with_shape_dist_traveled} stop times with shape_dist_traveled found out of #{stop_times_count} total stop times" if stop_times_with_shape_dist_traveled > 0
     rsps

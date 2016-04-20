@@ -14,4 +14,5 @@
 
 class Issue < ActiveRecord::Base
   has_many :entities_with_issues
+  has_many :entities, through: :entities_with_issues
 end
