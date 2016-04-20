@@ -106,7 +106,7 @@ module OnestopId
     PREFIX = :s
     MODEL = StopEgress
     def self.match?(value)
-      super && value.include?('<')
+      super && value.include?('>')
     end
   end
 
@@ -114,7 +114,7 @@ module OnestopId
     PREFIX = :s
     MODEL = StopPlatform
     def self.match?(value)
-      super && value.include?('>')
+      super && value.include?('<')
     end
   end
 
