@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160401084013) do
+ActiveRecord::Schema.define(version: 20160419235457) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -275,6 +275,16 @@ ActiveRecord::Schema.define(version: 20160401084013) do
   add_index "entities_imported_from_feed", ["feed_id"], name: "index_entities_imported_from_feed_on_feed_id", using: :btree
   add_index "entities_imported_from_feed", ["feed_version_id"], name: "index_entities_imported_from_feed_on_feed_version_id", using: :btree
 
+  create_table "entities_with_issues", force: :cascade do |t|
+    t.integer  "entity_id"
+    t.string   "entity_type"
+    t.integer  "issue_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "entities_with_issues", ["entity_type", "entity_id"], name: "index_entities_with_issues_on_entity_type_and_entity_id", using: :btree
+
   create_table "feed_schedule_imports", force: :cascade do |t|
     t.boolean  "success"
     t.text     "import_log"
@@ -320,6 +330,16 @@ ActiveRecord::Schema.define(version: 20160401084013) do
   end
 
   add_index "feed_versions", ["feed_type", "feed_id"], name: "index_feed_versions_on_feed_type_and_feed_id", using: :btree
+
+  create_table "issues", force: :cascade do |t|
+    t.integer  "feed_version_id"
+    t.integer  "created_by_changeset_id"
+    t.integer  "resolved_by_changeset_id"
+    t.string   "description"
+    t.boolean  "block_import_changeset_apply", default: false
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "old_feeds", force: :cascade do |t|
     t.string    "onestop_id"
