@@ -141,7 +141,8 @@ describe Api::V1::OperatorsController do
       expect_json(timezone: -> (timezone) {
         expect(timezone).to eq({
           :'America/Los_Angeles' => {
-            count: 3
+            count: 3,
+            query_url: 'http://localhost:3000/api/v1/operators?timezone=America%2FLos_Angeles'
           }
         })
       })
