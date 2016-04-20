@@ -28,6 +28,10 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
     @operators = AllowFiltering.by_tag_keys_and_values(@operators, params)
     @operators = AllowFiltering.by_identifer_and_identifier_starts_with(@operators, params)
     @operators = AllowFiltering.by_updated_since(@operators, params)
+    @operators = AllowFiltering.by_attribute_array(@operators, params, :country)
+    @operators = AllowFiltering.by_attribute_array(@operators, params, :state)
+    @operators = AllowFiltering.by_attribute_array(@operators, params, :metro)
+    @operators = AllowFiltering.by_attribute_array(@operators, params, :timezone)
 
     if [params[:lat], params[:lon]].map(&:present?).all?
       point = Operator::GEOFACTORY.point(params[:lon], params[:lat])
