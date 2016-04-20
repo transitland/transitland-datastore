@@ -271,7 +271,7 @@ class Stop < BaseStop
       geohash: geohash,
       name: name
     )
-    stop = Stop.new(
+    stop = self.new(
       name: name,
       onestop_id: onestop_id.to_s,
       geometry: point.to_s
@@ -300,8 +300,12 @@ class StopStation < Stop
       :served_by,
       :not_served_by,
       :identified_by,
-      :not_identified_by,
-      :imported_from_feed
+      :not_identified_by
+    ],
+    protected_attributes: [
+      :identifiers,
+      :last_conflated_at,
+      :type
     ]
   })
   # Station relations
@@ -317,8 +321,12 @@ class StopPlatform < Stop
       :not_served_by,
       :identified_by,
       :not_identified_by,
-      :imported_from_feed,
       :parent_stop_onestop_id
+    ],
+    protected_attributes: [
+      :identifiers,
+      :last_conflated_at,
+      :type
     ]
   })
   belongs_to :parent_stop, class_name: 'Stop'
@@ -332,8 +340,12 @@ class StopEgress < Stop
       :not_served_by,
       :identified_by,
       :not_identified_by,
-      :imported_from_feed,
       :parent_stop_onestop_id
+    ],
+    protected_attributes: [
+      :identifiers,
+      :last_conflated_at,
+      :type
     ]
   })
   belongs_to :parent_station, class_name: 'Stop'
