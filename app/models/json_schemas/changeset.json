@@ -43,13 +43,13 @@
             }
           },
           {
-            "required": ["StopEgress"],
+            "required": ["stopEgress"],
             "properties": {
               "stopPlatform": {
                 "$ref": "./stop.json"
               }
             }
-          },          
+          },
           {
             "required": ["operator"],
             "properties": {
