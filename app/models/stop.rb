@@ -361,3 +361,12 @@ class OldStop < BaseStop
   has_many :old_routes_serving_stop, as: :stop
   has_many :routes, through: :old_routes_serving_stop, source_type: 'Stop'
 end
+
+class OldStopStation < OldStop
+end
+
+class OldStopPlatform < OldStop
+end
+
+class OldStopEgress < OldStop
+end
