@@ -12,7 +12,7 @@ describe GTFSGraph do
   end
 
   context 'can apply level 0 and 1 changesets' do
-    before(:each) { @feed, @feed_version = load_feed(feed_version_name: :feed_version_caltrain, import_level: 1) }
+    before(:each) { @feed, @feed_version = load_feed(feed_version_name: :feed_version_caltrain, import_level: 2) }
 
     it 'updated feed geometry' do
       geometry = [
@@ -73,6 +73,11 @@ describe GTFSGraph do
       expect(@feed.imported_route_stop_patterns.count).to eq(51)
     end
 
+    it 'skipped RouteStopPattern generation with trips having less than 2 stop times' do
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_trip_w_0_stop_times, import_level: 2)
+      expect(@feed.imported_route_stop_patterns.size).to eq 7
+    end
+
     it 'created known Route that traverses known Route Stop Patterns' do
       r = @feed.imported_routes.find_by(onestop_id: 'r-9q9j-bullet')
       expect(r.route_stop_patterns.size).to eq(12)
@@ -93,7 +98,6 @@ describe GTFSGraph do
     end
 
     it 'calculated and stored distances for Route Stop Patterns' do
-      puts @feed.imported_route_stop_patterns[0].onestop_id
       expect(@feed.imported_route_stop_patterns[0].stop_distances).to match_array([46.1, 2565.9, 8002.4, 14688.5, 17656.6, 21810.1, 24362.9, 26122.0, 28428.0, 30576.9, 32583.5, 35274.7, 37262.8, 40756.8, 44607.6, 46357.8, 48369.9, 50918.5, 54858.4, 57964.7, 62275.7, 65457.2, 71336.4, 75359.4])
     end
 
