@@ -127,6 +127,7 @@ class GTFSGraph
     total = 0
     ssps = []
     @gtfs.trip_stop_times(trips) do |trip,stop_times|
+      #next if stop_times.length < 2
       route = @gtfs.route(trip.route_id)
       rsp = RouteStopPattern.find_by_onestop_id!(rsp_map[trip.trip_id])
       # Create SSPs for all stop_time edges
@@ -299,6 +300,10 @@ class GTFSGraph
       tl_route = find_by_gtfs_entity(@gtfs.parents(trip).first)
       stop_pattern = tl_stops.map(&:onestop_id)
       next if stop_pattern.empty?
+      #if stop_pattern.length < 1000
+      #  log "   Trip #{trip.trip_id} has less than 2 stop times. Skipping rsp generation."
+      #  next
+      #end
       # temporary RouteStopPattern
       trip_stop_points = tl_stops.map { |s| s.geometry[:coordinates] }
       # determine if RouteStopPattern exists
