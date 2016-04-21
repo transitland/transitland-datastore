@@ -31,13 +31,13 @@
 class BaseStop < ActiveRecord::Base
   self.abstract_class = true
   attr_accessor :served_by, :not_served_by
-  validates :timezone, presence: true
 end
 
 class Stop < BaseStop
   self.table_name_prefix = 'current_'
 
   attr_accessor :parent_stop_onestop_id
+  # validates :timezone, presence: true
 
   include HasAOnestopId
   include IsAnEntityWithIdentifiers
@@ -85,7 +85,7 @@ class Stop < BaseStop
   })
   def self.after_create_making_history(created_model, changeset)
     if created_model.parent_stop_onestop_id
-      created_model.parent_stop = Stop.find_by(onestop_id: created_model.parent_stop_onestop_id)
+      created_model.parent_stop = StopStation.find_by_onestop_id!(created_model.parent_stop_onestop_id)
       created_model.save!
     end
     OperatorRouteStopRelationship.manage_multiple(
@@ -314,6 +314,8 @@ class StopStation < Stop
 end
 
 class StopPlatform < Stop
+  # validates :parent_stop, presence: true
+
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
     virtual_attributes: [
@@ -339,8 +341,7 @@ class StopEgress < Stop
       :served_by,
       :not_served_by,
       :identified_by,
-      :not_identified_by,
-      :parent_stop_onestop_id
+      :not_identified_by
     ],
     protected_attributes: [
       :identifiers,

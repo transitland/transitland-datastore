@@ -34,7 +34,11 @@ class GTFSGraph
     operators = load_tl_operators
     fail GTFSGraph::Error.new('No agencies found that match operators_in_feed') unless operators.size > 0
     routes = operators.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
+
+    stations = Set.new
     stops = routes.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
+    stops.each { |stop| stations << find_by_onestop_id(stop.parent_stop_onestop_id) }
+
     rsps = rsps.select { |rsp| routes.include?(rsp.route) }
     # Update route geometries
     route_rsps = {}
@@ -70,6 +74,7 @@ class GTFSGraph
     begin
       changeset.create_change_payloads(operators)
       log "  stops: #{stops.size}"
+      changeset.create_change_payloads(stations)
       changeset.create_change_payloads(stops)
       log "  routes: #{routes.size}"
       changeset.create_change_payloads(routes)
@@ -207,7 +212,7 @@ class GTFSGraph
         # add gtfs_stop.stop_id as the platform suffix
         stop.onestop_id = OnestopId::StopOnestopId.new(geohash: osid.geohash, name: "#{osid.name}<#{gtfs_stop.id}")
         # add parent_station osid
-        stop.tags[:parent_station] = parent_stop.onestop_id
+        stop.parent_stop_onestop_id = parent_stop.onestop_id
       end
       # index
       stop = find_and_update_entity(stop)

@@ -39,4 +39,12 @@ class StopSerializer < CurrentEntitySerializer
 
   has_many :operators_serving_stop
   has_many :routes_serving_stop
+
+end
+
+class StopPlatformSerializer < StopSerializer
+  attributes :parent_stop_onestop_id
+  def parent_stop_onestop_id
+    object.parent_stop.try(:onestop_id)
+  end
 end
