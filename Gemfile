@@ -28,7 +28,7 @@ gem 'whenever', require: false # to manage crontab
 # data model
 gem 'squeel'
 gem 'enumerize'
-gem 'gtfs', github: 'transitland/gtfs', tag: 'd4e155a65875352530ba41fbf7db1e11fe58de3a'
+gem 'gtfs', github: 'transitland/gtfs', tag: '2865634dbdd31ee9674085c3eb1f6cc3ddfbfaa5'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 gem 'json-schema', '2.5.2' # running into problems with 2.6.0
@@ -82,6 +82,7 @@ gem 'vcr', group: :test
 gem 'webmock', group: :test
 gem 'airborne', group: :test
 gem 'mock_redis', group: :test # used by sidekiq-unique-jobs
+gem 'timecop', group: :test
 gem 'rspec_junit_formatter', '0.2.2', group: :test
 # ^ for CircleCI: https://circleci.com/docs/test-metadata#rspec
 

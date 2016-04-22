@@ -33,7 +33,8 @@ describe Changeset do
             action: "createUpdate",
             stop: {
               onestopId: 's-9q8yt4b-1AvHoS',
-              name: '1st Ave. & Holloway St.'
+              name: '1st Ave. & Holloway St.',
+              timezone: 'America/Los_Angeles'
             }
           }
         ]
@@ -89,7 +90,8 @@ describe Changeset do
             action: 'createUpdate',
             stop: {
               onestopId: 's-9q8yt4b-1AvHoS',
-              name: '1st Ave. & Holloway Street'
+              name: '1st Ave. & Holloway Street',
+              timezone: 'America/Los_Angeles'
             }
           }
         ]
@@ -100,7 +102,8 @@ describe Changeset do
             action: 'createUpdate',
             stop: {
               onestopId: 's-9q8yt4b-1AvHoS',
-              name: '1st Ave. & Holloway St.'
+              name: '1st Ave. & Holloway St.',
+              timezone: 'America/Los_Angeles'
             }
           }
         ]
@@ -111,6 +114,7 @@ describe Changeset do
             action: 'destroy',
             stop: {
               onestopId: 's-9q8yt4b-1Av',
+              timezone: 'America/Los_Angeles'
             }
           }
         ]
@@ -120,7 +124,8 @@ describe Changeset do
           {
             action: 'destroy',
             stop: {
-              onestopId: 's-9q8yt4b-1AvHoS'
+              onestopId: 's-9q8yt4b-1AvHoS',
+              timezone: 'America/Los_Angeles'
             }
           }
         ]
@@ -258,6 +263,7 @@ describe Changeset do
           stop: {
             onestopId: 's-9q8yt4b-1AvHoS',
             name: '1st Ave. & Holloway Street',
+            timezone: 'America/Los_Angeles'
           }
         }
       ]

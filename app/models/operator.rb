@@ -106,6 +106,7 @@ class Operator < BaseOperator
   end
 
   after_initialize :set_default_values
+  after_save :bust_aggregate_cache
 
   has_many :operators_in_feed
   has_many :feeds, through: :operators_in_feed
@@ -162,6 +163,10 @@ class Operator < BaseOperator
       self.tags ||= {}
       self.identifiers ||= []
     end
+  end
+
+  def bust_aggregate_cache
+    Rails.cache.delete(Api::V1::OperatorsController::AGGREGATE_CACHE_KEY)
   end
 
 end

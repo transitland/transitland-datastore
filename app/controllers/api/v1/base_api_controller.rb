@@ -42,6 +42,10 @@ class Api::V1::BaseApiController < ApplicationController
     raise ActionController::RoutingError.new("No route matches #{request.env['REQUEST_METHOD']} /api/#{params[:unmatched_route]}")
   end
 
+  def default_url_options
+    TransitlandDatastore::Application.base_url_options
+  end
+
   private
 
   def require_api_auth_token
@@ -55,7 +59,7 @@ class Api::V1::BaseApiController < ApplicationController
   end
 
   def set_default_response_format
-    request.format = :json unless [:geojson, :csv].include?(request.format.to_sym)
+    request.format = :json unless [:geojson, :csv, :rss].include?(request.format.to_sym)
   end
 
   def render_error(code: 500, message: '', errors: {})

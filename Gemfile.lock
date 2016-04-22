@@ -19,8 +19,8 @@ GIT
 
 GIT
   remote: git://github.com/transitland/gtfs.git
-  revision: d4e155a65875352530ba41fbf7db1e11fe58de3a
-  tag: d4e155a65875352530ba41fbf7db1e11fe58de3a
+  revision: 2865634dbdd31ee9674085c3eb1f6cc3ddfbfaa5
+  tag: 2865634dbdd31ee9674085c3eb1f6cc3ddfbfaa5
   specs:
     gtfs (1.0.1)
       multi_json
@@ -80,7 +80,7 @@ GEM
       thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
     addressable (2.3.8)
-    airborne (0.2.3)
+    airborne (0.2.5)
       activesupport (>= 3.0.0)
       rack-test (~> 0.6, >= 0.6.2)
       rest-client (~> 1.7, >= 1.7.3)
@@ -90,12 +90,12 @@ GEM
       rake (~> 10.4)
     arel (6.0.3)
     ast (2.2.0)
-    aws-sdk (2.2.31)
-      aws-sdk-resources (= 2.2.31)
-    aws-sdk-core (2.2.31)
+    aws-sdk (2.2.34)
+      aws-sdk-resources (= 2.2.34)
+    aws-sdk-core (2.2.34)
       jmespath (~> 1.0)
-    aws-sdk-resources (2.2.31)
-      aws-sdk-core (= 2.2.31)
+    aws-sdk-resources (2.2.34)
+      aws-sdk-core (= 2.2.34)
     bcrypt (3.1.11)
     better_errors (2.1.1)
       coderay (>= 1.0.0)
@@ -107,7 +107,7 @@ GEM
     bullet (5.0.0)
       activesupport (>= 3.0.0)
       uniform_notifier (~> 1.9.0)
-    byebug (8.2.2)
+    byebug (8.2.4)
     c_geohash (1.1.2)
     choice (0.2.0)
     chronic (0.10.2)
@@ -116,14 +116,13 @@ GEM
     connection_pool (2.2.0)
     crack (0.4.3)
       safe_yaml (~> 1.0.0)
-    database_cleaner (1.5.1)
+    database_cleaner (1.5.2)
     debug_inspector (0.0.2)
-    devise (3.5.6)
+    devise (4.0.0)
       bcrypt (~> 3.0)
       orm_adapter (~> 0.1)
-      railties (>= 3.2.6, < 5)
+      railties (>= 4.1.0, < 5.1)
       responders
-      thread_safe (~> 0.1)
       warden (~> 1.2.3)
     diff-lcs (1.2.5)
     docile (1.1.5)
@@ -135,10 +134,10 @@ GEM
       activesupport (>= 3.2)
     erubis (2.7.0)
     excon (0.49.0)
-    factory_girl (4.5.0)
+    factory_girl (4.7.0)
       activesupport (>= 3.0.0)
-    factory_girl_rails (4.6.0)
-      factory_girl (~> 4.5.0)
+    factory_girl_rails (4.7.0)
+      factory_girl (~> 4.7.0)
       railties (>= 3.0.0)
     faraday (0.9.2)
       multipart-post (>= 1.2, < 3)
@@ -171,7 +170,7 @@ GEM
     i18n (0.7.0)
     interception (0.5)
     ipaddress (0.8.3)
-    jmespath (1.2.3)
+    jmespath (1.2.4)
       json_pure (>= 1.8.1)
     json (1.8.3)
     json-schema (2.5.2)
@@ -193,6 +192,7 @@ GEM
       activerecord (>= 2.3)
     method_source (0.8.2)
     mime-types (2.99.1)
+    mime-types-data (3.2016.0221)
     mini_portile2 (2.0.0)
     minitest (5.8.4)
     mock_redis (0.16.1)
@@ -266,7 +266,7 @@ GEM
     raindrops (0.16.0)
     rake (10.5.0)
     rcsv (0.3.1)
-    redis (3.2.2)
+    redis (3.3.0)
     redis-actionpack (4.0.1)
       actionpack (~> 4)
       redis-rack (~> 1.5.0)
@@ -356,7 +356,7 @@ GEM
       rack-protection (~> 1.4)
       tilt (>= 1.3, < 3)
     slop (3.6.0)
-    sprockets (3.5.2)
+    sprockets (3.6.0)
       concurrent-ruby (~> 1.0)
       rack (> 1, < 3)
     sprockets-rails (3.0.4)
@@ -371,6 +371,7 @@ GEM
     thor (0.19.1)
     thread_safe (0.3.5)
     tilt (2.0.2)
+    timecop (0.8.1)
     tzinfo (1.2.2)
       thread_safe (~> 0.1)
     unf (0.1.4)
@@ -384,7 +385,7 @@ GEM
     vcr (3.0.1)
     warden (1.2.6)
       rack (>= 1.0)
-    webmock (1.24.2)
+    webmock (1.24.3)
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
       hashdiff
@@ -450,6 +451,7 @@ DEPENDENCIES
   simplecov
   squeel
   text
+  timecop
   unicorn
   vcr
   webmock

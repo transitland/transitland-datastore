@@ -16,6 +16,10 @@
 #  created_at             :datetime
 #  updated_at             :datetime
 #  import_level           :integer          default(0)
+#  url                    :string
+#  file_raw               :string
+#  sha1_raw               :string
+#  md5_raw                :string
 #
 # Indexes
 #
@@ -33,8 +37,10 @@ class FeedVersion < ActiveRecord::Base
   has_many :imported_schedule_stop_pairs, class_name: 'ScheduleStopPair', dependent: :delete_all
 
   mount_uploader :file, FeedVersionUploader
+  mount_uploader :file_raw, FeedVersionUploaderRaw
 
-  validates :sha1, uniqueness: true
+  validates :sha1, presence: true, uniqueness: true
+  validates :feed, presence: true
 
   before_validation :compute_and_set_hashes, :read_gtfs_calendar_dates, :read_gtfs_feed_info
 
@@ -63,6 +69,41 @@ class FeedVersion < ActiveRecord::Base
     )
   end
 
+  def open_gtfs
+    fail StandardError.new('No file') unless file.present?
+    @gtfs ||= GTFS::Source.build(file.local_path_copying_locally_if_needed, {strict: false})
+    @gtfs
+  end
+
+  def fetch_and_normalize
+    fail StandardError.new('Files exist') if (file.present? || file_raw.present?)
+    # Update fetched time
+    self.fetched_at = DateTime.now
+    # Download the raw feed
+    gtfs_raw = GTFS::Source.build(self.url, {strict: false})
+    # Do we need to normalize?
+    if self.url_fragment
+      # Get temporary path
+      Dir.mktmpdir do |dir|
+        tmp_file_path = File.join(dir, 'normalized.zip')
+        # Create normalize archive
+        gtfs_raw.create_archive(tmp_file_path)
+        gtfs_normalized = GTFS::Source.build(tmp_file_path, {strict: false})
+        # Update
+        self.file = File.open(gtfs_normalized.archive)
+        self.file_raw = File.open(gtfs_raw.archive)
+      end
+    else
+      self.file = File.open(gtfs_raw.archive)
+    end
+    # Compute hashes
+    compute_and_set_hashes
+  end
+
+  def url_fragment
+    (self.url || "").partition("#").last.presence
+  end
+
   def download_url
     if self.feed.license_redistribute.presence == 'no'
       nil
@@ -79,12 +120,16 @@ class FeedVersion < ActiveRecord::Base
       self.sha1 = Digest::SHA1.file(file.path).hexdigest
       self.md5  = Digest::MD5.file(file.path).hexdigest
     end
+    if file_raw.present? && file_raw_changed?
+      self.sha1_raw = Digest::SHA1.file(file_raw.path).hexdigest
+      self.md5_raw  = Digest::MD5.file(file_raw.path).hexdigest
+    end
   end
 
   def read_gtfs_calendar_dates
     if file.present? && file_changed?
-      gtfs_file = GTFS::Source.build(file.path, {strict: false})
-      start_date, end_date = gtfs_file.service_period_range
+      gtfs = open_gtfs
+      start_date, end_date = gtfs.service_period_range
       self.earliest_calendar_date ||= start_date
       self.latest_calendar_date ||= end_date
     end
@@ -92,10 +137,10 @@ class FeedVersion < ActiveRecord::Base
 
   def read_gtfs_feed_info
     if file.present? && file_changed?
-      gtfs_file = GTFS::Source.build(file.path, {strict: false})
+      gtfs = open_gtfs
       begin
-        if gtfs_file.feed_infos.count > 0
-          feed_info = gtfs_file.feed_infos[0]
+        if gtfs.feed_infos.count > 0
+          feed_info = gtfs.feed_infos[0]
           feed_version_tags = {
             feed_publisher_name: feed_info.feed_publisher_name,
             feed_publisher_url:  feed_info.feed_publisher_url,
