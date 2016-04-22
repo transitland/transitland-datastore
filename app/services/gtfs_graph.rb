@@ -11,7 +11,7 @@ class GTFSGraph
     @feed = feed
     @feed_version = feed_version
     @gtfs = @feed_version.open_gtfs
-    @qc = QualityCheck.new
+    @qc = QualityCheck.new(feed_version: feed_version)
     @log = []
     # GTFS entity to Onestop ID
     @gtfs_to_onestop_id = {}
@@ -86,6 +86,8 @@ class GTFSGraph
     log "Changeset apply"
     t = Time.now
     changeset.apply!
+    @qc.creator_changeset = changeset
+    @qc.save
     log "  apply done: time #{Time.now - t}"
   end
 
