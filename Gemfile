@@ -37,6 +37,9 @@ gem 'email_validator'
 # text matching
 gem 'text'
 
+# language support
+gem 'kakasi'
+
 # authentication and authorization
 gem 'rack-cors', require: 'rack/cors'
 gem 'devise'
