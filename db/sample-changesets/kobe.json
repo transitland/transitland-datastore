@@ -1,0 +1,129 @@
+{
+  "changeset": {
+    "user": {
+      "email": "transitland@mapzen.com",
+      "name": "Transitland staff",
+      "user_type": "data_enthusists"
+    },
+    "payload": {
+        "changes": [
+            {
+                "action": "createUpdate",
+                "operator": {
+                    "website": "http://www.city.kobe.lg.jp/life/access/transport/subway/",
+                    "onestopId": "o-xn0j-kobe",
+                    "name": "City of Kobe",
+                    "metro": "Kobe",
+                    "tags": {
+                        "agency_phone": "078-322-5958",
+                        "agency_fare_url": null,
+                        "agency_id": null,
+                        "agency_lang": "ja"
+                    },
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                            [
+                                [
+                                    135.15,
+                                    34.65209999999998
+                                ],
+                                [
+                                    135.05699999999996,
+                                    34.68149999999999
+                                ],
+                                [
+                                    "135.04099999999997",
+                                    "34.687899999999985"
+                                ],
+                                [
+                                    135.03,
+                                    34.69939999999998
+                                ],
+                                [
+                                    135.017,
+                                    "34.719499999999975"
+                                ],
+                                [
+                                    135.171344,
+                                    34.76183100000001
+                                ],
+                                [
+                                    135.196,
+                                    "34.706700000000005"
+                                ],
+                                [
+                                    135.196,
+                                    34.69159999999999
+                                ],
+                                [
+                                    135.175,
+                                    34.65689999999998
+                                ],
+                                [
+                                    135.165,
+                                    "34.654599999999995"
+                                ],
+                                [
+                                    135.15,
+                                    34.65209999999998
+                                ]
+                            ]
+                        ]
+                    },
+                    "country": "Japan",
+                    "state": "Hyōgo",
+                    "timezone": "Asia/Tokyo"
+                }
+            },
+            {
+                "action": "createUpdate",
+                "feed": {
+                    "licenseRedistribute": "yes",
+                    "onestopId": "f-xn0j-kobe",
+                    "licenseAttributionText": "(C) Code for Kobe",
+                    "licenseUseWithoutAttribution": "no",
+                    "tags": {},
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                            [
+                                [
+                                    135.017,
+                                    34.6521
+                                ],
+                                [
+                                    135.196,
+                                    34.6521
+                                ],
+                                [
+                                    135.196,
+                                    34.761831
+                                ],
+                                [
+                                    135.017,
+                                    34.761831
+                                ],
+                                [
+                                    135.017,
+                                    34.6521
+                                ]
+                            ]
+                        ]
+                    },
+                    "includesOperators": [
+                        {
+                            "operatorOnestopId": "o-xn0j-kobe",
+                            "gtfsAgencyId": null
+                        }
+                    ],
+                    "licenseCreateDerivedProduct": "yes",
+                    "url": "http://codeforkobe.github.io/kobe-transit/kobe_subway_gtfs.zip",
+                    "licenseName": "Creative Commons 3.0",
+                    "licenseUrl": "http://creativecommons.org/licenses/by-sa/3.0/"
+                }
+            }
+        ]
+    }
+  } 
+}
