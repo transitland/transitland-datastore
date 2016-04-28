@@ -87,6 +87,17 @@ module OnestopId
   class RouteOnestopId < OnestopIdBase
     PREFIX = :r
     MODEL = Route
+
+    def to_s
+      geohash = @geohash[0...self.class::GEOHASH_MAX_LENGTH]
+      num_fixed_chars = RouteStopPatternOnestopId::NUM_COMPONENTS + 2*(RouteStopPatternOnestopId::HASH_LENGTH)
+      max_name_length = self.class::MAX_LENGTH - (num_fixed_chars + geohash.length)
+      [
+        self.class::PREFIX,
+        geohash,
+        @name[0...max_name_length],
+      ].join(COMPONENT_SEPARATOR)[0...self.class::MAX_LENGTH]
+    end
   end
 
   class RouteStopPatternOnestopId < OnestopIdBase
@@ -120,7 +131,8 @@ module OnestopId
 
     def to_s
       geohash = @geohash[0...self.class::GEOHASH_MAX_LENGTH]
-      max_name_length = self.class::MAX_LENGTH - (17 + geohash.length)
+      num_fixed_chars = RouteStopPatternOnestopId::NUM_COMPONENTS + 2*(RouteStopPatternOnestopId::HASH_LENGTH)
+      max_name_length = self.class::MAX_LENGTH - (num_fixed_chars + geohash.length)
       [
         self.class::PREFIX,
         geohash,
