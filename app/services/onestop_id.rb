@@ -119,10 +119,12 @@ module OnestopId
     end
 
     def to_s
+      geohash = @geohash[0...self.class::GEOHASH_MAX_LENGTH]
+      max_name_length = self.class::MAX_LENGTH - (17 + geohash.length)
       [
         self.class::PREFIX,
-        @geohash[0...self.class::GEOHASH_MAX_LENGTH],
-        @name,
+        geohash,
+        @name[0...max_name_length],
         @stop_hash,
         @geometry_hash
       ].join(COMPONENT_SEPARATOR)[0...self.class::MAX_LENGTH]
