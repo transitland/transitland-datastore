@@ -135,7 +135,6 @@ describe OnestopId do
           geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]
         ).to_s
       ).to eq('r-9q9-pneumonoultramicroscopicsilicovolcanoconiosi-fca1a5-48fed0')
-      puts 'r-9q9-pneumonoultramicroscopicsilicovolcanoconiosi-fca1a5-48fed0'.length
     end
 
     context '#validate' do
