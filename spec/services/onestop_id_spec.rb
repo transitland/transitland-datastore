@@ -70,6 +70,17 @@ describe OnestopId do
     end
   end
 
+  context 'RouteOnestopId' do
+    it 'truncates beyond maximum length' do
+      expect(
+        OnestopId::RouteOnestopId.new(
+          geohash: '9q9',
+          name: 'pneumonoultramicroscopicsilicovolcanoconiosis'
+        ).to_s
+      ).to eq('r-9q9-pneumonoultramicroscopicsilicovolcanoconiosi')
+    end
+  end
+
   context 'RouteStopPatternOnestopId' do
     context 'invalid arguments' do
       it 'fails gracefully when given an invalid stop pattern' do
@@ -124,6 +135,7 @@ describe OnestopId do
           geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]
         ).to_s
       ).to eq('r-9q9-pneumonoultramicroscopicsilicovolcanoconiosi-fca1a5-48fed0')
+      puts 'r-9q9-pneumonoultramicroscopicsilicovolcanoconiosi-fca1a5-48fed0'.length
     end
 
     context '#validate' do

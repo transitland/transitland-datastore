@@ -90,12 +90,10 @@ module OnestopId
 
     def to_s
       geohash = @geohash[0...self.class::GEOHASH_MAX_LENGTH]
-      num_fixed_chars = RouteStopPatternOnestopId::NUM_COMPONENTS + 2*(RouteStopPatternOnestopId::HASH_LENGTH)
-      max_name_length = self.class::MAX_LENGTH - (num_fixed_chars + geohash.length)
       [
         self.class::PREFIX,
         geohash,
-        @name[0...max_name_length],
+        @name[0...RouteStopPatternOnestopId.max_name_length(geohash.length)],
       ].join(COMPONENT_SEPARATOR)[0...self.class::MAX_LENGTH]
     end
   end
@@ -131,12 +129,10 @@ module OnestopId
 
     def to_s
       geohash = @geohash[0...self.class::GEOHASH_MAX_LENGTH]
-      num_fixed_chars = RouteStopPatternOnestopId::NUM_COMPONENTS + 2*(RouteStopPatternOnestopId::HASH_LENGTH)
-      max_name_length = self.class::MAX_LENGTH - (num_fixed_chars + geohash.length)
       [
         self.class::PREFIX,
         geohash,
-        @name[0...max_name_length],
+        @name[0...self.class.max_name_length(geohash.length)],
         @stop_hash,
         @geometry_hash
       ].join(COMPONENT_SEPARATOR)[0...self.class::MAX_LENGTH]
@@ -157,6 +153,11 @@ module OnestopId
 
     def self.route_onestop_id(onestop_id)
       onestop_id.split(COMPONENT_SEPARATOR)[0..2].join(COMPONENT_SEPARATOR)
+    end
+
+    def self.max_name_length(geohash_length)
+      num_fixed_chars = NUM_COMPONENTS + 2*(HASH_LENGTH)
+      MAX_LENGTH - (num_fixed_chars + geohash_length)
     end
 
     private
