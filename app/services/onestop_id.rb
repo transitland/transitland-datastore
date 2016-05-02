@@ -4,11 +4,9 @@ module OnestopId
 
   COMPONENT_SEPARATOR = '-'
   GEOHASH_FILTER = /[^0123456789bcdefghjkmnpqrstuvwxyz]/
-  #NAME_TILDE = /[\-\:\&\@\/]/
-  #NAME_FILTER = /[^a-zA-Z\d\@\~\>\<]/
-  NAME_TILDE = /[\u{002D}\u{003A}\u{0026}\u{0040}\u{002F}]/
-  #NAME_FILTER + Japanese Kanji, Hiragana, and Katakana
-  NAME_FILTER = /[^\u{0061}-\u{007A}\u{0041}-\u{005A}\u{0020}\u{003C}\u{003E}\u{0040}\u{007E}\u{4E00}-\u{9FBF}\u{3040}-\u{309F}\u{30A0}-\u{30FF}]/
+  NAME_TILDE = /[\-\:\&\@\/]/
+  NAME_FILTER = /[^a-zA-Z\d\@\~\>\<]/
+  JAPANESE_TEST = /[\u{4E00}-\u{9FBF}\u{3040}-\u{309F}\u{30A0}-\u{30FF}]/
   IDENTIFIER_TEMPLATE = Addressable::Template.new("gtfs://{feed_onestop_id}/{entity_prefix}/{entity_id}")
 
   class OnestopIdBase
@@ -32,8 +30,7 @@ module OnestopId
         geohash = geohash.to_s.downcase.gsub(GEOHASH_FILTER, '')
         # TODO: punctuation
         name = Kakasi.kakasi('-JH -Ja -Ha -Ka', name)
-        #name = name.to_s.downcase.gsub(NAME_TILDE, "\u{007E}").gsub(NAME_FILTER, '')
-        name = name.to_s.downcase.gsub(NAME_TILDE, name).gsub(NAME_FILTER, '')
+        name = name.to_s.downcase.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')
       end
       @geohash = geohash
       @name = name
