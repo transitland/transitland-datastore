@@ -90,6 +90,13 @@ module OnestopId
 
     def to_s
       geohash = @geohash[0...self.class::GEOHASH_MAX_LENGTH]
+      # Both Route and their RouteStopPatterns will share a name component whose max length
+      # is dependent on the fixed length components of the RouteStopPattern onestop id (which includes the Route onestop id)
+      # a variable length route geohash, and the total limitation of 64 chars for all onestop ids.
+      # Route onestop ids will have 1 prefix, 2 dashes, and a variable-length route geohash up to 10 characters long.
+      # RouteStopPattern onestop ids will have a route onestop id plus 2 dashes and 2 geohashes (stop pattern and geometry)
+      # of 6 chars long each. The final max value of the name length is computed in RouteStopPatternOnestopId.max_name_length
+      # and will be between 64 - (1 + 2 + 10 + 2 + 2*6) = 37 and 46 chars long.
       [
         self.class::PREFIX,
         geohash,
