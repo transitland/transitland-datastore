@@ -5,8 +5,7 @@ module OnestopId
   COMPONENT_SEPARATOR = '-'
   GEOHASH_FILTER = /[^0123456789bcdefghjkmnpqrstuvwxyz]/
   NAME_TILDE = /[\-\:\&\@\/]/
-  # includes Kanji, Hiragana, Katakana, Japanese-style Punctuation (respectively)
-  NAME_FILTER = /[^a-zA-Z\d\@\~\>\<\u{4E00}-\u{9FBF}\u{3040}-\u{309F}\u{30A0}-\u{30FF}\u{3000}-\u{30f0}]/
+  NAME_FILTER = /[\s\b\;\?\=\&\"\#\%\{\}\|\\\^\[\]\`\$\_\.\+\!\*\'\(\)\,]/
   IDENTIFIER_TEMPLATE = Addressable::Template.new("gtfs://{feed_onestop_id}/{entity_prefix}/{entity_id}")
 
   class OnestopIdBase
