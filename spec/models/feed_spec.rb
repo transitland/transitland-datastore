@@ -321,4 +321,29 @@ describe Feed do
       expect(feed.active_feed_version).to eq(fv2)
     end
   end
+
+  context '.where_active_feed_version_valid' do
+    before(:each) do
+      date0 = Date.parse('2014-01-01')
+      date1 = Date.parse('2015-01-01')
+      date2 = Date.parse('2016-01-01')
+      feed = create(:feed)
+      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date0, latest_calendar_date: date1)
+      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date1, latest_calendar_date: date2)
+      feed.update(active_feed_version: fv2)
+    end
+
+    it 'finds valid active_feed_version' do
+      expect(Feed.where_active_feed_version_valid('2015-06-01').count).to eq(1)
+    end
+
+    it 'expired active_feed_version' do
+      expect(Feed.where_active_feed_version_valid('2016-06-01').count).to eq(0)
+    end
+
+    it 'active_feed_version that has not started' do
+      expect(Feed.where_active_feed_version_valid('2014-06-01').count).to eq(0)
+    end
+  end
+
 end
