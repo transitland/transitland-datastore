@@ -53,11 +53,13 @@ describe OnestopId do
   end
 
   context '#name' do
-    it 'allows only letters, digits, ~, @ in name' do
+    it 'filters out characters: \s \b ; ? = " # % { } | \ ^ [ ] ` $ _ . + ! * \' ( ) ,' do
       expect(TestOnestopId.new(geohash: '9q9', name: 'foo bar').to_s).to eq('s-9q9-foobar')
-      expect(TestOnestopId.new(geohash: '9q9', name: 'foo bar!').to_s).to eq('s-9q9-foobar')
+      expect(TestOnestopId.new(geohash: '9q9', name: 'foo&bar').to_s).to eq('s-9q9-foo~bar')
       expect(TestOnestopId.new(geohash: '9q9', name: 'foo~bar').to_s).to eq('s-9q9-foo~bar')
       expect(TestOnestopId.new(geohash: '9q9', name: 'foo~bar0').to_s).to eq('s-9q9-foo~bar0')
+      expect(TestOnestopId.new(geohash: '9q9', name: 'foo~bar;?="#%{}|\\^[]`$_.+!*\'(),').to_s).to eq('s-9q9-foo~bar')
+      expect(TestOnestopId.new(geohash: '9q9', name: "長田").to_s).to eq('s-9q9-長田')
     end
   end
 
