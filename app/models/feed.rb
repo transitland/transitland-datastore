@@ -80,6 +80,11 @@ class Feed < BaseFeed
       .where('feed_versions.earliest_calendar_date < ?', date)
   }
 
+  scope :where_active_feed_version_expired, -> (date) {
+    date = date.is_a?(Date) ? date : Date.parse(date)
+    joins(:active_feed_version)
+      .where('feed_versions.latest_calendar_date < ?', date)
+  }
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
