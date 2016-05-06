@@ -1,11 +1,27 @@
 # Change Log
 
-## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
+## [4.8.1](https://github.com/transitland/transitland-datastore/tree/4.8.1) (2016-05-06)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.0...4.8.1)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.0...HEAD)
+**Implemented enhancements:**
+
+- Support for non-ASCII onestop ids [\#579](https://github.com/transitland/transitland-datastore/issues/579)
+
+**Fixed bugs:**
+
+- RouteStopPattern creation error in `f-dpmg-rta` [\#573](https://github.com/transitland/transitland-datastore/issues/573)
+
+**Closed issues:**
+
+- Onestop Id exceptions [\#583](https://github.com/transitland/transitland-datastore/issues/583)
+- Onestop Id Invalid Geometry Hash [\#575](https://github.com/transitland/transitland-datastore/issues/575)
 
 **Merged pull requests:**
 
+- Onestop ID exceptions, name fallbacks [\#582](https://github.com/transitland/transitland-datastore/pull/582) ([irees](https://github.com/irees))
+- Unicode onestop ids [\#580](https://github.com/transitland/transitland-datastore/pull/580) ([doublestranded](https://github.com/doublestranded))
+- Handle trips one stop time [\#577](https://github.com/transitland/transitland-datastore/pull/577) ([doublestranded](https://github.com/doublestranded))
+- Onestop id name truncation [\#576](https://github.com/transitland/transitland-datastore/pull/576) ([doublestranded](https://github.com/doublestranded))
 - production release 4.8 [\#574](https://github.com/transitland/transitland-datastore/pull/574) ([drewda](https://github.com/drewda))
 
 ## [4.8.0](https://github.com/transitland/transitland-datastore/tree/4.8.0) (2016-04-22)
