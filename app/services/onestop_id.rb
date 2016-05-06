@@ -8,6 +8,9 @@ module OnestopId
   NAME_FILTER = /[^[:alnum:]\~\>\<]/
   IDENTIFIER_TEMPLATE = Addressable::Template.new("gtfs://{feed_onestop_id}/{entity_prefix}/{entity_id}")
 
+  class OnestopIdException < StandardError
+  end
+
   class OnestopIdBase
 
     PREFIX = nil
@@ -48,6 +51,11 @@ module OnestopId
       errors << 'invalid geohash' unless validate_geohash(@geohash)
       errors << 'invalid name' unless validate_name(@name)
       return (errors.size == 0), errors
+    end
+
+    def validate!
+      valid, errors = self.validate
+      raise OnestopIdException.new(errors.join(', ')) unless valid
     end
 
     def valid?
