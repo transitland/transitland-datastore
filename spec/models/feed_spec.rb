@@ -346,4 +346,38 @@ describe Feed do
     end
   end
 
+  context '.where_newer_feed_version' do
+    before(:each) do
+      date0 = Date.parse('2014-01-01')
+      date1 = Date.parse('2015-01-01')
+      date2 = Date.parse('2016-01-01')
+      # 3 feed versions, 2 newer
+      @feed0 = create(:feed)
+      fv0 = create(:feed_version, feed: @feed0, created_at: date0)
+      fv1 = create(:feed_version, feed: @feed0, created_at: date1)
+      fv2 = create(:feed_version, feed: @feed0, created_at: date2)
+      @feed0.update!(active_feed_version: fv0)
+      # 3 feed versions, 1 newer, 1 older
+      @feed1 = create(:feed)
+      fv3 = create(:feed_version, feed: @feed1, created_at: date0)
+      fv4 = create(:feed_version, feed: @feed1, created_at: date1)
+      fv5 = create(:feed_version, feed: @feed1, created_at: date2)
+      @feed1.update!(active_feed_version: fv4)
+      # 3 feed versions, 2 newer
+      @feed2 = create(:feed)
+      fv6 = create(:feed_version, feed: @feed2, created_at: date0)
+      fv7 = create(:feed_version, feed: @feed2, created_at: date1)
+      fv8 = create(:feed_version, feed: @feed2, created_at: date2)
+      @feed2.update!(active_feed_version: fv8)
+      # 1 feed version, current
+      @feed3 = create(:feed)
+      fv9 = create(:feed_version, feed: @feed3, created_at: date0)
+      @feed3.update!(active_feed_version: fv9)
+    end
+
+    it 'finds superseded feeds' do
+      expect(Feed.where_active_feed_version_update).to match_array([@feed0, @feed1])
+    end
+  end
+
 end
