@@ -103,12 +103,16 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
         state: {},
         metro: {},
         timezone: {},
+        name: {},
+        short_name: {},
         tags: {}
       }
       json[:country] = count_values(Operator.pluck(:country), attr_name: :country)
       json[:state] = count_values(Operator.pluck(:state), attr_name: :state)
       json[:metro] = count_values(Operator.pluck(:metro), attr_name: :metro)
       json[:timezone] = count_values(Operator.pluck(:timezone), attr_name: :timezone)
+      json[:name] = count_values(Operator.pluck(:name), attr_name: :name)
+      json[:short_name] = count_values(Operator.pluck(:short_name), attr_name: :short_name)
       json[:tags] = count_and_gather_values(Operator.pluck(:tags))
       json
     end
