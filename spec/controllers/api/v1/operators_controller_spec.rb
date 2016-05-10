@@ -32,7 +32,7 @@ describe Api::V1::OperatorsController do
 
       it 'filters by name' do
         operators = create_list(:operator, 3)
-        operator = operators.first
+        operator = create(:operator, name: 'Test 123')
         get :index, name: operator.name
         expect_json({ operators: -> (operators) {
           expect(operators.first[:onestop_id]).to eq operator.onestop_id
@@ -42,8 +42,8 @@ describe Api::V1::OperatorsController do
 
       it 'filters by short_name' do
         operators = create_list(:operator, 3)
-        operator = operators.first
-        get :index, short_name: operator.name
+        operator = create(:operator, short_name: 'Test 123')
+        get :index, short_name: operator.short_name
         expect_json({ operators: -> (operators) {
           expect(operators.first[:onestop_id]).to eq operator.onestop_id
           expect(operators.count).to eq 1
