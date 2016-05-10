@@ -78,7 +78,7 @@ class GTFSGraph
     rescue Changeset::Error => e
       log "Error: #{e.message}"
       log "Payload:"
-      e.change_payloads.each do |change_payload|
+      changeset.change_payloads.each do |change_payload|
         log change_payload.to_json
       end
     end
