@@ -30,6 +30,26 @@ describe Api::V1::OperatorsController do
         }})
       end
 
+      it 'filters by name' do
+        operators = create_list(:operator, 3)
+        operator = operators.first
+        get :index, name: operator.name
+        expect_json({ operators: -> (operators) {
+          expect(operators.first[:onestop_id]).to eq operator.onestop_id
+          expect(operators.count).to eq 1
+        }})
+      end
+
+      it 'filters by short_name' do
+        operators = create_list(:operator, 3)
+        operator = operators.first
+        get :index, short_name: operator.name
+        expect_json({ operators: -> (operators) {
+          expect(operators.first[:onestop_id]).to eq operator.onestop_id
+          expect(operators.count).to eq 1
+        }})
+      end
+
       it 'returns the appropriate operator when identifier provided' do
         get :index, identifier: 'VTA'
         expect_json({ operators: -> (operators) {
