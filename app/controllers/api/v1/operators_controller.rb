@@ -32,6 +32,8 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
     @operators = AllowFiltering.by_attribute_array(@operators, params, :state)
     @operators = AllowFiltering.by_attribute_array(@operators, params, :metro)
     @operators = AllowFiltering.by_attribute_array(@operators, params, :timezone)
+    @operators = AllowFiltering.by_attribute_array(@operators, params, :name)
+    @operators = AllowFiltering.by_attribute_array(@operators, params, :short_name)
 
     if [params[:lat], params[:lon]].map(&:present?).all?
       point = Operator::GEOFACTORY.point(params[:lon], params[:lat])
@@ -71,7 +73,9 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
             :onestop_id,
             :tag_key,
             :tag_value,
-            :import_level
+            :import_level,
+            :name,
+            :short_name
           )
         )
       end
