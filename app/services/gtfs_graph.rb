@@ -75,7 +75,7 @@ class GTFSGraph
       changeset.create_change_payloads(routes)
       log "  route geometries: #{rsps.size}"
       changeset.create_change_payloads(rsps)
-    rescue ChangesetError => e
+    rescue Changeset::Error => e
       log "Error: #{e.message}"
       log "Payload:"
       e.change_payloads.each do |change_payload|
