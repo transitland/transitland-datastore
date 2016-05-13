@@ -11,7 +11,6 @@ class GTFSGraph
     @feed = feed
     @feed_version = feed_version
     @gtfs = @feed_version.open_gtfs
-    @qc = QualityCheck.new(feed_version: feed_version)
     @log = []
     # GTFS entity to Onestop ID
     @gtfs_to_onestop_id = {}
@@ -87,24 +86,11 @@ class GTFSGraph
     t = Time.now
     changeset.apply!
     # changeset now has a db id
-    save_issues(changeset)
+    log "Evaluating feed quality"
+    @qc = QualityCheck.new(feed_version: @feed_version, changeset: changeset)
+    evaluate_geometries(rsps)
+    @qc.save
     log "  apply done: time #{Time.now - t}"
-  end
-
-  def save_issues(changeset)
-    @qc.issues.each do |issue|
-      issue.created_by_changeset = changeset
-    end
-    Issue.import @qc.issues
-    ewis = []
-    @qc.issues.each do |issue|
-      issue.entities_with_issues.each do |ewi|
-        ewi.entity = OnestopId.find!(ewi.entity.onestop_id)
-        ewi.issue = issue
-      end
-      ewis.concat issue.entities_with_issues
-    end
-    EntityWithIssues.import ewis
   end
 
   def calculate_rsp_distances(rsps)
@@ -124,6 +110,15 @@ class GTFSGraph
     end
     score = ((rsps.size - rsps_with_issues)/rsps.size.to_f).round(5) rescue score = 1.0
     log "Feed: #{@feed.onestop_id}. #{rsps_with_issues} Route Stop Patterns out of #{rsps.size} had issues with distance calculation. Valhalla Import Score: #{score}"
+  end
+
+  def evaluate_geometries(rsps)
+    rsps.each do |rsp|
+      stops = rsp.stop_pattern.map { |onestop_id| find_by_onestop_id(onestop_id) }
+      stops.each do |stop|
+        @qc.stop_rsp_distance(stop, rsp)
+      end
+    end
   end
 
   def ssp_schedule_async
@@ -337,10 +332,6 @@ class GTFSGraph
       rsp.trips << trip.trip_id unless rsp.trips.include?(trip.trip_id)
       rsp.route = tl_route
       rsps << rsp
-
-      tl_stops.each do |stop|
-        @qc.outlier_stop(stop, rsp, @qc)
-      end
     end
     log "#{stop_times_with_shape_dist_traveled} stop times with shape_dist_traveled found out of #{stop_times_count} total stop times" if stop_times_with_shape_dist_traveled > 0
     rsps
