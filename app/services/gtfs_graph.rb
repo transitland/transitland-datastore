@@ -197,9 +197,9 @@ class GTFSGraph
     log "  stops"
     # Create parent stops first
     @gtfs.stops.reject(&:parent_station).each do |gtfs_stop|
-      stop = find_and_update_entity(StopStation.from_gtfs(gtfs_stop))
+      stop = find_and_update_entity(Stop.from_gtfs(gtfs_stop))
       add_identifier(stop, 's', gtfs_stop)
-      log "    StopStation: #{stop.onestop_id}: #{stop.name}"
+      log "    Stop: #{stop.onestop_id}: #{stop.name}"
     end
     # Create child stops
     @gtfs.stops.select(&:parent_station).each do |gtfs_stop|

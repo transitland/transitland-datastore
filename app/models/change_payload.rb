@@ -55,7 +55,6 @@ class ChangePayload < ActiveRecord::Base
     entity_types = {
       feed: Feed,
       stop: Stop,
-      stop_station: StopStation,
       stop_platform: StopPlatform,
       stop_egress: StopEgress,
       operator: Operator,

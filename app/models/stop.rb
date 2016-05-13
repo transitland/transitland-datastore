@@ -30,13 +30,12 @@
 
 class BaseStop < ActiveRecord::Base
   self.abstract_class = true
-  attr_accessor :served_by, :not_served_by
 end
 
 class Stop < BaseStop
   self.table_name_prefix = 'current_'
-
   attr_accessor :parent_stop_onestop_id
+  attr_accessor :served_by, :not_served_by
   # validates :timezone, presence: true
 
   include HasAOnestopId
@@ -85,7 +84,7 @@ class Stop < BaseStop
   })
   def self.after_create_making_history(created_model, changeset)
     if created_model.parent_stop_onestop_id
-      created_model.parent_stop = StopStation.find_by_onestop_id!(created_model.parent_stop_onestop_id)
+      created_model.parent_stop = Stop.find_by_onestop_id!(created_model.parent_stop_onestop_id)
       created_model.save!
     end
     OperatorRouteStopRelationship.manage_multiple(
@@ -125,6 +124,10 @@ class Stop < BaseStop
   # Routes serving this stop
   has_many :routes_serving_stop
   has_many :routes, through: :routes_serving_stop
+
+  # Station relations
+  has_many :stop_egresss, class_name: 'StopEgress', foreign_key: :parent_stop_id
+  has_many :stop_platforms, class_name: 'StopPlatform', foreign_key: :parent_stop_id
 
   # Scheduled trips
   has_many :trips_out, class_name: ScheduleStopPair, foreign_key: "origin_id"
@@ -293,29 +296,8 @@ class Stop < BaseStop
   end
 end
 
-class StopStation < Stop
-  current_tracked_by_changeset({
-    kind_of_model_tracked: :onestop_entity,
-    virtual_attributes: [
-      :served_by,
-      :not_served_by,
-      :identified_by,
-      :not_identified_by
-    ],
-    protected_attributes: [
-      :identifiers,
-      :last_conflated_at,
-      :type
-    ]
-  })
-  # Station relations
-  has_many :stop_egresss, class_name: 'StopEgress', foreign_key: :parent_stop_id
-  has_many :stop_platforms, class_name: 'StopPlatform', foreign_key: :parent_stop_id
-end
-
 class StopPlatform < Stop
   # validates :parent_stop, presence: true
-
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
     virtual_attributes: [
@@ -355,15 +337,10 @@ end
 class OldStop < BaseStop
   include OldTrackedByChangeset
   include HasAGeographicGeometry
-
   has_many :old_operators_serving_stop, as: :stop
   has_many :operators, through: :old_operators_serving_stop, source_type: 'Stop'
-
   has_many :old_routes_serving_stop, as: :stop
   has_many :routes, through: :old_routes_serving_stop, source_type: 'Stop'
-end
-
-class OldStopStation < OldStop
 end
 
 class OldStopPlatform < OldStop

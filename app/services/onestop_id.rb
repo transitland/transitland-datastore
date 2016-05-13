@@ -88,15 +88,7 @@ module OnestopId
 
   class StopOnestopId < OnestopIdBase
     PREFIX = :s
-    MODEL = Stop
-    def self.match?(value)
-      false
-    end
-  end
-
-  class StopStationOnestopId < OnestopIdBase
-    PREFIX = :s
-    MODEL = StopStation
+    MODEL = Stop    
     def self.match?(value)
       super && !value.include?('<') && !value.include?('>')
     end
