@@ -76,19 +76,35 @@ class GTFSGraph
       changeset.create_change_payloads(routes)
       log "  route geometries: #{rsps.size}"
       changeset.create_change_payloads(rsps)
-    rescue ChangesetError => e
+    rescue Changeset::Error => e
       log "Error: #{e.message}"
       log "Payload:"
-      e.change_payloads.each do |change_payload|
+      changeset.change_payloads.each do |change_payload|
         log change_payload.to_json
       end
     end
     log "Changeset apply"
     t = Time.now
     changeset.apply!
-    @qc.creator_changeset = changeset
-    @qc.save
+    # changeset now has a db id
+    save_issues(changeset)
     log "  apply done: time #{Time.now - t}"
+  end
+
+  def save_issues(changeset)
+    @qc.issues.each do |issue|
+      issue.created_by_changeset = changeset
+    end
+    Issue.import @qc.issues
+    ewis = []
+    @qc.issues.each do |issue|
+      issue.entities_with_issues.each do |ewi|
+        ewi.entity = OnestopId.find!(ewi.entity.onestop_id)
+        ewi.issue = issue
+      end
+      ewis.concat issue.entities_with_issues
+    end
+    EntityWithIssues.import ewis
   end
 
   def calculate_rsp_distances(rsps)
@@ -323,7 +339,7 @@ class GTFSGraph
       rsps << rsp
 
       tl_stops.each do |stop|
-        @qc.outlier_stop(stop, rsp)
+        @qc.outlier_stop(stop, rsp, @qc)
       end
     end
     log "#{stop_times_with_shape_dist_traveled} stop times with shape_dist_traveled found out of #{stop_times_count} total stop times" if stop_times_with_shape_dist_traveled > 0
