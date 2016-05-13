@@ -10,8 +10,6 @@
 #  updated_at  :datetime         not null
 #
 
-require 'rails_helper'
+describe IssueType do
 
-RSpec.describe IssueType, type: :model do
-  pending "add some examples to (or delete) #{__FILE__}"
 end
