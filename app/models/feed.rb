@@ -73,6 +73,12 @@ class Feed < BaseFeed
 
   after_initialize :set_default_values
 
+  scope :where_active_feed_version_import_level, -> (import_level) {
+    import_level = import_level.to_i
+    joins(:active_feed_version)
+      .where('feed_versions.import_level = ?', import_level)
+  }
+
   scope :where_active_feed_version_valid, -> (date) {
     date = date.is_a?(Date) ? date : Date.parse(date)
     joins(:active_feed_version)

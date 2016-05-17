@@ -322,6 +322,20 @@ describe Feed do
     end
   end
 
+  context '.where_active_feed_version_import_level' do
+    it 'finds active feed version with import_level' do
+      fv1 = create(:feed_version, import_level: 2)
+      feed1 = fv1.feed
+      feed1.update!(active_feed_version: fv1)
+      fv2 = create(:feed_version, import_level: 4)
+      feed2 = fv2.feed
+      feed2.update!(active_feed_version: fv2)
+      expect(Feed.where_active_feed_version_import_level(0)).to match_array([])
+      expect(Feed.where_active_feed_version_import_level(2)).to match_array([feed1])
+      expect(Feed.where_active_feed_version_import_level(4)).to match_array([feed2])
+    end
+  end
+
   context '.where_active_feed_version_valid' do
     before(:each) do
       date0 = Date.parse('2014-01-01')
