@@ -44,6 +44,10 @@ class FeedVersion < ActiveRecord::Base
 
   before_validation :compute_and_set_hashes, :read_gtfs_calendar_dates, :read_gtfs_feed_info
 
+  scope :where_active, -> {
+    joins('INNER JOIN current_feeds ON feed_versions.id = current_feeds.active_feed_version_id')
+  }
+
   def succeeded(timestamp)
     self.update(imported_at: timestamp)
     self.feed.update(last_imported_at: self.imported_at)

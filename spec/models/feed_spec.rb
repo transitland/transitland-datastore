@@ -321,4 +321,77 @@ describe Feed do
       expect(feed.active_feed_version).to eq(fv2)
     end
   end
+
+  context '.where_active_feed_version_import_level' do
+    it 'finds active feed version with import_level' do
+      fv1 = create(:feed_version, import_level: 2)
+      feed1 = fv1.feed
+      feed1.update!(active_feed_version: fv1)
+      fv2 = create(:feed_version, import_level: 4)
+      feed2 = fv2.feed
+      feed2.update!(active_feed_version: fv2)
+      expect(Feed.where_active_feed_version_import_level(0)).to match_array([])
+      expect(Feed.where_active_feed_version_import_level(2)).to match_array([feed1])
+      expect(Feed.where_active_feed_version_import_level(4)).to match_array([feed2])
+    end
+  end
+
+  context '.where_active_feed_version_valid' do
+    before(:each) do
+      date0 = Date.parse('2014-01-01')
+      date1 = Date.parse('2015-01-01')
+      date2 = Date.parse('2016-01-01')
+      feed = create(:feed)
+      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date0, latest_calendar_date: date1)
+      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date1, latest_calendar_date: date2)
+      feed.update(active_feed_version: fv2)
+    end
+
+    it 'finds valid active_feed_version' do
+      expect(Feed.where_active_feed_version_valid('2015-06-01').count).to eq(1)
+    end
+
+    it 'expired active_feed_version' do
+      expect(Feed.where_active_feed_version_valid('2016-06-01').count).to eq(0)
+    end
+
+    it 'active_feed_version that has not started' do
+      expect(Feed.where_active_feed_version_valid('2014-06-01').count).to eq(0)
+    end
+  end
+
+  context '.where_newer_feed_version' do
+    before(:each) do
+      date0 = Date.parse('2014-01-01')
+      date1 = Date.parse('2015-01-01')
+      date2 = Date.parse('2016-01-01')
+      # 3 feed versions, 2 newer
+      @feed0 = create(:feed)
+      fv0 = create(:feed_version, feed: @feed0, created_at: date0)
+      fv1 = create(:feed_version, feed: @feed0, created_at: date1)
+      fv2 = create(:feed_version, feed: @feed0, created_at: date2)
+      @feed0.update!(active_feed_version: fv0)
+      # 3 feed versions, 1 newer, 1 older
+      @feed1 = create(:feed)
+      fv3 = create(:feed_version, feed: @feed1, created_at: date0)
+      fv4 = create(:feed_version, feed: @feed1, created_at: date1)
+      fv5 = create(:feed_version, feed: @feed1, created_at: date2)
+      @feed1.update!(active_feed_version: fv4)
+      # 3 feed versions, 2 newer
+      @feed2 = create(:feed)
+      fv6 = create(:feed_version, feed: @feed2, created_at: date0)
+      fv7 = create(:feed_version, feed: @feed2, created_at: date1)
+      fv8 = create(:feed_version, feed: @feed2, created_at: date2)
+      @feed2.update!(active_feed_version: fv8)
+      # 1 feed version, current
+      @feed3 = create(:feed)
+      fv9 = create(:feed_version, feed: @feed3, created_at: date0)
+      @feed3.update!(active_feed_version: fv9)
+    end
+
+    it 'finds superseded feeds' do
+      expect(Feed.where_active_feed_version_update).to match_array([@feed0, @feed1])
+    end
+  end
+
 end

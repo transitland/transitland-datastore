@@ -44,6 +44,22 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
       @feeds = @feeds.geometry_within_bbox(params[:bbox])
     end
 
+    if params[:active_feed_version_valid].present?
+      @feeds = @feeds.where_active_feed_version_valid(params[:active_feed_version_valid])
+    end
+
+    if params[:active_feed_version_expired].present?
+      @feeds = @feeds.where_active_feed_version_expired(params[:active_feed_version_expired])
+    end
+
+    if params[:active_feed_version_update].presence == 'true'
+      @feeds = @feeds.where_active_feed_version_update
+    end
+
+    if params[:active_feed_version_import_level].present?
+      @feeds = @feeds.where_active_feed_version_import_level(params[:active_feed_version_import_level])
+    end
+
     respond_to do |format|
       format.json do
         render paginated_json_collection(
@@ -54,7 +70,14 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
           params[:offset],
           params[:per_page],
           params[:total],
-          params.slice(:tag_key, :tag_value)
+          params.slice(
+            :tag_key,
+            :tag_value,
+            :last_imported_since,
+            :active_feed_version_valid,
+            :active_feed_version_expired,
+            :active_feed_version_update
+          )
         )
       end
       format.geojson do

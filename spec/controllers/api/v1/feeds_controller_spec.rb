@@ -27,6 +27,18 @@ describe Api::V1::FeedsController do
         })
       end
 
+      it 'query: active_feed_version_import_level' do
+        fv = create(:feed_version, import_level: 4)
+        feed = fv.feed
+        feed.update!(active_feed_version: fv)
+        get :index, active_feed_version_import_level: 4
+        expect_json({
+          feeds: -> (feeds) {
+            expect(feeds.first[:onestop_id]).to eq feed.onestop_id
+          }
+        })
+      end
+
       it 'query: last_imported_since' do
         feeds = create_list(:feed, 3)
         past = DateTime.parse('2015-01-01 01:02:03')

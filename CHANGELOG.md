@@ -1,12 +1,55 @@
 # Change Log
 
-## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
+## [4.8.1](https://github.com/transitland/transitland-datastore/tree/4.8.1) (2016-05-06)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.0...4.8.1)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.11...HEAD)
+**Implemented enhancements:**
+
+- Support for non-ASCII onestop ids [\#579](https://github.com/transitland/transitland-datastore/issues/579)
+
+**Fixed bugs:**
+
+- RouteStopPattern creation error in `f-dpmg-rta` [\#573](https://github.com/transitland/transitland-datastore/issues/573)
 
 **Closed issues:**
 
+- Onestop Id exceptions [\#583](https://github.com/transitland/transitland-datastore/issues/583)
+- Onestop Id Invalid Geometry Hash [\#575](https://github.com/transitland/transitland-datastore/issues/575)
+
+**Merged pull requests:**
+
+- Onestop ID exceptions, name fallbacks [\#582](https://github.com/transitland/transitland-datastore/pull/582) ([irees](https://github.com/irees))
+- Unicode onestop ids [\#580](https://github.com/transitland/transitland-datastore/pull/580) ([doublestranded](https://github.com/doublestranded))
+- Handle trips one stop time [\#577](https://github.com/transitland/transitland-datastore/pull/577) ([doublestranded](https://github.com/doublestranded))
+- Onestop id name truncation [\#576](https://github.com/transitland/transitland-datastore/pull/576) ([doublestranded](https://github.com/doublestranded))
+- production release 4.8 [\#574](https://github.com/transitland/transitland-datastore/pull/574) ([drewda](https://github.com/drewda))
+
+## [4.8.0](https://github.com/transitland/transitland-datastore/tree/4.8.0) (2016-04-22)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.11...4.8.0)
+
+**Closed issues:**
+
+- Improve activity feed [\#564](https://github.com/transitland/transitland-datastore/issues/564)
+- FeedVersion requires sha1 [\#560](https://github.com/transitland/transitland-datastore/issues/560)
 - Feeds controller: last\_imported\_at [\#556](https://github.com/transitland/transitland-datastore/issues/556)
+- return list of all possible country/state/metro for operators [\#549](https://github.com/transitland/transitland-datastore/issues/549)
+- Timezone is not set for some stops in Transitland [\#528](https://github.com/transitland/transitland-datastore/issues/528)
+- before RSP launch, clear out any duplicate or outdated RSPs [\#526](https://github.com/transitland/transitland-datastore/issues/526)
+- AC Transit EIFF issues [\#492](https://github.com/transitland/transitland-datastore/issues/492)
+- Datastore activity feed [\#395](https://github.com/transitland/transitland-datastore/issues/395)
+- Onestop ID Foreign Key in Schedule Stop Pairs [\#318](https://github.com/transitland/transitland-datastore/issues/318)
+- handle ZIP files that contain nested GTFS feeds \(and CSV files in a nested directory\) [\#316](https://github.com/transitland/transitland-datastore/issues/316)
+
+**Merged pull requests:**
+
+- return list of all possible country/state/metro for operators [\#568](https://github.com/transitland/transitland-datastore/pull/568) ([drewda](https://github.com/drewda))
+- update gems [\#567](https://github.com/transitland/transitland-datastore/pull/567) ([drewda](https://github.com/drewda))
+- Activity update improvements [\#566](https://github.com/transitland/transitland-datastore/pull/566) ([drewda](https://github.com/drewda))
+- Stop timezone required [\#563](https://github.com/transitland/transitland-datastore/pull/563) ([irees](https://github.com/irees))
+- Fix issue with Feed Version Controller Spec [\#559](https://github.com/transitland/transitland-datastore/pull/559) ([irees](https://github.com/irees))
+- production release 4.7.11 [\#558](https://github.com/transitland/transitland-datastore/pull/558) ([drewda](https://github.com/drewda))
+- Nested GTFS [\#545](https://github.com/transitland/transitland-datastore/pull/545) ([irees](https://github.com/irees))
+- activity feed [\#476](https://github.com/transitland/transitland-datastore/pull/476) ([drewda](https://github.com/drewda))
 
 ## [4.7.11](https://github.com/transitland/transitland-datastore/tree/4.7.11) (2016-04-13)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.7.10...4.7.11)

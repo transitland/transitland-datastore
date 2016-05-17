@@ -5,8 +5,11 @@ module OnestopId
   COMPONENT_SEPARATOR = '-'
   GEOHASH_FILTER = /[^0123456789bcdefghjkmnpqrstuvwxyz]/
   NAME_TILDE = /[\-\:\&\@\/]/
-  NAME_FILTER = /[^a-zA-Z\d\@\~\>\<]/
+  NAME_FILTER = /[^[:alnum:]\~\>\<]/
   IDENTIFIER_TEMPLATE = Addressable::Template.new("gtfs://{feed_onestop_id}/{entity_prefix}/{entity_id}")
+
+  class OnestopIdException < StandardError
+  end
 
   class OnestopIdBase
 
@@ -55,6 +58,11 @@ module OnestopId
       errors << 'invalid geohash' unless validate_geohash(@geohash)
       errors << 'invalid name' unless validate_name(@name)
       return (errors.size == 0), errors
+    end
+
+    def validate!
+      valid, errors = self.validate
+      raise OnestopIdException.new(errors.join(', ')) unless valid
     end
 
     def valid?
@@ -113,6 +121,22 @@ module OnestopId
   class RouteOnestopId < OnestopIdBase
     PREFIX = :r
     MODEL = Route
+
+    def to_s
+      geohash = @geohash[0...self.class::GEOHASH_MAX_LENGTH]
+      # Both Route and their RouteStopPatterns will share a name component whose max length
+      # is dependent on the fixed length components of the RouteStopPattern onestop id (which includes the Route onestop id)
+      # a variable length route geohash, and the total limitation of 64 chars for all onestop ids.
+      # Route onestop ids will have 1 prefix, 2 dashes, and a variable-length route geohash up to 10 characters long.
+      # RouteStopPattern onestop ids will have a route onestop id plus 2 dashes and 2 geohashes (stop pattern and geometry)
+      # of 6 chars long each. The final max value of the name length is computed in RouteStopPatternOnestopId.max_name_length
+      # and will be between 64 - (1 + 2 + 10 + 2 + 2*6) = 37 and 46 chars long.
+      [
+        self.class::PREFIX,
+        geohash,
+        @name[0...RouteStopPatternOnestopId.max_name_length(geohash.length)],
+      ].join(COMPONENT_SEPARATOR)[0...self.class::MAX_LENGTH]
+    end
   end
 
   class RouteStopPatternOnestopId < OnestopIdBase
@@ -145,10 +169,11 @@ module OnestopId
     end
 
     def to_s
+      geohash = @geohash[0...self.class::GEOHASH_MAX_LENGTH]
       [
         self.class::PREFIX,
-        @geohash[0...self.class::GEOHASH_MAX_LENGTH],
-        @name,
+        geohash,
+        @name[0...self.class.max_name_length(geohash.length)],
         @stop_hash,
         @geometry_hash
       ].join(COMPONENT_SEPARATOR)[0...self.class::MAX_LENGTH]
@@ -169,6 +194,11 @@ module OnestopId
 
     def self.route_onestop_id(onestop_id)
       onestop_id.split(COMPONENT_SEPARATOR)[0..2].join(COMPONENT_SEPARATOR)
+    end
+
+    def self.max_name_length(geohash_length)
+      num_fixed_chars = NUM_COMPONENTS + 2*(HASH_LENGTH)
+      MAX_LENGTH - (num_fixed_chars + geohash_length)
     end
 
     private

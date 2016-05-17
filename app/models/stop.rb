@@ -260,15 +260,16 @@ class Stop < BaseStop
     # GTFS Constructor
     point = Stop::GEOFACTORY.point(*entity.coordinates)
     geohash = GeohashHelpers.encode(point)
-    name = [entity.stop_name, entity.id, "unknown"]
-      .select(&:present?)
-      .first
-    onestop_id = OnestopId.handler_by_model(self).new(
-      geohash: geohash,
-      name: name
-    )
+    # Use stop_id as a fallback for an invalid onestop ID name component
+    onestop_id = OnestopId.handler_by_model(self).new(geohash: geohash, name: entity.stop_name)
+    if onestop_id.valid? == false
+      old_onestop_id = onestop_id.to_s
+      onestop_id = OnestopId.handler_by_model(self).new(geohash: geohash, name: entity.id)
+      logger.info "Stop.from_gtfs: Invalid onestop_id: #{old_onestop_id}, trying #{onestop_id.to_s}"
+    end
+    onestop_id.validate! # raise OnestopIdException
     stop = self.new(
-      name: name,
+      name: entity.stop_name,
       onestop_id: onestop_id.to_s,
       geometry: point.to_s
     )
