@@ -38,6 +38,7 @@ class GTFSGraph
     stations = Set.new
     stops = routes.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
     stops.each { |stop| stations << find_by_onestop_id(stop.parent_stop_onestop_id) }
+    stations.delete(nil)
 
     rsps = rsps.select { |rsp| routes.include?(rsp.route) }
     # Update route geometries

@@ -125,8 +125,15 @@ class Stop < BaseStop
   has_many :routes_serving_stop
   has_many :routes, through: :routes_serving_stop
 
+  # Station Hierarchy
   has_many :stop_egresss, class_name: 'StopEgress', foreign_key: :parent_stop_id
   has_many :stop_platforms, class_name: 'StopPlatform', foreign_key: :parent_stop_id
+
+  # Scheduled trips
+  has_many :trips_out, class_name: ScheduleStopPair, foreign_key: "origin_id"
+  has_many :trips_in, class_name: ScheduleStopPair, foreign_key: "destination_id"
+  has_many :stops_out, through: :trips_out, source: :destination
+  has_many :stops_in, through: :trips_in, source: :origin
 
   # Add service from an Operator or Route
   scope :served_by, -> (onestop_ids_and_models) {
@@ -329,11 +336,6 @@ class StopPlatform < Stop
     ]
   })
   belongs_to :parent_stop, class_name: 'Stop'
-  # Scheduled trips
-  has_many :trips_out, class_name: ScheduleStopPair, foreign_key: "origin_id"
-  has_many :trips_in, class_name: ScheduleStopPair, foreign_key: "destination_id"
-  has_many :stops_out, through: :trips_out, source: :destination
-  has_many :stops_in, through: :trips_in, source: :origin
 end
 
 class StopEgress < Stop
