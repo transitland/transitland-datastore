@@ -297,27 +297,6 @@ class Stop < BaseStop
   end
 end
 
-# class Stop < CurrentStop
-#   current_tracked_by_changeset({
-#     kind_of_model_tracked: :onestop_entity,
-#     virtual_attributes: [
-#       :served_by,
-#       :not_served_by,
-#       :identified_by,
-#       :not_identified_by,
-#       :parent_stop_onestop_id
-#     ],
-#     protected_attributes: [
-#       :identifiers,
-#       :last_conflated_at,
-#       :type
-#     ]
-#   })
-#   # Station relations
-#   has_many :stop_egresss, class_name: 'StopEgress', foreign_key: :parent_stop_id
-#   has_many :stop_platforms, class_name: 'StopPlatform', foreign_key: :parent_stop_id
-# end
-
 class StopPlatform < Stop
   # validates :parent_stop, presence: true
   current_tracked_by_changeset({
