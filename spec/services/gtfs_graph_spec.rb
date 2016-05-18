@@ -17,15 +17,7 @@ describe GTFSGraph do
       before(:each) { @feed, @feed_version = load_feed(feed_version_name: :feed_version_caltrain, import_level: 1) }
 
       it 'updated feed geometry' do
-        geometry = [
-          [
-            [-122.412076, 37.003485],
-            [-121.566088, 37.003485],
-            [-121.566088, 37.776439],
-            [-122.412076, 37.776439],
-            [-122.412076, 37.003485]
-          ]
-        ]
+        geometry = [[[-122.412076, 37.003485], [-121.566088, 37.003485], [-121.566088, 37.77639], [-122.412076, 37.77639], [-122.412076, 37.003485]]]
         expect(@feed.geometry(as: :geojson)[:coordinates]).to match_array(geometry)
       end
 
@@ -68,7 +60,7 @@ describe GTFSGraph do
         expect(s.identifiers).to contain_exactly(
           "gtfs://f-9q9-caltrain/s/ctsj"
         )
-        expect(s.timezone).to eq('America/Los_Angeles')
+        # expect(s.timezone).to eq('America/Los_Angeles')
       end
 
       it 'created known RouteStopPatterns' do
@@ -113,12 +105,12 @@ describe GTFSGraph do
       it 'created known Operator that serves known Stops' do
         o = @feed.imported_operators.find_by(onestop_id: 'o-9q9-caltrain')
         # Just check the number of stops here...
-        expect(o.stops.size).to eq(95)
+        expect(o.stops.size).to eq(64)
       end
 
       it 'created known Routes that serve known Stops' do
         r = @feed.imported_routes.find_by(onestop_id: 'r-9q9j-bullet')
-        expect(r.stops.size).to eq(39)
+        expect(r.stops.size).to eq(26)
         expect(r.stops.map(&:onestop_id)).to contain_exactly(
           "s-9q8vzhbggj-millbraecaltrainstation",
           "s-9q8vzhbggj-millbraecaltrainstation<70061",
