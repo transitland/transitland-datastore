@@ -111,47 +111,34 @@ describe GTFSGraph do
       it 'created known Routes that serve known Stops' do
         r = @feed.imported_routes.find_by(onestop_id: 'r-9q9j-bullet')
         expect(r.stops.size).to eq(26)
-        expect(r.stops.map(&:onestop_id)).to contain_exactly(
-          "s-9q8vzhbggj-millbraecaltrainstation",
+        expect(r.stops.map(&:onestop_id)).to match_array([
           "s-9q8vzhbggj-millbraecaltrainstation<70061",
           "s-9q8vzhbggj-millbraecaltrainstation<70062",
-          "s-9q8yw8y448-bayshorecaltrainstation",
           "s-9q8yw8y448-bayshorecaltrainstation<70031",
           "s-9q8yw8y448-bayshorecaltrainstation<70032",
-          "s-9q8yycs6ku-22ndstreetcaltrainstation",
           "s-9q8yycs6ku-22ndstreetcaltrainstation<70021",
           "s-9q8yycs6ku-22ndstreetcaltrainstation<70022",
-          "s-9q8yyugptw-sanfranciscocaltrainstation",
           "s-9q8yyugptw-sanfranciscocaltrainstation<70011",
           "s-9q8yyugptw-sanfranciscocaltrainstation<70012",
-          "s-9q9hwp6epk-mountainviewcaltrainstation",
           "s-9q9hwp6epk-mountainviewcaltrainstation<70211",
           "s-9q9hwp6epk-mountainviewcaltrainstation<70212",
-          "s-9q9hxhecje-sunnyvalecaltrainstation",
           "s-9q9hxhecje-sunnyvalecaltrainstation<70221",
           "s-9q9hxhecje-sunnyvalecaltrainstation<70222",
-          "s-9q9j5dmkuu-menloparkcaltrainstation",
           "s-9q9j5dmkuu-menloparkcaltrainstation<70161",
           "s-9q9j5dmkuu-menloparkcaltrainstation<70162",
-          "s-9q9j6812kg-redwoodcitycaltrainstation",
           "s-9q9j6812kg-redwoodcitycaltrainstation<70141",
           "s-9q9j6812kg-redwoodcitycaltrainstation<70142",
-          "s-9q9j8rn6tv-sanmateocaltrainstation",
           "s-9q9j8rn6tv-sanmateocaltrainstation<70091",
           "s-9q9j8rn6tv-sanmateocaltrainstation<70092",
-          "s-9q9j913rf1-hillsdalecaltrainstation",
           "s-9q9j913rf1-hillsdalecaltrainstation<70111",
           "s-9q9j913rf1-hillsdalecaltrainstation<70112",
-          "s-9q9jh061xw-paloaltocaltrainstation",
           "s-9q9jh061xw-paloaltocaltrainstation<70171",
           "s-9q9jh061xw-paloaltocaltrainstation<70172",
-          "s-9q9k62qu53-tamiencaltrainstation",
           "s-9q9k62qu53-tamiencaltrainstation<70271",
           "s-9q9k62qu53-tamiencaltrainstation<70272",
-          "s-9q9k659e3r-sanjosecaltrainstation",
           "s-9q9k659e3r-sanjosecaltrainstation<70261",
           "s-9q9k659e3r-sanjosecaltrainstation<70262"
-        )
+        ])
       end
     end
 
