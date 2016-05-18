@@ -18,4 +18,10 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
       end
     end
   end
+
+  def create
+    puts issue_params
+    @issues = Issue.create!(issue_params)
+    render json: @issues
+  end
 end

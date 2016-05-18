@@ -1,4 +1,5 @@
 module GeometryQualityCheck
+  # category
   def stop_rsp_distance(stop, rsp)
     if rsp.outlier_stop(stop[:geometry])
       issue = Issue.new(feed_version: self.feed_version,
