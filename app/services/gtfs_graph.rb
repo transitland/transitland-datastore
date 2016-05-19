@@ -293,6 +293,7 @@ class GTFSGraph
     stop_times_count = 0
     @gtfs.trip_stop_times(trips=nil, filter_empty=true) do |trip,stop_times|
       tl_stops = stop_times.map { |stop_time| find_by_gtfs_entity(@gtfs.stop(stop_time.stop_id)) }
+      next if tl_stops.uniq.size < 2
       stop_pattern = tl_stops.map(&:onestop_id)
       stop_times_with_shape_dist_traveled += stop_times.count { |st| !st.shape_dist_traveled.to_s.empty? }
       stop_times_count += stop_times.length
