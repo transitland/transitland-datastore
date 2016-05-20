@@ -14,6 +14,7 @@ Rails.application.routes.draw do
         resources :change_payloads, only: [:index, :show, :create, :update, :destroy]
       end
       resources :stops, only: [:index, :show]
+      resources :stop_stations, only: [:index, :show]
       resources :operators, only: [:index, :show] do
         collection do
           get 'aggregate'
