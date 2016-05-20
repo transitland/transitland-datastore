@@ -1,6 +1,7 @@
 module JsonCollectionPagination
   extend ActiveSupport::Concern
   PER_PAGE ||= 50
+  SERIALIZER = nil
 
   def paginated_json_collection(collection, path_helper, sort_key, sort_order, offset, per_page, total, params)
     #changing from order to reorder to discard previous ordering
@@ -60,6 +61,6 @@ module JsonCollectionPagination
     end
 
     # Return results + meta
-    { json: data_on_page, meta: meta }
+    { json: data_on_page, meta: meta, each_serializer: self.class::SERIALIZER }
   end
 end
