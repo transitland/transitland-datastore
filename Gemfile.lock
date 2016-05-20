@@ -19,8 +19,8 @@ GIT
 
 GIT
   remote: git://github.com/transitland/gtfs.git
-  revision: 6c8ef14663b1ca57127b1056344a650a6941adf9
-  tag: 6c8ef14663b1ca57127b1056344a650a6941adf9
+  revision: 4f99e646ed51763f318310ee4d5fc48d06e3402b
+  tag: 4f99e646ed51763f318310ee4d5fc48d06e3402b
   specs:
     gtfs (1.0.1)
       multi_json
@@ -192,7 +192,6 @@ GEM
       activerecord (>= 2.3)
     method_source (0.8.2)
     mime-types (2.99.1)
-    mime-types-data (3.2016.0221)
     mini_portile2 (2.0.0)
     minitest (5.9.0)
     mock_redis (0.16.1)
