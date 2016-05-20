@@ -61,6 +61,10 @@ module JsonCollectionPagination
     end
 
     # Return results + meta
-    { json: data_on_page, meta: meta, each_serializer: self.class::SERIALIZER }
+    if self.class::SERIALIZER
+      { json: data_on_page, meta: meta, each_serializer: self.class::SERIALIZER }
+    else
+      { json: data_on_page, meta: meta }
+    end
   end
 end
