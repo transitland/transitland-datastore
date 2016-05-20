@@ -28,47 +28,6 @@
 #  index_current_stops_on_updated_at      (updated_at)
 #
 
-class Api::V1::StopStationsController < Api::V1::BaseApiController
-  include JsonCollectionPagination
-  include AllowFiltering
-
-  before_action :set_stop, only: [:show]
-
-  def index
-    @stops = Stop.where(type: 'Stop')
-    @stops = @stops.includes{[
-      stop_platforms,
-      stop_egresss
-    ]}
-
-    respond_to do |format|
-      format.json do
-        render paginated_json_collection(
-          @stops,
-          Proc.new { |params| api_v1_stations_url(params) },
-          params[:sort_key],
-          params[:sort_order],
-          params[:offset],
-          params[:per_page],
-          params[:total],
-          params.slice(
-          )
-        )
-      end
-    end
-  end
-
-  def show
-    respond_to do |format|
-      format.json do
-        render json: StopStationSerializer.new(@stops).as_json
-      end
-    end
-  end
-
-  private
-
-  def set_stop
-    @stop = Stop.find_by_onestop_id!(params[:id])
-  end
+class Api::V1::StopStationsController < Api::V1::StopsController
+  SERIALIZER = StopStationSerializer
 end
