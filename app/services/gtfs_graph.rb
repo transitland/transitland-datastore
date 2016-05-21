@@ -88,7 +88,7 @@ class GTFSGraph
     # changeset now has a db id
     log "Evaluating feed quality"
     @qc = QualityCheck.new(feed_version: @feed_version, changeset: changeset)
-    evaluate_geometries(rsps)
+    @qc.evaluate_geometries(rsps)
     @qc.save
     log "  apply done: time #{Time.now - t}"
   end
@@ -100,23 +100,10 @@ class GTFSGraph
       stops = rsp.stop_pattern.map { |onestop_id| find_by_onestop_id(onestop_id) }
       begin
         rsp.calculate_distances(stops=stops)
-        rsp.evaluate_distances
-        rsps_with_issues += 1 if rsp.distance_issues > 0
       rescue StandardError
         log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
-        rsps_with_issues += 1
+        rsp.distance_issues = rsp.stop_pattern.length
         rsp.fallback_distances(stops=stops)
-      end
-    end
-    score = ((rsps.size - rsps_with_issues)/rsps.size.to_f).round(5) rescue score = 1.0
-    log "Feed: #{@feed.onestop_id}. #{rsps_with_issues} Route Stop Patterns out of #{rsps.size} had issues with distance calculation. Valhalla Import Score: #{score}"
-  end
-
-  def evaluate_geometries(rsps)
-    rsps.each do |rsp|
-      stops = rsp.stop_pattern.map { |onestop_id| find_by_onestop_id(onestop_id) }
-      stops.each do |stop|
-        @qc.stop_rsp_distance(stop, rsp)
       end
     end
   end
