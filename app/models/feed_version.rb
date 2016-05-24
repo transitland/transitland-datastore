@@ -102,6 +102,9 @@ class FeedVersion < ActiveRecord::Base
     end
     # Compute hashes
     compute_and_set_hashes
+    # Cleanup
+    self.file.remove_any_local_cached_copies if self.file
+    self.file_raw.remove_any_local_cached_copies if self.file_raw
   end
 
   def url_fragment
