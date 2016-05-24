@@ -75,8 +75,9 @@ class FeedVersion < ActiveRecord::Base
 
   def open_gtfs
     fail StandardError.new('No file') unless file.present?
-    @gtfs ||= GTFS::Source.build(file.local_path_copying_locally_if_needed, {strict: false})
-    @gtfs
+    filename = file.local_path_copying_locally_if_needed
+    yield GTFS::Source.build(filename, {strict: false})
+    file.remove_any_local_cached_copies
   end
 
   def fetch_and_normalize
