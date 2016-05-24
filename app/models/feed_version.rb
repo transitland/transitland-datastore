@@ -42,7 +42,7 @@ class FeedVersion < ActiveRecord::Base
   validates :sha1, presence: true, uniqueness: true
   validates :feed, presence: true
 
-  before_validation :compute_and_set_hashes, :read_gtfs_calendar_dates, :read_gtfs_feed_info
+  before_validation :compute_and_set_hashes, :read_gtfs_info
 
   scope :where_active, -> {
     joins('INNER JOIN current_feeds ON feed_versions.id = current_feeds.active_feed_version_id')
@@ -75,8 +75,9 @@ class FeedVersion < ActiveRecord::Base
 
   def open_gtfs
     fail StandardError.new('No file') unless file.present?
-    @gtfs ||= GTFS::Source.build(file.local_path_copying_locally_if_needed, {strict: false})
-    @gtfs
+    filename = file.local_path_copying_locally_if_needed
+    yield GTFS::Source.build(filename, {strict: false})
+    file.remove_any_local_cached_copies
   end
 
   def fetch_and_normalize
@@ -102,6 +103,9 @@ class FeedVersion < ActiveRecord::Base
     end
     # Compute hashes
     compute_and_set_hashes
+    # Cleanup
+    self.file.remove_any_local_cached_copies if self.file
+    self.file_raw.remove_any_local_cached_copies if self.file_raw
   end
 
   def url_fragment
@@ -130,35 +134,30 @@ class FeedVersion < ActiveRecord::Base
     end
   end
 
-  def read_gtfs_calendar_dates
+  def read_gtfs_info
     if file.present? && file_changed?
-      gtfs = open_gtfs
-      start_date, end_date = gtfs.service_period_range
-      self.earliest_calendar_date ||= start_date
-      self.latest_calendar_date ||= end_date
-    end
-  end
-
-  def read_gtfs_feed_info
-    if file.present? && file_changed?
-      gtfs = open_gtfs
-      begin
-        if gtfs.feed_infos.count > 0
-          feed_info = gtfs.feed_infos[0]
-          feed_version_tags = {
-            feed_publisher_name: feed_info.feed_publisher_name,
-            feed_publisher_url:  feed_info.feed_publisher_url,
-            feed_lang:           feed_info.feed_lang,
-            feed_start_date:     feed_info.feed_start_date,
-            feed_end_date:       feed_info.feed_end_date,
-            feed_version:        feed_info.feed_version,
-            feed_id:             feed_info.feed_id
-          }
-          feed_version_tags.delete_if { |k, v| v.blank? }
-          self.tags = feed_version_tags
+      open_gtfs do |gtfs|
+        start_date, end_date = gtfs.service_period_range
+        self.earliest_calendar_date ||= start_date
+        self.latest_calendar_date ||= end_date
+        begin
+          if gtfs.feed_infos.count > 0
+            feed_info = gtfs.feed_infos[0]
+            feed_version_tags = {
+              feed_publisher_name: feed_info.feed_publisher_name,
+              feed_publisher_url:  feed_info.feed_publisher_url,
+              feed_lang:           feed_info.feed_lang,
+              feed_start_date:     feed_info.feed_start_date,
+              feed_end_date:       feed_info.feed_end_date,
+              feed_version:        feed_info.feed_version,
+              feed_id:             feed_info.feed_id
+            }
+            feed_version_tags.delete_if { |k, v| v.blank? }
+            self.tags = feed_version_tags
+          end
+        rescue GTFS::InvalidSourceException
+          return
         end
-      rescue GTFS::InvalidSourceException
-        return
       end
     end
   end

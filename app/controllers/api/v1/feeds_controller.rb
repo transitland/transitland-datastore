@@ -56,6 +56,10 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
       @feeds = @feeds.where_active_feed_version_update
     end
 
+    if params[:active_feed_version_import_level].present?
+      @feeds = @feeds.where_active_feed_version_import_level(params[:active_feed_version_import_level])
+    end
+
     respond_to do |format|
       format.json do
         render paginated_json_collection(
