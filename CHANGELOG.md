@@ -1,5 +1,48 @@
 # Change Log
 
+## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
+
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.3...HEAD)
+
+**Merged pull requests:**
+
+- Production release 4.8.3 [\#603](https://github.com/transitland/transitland-datastore/pull/603) ([irees](https://github.com/irees))
+
+## [4.8.3](https://github.com/transitland/transitland-datastore/tree/4.8.3) (2016-05-24)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.2...4.8.3)
+
+**Closed issues:**
+
+- Feed filter by active\_feed\_version import\_level [\#595](https://github.com/transitland/transitland-datastore/issues/595)
+- Temporary files not being cleaned up [\#594](https://github.com/transitland/transitland-datastore/issues/594)
+- allow `per\_page=false` to turn off pagination [\#592](https://github.com/transitland/transitland-datastore/issues/592)
+
+**Merged pull requests:**
+
+- Temporary file cleanup [\#602](https://github.com/transitland/transitland-datastore/pull/602) ([irees](https://github.com/irees))
+- temporary fix to ignore trips with less than 2 unique stops [\#601](https://github.com/transitland/transitland-datastore/pull/601) ([doublestranded](https://github.com/doublestranded))
+- updating gems [\#598](https://github.com/transitland/transitland-datastore/pull/598) ([drewda](https://github.com/drewda))
+- allow `per\_page=false` to turn off pagination [\#597](https://github.com/transitland/transitland-datastore/pull/597) ([drewda](https://github.com/drewda))
+- Feed active feed version import\_level [\#596](https://github.com/transitland/transitland-datastore/pull/596) ([irees](https://github.com/irees))
+- Production release 4.8.2 [\#593](https://github.com/transitland/transitland-datastore/pull/593) ([irees](https://github.com/irees))
+
+## [4.8.2](https://github.com/transitland/transitland-datastore/tree/4.8.2) (2016-05-11)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.1...4.8.2)
+
+**Closed issues:**
+
+- Expired Feed queries [\#591](https://github.com/transitland/transitland-datastore/issues/591)
+- Operators: filter by name, short\_name [\#588](https://github.com/transitland/transitland-datastore/issues/588)
+- Operator: add name and short\_name to aggregate endpoint [\#587](https://github.com/transitland/transitland-datastore/issues/587)
+
+**Merged pull requests:**
+
+- ChangesetError bug fix [\#590](https://github.com/transitland/transitland-datastore/pull/590) ([doublestranded](https://github.com/doublestranded))
+- Operators filter name [\#589](https://github.com/transitland/transitland-datastore/pull/589) ([irees](https://github.com/irees))
+- Operator aggregate: add name and short\_name [\#586](https://github.com/transitland/transitland-datastore/pull/586) ([irees](https://github.com/irees))
+- Production release 4.8.1 [\#584](https://github.com/transitland/transitland-datastore/pull/584) ([irees](https://github.com/irees))
+- Feed queries: valid, expired, updateable [\#581](https://github.com/transitland/transitland-datastore/pull/581) ([irees](https://github.com/irees))
+
 ## [4.8.1](https://github.com/transitland/transitland-datastore/tree/4.8.1) (2016-05-06)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.0...4.8.1)
 
