@@ -41,15 +41,12 @@ describe FeedVersion do
     end
   end
 
-  context '#read_gtfs_calendar_dates' do
+  context '#read_gtfs_info' do
     it 'reads earliest and latest dates from calendars.txt' do
       feed_version = create(:feed_version_bart)
       expect(feed_version.earliest_calendar_date).to eq Date.parse('2013-11-28')
       expect(feed_version.latest_calendar_date).to eq Date.parse('2017-01-01')
     end
-  end
-
-  context '#read_gtfs_feed_info' do
     it 'reads feed_info.txt and puts into tags' do
       feed_version = create(:feed_version_bart)
       expect(feed_version.tags['feed_lang']).to eq 'en'
