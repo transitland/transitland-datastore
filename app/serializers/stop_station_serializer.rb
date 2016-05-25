@@ -35,10 +35,23 @@ class StopStationSerializer < CurrentEntitySerializer
              :tags,
              :timezone,
              :created_at,
-             :updated_at
+             :updated_at,
+             :stop_egresses
 
   has_many :operators_serving_stop
   has_many :routes_serving_stop
-  has_many :stop_platforms
-  has_many :stop_egresss
+  class StopPlatformSerializer < ActiveModel::Serializer
+    attributes :onestop_id
+  end
+  class StopEgressSerializer < ActiveModel::Serializer
+    attributes :onestop_id
+  end
+  def stop_egresses
+    object.stop_egresses.presence || [StopEgress.new(onestop_id: "#{object.onestop_id}>")]
+  end
+  def stop_platforms
+    object.stop_platforms.presence || [StopPlatform.new(onestop_id: "#{object.onestop_id}<")]
+  end
+  has_many :stop_platforms, serializer: StopPlatformSerializer
+  has_many :stop_egresses, serializer: StopEgressSerializer
 end
