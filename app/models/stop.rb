@@ -126,7 +126,7 @@ class Stop < BaseStop
   has_many :routes, through: :routes_serving_stop
 
   # Station Hierarchy
-  has_many :stop_egresss, class_name: 'StopEgress', foreign_key: :parent_stop_id
+  has_many :stop_egresses, class_name: 'StopEgress', foreign_key: :parent_stop_id
   has_many :stop_platforms, class_name: 'StopPlatform', foreign_key: :parent_stop_id
 
   # Scheduled trips
