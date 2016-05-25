@@ -11,42 +11,55 @@ module JsonCollectionPagination
 
     # Meta
     offset = (offset.presence || 0).to_i
-    per_page = (per_page.presence || self.class::PER_PAGE).to_i
     include_total = (total == true || total == 'true')
     meta = {
         sort_key: sort_key,
         sort_order: sort_order,
-        offset: offset,
-        per_page: per_page
+        offset: offset
     }
-    meta[:total] = collection.count if include_total
 
-    # Get the current page of results.
-    #  Add +1 to limit to see if there is a next page.
-    #  This will be dropped in the return.
-    data = collection.offset(offset).limit(per_page+1).to_a
+    if [false, 'false', '∞'].include?(per_page)
+      # allow pagination to be disabled
+      # worst case: the query takes longer than 2 minutes and is
+      # killed at the database and the load balancer
+      meta[:per_page] = per_page
+      data_on_page = collection
+    else
+      per_page = (per_page.presence || self.class::PER_PAGE).to_i
+      meta[:per_page] = per_page
+      # Get the current page of results.
+      #  Add +1 to limit to see if there is a next page.
+      #  This will be dropped in the return.
+      data = collection.offset(offset).limit(per_page+1).to_a
 
-    # Previous and next page
-    if offset > 0
-      meta[:prev] = path_helper.call(params.merge({
-        sort_key: sort_key,
-        sort_order: sort_order,
-        offset: (offset - per_page) >= 0 ? (offset - per_page) : 0,
-        per_page: per_page,
-        total: total
-      }))
+      # Previous and next page
+      if offset > 0
+        meta[:prev] = path_helper.call(params.merge({
+          sort_key: sort_key,
+          sort_order: sort_order,
+          offset: (offset - per_page) >= 0 ? (offset - per_page) : 0,
+          per_page: per_page,
+          total: total
+        }))
+      end
+      if data.size > per_page
+        meta[:next] = path_helper.call(params.merge({
+          sort_key: sort_key,
+          sort_order: sort_order,
+          offset: offset + per_page,
+          per_page: per_page,
+          total: total
+        }))
+      end
+
+      data_on_page = data[0...per_page]
     end
-    if data.size > per_page
-      meta[:next] = path_helper.call(params.merge({
-        sort_key: sort_key,
-        sort_order: sort_order,
-        offset: offset + per_page,
-        per_page: per_page,
-        total: total
-      }))
+
+    if include_total
+      meta[:total] = collection.count
     end
 
     # Return results + meta
-    { json: data[0...per_page], meta: meta }
+    { json: data_on_page, meta: meta }
   end
 end

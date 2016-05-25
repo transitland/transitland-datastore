@@ -73,6 +73,44 @@ class Feed < BaseFeed
 
   after_initialize :set_default_values
 
+  scope :where_active_feed_version_import_level, -> (import_level) {
+    import_level = import_level.to_i
+    joins(:active_feed_version)
+      .where('feed_versions.import_level = ?', import_level)
+  }
+
+  scope :where_active_feed_version_valid, -> (date) {
+    date = date.is_a?(Date) ? date : Date.parse(date)
+    joins(:active_feed_version)
+      .where('feed_versions.latest_calendar_date > ?', date)
+      .where('feed_versions.earliest_calendar_date < ?', date)
+  }
+
+  scope :where_active_feed_version_expired, -> (date) {
+    date = date.is_a?(Date) ? date : Date.parse(date)
+    joins(:active_feed_version)
+      .where('feed_versions.latest_calendar_date < ?', date)
+  }
+
+  scope :where_active_feed_version_update, -> {
+    # Find feeds that have a feed_version newer than
+    #   the current active_feed_version
+    joins(p %{
+      INNER JOIN (
+        SELECT DISTINCT feed_versions.feed_id
+        FROM feed_versions
+        INNER JOIN (
+          SELECT feed_versions.feed_id AS feed_id, feed_versions.created_at AS created_at_active
+          FROM feed_versions
+          INNER JOIN current_feeds ON current_feeds.active_feed_version_id = feed_versions.id
+          GROUP BY feed_versions.feed_id, feed_versions.created_at
+        ) feed_versions_active ON feed_versions.feed_id = feed_versions_active.feed_id
+        WHERE feed_versions.created_at > feed_versions_active.created_at_active
+      ) feeds_superseded
+      ON current_feeds.id = feeds_superseded.feed_id
+    })
+  }
+
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
