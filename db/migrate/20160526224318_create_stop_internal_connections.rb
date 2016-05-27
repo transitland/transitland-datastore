@@ -7,6 +7,7 @@ class CreateStopInternalConnections < ActiveRecord::Migration
         t.references :stop, index: true
         t.references :origin, class_name: "Stop", index: true
         t.references :destination, class_name: "Stop", index: true
+        t.references :created_or_updated_in_changeset #, index: true # TODO: short index name
         t.integer :version
         t.timestamps
       end

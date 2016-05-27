@@ -2,15 +2,16 @@
 #
 # Table name: current_stop_internal_connections
 #
-#  id              :integer          not null, primary key
-#  connection_type :string
-#  tags            :hstore
-#  stop_id         :integer
-#  origin_id       :integer
-#  destination_id  :integer
-#  version         :integer
-#  created_at      :datetime
-#  updated_at      :datetime
+#  id                                 :integer          not null, primary key
+#  connection_type                    :string
+#  tags                               :hstore
+#  stop_id                            :integer
+#  origin_id                          :integer
+#  destination_id                     :integer
+#  created_or_updated_in_changeset_id :integer
+#  version                            :integer
+#  created_at                         :datetime
+#  updated_at                         :datetime
 #
 # Indexes
 #
