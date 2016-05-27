@@ -45,6 +45,43 @@
         "type": "string",
         "format": "operator-onestop-id"
       }
+    },
+    "includesStopInternalConnections": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": ["originOnestopId", "destinationOnestopId", "connectionType"],
+        "originOnestopId": {
+          "type": "string",
+          "format": "stop-onestop-id"
+        },
+        "destinationOnestopId": {
+          "type": "string",
+          "format": "stop-onestop-id"
+        },
+        "connectionType": {
+          "type": "string"
+        }
+      }
+    },
+    "doesNotIncludeStopInternalConnections": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": ["originOnestopId", "destinationOnestopId"],
+        "originOnestopId": {
+          "type": "string",
+          "format": "stop-onestop-id"
+        },
+        "destinationOnestopId": {
+          "type": "string",
+          "format": "stop-onestop-id"
+        }
+      }
     }
   }
 }
