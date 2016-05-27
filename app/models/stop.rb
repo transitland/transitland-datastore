@@ -129,6 +129,9 @@ class Stop < BaseStop
   has_many :stop_egresses, class_name: 'StopEgress', foreign_key: :parent_stop_id
   has_many :stop_platforms, class_name: 'StopPlatform', foreign_key: :parent_stop_id
 
+  # Internal connectivity
+  has_many :stop_internal_connections
+
   # Scheduled trips
   has_many :trips_out, class_name: ScheduleStopPair, foreign_key: "origin_id"
   has_many :trips_in, class_name: ScheduleStopPair, foreign_key: "destination_id"

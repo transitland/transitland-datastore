@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160419224617) do
+ActiveRecord::Schema.define(version: 20160526224318) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -240,6 +240,22 @@ ActiveRecord::Schema.define(version: 20160419224617) do
   add_index "current_schedule_stop_pairs", ["service_start_date"], name: "c_ssp_service_start_date", using: :btree
   add_index "current_schedule_stop_pairs", ["trip"], name: "c_ssp_trip", using: :btree
   add_index "current_schedule_stop_pairs", ["updated_at"], name: "index_current_schedule_stop_pairs_on_updated_at", using: :btree
+
+  create_table "current_stop_internal_connections", force: :cascade do |t|
+    t.string   "connection_type"
+    t.hstore   "tags"
+    t.integer  "stop_id"
+    t.integer  "origin_id"
+    t.integer  "destination_id"
+    t.integer  "version"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "current_stop_internal_connections", ["connection_type"], name: "index_current_stop_internal_connections_on_connection_type", using: :btree
+  add_index "current_stop_internal_connections", ["destination_id"], name: "index_current_stop_internal_connections_on_destination_id", using: :btree
+  add_index "current_stop_internal_connections", ["origin_id"], name: "index_current_stop_internal_connections_on_origin_id", using: :btree
+  add_index "current_stop_internal_connections", ["stop_id"], name: "index_current_stop_internal_connections_on_stop_id", using: :btree
 
   create_table "current_stops", force: :cascade do |t|
     t.string    "onestop_id"
@@ -556,6 +572,22 @@ ActiveRecord::Schema.define(version: 20160419224617) do
   add_index "old_schedule_stop_pairs", ["service_end_date"], name: "o_ssp_service_end_date", using: :btree
   add_index "old_schedule_stop_pairs", ["service_start_date"], name: "o_ssp_service_start_date", using: :btree
   add_index "old_schedule_stop_pairs", ["trip"], name: "o_ssp_trip", using: :btree
+
+  create_table "old_stop_internal_connections", force: :cascade do |t|
+    t.string   "connection_type"
+    t.hstore   "tags"
+    t.integer  "stop_id"
+    t.integer  "origin_id"
+    t.integer  "destination_id"
+    t.integer  "version"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "old_stop_internal_connections", ["connection_type"], name: "index_old_stop_internal_connections_on_connection_type", using: :btree
+  add_index "old_stop_internal_connections", ["destination_id"], name: "index_old_stop_internal_connections_on_destination_id", using: :btree
+  add_index "old_stop_internal_connections", ["origin_id"], name: "index_old_stop_internal_connections_on_origin_id", using: :btree
+  add_index "old_stop_internal_connections", ["stop_id"], name: "index_old_stop_internal_connections_on_stop_id", using: :btree
 
   create_table "old_stops", force: :cascade do |t|
     t.string    "onestop_id"
