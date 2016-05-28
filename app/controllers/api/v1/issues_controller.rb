@@ -20,7 +20,7 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
   end
 
   def create
-    puts issue_params
+    # TODO: find changeset if none given?
     @issues = Issue.create!(issue_params)
     render json: @issues
   end

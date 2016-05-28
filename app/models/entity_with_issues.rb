@@ -2,12 +2,13 @@
 #
 # Table name: entities_with_issues
 #
-#  id          :integer          not null, primary key
-#  entity_id   :integer
-#  entity_type :string
-#  issue_id    :integer
-#  created_at  :datetime
-#  updated_at  :datetime
+#  id               :integer          not null, primary key
+#  entity_id        :integer
+#  entity_type      :string
+#  entity_attribute :string
+#  issue_id         :integer
+#  created_at       :datetime
+#  updated_at       :datetime
 #
 # Indexes
 #

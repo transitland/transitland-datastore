@@ -1,5 +1,3 @@
-require 'rails_helper'
-
-RSpec.describe IssueController, type: :controller do
+describe Api::V1::IssuesController do
 
 end

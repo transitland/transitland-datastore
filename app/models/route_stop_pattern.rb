@@ -31,7 +31,6 @@
 class BaseRouteStopPattern < ActiveRecord::Base
   self.abstract_class = true
 
-
   attr_accessor :traversed_by, :distance_issues, :first_stop_before_geom, :last_stop_after_geom
 end
 
@@ -177,7 +176,6 @@ class RouteStopPattern < BaseRouteStopPattern
 
   def calculate_distances(stops=nil)
     stops = self.stop_pattern.map {|onestop_id| Stop.find_by_onestop_id!(onestop_id) } if stops.nil?
-    self.distance_issues = 0
     self.stop_distances = []
     route = cartesian_cast(self[:geometry])
     num_segments = route.coordinates.size - 1
@@ -227,8 +225,6 @@ class RouteStopPattern < BaseRouteStopPattern
 
       distance_to_line = distance_to_nearest_point(stop_spherical, nearest_point)
       if !test_distance(distance_to_line)
-        logger.info "Distance issue: Found outlier stop #{stops[i].onestop_id} in route stop pattern #{self.onestop_id}. Distance to line: #{distance_to_line}"
-        self.distance_issues += 1
         if (i==0)
           self.stop_distances << 0.0
         elsif (i==stops.size-1)
@@ -244,28 +240,6 @@ class RouteStopPattern < BaseRouteStopPattern
     end
     self.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
   end
-
-  # def evaluate_distances
-  #   geometry_length = self[:geometry].length
-  #   self.stop_distances.each_index do |i|
-  #     if (i != 0)
-  #       if (self.stop_distances[i-1] == self.stop_distances[i])
-  #         unless self.stop_pattern[i].eql? self.stop_pattern[i-1]
-  #           logger.info "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}/#{self.stop_pattern.size}, of route stop pattern #{self.onestop_id} has the same distance as #{self.stop_pattern[i-1]}, which may indicate a segment matching issue or outlier stop."
-  #           self.distance_issues += 1
-  #         end
-  #       elsif (self.stop_distances[i-1] > self.stop_distances[i])
-  #         logger.info "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}/#{self.stop_pattern.size}, of route stop pattern #{self.onestop_id} occurs after stop #{self.stop_pattern[i-1]} but has a distance less than #{self.stop_pattern[i-1]}"
-  #         self.distance_issues += 1
-  #       end
-  #     end
-  #     # we'll be lenient if this difference is less than 5 meters.
-  #     if (self.stop_distances[i] > geometry_length && (self.stop_distances[i] - geometry_length) > 5.0)
-  #       logger.info "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}/#{self.stop_pattern.size}, of route stop pattern #{self.onestop_id} has a distance #{self.stop_distances[i]} greater than the length of the geometry, #{geometry_length}"
-  #       self.distance_issues += 1
-  #     end
-  #   end
-  # end
 
   def cartesian_cast(geometry)
     cartesian_factory = RGeo::Cartesian::Factory.new(srid: 4326)

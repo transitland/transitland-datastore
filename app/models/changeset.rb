@@ -21,7 +21,7 @@
 
 class Changeset < ActiveRecord::Base
   class Error < StandardError
-    attr_accessor :changeset, :message, :backtrace
+    attr_accessor :changeset, :message, :backtrace, :quality_check
 
     def initialize(changeset: nil, change_payloads: [], message: '', backtrace: [])
       @changeset = changeset
@@ -68,6 +68,8 @@ class Changeset < ActiveRecord::Base
   has_many :route_stop_patterns_created_or_updated, class_name: 'RouteStopPattern', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :route_stop_patterns_destroyed, class_name: 'OldRouteStopPattern', foreign_key: 'destroyed_in_changeset_id'
 
+  has_many :issues_resolved, class_name: 'Issue'
+
   belongs_to :user, autosave: true
   belongs_to :imported_from_feed, class_name: 'Feed', foreign_key: 'feed_id'
   belongs_to :imported_from_feed_version, class_name: 'FeedVersion', foreign_key: 'feed_version_id'
@@ -112,18 +114,18 @@ class Changeset < ActiveRecord::Base
 
   def trial_succeeds?
     trial_succeeds = false
+    issues = []
     Changeset.transaction do
       begin
-        apply!
+        trial_succeeds, issues = apply!
       rescue Exception => e
         raise ActiveRecord::Rollback
       else
-        trial_succeeds = true
         raise ActiveRecord::Rollback
       end
     end
     self.reload
-    trial_succeeds
+    return trial_succeeds, issues
   end
 
   def create_change_payloads(entities)
@@ -154,8 +156,29 @@ class Changeset < ActiveRecord::Base
     change_payloads.destroy_all
   end
 
+  def check_quality
+    gqc = GeometryQualityCheck.new(changeset: self)
+    issues = gqc.check
+    if self.imported_from_feed
+      import_score = (gqc.distance_issues.round(1)/gqc.distance_issue_tests).round(5) rescue 1.0
+      log "Feed: #{self.imported_from_feed.onestop_id} imported with Valhalla Import Score: #{import_score} #{gqc.distance_issue_tests} Stop/RouteStopPattern pairs were tested and #{gqc.distance_issues} distance issues found."
+    end
+    issues
+  end
+
+  def log(msg)
+    if Sidekiq::Logging.logger
+      Sidekiq::Logging.logger.info msg
+    elsif Rails.logger
+      Rails.logger.info msg
+    else
+      puts msg
+    end
+  end
+
   def apply!
     fail Changeset::Error.new(changeset: self, message: 'has already been applied.') if applied
+    issues = nil
     Changeset.transaction do
       begin
         change_payloads.each do |change_payload|
@@ -176,6 +199,9 @@ class Changeset < ActiveRecord::Base
           end
           EntityImportedFromFeed.import eiff_batch
         end
+        issues = check_quality
+        return false, issues if issues.map(&:block_changeset_apply).include?(true)
+        issues.each(&:save!)
       rescue => e
         logger.error "Error applying Changeset #{self.id}: #{e.message}"
         logger.error e.backtrace
@@ -200,7 +226,7 @@ class Changeset < ActiveRecord::Base
         created_or_updated_feed.async_fetch_feed_version
       end
     end
-    true
+    return true, issues
   end
 
   def revert!

@@ -90,8 +90,8 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   end
 
   def check
-    trial_succeeds = @changeset.trial_succeeds?
-    render json: { trialSucceeds: trial_succeeds }
+    trial_succeeds, issues = @changeset.trial_succeeds?
+    render json: {trialSucceeds: trial_succeeds, issues: issues.as_json }
   end
 
   def apply

@@ -87,11 +87,6 @@ class GTFSGraph
     log "Changeset apply"
     t = Time.now
     changeset.apply!
-    # changeset now has a db id
-    log "Evaluating feed quality"
-    @qc = QualityCheck.new(feed_version: @feed_version, changeset: changeset)
-    @qc.evaluate_geometries(rsps)
-    @qc.save
     log "  apply done: time #{Time.now - t}"
   end
 
