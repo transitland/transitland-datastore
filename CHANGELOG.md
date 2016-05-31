@@ -2,10 +2,28 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.3...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.4...HEAD)
 
 **Merged pull requests:**
 
+- Production release 4.8.4 [\#609](https://github.com/transitland/transitland-datastore/pull/609) ([irees](https://github.com/irees))
+
+## [4.8.4](https://github.com/transitland/transitland-datastore/tree/4.8.4) (2016-05-27)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.3...4.8.4)
+
+**Fixed bugs:**
+
+- Sidekiq dashboard isn't allowing admins to delete enqueued jobs [\#445](https://github.com/transitland/transitland-datastore/issues/445)
+
+**Closed issues:**
+
+- Tyr transit costing update [\#607](https://github.com/transitland/transitland-datastore/issues/607)
+
+**Merged pull requests:**
+
+- Tyr costing transit [\#608](https://github.com/transitland/transitland-datastore/pull/608) ([irees](https://github.com/irees))
+- fix for: Sidekiq dashboard isn't allowing admins to delete enqueued jobs [\#605](https://github.com/transitland/transitland-datastore/pull/605) ([drewda](https://github.com/drewda))
+- update gems [\#604](https://github.com/transitland/transitland-datastore/pull/604) ([drewda](https://github.com/drewda))
 - Production release 4.8.3 [\#603](https://github.com/transitland/transitland-datastore/pull/603) ([irees](https://github.com/irees))
 
 ## [4.8.3](https://github.com/transitland/transitland-datastore/tree/4.8.3) (2016-05-24)
