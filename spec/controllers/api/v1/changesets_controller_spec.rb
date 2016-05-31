@@ -214,7 +214,7 @@ describe Api::V1::ChangesetsController do
       expect(Stop.count).to eq 0
       post :apply, id: changeset
       expect(OnestopId.find!('s-9q8yt4b-1AvHoS').name).to eq '1st Ave. & Holloway Street'
-      expect_json({ applied: true })
+      expect_json({ applied: [true,[]] })
     end
 
     it 'should fail when API auth token is not provided' do

@@ -136,10 +136,10 @@ describe Changeset do
       @changeset1.apply!
       expect(Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS').name).to eq '1st Ave. & Holloway Street'
       expect(@changeset2.applied).to eq false
-      expect(@changeset2.trial_succeeds?).to eq true
+      expect(@changeset2.trial_succeeds?).to eq [true, []]
       expect(@changeset2.reload.applied).to eq false
       expect(Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS').name).to eq '1st Ave. & Holloway Street'
-      expect(@changeset2_bad.trial_succeeds?).to eq false
+      expect(@changeset2_bad.trial_succeeds?).to eq [false, []]
       @changeset2.apply!
       expect(Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS').name).to eq '1st Ave. & Holloway St.'
     end
