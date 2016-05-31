@@ -21,7 +21,7 @@
 
 class Changeset < ActiveRecord::Base
   class Error < StandardError
-    attr_accessor :changeset, :message, :backtrace, :quality_check
+    attr_accessor :changeset, :message, :backtrace
 
     def initialize(changeset: nil, change_payloads: [], message: '', backtrace: [])
       @changeset = changeset
@@ -164,16 +164,6 @@ class Changeset < ActiveRecord::Base
       log "Feed: #{self.imported_from_feed.onestop_id} imported with Valhalla Import Score: #{import_score} #{gqc.distance_issue_tests} Stop/RouteStopPattern pairs were tested and #{gqc.distance_issues} distance issues found."
     end
     issues
-  end
-
-  def log(msg)
-    if Sidekiq::Logging.logger
-      Sidekiq::Logging.logger.info msg
-    elsif Rails.logger
-      Rails.logger.info msg
-    else
-      puts msg
-    end
   end
 
   def apply!
