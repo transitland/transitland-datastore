@@ -206,15 +206,10 @@ GEM
     parser (2.3.1.0)
       ast (~> 2.2)
     pg (0.18.4)
-    pg_array_parser (0.0.9)
     pghero (1.2.4)
       activerecord
     polyamorous (1.1.0)
       activerecord (>= 3.0)
-    postgres_ext (3.0.0)
-      activerecord (>= 4.0.0)
-      arel (>= 4.0.1)
-      pg_array_parser (~> 0.0.9)
     powerpack (0.1.1)
     pry (0.10.3)
       coderay (~> 1.1.0)
@@ -432,7 +427,6 @@ DEPENDENCIES
   oj_mimic_json
   pg
   pghero
-  postgres_ext
   pry-byebug
   pry-rails
   pry-rescue
