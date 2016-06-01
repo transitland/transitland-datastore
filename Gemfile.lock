@@ -192,7 +192,6 @@ GEM
       activerecord (>= 2.3)
     method_source (0.8.2)
     mime-types (2.99.2)
-    mime-types-data (3.2016.0521)
     mini_portile2 (2.0.0)
     minitest (5.9.0)
     mock_redis (0.16.1)
@@ -458,4 +457,4 @@ DEPENDENCIES
   whenever
 
 BUNDLED WITH
-   1.11.2
+   1.12.5
