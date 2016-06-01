@@ -400,6 +400,7 @@ DEPENDENCIES
   activerecord-postgis-adapter
   airborne
   annotate
+  arel
   aws-sdk
   better_errors
   binding_of_caller
