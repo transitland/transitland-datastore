@@ -18,7 +18,6 @@ gem 'pg'
 gem 'activerecord-postgis-adapter'
 gem 'activerecord-import'
 gem 'redis-rails'
-gem 'arel'
 
 # background processing
 gem 'sidekiq', '< 5'
