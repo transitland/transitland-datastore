@@ -337,6 +337,7 @@ ActiveRecord::Schema.define(version: 20160419235457) do
     t.integer  "resolved_by_changeset_id"
     t.string   "details"
     t.string   "issue_type"
+    t.boolean  "open",                     default: true
     t.boolean  "block_changeset_apply",    default: false
     t.datetime "created_at"
     t.datetime "updated_at"

@@ -79,20 +79,22 @@
 </g>
 <!-- m_Issue -->
 <g id="node9" class="node"><title>m_Issue</title>
-<path fill="none" stroke="black" d="M192,-1097C192,-1097 472,-1097 472,-1097 478,-1097 484,-1103 484,-1109 484,-1109 484,-1134 484,-1134 484,-1140 478,-1146 472,-1146 472,-1146 192,-1146 192,-1146 186,-1146 180,-1140 180,-1134 180,-1134 180,-1109 180,-1109 180,-1103 186,-1097 192,-1097"/>
+<path fill="none" stroke="black" d="M192,-1090.5C192,-1090.5 472,-1090.5 472,-1090.5 478,-1090.5 484,-1096.5 484,-1102.5 484,-1102.5 484,-1140.5 484,-1140.5 484,-1146.5 478,-1152.5 472,-1152.5 472,-1152.5 192,-1152.5 192,-1152.5 186,-1152.5 180,-1146.5 180,-1140.5 180,-1140.5 180,-1102.5 180,-1102.5 180,-1096.5 186,-1090.5 192,-1090.5"/>
 <text text-anchor="start" x="236.852" y="-1118.7" font-family="Arial BoldMT" font-size="11.00">Issue</text>
-<polyline fill="none" stroke="black" points="324,-1097 324,-1146 "/>
-<text text-anchor="start" x="330.965" y="-1132.5" font-family="ArialMT" font-size="10.00">block_changeset_apply </text>
-<text text-anchor="start" x="438.265" y="-1132.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">boolean</text>
-<text text-anchor="start" x="331" y="-1119.5" font-family="ArialMT" font-size="10.00">details </text>
-<text text-anchor="start" x="362.685" y="-1119.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
-<text text-anchor="start" x="331" y="-1106.5" font-family="ArialMT" font-size="10.00">issue_type </text>
-<text text-anchor="start" x="381.586" y="-1106.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
+<polyline fill="none" stroke="black" points="324,-1090.5 324,-1152.5 "/>
+<text text-anchor="start" x="330.965" y="-1139.5" font-family="ArialMT" font-size="10.00">block_changeset_apply </text>
+<text text-anchor="start" x="438.265" y="-1139.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">boolean</text>
+<text text-anchor="start" x="331" y="-1126.5" font-family="ArialMT" font-size="10.00">details </text>
+<text text-anchor="start" x="362.685" y="-1126.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
+<text text-anchor="start" x="331" y="-1113.5" font-family="ArialMT" font-size="10.00">issue_type </text>
+<text text-anchor="start" x="381.586" y="-1113.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
+<text text-anchor="start" x="331" y="-1100.5" font-family="ArialMT" font-size="10.00">open </text>
+<text text-anchor="start" x="356.024" y="-1100.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">boolean</text>
 </g>
 <!-- m_Changeset&#45;&gt;m_Issue -->
 <g id="edge20" class="edge"><title>m_Changeset&#45;&gt;m_Issue</title>
-<path fill="none" stroke="black" d="M332,-1340.5C318.277,-1275.97 323.243,-1198.24 327.809,-1155.21"/>
-<polygon fill="black" stroke="black" points="330.962,-1155.36 328.829,-1146.06 324.701,-1154.66 330.962,-1155.36"/>
+<path fill="none" stroke="black" d="M332,-1340.5C318.945,-1279.11 322.804,-1205.78 327.141,-1161.73"/>
+<polygon fill="black" stroke="black" points="330.301,-1161.81 328.097,-1152.53 324.034,-1161.16 330.301,-1161.81"/>
 </g>
 <!-- m_OldFeed -->
 <g id="node10" class="node"><title>m_OldFeed</title>
@@ -826,8 +828,8 @@
 </g>
 <!-- m_FeedVersion&#45;&gt;m_Issue -->
 <g id="edge39" class="edge"><title>m_FeedVersion&#45;&gt;m_Issue</title>
-<path fill="none" stroke="black" d="M571.92,-1258.7C504.928,-1220.67 429.621,-1177.92 381.547,-1150.63"/>
-<polygon fill="black" stroke="black" points="382.866,-1147.75 373.484,-1146.05 379.755,-1153.23 382.866,-1147.75"/>
+<path fill="none" stroke="black" d="M571.92,-1258.7C510.159,-1223.64 441.33,-1184.57 393.289,-1157.29"/>
+<polygon fill="black" stroke="black" points="394.547,-1154.39 385.165,-1152.68 391.437,-1159.86 394.547,-1154.39"/>
 </g>
 <!-- m_FeedVersion&#45;&gt;m_Operator -->
 <g id="edge40" class="edge"><title>m_FeedVersion&#45;&gt;m_Operator</title>
@@ -856,7 +858,7 @@
 </g>
 <!-- m_Issue&#45;&gt;m_EntityWithIssues -->
 <g id="edge30" class="edge"><title>m_Issue&#45;&gt;m_EntityWithIssues</title>
-<path fill="none" stroke="black" d="M373.453,-1097C406.138,-1079.82 453.481,-1057.87 498,-1048 656.967,-1012.76 1818.52,-1087.09 1963,-1012 2042.14,-970.869 2092.04,-870.386 2112.02,-822.799"/>
+<path fill="none" stroke="black" d="M386.27,-1090.41C417.849,-1074.56 459.008,-1056.64 498,-1048 656.967,-1012.76 1818.52,-1087.09 1963,-1012 2042.14,-970.869 2092.04,-870.386 2112.02,-822.799"/>
 <polygon fill="black" stroke="black" points="2115.01,-823.809 2115.51,-814.287 2109.18,-821.419 2115.01,-823.809"/>
 </g>
 <!-- m_OldRoute&#45;&gt;m_OldRouteServingStop -->

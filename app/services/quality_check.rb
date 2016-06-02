@@ -11,6 +11,7 @@ class QualityCheck
   end
 
   def find_issue(issue)
+
   end
 end
 
@@ -21,32 +22,48 @@ class GeometryQualityCheck < QualityCheck
   attr_accessor :distance_issues, :distance_issue_tests
 
   def check
-    stop_rsp_distance_gap_checked = false
     self.distance_issues = 0
     self.distance_issue_tests = 0
 
+    distance_rsps = Set.new
+    distance_gap_pairs =  Set.new
+
+    # TODO if changeset is from import, we should go ahead and assign all rsps to distance_rsps
+
     self.changeset.route_stop_patterns_created_or_updated.each do |rsp|
-      rsp_stops = rsp.stop_pattern.map { |onestop_id| OnestopId.find!(onestop_id) }
-      rsp_stops.each do |stop|
-        self.stop_rsp_distance_gap(stop, rsp)
+      distance_rsps << rsp
+      rsp.stop_pattern.map { |onestop_id| OnestopId.find!(onestop_id) }.each do |stop|
+        distance_gap_pairs << [rsp, stop]
       end
-      stop_rsp_distance_gap_checked = true
-      self.stop_distances(rsp)
+      # other checks on rsp go here
     end
 
     self.changeset.stops_created_or_updated.each do |stop|
-      if !stop_rsp_distance_gap_checked
-        stop_rsps = RouteStopPattern.where{ stop_pattern.within(stop.onestop_id) }
-        stop_rsps.each do |rsp|
-          self.stop_rsp_distance_gap(stop, rsp)
+        RouteStopPattern.where{ stop_pattern.within(stop.onestop_id) }.each do |rsp|
+          distance_rsps << rsp
+          distance_gap_pairs << [rsp, stop]
         end
+        # other checks on stop go here
+    end
+
+    distance_rsps.each do |rsp|
+      rsp.stop_pattern.each_index do |i|
+        self.stop_distance(rsp, i)
       end
     end
+
+    distance_gap_pairs.each do |rsp, stop|
+      self.stop_rsp_distance_gap(stop, rsp)
+    end
+
+
+    self.distance_issue_tests = distance_rsps.map {|rsp| rsp.stop_pattern.size }.reduce(:+)
+    self.distance_issues = Set.new(self.issues.select {|ewi| ['stop_rsp_distance_gap', 'distance'].include?(ewi.issue_type) }.each {|issue| issue.entities_with_issues.map(&:entity_id) }).size
+
     self.issues
   end
 
   def stop_rsp_distance_gap(stop, rsp)
-    self.distance_issue_tests += 1
     if rsp.outlier_stop(stop[:geometry])
       issue = Issue.new(created_by_changeset: self.changeset,
                         issue_type: 'stop_rsp_distance_gap',
@@ -54,43 +71,34 @@ class GeometryQualityCheck < QualityCheck
       issue.entities_with_issues.new(entity: stop, issue: issue, entity_attribute: 'geometry')
       issue.entities_with_issues.new(entity: rsp, issue: issue, entity_attribute: 'geometry')
       self.issues << issue
-      self.distance_issues += 1
     end
   end
 
-  def stop_distances(rsp)
+  def stop_distance(rsp, index)
     geometry_length = rsp[:geometry].length
-    rsp.stop_distances.each_index do |i|
-      if (i != 0)
-        if (rsp.stop_distances[i-1] == rsp.stop_distances[i])
-          unless rsp.stop_pattern[i].eql? rsp.stop_pattern[i-1]
-            issue = Issue.new(created_by_changeset: self.changeset,
-                              issue_type: 'distance',
-                              details: "Stop #{rsp.stop_pattern[i]}, number #{i+1}/#{rsp.stop_pattern.size},
-                                       of route stop pattern #{rsp.onestop_id} has the same distance as #{rsp.stop_pattern[i-1]},
-                                       which may indicate a segment matching issue or outlier stop.")
-            issue.entities_with_issues.new(entity: rsp, issue: issue, entity_attribute: 'stop_distances')
-            self.issues << issue
-          end
-        elsif (rsp.stop_distances[i-1] > rsp.stop_distances[i])
+    if (index != 0)
+      if (rsp.stop_distances[index-1] == rsp.stop_distances[index])
+        unless rsp.stop_pattern[index].eql? rsp.stop_pattern[index-1]
           issue = Issue.new(created_by_changeset: self.changeset,
                             issue_type: 'distance',
-                            details: "Stop #{rsp.stop_pattern[i]}, number #{i+1}/#{rsp.stop_pattern.size},
-                                     of route stop pattern #{rsp.onestop_id} occurs after stop #{rsp.stop_pattern[i-1]},
-                                     but has a distance less than #{rsp.stop_pattern[i-1]}")
+                            details: "Stop #{rsp.stop_pattern[index]}, number #{index+1}/#{rsp.stop_pattern.size}, of route stop pattern #{rsp.onestop_id} has the same distance as #{rsp.stop_pattern[index-1]}, which may indicate a segment matching issue or outlier stop.")
           issue.entities_with_issues.new(entity: rsp, issue: issue, entity_attribute: 'stop_distances')
           self.issues << issue
         end
-      end
-      if (rsp.stop_distances[i] > geometry_length && (rsp.stop_distances[i] - geometry_length) > LAST_STOP_DISTANCE_LENIENCY)
+      elsif (rsp.stop_distances[index-1] > rsp.stop_distances[index])
         issue = Issue.new(created_by_changeset: self.changeset,
                           issue_type: 'distance',
-                          details: "Stop #{rsp.stop_pattern[i]}, number #{i+1}/#{rsp.stop_pattern.size},
-                                   of route stop pattern #{rsp.onestop_id} has a distance #{rsp.stop_distances[i]},
-                                   greater than the length of the geometry, #{geometry_length}")
+                          details: "Stop #{rsp.stop_pattern[index]}, number #{index+1}/#{rsp.stop_pattern.size}, of route stop pattern #{rsp.onestop_id} occurs after stop #{rsp.stop_pattern[index-1]}, but has a distance less than #{rsp.stop_pattern[index-1]}")
         issue.entities_with_issues.new(entity: rsp, issue: issue, entity_attribute: 'stop_distances')
         self.issues << issue
       end
+    end
+    if ((rsp.stop_distances[index] - geometry_length) > LAST_STOP_DISTANCE_LENIENCY)
+      issue = Issue.new(created_by_changeset: self.changeset,
+                        issue_type: 'distance',
+                        details: "Stop #{rsp.stop_pattern[index]}, number #{index+1}/#{rsp.stop_pattern.size}, of route stop pattern #{rsp.onestop_id} has a distance #{rsp.stop_distances[index]}, greater than the length of the geometry, #{geometry_length}")
+      issue.entities_with_issues.new(entity: rsp, issue: issue, entity_attribute: 'stop_distances')
+      self.issues << issue
     end
   end
 end

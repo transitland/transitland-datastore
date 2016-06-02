@@ -13,6 +13,15 @@
 #  updated_at               :datetime
 #
 
-describe Issue do
+class IssueSerializer < ApplicationSerializer
+  attributes :id,
+             :created_by_changeset_id,
+             :entities_with_issues,
+             :details,
+             :issue_type,
+             :open
 
+  def entities_with_issues
+    object.entities_with_issues.map { |e| Object.const_get(e.entity_type).find(e.entity_id).onestop_id }
+  end
 end
