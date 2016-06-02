@@ -478,18 +478,3 @@ class GTFSGraph
     end
   end
 end
-
-if __FILE__ == $0
-  ActiveRecord::Base.logger = Logger.new(STDOUT)
-  feed_onestop_id = ARGV[0] || 'f-9q9-caltrain'
-  path = ARGV[1] || File.open(Rails.root.join('spec/support/example_gtfs_archives/f-9q9-caltrain.zip'))
-  import_level = (ARGV[2].presence || 1).to_i
-  feed = Feed.find_by_onestop_id!(feed_onestop_id)
-  feed_version = feed.feed_versions.new(file: File.open(path))
-  feed_version.valid?
-  feed_version = FeedVersion.find_by(sha1: feed_version.sha1) || feed_version
-  Stop.connection
-  graph = GTFSGraph.new(feed, feed_version)
-  graph.cleanup
-  graph.create_change_osr
-end
