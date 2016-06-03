@@ -96,7 +96,7 @@ module OnestopId
 
   class StopOnestopId < OnestopIdBase
     PREFIX = :s
-    MODEL = Stop    
+    MODEL = Stop
     def self.match?(value)
       super && !value.include?('<') && !value.include?('>')
     end
@@ -215,7 +215,7 @@ module OnestopId
   end
 
   def self.handler_by_model(model)
-    OnestopId::OnestopIdBase.descendants.select { |cls| cls::MODEL == model }.first
+    LOOKUP_MODEL[model]
   end
 
   def self.create_identifier(feed_onestop_id, entity_prefix, entity_id)
