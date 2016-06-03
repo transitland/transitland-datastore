@@ -77,7 +77,8 @@ class Stop < BaseStop
       :identified_by,
       :not_identified_by,
       :parent_stop_onestop_id,
-      :includes_stop_internal_connections
+      :includes_stop_internal_connections,
+      :does_not_include_stop_internal_connections
     ],
     protected_attributes: [
       :identifiers,
@@ -108,14 +109,11 @@ class Stop < BaseStop
       changeset: changeset
     )
     (self.includes_stop_internal_connections || []).each do |internal_connection|
-      origin = StopEgress.find_by_onestop_id!(internal_connection[:origin_onestop_id])
-      destination = StopPlatform.find_by_onestop_id!(internal_connection[:destination_onestop_id])
       StopInternalConnection.create_making_history(
         changeset: changeset,
         new_attrs: {
-          stop_id: self.id,
-          origin_id: origin.id,
-          destination_id: destination.id,
+          origin: self,
+          destination: StopPlatform.find_by_onestop_id!(internal_connection[:destination_onestop_id]),
           connection_type: internal_connection[:connection_type]
         }
       )
@@ -325,7 +323,9 @@ class StopPlatform < Stop
       :not_served_by,
       :identified_by,
       :not_identified_by,
-      :parent_stop_onestop_id
+      :parent_stop_onestop_id,
+      :includes_stop_internal_connections,
+      :does_not_include_stop_internal_connections
     ],
     protected_attributes: [
       :identifiers,
@@ -343,7 +343,9 @@ class StopEgress < Stop
       :served_by,
       :not_served_by,
       :identified_by,
-      :not_identified_by
+      :not_identified_by,
+      :includes_stop_internal_connections,
+      :does_not_include_stop_internal_connections
     ],
     protected_attributes: [
       :identifiers,
