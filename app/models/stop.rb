@@ -86,10 +86,6 @@ class Stop < BaseStop
     ]
   })
   def self.after_create_making_history(created_model, changeset)
-    if created_model.parent_stop_onestop_id
-      created_model.parent_stop = Stop.find_by_onestop_id!(created_model.parent_stop_onestop_id)
-      created_model.save!
-    end
     OperatorRouteStopRelationship.manage_multiple(
       stop: {
         served_by: created_model.served_by || [],
@@ -98,6 +94,23 @@ class Stop < BaseStop
       },
       changeset: changeset
     )
+  end
+  def after_create_making_history2(changeset)
+    if self.parent_stop_onestop_id
+      self.update!(
+        parent_stop: Stop.find_by_onestop_id!(self.parent_stop_onestop_id)
+      )
+    end
+    (self.includes_stop_internal_connections || []).each do |internal_connection|
+      StopInternalConnection.create_making_history(
+        changeset: changeset,
+        new_attrs: {
+          stop: self,
+          destination: Stop.find_by_onestop_id!(internal_connection[:destination_onestop_id]),
+          connection_type: internal_connection[:connection_type]
+        }
+      )
+    end
   end
   def before_update_making_history(changeset)
     OperatorRouteStopRelationship.manage_multiple(
@@ -108,17 +121,6 @@ class Stop < BaseStop
       },
       changeset: changeset
     )
-    (self.includes_stop_internal_connections || []).each do |internal_connection|
-      StopInternalConnection.create_making_history(
-        changeset: changeset,
-        new_attrs: {
-          origin: self,
-          destination: StopPlatform.find_by_onestop_id!(internal_connection[:destination_onestop_id]),
-          connection_type: internal_connection[:connection_type]
-        }
-      )
-    end
-
     super(changeset)
   end
   def before_destroy_making_history(changeset, old_model)

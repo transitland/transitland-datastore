@@ -30,15 +30,17 @@ module CurrentTrackedByChangeset
     end
 
     def apply_changes_create_update(changeset: nil, changes: nil, cache: {})
+      entities = []
       changes.each do |change|
         existing_model = find_existing_model(change)
         attrs_to_apply = apply_params(change, cache)
         if existing_model
-          existing_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply)
+          entities << existing_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply)
         else
-          self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
+          entities << self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
         end
       end
+      entities.each { |entity| entity.after_create_making_history2(changeset) }
     end
 
     def apply_changes_destroy(changeset: nil, changes: nil, cache: {})
@@ -74,6 +76,7 @@ module CurrentTrackedByChangeset
           self.after_create_making_history(new_model, changeset)
           new_model
         end
+        new_model
       end
     end
 
@@ -127,6 +130,12 @@ module CurrentTrackedByChangeset
       slice(*self.class.changeable_attributes).
       map { |k, v| [k.to_s.camelize(:lower).to_sym, v] }
     ]
+  end
+
+  def after_create_making_history2(changeset)
+    # this is available for overriding in models
+    super(changeset) if defined?(super)
+    return true
   end
 
   def before_destroy_making_history(changeset, old_model)
@@ -185,6 +194,7 @@ module CurrentTrackedByChangeset
         self.save!
       end
     end
+    self
   end
 
   def merge(other)
