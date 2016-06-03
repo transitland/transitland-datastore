@@ -26,7 +26,7 @@ class Issue < ActiveRecord::Base
   def description
     case self.issue_type
     when 'stop_rsp_distance_gap'
-      self.details = 'Distance gap between RouteStopPattern and Stop.' + self.details
+      self.details = 'Distance gap between RouteStopPattern and Stop. ' + self.details
     when 'distance'
       self.details = 'Inaccuracy in distance calculation. ' + self.details
     end

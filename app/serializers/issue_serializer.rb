@@ -16,12 +16,13 @@
 class IssueSerializer < ApplicationSerializer
   attributes :id,
              :created_by_changeset_id,
-             :entities_with_issues,
+             :resolved_by_changeset_id,
              :details,
              :issue_type,
-             :open
+             :block_changeset_apply,
+             :open,
+             :created_at,
+             :updated_at
 
-  def entities_with_issues
-    object.entities_with_issues.map { |e| Object.const_get(e.entity_type).find(e.entity_id).onestop_id }
-  end
+  has_many :entities_with_issues
 end

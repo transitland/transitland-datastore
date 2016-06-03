@@ -4,7 +4,7 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
   before_action :set_issue, only: [:show, :update, :destroy]
 
   def index
-    @issues = Issue.where('')
+    @issues = Issue.where('').includes{[entities_with_issues]}
 
     respond_to do |format|
       format.json do
@@ -39,9 +39,12 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
 
   def create
     #TODO check issue_type against available types
-    entity = OnestopId.find!(issue_params['onestop_id'])
-    issue = Issue.create!(issue_params.slice(:details).update(created_by_changeset_id: entity.created_or_updated_in_changeset_id))
-    issue.entities_with_issues.new(entity: entity, issue: issue, entity_attribute: issue_params['entity_attribute'])
+    issue =  issue_params['created_by_changeset_id'] ? Issue.create!(filter_params(issue_params)) : nil
+    issue_params['entities_with_issues'].each do |ewi|
+      entity = OnestopId.find!(ewi['onestop_id'])
+      issue = Issue.create!(filter_params(issue_params).update(created_by_changeset_id: entity.created_or_updated_in_changeset_id)) if issue.nil?
+      issue.entities_with_issues.new(entity: entity, issue: issue, entity_attribute: ewi['entity_attribute'])
+    end
     render json: issue
   end
 
@@ -51,15 +54,15 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
     @issue = Issue.find(params[:id])
   end
 
-  def issue_params
-    #TODO more required params
-    params.require(:issue).permit(:details,
-                                  :issue_type,
-                                  :onestop_id,
+  def filter_params(issue_params)
+    issue_params.keep_if { |k,v| [:details,
                                   :created_by_changeset_id,
-                                  :resolved_by_changeset_id,
-                                  :entity_attribute,
                                   :open,
-                                  :block_changeset_apply)
+                                  :block_changeset_apply,
+                                  :issue_type].include?(k) }
+  end
+
+  def issue_params
+    params.require(:issue).permit!
   end
 end
