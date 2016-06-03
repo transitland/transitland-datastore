@@ -29,14 +29,10 @@ end
 class StopInternalConnection < BaseStopInternalConnection
   include CurrentTrackedByChangeset
   self.table_name_prefix = 'current_'
-
-  belongs_to :stop
   belongs_to :origin, class_name: 'Stop'
   belongs_to :destination, class_name: 'Stop'
-
   current_tracked_by_changeset kind_of_model_tracked: :relationship
-
-  validates :connection_type, :origin, :destination, :stop, presence: true
+  validates :connection_type, :origin, :destination, presence: true
 end
 
 class OldStopInternalConnection < BaseStopInternalConnection

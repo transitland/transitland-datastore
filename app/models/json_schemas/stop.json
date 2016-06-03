@@ -52,11 +52,7 @@
       "uniqueItems": true,
       "items": {
         "type": "object",
-        "required": ["originOnestopId", "destinationOnestopId", "connectionType"],
-        "originOnestopId": {
-          "type": "string",
-          "format": "stop-onestop-id"
-        },
+        "required": ["destinationOnestopId", "connectionType"],
         "destinationOnestopId": {
           "type": "string",
           "format": "stop-onestop-id"
@@ -72,11 +68,7 @@
       "uniqueItems": true,
       "items": {
         "type": "object",
-        "required": ["originOnestopId", "destinationOnestopId"],
-        "originOnestopId": {
-          "type": "string",
-          "format": "stop-onestop-id"
-        },
+        "required": ["destinationOnestopId"],
         "destinationOnestopId": {
           "type": "string",
           "format": "stop-onestop-id"
