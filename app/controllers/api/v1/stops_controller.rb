@@ -13,6 +13,7 @@ class Api::V1::StopsController < Api::V1::BaseApiController
   }
 
   before_action :set_stop, only: [:show]
+  SERIALIZER = StopSerializer
 
   def index
     @stops = Stop.where('')
@@ -90,7 +91,11 @@ class Api::V1::StopsController < Api::V1::BaseApiController
   def show
     respond_to do |format|
       format.json do
-        render json: @stop, serializer: self.class::SERIALIZER
+        if self.class::SERIALIZER
+          render json: @stop, serializer: self.class::SERIALIZER
+        else
+          render json: @stop
+        end
       end
       format.geojson do
         render json: Geojson.from_entity(@stop, &GEOJSON_ENTITY_PROPERTIES)
