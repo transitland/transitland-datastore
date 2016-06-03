@@ -33,15 +33,15 @@ class GTFSGraph
     calculate_rsp_distances(rsps)
     operators = load_tl_operators
     fail GTFSGraph::Error.new('No agencies found that match operators_in_feed') unless operators.size > 0
+
+    # Routes
     routes = operators.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
 
-    stations = Set.new
+    # Stops and Platforms
     stops = routes.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
-    stops.each { |stop| stations << find_by_onestop_id(stop.parent_stop_onestop_id) }
-    stations.delete(nil)
 
-    rsps = rsps.select { |rsp| routes.include?(rsp.route) }
     # Update route geometries
+    rsps = rsps.select { |rsp| routes.include?(rsp.route) }
     route_rsps = {}
     rsps.each do |rsp|
       route_rsps[rsp.route] ||= Set.new
@@ -75,8 +75,8 @@ class GTFSGraph
     begin
       changeset.create_change_payloads(operators)
       log "  stops: #{stops.size}"
-      changeset.create_change_payloads(stations)
-      changeset.create_change_payloads(stops)
+      # sort with StopPlatforms last
+      changeset.create_change_payloads(stops.partition { |i| i.type != 'StopPlatform' }.flatten)
       log "  routes: #{routes.size}"
       changeset.create_change_payloads(routes)
       log "  route geometries: #{rsps.size}"
@@ -196,14 +196,15 @@ class GTFSGraph
   def load_tl_stops
     # Merge child stations into parents
     log "  stops"
+    gtfs_platforms, gtfs_stops = @gtfs.stops.partition { |i| i.parent_station.presence }
     # Create parent stops first
-    @gtfs.stops.reject(&:parent_station).each do |gtfs_stop|
+    gtfs_stops.each do |gtfs_stop|
       stop = find_and_update_entity(Stop.from_gtfs(gtfs_stop))
       add_identifier(stop, 's', gtfs_stop)
       log "    Stop: #{stop.onestop_id}: #{stop.name}"
     end
     # Create child stops
-    @gtfs.stops.select(&:parent_station).each do |gtfs_stop|
+    gtfs_platforms.each do |gtfs_stop|
       stop = StopPlatform.from_gtfs(gtfs_stop)
       parent_stop = find_by_gtfs_entity(@gtfs.stop(gtfs_stop.parent_station))
       # Combine onestop_id with parent_stop onestop_id, if present
@@ -218,7 +219,6 @@ class GTFSGraph
       # index
       stop = find_and_update_entity(stop)
       add_identifier(stop, 's', gtfs_stop)
-      #
       log "    StopPlatform: #{stop.onestop_id}: #{stop.name}"
     end
   end
@@ -271,9 +271,8 @@ class GTFSGraph
       # Also serve parent stations...
       parent_stations = Set.new
       stops.each do |stop|
-        parent_station = find_by_onestop_id(stop.tags[:parent_station])
-        next unless parent_station
-        parent_stations << parent_station
+        parent_station = find_by_onestop_id(stop.parent_stop_onestop_id)
+        parent_stations << parent_station if parent_station
       end
       stops |= parent_stations
       # Skip Route if no Stops
