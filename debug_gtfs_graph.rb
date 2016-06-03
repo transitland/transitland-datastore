@@ -1,7 +1,71 @@
 ActiveRecord::Base.logger = Logger.new(STDOUT)
 
 path = ARGV[0] || Rails.root.join('spec/support/example_gtfs_archives/f-9q9-caltrain.zip')
-feed_onestop_id = ARGV[2] || 'f-9q9-debug'
+feed_onestop_id = ARGV[2] || 'f-123-debug'
+
+class DebugGTFSGraph < GTFSGraph
+  def create_change_osr
+    log "Load GTFS"
+    @gtfs.load_graph
+    log "Load TL"
+    load_tl_stops
+    load_tl_routes
+    load_tl_transfers
+    operators = load_tl_operators
+    routes = operators.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
+    stops = routes.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
+    ####
+    log "Create changeset"
+    changeset = Changeset.create(
+      imported_from_feed: @feed,
+      imported_from_feed_version: @feed_version,
+      notes: "Changeset created by FeedEaterWorker for #{@feed.onestop_id} #{@feed_version.sha1}"
+    )
+    log "Create: Operators, Stops, Routes"
+    # Update Feed Bounding Box
+    log "  updating feed bounding box"
+    @feed.set_bounding_box_from_stops(stops)
+    # FIXME: Run through changeset
+    @feed.save!
+    # Clear out serves; can't find routes that don't exist yet.
+    operators.each { |operator| operator.serves = nil }
+    log "  operators: #{operators.size}"
+    begin
+      changeset.create_change_payloads(operators)
+      log "  stops: #{stops.size}"
+      changeset.create_change_payloads(stops.partition { |i| i.type != 'StopPlatform' }.flatten)
+      log "  routes: #{routes.size}"
+      changeset.create_change_payloads(routes)
+    rescue Changeset::Error => e
+      log "Error: #{e.message}"
+      log "Payload:"
+      changeset.change_payloads.each do |change_payload|
+        log change_payload.to_json
+      end
+    end
+    log "Changeset apply"
+    t = Time.now
+    changeset.apply!
+    log "  apply done: time #{Time.now - t}"
+  end
+
+  def load_tl_transfers
+    @gtfs.transfers.each do |transfer|
+      origin = find_by_gtfs_entity(@gtfs.stop(transfer.from_stop_id))
+      destination = find_by_gtfs_entity(@gtfs.stop(transfer.to_stop_id))
+      next unless origin && destination
+      origin.includes_stop_internal_connections ||= []
+      origin.includes_stop_internal_connections << {
+        destinationOnestopId: destination.onestop_id,
+        connectionType: transfer.transfer_type,
+        tags: {
+          min_transfer_time: transfer.min_transfer_time
+        }
+      }
+    end
+  end
+end
+
 
 feed = Feed.find_by_onestop_id(feed_onestop_id)
 unless feed
@@ -13,7 +77,7 @@ unless feed
   GTFS::Source.build(path).agencies.each { |agency|
     operator = Operator.create!(
       onestop_id: OnestopId::OperatorOnestopId.new(
-        geohash: '9q9',
+        geohash: '123',
         name: agency.name.presence || agency.id
       ),
       name: agency.agency_name,
@@ -28,6 +92,6 @@ feed_version = feed.feed_versions.new(file: File.open(path))
 feed_version.valid?
 feed_version = FeedVersion.find_by(sha1: feed_version.sha1) || feed_version
 Stop.connection
-graph = GTFSGraph.new(feed, feed_version)
+graph = DebugGTFSGraph.new(feed, feed_version)
 graph.cleanup
 graph.create_change_osr
