@@ -28,30 +28,13 @@
 #  index_current_stops_on_updated_at      (updated_at)
 #
 
-class StopSerializer < CurrentEntitySerializer
-  attributes :onestop_id,
-             :geometry,
-             :name,
-             :tags,
-             :timezone,
-             :created_at,
-             :updated_at
+class StopInternalConnectionSerializer < ApplicationSerializer
+  attributes :connection_type,
+             :destination_onestop_id,
+             :tags
 
-  has_many :operators_serving_stop
-  has_many :routes_serving_stop
-  has_many :stop_internal_connections
-end
-
-class StopPlatformSerializer < StopSerializer
-  attributes :parent_stop_onestop_id
-  def parent_stop_onestop_id
-    object.parent_stop.try(:onestop_id)
+  def destination_onestop_id
+    object.destination.onestop_id
   end
-end
 
-class StopEgressSerializer < StopSerializer
-  attributes :parent_stop_onestop_id
-  def parent_stop_onestop_id
-    object.parent_stop.try(:onestop_id)
-  end
 end
