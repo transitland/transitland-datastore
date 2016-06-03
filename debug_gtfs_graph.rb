@@ -1,6 +1,6 @@
 ActiveRecord::Base.logger = Logger.new(STDOUT)
 
-path = ARGV[0] || File.open(Rails.root.join('spec/support/example_gtfs_archives/f-9q9-caltrain.zip'))
+path = ARGV[0] || Rails.root.join('spec/support/example_gtfs_archives/f-9q9-caltrain.zip')
 feed_onestop_id = ARGV[2] || 'f-9q9-debug'
 
 feed = Feed.find_by_onestop_id(feed_onestop_id)
@@ -12,7 +12,10 @@ unless feed
   )
   GTFS::Source.build(path).agencies.each { |agency|
     operator = Operator.create!(
-      onestop_id: "o-9q9-#{agency.id || 'debug'}",
+      onestop_id: OnestopId::OperatorOnestopId.new(
+        geohash: '9q9',
+        name: agency.name.presence || agency.id
+      ),
       name: agency.agency_name,
       timezone: agency.agency_timezone,
       geometry: "POINT(#{rand(-124.4..-90.1)} #{rand(28.1..50.0095)})"
