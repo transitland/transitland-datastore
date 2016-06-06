@@ -54,8 +54,8 @@ class DebugGTFSGraph < GTFSGraph
       origin = find_by_gtfs_entity(@gtfs.stop(transfer.from_stop_id))
       destination = find_by_gtfs_entity(@gtfs.stop(transfer.to_stop_id))
       next unless origin && destination
-      origin.includes_stop_internal_connections ||= []
-      origin.includes_stop_internal_connections << {
+      origin.includes_stop_transfers ||= []
+      origin.includes_stop_transfers << {
         destinationOnestopId: destination.onestop_id,
         connectionType: transfer.transfer_type,
         tags: {

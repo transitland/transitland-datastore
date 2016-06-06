@@ -28,7 +28,7 @@
 #  index_current_stops_on_updated_at      (updated_at)
 #
 
-class StopInternalConnectionSerializer < ApplicationSerializer
+class StopTransferSerializer < ApplicationSerializer
   attributes :connection_type,
              :destination_onestop_id,
              :tags

@@ -39,7 +39,7 @@ class StopSerializer < CurrentEntitySerializer
 
   has_many :operators_serving_stop
   has_many :routes_serving_stop
-  has_many :stop_internal_connections
+  has_many :stop_transfers
 end
 
 class StopPlatformSerializer < StopSerializer

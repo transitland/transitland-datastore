@@ -1,6 +1,6 @@
 # == Schema Information
 #
-# Table name: current_stop_internal_connections
+# Table name: current_stop_transfers
 #
 #  id                                 :integer          not null, primary key
 #  connection_type                    :string
@@ -15,18 +15,18 @@
 #
 # Indexes
 #
-#  index_current_stop_internal_connections_on_connection_type  (connection_type)
-#  index_current_stop_internal_connections_on_destination_id   (destination_id)
-#  index_current_stop_internal_connections_on_origin_id        (origin_id)
-#  index_current_stop_internal_connections_on_stop_id          (stop_id)
+#  index_current_stop_transfers_on_connection_type  (connection_type)
+#  index_current_stop_transfers_on_destination_id   (destination_id)
+#  index_current_stop_transfers_on_origin_id        (origin_id)
+#  index_current_stop_transfers_on_stop_id          (stop_id)
 #
 
-class BaseStopInternalConnection < ActiveRecord::Base
+class BaseStopTransfer < ActiveRecord::Base
   self.abstract_class = true
 end
 
 
-class StopInternalConnection < BaseStopInternalConnection
+class StopTransfer < BaseStopTransfer
   include CurrentTrackedByChangeset
   self.table_name_prefix = 'current_'
   belongs_to :stop
@@ -35,7 +35,7 @@ class StopInternalConnection < BaseStopInternalConnection
   validates :connection_type, :stop, :destination, presence: true
 end
 
-class OldStopInternalConnection < BaseStopInternalConnection
+class OldStopTransfer < BaseStopTransfer
   include OldTrackedByChangeset
   belongs_to :stop, polymorphic: true
   belongs_to :destination, polymorphic: true

@@ -1,6 +1,6 @@
 # == Schema Information
 #
-# Table name: current_stop_internal_connections
+# Table name: current_stop_transfers
 #
 #  id                                 :integer          not null, primary key
 #  connection_type                    :string
@@ -15,14 +15,14 @@
 #
 # Indexes
 #
-#  index_current_stop_internal_connections_on_connection_type  (connection_type)
-#  index_current_stop_internal_connections_on_destination_id   (destination_id)
-#  index_current_stop_internal_connections_on_origin_id        (origin_id)
-#  index_current_stop_internal_connections_on_stop_id          (stop_id)
+#  index_current_stop_transfers_on_connection_type  (connection_type)
+#  index_current_stop_transfers_on_destination_id   (destination_id)
+#  index_current_stop_transfers_on_origin_id        (origin_id)
+#  index_current_stop_transfers_on_stop_id          (stop_id)
 #
 
 describe Stop do
-  context 'stop_internal_connections' do
+  context 'stop_transfers' do
     before(:each) {
       @payload = {
         changes: [
@@ -58,7 +58,7 @@ describe Stop do
         action: 'createUpdate',
         stop: {
           onestopId: 's-9q9-test',
-          includesStopInternalConnections: [
+          includesStopTransfers: [
             {
               originOnestopId: 's-9q9-test>egress',
               destinationOnestopId: 's-9q9-test<platform',
@@ -70,7 +70,7 @@ describe Stop do
       changeset = build(:changeset, payload: @payload)
       changeset.apply!
       stop = Stop.find_by_onestop_id!('s-9q9-test')
-      expect(stop.stop_internal_connections.size).to eq(1)
+      expect(stop.stop_transfers.size).to eq(1)
     end
   end
 end

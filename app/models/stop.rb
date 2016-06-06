@@ -36,7 +36,7 @@ class Stop < BaseStop
   self.table_name = 'current_stops'
   attr_accessor :parent_stop_onestop_id
   attr_accessor :served_by, :not_served_by
-  attr_accessor :includes_stop_internal_connections, :does_not_include_stop_internal_connections
+  attr_accessor :includes_stop_transfers, :does_not_include_stop_transfers
   # validates :timezone, presence: true
 
   include HasAOnestopId
@@ -77,8 +77,8 @@ class Stop < BaseStop
       :identified_by,
       :not_identified_by,
       :parent_stop_onestop_id,
-      :includes_stop_internal_connections,
-      :does_not_include_stop_internal_connections
+      :includes_stop_transfers,
+      :does_not_include_stop_transfers
     ],
     protected_attributes: [
       :identifiers,
@@ -101,8 +101,8 @@ class Stop < BaseStop
         parent_stop: Stop.find_by_onestop_id!(self.parent_stop_onestop_id)
       )
     end
-    (self.includes_stop_internal_connections || []).each do |internal_connection|
-      StopInternalConnection.create_making_history(
+    (self.includes_stop_transfers || []).each do |internal_connection|
+      StopTransfer.create_making_history(
         changeset: changeset,
         new_attrs: {
           stop: self,
@@ -146,7 +146,7 @@ class Stop < BaseStop
   has_many :stop_platforms, class_name: 'StopPlatform', foreign_key: :parent_stop_id
 
   # Internal connectivity
-  has_many :stop_internal_connections
+  has_many :stop_transfers
 
   # Scheduled trips
   has_many :trips_out, class_name: ScheduleStopPair, foreign_key: "origin_id"
@@ -326,8 +326,8 @@ class StopPlatform < Stop
       :identified_by,
       :not_identified_by,
       :parent_stop_onestop_id,
-      :includes_stop_internal_connections,
-      :does_not_include_stop_internal_connections
+      :includes_stop_transfers,
+      :does_not_include_stop_transfers
     ],
     protected_attributes: [
       :identifiers,
@@ -346,8 +346,8 @@ class StopEgress < Stop
       :not_served_by,
       :identified_by,
       :not_identified_by,
-      :includes_stop_internal_connections,
-      :does_not_include_stop_internal_connections
+      :includes_stop_transfers,
+      :does_not_include_stop_transfers
     ],
     protected_attributes: [
       :identifiers,

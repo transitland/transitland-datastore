@@ -1,7 +1,7 @@
-class CreateStopInternalConnections < ActiveRecord::Migration
+class CreateStopTransfers < ActiveRecord::Migration
   def change
     [:current, :old].each do |version|
-      create_table "#{version}_stop_internal_connections" do |t|
+      create_table "#{version}_stop_transfers" do |t|
         t.string :connection_type, index: true
         t.hstore :tags
         t.references :stop, index: true

@@ -46,7 +46,7 @@
         "format": "operator-onestop-id"
       }
     },
-    "includesStopInternalConnections": {
+    "includesStopTransfers": {
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
@@ -62,7 +62,7 @@
         }
       }
     },
-    "doesNotIncludeStopInternalConnections": {
+    "doesNotIncludeStopTransfers": {
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
