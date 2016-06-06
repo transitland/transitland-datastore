@@ -51,16 +51,14 @@ class DebugGTFSGraph < GTFSGraph
 
   def load_tl_transfers
     @gtfs.transfers.each do |transfer|
-      origin = find_by_gtfs_entity(@gtfs.stop(transfer.from_stop_id))
-      destination = find_by_gtfs_entity(@gtfs.stop(transfer.to_stop_id))
-      next unless origin && destination
-      origin.includes_stop_transfers ||= []
-      origin.includes_stop_transfers << {
-        destinationOnestopId: destination.onestop_id,
-        connectionType: transfer.transfer_type,
-        tags: {
-          min_transfer_time: transfer.min_transfer_time
-        }
+      stop = find_by_gtfs_entity(@gtfs.stop(transfer.from_stop_id))
+      to_stop = find_by_gtfs_entity(@gtfs.stop(transfer.to_stop_id))
+      next unless stop && to_stop
+      stop.includes_stop_transfers ||= []
+      stop.includes_stop_transfers << {
+        toStopOnestopId: to_stop.onestop_id,
+        transferType: transfer.transfer_type,
+        minTransferTime: transfer.min_transfer_time.to_i
       }
     end
   end

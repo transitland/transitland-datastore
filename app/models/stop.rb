@@ -106,7 +106,7 @@ class Stop < BaseStop
         changeset: changeset,
         new_attrs: {
           stop: self,
-          destination: Stop.find_by_onestop_id!(internal_connection[:destination_onestop_id]),
+          to_stop: Stop.find_by_onestop_id!(internal_connection[:to_stop_onestop_id]),
           connection_type: internal_connection[:connection_type]
         }
       )

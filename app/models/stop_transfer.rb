@@ -30,13 +30,13 @@ class StopTransfer < BaseStopTransfer
   include CurrentTrackedByChangeset
   self.table_name_prefix = 'current_'
   belongs_to :stop
-  belongs_to :destination, class_name: 'Stop'
+  belongs_to :to_stop, class_name: 'Stop'
   current_tracked_by_changeset kind_of_model_tracked: :relationship
-  validates :connection_type, :stop, :destination, presence: true
+  validates :transfer_type, :stop, :destination, presence: true
 end
 
 class OldStopTransfer < BaseStopTransfer
   include OldTrackedByChangeset
   belongs_to :stop, polymorphic: true
-  belongs_to :destination, polymorphic: true
+  belongs_to :to_stop, polymorphic: true
 end
