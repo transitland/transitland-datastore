@@ -3,11 +3,11 @@
 # Table name: current_stop_transfers
 #
 #  id                                 :integer          not null, primary key
-#  connection_type                    :string
+#  transfer_type                      :string
+#  min_transfer_time                  :integer
 #  tags                               :hstore
 #  stop_id                            :integer
-#  origin_id                          :integer
-#  destination_id                     :integer
+#  to_stop_id                         :integer
 #  created_or_updated_in_changeset_id :integer
 #  version                            :integer
 #  created_at                         :datetime
@@ -15,10 +15,10 @@
 #
 # Indexes
 #
-#  index_current_stop_transfers_on_connection_type  (connection_type)
-#  index_current_stop_transfers_on_destination_id   (destination_id)
-#  index_current_stop_transfers_on_origin_id        (origin_id)
-#  index_current_stop_transfers_on_stop_id          (stop_id)
+#  index_current_stop_transfers_on_min_transfer_time  (min_transfer_time)
+#  index_current_stop_transfers_on_stop_id            (stop_id)
+#  index_current_stop_transfers_on_to_stop_id         (to_stop_id)
+#  index_current_stop_transfers_on_transfer_type      (transfer_type)
 #
 
 class BaseStopTransfer < ActiveRecord::Base
@@ -32,7 +32,7 @@ class StopTransfer < BaseStopTransfer
   belongs_to :stop
   belongs_to :to_stop, class_name: 'Stop'
   current_tracked_by_changeset kind_of_model_tracked: :relationship
-  validates :transfer_type, :stop, :destination, presence: true
+  validates :transfer_type, :stop, :to_stop, presence: true
 end
 
 class OldStopTransfer < BaseStopTransfer

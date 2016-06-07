@@ -101,13 +101,13 @@ class Stop < BaseStop
         parent_stop: Stop.find_by_onestop_id!(self.parent_stop_onestop_id)
       )
     end
-    (self.includes_stop_transfers || []).each do |internal_connection|
+    (self.includes_stop_transfers || []).each do |stop_transfer|
       StopTransfer.create_making_history(
         changeset: changeset,
         new_attrs: {
           stop: self,
-          to_stop: Stop.find_by_onestop_id!(internal_connection[:to_stop_onestop_id]),
-          connection_type: internal_connection[:connection_type]
+          to_stop: Stop.find_by_onestop_id!(stop_transfer[:to_stop_onestop_id]),
+          transfer_type: stop_transfer[:transfer_type]
         }
       )
     end

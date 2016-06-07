@@ -47,6 +47,7 @@ class StopStationSerializer < CurrentEntitySerializer
                :last_conflated_at
      has_many :operators_serving_stop
      has_many :routes_serving_stop
+     has_many :stop_transfers
   end
   class StopEgressSerializer < CurrentEntitySerializer
     attributes :onestop_id,
@@ -78,4 +79,5 @@ class StopStationSerializer < CurrentEntitySerializer
   # Platform / Egress Relation
   has_many :stop_platforms, serializer: StopPlatformSerializer
   has_many :stop_egresses, serializer: StopEgressSerializer
+  has_many :stop_transfers
 end

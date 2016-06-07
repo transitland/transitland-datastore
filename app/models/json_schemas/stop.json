@@ -52,16 +52,16 @@
       "uniqueItems": true,
       "items": {
         "type": "object",
-        "required": ["toOnestopId", "connectionType"],
-        "toOnestopId": {
+        "required": ["toStopOnestopId", "transferType"],
+        "toStopOnestopId": {
           "type": "string",
           "format": "stop-onestop-id"
         },
-        "connectionType": {
+        "transferType": {
           "type": "string"
         },
         "minTransferTime": {
-          "type": ["integer", "null"]
+          "type": ["number", "null"]
         }
       }
     },
