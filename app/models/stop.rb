@@ -77,12 +77,12 @@ class Stop < BaseStop
       :last_conflated_at
     ]
   })
-  def self.after_create_making_history(created_model, changeset)
+  def after_create_making_history(changeset)
     OperatorRouteStopRelationship.manage_multiple(
       stop: {
-        served_by: created_model.served_by || [],
-        not_served_by: created_model.not_served_by || [],
-        model: created_model
+        served_by: self.served_by || [],
+        not_served_by: self.not_served_by || [],
+        model: self
       },
       changeset: changeset
     )

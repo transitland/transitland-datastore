@@ -92,12 +92,12 @@ class Route < BaseRoute
     new_model.operator = operator
     self.existing_before_create_making_history(new_model, changeset)
   end
-  def self.after_create_making_history(created_model, changeset)
+  def after_create_making_history(changeset)
     OperatorRouteStopRelationship.manage_multiple(
       route: {
-        serves: created_model.serves || [],
-        does_not_serve: created_model.does_not_serve || [],
-        model: created_model
+        serves: self.serves || [],
+        does_not_serve: self.does_not_serve || [],
+        model: self
       },
       changeset: changeset
     )
