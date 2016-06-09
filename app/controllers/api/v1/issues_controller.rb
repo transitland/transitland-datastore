@@ -23,12 +23,15 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
   end
 
   def show
-    puts @issue.to_json
     render json: @issue
   end
 
   def update
+    entities_with_issues_params = issue_params.delete(:entities_with_issues).try(:compact)
     @issue.update!(issue_params)
+    entities_with_issues_params.each do |ewi|
+      @issue.set_entity_with_issues_params(ewi)
+    end
     render json: @issue
   end
 
@@ -38,12 +41,12 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
   end
 
   def create
-    #TODO check issue_type against available types
-    issue =  issue_params['created_by_changeset_id'] ? Issue.create!(filter_params(issue_params)) : nil
-    issue_params['entities_with_issues'].each do |ewi|
+    entities_with_issues_params = issue_params.delete(:entities_with_issues).try(:compact)
+    issue =  issue_params.has_key?(:created_by_changeset_id) ? Issue.create!(filter_params(issue_params)) : nil
+    entities_with_issues_params.each do |ewi|
       entity = OnestopId.find!(ewi['onestop_id'])
-      issue = Issue.create!(filter_params(issue_params).update(created_by_changeset_id: entity.created_or_updated_in_changeset_id)) if issue.nil?
-      issue.entities_with_issues.new(entity: entity, issue: issue, entity_attribute: ewi['entity_attribute'])
+      issue = Issue.create!(issue_params.update(created_by_changeset_id: entity.created_or_updated_in_changeset_id)) if issue.nil?
+      issue.set_entity_with_issues_params(ewi)
     end
     render json: issue
   end
@@ -52,14 +55,6 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
 
   def set_issue
     @issue = Issue.find(params[:id])
-  end
-
-  def filter_params(issue_params)
-    issue_params.keep_if { |k,v| [:details,
-                                  :created_by_changeset_id,
-                                  :open,
-                                  :block_changeset_apply,
-                                  :issue_type].include?(k) }
   end
 
   def issue_params

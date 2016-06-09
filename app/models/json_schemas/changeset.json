@@ -62,6 +62,9 @@
         "properties": {
           "action": {
             "type": { "enum": ["createUpdate", "destroy"] }
+          },
+          "issueResolved": {
+            "type": "number"
           }
         }
       }

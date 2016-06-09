@@ -68,11 +68,10 @@ class Changeset < ActiveRecord::Base
   has_many :route_stop_patterns_created_or_updated, class_name: 'RouteStopPattern', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :route_stop_patterns_destroyed, class_name: 'OldRouteStopPattern', foreign_key: 'destroyed_in_changeset_id'
 
-  has_many :issues_resolved, class_name: 'Issue'
-
   belongs_to :user, autosave: true
   belongs_to :imported_from_feed, class_name: 'Feed', foreign_key: 'feed_id'
   belongs_to :imported_from_feed_version, class_name: 'FeedVersion', foreign_key: 'feed_version_id'
+
 
   def set_user_by_params(user_params)
     self.user = User.find_or_initialize_by(email: user_params[:email].downcase)

@@ -21,8 +21,14 @@ class Issue < ActiveRecord::Base
 
   before_save :description
 
+  def set_entity_with_issues_params(ewi_params)
+    ewi_params[:entity] = OnestopId.find!(ewi_params.delete(:onestop_id))
+    self.entities_with_issues << EntityWithIssues.find_or_initialize_by(ewi_params)
+  end
+
   private
 
+  # TODO: remove. Probably not necessary
   def description
     case self.issue_type
     when 'stop_rsp_distance_gap'

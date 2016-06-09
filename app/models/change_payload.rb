@@ -63,6 +63,9 @@ class ChangePayload < ActiveRecord::Base
     (payload_as_ruby_hash[:changes] || []).each do |change|
       (entity_types.keys & change.keys).each do |entity_type|
         changes << [entity_type, change[:action], change[entity_type]]
+        if change[:issue_resolved]
+          Issue.find(change[:issue_resolved]).update({ open: false, resolved_by_changeset: changeset})
+        end
       end
     end
     changes
