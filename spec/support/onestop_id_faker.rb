@@ -16,6 +16,15 @@ module Faker
       generate_unique_fake_onestop_id('r')
     end
 
+    def self.route_stop_pattern
+      begin
+        sp_hash = ::OnestopId::RouteStopPatternOnestopId.generate_hash_from_array([[-122.353165, 37.936887],[-122.38666, 37.599787]])
+        geom_hash = ::OnestopId::RouteStopPatternOnestopId.generate_hash_from_array([-122.353165, 37.936887])
+        fake_onestop_id = "#{self.route}-#{sp_hash}-#{geom_hash}"
+      end until is_unique?(fake_onestop_id)
+      fake_onestop_id
+    end
+
     private
 
     def self.generate_unique_fake_onestop_id(entity_prefix)

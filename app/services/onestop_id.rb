@@ -133,8 +133,8 @@ module OnestopId
       else
         geohash = route_onestop_id.split(COMPONENT_SEPARATOR)[1].downcase.gsub(GEOHASH_FILTER, '')
         name = route_onestop_id.split(COMPONENT_SEPARATOR)[2].downcase.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')
-        stop_hash = generate_hash_from_array(stop_pattern)
-        geometry_hash = generate_hash_from_array(geometry_coords)
+        stop_hash = RouteStopPatternOnestopId.generate_hash_from_array(stop_pattern)
+        geometry_hash = RouteStopPatternOnestopId.generate_hash_from_array(geometry_coords)
       end
       @geohash = geohash
       @name = name
@@ -162,7 +162,7 @@ module OnestopId
       return (errors.size == 0), errors
     end
 
-    def generate_hash_from_array(array)
+    def self.generate_hash_from_array(array)
       Digest::MD5.hexdigest(array.flatten.join(','))[0...HASH_LENGTH]
     end
 

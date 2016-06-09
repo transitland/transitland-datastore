@@ -14,5 +14,8 @@
 #
 
 describe Issue do
-
+  it 'can be created' do
+    changeset = create(:issue_changeset)
+    issue = Issue.new(created_by_changeset: changeset)
+  end
 end
