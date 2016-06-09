@@ -238,7 +238,7 @@ class Stop < BaseStop
           way_id = tyr_locate_response[index][:edges][0][:way_id]
           stop_tags = stop.tags.try(:clone) || {}
           if stop_tags[:osm_way_id] != way_id
-            logger.info "osm_way_id changed for Stop #{stop.onestop_id}: was \"#{stop_tags[:osm_way_id]}\" now \"#{way_id}\""
+            log "osm_way_id changed for Stop #{stop.onestop_id}: was \"#{stop_tags[:osm_way_id]}\" now \"#{way_id}\""
           end
           stop_tags[:osm_way_id] = way_id
           stop.update(tags: stop_tags)
@@ -259,7 +259,7 @@ class Stop < BaseStop
     if onestop_id.valid? == false
       old_onestop_id = onestop_id.to_s
       onestop_id = OnestopId.handler_by_model(self).new(geohash: geohash, name: entity.id)
-      logger.info "Stop.from_gtfs: Invalid onestop_id: #{old_onestop_id}, trying #{onestop_id.to_s}"
+      log "Stop.from_gtfs: Invalid onestop_id: #{old_onestop_id}, trying #{onestop_id.to_s}"
     end
     onestop_id.validate! # raise OnestopIdException
     stop = Stop.new(
