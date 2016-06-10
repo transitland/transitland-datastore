@@ -98,6 +98,13 @@ describe ActivityUpdates do
     expect(ActivityUpdates.updates_since[0][:at_datetime]).to eq FeedVersionImport.first.created_at
   end
 
+  it 'but not feed imports in progress' do
+    Timecop.travel(1.minutes.ago) do
+      @fvi1 = create(:feed_version_import, success: nil)
+    end
+    expect(ActivityUpdates.updates_since.count).to eq 0
+  end
+
   it 'feeds imported' do
     Timecop.travel(10.minutes.ago) do
       @fv = create(:feed_version)
