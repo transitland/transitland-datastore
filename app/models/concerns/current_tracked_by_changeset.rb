@@ -30,17 +30,20 @@ module CurrentTrackedByChangeset
     end
 
     def apply_changes_create_update(changeset: nil, changes: nil, cache: {})
-      entities = []
+      existing_models = []
+      new_models = []
       changes.each do |change|
         existing_model = find_existing_model(change)
         attrs_to_apply = apply_params(change, cache)
         if existing_model
-          entities << existing_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply)
+          existing_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply)
+          existing_models << existing_model
         else
-          entities << self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
+          new_model = self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
+          new_models << new_model if new_model
         end
       end
-      entities.each { |entity| entity.after_create_making_history2(changeset) }
+      new_models.each { |model| model.after_create_making_history(changeset) }
     end
 
     def apply_changes_destroy(changeset: nil, changes: nil, cache: {})
@@ -73,17 +76,10 @@ module CurrentTrackedByChangeset
         proceed = self.before_create_making_history(new_model, changeset) # handle associations
         if proceed
           new_model.save!
-          self.after_create_making_history(new_model, changeset)
           new_model
         end
         new_model
       end
-    end
-
-    def after_create_making_history(created_model, changeset)
-      # this is available for overriding in models
-      super(created_model, changeset) if defined?(super)
-      return true
     end
 
     def find_existing_model(attrs = {})
@@ -132,7 +128,7 @@ module CurrentTrackedByChangeset
     ]
   end
 
-  def after_create_making_history2(changeset)
+  def after_create_making_history(changeset)
     # this is available for overriding in models
     super(changeset) if defined?(super)
     return true

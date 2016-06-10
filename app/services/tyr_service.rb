@@ -14,7 +14,7 @@ class TyrService
   class Error < StandardError
   end
 
-  def self.locate(locations: [], costing: 'pedestrian')
+  def self.locate(locations: [], costing: 'transit')
     response = connection.get('/locate') do |req|
       json_payload = {
         locations: locations,

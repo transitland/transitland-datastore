@@ -85,17 +85,15 @@ class Stop < BaseStop
       :last_conflated_at
     ]
   })
-  def self.after_create_making_history(created_model, changeset)
+  def after_create_making_history(changeset)
     OperatorRouteStopRelationship.manage_multiple(
       stop: {
-        served_by: created_model.served_by || [],
-        not_served_by: created_model.not_served_by || [],
-        model: created_model
+        served_by: self.served_by || [],
+        not_served_by: self.not_served_by || [],
+        model: self
       },
       changeset: changeset
     )
-  end
-  def after_create_making_history2(changeset)
     if self.parent_stop_onestop_id
       self.update!(
         parent_stop: Stop.find_by_onestop_id!(self.parent_stop_onestop_id)
@@ -270,7 +268,7 @@ class Stop < BaseStop
           way_id = tyr_locate_response[index][:edges][0][:way_id]
           stop_tags = stop.tags.try(:clone) || {}
           if stop_tags[:osm_way_id] != way_id
-            logger.info "osm_way_id changed for Stop #{stop.onestop_id}: was \"#{stop_tags[:osm_way_id]}\" now \"#{way_id}\""
+            log "osm_way_id changed for Stop #{stop.onestop_id}: was \"#{stop_tags[:osm_way_id]}\" now \"#{way_id}\""
           end
           stop_tags[:osm_way_id] = way_id
           stop.update(tags: stop_tags)
@@ -291,7 +289,7 @@ class Stop < BaseStop
     if onestop_id.valid? == false
       old_onestop_id = onestop_id.to_s
       onestop_id = OnestopId.handler_by_model(self).new(geohash: geohash, name: entity.id)
-      logger.info "Stop.from_gtfs: Invalid onestop_id: #{old_onestop_id}, trying #{onestop_id.to_s}"
+      log "Stop.from_gtfs: Invalid onestop_id: #{old_onestop_id}, trying #{onestop_id.to_s}"
     end
     onestop_id.validate! # raise OnestopIdException
     stop = self.new(
