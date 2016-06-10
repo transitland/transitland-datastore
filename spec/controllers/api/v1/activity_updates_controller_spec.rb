@@ -10,7 +10,7 @@ describe Api::V1::ActivityUpdatesController do
       end
       Timecop.travel(3.minutes.ago) do
         @c2 = create(:changeset)
-        @fvi = create(:feed_version_import, feed_version: @fv, feed: @f)
+        @fvi = create(:feed_version_import, feed_version: @fv, feed: @f, success: true)
       end
       @c1.update(notes: 'new note')
     end
