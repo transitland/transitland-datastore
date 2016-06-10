@@ -10,14 +10,6 @@ GIT
       mime-types (>= 1.16)
 
 GIT
-  remote: git://github.com/transitland/Sidekiq-Logging-JSON.git
-  revision: 7ea0db4da3405615a4e2a8b9d8b6e854986a2d2d
-  tag: 7ea0db4
-  specs:
-    sidekiq-logging-json (0.0.14)
-      sidekiq (>= 3)
-
-GIT
   remote: git://github.com/transitland/gtfs.git
   revision: 4f99e646ed51763f318310ee4d5fc48d06e3402b
   tag: 4f99e646ed51763f318310ee4d5fc48d06e3402b
@@ -192,7 +184,6 @@ GEM
       activerecord (>= 2.3)
     method_source (0.8.2)
     mime-types (2.99.2)
-    mime-types-data (3.2016.0521)
     mini_portile2 (2.1.0)
     minitest (5.9.0)
     mock_redis (0.16.1)
@@ -345,6 +336,8 @@ GEM
       redis (~> 3.2, >= 3.2.1)
     sidekiq-limit_fetch (3.1.0)
       sidekiq (>= 4)
+    sidekiq-logging-json (0.0.16)
+      sidekiq (>= 3, < 5)
     sidekiq-unique-jobs (4.0.17)
       sidekiq (>= 2.6)
       thor
@@ -448,7 +441,7 @@ DEPENDENCIES
   sentry-raven
   sidekiq (< 5)
   sidekiq-limit_fetch
-  sidekiq-logging-json!
+  sidekiq-logging-json
   sidekiq-unique-jobs
   simplecov
   squeel
