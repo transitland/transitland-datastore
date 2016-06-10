@@ -89,7 +89,7 @@ describe ActivityUpdates do
 
   it 'feeds imported' do
     Timecop.travel(5.minutes.ago) do
-      @fvi1 = create(:feed_version_import)
+      @fvi1 = create(:feed_version_import, success: true)
     end
     expect(ActivityUpdates.updates_since[0][:id]).to eq "fvi-#{@fvi1.id}-created"
     expect(ActivityUpdates.updates_since[0][:entity_type]).to eq "feed"
@@ -98,7 +98,14 @@ describe ActivityUpdates do
     expect(ActivityUpdates.updates_since[0][:at_datetime]).to eq FeedVersionImport.first.created_at
   end
 
-  it 'feeds imported' do
+  it 'but not feed imports in progress' do
+    Timecop.travel(1.minutes.ago) do
+      @fvi1 = create(:feed_version_import, success: nil)
+    end
+    expect(ActivityUpdates.updates_since.map { |au| au[:entity_action]} ).not_to include('imported')
+  end
+
+  it 'feeds fetched' do
     Timecop.travel(10.minutes.ago) do
       @fv = create(:feed_version)
     end

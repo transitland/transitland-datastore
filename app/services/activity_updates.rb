@@ -62,7 +62,7 @@ class ActivityUpdates
   end
 
   def self.feeds_imported(since)
-    feed_version_imports = FeedVersionImport.where("created_at > ?", since)
+    feed_version_imports = FeedVersionImport.where("created_at > ? AND success IS NOT NULL", since)
     updates = feed_version_imports.map do |feed_version_import|
       success_word = feed_version_import.success ? 'successfully' : 'unsuccessfully'
       note = "
