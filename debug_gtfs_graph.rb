@@ -14,6 +14,7 @@ class DebugGTFSGraph < GTFSGraph
   end
 
   def load_tl_transfers
+    return unless @gtfs.file_present?('transfers.txt')
     @gtfs.transfers.each do |transfer|
       stop = find_by_gtfs_entity(@gtfs.stop(transfer.from_stop_id))
       to_stop = find_by_gtfs_entity(@gtfs.stop(transfer.to_stop_id))
