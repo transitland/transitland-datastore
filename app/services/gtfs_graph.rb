@@ -77,7 +77,7 @@ class GTFSGraph
     begin
       changeset.create_change_payloads(operators)
       graph_log "  stops: #{stops.size}"
-      changeset.create_change_payloads(stops)
+      changeset.create_change_payloads(stops.partition { |i| i.type != 'StopPlatform' }.flatten)
       graph_log "  routes: #{routes.size}"
       changeset.create_change_payloads(routes)
       graph_log "  route geometries: #{rsps.size}"
