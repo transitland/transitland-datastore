@@ -105,7 +105,7 @@ describe ActivityUpdates do
     expect(ActivityUpdates.updates_since.count).to eq 0
   end
 
-  it 'feeds imported' do
+  it 'feeds fetched' do
     Timecop.travel(10.minutes.ago) do
       @fv = create(:feed_version)
     end
