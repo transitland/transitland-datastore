@@ -1,4 +1,3 @@
-TRANSITLAND_DATASTORE_AUTH_TOKEN: iamallowedtotouchthis
 ADMIN_USERNAME: onlyneedonproduction
 ADMIN_PASSWORD: onlyneedonproduction
 TRANSITLAND_DATASTORE_HOST: http://localhost:3000

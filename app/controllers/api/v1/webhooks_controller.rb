@@ -1,5 +1,5 @@
 class Api::V1::WebhooksController < Api::V1::BaseApiController
-  before_filter :require_api_auth_token
+  before_filter :verify_jwt_token
 
   def feed_fetcher
     if params[:feed_onestop_id].present?

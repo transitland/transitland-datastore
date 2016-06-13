@@ -3,7 +3,7 @@ class Api::V1::UsersController < Api::V1::BaseApiController
   include DownloadableCsv
   include AllowFiltering
 
-  before_filter :require_api_auth_token
+  before_filter :verify_jwt_token
   before_action :set_user, only: [:show, :update, :destroy]
 
   def index
