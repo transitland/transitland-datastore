@@ -78,7 +78,6 @@ module CurrentTrackedByChangeset
           new_model.save!
           new_model
         end
-        new_model
       end
     end
 
@@ -190,7 +189,6 @@ module CurrentTrackedByChangeset
         self.save!
       end
     end
-    self
   end
 
   def merge(other)
