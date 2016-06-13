@@ -99,7 +99,7 @@ gem 'ruby-progressbar'
 
 # database query performance monitoring/analysis
 gem 'bullet', group: :development
-gem 'pghero', group: [:development, :staging] # mounted at /admin/postgres
+gem 'pghero', group: [:development, :staging, :production] # mounted at /admin/postgres
 gem 'marginalia', group: [:development, :staging]
 
 # web server
