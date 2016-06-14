@@ -29,14 +29,7 @@
 #
 
 class StopStationSerializer < CurrentEntitySerializer
-  attributes :onestop_id,
-             :geometry,
-             :name,
-             :tags,
-             :timezone,
-             :created_at,
-             :updated_at
-  # Platform / Egress Serializers
+  # Platform serializer
   class StopPlatformSerializer < CurrentEntitySerializer
     attributes :onestop_id,
                :geometry,
@@ -49,6 +42,7 @@ class StopStationSerializer < CurrentEntitySerializer
      has_many :routes_serving_stop
      has_many :stop_transfers
   end
+  # Egress serializer
   class StopEgressSerializer < CurrentEntitySerializer
     attributes :onestop_id,
                :geometry,
@@ -58,6 +52,7 @@ class StopStationSerializer < CurrentEntitySerializer
                :updated_at
                :last_conflated_at
   end
+
   # Create phantom platforms / egresses
   def stop_egresses
     object.stop_egresses.presence || [StopEgress.new(
@@ -68,6 +63,7 @@ class StopStationSerializer < CurrentEntitySerializer
       osm_way_id: object.osm_way_id
     )]
   end
+
   def stop_platforms
     object.stop_platforms.presence || [StopPlatform.new(
       onestop_id: "#{object.onestop_id}<",
@@ -76,8 +72,34 @@ class StopStationSerializer < CurrentEntitySerializer
       tags: {}
     )]
   end
-  # Platform / Egress Relation
+
+  # Aggregate operators_serving_stop
+  def operators_serving_stop
+    result = object.operators_serving_stop
+    object.stop_platforms.each { |sp| result |= sp.operators_serving_stop}
+    result.to_set
+  end
+
+  # Aggregate routes_serving_stop
+  def routes_serving_stop
+    result = object.routes_serving_stop
+    object.stop_platforms.each { |sp| result |= sp.routes_serving_stop}
+    result.uniq
+  end
+
+  # Attributes
+  attributes :onestop_id,
+             :geometry,
+             :name,
+             :tags,
+             :timezone,
+             :created_at,
+             :updated_at
+
+  # Relations
   has_many :stop_platforms, serializer: StopPlatformSerializer
   has_many :stop_egresses, serializer: StopEgressSerializer
   has_many :stop_transfers
+  has_many :operators_serving_stop
+  has_many :routes_serving_stop
 end
