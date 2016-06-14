@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160601005325) do
+ActiveRecord::Schema.define(version: 20160614041303) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -274,6 +274,7 @@ ActiveRecord::Schema.define(version: 20160601005325) do
     t.datetime  "last_conflated_at"
     t.string    "type"
     t.integer   "parent_stop_id"
+    t.integer   "osm_way_id"
   end
 
   add_index "current_stops", ["created_or_updated_in_changeset_id"], name: "#c_stops_cu_in_changeset_id_index", using: :btree
@@ -609,6 +610,7 @@ ActiveRecord::Schema.define(version: 20160601005325) do
     t.datetime  "last_conflated_at"
     t.string    "type"
     t.integer   "parent_stop_id"
+    t.integer   "osm_way_id"
   end
 
   add_index "old_stops", ["created_or_updated_in_changeset_id"], name: "o_stops_cu_in_changeset_id_index", using: :btree

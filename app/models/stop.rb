@@ -16,6 +16,7 @@
 #  last_conflated_at                  :datetime
 #  type                               :string
 #  parent_stop_id                     :integer
+#  osm_way_id                         :integer
 #
 # Indexes
 #

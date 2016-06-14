@@ -3,11 +3,11 @@
 # Table name: current_stop_transfers
 #
 #  id                                 :integer          not null, primary key
-#  transfer_type                    :string
+#  transfer_type                      :string
+#  min_transfer_time                  :integer
 #  tags                               :hstore
 #  stop_id                            :integer
-#  origin_id                          :integer
-#  destination_id                     :integer
+#  to_stop_id                         :integer
 #  created_or_updated_in_changeset_id :integer
 #  version                            :integer
 #  created_at                         :datetime
@@ -15,10 +15,10 @@
 #
 # Indexes
 #
-#  index_current_stop_transfers_on_transfer_type  (transfer_type)
-#  index_current_stop_transfers_on_destination_id   (destination_id)
-#  index_current_stop_transfers_on_origin_id        (origin_id)
-#  index_current_stop_transfers_on_stop_id          (stop_id)
+#  index_current_stop_transfers_on_min_transfer_time  (min_transfer_time)
+#  index_current_stop_transfers_on_stop_id            (stop_id)
+#  index_current_stop_transfers_on_to_stop_id         (to_stop_id)
+#  index_current_stop_transfers_on_transfer_type      (transfer_type)
 #
 
 describe Stop do
