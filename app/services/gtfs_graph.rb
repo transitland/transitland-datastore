@@ -30,6 +30,7 @@ class GTFSGraph
     @gtfs.load_graph
     graph_log "Load TL"
     load_tl_stops
+    load_tl_transfers
     load_tl_routes
     rsps = load_tl_route_stop_patterns
     calculate_rsp_distances(rsps)
@@ -220,6 +221,21 @@ class GTFSGraph
       stop = find_and_update_entity(stop)
       add_identifier(stop, 's', gtfs_stop)
       graph_log "    StopPlatform: #{stop.onestop_id}: #{stop.name}"
+    end
+  end
+
+  def load_tl_transfers
+    return unless @gtfs.file_present?('transfers.txt')
+    @gtfs.transfers.each do |transfer|
+      stop = find_by_gtfs_entity(@gtfs.stop(transfer.from_stop_id))
+      to_stop = find_by_gtfs_entity(@gtfs.stop(transfer.to_stop_id))
+      next unless stop && to_stop
+      stop.includes_stop_transfers ||= []
+      stop.includes_stop_transfers << {
+        toStopOnestopId: to_stop.onestop_id,
+        transferType: StopTransfer::GTFS_TRANSFER_TYPE[transfer.transfer_type.presence || "0"],
+        minTransferTime: transfer.min_transfer_time.to_i
+      }
     end
   end
 

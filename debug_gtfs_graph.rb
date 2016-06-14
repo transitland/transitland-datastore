@@ -7,26 +7,6 @@ class DebugGTFSGraph < GTFSGraph
   def load_tl_route_stop_patterns
     []
   end
-
-  def load_tl_stops
-    super
-    load_tl_transfers
-  end
-
-  def load_tl_transfers
-    return unless @gtfs.file_present?('transfers.txt')
-    @gtfs.transfers.each do |transfer|
-      stop = find_by_gtfs_entity(@gtfs.stop(transfer.from_stop_id))
-      to_stop = find_by_gtfs_entity(@gtfs.stop(transfer.to_stop_id))
-      next unless stop && to_stop
-      stop.includes_stop_transfers ||= []
-      stop.includes_stop_transfers << {
-        toStopOnestopId: to_stop.onestop_id,
-        transferType: transfer.transfer_type,
-        minTransferTime: transfer.min_transfer_time.to_i
-      }
-    end
-  end
 end
 
 feed = Feed.find_by_onestop_id(feed_onestop_id)

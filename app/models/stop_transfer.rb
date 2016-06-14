@@ -33,6 +33,21 @@ class StopTransfer < BaseStopTransfer
   belongs_to :to_stop, class_name: 'Stop'
   current_tracked_by_changeset kind_of_model_tracked: :relationship
   validates :transfer_type, :stop, :to_stop, presence: true
+
+  extend Enumerize
+  enumerize :transfer_type, in: [
+      :recommended,
+      :timed,
+      :min_transfer_time,
+      :invalid
+    ]
+
+  GTFS_TRANSFER_TYPE = {
+    "0" => :recommended,
+    "1" => :timed,
+    "2" => :min_transfer_time,
+    "3" => :invalid
+  }
 end
 
 class OldStopTransfer < BaseStopTransfer
