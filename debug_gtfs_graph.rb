@@ -29,7 +29,6 @@ class DebugGTFSGraph < GTFSGraph
   end
 end
 
-
 feed = Feed.find_by_onestop_id(feed_onestop_id)
 unless feed
   feed = Feed.create!(

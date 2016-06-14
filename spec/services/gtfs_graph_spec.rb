@@ -17,8 +17,18 @@ describe GTFSGraph do
       before(:each) { @feed, @feed_version = load_feed(feed_version_name: :feed_version_caltrain, import_level: 1) }
 
       it 'updated feed geometry' do
-        geometry = [[[-122.412076, 37.003485], [-121.566088, 37.003485], [-121.566088, 37.77639], [-122.412076, 37.77639], [-122.412076, 37.003485]]]
-        expect(@feed.geometry(as: :geojson)[:coordinates]).to match_array(geometry)
+        expect_coords = [[
+          [-122.412076, 37.003485],
+          [-121.566088, 37.003485],
+          [-121.566088, 37.77639],
+          [-122.412076, 37.77639],
+          [-122.412076, 37.003485]
+        ]]
+        feed_coords = @feed.geometry(as: :geojson)[:coordinates]
+        expect_coords.first.zip(feed_coords.first).each { |a,b|
+          expect(a[0]).to be_within(0.001).of(b[0])
+          expect(a[1]).to be_within(0.001).of(b[1])
+        }
       end
 
       it 'created a known Operator' do

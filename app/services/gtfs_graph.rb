@@ -40,7 +40,12 @@ class GTFSGraph
     routes = operators.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
 
     # Stops and Platforms
-    stops = routes.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
+    stops = Set.new
+    routes.each { |route| route.serves.each { |stop_onestop_id|
+      stop = find_by_onestop_id(stop_onestop_id)
+      stops << stop
+      stops << find_by_onestop_id(stop.parent_stop_onestop_id) if stop.parent_stop_onestop_id
+    }}
 
     # Update route geometries
     rsps = rsps.select { |rsp| routes.include?(rsp.route) }
@@ -263,20 +268,10 @@ class GTFSGraph
     @gtfs.routes.each do |entity|
       # Find: (child gtfs trips) to (child gtfs stops) to (tl stops)
       stops = entity.stops.map { |stop| find_by_gtfs_entity(stop) }.to_set
-      # Also serve parent stations...
-      parent_stations = Set.new
-      stops.each do |stop|
-        parent_station = find_by_onestop_id(stop.parent_stop_onestop_id)
-        parent_stations << parent_station if parent_station
-      end
-      stops |= parent_stations
       # Skip Route if no Stops
       next if stops.empty?
       # Search by similarity
-      # ... or create route from GTFS
-      # ... check if Route exists, or another local Route, or new.
       route = find_and_update_entity(Route.from_gtfs(entity))
-      # route = find_by_entity(route)
       # Add references and identifiers
       route.serves ||= Set.new
       route.serves |= stops.map(&:onestop_id)
