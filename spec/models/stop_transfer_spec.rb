@@ -21,56 +21,71 @@
 #  index_current_stop_transfers_on_transfer_type      (transfer_type)
 #
 
-describe Stop do
+describe StopTransfer do
   context 'stop_transfers' do
-    before(:each) {
-      @payload = {
-        changes: [
-          {
-            action: "createUpdate",
-            stop: {
-              onestopId: 's-9q9-test',
-              name: 'Test Stop',
-              timezone: 'America/Los_Angeles'
-            }
-          },
-          {
-            action: "createUpdate",
-            stopEgress: {
-              onestopId: 's-9q9-test>egress',
-              timezone: 'America/Los_Angeles',
-              parentStopOnestopId: 's-9q9-test'
-            }
-          },
-          {
-            action: "createUpdate",
-            stopPlatform: {
-              onestopId: 's-9q9-test<platform',
-              timezone: 'America/Los_Angeles',
-              parentStopOnestopId: 's-9q9-test'
-            }
-          }
-        ]
-      }
-    }
+    let(:stop1) { create(:stop) }
+    let(:stop2) { create(:stop) }
+
     it 'can be created by a changeset' do
-      @payload[:changes] << {
+      payload = {changes: []}
+      payload = {changes: [
         action: 'createUpdate',
         stop: {
-          onestopId: 's-9q9-test',
+          onestopId: stop1.onestop_id,
           includesStopTransfers: [
             {
-              originOnestopId: 's-9q9-test>egress',
-              destinationOnestopId: 's-9q9-test<platform',
-              connectionType: 'allowed'
+              toStopOnestopId: stop2.onestop_id,
+              transferType: '0',
+              minTransferTime: 60
             }
           ]
         }
-      }
-      changeset = build(:changeset, payload: @payload)
+      ]}
+      changeset = build(:changeset, payload: payload)
       changeset.apply!
-      stop = Stop.find_by_onestop_id!('s-9q9-test')
-      expect(stop.stop_transfers.size).to eq(1)
+      expect(stop1.reload.stop_transfers.size).to eq(1)
+    end
+
+    it 'can be updated by a changeset' do
+      stop1.stop_transfers.create(to_stop: stop2, transfer_type: '0', min_transfer_time: 60)
+      expect(stop1.reload.stop_transfers.size).to eq(1)
+      expect(stop1.reload.stop_transfers.first.to_stop).to eq(stop2)
+      expect(stop1.reload.stop_transfers.first.min_transfer_time).to eq(60)
+      payload = {changes: [
+        action: 'createUpdate',
+        stop: {
+          onestopId: stop1.onestop_id,
+          includesStopTransfers: [
+            {
+              toStopOnestopId: stop2.onestop_id,
+              minTransferTime: 120,
+            }
+          ]
+        }
+      ]}
+      changeset = build(:changeset, payload: payload)
+      changeset.apply!
+      expect(stop1.reload.stop_transfers.size).to eq(1)
+      expect(stop1.reload.stop_transfers.first.min_transfer_time).to eq(120)
+    end
+
+    it 'can be deleted by a changeset' do
+      stop1.stop_transfers.create(to_stop: stop2, transfer_type: '0', min_transfer_time: 60)
+      expect(stop1.reload.stop_transfers.size).to eq(1)
+      payload = {changes: [
+        action: 'createUpdate',
+        stop: {
+          onestopId: stop1.onestop_id,
+          doesNotIncludeStopTransfers: [
+            {
+              toStopOnestopId: stop2.onestop_id,
+            }
+          ]
+        }
+      ]}
+      changeset = build(:changeset, payload: payload)
+      changeset.apply!
+      expect(stop1.reload.stop_transfers.size).to eq(0)
     end
   end
 end
