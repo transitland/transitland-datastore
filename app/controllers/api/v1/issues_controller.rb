@@ -42,13 +42,17 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
 
   def create
     entities_with_issues_params = issue_params.delete(:entities_with_issues).try(:compact)
-    issue =  issue_params.has_key?(:created_by_changeset_id) ? Issue.create!(filter_params(issue_params)) : nil
-    entities_with_issues_params.each do |ewi|
-      entity = OnestopId.find!(ewi['onestop_id'])
-      issue = Issue.create!(issue_params.update(created_by_changeset_id: entity.created_or_updated_in_changeset_id)) if issue.nil?
-      issue.set_entity_with_issues_params(ewi)
+    issue = Issue.new(issue_params)
+    entities_with_issues_params.each { |ewi| issue.set_entity_with_issues_params(ewi) }
+    issue.created_by_changeset_id = issue_params[:created_by_changeset_id] || issue.changeset_from_entities.id
+
+    existing_issue = Issue.find_by_equivalent(issue)
+    if existing_issue
+      render json: existing_issue, status: :conflict
+    else
+      issue.save!
+      render json: issue, status: :accepted
     end
-    render json: issue
   end
 
   private

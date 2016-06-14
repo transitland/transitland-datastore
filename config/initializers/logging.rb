@@ -1,4 +1,3 @@
-
 def log(msg, level = :info)
   if Sidekiq::Logging.logger
     Sidekiq::Logging.logger.send level, msg

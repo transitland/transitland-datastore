@@ -81,6 +81,11 @@ FactoryGirl.define do
       association :feed, factory: :feed_example
     end
 
+    factory :feed_version_example_issues do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example-issues.zip')) }
+      association :feed, factory: :feed_example
+    end
+
     factory :feed_version_example_update_add do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example-update-add.zip')) }
     end

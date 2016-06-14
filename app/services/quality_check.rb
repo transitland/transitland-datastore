@@ -67,7 +67,7 @@ class GeometryQualityCheck < QualityCheck
     if rsp.outlier_stop(stop[:geometry])
       issue = Issue.new(created_by_changeset: self.changeset,
                         issue_type: 'stop_rsp_distance_gap',
-                        details: "Stop #{stop.onestop_id} and RouteStopPattern #{rsp.onestop_id} too far apart")
+                        details: "Stop #{stop.onestop_id} and RouteStopPattern #{rsp.onestop_id} too far apart.")
       issue.entities_with_issues.new(entity: stop, issue: issue, entity_attribute: 'geometry')
       issue.entities_with_issues.new(entity: rsp, issue: issue, entity_attribute: 'geometry')
       self.issues << issue
@@ -81,14 +81,14 @@ class GeometryQualityCheck < QualityCheck
         unless rsp.stop_pattern[index].eql? rsp.stop_pattern[index-1]
           issue = Issue.new(created_by_changeset: self.changeset,
                             issue_type: 'distance',
-                            details: "Stop #{rsp.stop_pattern[index]}, number #{index+1}/#{rsp.stop_pattern.size}, of route stop pattern #{rsp.onestop_id} has the same distance as #{rsp.stop_pattern[index-1]}, which may indicate a segment matching issue or outlier stop.")
+                            details: "Distance calculation inaccuracy. Stop #{rsp.stop_pattern[index]}, number #{index+1}/#{rsp.stop_pattern.size}, of route stop pattern #{rsp.onestop_id} has the same distance as #{rsp.stop_pattern[index-1]}.")
           issue.entities_with_issues.new(entity: rsp, issue: issue, entity_attribute: 'stop_distances')
           self.issues << issue
         end
       elsif (rsp.stop_distances[index-1] > rsp.stop_distances[index])
         issue = Issue.new(created_by_changeset: self.changeset,
                           issue_type: 'distance',
-                          details: "Stop #{rsp.stop_pattern[index]}, number #{index+1}/#{rsp.stop_pattern.size}, of route stop pattern #{rsp.onestop_id} occurs after stop #{rsp.stop_pattern[index-1]}, but has a distance less than #{rsp.stop_pattern[index-1]}")
+                          details: "Distance calculation inaccuracy. Stop #{rsp.stop_pattern[index]}, number #{index+1}/#{rsp.stop_pattern.size}, of route stop pattern #{rsp.onestop_id} occurs after stop #{rsp.stop_pattern[index-1]}, but has a distance less than #{rsp.stop_pattern[index-1]}")
         issue.entities_with_issues.new(entity: rsp, issue: issue, entity_attribute: 'stop_distances')
         self.issues << issue
       end
@@ -96,7 +96,7 @@ class GeometryQualityCheck < QualityCheck
     if ((rsp.stop_distances[index] - geometry_length) > LAST_STOP_DISTANCE_LENIENCY)
       issue = Issue.new(created_by_changeset: self.changeset,
                         issue_type: 'distance',
-                        details: "Stop #{rsp.stop_pattern[index]}, number #{index+1}/#{rsp.stop_pattern.size}, of route stop pattern #{rsp.onestop_id} has a distance #{rsp.stop_distances[index]}, greater than the length of the geometry, #{geometry_length}")
+                        details: "Distance calculation inaccuracy. Stop #{rsp.stop_pattern[index]}, number #{index+1}/#{rsp.stop_pattern.size}, of route stop pattern #{rsp.onestop_id} has a distance #{rsp.stop_distances[index]}, greater than the length of the geometry, #{geometry_length}")
       issue.entities_with_issues.new(entity: rsp, issue: issue, entity_attribute: 'stop_distances')
       self.issues << issue
     end
