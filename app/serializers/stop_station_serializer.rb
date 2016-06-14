@@ -69,6 +69,8 @@ class StopStationSerializer < CurrentEntitySerializer
       onestop_id: "#{object.onestop_id}<",
       geometry: object.geometry,
       name: object.name,
+      operators_serving_stop: object.operators_serving_stop,
+      routes_serving_stop: object.routes_serving_stop,
       tags: {}
     )]
   end
