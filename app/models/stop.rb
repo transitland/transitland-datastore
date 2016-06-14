@@ -266,14 +266,11 @@ class Stop < BaseStop
         tyr_locate_response = TyrService.locate(locations: locations)
         now = DateTime.now
         group.each_with_index do |stop, index|
-          way_id = tyr_locate_response[index][:edges][0][:way_id]
-          stop_tags = stop.tags.try(:clone) || {}
-          if stop_tags[:osm_way_id] != way_id
-            log "osm_way_id changed for Stop #{stop.onestop_id}: was \"#{stop_tags[:osm_way_id]}\" now \"#{way_id}\""
+          osm_way_id = tyr_locate_response[index][:edges][0][:way_id]
+          if stop.osm_way_id != osm_way_id
+            log "osm_way_id changed for Stop #{stop.onestop_id}: was \"#{stop.osm_way_id}\" now \"#{osm_way_id}\""
           end
-          stop_tags[:osm_way_id] = way_id
-          stop.update(tags: stop_tags)
-          stop.update(last_conflated_at: now)
+          stop.update(osm_way_id: osm_way_id, last_conflated_at: now)
         end
       end
     end

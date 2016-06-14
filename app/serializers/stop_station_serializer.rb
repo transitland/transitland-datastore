@@ -65,7 +65,7 @@ class StopStationSerializer < CurrentEntitySerializer
       geometry: object.geometry,
       name: object.name,
       last_conflated_at: object.last_conflated_at,
-      tags: object.tags.slice(:osm_way_id)
+      osm_way_id: object.osm_way_id
     )]
   end
   def stop_platforms
