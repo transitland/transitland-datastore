@@ -587,8 +587,12 @@ ActiveRecord::Schema.define(version: 20160614041303) do
     t.integer  "version"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.integer  "destroyed_in_changeset_id"
+    t.integer  "current_id"
   end
 
+  add_index "old_stop_transfers", ["current_id"], name: "index_old_stop_transfers_on_current_id", using: :btree
+  add_index "old_stop_transfers", ["destroyed_in_changeset_id"], name: "index_old_stop_transfers_on_destroyed_in_changeset_id", using: :btree
   add_index "old_stop_transfers", ["min_transfer_time"], name: "index_old_stop_transfers_on_min_transfer_time", using: :btree
   add_index "old_stop_transfers", ["stop_id"], name: "index_old_stop_transfers_on_stop_id", using: :btree
   add_index "old_stop_transfers", ["to_stop_id"], name: "index_old_stop_transfers_on_to_stop_id", using: :btree

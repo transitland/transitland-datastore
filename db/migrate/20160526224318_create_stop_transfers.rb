@@ -12,5 +12,7 @@ class CreateStopTransfers < ActiveRecord::Migration
         t.timestamps
       end
     end
+    add_reference :old_stop_transfers, :destroyed_in_changeset, index: true
+    add_reference :old_stop_transfers, :current, index: true
   end
 end
