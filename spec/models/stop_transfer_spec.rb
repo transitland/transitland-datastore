@@ -35,7 +35,7 @@ describe StopTransfer do
           includesStopTransfers: [
             {
               toStopOnestopId: stop2.onestop_id,
-              transferType: '0',
+              transferType: 'timed',
               minTransferTime: 60
             }
           ]
@@ -47,7 +47,7 @@ describe StopTransfer do
     end
 
     it 'can be updated by a changeset' do
-      stop1.stop_transfers.create(to_stop: stop2, transfer_type: '0', min_transfer_time: 60)
+      stop1.stop_transfers.create(to_stop: stop2, transfer_type: 'timed', min_transfer_time: 60)
       expect(stop1.reload.stop_transfers.size).to eq(1)
       expect(stop1.reload.stop_transfers.first.to_stop).to eq(stop2)
       expect(stop1.reload.stop_transfers.first.min_transfer_time).to eq(60)
@@ -70,7 +70,7 @@ describe StopTransfer do
     end
 
     it 'can be deleted by a changeset' do
-      stop1.stop_transfers.create(to_stop: stop2, transfer_type: '0', min_transfer_time: 60)
+      stop1.stop_transfers.create(to_stop: stop2, transfer_type: 'timed', min_transfer_time: 60)
       expect(stop1.reload.stop_transfers.size).to eq(1)
       payload = {changes: [
         action: 'createUpdate',
