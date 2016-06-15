@@ -72,7 +72,6 @@ class Changeset < ActiveRecord::Base
   belongs_to :imported_from_feed, class_name: 'Feed', foreign_key: 'feed_id'
   belongs_to :imported_from_feed_version, class_name: 'FeedVersion', foreign_key: 'feed_version_id'
 
-
   def set_user_by_params(user_params)
     self.user = User.find_or_initialize_by(email: user_params[:email].downcase)
     self.user.update_attributes(user_params)
