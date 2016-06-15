@@ -111,17 +111,6 @@ class Feed < BaseFeed
     })
   }
 
-  def find_next_feed_versions(date: nil)
-    # Find the most recently created feed_version that will have service
-    # on (date) and is newer than the active_feed_version.
-    date ||= DateTime.now
-    earliest_active = active_feed_version.try(:earliest_calendar_date)
-    feed_versions
-      .where('earliest_calendar_date > ?', earliest_active)
-      .where('earliest_calendar_date <= ?', date)
-      .reorder(earliest_calendar_date: :desc, created_at: :desc)
-  end
-
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
