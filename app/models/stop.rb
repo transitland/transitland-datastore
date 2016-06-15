@@ -92,50 +92,16 @@ class Stop < BaseStop
   end
 
   def after_create_making_history(changeset)
-    before_update_making_history(changeset)
+    super(changeset)
+    update_served_by(changeset)
+    update_includes_stop_transfers(changeset)
+    update_does_not_include_stop_transfers(changeset)
   end
   def before_update_making_history(changeset)
     super(changeset)
-    OperatorRouteStopRelationship.manage_multiple(
-      stop: {
-        served_by: self.served_by || [],
-        not_served_by: self.not_served_by || [],
-        model: self
-      },
-      changeset: changeset
-    )
-    if self.parent_stop_onestop_id
-      self.update!(
-        parent_stop: Stop.find_by_onestop_id!(self.parent_stop_onestop_id)
-      )
-    end
-    (self.includes_stop_transfers || []).each do |stop_transfer|
-      to_stop = Stop.find_by_onestop_id!(stop_transfer[:to_stop_onestop_id])
-      existing_relationship = StopTransfer.find_by(
-        stop: self,
-        to_stop: to_stop
-      )
-      new_attrs = {
-        stop: self,
-        to_stop: to_stop,
-        transfer_type: stop_transfer[:transfer_type],
-        min_transfer_time: stop_transfer[:min_transfer_time]
-      }
-      if existing_relationship
-        existing_relationship.update_making_history(changeset: changeset, new_attrs: new_attrs)
-      else
-        StopTransfer.create_making_history(changeset: changeset, new_attrs: new_attrs)
-      end
-    end
-    (self.does_not_include_stop_transfers || []).each do |stop_transfer|
-      existing_relationship = StopTransfer.find_by(
-        stop: self,
-        to_stop: Stop.find_by_onestop_id!(stop_transfer[:to_stop_onestop_id])
-      )
-      if existing_relationship
-        existing_relationship.destroy_making_history(changeset: changeset)
-      end
-    end
+    update_served_by(changeset)
+    update_includes_stop_transfers(changeset)
+    update_does_not_include_stop_transfers(changeset)
   end
   def before_destroy_making_history(changeset, old_model)
     operators_serving_stop.each do |operator_serving_stop|
@@ -146,6 +112,8 @@ class Stop < BaseStop
     end
     return true
   end
+
+
 
   # Operators serving this stop
   has_many :operators_serving_stop
@@ -321,6 +289,56 @@ class Stop < BaseStop
   end
 
   private
+
+  def update_includes_stop_transfers(changeset)
+    (self.includes_stop_transfers || []).each do |stop_transfer|
+      to_stop = Stop.find_by_onestop_id!(stop_transfer[:to_stop_onestop_id])
+      existing_relationship = StopTransfer.find_by(
+        stop: self,
+        to_stop: to_stop
+      )
+      new_attrs = {
+        stop: self,
+        to_stop: to_stop,
+        transfer_type: stop_transfer[:transfer_type],
+        min_transfer_time: stop_transfer[:min_transfer_time]
+      }
+      if existing_relationship
+        existing_relationship.update_making_history(
+          changeset: changeset,
+          new_attrs: new_attrs
+        )
+      else
+        StopTransfer.create_making_history(
+          changeset: changeset,
+          new_attrs: new_attrs
+        )
+      end
+    end
+  end
+
+  def update_does_not_include_stop_transfers(changeset)
+    (self.does_not_include_stop_transfers || []).each do |stop_transfer|
+      existing_relationship = StopTransfer.find_by(
+        stop: self,
+        to_stop: Stop.find_by_onestop_id!(stop_transfer[:to_stop_onestop_id])
+      )
+      if existing_relationship
+        existing_relationship.destroy_making_history(changeset: changeset)
+      end
+    end
+  end
+
+  def update_served_by(changeset)
+    OperatorRouteStopRelationship.manage_multiple(
+      stop: {
+        served_by: self.served_by || [],
+        not_served_by: self.not_served_by || [],
+        model: self
+      },
+      changeset: changeset
+    )
+  end
 
   def clean_attributes
     self.name.strip! if self.name.present?
