@@ -163,7 +163,6 @@ class Changeset < ActiveRecord::Base
       import_score = ((gqc.distance_issue_tests - gqc.distance_issues).round(1)/gqc.distance_issue_tests).round(5) rescue 1.0
       log "Feed: #{self.imported_from_feed.onestop_id} imported with Valhalla Import Score: #{import_score} #{gqc.distance_issue_tests} Stop-RouteStopPattern pairs were tested and #{gqc.distance_issues} distance issues found."
     end
-    # add more quality checks here and add them to issues
     issues
   end
 

@@ -41,7 +41,7 @@ FactoryGirl.define do
     }
   end
 
-  factory :issue_changeset, class: Changeset do
+  factory :changeset_creating_issue, class: Changeset do
     notes { FFaker::Lorem.paragraph }
     payload {
       {
@@ -68,5 +68,4 @@ FactoryGirl.define do
       }
     }
   end
-
 end

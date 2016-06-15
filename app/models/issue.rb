@@ -15,9 +15,21 @@
 
 class Issue < ActiveRecord::Base
   has_many :entities_with_issues
-  belongs_to :feed_version
   belongs_to :created_by_changeset, class_name: 'Changeset'
   belongs_to :resolved_by_changeset, class_name: 'Changeset'
+
+  validate :issue_types
+
+  ISSUE_TYPES = ['stop_position_inaccurate',
+                  'stop_rsp_distance_gap',
+                  'distance_calculation_inaccurate',
+                  'rsp_line_inaccurate',
+                  'route_color',
+                  'uncategorized']
+
+  def issue_types
+    ISSUE_TYPES.include?(self.issue_type)
+  end
 
   def set_entity_with_issues_params(ewi_params)
     ewi_params[:entity] = OnestopId.find!(ewi_params.delete(:onestop_id))
@@ -29,14 +41,6 @@ class Issue < ActiveRecord::Base
                              .max_by { |changeset| changeset.updated_at }
   end
 
-  # scope :find_by_equivalent, -> (issue) {
-  #   joins(:entities_with_issues).where(created_by_changeset_id: issue.created_by_changeset_id,
-  #                                         issue_type: issue.issue_type,
-  #                                         "entities_with_issues.entity_id": issue.entities_with_issues.map(&:entity_id),
-  #                                         "entities_with_issues.entity_type": issue.entities_with_issues.map(&:entity_type),
-  #                                         "entities_with_issues.entity_attribute": issue.entities_with_issues.map(&:entity_attribute))
-  # }
-
   def self.find_by_equivalent(issue)
     where(created_by_changeset_id: issue.created_by_changeset_id, issue_type: issue.issue_type, open: true).select { |existing|
       Set.new(existing.entities_with_issues.map(&:entity_id)) == Set.new(issue.entities_with_issues.map(&:entity_id)) &&
@@ -44,5 +48,4 @@ class Issue < ActiveRecord::Base
       Set.new(existing.entities_with_issues.map(&:entity_attribute)) == Set.new(issue.entities_with_issues.map(&:entity_attribute))
     }.first
   end
-
 end
