@@ -15,6 +15,7 @@
 #
 # Indexes
 #
+#  index_current_stop_transfers_changeset_id          (created_or_updated_in_changeset_id)
 #  index_current_stop_transfers_on_min_transfer_time  (min_transfer_time)
 #  index_current_stop_transfers_on_stop_id            (stop_id)
 #  index_current_stop_transfers_on_to_stop_id         (to_stop_id)
