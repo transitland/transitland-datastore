@@ -249,11 +249,6 @@ class GTFSGraph
       entity = agencies[oif.gtfs_agency_id]
       # Skip Operator if not found
       next unless entity
-      # Find: (child gtfs routes) to (tl routes)
-      #   note: .compact because some gtfs routes are skipped.
-      routes = entity.routes.map { |route| find_by_gtfs_entity(route) }.compact.to_set
-      # Find: (tl routes) to (serves tl stops)
-      stops = routes.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
       # Create Operator from GTFS
       operator = Operator.from_gtfs(entity)
       operator.onestop_id = oif.operator.onestop_id # Override Onestop ID
@@ -262,6 +257,16 @@ class GTFSGraph
       operator = find_by_entity(operator)
       # Merge convex hulls
       operator[:geometry] = Operator.convex_hull([operator, operator_original], as: :wkt, projected: false)
+
+      # Operator routes & stops
+      routes = entity.routes.map { |route| find_by_gtfs_entity(route) }.compact.to_set
+      # Find: (tl routes) to (serves tl stops)
+      stops = Set.new
+      routes.each { |route| route.serves.each { |stop_onestop_id|
+        stop = find_by_onestop_id(stop_onestop_id)
+        stops << stop
+        stops << find_by_onestop_id(stop.parent_stop_onestop_id) if stop.parent_stop_onestop_id
+      }}
       # Copy Operator timezone to fill missing Stop timezones
       stops.each { |stop| stop.timezone ||= operator.timezone }
       # Add references and identifiers
@@ -269,7 +274,7 @@ class GTFSGraph
       operator.serves ||= Set.new
       operator.serves |= routes.map(&:onestop_id)
       add_identifier(operator, 'o', entity)
-      # Cache Operator
+
       # Add to found operators
       operators << operator
       graph_log "    #{operator.onestop_id}: #{operator.name}"

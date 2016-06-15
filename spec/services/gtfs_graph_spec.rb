@@ -70,7 +70,7 @@ describe GTFSGraph do
         expect(s.identifiers).to contain_exactly(
           "gtfs://f-9q9-caltrain/s/ctsj"
         )
-        # expect(s.timezone).to eq('America/Los_Angeles')
+        expect(s.timezone).to eq('America/Los_Angeles')
       end
 
       it 'created known RouteStopPatterns' do
