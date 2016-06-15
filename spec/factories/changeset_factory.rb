@@ -40,32 +40,4 @@ FactoryGirl.define do
       }
     }
   end
-
-  factory :changeset_creating_issue, class: Changeset do
-    notes { FFaker::Lorem.paragraph }
-    payload {
-      {
-        changes: [
-          {
-            action: "createUpdate",
-            stop: {
-              onestopId: Faker::OnestopId.stop,
-              timezone: 'America/Los_Angeles',
-              geometry: {
-                type: "Point",
-                coordinates: [-75.1, 43.8]
-              }
-            },
-            routeStopPattern: {
-              onestopId: Faker::OnestopId.route_stop_pattern,
-              geometry: {
-                type: "Linestring",
-                coordinates: [[-122.353165, 37.936887],[-122.38666, 37.599787]]
-              }
-            }
-          }
-        ]
-      }
-    }
-  end
 end

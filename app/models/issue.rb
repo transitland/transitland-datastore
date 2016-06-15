@@ -25,6 +25,8 @@ class Issue < ActiveRecord::Base
                   'distance_calculation_inaccurate',
                   'rsp_line_inaccurate',
                   'route_color',
+                  'stop_name',
+                  'route_name',
                   'uncategorized']
 
   def issue_types

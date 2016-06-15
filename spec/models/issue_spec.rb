@@ -14,14 +14,39 @@
 #
 
 describe Issue do
+
   it 'can be created' do
-    changeset = create(:changeset_creating_issue)
+    changeset = create(:changeset)
     issue = Issue.new(created_by_changeset: changeset)
   end
 
-  context 'methods' do
+  it 'changeset_from_entities' do
+
+  end
+
+  context 'existing issues' do
     before(:each) do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_issues, import_level: 1)
+    end
+
+    it 'can be resolved' do
+      changeset = create(:changeset, payload: {
+        changes: [
+          action: 'createUpdate',
+          issueResolved: 1,
+          stop: {
+            onestopId: 's-9qscwx8n60-nyecountyairportdemo',
+            timezone: 'America/Los_Angeles',
+            "geometry": {
+              "type": "Point",
+              "coordinates": [-116.784582, 36.88845]
+            }
+          }
+        ]
+      })
+      changeset.apply!
+      expect(Issue.first.open).to be false
+      expect(Issue.first.resolved_by_changeset).to eq changeset
     end
 
     context 'find_by_equivalent' do
@@ -47,10 +72,6 @@ describe Issue do
         other_issue.entities_with_issues << EntityWithIssues.new(entity_id: 1, entity_type: 'Stop', issue: @test_issue, entity_attribute: 'geometry')
         expect(Issue.find_by_equivalent(other_issue)).to be nil
       end
-    end
-
-    it 'changeset_from_entities' do
-
     end
   end
 end
