@@ -38,7 +38,7 @@ class Stop < BaseStop
   attr_accessor :parent_stop_onestop_id
   attr_accessor :served_by, :not_served_by
   attr_accessor :includes_stop_transfers, :does_not_include_stop_transfers
-  # validates :timezone, presence: true
+  validates :timezone, presence: true
 
   include HasAOnestopId
   include IsAnEntityWithIdentifiers
