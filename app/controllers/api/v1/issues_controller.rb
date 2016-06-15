@@ -4,7 +4,17 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
   before_action :set_issue, only: [:show, :update, :destroy]
 
   def index
-    @issues = Issue.where('').includes{[entities_with_issues]}
+    @issues = Issue.where('')
+
+    if params[:open].present?
+      @issues = @issues.where(open: params[:open] == 'true')
+    end
+
+    if params[:issue_type].present?
+      @issues = @issues.where(issue_type: params[:issue_type])
+    end
+
+    @issues = @issues.includes{[entities_with_issues]}
 
     respond_to do |format|
       format.json do
@@ -16,7 +26,10 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
           params[:offset],
           params[:per_page],
           params[:total],
-          params
+          params.slice(
+            :open,
+            :issue_type
+          )
         )
       end
     end
