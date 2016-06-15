@@ -86,6 +86,11 @@ class Stop < BaseStop
       :last_conflated_at
     ]
   })
+
+  def parent_stop_onestop_id=(value)
+    self.parent_stop = Stop.find_by_onestop_id!(value)
+  end
+
   def after_create_making_history(changeset)
     before_update_making_history(changeset)
   end
@@ -323,7 +328,7 @@ class Stop < BaseStop
 end
 
 class StopPlatform < Stop
-  # validates :parent_stop, presence: true
+  validates :parent_stop, presence: true
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
     virtual_attributes: [
@@ -345,6 +350,7 @@ class StopPlatform < Stop
 end
 
 class StopEgress < Stop
+  validates :parent_stop, presence: true
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
     virtual_attributes: [

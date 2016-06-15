@@ -207,6 +207,19 @@ describe StopPlatform do
       expect(stop_platform.reload.parent_stop).to eq(stop2)
     end
 
+    it 'requires parentStopOnestopId' do
+      payload = {changes: [{
+        action: 'createUpdate',
+        stopPlatform: {
+          onestopId: 's-123-foo<bar',
+          timezone: 'America/Los_Angeles',
+        }
+      }]}
+      changeset = Changeset.create()
+      changeset.change_payloads.create!(payload: payload)
+      expect{changeset.apply!}.to raise_error(Changeset::Error)
+    end
+
     it 'requires valid parentStopOnestopId' do
       payload = {changes: [{
         action: 'createUpdate',
