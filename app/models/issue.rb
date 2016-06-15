@@ -39,7 +39,7 @@ class Issue < ActiveRecord::Base
   end
 
   def changeset_from_entities
-    entities_with_issues.map { |ewi| Changeset.find(Object.const_get(ewi.entity_type).find(ewi.entity_id).created_or_updated_in_changeset_id) }
+    entities_with_issues.map { |ewi| Changeset.find(ewi.entity.created_or_updated_in_changeset_id) }
                              .max_by { |changeset| changeset.updated_at }
   end
 
