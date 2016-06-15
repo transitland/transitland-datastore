@@ -35,7 +35,6 @@ end
 
 class Stop < BaseStop
   self.table_name = 'current_stops'
-  attr_accessor :parent_stop_onestop_id
   attr_accessor :served_by, :not_served_by
   attr_accessor :includes_stop_transfers, :does_not_include_stop_transfers
   validates :timezone, presence: true
@@ -77,7 +76,6 @@ class Stop < BaseStop
       :not_served_by,
       :identified_by,
       :not_identified_by,
-      :parent_stop_onestop_id,
       :includes_stop_transfers,
       :does_not_include_stop_transfers
     ],
@@ -86,10 +84,6 @@ class Stop < BaseStop
       :last_conflated_at
     ]
   })
-
-  def parent_stop_onestop_id=(value)
-    self.parent_stop = Stop.find_by_onestop_id!(value)
-  end
 
   def after_create_making_history(changeset)
     super(changeset)
@@ -135,6 +129,10 @@ class Stop < BaseStop
   has_many :trips_in, class_name: ScheduleStopPair, foreign_key: "destination_id"
   has_many :stops_out, through: :trips_out, source: :destination
   has_many :stops_in, through: :trips_in, source: :origin
+
+  def parent_stop
+    # Dummy relation
+  end
 
   # Add service from an Operator or Route
   scope :served_by, -> (onestop_ids_and_models) {
@@ -346,7 +344,6 @@ class Stop < BaseStop
 end
 
 class StopPlatform < Stop
-  validates :parent_stop, presence: true
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
     virtual_attributes: [
@@ -365,10 +362,18 @@ class StopPlatform < Stop
     ]
   })
   belongs_to :parent_stop, class_name: 'Stop'
+  validates :parent_stop, presence: true
+  def parent_stop_onestop_id
+    if self.parent_stop
+      self.parent_stop.onestop_id
+    end
+  end
+  def parent_stop_onestop_id=(value)
+    self.parent_stop = Stop.find_by_onestop_id!(value)
+  end
 end
 
 class StopEgress < Stop
-  validates :parent_stop, presence: true
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
     virtual_attributes: [
@@ -386,7 +391,16 @@ class StopEgress < Stop
       :type
     ]
   })
-  belongs_to :parent_station, class_name: 'Stop'
+  belongs_to :parent_stop, class_name: 'Stop'
+  validates :parent_stop, presence: true
+  def parent_stop_onestop_id
+    if self.parent_stop
+      self.parent_stop.onestop_id
+    end
+  end
+  def parent_stop_onestop_id=(value)
+    self.parent_stop = Stop.find_by_onestop_id!(value)
+  end
 end
 
 class OldStop < BaseStop
