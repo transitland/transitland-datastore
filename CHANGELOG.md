@@ -2,10 +2,34 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.4...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.5...HEAD)
 
 **Merged pull requests:**
 
+- Production deploy 4.8.5 [\#625](https://github.com/transitland/transitland-datastore/pull/625) ([irees](https://github.com/irees))
+
+## [4.8.5](https://github.com/transitland/transitland-datastore/tree/4.8.5) (2016-06-13)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.4...4.8.5)
+
+**Fixed bugs:**
+
+- when import is in progress, activity updates show import as unsuccessful [\#606](https://github.com/transitland/transitland-datastore/issues/606)
+
+**Closed issues:**
+
+- Ambiguous 'tags' [\#619](https://github.com/transitland/transitland-datastore/issues/619)
+- Set block\_id in SSPs [\#613](https://github.com/transitland/transitland-datastore/issues/613)
+- Slow SSP pagination [\#610](https://github.com/transitland/transitland-datastore/issues/610)
+
+**Merged pull requests:**
+
+- activate PgHero in production [\#622](https://github.com/transitland/transitland-datastore/pull/622) ([drewda](https://github.com/drewda))
+- Import trip block\_id [\#621](https://github.com/transitland/transitland-datastore/pull/621) ([irees](https://github.com/irees))
+- Activity update bug [\#620](https://github.com/transitland/transitland-datastore/pull/620) ([drewda](https://github.com/drewda))
+- update gems [\#618](https://github.com/transitland/transitland-datastore/pull/618) ([drewda](https://github.com/drewda))
+- after\_create\_making\_history after all changes in payload [\#617](https://github.com/transitland/transitland-datastore/pull/617) ([irees](https://github.com/irees))
+- logging initializer and gtfs\_graph log function [\#615](https://github.com/transitland/transitland-datastore/pull/615) ([doublestranded](https://github.com/doublestranded))
+- SSP pagination performance [\#611](https://github.com/transitland/transitland-datastore/pull/611) ([irees](https://github.com/irees))
 - Production release 4.8.4 [\#609](https://github.com/transitland/transitland-datastore/pull/609) ([irees](https://github.com/irees))
 
 ## [4.8.4](https://github.com/transitland/transitland-datastore/tree/4.8.4) (2016-05-27)

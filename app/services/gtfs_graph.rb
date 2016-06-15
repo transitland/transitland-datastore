@@ -450,6 +450,7 @@ class GTFSGraph
       trip_headsign: (origin.stop_headsign || trip.trip_headsign).presence,
       trip_short_name: trip.trip_short_name.presence,
       shape_dist_traveled: destination.shape_dist_traveled.to_f,
+      block_id: trip.block_id,
       # Accessibility
       pickup_type: to_pickup_type(origin.pickup_type),
       drop_off_type: to_pickup_type(destination.drop_off_type),
