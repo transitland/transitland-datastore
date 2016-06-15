@@ -14,7 +14,8 @@
     "tags": { "type": "object" },
     "name": { "type": "string" },
     "parentStopOnestopId": {
-      "type": ["string", "null"]
+      "type": "string",
+      "format": "stop-onestop-id"
     },
     "identifiedBy": {
       "type": "array",
