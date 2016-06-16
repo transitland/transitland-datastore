@@ -10,15 +10,16 @@ class QualityCheck
     raise NotImplementedError
   end
 
-  def find_issue(issue)
-
-  end
+  # def find_issue(issue)
+  #   @issues.detect{ |existing| issue.compare(existing) }
+  # end
 end
 
 class GeometryQualityCheck < QualityCheck
 
-  LAST_STOP_DISTANCE_LENIENCY = 5.0
+  LAST_STOP_DISTANCE_LENIENCY = 5.0 #meters
 
+  # some aggregate stats on rsp distance calculation
   attr_accessor :distance_issues, :distance_issue_tests
 
   def check
@@ -26,14 +27,14 @@ class GeometryQualityCheck < QualityCheck
     self.distance_issue_tests = 0
 
     distance_rsps = Set.new
-    distance_gap_pairs =  Set.new
+    stop_rsp_gap_pairs =  Set.new
 
     # TODO if changeset is from import, we should go ahead and assign all rsps to distance_rsps
 
     self.changeset.route_stop_patterns_created_or_updated.each do |rsp|
       distance_rsps << rsp
       rsp.stop_pattern.map { |onestop_id| OnestopId.find!(onestop_id) }.each do |stop|
-        distance_gap_pairs << [rsp, stop]
+        stop_rsp_gap_pairs << [rsp, stop]
       end
       # other checks on rsp go here
     end
@@ -41,7 +42,7 @@ class GeometryQualityCheck < QualityCheck
     self.changeset.stops_created_or_updated.each do |stop|
         RouteStopPattern.where{ stop_pattern.within(stop.onestop_id) }.each do |rsp|
           distance_rsps << rsp
-          distance_gap_pairs << [rsp, stop]
+          stop_rsp_gap_pairs << [rsp, stop]
         end
         # other checks on stop go here
     end
@@ -52,7 +53,7 @@ class GeometryQualityCheck < QualityCheck
       end
     end
 
-    distance_gap_pairs.each do |rsp, stop|
+    stop_rsp_gap_pairs.each do |rsp, stop|
       self.stop_rsp_distance_gap(stop, rsp)
     end
 

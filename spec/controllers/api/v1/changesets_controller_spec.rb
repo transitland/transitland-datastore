@@ -240,6 +240,32 @@ describe Api::V1::ChangesetsController do
     end
   end
 
+  context 'issue resolution' do
+    before(:each) do
+      load_feed(feed_version_name: :feed_version_example_issues, import_level: 1)
+    end
+
+    it 'resolves issue with issues_resolved changeset' do
+      changeset = create(:changeset, payload: {
+        changes: [
+          action: 'createUpdate',
+          issueResolved: 1,
+          stop: {
+            onestopId: 's-9qscwx8n60-nyecountyairportdemo',
+            timezone: 'America/Los_Angeles',
+            "geometry": {
+              "type": "Point",
+              "coordinates": [-116.784582, 36.88845]
+            }
+          }
+        ]
+      })
+      post :apply, id: changeset.id
+      expect(Issue.find(1).open).to be false
+      expect(Issue.find(1).resolved_by_changeset).to eq changeset
+    end
+  end
+
   context 'POST revert' do
     pending 'write the revert functionality'
   end

@@ -62,9 +62,20 @@ describe Api::V1::IssuesController do
     end
   end
 
-  context 'issue resolution' do
-    it 'resolves issue with issues_resolved changeset' do
-      #post :create, changeset: FactoryGirl.attributes_for(:issue_resolving_changeset)
+  context 'POST update' do
+    it 'updates an existing issue' do
+      issue = {
+        "details": "This is a test of updating"
+      }
+      post :update, id: 1, issue: issue
+      expect(Issue.find(1).details).to eq "This is a test of updating"
+    end
+  end
+
+  context 'POST destroy' do
+    it 'should delete issue' do
+      post :destroy, id: 1
+      expect(Issue.exists?(1)).to eq(false)
     end
   end
 end

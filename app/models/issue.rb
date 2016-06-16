@@ -43,11 +43,15 @@ class Issue < ActiveRecord::Base
                              .max_by { |changeset| changeset.updated_at }
   end
 
+  # def compare(issue)
+  #   # TODO
+  # end
+
   def self.find_by_equivalent(issue)
-    where(created_by_changeset_id: issue.created_by_changeset_id, issue_type: issue.issue_type, open: true).select { |existing|
+    where(created_by_changeset_id: issue.created_by_changeset_id, issue_type: issue.issue_type, open: true).detect { |existing|
       Set.new(existing.entities_with_issues.map(&:entity_id)) == Set.new(issue.entities_with_issues.map(&:entity_id)) &&
       Set.new(existing.entities_with_issues.map(&:entity_type)) == Set.new(issue.entities_with_issues.map(&:entity_type)) &&
       Set.new(existing.entities_with_issues.map(&:entity_attribute)) == Set.new(issue.entities_with_issues.map(&:entity_attribute))
-    }.first
+    }
   end
 end
