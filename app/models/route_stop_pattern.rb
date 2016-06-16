@@ -31,7 +31,7 @@
 class BaseRouteStopPattern < ActiveRecord::Base
   self.abstract_class = true
 
-  attr_accessor :traversed_by, :distance_issues, :first_stop_before_geom, :last_stop_after_geom
+  attr_accessor :traversed_by, :first_stop_before_geom, :last_stop_after_geom
 end
 
 class RouteStopPattern < BaseRouteStopPattern

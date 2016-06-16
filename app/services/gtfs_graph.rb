@@ -92,19 +92,15 @@ class GTFSGraph
 
   def calculate_rsp_distances(rsps)
     graph_log "Calculating distances"
-    rsps_with_issues = 0
     rsps.each do |rsp|
       stops = rsp.stop_pattern.map { |onestop_id| find_by_onestop_id(onestop_id) }
       begin
         rsp.calculate_distances(stops=stops)
       rescue StandardError
         graph_log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
-        rsps_with_issues += 1
         rsp.fallback_distances(stops=stops)
       end
     end
-    score = ((rsps.size - rsps_with_issues)/rsps.size.to_f).round(5) rescue score = 1.0
-    graph_log "Feed: #{@feed.onestop_id}. #{rsps_with_issues} Route Stop Patterns out of #{rsps.size} had issues with distance calculation. Valhalla Import Score: #{score}"
   end
 
   def ssp_schedule_async
