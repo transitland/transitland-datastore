@@ -211,7 +211,7 @@ module OnestopId
   LOOKUP_MODEL = Hash[OnestopId::OnestopIdBase.descendants.map { |c| [c::MODEL, c] }]
 
   def self.handler_by_string(string: nil)
-    OnestopId::OnestopIdBase.descendants.select { |cls| cls.match?(string) }.first
+    LOOKUP_MODEL.values.select { |cls| cls.match?(string) }.first
   end
 
   def self.handler_by_model(model)
