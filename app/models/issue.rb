@@ -17,20 +17,16 @@ class Issue < ActiveRecord::Base
   belongs_to :created_by_changeset, class_name: 'Changeset'
   belongs_to :resolved_by_changeset, class_name: 'Changeset'
 
-  validate :issue_types
-
-  ISSUE_TYPES = ['stop_position_inaccurate',
-                  'stop_rsp_distance_gap',
-                  'distance_calculation_inaccurate',
-                  'rsp_line_inaccurate',
-                  'route_color',
-                  'stop_name',
-                  'route_name',
-                  'uncategorized']
-
-  def issue_types
-    ISSUE_TYPES.include?(self.issue_type)
-  end
+  extend Enumerize
+  enumerize :issue_type,
+            in: ['stop_position_inaccurate',
+                 'stop_rsp_distance_gap',
+                 'distance_calculation_inaccurate',
+                 'rsp_line_inaccurate',
+                 'route_color',
+                 'stop_name',
+                 'route_name',
+                 'uncategorized']
 
   def set_entity_with_issues_params(ewi_params)
     ewi_params[:entity] = OnestopId.find!(ewi_params.delete(:onestop_id))
