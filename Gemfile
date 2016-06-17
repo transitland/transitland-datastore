@@ -66,6 +66,7 @@ gem 'pry-rescue', group: [:development, :test]
 gem 'pry-stack_explorer', group: [:development, :test]
 gem 'rubocop', require: false, group: [:development, :test]
 gem 'rubocop-rspec', require: false, group: [:development, :test]
+gem 'active_record_doctor', group: :development
 
 # code coverage and documentation
 gem 'rails-erd', group: :development
@@ -94,12 +95,12 @@ gem 'sentry-raven', group: [:staging, :production]
 
 # logging
 gem 'logstasher'
-gem 'sidekiq-logging-json', github: 'transitland/Sidekiq-Logging-JSON', tag: '7ea0db4'
+gem 'sidekiq-logging-json'
 gem 'ruby-progressbar'
 
 # database query performance monitoring/analysis
 gem 'bullet', group: :development
-gem 'pghero', group: [:development, :staging] # mounted at /admin/postgres
+gem 'pghero', group: [:development, :staging, :production] # mounted at /admin/postgres
 gem 'marginalia', group: [:development, :staging]
 
 # web server
