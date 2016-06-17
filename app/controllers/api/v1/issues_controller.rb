@@ -43,7 +43,7 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
     entities_with_issues_params = issue_params.delete(:entities_with_issues).try(:compact)
     @issue.update!(issue_params)
     entities_with_issues_params.each do |ewi|
-      @issue.set_entity_with_issues_params(ewi)
+      set_entity_with_issues_params(@issue, ewi)
     end
     render json: @issue
   end
@@ -56,7 +56,7 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
   def create
     entities_with_issues_params = issue_params.delete(:entities_with_issues).try(:compact)
     issue = Issue.new(issue_params)
-    entities_with_issues_params.each { |ewi| issue.set_entity_with_issues_params(ewi) }
+    entities_with_issues_params.each { |ewi| set_entity_with_issues_params(issue, ewi) }
     issue.created_by_changeset_id = issue_params[:created_by_changeset_id] || issue.changeset_from_entities.id
 
     existing_issue = Issue.find_by_equivalent(issue)
@@ -69,6 +69,11 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
   end
 
   private
+
+  def set_entity_with_issues_params(issue, ewi_params)
+    ewi_params[:entity] = OnestopId.find!(ewi_params.delete(:onestop_id))
+    issue.entities_with_issues << EntityWithIssues.find_or_initialize_by(ewi_params)
+  end
 
   def set_issue
     @issue = Issue.find(params[:id])

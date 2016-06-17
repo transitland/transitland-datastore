@@ -28,11 +28,6 @@ class Issue < ActiveRecord::Base
                  'route_name',
                  'uncategorized']
 
-  def set_entity_with_issues_params(ewi_params)
-    ewi_params[:entity] = OnestopId.find!(ewi_params.delete(:onestop_id))
-    self.entities_with_issues << EntityWithIssues.find_or_initialize_by(ewi_params)
-  end
-
   def changeset_from_entities
     entities_with_issues.map { |ewi| Changeset.find(ewi.entity.created_or_updated_in_changeset_id) }
                              .max_by { |changeset| changeset.updated_at }
