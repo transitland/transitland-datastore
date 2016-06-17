@@ -40,10 +40,11 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
   end
 
   def update
-    entities_with_issues_params = issue_params.delete(:entities_with_issues).try(:compact)
-    @issue.update!(issue_params)
+    issue_params_copy = issue_params
+    entities_with_issues_params = issue_params_copy.delete(:entities_with_issues).try(:compact)
+    @issue.update!(issue_params_copy)
     entities_with_issues_params.each do |ewi|
-      set_entity_with_issues_params(@issue, ewi)
+      set_entity_with_issues_params(ewi)
     end
     render json: @issue
   end
@@ -54,25 +55,26 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
   end
 
   def create
-    entities_with_issues_params = issue_params.delete(:entities_with_issues).try(:compact)
-    issue = Issue.new(issue_params)
-    entities_with_issues_params.each { |ewi| set_entity_with_issues_params(issue, ewi) }
-    issue.created_by_changeset_id = issue_params[:created_by_changeset_id] || issue.changeset_from_entities.id
+    issue_params_copy = issue_params
+    entities_with_issues_params = issue_params_copy.delete(:entities_with_issues).try(:compact)
+    @issue = Issue.new(issue_params_copy)
+    entities_with_issues_params.each { |ewi| set_entity_with_issues_params(ewi) }
+    @issue.created_by_changeset_id = issue_params_copy[:created_by_changeset_id] || @issue.changeset_from_entities.id
 
-    existing_issue = Issue.find_by_equivalent(issue)
+    existing_issue = Issue.find_by_equivalent(@issue)
     if existing_issue
       render json: existing_issue, status: :conflict
     else
-      issue.save!
-      render json: issue, status: :accepted
+      @issue.save!
+      render json: @issue, status: :accepted
     end
   end
 
   private
 
-  def set_entity_with_issues_params(issue, ewi_params)
+  def set_entity_with_issues_params(ewi_params)
     ewi_params[:entity] = OnestopId.find!(ewi_params.delete(:onestop_id))
-    issue.entities_with_issues << EntityWithIssues.find_or_initialize_by(ewi_params)
+    @issue.entities_with_issues << EntityWithIssues.find_or_initialize_by(ewi_params)
   end
 
   def set_issue
@@ -80,6 +82,12 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
   end
 
   def issue_params
-    params.require(:issue).permit!
+    params.require(:issue).permit(:id,
+                                  :created_by_changeset_id,
+                                  :resolved_by_changeset_id,
+                                  :issue_type,
+                                  :details,
+                                  :open,
+                                  entities_with_issues: [:onestop_id, :entity_attribute])
   end
 end
