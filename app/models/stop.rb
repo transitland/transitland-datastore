@@ -107,8 +107,6 @@ class Stop < BaseStop
     return true
   end
 
-
-
   # Operators serving this stop
   has_many :operators_serving_stop
   has_many :operators, through: :operators_serving_stop
@@ -116,6 +114,22 @@ class Stop < BaseStop
   # Routes serving this stop
   has_many :routes_serving_stop
   has_many :routes, through: :routes_serving_stop
+
+  def operators_serving_stop_and_platforms
+    OperatorServingStop
+      .where('stop_id IN (?) OR stop_id = ?', Stop.where(parent_stop_id: self.id).select(:id), self.id)
+      .select(:operator_id)
+      .uniq
+      .map { |o| OperatorServingStop.new(stop: self, operator_id: o.operator_id) }
+  end
+
+  def routes_serving_stop_and_platforms
+    RouteServingStop
+      .where('stop_id IN (?) OR stop_id = ?', Stop.where(parent_stop_id: self.id).select(:id), self.id)
+      .select(:route_id)
+      .uniq
+      .map { |o| RouteServingStop.new(stop: self, route_id: o.route_id) }
+  end
 
   # Station Hierarchy
   has_many :stop_egresses, class_name: 'StopEgress', foreign_key: :parent_stop_id
