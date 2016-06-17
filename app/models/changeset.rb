@@ -154,18 +154,6 @@ class Changeset < ActiveRecord::Base
     change_payloads.destroy_all
   end
 
-  def computed_attributes
-    distance_rsps = Set.new
-    if self.stops_created_or_updated
-      self.stops_created_or_updated.each do |stop|
-        distance_rsps << RouteStopPattern.with_stops(stop.onestop_id)
-      end
-      self.operators_in_feed_created_or_updated.each { |operator| operator.recompute_convex_hull_around_stops }
-    end
-    distance_rsps.merge(self.route_stop_patterns_created_or_updated)
-    distance_rsps.each { |rsp| rsp.calculate_distances }
-  end
-
   def check_quality
     gqc = QualityCheck::GeometryQualityCheck.new(changeset: self)
     issues = []
@@ -196,8 +184,6 @@ class Changeset < ActiveRecord::Base
           end
           EntityImportedFromFeed.import eiff_batch
         end
-
-        #computed_attributes unless self.imported_from_feed && self.imported_from_feed_version
 
         issues = check_quality
         issues.each(&:save!)
