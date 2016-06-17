@@ -57,7 +57,7 @@ describe Api::V1::IssuesController do
         ]
       }
       post :create, issue: issue
-      expect(response.status).to eq 302
+      expect(response.status).to eq 409
       expect(Issue.count).to eq 1
     end
   end
