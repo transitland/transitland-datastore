@@ -4,11 +4,11 @@ describe QualityCheck do
   end
 end
 
-describe GeometryQualityCheck do
+describe QualityCheck::GeometryQualityCheck do
 
   before(:each) do
     @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_issues, import_level: 1)
-    @quality_check = GeometryQualityCheck.new(changeset: @feed_version.changesets_imported_from_this_feed_version.first)
+    @quality_check = QualityCheck::GeometryQualityCheck.new(changeset: @feed_version.changesets_imported_from_this_feed_version.first)
   end
 
   it 'creates new issues in check' do

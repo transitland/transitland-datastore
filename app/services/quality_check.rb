@@ -15,7 +15,7 @@ class QualityCheck
   # end
 end
 
-class GeometryQualityCheck < QualityCheck
+class QualityCheck::GeometryQualityCheck < QualityCheck
 
   LAST_STOP_DISTANCE_LENIENCY = 5.0 #meters
 
