@@ -32,7 +32,7 @@ describe Issue do
       changeset = create(:changeset, payload: {
         changes: [
           action: 'createUpdate',
-          issueResolved: 1,
+          issuesResolved: [1],
           stop: {
             onestopId: 's-9qscwx8n60-nyecountyairportdemo',
             timezone: 'America/Los_Angeles',

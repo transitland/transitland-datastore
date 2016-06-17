@@ -197,7 +197,7 @@ describe Api::V1::ChangesetsController do
     end
 
     it 'should return issues when found' do
-      
+
     end
   end
 
@@ -253,7 +253,7 @@ describe Api::V1::ChangesetsController do
       changeset = create(:changeset, payload: {
         changes: [
           action: 'createUpdate',
-          issueResolved: 1,
+          issuesResolved: [1],
           stop: {
             onestopId: 's-9qscwx8n60-nyecountyairportdemo',
             timezone: 'America/Los_Angeles',

@@ -63,8 +63,11 @@
           "action": {
             "type": { "enum": ["createUpdate", "destroy"] }
           },
-          "issueResolved": {
-            "type": "number"
+          "issuesResolved": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
           }
         }
       }
