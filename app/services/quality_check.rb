@@ -22,15 +22,19 @@ class GeometryQualityCheck < QualityCheck
   # some aggregate stats on rsp distance calculation
   attr_accessor :distance_issues, :distance_issue_tests
 
+  def distance_score
+    if self.changeset.imported_from_feed
+      import_score = ((self.distance_issue_tests - self.distance_issues).round(1)/self.distance_issue_tests).round(5) rescue 1.0
+      log "Feed: #{self.changeset.imported_from_feed.onestop_id} imported with Valhalla Import Score: #{import_score} #{self.distance_issue_tests} Stop-RouteStopPattern pairs were tested and #{self.distance_issues} distance issues found."
+    end
+  end
+
   def check
     self.distance_issues = 0
     self.distance_issue_tests = 0
 
     distance_rsps = Set.new
     stop_rsp_gap_pairs =  Set.new
-
-    # TODO if changeset is from import, we should go ahead and assign all rsps to distance_rsps
-    # for performance
 
     self.changeset.route_stop_patterns_created_or_updated.each do |rsp|
       distance_rsps << rsp
@@ -61,6 +65,8 @@ class GeometryQualityCheck < QualityCheck
 
     self.distance_issue_tests = distance_rsps.map {|rsp| rsp.stop_pattern.size }.reduce(:+)
     self.distance_issues = Set.new(self.issues.select {|ewi| ['stop_rsp_distance_gap', 'distance_calculation_inaccurate'].include?(ewi.issue_type) }.each {|issue| issue.entities_with_issues.map(&:entity_id) }).size
+
+    distance_score
 
     self.issues
   end
