@@ -335,12 +335,11 @@ ActiveRecord::Schema.define(version: 20160601005325) do
   add_index "feed_versions", ["feed_type", "feed_id"], name: "index_feed_versions_on_feed_type_and_feed_id", using: :btree
 
   create_table "issues", force: :cascade do |t|
-    t.integer  "created_by_changeset_id",                  null: false
+    t.integer  "created_by_changeset_id",                 null: false
     t.integer  "resolved_by_changeset_id"
     t.string   "details"
     t.string   "issue_type"
     t.boolean  "open",                     default: true
-    t.boolean  "block_changeset_apply",    default: false
     t.datetime "created_at"
     t.datetime "updated_at"
   end

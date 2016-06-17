@@ -200,7 +200,6 @@ class Changeset < ActiveRecord::Base
         #computed_attributes unless self.imported_from_feed && self.imported_from_feed_version
 
         issues = check_quality
-        return false, issues if issues.map(&:block_changeset_apply).include?(true)
         issues.each(&:save!)
       rescue => e
         logger.error "Error applying Changeset #{self.id}: #{e.message}"

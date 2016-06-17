@@ -6,7 +6,6 @@ class CreateIssues < ActiveRecord::Migration
       t.string :details
       t.string :issue_type
       t.boolean :open, default: true
-      t.boolean :block_changeset_apply, default: false
       t.timestamps
     end
   end

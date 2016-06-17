@@ -8,7 +8,6 @@
 #  details                  :string
 #  issue_type               :string
 #  open                     :boolean          default(TRUE)
-#  block_changeset_apply    :boolean          default(FALSE)
 #  created_at               :datetime
 #  updated_at               :datetime
 #
@@ -19,7 +18,6 @@ class IssueSerializer < ApplicationSerializer
              :resolved_by_changeset_id,
              :details,
              :issue_type,
-             :block_changeset_apply,
              :open,
              :created_at,
              :updated_at

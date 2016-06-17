@@ -195,6 +195,10 @@ describe Api::V1::ChangesetsController do
       expect_json({ trialSucceeds: false })
       expect(changeset.applied).to eq false
     end
+
+    it 'should return issues when found' do
+      
+    end
   end
 
   context 'POST apply' do
