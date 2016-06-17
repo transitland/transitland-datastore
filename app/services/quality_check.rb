@@ -33,23 +33,26 @@ class GeometryQualityCheck < QualityCheck
     self.distance_issues = 0
     self.distance_issue_tests = 0
 
+    import = !self.changeset.imported_from_feed.nil?
     distance_rsps = Set.new
     stop_rsp_gap_pairs =  Set.new
 
     self.changeset.route_stop_patterns_created_or_updated.each do |rsp|
       distance_rsps << rsp
-      rsp.stop_pattern.map { |onestop_id| OnestopId.find!(onestop_id) }.each do |stop|
+      Stop.where(onestop_id: rsp.stop_pattern).each do |stop|
         stop_rsp_gap_pairs << [rsp, stop]
       end
-      # other checks on rsp go here
+      # other checks on rsp-exclusive attributes go here
     end
 
     self.changeset.stops_created_or_updated.each do |stop|
+      unless import
         RouteStopPattern.where{ stop_pattern.within(stop.onestop_id) }.each do |rsp|
           distance_rsps << rsp
           stop_rsp_gap_pairs << [rsp, stop]
         end
-        # other checks on stop go here
+      end
+      # other checks on stop-exclusive attributes go here
     end
 
     distance_rsps.each do |rsp|
@@ -62,10 +65,8 @@ class GeometryQualityCheck < QualityCheck
       self.stop_rsp_distance_gap(stop, rsp)
     end
 
-
     self.distance_issue_tests = distance_rsps.map {|rsp| rsp.stop_pattern.size }.reduce(:+)
     self.distance_issues = Set.new(self.issues.select {|ewi| ['stop_rsp_distance_gap', 'distance_calculation_inaccurate'].include?(ewi.issue_type) }.each {|issue| issue.entities_with_issues.map(&:entity_id) }).size
-
     distance_score
 
     self.issues

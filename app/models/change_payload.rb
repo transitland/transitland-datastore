@@ -64,7 +64,7 @@ class ChangePayload < ActiveRecord::Base
       (entity_types.keys & change.keys).each do |entity_type|
         changes << [entity_type, change[:action], change[entity_type]]
         if change[:issue_resolved]
-          Issue.find(change[:issue_resolved]).update({ open: false, resolved_by_changeset: changeset})
+          Issue.find(change[:issue_resolved]).update!({ open: false, resolved_by_changeset: changeset})
         end
       end
     end
