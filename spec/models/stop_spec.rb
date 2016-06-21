@@ -167,6 +167,22 @@ end
 
 
 describe StopPlatform do
+
+  context 'serving_stop_and_platform' do
+    it 'aggregates operators and routes' do
+      stop_platform = create(:stop_platform)
+      parent_stop = stop_platform.parent_stop
+      oss = []
+      oss << create(:operator_serving_stop, stop: parent_stop)
+      oss << create(:operator_serving_stop, stop: stop_platform)
+      rss = []
+      rss << create(:route_serving_stop, stop: parent_stop)
+      rss << create(:route_serving_stop, stop: stop_platform)
+      expect(parent_stop.operators_serving_stop_and_platforms.pluck(:operator_id)).to match_array(oss.map(&:operator_id))
+      expect(parent_stop.routes_serving_stop_and_platforms.pluck(:route_id)).to match_array(rss.map(&:route_id))
+    end
+  end
+
   context 'changeset' do
     it 'can be created' do
       stop = create(:stop)
