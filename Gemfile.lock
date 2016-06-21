@@ -188,7 +188,6 @@ GEM
     mime-types (2.99.2)
     mini_portile2 (2.1.0)
     minitest (5.9.0)
-    mock_redis (0.16.1)
     multi_json (1.12.1)
     multipart-post (2.0.0)
     netrc (0.11.0)
@@ -421,7 +420,6 @@ DEPENDENCIES
   json-schema (= 2.5.2)
   logstasher
   marginalia
-  mock_redis
   oj
   oj_mimic_json
   pg
