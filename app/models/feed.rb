@@ -234,6 +234,8 @@ class Feed < BaseFeed
     # Find the next feed_version
     next_feed_version = self.find_next_feed_version(date)
     return unless next_feed_version
+    # Return if it's been imported before
+    return if next_feed_version.feed_version_imports.last
     # Enqueue
     FeedEaterWorker.perform_async(
       self.onestop_id,
