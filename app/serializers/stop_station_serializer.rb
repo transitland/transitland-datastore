@@ -76,17 +76,13 @@ class StopStationSerializer < CurrentEntitySerializer
   end
 
   # Aggregate operators_serving_stop
-  def operators_serving_stop
-    result = object.operators_serving_stop
-    object.stop_platforms.each { |sp| result |= sp.operators_serving_stop}
-    result.to_set
+  def operators_serving_stop_and_platforms
+    []
   end
 
   # Aggregate routes_serving_stop
-  def routes_serving_stop
-    result = object.routes_serving_stop
-    object.stop_platforms.each { |sp| result |= sp.routes_serving_stop}
-    result.uniq
+  def routes_serving_stop_and_platforms
+    []
   end
 
   # Attributes
@@ -102,6 +98,6 @@ class StopStationSerializer < CurrentEntitySerializer
   has_many :stop_platforms, serializer: StopPlatformSerializer
   has_many :stop_egresses, serializer: StopEgressSerializer
   has_many :stop_transfers
-  has_many :operators_serving_stop
-  has_many :routes_serving_stop
+  has_many :operators_serving_stop_and_platforms
+  has_many :routes_serving_stop_and_platforms
 end
