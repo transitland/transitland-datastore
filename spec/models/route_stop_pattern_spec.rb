@@ -488,6 +488,18 @@ describe RouteStopPattern do
       has_issues, issues = @empty_rsp.evaluate_geometry(@trip, [])
       expect(has_issues).to be true
       expect(issues).to match_array([:empty])
+
+      trip = GTFS::Trip.new(trip_id: 'test', shape_id: 'test')
+      stop_pattern = [stop_1.onestop_id, stop_1.onestop_id]
+      trip_stop_points = [[-122.401811, 37.706675],[-122.301811, 37.806675]]
+      shape_points = [[-122.401811, 37.706675]]
+      single_point_rsp = RouteStopPattern.new(
+        stop_pattern: stop_pattern,
+        geometry: RouteStopPattern.line_string(RouteStopPattern.simplify_geometry(shape_points))
+      )
+      has_issues, issues = single_point_rsp.evaluate_geometry(trip, trip_stop_points)
+      expect(has_issues).to be true
+      expect(issues).to match_array([:empty])
     end
 
     it 'adds geometry consisting of stop points' do
