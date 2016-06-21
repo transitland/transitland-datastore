@@ -75,11 +75,21 @@ describe RouteStopPattern do
       expect(RouteStopPattern.find(rsp.id).geometry[:coordinates]).to eq @geom.points.map{|p| [p.x,p.y]}
     end
 
-    it 'cannot be created when stop_pattern has less than two stops' do
+    it 'cannot be created when trip has less than two stop times' do
       sp = [stop_1.onestop_id]
       expect(build(:route_stop_pattern, stop_pattern: sp, geometry: @geom, onestop_id: @onestop_id)
         .valid?
       ).to be false
+    end
+
+    it 'can be created when trip has two stop times and only one unique stop' do
+      trip = GTFS::Trip.new(trip_id: 'test', shape_id: 'test')
+      sp = [stop_1.onestop_id, stop_1.onestop_id]
+      trip_stop_points = [[-122.401811, 37.706675],[-122.401811, 37.706675]]
+      shape_points = []
+      rsp = RouteStopPattern.create_from_gtfs(trip, 'r-9q9j-bullet', sp, trip_stop_points, shape_points)
+      expect(rsp.geometry[:coordinates]).to eq [[-122.40181, 37.70667],[-122.40181, 37.70667]]
+      expect(rsp.calculate_distances).to eq [0.0,0.0]
     end
 
     it 'cannot be created when stop_distances size does not match stop_pattern size' do
@@ -89,7 +99,7 @@ describe RouteStopPattern do
       expect(rsp.errors[:stop_distances].size).to eq(1)
     end
 
-    it 'cannot be created when geometry has less than two points' do
+    it 'is not valid when geometry has less than two points' do
       rsp = build(:route_stop_pattern,
             stop_pattern: @sp,
             geometry: @geom,
@@ -479,13 +489,34 @@ describe RouteStopPattern do
       has_issues, issues = @empty_rsp.evaluate_geometry(@trip, [])
       expect(has_issues).to be true
       expect(issues).to match_array([:empty])
+
+      trip = GTFS::Trip.new(trip_id: 'test', shape_id: 'test')
+      stop_pattern = [stop_1.onestop_id, stop_1.onestop_id]
+      trip_stop_points = [[-122.401811, 37.706675],[-122.301811, 37.806675]]
+      shape_points = [[-122.401811, 37.706675]]
+      single_point_rsp = RouteStopPattern.new(
+        stop_pattern: stop_pattern,
+        geometry: RouteStopPattern.line_string(RouteStopPattern.simplify_geometry(shape_points))
+      )
+      has_issues, issues = single_point_rsp.evaluate_geometry(trip, trip_stop_points)
+      expect(has_issues).to be true
+      expect(issues).to match_array([:empty])
     end
 
     it 'adds geometry consisting of stop points' do
       issues = [:empty]
       stop_points = @geom_points
       @empty_rsp.tl_geometry(stop_points, issues)
-      expect(@empty_rsp.geometry[:coordinates]).to eq(RouteStopPattern.simplify_geometry(stop_points))
+      expect(@empty_rsp.geometry[:coordinates]).to eq(RouteStopPattern.set_precision(stop_points))
+      expect(@empty_rsp.is_generated).to be true
+      expect(@empty_rsp.is_modified).to be true
+    end
+
+    it 'does not remove points if generating geometry from stops' do
+      issues = [:empty]
+      stop_points = [[-122.401811, 37.706675], [-122.394935, 37.776348], [-122.401811, 37.706675]]
+      @empty_rsp.tl_geometry(stop_points, issues)
+      expect(@empty_rsp.geometry[:coordinates]).to eq(RouteStopPattern.set_precision(stop_points))
       expect(@empty_rsp.is_generated).to be true
       expect(@empty_rsp.is_modified).to be true
     end
