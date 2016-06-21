@@ -282,7 +282,7 @@ class RouteStopPattern < BaseRouteStopPattern
   def evaluate_geometry(trip, stop_points)
     # makes judgements on geometry so modifications can be made by tl_geometry
     issues = []
-    if trip.shape_id.nil? || self.geometry[:coordinates].empty?
+    if trip.shape_id.nil? || self.geometry.nil? || self.geometry[:coordinates].empty?
       issues << :empty
     else
       cartesian_line = cartesian_cast(self[:geometry])
@@ -302,18 +302,16 @@ class RouteStopPattern < BaseRouteStopPattern
   def tl_geometry(stop_points, issues)
     # modify rsp geometry based on issues array from evaluate_geometry
     self.first_stop_before_geom = false
+    self.last_stop_after_geom = false
     if issues.include?(:empty)
       # create a new geometry from the trip stop points
-      self.geometry = RouteStopPattern.line_string(RouteStopPattern.simplify_geometry(stop_points))
+      # do not simplify points here, because trips may revisit stops and their coordinates
+      self.geometry = RouteStopPattern.line_string(RouteStopPattern.set_precision(stop_points))
       self.is_generated = true
       self.is_modified = true
     end
-    if issues.include?(:has_before_stop)
-      self.first_stop_before_geom = true
-    end
-    if issues.include?(:has_after_stop)
-      self.last_stop_after_geom = true
-    end
+    self.first_stop_before_geom = true if issues.include?(:has_before_stop)
+    self.last_stop_after_geom = true if issues.include?(:has_after_stop)
     # more geometry modification can go here
   end
 
@@ -322,7 +320,10 @@ class RouteStopPattern < BaseRouteStopPattern
 
   ##### FromGTFS ####
   def self.create_from_gtfs(trip, route_onestop_id, stop_pattern, trip_stop_points, shape_points)
-    raise ArgumentError.new('Need at least two stops') if stop_pattern.length < 2
+    # trip_stop_points correspond to stop_times.
+    # We can still have one unique stop, but must have at least 2 stop times.
+    raise ArgumentError.new('Need at least two stops') if trip_stop_points.length < 2
+    # Rgeo produces nil if there is only one coordinate in the array
     rsp = RouteStopPattern.new(
       stop_pattern: stop_pattern,
       geometry: self.line_string(self.simplify_geometry(shape_points))
