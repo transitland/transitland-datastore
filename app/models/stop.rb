@@ -118,17 +118,13 @@ class Stop < BaseStop
   def operators_serving_stop_and_platforms
     OperatorServingStop
       .where('stop_id IN (?) OR stop_id = ?', Stop.where(parent_stop_id: self.id).select(:id), self.id)
-      .select(:operator_id)
-      .uniq
-      .map { |o| OperatorServingStop.new(stop: self, operator_id: o.operator_id) }
+      .select('DISTINCT ON (current_operators_serving_stop.operator_id) *')
   end
 
   def routes_serving_stop_and_platforms
     RouteServingStop
       .where('stop_id IN (?) OR stop_id = ?', Stop.where(parent_stop_id: self.id).select(:id), self.id)
-      .select(:route_id)
-      .uniq
-      .map { |o| RouteServingStop.new(stop: self, route_id: o.route_id) }
+      .select('DISTINCT ON (current_routes_serving_stop.route_id) *')
   end
 
   # Station Hierarchy
