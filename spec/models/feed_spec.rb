@@ -228,29 +228,6 @@ describe Feed do
     end
   end
 
-  context '#async_fetch_feed_version' do
-    it 'enqueues FeedFetcher job' do
-      # Fix rspec/sidekiq/reddis unique problems
-      # Sidekiq::Testing.fake! do
-      #   feed = create(:feed_caltrain)
-      #   expect {
-      #     feed.async_fetch_feed_version
-      #   }.to change(FeedFetcherWorker.jobs, :size).by(1)
-      #   FeedFetcherWorker.jobs.clear
-      # end
-    end
-    it 'can auto-enqueue FeedFetcher job in after_create callback' do
-      # Fix rspec/sidekiq/reddis unique problems
-      # allow(Figaro.env).to receive(:auto_fetch_feed_version) { 'true' }
-      # Sidekiq::Testing.fake! do
-      #   expect {
-      #     feed = create(:feed_caltrain)
-      #   }.to change(FeedFetcherWorker.jobs, :size).by(1)
-      #   FeedFetcherWorker.jobs.clear
-      # end
-    end
-  end
-
   it 'gets a bounding box around all its stops' do
     feed = build(:feed)
     stops = []

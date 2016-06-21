@@ -15,9 +15,11 @@ describe Api::V1::WebhooksController do
 
     it 'should be able to enqueue just one FeedFetcher' do
       create_list(:feed, 4)
-      expect {
-        post :feed_fetcher, feed_onestop_id: Feed.first.onestop_id
-      }.to change(FeedFetcherWorker.jobs, :size).by(1)
+      Sidekiq::Testing.fake! do
+        expect {
+          post :feed_fetcher, feed_onestop_id: Feed.first.onestop_id
+        }.to change(FeedFetcherWorker.jobs, :size).by(1)
+      end
       expect_json({ code: 200, errors: [] })
     end
   end
