@@ -50,8 +50,6 @@ GEM
       rails-html-sanitizer (~> 1.0, >= 1.0.2)
     active_model_serializers (0.9.5)
       activemodel (>= 3.2)
-    active_record_doctor (1.1.1)
-      rails (~> 4.2)
     activejob (4.2.6)
       activesupport (= 4.2.6)
       globalid (>= 0.3.0)
@@ -186,6 +184,7 @@ GEM
       activerecord (>= 2.3)
     method_source (0.8.2)
     mime-types (2.99.2)
+    mime-types-data (3.2016.0521)
     mini_portile2 (2.1.0)
     minitest (5.9.0)
     multi_json (1.12.1)
@@ -393,7 +392,6 @@ PLATFORMS
 
 DEPENDENCIES
   active_model_serializers (= 0.9.5)
-  active_record_doctor
   activerecord-import
   activerecord-postgis-adapter
   airborne
