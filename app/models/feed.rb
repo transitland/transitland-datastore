@@ -227,7 +227,7 @@ class Feed < BaseFeed
       .first
   end
 
-  def queue_next_feed_version(date, import_level=nil)
+  def enqueue_next_feed_version(date, import_level=nil)
     # Enqueue FeedEater job for self.find_next_feed_version
     # Use the previous import_level, or default to 2
     import_level ||= self.active_feed_version.try(:import_level) || 2
