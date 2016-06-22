@@ -311,6 +311,13 @@ describe Feed do
       expect(Feed.where_active_feed_version_import_level(2)).to match_array([feed1])
       expect(Feed.where_active_feed_version_import_level(4)).to match_array([feed2])
     end
+
+    it 'plays well with with_tag_equals' do
+      feed = create(:feed, tags: {'test' => 'true'})
+      fv1 = create(:feed_version, feed: feed)
+      feed.activate_feed_version(fv1.sha1, 4)
+      expect(Feed.where_active_feed_version_import_level(4).with_tag_equals('test', 'true')).to match_array([feed])
+    end
   end
 
   context '.where_active_feed_version_valid' do
