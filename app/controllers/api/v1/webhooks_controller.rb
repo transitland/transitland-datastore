@@ -3,12 +3,12 @@ class Api::V1::WebhooksController < Api::V1::BaseApiController
 
   def feed_fetcher
     if params[:feed_onestop_id].present?
-      workers = [
-        Feed.find_by_onestop_id!(params[:feed_onestop_id]).async_fetch_feed_version
-      ]
+      feed_onestop_ids = params[:feed_onestop_id].split(',')
+      feeds = Feed.find_by_onestop_ids!(feed_onestop_ids)
     else
-      workers = Feed.async_fetch_all_feeds
+      feeds = Feed.where('')
     end
+    workers = FeedFetcherService.fetch_these_feeds_async(feeds)
     if workers
       render json: {
         code: 200,

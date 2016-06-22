@@ -207,9 +207,7 @@ class Changeset < ActiveRecord::Base
     end
     # ...and fetching any new feeds
     if Figaro.env.auto_fetch_feed_version.presence == 'true'
-      self.feeds_created_or_updated.each do |created_or_updated_feed|
-        created_or_updated_feed.async_fetch_feed_version
-      end
+      FeedFetcherService.fetch_these_feeds_async(self.feeds_created_or_updated)
     end
     return true, issues
   end

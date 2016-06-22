@@ -21,7 +21,7 @@ gem 'redis-rails'
 
 # background processing
 gem 'sidekiq', '< 5'
-gem 'sidekiq-unique-jobs'
+gem 'sidekiq-unique-jobs', group: [:development, :staging, :production] # doesn't play well with test
 gem 'sidekiq-limit_fetch'
 gem 'whenever', require: false # to manage crontab
 
@@ -82,7 +82,6 @@ gem 'rspec-sidekiq', group: :test
 gem 'vcr', group: :test
 gem 'webmock', group: :test
 gem 'airborne', group: :test
-gem 'mock_redis', group: :test # used by sidekiq-unique-jobs
 gem 'timecop', group: :test
 gem 'rspec_junit_formatter', '0.2.2', group: :test
 # ^ for CircleCI: https://circleci.com/docs/test-metadata#rspec
