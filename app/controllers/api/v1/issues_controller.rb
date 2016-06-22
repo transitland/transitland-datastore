@@ -40,6 +40,7 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
   end
 
   def update
+    # TODO: allow for deletion of individual EntityWithIssues
     issue_params_copy = issue_params
     entities_with_issues_params = issue_params_copy.delete(:entities_with_issues).try(:compact)
     @issue.update!(issue_params_copy)

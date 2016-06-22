@@ -28,6 +28,7 @@ describe Issue do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_issues, import_level: 1)
     end
 
+    # TODO: move these next two to changeset spec?
     it 'can be resolved' do
       changeset = create(:changeset, payload: {
         changes: [
