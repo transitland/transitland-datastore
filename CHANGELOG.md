@@ -2,10 +2,34 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.5...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.6...HEAD)
 
 **Merged pull requests:**
 
+- \[WIP\] production release 4.8.6 [\#628](https://github.com/transitland/transitland-datastore/pull/628) ([drewda](https://github.com/drewda))
+
+## [4.8.6](https://github.com/transitland/transitland-datastore/tree/4.8.6) (2016-06-21)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.5...4.8.6)
+
+**Fixed bugs:**
+
+- geometry nil value [\#636](https://github.com/transitland/transitland-datastore/issues/636)
+- RSP generation should handle trips with 1 stop [\#600](https://github.com/transitland/transitland-datastore/issues/600)
+
+**Closed issues:**
+
+- spread feed fetching throughout the day [\#629](https://github.com/transitland/transitland-datastore/issues/629)
+- remove unnecessary database indices [\#626](https://github.com/transitland/transitland-datastore/issues/626)
+- stagger feed fetching [\#456](https://github.com/transitland/transitland-datastore/issues/456)
+
+**Merged pull requests:**
+
+- Rsp geom generation bugs fix [\#642](https://github.com/transitland/transitland-datastore/pull/642) ([doublestranded](https://github.com/doublestranded))
+- only remove extraneous indexes if they exist [\#641](https://github.com/transitland/transitland-datastore/pull/641) ([drewda](https://github.com/drewda))
+- update gems [\#638](https://github.com/transitland/transitland-datastore/pull/638) ([drewda](https://github.com/drewda))
+- Stagger feed fetch [\#637](https://github.com/transitland/transitland-datastore/pull/637) ([drewda](https://github.com/drewda))
+- Rake task: enqueue next feed version [\#630](https://github.com/transitland/transitland-datastore/pull/630) ([irees](https://github.com/irees))
+- Remove unnecessary database indices [\#627](https://github.com/transitland/transitland-datastore/pull/627) ([drewda](https://github.com/drewda))
 - Production deploy 4.8.5 [\#625](https://github.com/transitland/transitland-datastore/pull/625) ([irees](https://github.com/irees))
 
 ## [4.8.5](https://github.com/transitland/transitland-datastore/tree/4.8.5) (2016-06-13)
