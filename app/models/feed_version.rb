@@ -65,14 +65,6 @@ class FeedVersion < ActiveRecord::Base
     !!self.feed.active_feed_version && (self.feed.active_feed_version == self)
   end
 
-  def async_feed_eater(import_level=0)
-    FeedEaterWorker.perform_async(
-      self.feed.onestop_id,
-      self.sha1,
-      import_level
-    )
-  end
-
   def open_gtfs
     fail StandardError.new('No file') unless file.present?
     filename = file.local_path_copying_locally_if_needed
