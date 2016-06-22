@@ -167,7 +167,7 @@ class Changeset < ActiveRecord::Base
 
   def apply!
     fail Changeset::Error.new(changeset: self, message: 'has already been applied.') if applied
-    issues = nil
+    changeset_issues = nil
     Changeset.transaction do
       begin
         resolving_issues = []
@@ -222,7 +222,7 @@ class Changeset < ActiveRecord::Base
     if Figaro.env.auto_fetch_feed_version.presence == 'true'
       FeedFetcherService.fetch_these_feeds_async(self.feeds_created_or_updated)
     end
-    return true, issues
+    return true, changeset_issues
   end
 
   def revert!
