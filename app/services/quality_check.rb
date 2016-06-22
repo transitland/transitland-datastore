@@ -9,10 +9,6 @@ class QualityCheck
   def check
     raise NotImplementedError
   end
-
-  # def find_issue(issue)
-  #   @issues.detect{ |existing| issue.compare(existing) }
-  # end
 end
 
 class QualityCheck::GeometryQualityCheck < QualityCheck

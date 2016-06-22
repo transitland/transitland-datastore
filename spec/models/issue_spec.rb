@@ -38,7 +38,7 @@ describe Issue do
             timezone: 'America/Los_Angeles',
             "geometry": {
               "type": "Point",
-              "coordinates": [-116.784582, 36.88845]
+              "coordinates": [-116.784582, 36.888446]
             }
           }
         ]
@@ -48,10 +48,41 @@ describe Issue do
       expect(Issue.first.resolved_by_changeset).to eq changeset
     end
 
-    context 'find_by_equivalent' do
+    it 'does not apply changeset that does not resolve payload issues_resolved' do
+      changeset = create(:changeset, payload: {
+        changes: [
+          action: 'createUpdate',
+          issuesResolved: [1],
+          stop: {
+            onestopId: 's-9qscwx8n60-nyecountyairportdemo',
+            timezone: 'America/Los_Angeles',
+            "geometry": {
+              "type": "Point",
+              "coordinates": [-100.0, 50.0]
+            }
+          }
+        ]
+      })
+      expect {
+        changeset.apply!
+      }.to raise_error(Changeset::Error)
+    end
+
+    context 'equivalency' do
       before(:each) do
         @test_issue = Issue.new(created_by_changeset: @feed_version.changesets_imported_from_this_feed_version.first,
                               issue_type: 'stop_rsp_distance_gap')
+      end
+
+      it 'determines equivalent?' do
+        @test_issue.entities_with_issues << EntityWithIssues.new(entity_id: 1, entity_type: 'Stop', issue: @test_issue, entity_attribute: 'geometry')
+        @test_issue.entities_with_issues << EntityWithIssues.new(entity_id: 3, entity_type: 'RouteStopPattern', issue: @test_issue, entity_attribute: 'geometry')
+        expect(Issue.first.equivalent?(@test_issue)).to be true
+      end
+
+      it 'determines not equivalent?' do
+        @test_issue.entities_with_issues << EntityWithIssues.new(entity_id: 1, entity_type: 'Stop', issue: @test_issue, entity_attribute: 'geometry')
+        expect(Issue.first.equivalent?(@test_issue)).to be false
       end
 
       it 'finds equivalent issue when entities with issues are matching' do

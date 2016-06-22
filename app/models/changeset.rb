@@ -154,6 +154,10 @@ class Changeset < ActiveRecord::Base
     change_payloads.destroy_all
   end
 
+  def issues_unresolved(resolving_issues, changeset_issues)
+    changeset_issues.map { |c| resolving_issues.map { |r| r if c.equivalent?(r) } }.flatten.compact
+  end
+
   def check_quality
     gqc = QualityCheck::GeometryQualityCheck.new(changeset: self)
     issues = []
@@ -166,8 +170,9 @@ class Changeset < ActiveRecord::Base
     issues = nil
     Changeset.transaction do
       begin
+        resolving_issues = []
         change_payloads.each do |change_payload|
-          change_payload.apply!
+          resolving_issues += change_payload.apply!
         end
         self.update(applied: true, applied_at: Time.now)
         # Create any feed-entity associations
@@ -185,8 +190,16 @@ class Changeset < ActiveRecord::Base
           EntityImportedFromFeed.import eiff_batch
         end
 
-        issues = check_quality
-        issues.each(&:save!)
+        changeset_issues = check_quality
+        unresolved_issues = issues_unresolved(resolving_issues, changeset_issues)
+        if (unresolved_issues.empty?)
+          resolving_issues.each { |issue| issue.update!({ open: false, resolved_by_changeset: self}) }
+          changeset_issues.each(&:save!)
+        else
+          message = unresolved_issues.map { |issue| "Issue #{issue.id} was not resolved." }.join(" ")
+          logger.error "Error applying Changeset #{self.id}: " + message
+          raise Changeset::Error.new(changeset: self, message: message)
+        end
       rescue => e
         logger.error "Error applying Changeset #{self.id}: #{e.message}"
         logger.error e.backtrace
