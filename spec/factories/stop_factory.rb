@@ -29,8 +29,6 @@
 #  index_current_stops_on_updated_at      (updated_at)
 #
 
-Stop.connection
-
 FactoryGirl.define do
   factory :stop do
     onestop_id { Faker::OnestopId.stop }
@@ -44,13 +42,4 @@ FactoryGirl.define do
     version 1
     association :created_or_updated_in_changeset, factory: :changeset
   end
-
-  factory :stop_platform, class: StopPlatform, parent: :stop do
-    association :parent_stop, factory: :stop
-  end
-
-  factory :stop_egress, class: StopEgress, parent: :stop do
-    association :parent_stop, factory: :stop
-  end
-
 end

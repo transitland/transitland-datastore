@@ -353,66 +353,6 @@ class Stop < BaseStop
   end
 end
 
-class StopPlatform < Stop
-  current_tracked_by_changeset({
-    kind_of_model_tracked: :onestop_entity,
-    virtual_attributes: [
-      :served_by,
-      :not_served_by,
-      :identified_by,
-      :not_identified_by,
-      :parent_stop_onestop_id,
-      :includes_stop_transfers,
-      :does_not_include_stop_transfers
-    ],
-    protected_attributes: [
-      :identifiers,
-      :last_conflated_at,
-      :type
-    ]
-  })
-  belongs_to :parent_stop, class_name: 'Stop'
-  validates :parent_stop, presence: true
-  def parent_stop_onestop_id
-    if self.parent_stop
-      self.parent_stop.onestop_id
-    end
-  end
-  def parent_stop_onestop_id=(value)
-    self.parent_stop = Stop.find_by_onestop_id!(value)
-  end
-end
-
-class StopEgress < Stop
-  current_tracked_by_changeset({
-    kind_of_model_tracked: :onestop_entity,
-    virtual_attributes: [
-      :served_by,
-      :not_served_by,
-      :identified_by,
-      :not_identified_by,
-      :parent_stop_onestop_id,
-      :includes_stop_transfers,
-      :does_not_include_stop_transfers
-    ],
-    protected_attributes: [
-      :identifiers,
-      :last_conflated_at,
-      :type
-    ]
-  })
-  belongs_to :parent_stop, class_name: 'Stop'
-  validates :parent_stop, presence: true
-  def parent_stop_onestop_id
-    if self.parent_stop
-      self.parent_stop.onestop_id
-    end
-  end
-  def parent_stop_onestop_id=(value)
-    self.parent_stop = Stop.find_by_onestop_id!(value)
-  end
-end
-
 class OldStop < BaseStop
   include OldTrackedByChangeset
   include HasAGeographicGeometry
@@ -420,10 +360,4 @@ class OldStop < BaseStop
   has_many :operators, through: :old_operators_serving_stop, source_type: 'Stop'
   has_many :old_routes_serving_stop, as: :stop
   has_many :routes, through: :old_routes_serving_stop, source_type: 'Stop'
-end
-
-class OldStopPlatform < OldStop
-end
-
-class OldStopEgress < OldStop
 end
