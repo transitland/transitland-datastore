@@ -30,15 +30,26 @@ class GTFSGraph
     @gtfs.load_graph
     graph_log "Load TL"
     load_tl_stops
+    load_tl_transfers
     load_tl_routes
     rsps = load_tl_route_stop_patterns
     calculate_rsp_distances(rsps)
     operators = load_tl_operators
     fail GTFSGraph::Error.new('No agencies found that match operators_in_feed') unless operators.size > 0
+
+    # Routes
     routes = operators.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
-    stops = routes.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
-    rsps = rsps.select { |rsp| routes.include?(rsp.route) }
+
+    # Stops and Platforms
+    stops = Set.new
+    routes.each { |route| route.serves.each { |stop_onestop_id|
+      stop = find_by_onestop_id(stop_onestop_id)
+      stops << stop
+      stops << stop.parent_stop if stop.parent_stop
+    }}
+
     # Update route geometries
+    rsps = rsps.select { |rsp| routes.include?(rsp.route) }
     route_rsps = {}
     rsps.each do |rsp|
       route_rsps[rsp.route] ||= Set.new
@@ -72,7 +83,7 @@ class GTFSGraph
     begin
       changeset.create_change_payloads(operators)
       graph_log "  stops: #{stops.size}"
-      changeset.create_change_payloads(stops)
+      changeset.create_change_payloads(stops.partition { |i| i.type != 'StopPlatform' }.flatten)
       graph_log "  routes: #{routes.size}"
       changeset.create_change_payloads(routes)
       graph_log "  route geometries: #{rsps.size}"
@@ -186,15 +197,16 @@ class GTFSGraph
   def load_tl_stops
     # Merge child stations into parents
     graph_log "  stops"
+    gtfs_platforms, gtfs_stops = @gtfs.stops.partition { |i| i.parent_station.presence }
     # Create parent stops first
-    @gtfs.stops.reject(&:parent_station).each do |gtfs_stop|
+    gtfs_stops.each do |gtfs_stop|
       stop = find_and_update_entity(Stop.from_gtfs(gtfs_stop))
       add_identifier(stop, 's', gtfs_stop)
-      graph_log "    Station: #{stop.onestop_id}: #{stop.name}"
+      graph_log "    Stop: #{stop.onestop_id}: #{stop.name}"
     end
     # Create child stops
-    @gtfs.stops.select(&:parent_station).each do |gtfs_stop|
-      stop = Stop.from_gtfs(gtfs_stop)
+    gtfs_platforms.each do |gtfs_stop|
+      stop = StopPlatform.from_gtfs(gtfs_stop)
       parent_stop = find_by_gtfs_entity(@gtfs.stop(gtfs_stop.parent_station))
       # Combine onestop_id with parent_stop onestop_id, if present
       if parent_stop
@@ -203,13 +215,27 @@ class GTFSGraph
         # add gtfs_stop.stop_id as the platform suffix
         stop.onestop_id = OnestopId::StopOnestopId.new(geohash: osid.geohash, name: "#{osid.name}<#{gtfs_stop.id}")
         # add parent_station osid
-        stop.tags[:parent_station] = parent_stop.onestop_id
+        stop.parent_stop = parent_stop
       end
       # index
       stop = find_and_update_entity(stop)
       add_identifier(stop, 's', gtfs_stop)
-      #
-      graph_log "    Stop: #{stop.onestop_id}: #{stop.name}"
+      graph_log "    StopPlatform: #{stop.onestop_id}: #{stop.name}"
+    end
+  end
+
+  def load_tl_transfers
+    return unless @gtfs.file_present?('transfers.txt')
+    @gtfs.transfers.each do |transfer|
+      stop = find_by_gtfs_entity(@gtfs.stop(transfer.from_stop_id))
+      to_stop = find_by_gtfs_entity(@gtfs.stop(transfer.to_stop_id))
+      next unless stop && to_stop
+      stop.includes_stop_transfers ||= []
+      stop.includes_stop_transfers << {
+        toStopOnestopId: to_stop.onestop_id,
+        transferType: StopTransfer::GTFS_TRANSFER_TYPE[transfer.transfer_type.presence || "0"],
+        minTransferTime: transfer.min_transfer_time.to_i
+      }
     end
   end
 
@@ -223,11 +249,6 @@ class GTFSGraph
       entity = agencies[oif.gtfs_agency_id]
       # Skip Operator if not found
       next unless entity
-      # Find: (child gtfs routes) to (tl routes)
-      #   note: .compact because some gtfs routes are skipped.
-      routes = entity.routes.map { |route| find_by_gtfs_entity(route) }.compact.to_set
-      # Find: (tl routes) to (serves tl stops)
-      stops = routes.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
       # Create Operator from GTFS
       operator = Operator.from_gtfs(entity)
       operator.onestop_id = oif.operator.onestop_id # Override Onestop ID
@@ -236,6 +257,16 @@ class GTFSGraph
       operator = find_by_entity(operator)
       # Merge convex hulls
       operator[:geometry] = Operator.convex_hull([operator, operator_original], as: :wkt, projected: false)
+
+      # Operator routes & stops
+      routes = entity.routes.map { |route| find_by_gtfs_entity(route) }.compact.to_set
+      # Find: (tl routes) to (serves tl stops)
+      stops = Set.new
+      routes.each { |route| route.serves.each { |stop_onestop_id|
+        stop = find_by_onestop_id(stop_onestop_id)
+        stops << stop
+        stops << stop.parent_stop if stop.parent_stop
+      }}
       # Copy Operator timezone to fill missing Stop timezones
       stops.each { |stop| stop.timezone ||= operator.timezone }
       # Add references and identifiers
@@ -243,7 +274,7 @@ class GTFSGraph
       operator.serves ||= Set.new
       operator.serves |= routes.map(&:onestop_id)
       add_identifier(operator, 'o', entity)
-      # Cache Operator
+
       # Add to found operators
       operators << operator
       graph_log "    #{operator.onestop_id}: #{operator.name}"
@@ -258,21 +289,10 @@ class GTFSGraph
     @gtfs.routes.each do |entity|
       # Find: (child gtfs trips) to (child gtfs stops) to (tl stops)
       stops = entity.stops.map { |stop| find_by_gtfs_entity(stop) }.to_set
-      # Also serve parent stations...
-      parent_stations = Set.new
-      stops.each do |stop|
-        parent_station = find_by_onestop_id(stop.tags[:parent_station])
-        next unless parent_station
-        parent_stations << parent_station
-      end
-      stops |= parent_stations
       # Skip Route if no Stops
       next if stops.empty?
       # Search by similarity
-      # ... or create route from GTFS
-      # ... check if Route exists, or another local Route, or new.
       route = find_and_update_entity(Route.from_gtfs(entity))
-      # route = find_by_entity(route)
       # Add references and identifiers
       route.serves ||= Set.new
       route.serves |= stops.map(&:onestop_id)
