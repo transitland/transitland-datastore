@@ -158,7 +158,20 @@ describe GTFSGraph do
     end
   end
 
+
   context 'can apply a level 2 changeset', import_level:2 do
+
+    it 'ignores missing routes' do
+      # Delete a route & rsp before SSPs are processed ->
+      #     expect SSPs for this route & rsp trips to be skipped
+      block_before_level_2 = Proc.new { |graph|
+        Route.find_by_onestop_id!('r-9qsb-20').delete
+        RouteStopPattern.find_by_onestop_id!('r-9qt1-50-011bb4-6fba7c').delete
+      }
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 2, block_before_level_2: block_before_level_2)
+      expect(@feed.imported_schedule_stop_pairs.count).to eq(13) # WAS 17
+      expect(@feed.imported_schedule_stop_pairs.where(route: Route.find_by_onestop_id('r-9qt1-50')).count).to eq(2) # WAS 4
+    end
 
     it 'created known ScheduleStopPairs' do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 2)
