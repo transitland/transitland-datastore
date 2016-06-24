@@ -141,23 +141,43 @@ class GTFSGraph
     ssps = []
     @gtfs.trip_stop_times(trips=gtfs_trips, filter_empty=true) do |gtfs_trip,gtfs_stop_times|
       # Lookup tl_route from gtfs_trip.route_id
-      tl_route = find_by_gtfs_entity(@gtfs.route(gtfs_trip.route_id))
+      gtfs_route = @gtfs.route(gtfs_trip.route_id)
+      tl_route = find_by_gtfs_entity(gtfs_route)
+      unless tl_route
+        graph_log "Trip #{gtfs_trip.trip_id}: Missing Route: #{@gtfs_to_onestop_id[gtfs_route]}"
+        next
+      end
       # Lookup tl_rsp from gtfs_trip.trip_id
       tl_rsp = find_by_onestop_id(rsp_map[gtfs_trip.trip_id])
+      unless tl_rsp
+        graph_log "Trip #{gtfs_trip.trip_id}: Missing RouteStopPattern: #{rsp_map[gtfs_trip.trip_id]}"
+        next
+      end
       # Lookup gtfs_service_period from gtfs_trip.service_id
       gtfs_service_period = @gtfs.service_period(gtfs_trip.service_id)
-      # Skip unless we have all entities
-      next unless (tl_route && tl_rsp && gtfs_service_period)
+      unless gtfs_service_period
+        graph_log "Trip #{gtfs_trip.trip_id}: Unknown GTFS ServicePeriod: #{gtfs_trip.service_id}"
+        next
+      end
+
       # Create SSPs for all gtfs_stop_time edges
       ssp_trip = []
       gtfs_stop_times[0..-2].each_index do |i|
         gtfs_origin_stop_time = gtfs_stop_times[i]
         gtfs_destination_stop_time = gtfs_stop_times[i+1]
         # Get the tl_origin_stop and tl_destination_stop from gtfs_stop_time edge
-        tl_origin_stop = find_by_gtfs_entity(@gtfs.stop(gtfs_origin_stop_time.stop_id))
-        tl_destination_stop = find_by_gtfs_entity(@gtfs.stop(gtfs_destination_stop_time.stop_id))
-        # Skip unless we have both stops
-        next unless (tl_origin_stop && tl_destination_stop)
+        gtfs_origin_stop = @gtfs.stop(gtfs_origin_stop_time.stop_id)
+        tl_origin_stop = find_by_gtfs_entity(gtfs_origin_stop)
+        unless tl_origin_stop
+          graph_log "Trip #{gtfs_trip.trip_id}: Missing Stop: #{@gtfs_to_onestop_id[gtfs_origin_stop]}"
+          next
+        end
+        gtfs_destination_stop = @gtfs.stop(gtfs_destination_stop_time.stop_id)
+        tl_destination_stop = find_by_gtfs_entity(gtfs_destination_stop)
+        unless tl_destination_stop
+          graph_log "Trip #{gtfs_trip.trip_id}: Missing Stop: #{@gtfs_to_onestop_id[gtfs_destination_stop]}"
+          next
+        end
         # Create SSP
         ssp_trip << ScheduleStopPair.new(
           # Feed
@@ -199,6 +219,7 @@ class GTFSGraph
           service_except_dates: gtfs_service_period.except_dates
         )
       end
+
       # Interpolate stop_times
       ScheduleStopPair.interpolate(ssp_trip)
       # Add to chunk
