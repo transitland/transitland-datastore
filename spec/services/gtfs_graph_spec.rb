@@ -153,7 +153,7 @@ describe GTFSGraph do
     end
 
     it 'skipped RouteStopPattern generation with trips having less than 2 stop times' do
-      @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_trips_without_stop_times, import_level: 1)
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_trips_special_stop_times, import_level: 1)
       expect(@feed.imported_route_stop_patterns.size).to eq 7
     end
   end
@@ -217,6 +217,13 @@ describe GTFSGraph do
       expect(s.destination_timepoint_source).to eq('gtfs_exact')
       expect(s.window_start).to eq('08:20:00')
       expect(s.window_end).to eq('09:20:00')
+    end
+
+    it 'can process a trip with 1 unique stop but at least 2 stop times' do
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_trips_special_stop_times, import_level: 2)
+      expect(@feed.imported_route_stop_patterns.size).to eq(8)
+      expect(RouteStopPattern.where(onestop_id: 'r-9qsb-20-9b1b33-d2e3e5').count).to eq (1)
+      expect(RouteStopPattern.where(onestop_id: 'r-9qsb-20-9b1b33-d2e3e5').first.stop_distances).to eq ([0.0, 0.0])
     end
   end
 
