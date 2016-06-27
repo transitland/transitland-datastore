@@ -62,6 +62,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
 
     @routes = @routes.includes{[
       operator,
+      stops,
       route_stop_patterns,
       imported_from_feeds,
       imported_from_feed_versions

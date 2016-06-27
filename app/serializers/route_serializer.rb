@@ -34,6 +34,7 @@ class RouteSerializer < CurrentEntitySerializer
              :geometry,
              :color,
              :tags,
+             :stops_served_by_route,
              :operated_by_onestop_id,
              :operated_by_name,
              :created_at,
@@ -46,6 +47,10 @@ class RouteSerializer < CurrentEntitySerializer
 
   def operated_by_name
     object.operator.try(:name)
+  end
+
+  def stops_served_by_route
+    object.stops.map { |stop| {onestop_id: stop.onestop_id, name: stop.name } }
   end
 
   def route_stop_patterns_by_onestop_id
