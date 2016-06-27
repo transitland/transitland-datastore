@@ -50,7 +50,7 @@ class RouteSerializer < CurrentEntitySerializer
   end
 
   def stops_served_by_route
-    object.stops.map { |stop| {stop_onestop_id: stop.onestop_id, stop_name: stop.name } }
+    object.stops.map { |stop| { stop_onestop_id: stop.onestop_id, stop_name: stop.name } }
   end
 
   def route_stop_patterns_by_onestop_id
