@@ -55,6 +55,18 @@ describe Api::V1::FeedsController do
         get :index, last_imported_since: future
         expect_json({feeds: -> (feeds) {expect(feeds.size).to eq(0)}})
       end
+
+      it 'filters on latest_fetch_exception' do
+        feeds = create_list(:feed, 3)
+        feed = feeds.first
+        feed.update!(latest_fetch_exception_log: 'test')
+        get :index
+        expect_json({feeds: -> (feeds) {expect(feeds.size).to eq(3)}})
+        get :index, latest_fetch_exception: 'true'
+        expect_json({feeds: -> (feeds) {expect(feeds.size).to eq(1)}})
+        get :index, latest_fetch_exception: 'false'
+        expect_json({feeds: -> (feeds) {expect(feeds.size).to eq(2)}})
+      end
     end
   end
 
