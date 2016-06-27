@@ -299,6 +299,19 @@ describe Feed do
     end
   end
 
+  context '.where_latest_fetch_exception' do
+    let(:feed_succeed) { create(:feed) }
+    let(:feed_failed) { create(:feed, latest_fetch_exception_log: 'test') }
+
+    it 'finds feeds with latest_fetch_exception_log' do
+        expect(Feed.where_latest_fetch_exception(true)).to match_array([feed_failed])
+    end
+
+    it 'finds feeds without latest_fetch_exception_log' do
+        expect(Feed.where_latest_fetch_exception(false)).to match_array([feed_succeed])
+    end
+  end
+
   context '.where_active_feed_version_import_level' do
     it 'finds active feed version with import_level' do
       fv1 = create(:feed_version, import_level: 2)
