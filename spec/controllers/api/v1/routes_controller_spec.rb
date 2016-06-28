@@ -91,6 +91,19 @@ describe Api::V1::RoutesController do
         }})
       end
 
+      it 'returns routes serving stops' do
+        stop1, stop2, stop3 = create_list(:stop, 3)
+        route1, route2 = create_list(:route, 2)
+        route1.routes_serving_stop.create!(stop: stop1)
+        route2.routes_serving_stop.create!(stop: stop2)
+        get :index, serves: stop1.onestop_id
+        expect_json({ routes: -> (routes) {expect(routes.length).to eq 1}})
+        get :index, serves: [stop1.onestop_id, stop2.onestop_id]
+        expect_json({ routes: -> (routes) {expect(routes.length).to eq 2}})
+        get :index, serves: [stop3.onestop_id]
+        expect_json({ routes: -> (routes) {expect(routes.length).to eq 0}})
+      end
+
       it 'returns routes traversing route stop patterns' do
         route_stop_pattern = create(:route_stop_pattern_bart)
         other_route_stop_pattern = create(:route_stop_pattern)

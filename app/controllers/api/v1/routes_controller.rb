@@ -26,6 +26,10 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     @routes = AllowFiltering.by_identifer_and_identifier_starts_with(@routes, params)
     @routes = AllowFiltering.by_updated_since(@routes, params)
 
+    if params[:serves].present?
+      @routes = @routes.where_serves(AllowFiltering.param_as_array(params, :serves))
+    end
+
     if params[:operated_by].present? || params[:operatedBy].present?
       # we previously allowed `operatedBy`, so we'll continue to honor that for the time being
       operator_onestop_id = params[:operated_by] || params[:operatedBy]
