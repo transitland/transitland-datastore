@@ -158,13 +158,17 @@ class Changeset < ActiveRecord::Base
     distance_rsps = Set.new
     if self.stops_created_or_updated
       self.stops_created_or_updated.each do |stop|
-        distance_rsps << RouteStopPattern.with_stops(stop.onestop_id)
+        distance_rsps.merge(RouteStopPattern.with_stops(stop.onestop_id))
       end
     end
-    # use update_making_history
-    self.operators_in_feed_created_or_updated.each { |operator| operator.recompute_convex_hull_around_stops }
     distance_rsps.merge(self.route_stop_patterns_created_or_updated)
-    distance_rsps.each { |rsp| rsp.calculate_distances }
+    distance_rsps.each { |rsp|
+      rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
+    }
+
+    self.operators_in_feed_created_or_updated.each { |operator_in_feed|
+      operator_in_feed.operator.recompute_convex_hull_around_stops
+    }
   end
 
   def apply!
@@ -190,7 +194,8 @@ class Changeset < ActiveRecord::Base
           EntityImportedFromFeed.import eiff_batch
         end
 
-        #computed_attributes unless self.imported_from_feed && self.imported_from_feed_version
+        # this will go before quality check once merged with issues branch
+        update_computed_attributes unless self.imported_from_feed && self.imported_from_feed_version
       rescue => e
         logger.error "Error applying Changeset #{self.id}: #{e.message}"
         logger.error e.backtrace
