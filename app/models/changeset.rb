@@ -155,7 +155,17 @@ class Changeset < ActiveRecord::Base
   end
 
   def update_computed_attributes
+    # This method updates the changeset's entity attributes that are computed/derived from the attribute data
+    # of multiple entity types. For example, here RouteStopPatterns will have to have their stop distances recomputed
+    # using both the RouteStopPattern and its stop_pattern Stops' geometries. Operators have their convex hulls
+    # recomputed from the Stops it serves.
+    #
+    # Ideally we would like to define methods at the model level (that would be the first place to put new
+    # recomputed attribute functionality if possible) but the need to avoid duplicate recomputation on entities of update
+    # changesets complicates this. E.g, We don't want to recompute the stop_distances of one RouteStopPattern
+    # multiple times if there are multiple Stops of that RouteStopPattern in the changeset.
     rsps_to_update_distances = Set.new
+
     if self.stops_created_or_updated
       operators_to_update_convex_hull = Set.new
       self.stops_created_or_updated.each do |stop|
