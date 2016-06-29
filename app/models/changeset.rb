@@ -155,19 +155,23 @@ class Changeset < ActiveRecord::Base
   end
 
   def update_computed_attributes
-    distance_rsps = Set.new
+    rsps_to_update_distances = Set.new
     if self.stops_created_or_updated
+      operators_to_update_convex_hull = Set.new
       self.stops_created_or_updated.each do |stop|
-        distance_rsps.merge(RouteStopPattern.with_stops(stop.onestop_id))
+        rsps_to_update_distances.merge(RouteStopPattern.with_stops(stop.onestop_id))
+        operators_to_update_convex_hull.merge(OperatorServingStop.where(stop: stop).map(&:operator))
       end
-    end
-    distance_rsps.merge(self.route_stop_patterns_created_or_updated)
-    distance_rsps.each { |rsp|
-      rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
-    }
 
-    self.operators_in_feed_created_or_updated.each { |operator_in_feed|
-      operator_in_feed.operator.recompute_convex_hull_around_stops
+      operators_to_update_convex_hull.each { |operator|
+        operator.geometry = operator.recompute_convex_hull_around_stops
+        operator.update_making_history(changeset: self)
+      }
+    end
+
+    rsps_to_update_distances.merge(self.route_stop_patterns_created_or_updated)
+    rsps_to_update_distances.each { |rsp|
+      rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
     }
   end
 
@@ -194,7 +198,7 @@ class Changeset < ActiveRecord::Base
           EntityImportedFromFeed.import eiff_batch
         end
 
-        # this will go before quality check once merged with issues branch
+        # this will go before quality check once merged with issues branch. not called if import
         update_computed_attributes unless self.imported_from_feed && self.imported_from_feed_version
       rescue => e
         logger.error "Error applying Changeset #{self.id}: #{e.message}"

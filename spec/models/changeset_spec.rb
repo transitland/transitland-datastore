@@ -180,13 +180,13 @@ describe Changeset do
     end
 
     context 'computed attributes' do
-      it 'recomputes rsp stop distances from rsp changesets' do
+      it 'recomputes rsp stop distances from rsp update changeset' do
         create(:stop_richmond_offset)
         create(:stop_millbrae)
         create(:route_stop_pattern_bart)
 
         # now, a minor tweak to the first rsp geometry endpoint to demonstrate a change in stop distance for the second stop
-        update_computed_changeset = create(:changeset, payload: {
+        changeset = create(:changeset, payload: {
           changes: [
             {
               action: 'createUpdate',
@@ -198,15 +198,15 @@ describe Changeset do
             }
           ]
         })
-        update_computed_changeset.apply!
+        changeset.apply!
         expect(RouteStopPattern.find_by_onestop_id!('r-9q8y-richmond~dalycity~millbrae-45cad3-46d384').stop_distances).to eq [0.0, 37748.7]
       end
 
-      it 'recomputes rsp stop distances from stop changesets' do
+      it 'recomputes rsp stop distances from stop update changeset' do
         create(:stop_richmond_offset)
         create(:stop_millbrae)
         create(:route_stop_pattern_bart)
-        update_computed_changeset = create(:changeset, payload: {
+        changeset = create(:changeset, payload: {
           changes: [
             {
               action: 'createUpdate',
@@ -219,8 +219,29 @@ describe Changeset do
             }
           ]
         })
-        update_computed_changeset.apply!
+        changeset.apply!
         expect(RouteStopPattern.find_by_onestop_id!('r-9q8y-richmond~dalycity~millbrae-45cad3-46d384').stop_distances).to eq [0.0, 37641.4]
+      end
+
+      it 'recomputes operator convex hull on stop update changeset' do
+        stop = create(:stop_richmond)
+        operator = create(:operator, geometry: { type: "Point", coordinates: stop.geometry[:coordinates] } )
+        OperatorServingStop.new(operator: operator, stop: stop).save!
+        changeset = create(:changeset, payload: {
+          changes: [
+            {
+              action: 'createUpdate',
+              stop: {
+                onestopId: 's-9q8zzf1nks-richmond',
+                timezone: 'America/Los_Angeles',
+                name: 'Richmond',
+                geometry: { type: "Point", coordinates: [-122.5, 37.9] }
+              }
+            }
+          ]
+        })
+        changeset.apply!
+        expect(Operator.find_by_onestop_id!(operator.onestop_id).geometry[:coordinates]).to match_array([a_value_within(0.001).of(-122.5), a_value_within(0.001).of(37.9)])
       end
     end
 
