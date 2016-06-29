@@ -40,4 +40,13 @@ FactoryGirl.define do
     association :created_or_updated_in_changeset, factory: :changeset
     association :operator
   end
+
+  factory :route_bart, class: Route do
+    onestop_id { 'r-9q8y-richmond~dalycity~millbrae' }
+    name { 'Richmond - Daly City/Millbrae'  }
+    vehicle_type { 1 }
+    version 1
+    association :created_or_updated_in_changeset, factory: :changeset
+    association :operator
+   end
 end
