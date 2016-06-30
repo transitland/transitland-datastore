@@ -42,4 +42,31 @@ FactoryGirl.define do
     version 1
     association :created_or_updated_in_changeset, factory: :changeset
   end
+
+  factory :stop_richmond, class: Stop do
+    onestop_id 's-9q8zzf1nks-richmond'
+    geometry { "POINT(-122.353165 37.936887)" }
+    timezone 'America/Los_Angeles'
+    name 'Richmond'
+    version 1
+    association :created_or_updated_in_changeset, factory: :changeset
+  end
+
+  factory :stop_richmond_offset, class: Stop do
+    onestop_id 's-9q8zzf1nks-richmond'
+    geometry { "POINT(-122.350721 37.952326)" }
+    timezone 'America/Los_Angeles'
+    name 'Richmond'
+    version 1
+    association :created_or_updated_in_changeset, factory: :changeset
+  end
+
+  factory :stop_millbrae, class: Stop do
+    onestop_id 's-9q8vzhbf8h-millbrae'
+    geometry { "POINT(-122.38666 37.599787)" }
+    timezone 'America/Los_Angeles'
+    name 'Millbrae'
+    version 1
+    association :created_or_updated_in_changeset, factory: :changeset
+  end
 end
