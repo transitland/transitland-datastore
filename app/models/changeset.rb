@@ -183,6 +183,8 @@ class Changeset < ActiveRecord::Base
     rsps_to_update_distances.each { |rsp|
       rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
     }
+    #mainly for testing
+    [rsps_to_update_distances.size, operators_to_update_convex_hull.size]
   end
 
   def apply!
