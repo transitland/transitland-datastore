@@ -199,7 +199,6 @@ describe Api::V1::ChangesetsController do
     it 'should return issues when found' do
       stop = create(:stop_richmond)
       create(:stop_millbrae)
-      create(:route_bart)
       route_stop_pattern = create(:route_stop_pattern_bart)
       coords = [stop.geometry[:coordinates][0] + 0.5, stop.geometry[:coordinates][1]]
       changeset = create(:changeset, payload: {
@@ -207,13 +206,13 @@ describe Api::V1::ChangesetsController do
           action: 'createUpdate',
           stop: {
             onestopId: stop.onestop_id,
-            timezone: 'America/Los_Angeles'
-            #geometry: { type: "Point", coordinates: coords }
+            timezone: 'America/Los_Angeles',
+            geometry: { type: "Point", coordinates: coords }
           }
         ]
       })
       post :check, id: changeset.id
-      expect_json({ applied: [true,[]] })
+      expect_json({ trialSucceeds: true, issues: -> (issues){ expect(issues.size).to eq 1 } })
     end
   end
 
