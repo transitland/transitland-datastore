@@ -13,26 +13,27 @@
     "timezone": { "type": "string" },
     "tags": { "type": "object" },
     "name": { "type": "string" },
+    "osmWayId": {"type": ["string", "null"]},
     "parentStopOnestopId": {
       "type": "string",
       "format": "stop-onestop-id"
     },
     "identifiedBy": {
-      "type": "array",
+      "type": ["array", "null"],
       "uniqueItems": true,
       "items": {
         "type": "string"
       }
     },
     "notIdentifiedBy": {
-      "type": "array",
+      "type": ["array", "null"],
       "uniqueItems": true,
       "items": {
         "type": "string"
       }
     },
     "servedBy": {
-      "type": "array",
+      "type": ["array", "null"],
       "uniqueItems": true,
       "items": {
         "type": "string",
@@ -40,7 +41,7 @@
       }
     },
     "notServedBy": {
-      "type": "array",
+      "type": ["array", "null"],
       "uniqueItems": true,
       "items": {
         "type": "string",
@@ -48,7 +49,7 @@
       }
     },
     "includesStopTransfers": {
-      "type": "array",
+      "type": ["array", "null"],
       "minItems": 1,
       "uniqueItems": true,
       "items": {
@@ -67,7 +68,7 @@
       }
     },
     "doesNotIncludeStopTransfers": {
-      "type": "array",
+      "type": ["array", "null"],
       "minItems": 1,
       "uniqueItems": true,
       "items": {

@@ -81,7 +81,8 @@ class Stop < BaseStop
     ],
     protected_attributes: [
       :identifiers,
-      :last_conflated_at
+      :last_conflated_at,
+      :type
     ]
   })
 
