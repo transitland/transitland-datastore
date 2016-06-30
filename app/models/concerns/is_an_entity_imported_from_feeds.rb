@@ -11,5 +11,12 @@ module IsAnEntityImportedFromFeeds
         })
         .distinct
     }
+    scope :where_imported_from_feed, -> (feed) {
+      joins(:entities_imported_from_feed)
+        .where(entities_imported_from_feed: {
+          entity_type: 'Route', feed_id: feed.id
+        })
+        .distinct
+    }
   end
 end
