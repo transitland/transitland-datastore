@@ -52,13 +52,16 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
     end
 
     distance_rsps.each do |rsp|
+      # handle the case of 1 stop trips
+      next if rsp.geometry[:coordinates].uniq.size == 1
       rsp.stop_pattern.each_index do |i|
         self.stop_distance(rsp, i)
       end
     end
 
     stop_rsp_gap_pairs.each do |rsp, stop|
-      self.stop_rsp_distance_gap(stop, rsp)
+      # handle the case of 1 stop trips
+      self.stop_rsp_distance_gap(stop, rsp) unless rsp.geometry[:coordinates].uniq.size == 1
     end
 
     self.distance_issue_tests = distance_rsps.map {|rsp| rsp.stop_pattern.size }.reduce(:+)

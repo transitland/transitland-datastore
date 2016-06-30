@@ -223,7 +223,6 @@ class Changeset < ActiveRecord::Base
           EntityImportedFromFeed.import eiff_batch
         end
 
-        # this will go before quality check once merged with issues branch. not called if import
         update_computed_attributes unless self.imported_from_feed && self.imported_from_feed_version
 
         changeset_issues = check_quality
