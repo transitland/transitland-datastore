@@ -91,7 +91,6 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
 
   def check
     trial_succeeds, issues = @changeset.trial_succeeds?
-    puts issues.size
     render json: {trialSucceeds: trial_succeeds, issues: issues.as_json }
   end
 
