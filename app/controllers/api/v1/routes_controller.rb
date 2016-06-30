@@ -12,6 +12,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     properties[:color] = entity.color
     properties[:operated_by_onestop_id] = entity.operator.try(:onestop_id)
     properties[:operated_by_name] = entity.operator.try(:name)
+    properties[:stops_served_by_route] = entity.stops.map { |stop| {onestop_id: stop.onestop_id, name: stop.name } }
     properties[:route_stop_patterns_by_onestop_id] = entity.route_stop_patterns.map(&:onestop_id)
   }
 
@@ -24,6 +25,10 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     @routes = AllowFiltering.by_tag_keys_and_values(@routes, params)
     @routes = AllowFiltering.by_identifer_and_identifier_starts_with(@routes, params)
     @routes = AllowFiltering.by_updated_since(@routes, params)
+
+    if params[:serves].present?
+      @routes = @routes.where_serves(AllowFiltering.param_as_array(params, :serves))
+    end
 
     if params[:operated_by].present? || params[:operatedBy].present?
       # we previously allowed `operatedBy`, so we'll continue to honor that for the time being
@@ -62,6 +67,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
 
     @routes = @routes.includes{[
       operator,
+      stops,
       route_stop_patterns,
       imported_from_feeds,
       imported_from_feed_versions

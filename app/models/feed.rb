@@ -73,6 +73,14 @@ class Feed < BaseFeed
 
   after_initialize :set_default_values
 
+  scope :where_latest_fetch_exception, -> (flag) {
+    if flag
+      where.not(latest_fetch_exception_log: nil)
+    else
+      where(latest_fetch_exception_log: nil)
+    end
+  }
+
   scope :where_active_feed_version_import_level, -> (import_level) {
     import_level = import_level.to_i
     joins(:active_feed_version)

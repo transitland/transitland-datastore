@@ -36,6 +36,13 @@ module OnestopId
       @name = name
     end
 
+    def self.match?(value)
+      if value && value.length > 0
+        split = value.split(COMPONENT_SEPARATOR)
+        split[0].to_sym == self::PREFIX && split.size == self::NUM_COMPONENTS
+      end
+    end
+
     def to_s
       [
         self.class::PREFIX,
@@ -90,6 +97,25 @@ module OnestopId
   class StopOnestopId < OnestopIdBase
     PREFIX = :s
     MODEL = Stop
+    def self.match?(value)
+      super && !value.include?('<') && !value.include?('>')
+    end
+  end
+
+  class StopEgressOnestopId < OnestopIdBase
+    PREFIX = :s
+    MODEL = StopEgress
+    def self.match?(value)
+      super && value.include?('>')
+    end
+  end
+
+  class StopPlatformOnestopId < OnestopIdBase
+    PREFIX = :s
+    MODEL = StopPlatform
+    def self.match?(value)
+      super && value.include?('<')
+    end
   end
 
   class RouteOnestopId < OnestopIdBase
@@ -182,16 +208,10 @@ module OnestopId
     end
   end
 
-  LOOKUP = Hash[OnestopId::OnestopIdBase.descendants.map { |c| [[c::PREFIX, c::NUM_COMPONENTS], c] }]
   LOOKUP_MODEL = Hash[OnestopId::OnestopIdBase.descendants.map { |c| [c::MODEL, c] }]
 
   def self.handler_by_string(string: nil)
-    if string && string.length > 0
-      split = string.split(COMPONENT_SEPARATOR)
-      prefix = split[0].to_sym
-      num_components = split.size
-      LOOKUP[[prefix, num_components]]
-    end
+    LOOKUP_MODEL.values.select { |cls| cls.match?(string) }.first
   end
 
   def self.handler_by_model(model)

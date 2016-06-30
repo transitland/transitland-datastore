@@ -48,5 +48,5 @@ FactoryGirl.define do
     version 1
     association :created_or_updated_in_changeset, factory: :changeset
     association :operator
-   end
+  end
 end

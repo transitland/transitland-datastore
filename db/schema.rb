@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160613224412) do
+ActiveRecord::Schema.define(version: 20160614041303) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -240,6 +240,24 @@ ActiveRecord::Schema.define(version: 20160613224412) do
   add_index "current_schedule_stop_pairs", ["trip"], name: "c_ssp_trip", using: :btree
   add_index "current_schedule_stop_pairs", ["updated_at"], name: "index_current_schedule_stop_pairs_on_updated_at", using: :btree
 
+  create_table "current_stop_transfers", force: :cascade do |t|
+    t.string   "transfer_type"
+    t.integer  "min_transfer_time"
+    t.hstore   "tags"
+    t.integer  "stop_id"
+    t.integer  "to_stop_id"
+    t.integer  "created_or_updated_in_changeset_id"
+    t.integer  "version"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "current_stop_transfers", ["created_or_updated_in_changeset_id"], name: "index_current_stop_transfers_changeset_id", using: :btree
+  add_index "current_stop_transfers", ["min_transfer_time"], name: "index_current_stop_transfers_on_min_transfer_time", using: :btree
+  add_index "current_stop_transfers", ["stop_id"], name: "index_current_stop_transfers_on_stop_id", using: :btree
+  add_index "current_stop_transfers", ["to_stop_id"], name: "index_current_stop_transfers_on_to_stop_id", using: :btree
+  add_index "current_stop_transfers", ["transfer_type"], name: "index_current_stop_transfers_on_transfer_type", using: :btree
+
   create_table "current_stops", force: :cascade do |t|
     t.string    "onestop_id"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
@@ -252,12 +270,16 @@ ActiveRecord::Schema.define(version: 20160613224412) do
     t.string    "identifiers",                                                                                    default: [], array: true
     t.string    "timezone"
     t.datetime  "last_conflated_at"
+    t.string    "type"
+    t.integer   "parent_stop_id"
+    t.integer   "osm_way_id"
   end
 
   add_index "current_stops", ["created_or_updated_in_changeset_id"], name: "#c_stops_cu_in_changeset_id_index", using: :btree
   add_index "current_stops", ["geometry"], name: "index_current_stops_on_geometry", using: :gist
   add_index "current_stops", ["identifiers"], name: "index_current_stops_on_identifiers", using: :gin
   add_index "current_stops", ["onestop_id"], name: "index_current_stops_on_onestop_id", using: :btree
+  add_index "current_stops", ["parent_stop_id"], name: "index_current_stops_on_parent_stop_id", using: :btree
   add_index "current_stops", ["tags"], name: "index_current_stops_on_tags", using: :btree
   add_index "current_stops", ["updated_at"], name: "index_current_stops_on_updated_at", using: :btree
 
@@ -574,6 +596,28 @@ ActiveRecord::Schema.define(version: 20160613224412) do
   add_index "old_schedule_stop_pairs", ["service_start_date"], name: "o_ssp_service_start_date", using: :btree
   add_index "old_schedule_stop_pairs", ["trip"], name: "o_ssp_trip", using: :btree
 
+  create_table "old_stop_transfers", force: :cascade do |t|
+    t.string   "transfer_type"
+    t.integer  "min_transfer_time"
+    t.hstore   "tags"
+    t.integer  "stop_id"
+    t.integer  "to_stop_id"
+    t.integer  "created_or_updated_in_changeset_id"
+    t.integer  "version"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "destroyed_in_changeset_id"
+    t.integer  "current_id"
+  end
+
+  add_index "old_stop_transfers", ["created_or_updated_in_changeset_id"], name: "index_old_stop_transfers_changeset_id", using: :btree
+  add_index "old_stop_transfers", ["current_id"], name: "index_old_stop_transfers_on_current_id", using: :btree
+  add_index "old_stop_transfers", ["destroyed_in_changeset_id"], name: "index_old_stop_transfers_on_destroyed_in_changeset_id", using: :btree
+  add_index "old_stop_transfers", ["min_transfer_time"], name: "index_old_stop_transfers_on_min_transfer_time", using: :btree
+  add_index "old_stop_transfers", ["stop_id"], name: "index_old_stop_transfers_on_stop_id", using: :btree
+  add_index "old_stop_transfers", ["to_stop_id"], name: "index_old_stop_transfers_on_to_stop_id", using: :btree
+  add_index "old_stop_transfers", ["transfer_type"], name: "index_old_stop_transfers_on_transfer_type", using: :btree
+
   create_table "old_stops", force: :cascade do |t|
     t.string    "onestop_id"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
@@ -588,6 +632,9 @@ ActiveRecord::Schema.define(version: 20160613224412) do
     t.string    "identifiers",                                                                                    default: [], array: true
     t.string    "timezone"
     t.datetime  "last_conflated_at"
+    t.string    "type"
+    t.integer   "parent_stop_id"
+    t.integer   "osm_way_id"
   end
 
   add_index "old_stops", ["created_or_updated_in_changeset_id"], name: "o_stops_cu_in_changeset_id_index", using: :btree
@@ -595,6 +642,7 @@ ActiveRecord::Schema.define(version: 20160613224412) do
   add_index "old_stops", ["destroyed_in_changeset_id"], name: "stops_d_in_changeset_id_index", using: :btree
   add_index "old_stops", ["geometry"], name: "index_old_stops_on_geometry", using: :gist
   add_index "old_stops", ["identifiers"], name: "index_old_stops_on_identifiers", using: :gin
+  add_index "old_stops", ["parent_stop_id"], name: "index_old_stops_on_parent_stop_id", using: :btree
 
   create_table "users", force: :cascade do |t|
     t.string   "email",                                  null: false

@@ -85,6 +85,31 @@ describe Route do
       expect(Route.geometry_within_bbox(@bbox_should_contain_geom_only)).to match_array([@route])
     end
 
+    context '.where_serves' do
+      before(:each) do
+        @stop1, @stop2, @stop3 = create_list(:stop, 3)
+        @route1, @route2, @route3 = create_list(:route, 3)
+        @route1.routes_serving_stop.create!(stop: @stop1)
+        @route1.routes_serving_stop.create!(stop: @stop2)
+        @route2.routes_serving_stop.create!(stop: @stop2)
+        @route3.routes_serving_stop.create!(stop: @stop3)
+      end
+
+      it 'finds routes serving a single stop' do
+        expect(Route.where_serves(@stop1)).to match_array([@route1])
+        expect(Route.where_serves(@stop2)).to match_array([@route1, @route2])
+        expect(Route.where_serves(@stop3)).to match_array([@route3])
+      end
+
+      it 'finds routes serving multiple stops' do
+        expect(Route.where_serves([@stop1, @stop2, @stop3])).to match_array([@route1, @route2, @route3])
+      end
+
+      it 'finds routes serving stop onestop id' do
+        expect(Route.where_serves(@stop1.onestop_id)).to match_array([@route1])
+      end
+    end
+
     context 'validate route color' do
       before(:each) do
         @route = create(:route)

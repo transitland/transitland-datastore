@@ -94,8 +94,8 @@ FactoryGirl.define do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example-update-delete.zip')) }
     end
 
-    factory :feed_version_example_trips_without_stop_times do
-      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example-trips-without-stop-times.zip')) }
+    factory :feed_version_example_trips_special_stop_times do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example-trips-special-stop-times.zip')) }
       association :feed, factory: :feed_example
     end
   end

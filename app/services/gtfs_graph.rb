@@ -30,15 +30,26 @@ class GTFSGraph
     @gtfs.load_graph
     graph_log "Load TL"
     load_tl_stops
+    load_tl_transfers
     load_tl_routes
     rsps = load_tl_route_stop_patterns
     calculate_rsp_distances(rsps)
     operators = load_tl_operators
     fail GTFSGraph::Error.new('No agencies found that match operators_in_feed') unless operators.size > 0
+
+    # Routes
     routes = operators.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
-    stops = routes.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
-    rsps = rsps.select { |rsp| routes.include?(rsp.route) }
+
+    # Stops and Platforms
+    stops = Set.new
+    routes.each { |route| route.serves.each { |stop_onestop_id|
+      stop = find_by_onestop_id(stop_onestop_id)
+      stops << stop
+      stops << stop.parent_stop if stop.parent_stop
+    }}
+
     # Update route geometries
+    rsps = rsps.select { |rsp| routes.include?(rsp.route) }
     route_rsps = {}
     rsps.each do |rsp|
       route_rsps[rsp.route] ||= Set.new
@@ -72,7 +83,7 @@ class GTFSGraph
     begin
       changeset.create_change_payloads(operators)
       graph_log "  stops: #{stops.size}"
-      changeset.create_change_payloads(stops)
+      changeset.create_change_payloads(stops.partition { |i| i.type != 'StopPlatform' }.flatten)
       graph_log "  routes: #{routes.size}"
       changeset.create_change_payloads(routes)
       graph_log "  route geometries: #{rsps.size}"
@@ -111,35 +122,98 @@ class GTFSGraph
     end
   end
 
-  def ssp_perform_async(trip_ids, agency_map, route_map, stop_map, rsp_map)
+  def ssp_perform_async(gtfs_trip_ids, agency_map, route_map, stop_map, rsp_map)
     graph_log "Load GTFS"
     @gtfs.agencies
     @gtfs.routes
     @gtfs.stops
     @gtfs.trips
     load_gtfs_id_map(agency_map, route_map, stop_map, rsp_map)
-    trips = trip_ids.map { |trip_id| @gtfs.trip(trip_id) }
+    gtfs_trips = gtfs_trip_ids.map { |gtfs_trip_id| @gtfs.trip(gtfs_trip_id) }
     graph_log "Create: SSPs"
     total = 0
     ssps = []
-    @gtfs.trip_stop_times(trips=trips, filter_empty=true) do |trip,stop_times|
-      route = @gtfs.route(trip.route_id)
-      rsp = RouteStopPattern.find_by_onestop_id!(rsp_map[trip.trip_id])
-      # Create SSPs for all stop_time edges
-      ssp_trip = []
-      stop_times[0..-2].each_index do |i|
-        origin = stop_times[i]
-        destination = stop_times[i+1]
-        origin_dist_traveled = nil
-        destination_dist_traveled = nil
-        begin
-          origin_dist_traveled = rsp.stop_distances[i]
-          destination_dist_traveled = rsp.stop_distances[i+1]
-        rescue StandardError
-          graph_log "problem with rsp #{rsp.onestop_id} stop_distances index"
-        end
-        ssp_trip << make_ssp(route, trip, origin, origin_dist_traveled, destination, destination_dist_traveled, rsp)
+    @gtfs.trip_stop_times(trips=gtfs_trips, filter_empty=true) do |gtfs_trip,gtfs_stop_times|
+      # Lookup tl_route from gtfs_trip.route_id
+      gtfs_route = @gtfs.route(gtfs_trip.route_id)
+      tl_route = find_by_gtfs_entity(gtfs_route)
+      unless tl_route
+        graph_log "Trip #{gtfs_trip.trip_id}: Missing Route: #{@gtfs_to_onestop_id[gtfs_route]}"
+        next
       end
+      # Lookup tl_rsp from gtfs_trip.trip_id
+      tl_rsp = find_by_onestop_id(rsp_map[gtfs_trip.trip_id])
+      unless tl_rsp
+        graph_log "Trip #{gtfs_trip.trip_id}: Missing RouteStopPattern: #{rsp_map[gtfs_trip.trip_id]}"
+        next
+      end
+      # Lookup gtfs_service_period from gtfs_trip.service_id
+      gtfs_service_period = @gtfs.service_period(gtfs_trip.service_id)
+      unless gtfs_service_period
+        graph_log "Trip #{gtfs_trip.trip_id}: Unknown GTFS ServicePeriod: #{gtfs_trip.service_id}"
+        next
+      end
+
+      # Create SSPs for all gtfs_stop_time edges
+      ssp_trip = []
+      gtfs_stop_times[0..-2].each_index do |i|
+        gtfs_origin_stop_time = gtfs_stop_times[i]
+        gtfs_destination_stop_time = gtfs_stop_times[i+1]
+        # Get the tl_origin_stop and tl_destination_stop from gtfs_stop_time edge
+        gtfs_origin_stop = @gtfs.stop(gtfs_origin_stop_time.stop_id)
+        tl_origin_stop = find_by_gtfs_entity(gtfs_origin_stop)
+        unless tl_origin_stop
+          graph_log "Trip #{gtfs_trip.trip_id}: Missing Stop: #{@gtfs_to_onestop_id[gtfs_origin_stop]}"
+          next
+        end
+        gtfs_destination_stop = @gtfs.stop(gtfs_destination_stop_time.stop_id)
+        tl_destination_stop = find_by_gtfs_entity(gtfs_destination_stop)
+        unless tl_destination_stop
+          graph_log "Trip #{gtfs_trip.trip_id}: Missing Stop: #{@gtfs_to_onestop_id[gtfs_destination_stop]}"
+          next
+        end
+        # Create SSP
+        ssp_trip << ScheduleStopPair.new(
+          # Feed
+          feed: @feed,
+          feed_version: @feed_version,
+          # Origin
+          origin: tl_origin_stop,
+          origin_timezone: tl_origin_stop.timezone,
+          origin_arrival_time: gtfs_origin_stop_time.arrival_time.presence,
+          origin_departure_time: gtfs_origin_stop_time.departure_time.presence,
+          origin_dist_traveled: tl_rsp.stop_distances[i],
+          # Destination
+          destination: tl_destination_stop,
+          destination_timezone: tl_destination_stop.timezone,
+          destination_arrival_time: gtfs_destination_stop_time.arrival_time.presence,
+          destination_departure_time: gtfs_destination_stop_time.departure_time.presence,
+          destination_dist_traveled: tl_rsp.stop_distances[i+1],
+          # Route
+          route: tl_route,
+          route_stop_pattern: tl_rsp,
+          # Operator
+          operator: tl_route.operator,
+          # Trip
+          trip: gtfs_trip.id.presence,
+          trip_headsign: (gtfs_origin_stop_time.stop_headsign || gtfs_trip.trip_headsign).presence,
+          trip_short_name: gtfs_trip.trip_short_name.presence,
+          shape_dist_traveled: gtfs_destination_stop_time.shape_dist_traveled.to_f,
+          block_id: gtfs_trip.block_id,
+          # Accessibility
+          pickup_type: to_pickup_type(gtfs_origin_stop_time.pickup_type),
+          drop_off_type: to_pickup_type(gtfs_destination_stop_time.drop_off_type),
+          wheelchair_accessible: to_tfn(gtfs_trip.wheelchair_accessible),
+          bikes_allowed: to_tfn(gtfs_trip.bikes_allowed),
+          # service period
+          service_start_date: gtfs_service_period.start_date,
+          service_end_date: gtfs_service_period.end_date,
+          service_days_of_week: gtfs_service_period.iso_service_weekdays,
+          service_added_dates: gtfs_service_period.added_dates,
+          service_except_dates: gtfs_service_period.except_dates
+        )
+      end
+
       # Interpolate stop_times
       ScheduleStopPair.interpolate(ssp_trip)
       # Add to chunk
@@ -180,15 +254,16 @@ class GTFSGraph
   def load_tl_stops
     # Merge child stations into parents
     graph_log "  stops"
+    gtfs_platforms, gtfs_stops = @gtfs.stops.partition { |i| i.parent_station.presence }
     # Create parent stops first
-    @gtfs.stops.reject(&:parent_station).each do |gtfs_stop|
+    gtfs_stops.each do |gtfs_stop|
       stop = find_and_update_entity(Stop.from_gtfs(gtfs_stop))
       add_identifier(stop, 's', gtfs_stop)
-      graph_log "    Station: #{stop.onestop_id}: #{stop.name}"
+      graph_log "    Stop: #{stop.onestop_id}: #{stop.name}"
     end
     # Create child stops
-    @gtfs.stops.select(&:parent_station).each do |gtfs_stop|
-      stop = Stop.from_gtfs(gtfs_stop)
+    gtfs_platforms.each do |gtfs_stop|
+      stop = StopPlatform.from_gtfs(gtfs_stop)
       parent_stop = find_by_gtfs_entity(@gtfs.stop(gtfs_stop.parent_station))
       # Combine onestop_id with parent_stop onestop_id, if present
       if parent_stop
@@ -197,13 +272,27 @@ class GTFSGraph
         # add gtfs_stop.stop_id as the platform suffix
         stop.onestop_id = OnestopId::StopOnestopId.new(geohash: osid.geohash, name: "#{osid.name}<#{gtfs_stop.id}")
         # add parent_station osid
-        stop.tags[:parent_station] = parent_stop.onestop_id
+        stop.parent_stop = parent_stop
       end
       # index
       stop = find_and_update_entity(stop)
       add_identifier(stop, 's', gtfs_stop)
-      #
-      graph_log "    Stop: #{stop.onestop_id}: #{stop.name}"
+      graph_log "    StopPlatform: #{stop.onestop_id}: #{stop.name}"
+    end
+  end
+
+  def load_tl_transfers
+    return unless @gtfs.file_present?('transfers.txt')
+    @gtfs.transfers.each do |transfer|
+      stop = find_by_gtfs_entity(@gtfs.stop(transfer.from_stop_id))
+      to_stop = find_by_gtfs_entity(@gtfs.stop(transfer.to_stop_id))
+      next unless stop && to_stop
+      stop.includes_stop_transfers ||= []
+      stop.includes_stop_transfers << {
+        toStopOnestopId: to_stop.onestop_id,
+        transferType: StopTransfer::GTFS_TRANSFER_TYPE[transfer.transfer_type.presence || "0"],
+        minTransferTime: transfer.min_transfer_time.to_i
+      }
     end
   end
 
@@ -217,11 +306,6 @@ class GTFSGraph
       entity = agencies[oif.gtfs_agency_id]
       # Skip Operator if not found
       next unless entity
-      # Find: (child gtfs routes) to (tl routes)
-      #   note: .compact because some gtfs routes are skipped.
-      routes = entity.routes.map { |route| find_by_gtfs_entity(route) }.compact.to_set
-      # Find: (tl routes) to (serves tl stops)
-      stops = routes.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
       # Create Operator from GTFS
       operator = Operator.from_gtfs(entity)
       operator.onestop_id = oif.operator.onestop_id # Override Onestop ID
@@ -230,6 +314,16 @@ class GTFSGraph
       operator = find_by_entity(operator)
       # Merge convex hulls
       operator[:geometry] = Operator.convex_hull([operator, operator_original], as: :wkt, projected: false)
+
+      # Operator routes & stops
+      routes = entity.routes.map { |route| find_by_gtfs_entity(route) }.compact.to_set
+      # Find: (tl routes) to (serves tl stops)
+      stops = Set.new
+      routes.each { |route| route.serves.each { |stop_onestop_id|
+        stop = find_by_onestop_id(stop_onestop_id)
+        stops << stop
+        stops << stop.parent_stop if stop.parent_stop
+      }}
       # Copy Operator timezone to fill missing Stop timezones
       stops.each { |stop| stop.timezone ||= operator.timezone }
       # Add references and identifiers
@@ -237,7 +331,7 @@ class GTFSGraph
       operator.serves ||= Set.new
       operator.serves |= routes.map(&:onestop_id)
       add_identifier(operator, 'o', entity)
-      # Cache Operator
+
       # Add to found operators
       operators << operator
       graph_log "    #{operator.onestop_id}: #{operator.name}"
@@ -252,21 +346,10 @@ class GTFSGraph
     @gtfs.routes.each do |entity|
       # Find: (child gtfs trips) to (child gtfs stops) to (tl stops)
       stops = entity.stops.map { |stop| find_by_gtfs_entity(stop) }.to_set
-      # Also serve parent stations...
-      parent_stations = Set.new
-      stops.each do |stop|
-        parent_station = find_by_onestop_id(stop.tags[:parent_station])
-        next unless parent_station
-        parent_stations << parent_station
-      end
-      stops |= parent_stations
       # Skip Route if no Stops
       next if stops.empty?
       # Search by similarity
-      # ... or create route from GTFS
-      # ... check if Route exists, or another local Route, or new.
       route = find_and_update_entity(Route.from_gtfs(entity))
-      # route = find_by_entity(route)
       # Add references and identifiers
       route.serves ||= Set.new
       route.serves |= stops.map(&:onestop_id)
@@ -283,7 +366,6 @@ class GTFSGraph
     stop_times_count = 0
     @gtfs.trip_stop_times(trips=nil, filter_empty=true) do |trip,stop_times|
       tl_stops = stop_times.map { |stop_time| find_by_gtfs_entity(@gtfs.stop(stop_time.stop_id)) }
-      next if tl_stops.uniq.size < 2
       stop_pattern = tl_stops.map(&:onestop_id)
       stop_times_with_shape_dist_traveled += stop_times.count { |st| !st.shape_dist_traveled.to_s.empty? }
       stop_times_count += stop_times.length
@@ -388,56 +470,6 @@ class GTFSGraph
     rsp_map.each do |trip_id,onestop_id|
       @gtfs_to_onestop_id[@gtfs.trip(trip_id)] = onestop_id
     end
-  end
-
-  ##### Create change payloads ######
-
-  def make_ssp(route, trip, origin, origin_dist_traveled, destination, destination_dist_traveled, route_stop_pattern)
-    # Generate an edge between an origin and destination for a given route/trip
-    route = find_by_gtfs_entity(route)
-    origin_stop = find_by_gtfs_entity(@gtfs.stop(origin.stop_id))
-    destination_stop = find_by_gtfs_entity(@gtfs.stop(destination.stop_id))
-    service_period = @gtfs.service_period(trip.service_id)
-    ssp = ScheduleStopPair.new(
-      # Feed
-      feed: @feed,
-      feed_version: @feed_version,
-      # Origin
-      origin: origin_stop,
-      origin_timezone: origin_stop.timezone,
-      origin_arrival_time: origin.arrival_time.presence,
-      origin_departure_time: origin.departure_time.presence,
-      origin_dist_traveled: origin_dist_traveled,
-      # Destination
-      destination: destination_stop,
-      destination_timezone: destination_stop.timezone,
-      destination_arrival_time: destination.arrival_time.presence,
-      destination_departure_time: destination.departure_time.presence,
-      destination_dist_traveled: destination_dist_traveled,
-      # Route
-      route: route,
-      route_stop_pattern: route_stop_pattern,
-      # Operator
-      operator: route.operator,
-      # Trip
-      trip: trip.id.presence,
-      trip_headsign: (origin.stop_headsign || trip.trip_headsign).presence,
-      trip_short_name: trip.trip_short_name.presence,
-      shape_dist_traveled: destination.shape_dist_traveled.to_f,
-      block_id: trip.block_id,
-      # Accessibility
-      pickup_type: to_pickup_type(origin.pickup_type),
-      drop_off_type: to_pickup_type(destination.drop_off_type),
-      wheelchair_accessible: to_tfn(trip.wheelchair_accessible),
-      bikes_allowed: to_tfn(trip.bikes_allowed),
-      # service period
-      service_start_date: service_period.start_date,
-      service_end_date: service_period.end_date,
-      service_days_of_week: service_period.iso_service_weekdays,
-      service_added_dates: service_period.added_dates,
-      service_except_dates: service_period.except_dates
-    )
-    ssp
   end
 
   def to_tfn(value)
