@@ -34,9 +34,9 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
     stop_rsp_gap_pairs =  Set.new
 
     self.changeset.route_stop_patterns_created_or_updated.each do |rsp|
-      distance_rsps << rsp
+      distance_rsps << rsp.onestop_id
       Stop.where(onestop_id: rsp.stop_pattern).each do |stop|
-        stop_rsp_gap_pairs << [rsp, stop]
+        stop_rsp_gap_pairs << [rsp.onestop_id, stop.onestop_id]
       end
       # other checks on rsp-exclusive attributes go here
     end
@@ -44,14 +44,15 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
     self.changeset.stops_created_or_updated.each do |stop|
       unless import
         RouteStopPattern.where{ stop_pattern.within(stop.onestop_id) }.each do |rsp|
-          distance_rsps << rsp
-          stop_rsp_gap_pairs << [rsp, stop]
+          distance_rsps << rsp.onestop_id
+          stop_rsp_gap_pairs << [rsp.onestop_id, stop.onestop_id]
         end
       end
       # other checks on stop-exclusive attributes go here
     end
 
-    distance_rsps.each do |rsp|
+    distance_rsps.each do |onestop_id|
+      rsp = RouteStopPattern.find_by_onestop_id!(onestop_id)
       # handle the case of 1 stop trips
       next if rsp.geometry[:coordinates].uniq.size == 1
       rsp.stop_pattern.each_index do |i|
@@ -59,12 +60,14 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
       end
     end
 
-    stop_rsp_gap_pairs.each do |rsp, stop|
+    stop_rsp_gap_pairs.each do |rsp_onestop_id, stop_onestop_id|
+      rsp = RouteStopPattern.find_by_onestop_id!(rsp_onestop_id)
+      stop = Stop.find_by_onestop_id!(stop_onestop_id)
       # handle the case of 1 stop trips
       self.stop_rsp_distance_gap(stop, rsp) unless rsp.geometry[:coordinates].uniq.size == 1
     end
 
-    self.distance_issue_tests = distance_rsps.map {|rsp| rsp.stop_pattern.size }.reduce(:+)
+    self.distance_issue_tests = distance_rsps.map {|onestop_id| RouteStopPattern.find_by_onestop_id!(onestop_id).stop_pattern.size }.reduce(:+)
     self.distance_issues = Set.new(self.issues.select {|ewi| ['stop_rsp_distance_gap', 'distance_calculation_inaccurate'].include?(ewi.issue_type) }.each {|issue| issue.entities_with_issues.map(&:entity_id) }).size
     distance_score
 

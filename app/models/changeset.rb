@@ -180,7 +180,7 @@ class Changeset < ActiveRecord::Base
     if self.stops_created_or_updated
       operators_to_update_convex_hull = Set.new
       self.stops_created_or_updated.each do |stop|
-        rsps_to_update_distances.merge(RouteStopPattern.with_stops(stop.onestop_id))
+        rsps_to_update_distances.merge(RouteStopPattern.with_stops(stop.onestop_id).map(&:onestop_id))
         operators_to_update_convex_hull.merge(OperatorServingStop.where(stop: stop).map(&:operator))
       end
 
@@ -190,8 +190,9 @@ class Changeset < ActiveRecord::Base
       }
     end
 
-    rsps_to_update_distances.merge(self.route_stop_patterns_created_or_updated)
-    rsps_to_update_distances.each { |rsp|
+    rsps_to_update_distances.merge(self.route_stop_patterns_created_or_updated.map(&:onestop_id))
+    rsps_to_update_distances.each { |onestop_id|
+      rsp = RouteStopPattern.find_by_onestop_id!(onestop_id)
       rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
     }
     #mainly for testing
@@ -223,8 +224,10 @@ class Changeset < ActiveRecord::Base
           EntityImportedFromFeed.import eiff_batch
         end
 
-        update_computed_attributes unless self.imported_from_feed && self.imported_from_feed_version
+        #rsp = RouteStopPattern.with_stops(self.stops_created_or_updated.first.onestop_id).first
 
+        #binding.pry
+        update_computed_attributes unless self.imported_from_feed && self.imported_from_feed_version
         changeset_issues = check_quality
         unresolved_issues = issues_unresolved(resolving_issues, changeset_issues)
         if (unresolved_issues.empty?)
