@@ -224,9 +224,6 @@ class Changeset < ActiveRecord::Base
           EntityImportedFromFeed.import eiff_batch
         end
 
-        #rsp = RouteStopPattern.with_stops(self.stops_created_or_updated.first.onestop_id).first
-
-        #binding.pry
         update_computed_attributes unless self.imported_from_feed && self.imported_from_feed_version
         changeset_issues = check_quality
         unresolved_issues = issues_unresolved(resolving_issues, changeset_issues)
