@@ -23,6 +23,14 @@ class Api::V1::StopsController < Api::V1::BaseApiController
     @stops = AllowFiltering.by_identifer_and_identifier_starts_with(@stops, params)
     @stops = AllowFiltering.by_updated_since(@stops, params)
 
+    if params[:imported_from_feed].present?
+      @stops = @stops.where_imported_from_feed(Feed.find_by_onestop_id(params[:imported_from_feed]))
+    end
+
+    if params[:imported_from_feed_version].present?
+      @stops = @stops.where_imported_from_feed_version(FeedVersion.find_by!(sha1: params[:imported_from_feed_version]))
+    end
+
     if params[:served_by].present? || params[:servedBy].present?
       # we previously allowed `servedBy`, so we'll continue to honor that for the time being
       operator_onestop_ids = []
