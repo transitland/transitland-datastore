@@ -102,7 +102,9 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
             :onestop_id,
             :tag_key,
             :tag_value,
-            :import_level
+            :import_level,
+            :imported_from_feed,
+            :imported_from_feed_version
           )
         )
       end
