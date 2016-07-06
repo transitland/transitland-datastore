@@ -1,5 +1,7 @@
 describe Api::V1::IssuesController do
   before(:each) do
+    allow(Figaro.env).to receive(:transitland_datastore_auth_token) { 'THISISANAPIKEY' }
+    @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANAPIKEY'
     load_feed(feed_version_name: :feed_version_example_issues, import_level: 1)
   end
 
@@ -21,8 +23,8 @@ describe Api::V1::IssuesController do
   end
 
   context 'POST create' do
-    it 'creates an issue when no equivalent exists' do
-      issue = {
+    before(:each) do
+      @issue1 = {
         "details": "This is a test issue",
         "issue_type": 'stop_rsp_distance_gap',
         "entities_with_issues": [
@@ -36,13 +38,16 @@ describe Api::V1::IssuesController do
           }
         ]
       }
-      post :create, issue: issue
+    end
+
+    it 'creates an issue when no equivalent exists' do
+      post :create, issue: @issue1
       expect(response.status).to eq 202
       expect(Issue.count).to eq 2
     end
 
     it 'does not create issue when an equivalent one exists' do
-      issue = {
+      issue2 = {
         "details": "This is a test issue",
         "issue_type": 'stop_rsp_distance_gap',
         "entities_with_issues": [
@@ -56,9 +61,15 @@ describe Api::V1::IssuesController do
           }
         ]
       }
-      post :create, issue: issue
+      post :create, issue: issue2
       expect(response.status).to eq 409
       expect(Issue.count).to eq 1
+    end
+
+    it 'requires auth token to create issue' do
+      @request.env['HTTP_AUTHORIZATION'] = nil
+      post :create, issue: @issue1
+      expect(response.status).to eq(401)
     end
   end
 
@@ -76,6 +87,15 @@ describe Api::V1::IssuesController do
     it 'should delete issue' do
       post :destroy, id: 1
       expect(Issue.exists?(1)).to eq(false)
+    end
+
+    it 'should require auth token to delete issue' do
+      @request.env['HTTP_AUTHORIZATION'] = nil
+      issue = Issue.new(details: "This is a test issue", created_by_changeset_id: 1, issue_type: "stop_rsp_distance_gap")
+      issue.save!
+      issue.entities_with_issues.create(entity: Stop.find_by_onestop_id!('s-9qscwx8n60-nyecountyairportdemo'), entity_attribute: "geometry")
+      post :destroy, id: issue.id
+      expect(response.status).to eq(401)
     end
   end
 end
