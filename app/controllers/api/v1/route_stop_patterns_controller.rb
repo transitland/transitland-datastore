@@ -26,6 +26,14 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
     @rsps = AllowFiltering.by_identifer_and_identifier_starts_with(@rsps, params)
     @rsps = AllowFiltering.by_updated_since(@rsps, params)
 
+    if params[:imported_from_feed].present?
+      @rsps = @rsps.where_imported_from_feed(Feed.find_by_onestop_id(params[:imported_from_feed]))
+    end
+
+    if params[:imported_from_feed_version].present?
+      @rsps = @rsps.where_imported_from_feed_version(FeedVersion.find_by!(sha1: params[:imported_from_feed_version]))
+    end
+
     if params[:bbox].present?
       @rsps = @rsps.geometry_within_bbox(params[:bbox])
     end
