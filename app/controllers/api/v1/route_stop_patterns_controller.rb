@@ -75,7 +75,9 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
             :traversed_by,
             :trip,
             :bbox,
-            :stop_visited
+            :stop_visited,
+            :imported_from_feed,
+            :imported_from_feed_version
           )
         )
       end

@@ -83,7 +83,9 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
             :tag_value,
             :import_level,
             :name,
-            :short_name
+            :short_name,
+            :imported_from_feed,
+            :imported_from_feed_version
           )
         )
       end

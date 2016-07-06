@@ -89,7 +89,9 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
             :updated_since,
             :feed_version_sha1,
             :feed_onestop_id,
-            :import_level
+            :import_level,
+            :imported_from_feed,
+            :imported_from_feed_version
           )
         )
       end
