@@ -262,7 +262,15 @@ class Stop < BaseStop
           if stop.osm_way_id != osm_way_id
             log "osm_way_id changed for Stop #{stop.onestop_id}: was \"#{stop.osm_way_id}\" now \"#{osm_way_id}\""
           end
-          stop.update(osm_way_id: osm_way_id, last_conflated_at: now)
+          # Copy osm_way_id as a tag for now
+          stop_tags = stop.tags.try(:clone) || {}
+          stop_tags[:osm_way_id] = osm_way_id
+          # Update stop
+          stop.update(
+            osm_way_id: osm_way_id,
+            tags: stop_tags,
+            last_conflated_at: now
+          )
         end
       end
     end

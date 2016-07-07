@@ -48,6 +48,7 @@ class StopStationSerializer < CurrentEntitySerializer
                :geometry,
                :name,
                :tags,
+               :osm_way_id,
                :created_at,
                :updated_at
                :last_conflated_at
