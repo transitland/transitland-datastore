@@ -89,7 +89,9 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
             :updated_since,
             :feed_version_sha1,
             :feed_onestop_id,
-            :import_level
+            :import_level,
+            :imported_from_feed,
+            :imported_from_feed_version
           )
         )
       end
@@ -110,8 +112,9 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     @ssps = AllowFiltering.by_updated_since(@ssps, params)
 
     # Feed Version, or default: All active Feed Versions
-    if params[:feed_version_sha1]
-      @ssps = @ssps.where(feed_version: FeedVersion.find_by(sha1: params[:feed_version_sha1]))
+    feed_version_sha1 = params[:feed_version_sha1].presence || params[:imported_from_feed_version].presence
+    if feed_version_sha1
+      @ssps = @ssps.where(feed_version: FeedVersion.find_by!(sha1: feed_version_sha1))
     else
       @ssps = @ssps.where_active
     end
@@ -120,8 +123,9 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
       @ssps = @ssps.where_active
     end
     # Feed
-    if params[:feed_onestop_id]
-      @ssps = @ssps.where(feed: Feed.find_by_onestop_id!(params[:feed_onestop_id]))
+    feed_onestop_id = params[:feed_onestop_id].presence || params[:imported_from_feed].presence
+    if feed_onestop_id
+      @ssps = @ssps.where(feed: Feed.find_by_onestop_id!(feed_onestop_id))
     end
     # FeedVersion Import level
     if params[:import_level].present?

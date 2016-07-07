@@ -14,25 +14,30 @@
 #  identifiers                        :string           default([]), is an Array
 #  timezone                           :string
 #  last_conflated_at                  :datetime
+#  type                               :string
+#  parent_stop_id                     :integer
+#  osm_way_id                         :integer
 #
 # Indexes
 #
-#  #c_stops_cu_in_changeset_id_index   (created_or_updated_in_changeset_id)
-#  index_current_stops_on_geometry     (geometry)
-#  index_current_stops_on_identifiers  (identifiers)
-#  index_current_stops_on_onestop_id   (onestop_id)
-#  index_current_stops_on_tags         (tags)
-#  index_current_stops_on_updated_at   (updated_at)
+#  #c_stops_cu_in_changeset_id_index      (created_or_updated_in_changeset_id)
+#  index_current_stops_on_geometry        (geometry)
+#  index_current_stops_on_identifiers     (identifiers)
+#  index_current_stops_on_onestop_id      (onestop_id)
+#  index_current_stops_on_parent_stop_id  (parent_stop_id)
+#  index_current_stops_on_tags            (tags)
+#  index_current_stops_on_updated_at      (updated_at)
 #
 
 class BaseStop < ActiveRecord::Base
   self.abstract_class = true
-  attr_accessor :served_by, :not_served_by
-  validates :timezone, presence: true
 end
 
 class Stop < BaseStop
-  self.table_name_prefix = 'current_'
+  self.table_name = 'current_stops'
+  attr_accessor :served_by, :not_served_by
+  attr_accessor :includes_stop_transfers, :does_not_include_stop_transfers
+  validates :timezone, presence: true
 
   include HasAOnestopId
   include IsAnEntityWithIdentifiers
@@ -71,32 +76,27 @@ class Stop < BaseStop
       :not_served_by,
       :identified_by,
       :not_identified_by,
+      :includes_stop_transfers,
+      :does_not_include_stop_transfers
     ],
     protected_attributes: [
       :identifiers,
-      :last_conflated_at
+      :last_conflated_at,
+      :type
     ]
   })
+
   def after_create_making_history(changeset)
-    OperatorRouteStopRelationship.manage_multiple(
-      stop: {
-        served_by: self.served_by || [],
-        not_served_by: self.not_served_by || [],
-        model: self
-      },
-      changeset: changeset
-    )
+    super(changeset)
+    update_served_by(changeset)
+    update_includes_stop_transfers(changeset)
+    update_does_not_include_stop_transfers(changeset)
   end
   def before_update_making_history(changeset)
-    OperatorRouteStopRelationship.manage_multiple(
-      stop: {
-        served_by: self.served_by || [],
-        not_served_by: self.not_served_by || [],
-        model: self
-      },
-      changeset: changeset
-    )
     super(changeset)
+    update_served_by(changeset)
+    update_includes_stop_transfers(changeset)
+    update_does_not_include_stop_transfers(changeset)
   end
   def before_destroy_making_history(changeset, old_model)
     operators_serving_stop.each do |operator_serving_stop|
@@ -116,11 +116,34 @@ class Stop < BaseStop
   has_many :routes_serving_stop
   has_many :routes, through: :routes_serving_stop
 
+  def operators_serving_stop_and_platforms
+    OperatorServingStop
+      .where('stop_id IN (?) OR stop_id = ?', Stop.where(parent_stop_id: self.id).select(:id), self.id)
+      .select('DISTINCT ON (current_operators_serving_stop.operator_id) *')
+  end
+
+  def routes_serving_stop_and_platforms
+    RouteServingStop
+      .where('stop_id IN (?) OR stop_id = ?', Stop.where(parent_stop_id: self.id).select(:id), self.id)
+      .select('DISTINCT ON (current_routes_serving_stop.route_id) *')
+  end
+
+  # Station Hierarchy
+  has_many :stop_egresses, class_name: 'StopEgress', foreign_key: :parent_stop_id
+  has_many :stop_platforms, class_name: 'StopPlatform', foreign_key: :parent_stop_id
+
+  # Internal connectivity
+  has_many :stop_transfers
+
   # Scheduled trips
   has_many :trips_out, class_name: ScheduleStopPair, foreign_key: "origin_id"
   has_many :trips_in, class_name: ScheduleStopPair, foreign_key: "destination_id"
   has_many :stops_out, through: :trips_out, source: :destination
   has_many :stops_in, through: :trips_in, source: :origin
+
+  def parent_stop
+    # Dummy relation
+  end
 
   # Add service from an Operator or Route
   scope :served_by, -> (onestop_ids_and_models) {
@@ -235,14 +258,19 @@ class Stop < BaseStop
         tyr_locate_response = TyrService.locate(locations: locations)
         now = DateTime.now
         group.each_with_index do |stop, index|
-          way_id = tyr_locate_response[index][:edges][0][:way_id]
-          stop_tags = stop.tags.try(:clone) || {}
-          if stop_tags[:osm_way_id] != way_id
-            log "osm_way_id changed for Stop #{stop.onestop_id}: was \"#{stop_tags[:osm_way_id]}\" now \"#{way_id}\""
+          osm_way_id = tyr_locate_response[index][:edges][0][:way_id]
+          if stop.osm_way_id != osm_way_id
+            log "osm_way_id changed for Stop #{stop.onestop_id}: was \"#{stop.osm_way_id}\" now \"#{osm_way_id}\""
           end
-          stop_tags[:osm_way_id] = way_id
-          stop.update(tags: stop_tags)
-          stop.update(last_conflated_at: now)
+          # Copy osm_way_id as a tag for now
+          stop_tags = stop.tags.try(:clone) || {}
+          stop_tags[:osm_way_id] = osm_way_id
+          # Update stop
+          stop.update(
+            osm_way_id: osm_way_id,
+            tags: stop_tags,
+            last_conflated_at: now
+          )
         end
       end
     end
@@ -262,7 +290,7 @@ class Stop < BaseStop
       log "Stop.from_gtfs: Invalid onestop_id: #{old_onestop_id}, trying #{onestop_id.to_s}"
     end
     onestop_id.validate! # raise OnestopIdException
-    stop = Stop.new(
+    stop = self.new(
       name: entity.stop_name,
       onestop_id: onestop_id.to_s,
       geometry: point.to_s
@@ -279,6 +307,56 @@ class Stop < BaseStop
 
   private
 
+  def update_includes_stop_transfers(changeset)
+    (self.includes_stop_transfers || []).each do |stop_transfer|
+      to_stop = Stop.find_by_onestop_id!(stop_transfer[:to_stop_onestop_id])
+      existing_relationship = StopTransfer.find_by(
+        stop: self,
+        to_stop: to_stop
+      )
+      new_attrs = {
+        stop: self,
+        to_stop: to_stop,
+        transfer_type: stop_transfer[:transfer_type],
+        min_transfer_time: stop_transfer[:min_transfer_time]
+      }
+      if existing_relationship
+        existing_relationship.update_making_history(
+          changeset: changeset,
+          new_attrs: new_attrs
+        )
+      else
+        StopTransfer.create_making_history(
+          changeset: changeset,
+          new_attrs: new_attrs
+        )
+      end
+    end
+  end
+
+  def update_does_not_include_stop_transfers(changeset)
+    (self.does_not_include_stop_transfers || []).each do |stop_transfer|
+      existing_relationship = StopTransfer.find_by(
+        stop: self,
+        to_stop: Stop.find_by_onestop_id!(stop_transfer[:to_stop_onestop_id])
+      )
+      if existing_relationship
+        existing_relationship.destroy_making_history(changeset: changeset)
+      end
+    end
+  end
+
+  def update_served_by(changeset)
+    OperatorRouteStopRelationship.manage_multiple(
+      stop: {
+        served_by: self.served_by || [],
+        not_served_by: self.not_served_by || [],
+        model: self
+      },
+      changeset: changeset
+    )
+  end
+
   def clean_attributes
     self.name.strip! if self.name.present?
   end
@@ -287,10 +365,8 @@ end
 class OldStop < BaseStop
   include OldTrackedByChangeset
   include HasAGeographicGeometry
-
   has_many :old_operators_serving_stop, as: :stop
   has_many :operators, through: :old_operators_serving_stop, source_type: 'Stop'
-
   has_many :old_routes_serving_stop, as: :stop
   has_many :routes, through: :old_routes_serving_stop, source_type: 'Stop'
 end

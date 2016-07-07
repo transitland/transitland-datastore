@@ -3,9 +3,16 @@
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.6...HEAD)
+## [4.8.7](https://github.com/transitland/transitland-datastore/tree/4.8.7) (2016-06-23)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.6...4.8.7)
+
+**Fixed bugs:**
+
+- can't query by both tag and import level simultaneously [\#612](https://github.com/transitland/transitland-datastore/issues/612)
 
 **Merged pull requests:**
 
+- Fix ambiguous tags query [\#644](https://github.com/transitland/transitland-datastore/pull/644) ([irees](https://github.com/irees))
 - \[WIP\] production release 4.8.6 [\#628](https://github.com/transitland/transitland-datastore/pull/628) ([drewda](https://github.com/drewda))
 
 ## [4.8.6](https://github.com/transitland/transitland-datastore/tree/4.8.6) (2016-06-21)

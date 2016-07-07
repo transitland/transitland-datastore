@@ -64,15 +64,7 @@ module AllowFiltering
   def self.by_boolean_attribute(collection, params, boolean_attribute_name)
     unless params[boolean_attribute_name].nil?
       conditions = {}
-      conditions[boolean_attribute_name] = case params[boolean_attribute_name]
-        when 'true' then true
-        when true then true
-        when 1 then true
-        when '1' then true
-        when 'false' then false
-        when false then false
-        when '0' then false
-      end
+      conditions[boolean_attribute_name] = to_boolean(params[boolean_attribute_name])
       collection = collection.where(conditions)
     end
     collection
@@ -106,6 +98,20 @@ module AllowFiltering
       (values += value.split(',')) if value.is_a?(String)
     end
     values
+  end
+
+  def self.to_boolean(value)
+    case value
+      when 'true' then true
+      when true then true
+      when 1 then true
+      when '1' then true
+      when 'false' then false
+      when false then false
+      when 0 then false
+      when '0' then false
+      when nil then false
+    end
   end
 
 end

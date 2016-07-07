@@ -177,11 +177,11 @@ class RouteStopPattern < BaseRouteStopPattern
 
   def calculate_distances(stops=nil)
     stops = self.stop_pattern.map {|onestop_id| Stop.find_by_onestop_id!(onestop_id) } if stops.nil?
+    self.distance_issues = 0
     if stops.map(&:onestop_id).uniq.size == 1
       self.stop_distances = Array.new(stops.size).map{|i| 0.0}
       return self.stop_distances
     end
-    self.distance_issues = 0
     self.stop_distances = []
     route = cartesian_cast(self[:geometry])
     num_segments = route.coordinates.size - 1
@@ -329,6 +329,7 @@ class RouteStopPattern < BaseRouteStopPattern
   ##### FromGTFS ####
   def self.create_from_gtfs(trip, route_onestop_id, stop_pattern, trip_stop_points, shape_points)
     # both trip_stop_points and stop_pattern correspond to stop_times.
+    # GTFSGraph should already filter out stop_times of size 0 or 1 (using filter_empty).
     # We can still have one unique stop, but must have at least 2 stop times.
     raise ArgumentError.new('Need at least two stops') if stop_pattern.length < 2
     # Rgeo produces nil if there is only one coordinate in the array

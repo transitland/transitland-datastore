@@ -154,6 +154,39 @@ class Changeset < ActiveRecord::Base
     change_payloads.destroy_all
   end
 
+  def update_computed_attributes
+    # This method updates the changeset's entity attributes that are computed/derived from the attribute data
+    # of multiple entity types. For example, here RouteStopPatterns will have to have their stop distances recomputed
+    # using both the RouteStopPattern and its stop_pattern Stops' geometries. Operators have their convex hulls
+    # recomputed from the Stops it serves.
+    #
+    # Ideally we would like to define methods at the model level (that would be the first place to put new
+    # recomputed attribute functionality if possible) but the need to avoid duplicate recomputation on entities of update
+    # changesets complicates this. E.g, We don't want to recompute the stop_distances of one RouteStopPattern
+    # multiple times if there are multiple Stops of that RouteStopPattern in the changeset.
+    rsps_to_update_distances = Set.new
+
+    if self.stops_created_or_updated
+      operators_to_update_convex_hull = Set.new
+      self.stops_created_or_updated.each do |stop|
+        rsps_to_update_distances.merge(RouteStopPattern.with_stops(stop.onestop_id))
+        operators_to_update_convex_hull.merge(OperatorServingStop.where(stop: stop).map(&:operator))
+      end
+
+      operators_to_update_convex_hull.each { |operator|
+        operator.geometry = operator.recompute_convex_hull_around_stops
+        operator.update_making_history(changeset: self)
+      }
+    end
+
+    rsps_to_update_distances.merge(self.route_stop_patterns_created_or_updated)
+    rsps_to_update_distances.each { |rsp|
+      rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
+    }
+    #mainly for testing
+    [rsps_to_update_distances.size, operators_to_update_convex_hull.size]
+  end
+
   def apply!
     fail Changeset::Error.new(changeset: self, message: 'has already been applied.') if applied
     Changeset.transaction do
@@ -176,6 +209,9 @@ class Changeset < ActiveRecord::Base
           end
           EntityImportedFromFeed.import eiff_batch
         end
+
+        # this will go before quality check once merged with issues branch. not called if import
+        update_computed_attributes unless self.imported_from_feed && self.imported_from_feed_version
       rescue => e
         logger.error "Error applying Changeset #{self.id}: #{e.message}"
         logger.error e.backtrace

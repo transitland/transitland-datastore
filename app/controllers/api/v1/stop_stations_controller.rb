@@ -1,4 +1,4 @@
-class Api::V1::StopsController < Api::V1::BaseApiController
+class Api::V1::StopStationsController < Api::V1::BaseApiController
   include JsonCollectionPagination
   include DownloadableCsv
   include AllowFiltering
@@ -6,17 +6,16 @@ class Api::V1::StopsController < Api::V1::BaseApiController
   GEOJSON_ENTITY_PROPERTIES = Proc.new { |properties, entity|
     # title property to follow GeoJSON simple style spec
     properties[:title] = entity.name
-
     properties[:timezone] = entity.timezone
     properties[:operators_serving_stop] = entity.operators.map(&:onestop_id).try(:uniq)
     properties[:routes_serving_stop] = entity.routes.map(&:onestop_id).try(:uniq)
   }
 
   before_action :set_stop, only: [:show]
-  SERIALIZER = StopSerializer
+  SERIALIZER = StopStationSerializer
 
   def index
-    @stops = Stop.where('')
+    @stops = Stop.where(type: nil)
 
     @stops = AllowFiltering.by_onestop_id(@stops, params)
     @stops = AllowFiltering.by_tag_keys_and_values(@stops, params)
@@ -52,13 +51,38 @@ class Api::V1::StopsController < Api::V1::BaseApiController
     end
 
     @stops = @stops.includes{[
+      stop_transfers,
+      stop_transfers.to_stop,
+      stop_platforms,
+      stop_egresses,
+      # Self
+      imported_from_feeds,
+      imported_from_feed_versions,
       operators_serving_stop,
       operators_serving_stop.operator,
       routes_serving_stop,
       routes_serving_stop.route,
       routes_serving_stop.route.operator,
-      imported_from_feeds,
-      imported_from_feed_versions
+      # stop_platforms
+      stop_platforms.imported_from_feeds,
+      stop_platforms.imported_from_feed_versions,
+      stop_platforms.operators_serving_stop,
+      stop_platforms.operators_serving_stop.operator,
+      stop_platforms.routes_serving_stop,
+      stop_platforms.routes_serving_stop.route,
+      stop_platforms.routes_serving_stop.route.operator,
+      stop_platforms.stop_transfers,
+      stop_platforms.stop_transfers.to_stop,
+      # stop_egresses
+      stop_egresses.imported_from_feeds,
+      stop_egresses.imported_from_feed_versions,
+      stop_egresses.operators_serving_stop,
+      stop_egresses.operators_serving_stop.operator,
+      stop_egresses.routes_serving_stop,
+      stop_egresses.routes_serving_stop.route,
+      stop_egresses.routes_serving_stop.route.operator,
+      stop_egresses.stop_transfers,
+      stop_egresses.stop_transfers.to_stop,
     ]} # TODO: check performance against eager_load, joins, etc.
 
     respond_to do |format|

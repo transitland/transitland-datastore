@@ -11,5 +11,19 @@ module IsAnEntityImportedFromFeeds
         })
         .distinct
     }
+    scope :where_imported_from_feed, -> (feed) {
+      joins(:entities_imported_from_feed)
+        .where(entities_imported_from_feed: {
+          feed_id: feed.id
+        })
+        .distinct
+    }
+    scope :where_imported_from_feed_version, -> (feed_version) {
+      joins(:entities_imported_from_feed)
+        .where(entities_imported_from_feed: {
+          feed_version_id: feed_version.id
+        })
+        .distinct
+    }
   end
 end

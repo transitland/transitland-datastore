@@ -17,16 +17,18 @@ describe GTFSGraph do
       before(:each) { @feed, @feed_version = load_feed(feed_version_name: :feed_version_caltrain, import_level: 1) }
 
       it 'updated feed geometry' do
-        geometry = [
-          [
-            [-122.412076, 37.003485],
-            [-121.566088, 37.003485],
-            [-121.566088, 37.776439],
-            [-122.412076, 37.776439],
-            [-122.412076, 37.003485]
-          ]
-        ]
-        expect(@feed.geometry(as: :geojson)[:coordinates]).to match_array(geometry)
+        expect_coords = [[
+          [-122.412076, 37.003485],
+          [-121.566088, 37.003485],
+          [-121.566088, 37.77639],
+          [-122.412076, 37.77639],
+          [-122.412076, 37.003485]
+        ]]
+        feed_coords = @feed.geometry(as: :geojson)[:coordinates]
+        expect_coords.first.zip(feed_coords.first).each { |a,b|
+          expect(a[0]).to be_within(0.001).of(b[0])
+          expect(a[1]).to be_within(0.001).of(b[1])
+        }
       end
 
       it 'created a known Operator' do
@@ -113,63 +115,64 @@ describe GTFSGraph do
       it 'created known Operator that serves known Stops' do
         o = @feed.imported_operators.find_by(onestop_id: 'o-9q9-caltrain')
         # Just check the number of stops here...
-        expect(o.stops.size).to eq(95)
+        expect(o.stops.size).to eq(64)
       end
 
       it 'created known Routes that serve known Stops' do
         r = @feed.imported_routes.find_by(onestop_id: 'r-9q9j-bullet')
-        expect(r.stops.size).to eq(39)
-        expect(r.stops.map(&:onestop_id)).to contain_exactly(
-          "s-9q8vzhbggj-millbraecaltrainstation",
+        expect(r.stops.size).to eq(26)
+        expect(r.stops.map(&:onestop_id)).to match_array([
           "s-9q8vzhbggj-millbraecaltrainstation<70061",
           "s-9q8vzhbggj-millbraecaltrainstation<70062",
-          "s-9q8yw8y448-bayshorecaltrainstation",
           "s-9q8yw8y448-bayshorecaltrainstation<70031",
           "s-9q8yw8y448-bayshorecaltrainstation<70032",
-          "s-9q8yycs6ku-22ndstreetcaltrainstation",
           "s-9q8yycs6ku-22ndstreetcaltrainstation<70021",
           "s-9q8yycs6ku-22ndstreetcaltrainstation<70022",
-          "s-9q8yyugptw-sanfranciscocaltrainstation",
           "s-9q8yyugptw-sanfranciscocaltrainstation<70011",
           "s-9q8yyugptw-sanfranciscocaltrainstation<70012",
-          "s-9q9hwp6epk-mountainviewcaltrainstation",
           "s-9q9hwp6epk-mountainviewcaltrainstation<70211",
           "s-9q9hwp6epk-mountainviewcaltrainstation<70212",
-          "s-9q9hxhecje-sunnyvalecaltrainstation",
           "s-9q9hxhecje-sunnyvalecaltrainstation<70221",
           "s-9q9hxhecje-sunnyvalecaltrainstation<70222",
-          "s-9q9j5dmkuu-menloparkcaltrainstation",
           "s-9q9j5dmkuu-menloparkcaltrainstation<70161",
           "s-9q9j5dmkuu-menloparkcaltrainstation<70162",
-          "s-9q9j6812kg-redwoodcitycaltrainstation",
           "s-9q9j6812kg-redwoodcitycaltrainstation<70141",
           "s-9q9j6812kg-redwoodcitycaltrainstation<70142",
-          "s-9q9j8rn6tv-sanmateocaltrainstation",
           "s-9q9j8rn6tv-sanmateocaltrainstation<70091",
           "s-9q9j8rn6tv-sanmateocaltrainstation<70092",
-          "s-9q9j913rf1-hillsdalecaltrainstation",
           "s-9q9j913rf1-hillsdalecaltrainstation<70111",
           "s-9q9j913rf1-hillsdalecaltrainstation<70112",
-          "s-9q9jh061xw-paloaltocaltrainstation",
           "s-9q9jh061xw-paloaltocaltrainstation<70171",
           "s-9q9jh061xw-paloaltocaltrainstation<70172",
-          "s-9q9k62qu53-tamiencaltrainstation",
           "s-9q9k62qu53-tamiencaltrainstation<70271",
           "s-9q9k62qu53-tamiencaltrainstation<70272",
-          "s-9q9k659e3r-sanjosecaltrainstation",
           "s-9q9k659e3r-sanjosecaltrainstation<70261",
           "s-9q9k659e3r-sanjosecaltrainstation<70262"
-        )
+        ])
       end
     end
 
     it 'skipped RouteStopPattern generation with trips having less than 2 stop times' do
-      @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_trips_without_stop_times, import_level: 1)
-      expect(@feed.imported_route_stop_patterns.size).to eq 7
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_trips_special_stop_times, import_level: 1)
+      # 'BFC2' is a 1 stop time trip; 'BFC1' has no stop times
+      expect(@feed.imported_route_stop_patterns.size).to eq 8
     end
   end
 
+
   context 'can apply a level 2 changeset', import_level:2 do
+
+    it 'ignores missing routes' do
+      # Delete a route & rsp before SSPs are processed ->
+      #     expect SSPs for this route & rsp trips to be skipped
+      block_before_level_2 = Proc.new { |graph|
+        Route.find_by_onestop_id!('r-9qsb-20').delete
+        RouteStopPattern.find_by_onestop_id!('r-9qt1-50-011bb4-6fba7c').delete
+      }
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 2, block_before_level_2: block_before_level_2)
+      expect(@feed.imported_schedule_stop_pairs.count).to eq(13) # WAS 17
+      expect(@feed.imported_schedule_stop_pairs.where(route: Route.find_by_onestop_id('r-9qt1-50')).count).to eq(2) # WAS 4
+    end
 
     it 'created known ScheduleStopPairs' do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 2)
@@ -228,6 +231,14 @@ describe GTFSGraph do
       expect(s.destination_timepoint_source).to eq('gtfs_exact')
       expect(s.window_start).to eq('08:20:00')
       expect(s.window_end).to eq('09:20:00')
+    end
+
+    it 'can process a trip with 1 unique stop but at least 2 stop times' do
+      # trip 'ONESTOP' has 1 unique stop, but 2 stop times
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_trips_special_stop_times, import_level: 2)
+      expect(@feed.imported_route_stop_patterns.size).to eq(8)
+      expect(RouteStopPattern.where(onestop_id: 'r-9qsb-20-9b1b33-d2e3e5').count).to eq (1)
+      expect(RouteStopPattern.where(onestop_id: 'r-9qsb-20-9b1b33-d2e3e5').first.stop_distances).to eq ([0.0, 0.0])
     end
   end
 
