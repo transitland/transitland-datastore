@@ -78,6 +78,12 @@
         "properties": {
           "action": {
             "type": { "enum": ["createUpdate", "destroy"] }
+          },
+          "issuesResolved": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
           }
         }
       }
