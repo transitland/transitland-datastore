@@ -16,6 +16,8 @@ class IssueSerializer < ApplicationSerializer
   attributes :id,
              :created_by_changeset_id,
              :resolved_by_changeset_id,
+             :imported_from_feed_onestop_id,
+             :imported_from_feed_version_sha1,
              :details,
              :issue_type,
              :open,
@@ -23,4 +25,12 @@ class IssueSerializer < ApplicationSerializer
              :updated_at
 
   has_many :entities_with_issues
+
+  def imported_from_feed_onestop_id
+    object.created_by_changeset.imported_from_feed.try(:onestop_id)
+  end
+
+  def imported_from_feed_version_sha1
+    object.created_by_changeset.imported_from_feed_version.try(:sha1)
+  end
 end
