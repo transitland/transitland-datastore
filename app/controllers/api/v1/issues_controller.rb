@@ -15,7 +15,7 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
       @issues = @issues.where(issue_type: params[:issue_type])
     end
 
-    @issues = @issues.includes{[entities_with_issues]}
+    @issues = @issues.includes{[entities_with_issues: :entity, created_by_changeset: [:imported_from_feed, :imported_from_feed_version]]}
 
     respond_to do |format|
       format.json do
