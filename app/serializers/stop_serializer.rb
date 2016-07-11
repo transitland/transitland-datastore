@@ -35,6 +35,7 @@ class StopSerializer < CurrentEntitySerializer
              :name,
              :tags,
              :timezone,
+             :osm_way_id,
              :created_at,
              :updated_at
 

@@ -103,21 +103,15 @@ class GTFSGraph
 
   def calculate_rsp_distances(rsps)
     graph_log "Calculating distances"
-    rsps_with_issues = 0
     rsps.each do |rsp|
       stops = rsp.stop_pattern.map { |onestop_id| find_by_onestop_id(onestop_id) }
       begin
         rsp.calculate_distances(stops=stops)
-        rsp.evaluate_distances
-        rsps_with_issues += 1 if rsp.distance_issues > 0
       rescue StandardError
         graph_log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
-        rsps_with_issues += 1
         rsp.fallback_distances(stops=stops)
       end
     end
-    score = ((rsps.size - rsps_with_issues)/rsps.size.to_f).round(5) rescue score = 1.0
-    graph_log "Feed: #{@feed.onestop_id}. #{rsps_with_issues} Route Stop Patterns out of #{rsps.size} had issues with distance calculation. Valhalla Import Score: #{score}"
   end
 
   def ssp_schedule_async
@@ -288,18 +282,18 @@ class GTFSGraph
   end
 
   def load_tl_transfers
-    return unless @gtfs.file_present?('transfers.txt')
-    @gtfs.transfers.each do |transfer|
-      stop = find_by_gtfs_entity(@gtfs.stop(transfer.from_stop_id))
-      to_stop = find_by_gtfs_entity(@gtfs.stop(transfer.to_stop_id))
-      next unless stop && to_stop
-      stop.includes_stop_transfers ||= []
-      stop.includes_stop_transfers << {
-        toStopOnestopId: to_stop.onestop_id,
-        transferType: StopTransfer::GTFS_TRANSFER_TYPE[transfer.transfer_type.presence || "0"],
-        minTransferTime: transfer.min_transfer_time.to_i
-      }
-    end
+    # return unless @gtfs.file_present?('transfers.txt')
+    # @gtfs.transfers.each do |transfer|
+    #   stop = find_by_gtfs_entity(@gtfs.stop(transfer.from_stop_id))
+    #   to_stop = find_by_gtfs_entity(@gtfs.stop(transfer.to_stop_id))
+    #   next unless stop && to_stop
+    #   stop.includes_stop_transfers ||= []
+    #   stop.includes_stop_transfers << {
+    #     toStopOnestopId: to_stop.onestop_id,
+    #     transferType: StopTransfer::GTFS_TRANSFER_TYPE[transfer.transfer_type.presence || "0"],
+    #     minTransferTime: transfer.min_transfer_time.to_i
+    #   }
+    # end
   end
 
   def load_tl_operators

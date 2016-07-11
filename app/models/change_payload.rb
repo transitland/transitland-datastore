@@ -52,6 +52,7 @@ class ChangePayload < ActiveRecord::Base
   def apply!
     cache = {}
     changes = []
+    issues_to_resolve = []
     entity_types = {
       feed: Feed,
       stop: Stop,
@@ -65,6 +66,9 @@ class ChangePayload < ActiveRecord::Base
     (payload_as_ruby_hash[:changes] || []).each do |change|
       (entity_types.keys & change.keys).each do |entity_type|
         changes << [entity_type, change[:action], change[entity_type]]
+        if change.has_key?(:issues_resolved)
+          issues_to_resolve += Issue.find(change[:issues_resolved])
+        end
       end
     end
     changes
@@ -78,6 +82,7 @@ class ChangePayload < ActiveRecord::Base
           changes: chunked_changes.map(&:last)
         )
       }
+    issues_to_resolve
   end
 
   def revert!

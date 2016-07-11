@@ -296,6 +296,17 @@ ActiveRecord::Schema.define(version: 20160614041303) do
   add_index "entities_imported_from_feed", ["feed_id"], name: "index_entities_imported_from_feed_on_feed_id", using: :btree
   add_index "entities_imported_from_feed", ["feed_version_id"], name: "index_entities_imported_from_feed_on_feed_version_id", using: :btree
 
+  create_table "entities_with_issues", force: :cascade do |t|
+    t.integer  "entity_id"
+    t.string   "entity_type"
+    t.string   "entity_attribute"
+    t.integer  "issue_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "entities_with_issues", ["entity_type", "entity_id"], name: "index_entities_with_issues_on_entity_type_and_entity_id", using: :btree
+
   create_table "feed_schedule_imports", force: :cascade do |t|
     t.boolean  "success"
     t.text     "import_log"
@@ -341,6 +352,16 @@ ActiveRecord::Schema.define(version: 20160614041303) do
   end
 
   add_index "feed_versions", ["feed_type", "feed_id"], name: "index_feed_versions_on_feed_type_and_feed_id", using: :btree
+
+  create_table "issues", force: :cascade do |t|
+    t.integer  "created_by_changeset_id",                 null: false
+    t.integer  "resolved_by_changeset_id"
+    t.string   "details"
+    t.string   "issue_type"
+    t.boolean  "open",                     default: true
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
   create_table "old_feeds", force: :cascade do |t|
     t.string    "onestop_id"

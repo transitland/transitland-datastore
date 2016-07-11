@@ -26,6 +26,14 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     @routes = AllowFiltering.by_identifer_and_identifier_starts_with(@routes, params)
     @routes = AllowFiltering.by_updated_since(@routes, params)
 
+    if params[:imported_from_feed].present?
+      @routes = @routes.where_imported_from_feed(Feed.find_by_onestop_id(params[:imported_from_feed]))
+    end
+
+    if params[:imported_from_feed_version].present?
+      @routes = @routes.where_imported_from_feed_version(FeedVersion.find_by!(sha1: params[:imported_from_feed_version]))
+    end
+
     if params[:serves].present?
       @routes = @routes.where_serves(AllowFiltering.param_as_array(params, :serves))
     end
@@ -94,7 +102,9 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
             :onestop_id,
             :tag_key,
             :tag_value,
-            :import_level
+            :import_level,
+            :imported_from_feed,
+            :imported_from_feed_version
           )
         )
       end
