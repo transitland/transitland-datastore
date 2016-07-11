@@ -1,4 +1,11 @@
 require 'simplecov'
+
+if ENV['CIRCLE_ARTIFACTS']
+  # if running on CircleCI, upload coverage report to codecov.io
+  require 'codecov'
+  SimpleCov.formatter = SimpleCov::Formatter::Codecov
+end
+
 SimpleCov.start do
   load_profile 'rails'
 
@@ -6,6 +13,7 @@ SimpleCov.start do
   add_group 'Serializers', 'app/serializers'
   add_group 'Workers', 'app/workers'
 
+  # store SimpleCov reports on CircleCI as artifacts
   coverage_dir(File.join("..", "..", "..", ENV['CIRCLE_ARTIFACTS'], "coverage")) if ENV['CIRCLE_ARTIFACTS']
 end
 

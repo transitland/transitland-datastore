@@ -105,6 +105,10 @@ GEM
     c_geohash (1.1.2)
     choice (0.2.0)
     chronic (0.10.2)
+    codecov (0.1.5)
+      json
+      simplecov
+      url
     coderay (1.1.1)
     concurrent-ruby (1.0.2)
     connection_pool (2.2.0)
@@ -377,6 +381,7 @@ GEM
       kgio (~> 2.6)
       raindrops (~> 0.7)
     uniform_notifier (1.10.0)
+    url (0.3.2)
     vcr (3.0.3)
     warden (1.2.6)
       rack (>= 1.0)
@@ -404,6 +409,7 @@ DEPENDENCIES
   byebug
   c_geohash
   carrierwave!
+  codecov
   database_cleaner
   datastore_admin!
   devise
