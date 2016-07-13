@@ -17,6 +17,8 @@ class Issue < ActiveRecord::Base
   belongs_to :created_by_changeset, class_name: 'Changeset'
   belongs_to :resolved_by_changeset, class_name: 'Changeset'
 
+  scope :with_type, -> (search_string) { where(issue_type: search_string.split(',')) }
+
   extend Enumerize
   enumerize :issue_type,
             in: ['stop_position_inaccurate',
