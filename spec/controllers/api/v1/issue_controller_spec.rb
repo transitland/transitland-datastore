@@ -1,4 +1,6 @@
 describe Api::V1::IssuesController do
+
+  # TODO: loading this feed each test is slow
   before(:each) do
     allow(Figaro.env).to receive(:transitland_datastore_auth_token) { 'THISISANAPIKEY' }
     @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANAPIKEY'
