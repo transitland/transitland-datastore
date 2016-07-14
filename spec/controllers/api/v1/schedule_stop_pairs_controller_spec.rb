@@ -15,16 +15,16 @@ describe Api::V1::ScheduleStopPairsController do
 
   describe 'GET index' do
     context 'default' do
-      it 'where_active default scope' do
+      it 'returns all SSPs' do
         get :index
-        expect_json_sizes(schedule_stop_pairs: 2)
+        expect_json_sizes(schedule_stop_pairs: 3)
       end
     end
 
     context 'feed_onestop_id' do
-      it 'filters by feed_onestop_id and active' do
+      it 'filters by feed_onestop_id' do
         get :index, feed_onestop_id: @feed.onestop_id
-        expect_json_sizes(schedule_stop_pairs: 2)
+        expect_json_sizes(schedule_stop_pairs: 3)
       end
     end
 
@@ -32,11 +32,6 @@ describe Api::V1::ScheduleStopPairsController do
       it 'filters by feed_version_sha1' do
         get :index, feed_version_sha1: @feed_version_active.sha1
         expect_json_sizes(schedule_stop_pairs: 2)
-      end
-
-      it 'overrides default where_active scope' do
-        get :index, feed_version_sha1: @feed_version_inactive.sha1
-        expect_json_sizes(schedule_stop_pairs: 1)
       end
     end
 
