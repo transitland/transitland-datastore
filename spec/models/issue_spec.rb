@@ -23,6 +23,15 @@ describe Issue do
 
   end
 
+  it '.with_type' do
+    changeset = create(:changeset)
+    Issue.new(created_by_changeset: changeset, issue_type: 'stop_position_inaccurate').save!
+    Issue.new(created_by_changeset: changeset, issue_type: 'rsp_line_inaccurate').save!
+    expect(Issue.with_type('stop_position_inaccurate,fake').size).to eq 1
+    expect(Issue.with_type('stop_position_inaccurate,rsp_line_inaccurate').size).to eq 2
+    expect(Issue.with_type('fake1,fake2').size).to eq 0
+  end
+
   context 'existing issues' do
     before(:each) do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_issues, import_level: 1)

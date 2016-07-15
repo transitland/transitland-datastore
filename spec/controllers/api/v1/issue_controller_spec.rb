@@ -1,4 +1,6 @@
 describe Api::V1::IssuesController do
+
+  # TODO: loading this feed each test is slow
   before(:each) do
     allow(Figaro.env).to receive(:transitland_datastore_auth_token) { 'THISISANAPIKEY' }
     @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANAPIKEY'
@@ -11,6 +13,20 @@ describe Api::V1::IssuesController do
       expect_json_types({ issues: :array })
       expect_json({ issues: -> (issues) {
         expect(issues.length).to eq 1
+      }})
+    end
+
+    it 'returns issues with correct issue_type' do
+      get :index, issue_type: 'stop_rsp_distance_gap,route_color,fake'
+      expect_json({ issues: -> (issues) {
+        expect(issues.length).to eq 1
+      }})
+    end
+
+    it 'returns empty with no correct issue_type' do
+      get :index, issue_type: 'route_color,fake'
+      expect_json({ issues: -> (issues) {
+        expect(issues.length).to eq 0
       }})
     end
   end
