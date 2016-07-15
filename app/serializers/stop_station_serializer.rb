@@ -35,6 +35,7 @@ class StopStationSerializer < CurrentEntitySerializer
                :geometry,
                :name,
                :tags,
+               :timezone,
                :created_at,
                :updated_at
                :last_conflated_at
@@ -48,6 +49,7 @@ class StopStationSerializer < CurrentEntitySerializer
                :geometry,
                :name,
                :tags,
+               :timezone,
                :osm_way_id,
                :created_at,
                :updated_at
@@ -60,6 +62,7 @@ class StopStationSerializer < CurrentEntitySerializer
       onestop_id: "#{object.onestop_id}>",
       geometry: object.geometry,
       name: object.name,
+      timezone: object.timezone,
       last_conflated_at: object.last_conflated_at,
       osm_way_id: object.osm_way_id
     )]
@@ -70,6 +73,7 @@ class StopStationSerializer < CurrentEntitySerializer
       onestop_id: "#{object.onestop_id}<",
       geometry: object.geometry,
       name: object.name,
+      timezone: object.timezone,
       operators_serving_stop: object.operators_serving_stop,
       routes_serving_stop: object.routes_serving_stop,
       tags: {}
