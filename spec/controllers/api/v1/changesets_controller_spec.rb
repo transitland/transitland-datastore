@@ -195,6 +195,25 @@ describe Api::V1::ChangesetsController do
       expect_json({ trialSucceeds: false })
       expect(changeset.applied).to eq false
     end
+
+    it 'should return issues when found' do
+      stop = create(:stop_richmond)
+      create(:stop_millbrae)
+      route_stop_pattern = create(:route_stop_pattern_bart)
+      coords = [stop.geometry[:coordinates][0] + 0.5, stop.geometry[:coordinates][1]]
+      changeset = create(:changeset, payload: {
+        changes: [
+          action: 'createUpdate',
+          stop: {
+            onestopId: stop.onestop_id,
+            timezone: 'America/Los_Angeles',
+            geometry: { type: "Point", coordinates: coords }
+          }
+        ]
+      })
+      post :check, id: changeset.id
+      expect_json({ trialSucceeds: true, issues: -> (issues){ expect(issues.size).to eq 1 } })
+    end
   end
 
   context 'POST apply' do
@@ -214,7 +233,7 @@ describe Api::V1::ChangesetsController do
       expect(Stop.count).to eq 0
       post :apply, id: changeset
       expect(OnestopId.find!('s-9q8yt4b-1AvHoS').name).to eq '1st Ave. & Holloway Street'
-      expect_json({ applied: true })
+      expect_json({ applied: [true,[]] })
     end
 
     it 'should fail when API auth token is not provided' do
@@ -237,6 +256,32 @@ describe Api::V1::ChangesetsController do
       })
       post :apply, id: changeset.id
       expect(response.status).to eq 400
+    end
+  end
+
+  context 'issue resolution' do
+    before(:each) do
+      load_feed(feed_version_name: :feed_version_example_issues, import_level: 1)
+    end
+
+    it 'resolves issue with issues_resolved changeset' do
+      changeset = create(:changeset, payload: {
+        changes: [
+          action: 'createUpdate',
+          issuesResolved: [1],
+          stop: {
+            onestopId: 's-9qscwx8n60-nyecountyairportdemo',
+            timezone: 'America/Los_Angeles',
+            "geometry": {
+              "type": "Point",
+              "coordinates": [-116.784582, 36.88845]
+            }
+          }
+        ]
+      })
+      post :apply, id: changeset.id
+      expect(Issue.find(1).open).to be false
+      expect(Issue.find(1).resolved_by_changeset).to eq changeset
     end
   end
 

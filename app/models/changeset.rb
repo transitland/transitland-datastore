@@ -112,18 +112,18 @@ class Changeset < ActiveRecord::Base
 
   def trial_succeeds?
     trial_succeeds = false
+    issues = []
     Changeset.transaction do
       begin
-        apply!
+        trial_succeeds, issues = apply!
       rescue Exception => e
         raise ActiveRecord::Rollback
       else
-        trial_succeeds = true
         raise ActiveRecord::Rollback
       end
     end
     self.reload
-    trial_succeeds
+    return trial_succeeds, issues
   end
 
   def create_change_payloads(entities)
@@ -154,6 +154,17 @@ class Changeset < ActiveRecord::Base
     change_payloads.destroy_all
   end
 
+  def issues_unresolved(resolving_issues, changeset_issues)
+    changeset_issues.map { |c| resolving_issues.map { |r| r if c.equivalent?(r) } }.flatten.compact
+  end
+
+  def check_quality
+    gqc = QualityCheck::GeometryQualityCheck.new(changeset: self)
+    issues = []
+    issues += gqc.check
+    issues
+  end
+
   def update_computed_attributes
     # This method updates the changeset's entity attributes that are computed/derived from the attribute data
     # of multiple entity types. For example, here RouteStopPatterns will have to have their stop distances recomputed
@@ -169,7 +180,7 @@ class Changeset < ActiveRecord::Base
     if self.stops_created_or_updated
       operators_to_update_convex_hull = Set.new
       self.stops_created_or_updated.each do |stop|
-        rsps_to_update_distances.merge(RouteStopPattern.with_stops(stop.onestop_id))
+        rsps_to_update_distances.merge(RouteStopPattern.with_stops(stop.onestop_id).map(&:onestop_id))
         operators_to_update_convex_hull.merge(OperatorServingStop.where(stop: stop).map(&:operator))
       end
 
@@ -179,8 +190,9 @@ class Changeset < ActiveRecord::Base
       }
     end
 
-    rsps_to_update_distances.merge(self.route_stop_patterns_created_or_updated)
-    rsps_to_update_distances.each { |rsp|
+    rsps_to_update_distances.merge(self.route_stop_patterns_created_or_updated.map(&:onestop_id))
+    rsps_to_update_distances.each { |onestop_id|
+      rsp = RouteStopPattern.find_by_onestop_id!(onestop_id)
       rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
     }
     #mainly for testing
@@ -189,10 +201,12 @@ class Changeset < ActiveRecord::Base
 
   def apply!
     fail Changeset::Error.new(changeset: self, message: 'has already been applied.') if applied
+    changeset_issues = nil
     Changeset.transaction do
       begin
+        resolving_issues = []
         change_payloads.each do |change_payload|
-          change_payload.apply!
+          resolving_issues += change_payload.apply!
         end
         self.update(applied: true, applied_at: Time.now)
         # Create any feed-entity associations
@@ -210,8 +224,17 @@ class Changeset < ActiveRecord::Base
           EntityImportedFromFeed.import eiff_batch
         end
 
-        # this will go before quality check once merged with issues branch. not called if import
         update_computed_attributes unless self.imported_from_feed && self.imported_from_feed_version
+        changeset_issues = check_quality
+        unresolved_issues = issues_unresolved(resolving_issues, changeset_issues)
+        if (unresolved_issues.empty?)
+          resolving_issues.each { |issue| issue.update!({ open: false, resolved_by_changeset: self}) }
+          changeset_issues.each(&:save!)
+        else
+          message = unresolved_issues.map { |issue| "Issue #{issue.id} was not resolved." }.join(" ")
+          logger.error "Error applying Changeset #{self.id}: " + message
+          raise Changeset::Error.new(changeset: self, message: message)
+        end
       rescue => e
         logger.error "Error applying Changeset #{self.id}: #{e.message}"
         logger.error e.backtrace
@@ -234,7 +257,7 @@ class Changeset < ActiveRecord::Base
     if Figaro.env.auto_fetch_feed_version.presence == 'true'
       FeedFetcherService.fetch_these_feeds_async(self.feeds_created_or_updated)
     end
-    true
+    return true, changeset_issues
   end
 
   def revert!

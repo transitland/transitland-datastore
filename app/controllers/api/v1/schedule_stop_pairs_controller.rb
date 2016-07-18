@@ -115,9 +115,8 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     feed_version_sha1 = params[:feed_version_sha1].presence || params[:imported_from_feed_version].presence
     if feed_version_sha1
       @ssps = @ssps.where(feed_version: FeedVersion.find_by!(sha1: feed_version_sha1))
-    else
-      @ssps = @ssps.where_active
     end
+
     # Explicitly use active Feed Versions
     if params[:active].presence == 'true'
       @ssps = @ssps.where_active

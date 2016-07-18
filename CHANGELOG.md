@@ -2,7 +2,51 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.6...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.8...HEAD)
+
+**Closed issues:**
+
+- "issues" and "quality checks" [\#569](https://github.com/transitland/transitland-datastore/issues/569)
+
+**Merged pull requests:**
+
+- Production release 4.8.8 [\#659](https://github.com/transitland/transitland-datastore/pull/659) ([irees](https://github.com/irees))
+- Issues [\#599](https://github.com/transitland/transitland-datastore/pull/599) ([doublestranded](https://github.com/doublestranded))
+
+## [4.8.8](https://github.com/transitland/transitland-datastore/tree/4.8.8) (2016-07-07)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.7...4.8.8)
+
+**Implemented enhancements:**
+
+- Updating RSP distances when related entities change with changeset [\#525](https://github.com/transitland/transitland-datastore/issues/525)
+
+**Fixed bugs:**
+
+- RSP not found in feeds where not all operators are imported [\#377](https://github.com/transitland/transitland-datastore/issues/377)
+
+**Closed issues:**
+
+- Route controller: serves stops [\#654](https://github.com/transitland/transitland-datastore/issues/654)
+- Feeds controller: Filter by latest\_fetch\_exception\_log [\#651](https://github.com/transitland/transitland-datastore/issues/651)
+- Station Hierarchy Import [\#257](https://github.com/transitland/transitland-datastore/issues/257)
+- Station Hierarchy data model [\#256](https://github.com/transitland/transitland-datastore/issues/256)
+
+**Merged pull requests:**
+
+- Compatibility: Stop osm\_way\_id tag [\#663](https://github.com/transitland/transitland-datastore/pull/663) ([irees](https://github.com/irees))
+- Add imported\_from\_\* params to pagination links [\#662](https://github.com/transitland/transitland-datastore/pull/662) ([irees](https://github.com/irees))
+- GTFSGraph: Disable StopTransfer import [\#661](https://github.com/transitland/transitland-datastore/pull/661) ([irees](https://github.com/irees))
+- EIFF: scope where\_imported\_from\_feed [\#658](https://github.com/transitland/transitland-datastore/pull/658) ([irees](https://github.com/irees))
+- Stop JSON Schema fixes [\#656](https://github.com/transitland/transitland-datastore/pull/656) ([irees](https://github.com/irees))
+- Computed attributes [\#655](https://github.com/transitland/transitland-datastore/pull/655) ([doublestranded](https://github.com/doublestranded))
+- Route controller: serves stops [\#653](https://github.com/transitland/transitland-datastore/pull/653) ([irees](https://github.com/irees))
+- Feeds controller: Filter by latest\_fetch\_exception\_log [\#652](https://github.com/transitland/transitland-datastore/pull/652) ([irees](https://github.com/irees))
+- added stops\_served\_by\_route to route controller [\#650](https://github.com/transitland/transitland-datastore/pull/650) ([doublestranded](https://github.com/doublestranded))
+- Fixing 1 stop, 2 stop times level 2 import bug [\#649](https://github.com/transitland/transitland-datastore/pull/649) ([doublestranded](https://github.com/doublestranded))
+- SSP import: skip if missing entities [\#648](https://github.com/transitland/transitland-datastore/pull/648) ([irees](https://github.com/irees))
+- Production release 4.8.7 [\#645](https://github.com/transitland/transitland-datastore/pull/645) ([irees](https://github.com/irees))
+- Station hierarchy 4 [\#572](https://github.com/transitland/transitland-datastore/pull/572) ([irees](https://github.com/irees))
+
 ## [4.8.7](https://github.com/transitland/transitland-datastore/tree/4.8.7) (2016-06-23)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.6...4.8.7)
 

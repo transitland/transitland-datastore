@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.2.6'
+gem 'rails', '4.2.7'
 
 # Transitland Datastore components
 path 'components' do
@@ -93,7 +93,7 @@ gem 'aws-sdk', group: [:staging, :production]
 gem 'sentry-raven', group: [:staging, :production]
 
 # logging
-gem 'logstasher'
+gem 'logstasher', '0.9.0' # until bug with Devise is fixed: https://github.com/shadabahmed/logstasher/issues/114
 gem 'sidekiq-logging-json'
 gem 'ruby-progressbar'
 
