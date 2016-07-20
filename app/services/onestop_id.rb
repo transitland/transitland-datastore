@@ -22,9 +22,8 @@ module OnestopId
     def initialize(string: nil, **components)
       components = components.merge(self.parse(string)) if string
       components.each do |component, value|
-        self.send(component+"=", value)
+        self.send("#{component}=", value)
       end
-      validate!
     end
 
     def self.match?(value)
@@ -41,7 +40,7 @@ module OnestopId
     end
 
     def to_s
-      self.FORMAT.map { |f| f.is_a?(Symbol) ? self.send(f) : f }.join('')
+      self.class::FORMAT.map { |f| f.is_a?(Symbol) ? self.send(f) : f }.join('')
     end
 
     def validate!
@@ -81,13 +80,13 @@ module OnestopId
       @name
     end
     def name=(value)
-      @name = value.downcase.gsub(/[^[:alnum:]~]/, '')
+      @name = value.downcase.gsub(/[\-\:\&\@\/]/, '~').gsub(/[^[:alnum:]~]/, '')
     end
 
     def validate
       errors = []
-      # errors << 'invalid geohash' unless @components[:geohash].present?
-      # errors << 'invalid name' unless @components[:name].present?
+      errors << 'invalid geohash' unless @geohash.present?
+      errors << 'invalid name' unless @name.present?
       return (errors.size == 0), errors
     end
   end
