@@ -13,56 +13,45 @@ module OnestopId
 
   class OnestopIdBase
 
+    FORMAT = [:prefix, '-', :geohash, '-', :name]
     PREFIX = nil
     MODEL = nil
-    NUM_COMPONENTS = 3
     MAX_LENGTH = 64
     GEOHASH_MAX_LENGTH = 10
 
-    attr_accessor :geohash, :name
-
-    def initialize(string: nil, geohash: nil, name: nil)
-      if string.nil? && (geohash.nil? || name.nil?)
-        fail ArgumentError.new('argument must be either a onestop id string or both a geohash and name.')
+    def initialize(string: nil, **components)
+      components = components.merge(self.parse(string)) if string
+      components.each do |component, value|
+        self.send(component+"=", value)
       end
-      if string && string.length > 0
-        geohash = string.split(COMPONENT_SEPARATOR)[1]
-        name = string.split(COMPONENT_SEPARATOR)[2]
-      else
-        geohash = geohash.to_s.downcase.gsub(GEOHASH_FILTER, '')
-        name = name.to_s.downcase.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')
-      end
-      @geohash = geohash
-      @name = name
+      validate!
     end
 
     def self.match?(value)
-      if value && value.length > 0
-        split = value.split(COMPONENT_SEPARATOR)
-        split[0].to_sym == self::PREFIX && split.size == self::NUM_COMPONENTS
-      end
+      self.regex.match(value)
+    end
+
+    def self.regex
+      self::REGEX ||= self.make_regex
+    end
+
+    def self.make_regex
+      components = self::FORMAT.map { |f| f.is_a?(Symbol) ? "(?<#{f}>.+)" : f }
+      Regexp.new(components.join(''))
     end
 
     def to_s
-      [
-        self.class::PREFIX,
-        @geohash[0...self.class::GEOHASH_MAX_LENGTH],
-        @name
-      ].join(COMPONENT_SEPARATOR)[0...self.class::MAX_LENGTH]
-    end
-
-    def validate
-      errors = []
-      errors << 'invalid geohash' unless @geohash.present?
-      errors << 'invalid name' unless @name.present?
-      errors << 'invalid geohash' unless validate_geohash(@geohash)
-      errors << 'invalid name' unless validate_name(@name)
-      return (errors.size == 0), errors
+      self.FORMAT.map { |f| f.is_a?(Symbol) ? self.send(f) : f }.join('')
     end
 
     def validate!
       valid, errors = self.validate
       raise OnestopIdException.new(errors.join(', ')) unless valid
+    end
+
+    def parse(string)
+      match = self.class.regex.match(string)
+      Hash[match.names.zip(match.captures)]
     end
 
     def valid?
@@ -73,14 +62,33 @@ module OnestopId
       return validate[1]
     end
 
-    private
+    ############### Override me ###############
 
-    def validate_geohash(value)
-      !(value =~ GEOHASH_FILTER)
+    def prefix
+      self.class::PREFIX
+    end
+    def prefix=(value)
     end
 
-    def validate_name(value)
-      !(value =~ NAME_FILTER)
+    def geohash
+      @geohash
+    end
+    def geohash=(value)
+      @geohash = value.downcase.gsub(/^0123456789bcdefghjkmnpqrstuvwxyz/, '')
+    end
+
+    def name
+      @name
+    end
+    def name=(value)
+      @name = value.downcase.gsub(/[^[:alnum:]~]/, '')
+    end
+
+    def validate
+      errors = []
+      # errors << 'invalid geohash' unless @components[:geohash].present?
+      # errors << 'invalid name' unless @components[:name].present?
+      return (errors.size == 0), errors
     end
   end
 
@@ -97,25 +105,16 @@ module OnestopId
   class StopOnestopId < OnestopIdBase
     PREFIX = :s
     MODEL = Stop
-    def self.match?(value)
-      super && !value.include?('<') && !value.include?('>')
-    end
   end
 
   class StopEgressOnestopId < OnestopIdBase
     PREFIX = :s
     MODEL = StopEgress
-    def self.match?(value)
-      super && value.include?('>')
-    end
   end
 
   class StopPlatformOnestopId < OnestopIdBase
     PREFIX = :s
     MODEL = StopPlatform
-    def self.match?(value)
-      super && value.include?('<')
-    end
   end
 
   class RouteOnestopId < OnestopIdBase
