@@ -32,17 +32,13 @@ describe QualityCheck::GeometryQualityCheck do
     context 'types' do
 
       it 'stop distances' do
-        stop1 = create(:stop_richmond)
-        stop2 = create(:stop_millbrae)
-        route_stop_pattern = create(:route_stop_pattern_bart)
-
         changeset = create(:changeset, payload: {
           changes: [
             {
               action: 'createUpdate',
               routeStopPattern: {
                 onestopId: 'r-9q8y-richmond~dalycity~millbrae-45cad3-46d384',
-                stopPattern: route_stop_pattern.stop_pattern,
+                stopPattern: ['s-9q8zzf1nks-richmond','s-9q8vzhbf8h-millbrae'],
                 geometry: {
                   type: "LineString",
                   coordinates: [[-122.38666, 37.599787],[-122.353165, 37.936887]]
@@ -53,9 +49,7 @@ describe QualityCheck::GeometryQualityCheck do
         })
         changeset.apply!
         quality_check = QualityCheck::GeometryQualityCheck.new(changeset: changeset)
-        expect(quality_check.check.map(&:issue_type)).to match_array([
-         'distance_calculation_inaccurate'
-        ])
+        expect(quality_check.check.map(&:issue_type)).to include('distance_calculation_inaccurate')
       end
 
       it 'stop, rsp distance gap' do
