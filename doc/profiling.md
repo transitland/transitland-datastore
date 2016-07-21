@@ -2,7 +2,7 @@
 
 ### Rails Console Approach 
 
-Inspecting GTFSGraph For imports (specifically level 1) 
+Inspecting GTFSGraph for memory usage during level 1 imports.
 - GC::Profiler.enable 
 - GC::Profiler.clear 
 - graph = GTFSGraph.new(feed, feed_version) 
