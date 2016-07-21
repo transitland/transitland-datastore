@@ -1,16 +1,18 @@
-# Profiling
+# Profiling 
 
-### Rails Console Approach
+### Rails Console Approach 
 
 Inspecting GTFSGraph For imports (specifically level 1) 
-GC::Profiler.enable
-GC::Profiler.clear
-graph = GTFSGraph.new(feed, feed_version)
-graph.cleanup
-graph.create_change_osr
-GC::Profiler.report 
+- GC::Profiler.enable 
+- GC::Profiler.clear 
+- graph = GTFSGraph.new(feed, feed_version) 
+- graph.cleanup 
+- graph.create_change_osr 
+- GC::Profiler.report  
 
 This will generate something like:
+
+````
 GC 356 invokes.
 Index    Invoke Time(sec)       Use Size(byte)     Total Size(byte)         Total Object                    GC Time(ms)
     1               3.130             10915080             22309440               557736        45.38900000000101186970
@@ -21,5 +23,6 @@ Index    Invoke Time(sec)       Use Size(byte)     Total Size(byte)         Tota
     6               4.240             14631160             22309440               557736        39.10299999999278242058
     7               4.418             15535360             22309440               557736        26.44100000000193517735
     8               4.534             16335440             22309440               557736        31.37299999998166555315
+````
 
 Run a few times to establish a baseline. Make optimization changes and compare.
