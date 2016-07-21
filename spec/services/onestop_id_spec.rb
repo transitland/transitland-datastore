@@ -2,26 +2,24 @@
 class TestOnestopId < OnestopId::OnestopIdBase
   PREFIX = :s
   MODEL = Stop
-  NUM_COMPONENTS = 3
-  GEOHASH_MAX_LENGTH = 5
-  MAX_LENGTH = 32
 end
 
 describe OnestopId do
   it 'fails gracefully when given an invalid geometry' do
+    # expect {
+    #   TestOnestopId.new(name: 'Retiro Station', geometry: '-58.374722 -34.591389')
+    # }.to raise_error(ArgumentError)
+    #
+    # expect {
+    #   TestOnestopId.new(name: 'Retiro Station', geometry: [-58.374722,-34.591389])
+    # }.to raise_error(ArgumentError)
     expect {
-      TestOnestopId.new('Retiro Station', '-58.374722 -34.591389')
-    }.to raise_error(ArgumentError)
+      TestOnestopId.new(name: 'Retiro Station').validate!
+    }.to raise_error(OnestopId::OnestopIdException)
 
     expect {
-      TestOnestopId.new('Retiro Station', [-58.374722,-34.591389])
-    }.to raise_error(ArgumentError)
-    expect {
-      TestOnestopId.new(name: 'Retiro Station')
-    }.to raise_error(ArgumentError)
-    expect {
-      TestOnestopId.new(geohash: '9q9')
-    }.to raise_error(ArgumentError)
+      TestOnestopId.new(geohash: '9q9').validate!
+    }.to raise_error(OnestopId::OnestopIdException)
   end
 
   context 'max length' do
@@ -31,16 +29,16 @@ describe OnestopId do
           geohash: '9q9',
           name: 'pneumonoultramicroscopicsilicovolcanoconiosis'
         ).to_s
-      ).to eq('s-9q9-pneumonoultramicroscopicsi')
+      ).to eq('s-9q9-pneumonoultramicroscopicsilicovolcan')
     end
 
     it 'truncates beyond maximum geohash length' do
       expect(
         TestOnestopId.new(
-          geohash: '1234567890',
+          geohash: '12345678901234567890',
           name: 'name'
         ).to_s
-      ).to eq('s-12345-name')
+      ).to eq('s-1234567890-name')
     end
   end
 
@@ -79,7 +77,7 @@ describe OnestopId do
           geohash: '9q9',
           name: 'pneumonoultramicroscopicsilicovolcanoconiosis'
         ).to_s
-      ).to eq('r-9q9-pneumonoultramicroscopicsilicovolcanoconiosi')
+      ).to eq('r-9q9-pneumonoultramicroscopicsilicovolcan')
     end
   end
 
@@ -88,20 +86,20 @@ describe OnestopId do
       it 'fails gracefully when given an invalid stop pattern' do
         expect {
           OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: 'r-the~route',
-                                                   geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]).to_s
-        }.to raise_error(ArgumentError)
+                                                   geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]).validate!
+        }.to raise_error(OnestopId::OnestopIdException)
       end
       it 'fails gracefully when given an invalid geometry' do
         expect {
           OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: 'r-9q9-the~route',
-                                                   stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2']).to_s
-        }.to raise_error(ArgumentError)
+                                                   stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2']).validate!
+        }.to raise_error(OnestopId::OnestopIdException)
       end
       it 'fails gracefully when given an invalid route' do
         expect {
           OnestopId::RouteStopPatternOnestopId.new(stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2'],
-                                                   geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]).to_s
-        }.to raise_error(ArgumentError)
+                                                   geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]).validate!
+        }.to raise_error(OnestopId::OnestopIdException)
       end
     end
 
@@ -136,7 +134,7 @@ describe OnestopId do
           stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2'],
           geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]
         ).to_s
-      ).to eq('r-9q9-pneumonoultramicroscopicsilicovolcanoconiosi-fca1a5-48fed0')
+      ).to eq('r-9q9-pneumonoultramicroscopicsilicovolcan-fca1a5-48fed0')
     end
 
     context '#validate' do
