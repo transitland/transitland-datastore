@@ -31,27 +31,12 @@ describe HashHelpers do
       })
     end
 
-    # it "should remove keys that have been nil'ed out" do
-    #   existing_hash = {
-    #     onestop_id: 'o-b7-Fake',
-    #     tags: {
-    #       one: true,
-    #       two: false
-    #     }
-    #   }
-    #   incoming_hash = {
-    #     tags: {
-    #       one: nil
-    #     }
-    #   }
-    #   merged_hash = HashHelpers::merge_hashes(existing_hash: existing_hash, incoming_hash: incoming_hash)
-    #   expect(merged_hash).to eq({
-    #     onestop_id: 'o-b7-Fake',
-    #     tags: {
-    #       two: false
-    #     }
-    #   })
-    # end
+    it 'should convert empty strings to nil' do
+      hash1 = {foo: 'bar'}
+      hash2 = {foo: ''}
+      merged = HashHelpers::merge_hashes(existing_hash: hash1, incoming_hash: hash2)
+      expect(merged[:foo]).to be nil
+    end
 
     it 'should replace array values' do
       existing_hash = {
