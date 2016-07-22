@@ -83,6 +83,7 @@ module GeohashHelpers
 
   def self.fit(geometries)
     # Fit a collection of points inside a geohash+neighbors
+    geometries ||= []
     raise ArgumentError.new('Need at least 1 geometry') if geometries.size == 0
     start = encode(centroid(geometries))
     geohashes = geometries.map { |x| encode(x) }
