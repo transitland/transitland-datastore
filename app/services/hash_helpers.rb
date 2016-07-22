@@ -3,7 +3,7 @@ module HashHelpers
     merged_hash = existing_hash.clone
     merged_hash.symbolize_keys!
     incoming_hash.symbolize_keys.each do |key, value|
-      value = nil if value == ''
+      value = value.presence
       if merged_hash[key] == value
         next
       elsif key == :geometry
