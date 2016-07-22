@@ -9,7 +9,7 @@ module OnestopId
   NAME_FILTER = /[^[:alnum:]\~\>\<]/
   IDENTIFIER_TEMPLATE = Addressable::Template.new("gtfs://{feed_onestop_id}/{entity_prefix}/{entity_id}")
 
-  class OnestopIdException < StandardError
+  class OnestopIdError < StandardError
   end
 
   class OnestopIdBase
@@ -46,12 +46,12 @@ module OnestopId
 
     def validate!
       valid, errors = self.validate
-      raise OnestopIdException.new(errors.join(', ')) unless valid
+      fail OnestopIdError.new(errors.join(', ')) unless valid
     end
 
     def parse(string)
       match = self.class.regex.match(string)
-      raise OnestopIdException.new('Could not parse') unless match
+      fail OnestopIdError.new('Could not parse') unless match
       Hash[match.names.zip(match.captures)]
     end
 
@@ -63,7 +63,7 @@ module OnestopId
       return validate[1]
     end
 
-    ############### Override me ###############
+    ##### Component handlers #####
 
     def prefix
       self.class::PREFIX

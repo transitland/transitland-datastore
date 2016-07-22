@@ -289,7 +289,7 @@ class Stop < BaseStop
       onestop_id = OnestopId.handler_by_model(self).new(geohash: geohash, name: entity.id)
       log "Stop.from_gtfs: Invalid onestop_id: #{old_onestop_id}, trying #{onestop_id.to_s}"
     end
-    onestop_id.validate! # raise OnestopIdException
+    onestop_id.validate! # raise OnestopIdError
     stop = self.new(
       name: entity.stop_name,
       onestop_id: onestop_id.to_s,
