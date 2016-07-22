@@ -2,43 +2,30 @@
 class TestOnestopId < OnestopId::OnestopIdBase
   PREFIX = :s
   MODEL = Stop
+  NUM_COMPONENTS = 3
+  GEOHASH_MAX_LENGTH = 5
+  NAME_MAX_LENGTH = 32
+  MAX_LENGTH = 32
 end
 
 describe OnestopId do
-  it 'fails gracefully when given an invalid geometry' do
-    # expect {
-    #   TestOnestopId.new(name: 'Retiro Station', geometry: '-58.374722 -34.591389')
-    # }.to raise_error(ArgumentError)
-    #
-    # expect {
-    #   TestOnestopId.new(name: 'Retiro Station', geometry: [-58.374722,-34.591389])
-    # }.to raise_error(ArgumentError)
-    expect {
-      TestOnestopId.new(name: 'Retiro Station').validate!
-    }.to raise_error(OnestopId::OnestopIdException)
-
-    expect {
-      TestOnestopId.new(geohash: '9q9').validate!
-    }.to raise_error(OnestopId::OnestopIdException)
-  end
-
   context 'max length' do
     it 'truncates beyond maximum length' do
       expect(
         TestOnestopId.new(
-          geohash: '9q9',
-          name: 'collywobbles'*10
+          geohash: '1234567890',
+          name: 'pneumonoultramicroscopicsilicovolcanoconiosis'
         ).to_s
-      ).to eq('s-9q9-collywobblescollywobblescollywobblescollywobblescollywobbl')
+      ).to eq('s-12345-pneumonoultramicroscopic')
     end
 
     it 'truncates beyond maximum geohash length' do
       expect(
         TestOnestopId.new(
-          geohash: '12345678901234567890',
+          geohash: '1234567890',
           name: 'name'
         ).to_s
-      ).to eq('s-1234567890-name')
+      ).to eq('s-12345-name')
     end
   end
 
@@ -70,38 +57,27 @@ describe OnestopId do
     end
   end
 
-  context 'RouteOnestopId' do
-    it 'reserves 13 characters for suffix' do
-      expect(
-        OnestopId::RouteOnestopId.new(
-          geohash: '9q9',
-          name: 'flibbertigibbet'*10
-        ).to_s
-      ).to eq('r-9q9-pneumonoultramicroscopicsilicovolcan')
-    end
-  end
-
   context 'RouteStopPatternOnestopId' do
-    context 'invalid arguments' do
-      it 'fails gracefully when given an invalid stop pattern' do
-        expect {
-          OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: 'r-the~route',
-                                                   geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]).validate!
-        }.to raise_error(OnestopId::OnestopIdException)
-      end
-      it 'fails gracefully when given an invalid geometry' do
-        expect {
-          OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: 'r-9q9-the~route',
-                                                   stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2']).validate!
-        }.to raise_error(OnestopId::OnestopIdException)
-      end
-      it 'fails gracefully when given an invalid route' do
-        expect {
-          OnestopId::RouteStopPatternOnestopId.new(stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2'],
-                                                   geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]).validate!
-        }.to raise_error(OnestopId::OnestopIdException)
-      end
-    end
+    # context 'invalid arguments' do
+    #   it 'fails gracefully when given an invalid stop pattern' do
+    #     expect {
+    #       OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: 'r-the~route',
+    #                                                geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]).to_s
+    #     }.to raise_error(ArgumentError)
+    #   end
+    #   it 'fails gracefully when given an invalid geometry' do
+    #     expect {
+    #       OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: 'r-9q9-the~route',
+    #                                                stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2']).to_s
+    #     }.to raise_error(ArgumentError)
+    #   end
+    #   it 'fails gracefully when given an invalid route' do
+    #     expect {
+    #       OnestopId::RouteStopPatternOnestopId.new(stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2'],
+    #                                                geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]).to_s
+    #     }.to raise_error(ArgumentError)
+    #   end
+    # end
 
     it 'handles route onestop id' do
       onestop_id = OnestopId::RouteStopPatternOnestopId.new(
@@ -138,21 +114,15 @@ describe OnestopId do
     end
 
     context '#validate' do
-      it 'requires valid route onestop id' do
-        expect(
-            OnestopId::RouteStopPatternOnestopId.new(string: 'r-9q9-the~route!-fca1a5-48fed0').errors
-        ).to include 'invalid name'
-      end
-
       it 'requires valid stop pattern hash prefix' do
         expect(
-            OnestopId::RouteStopPatternOnestopId.new(string: 'r-9q9-the~route-fca1a5xx-48fed0').errors
+            OnestopId::RouteStopPatternOnestopId.new(geohash: '9q9', name: 'the~route', stop_hash: 'fca1a5xx', geometry_hash: '').errors
         ).to include 'invalid stop pattern hash'
       end
 
       it 'requires valid geometry hash prefix' do
         expect(
-            OnestopId::RouteStopPatternOnestopId.new(string: 'r-9q9-the~route-fca1a5-x48fed0x').errors
+            OnestopId::RouteStopPatternOnestopId.new(geohash: '9q9', name: 'the~route', stop_hash: '48fed0', geometry_hash: 'fca1a5xx').errors
         ).to include 'invalid geometry hash'
       end
     end
