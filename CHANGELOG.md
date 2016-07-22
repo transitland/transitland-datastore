@@ -2,14 +2,39 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.8...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.0...HEAD)
+
+**Merged pull requests:**
+
+- Production release 4.9.0 [\#678](https://github.com/transitland/transitland-datastore/pull/678) ([drewda](https://github.com/drewda))
+
+## [4.9.0](https://github.com/transitland/transitland-datastore/tree/4.9.0) (2016-07-15)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.8.8...4.9.0)
+
+**Implemented enhancements:**
+
+- Add feed version to Issues controller [\#664](https://github.com/transitland/transitland-datastore/issues/664)
+
+**Fixed bugs:**
+
+- Issue controller query param issue\_type not returning [\#681](https://github.com/transitland/transitland-datastore/issues/681)
+- logstasher gem error [\#674](https://github.com/transitland/transitland-datastore/issues/674)
+- Forth Worth & other feeds: Changeset::Error Couldn't find Stop [\#660](https://github.com/transitland/transitland-datastore/issues/660)
 
 **Closed issues:**
 
+- SSP 'where\_active' performance [\#657](https://github.com/transitland/transitland-datastore/issues/657)
 - "issues" and "quality checks" [\#569](https://github.com/transitland/transitland-datastore/issues/569)
 
 **Merged pull requests:**
 
+- Station serializer: timezones [\#683](https://github.com/transitland/transitland-datastore/pull/683) ([irees](https://github.com/irees))
+- Issue type fix [\#682](https://github.com/transitland/transitland-datastore/pull/682) ([doublestranded](https://github.com/doublestranded))
+- upgrade to Rails 4.2.7 and update gems [\#680](https://github.com/transitland/transitland-datastore/pull/680) ([drewda](https://github.com/drewda))
+- SSP: disable where\_active default scope [\#679](https://github.com/transitland/transitland-datastore/pull/679) ([irees](https://github.com/irees))
+- rolling back to previous version of logstasher gem [\#675](https://github.com/transitland/transitland-datastore/pull/675) ([drewda](https://github.com/drewda))
+- Update gems [\#673](https://github.com/transitland/transitland-datastore/pull/673) ([drewda](https://github.com/drewda))
+- Issues with feed version [\#670](https://github.com/transitland/transitland-datastore/pull/670) ([doublestranded](https://github.com/doublestranded))
 - Production release 4.8.8 [\#659](https://github.com/transitland/transitland-datastore/pull/659) ([irees](https://github.com/irees))
 - Issues [\#599](https://github.com/transitland/transitland-datastore/pull/599) ([doublestranded](https://github.com/doublestranded))
 

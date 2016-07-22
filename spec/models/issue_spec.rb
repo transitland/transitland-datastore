@@ -53,15 +53,16 @@ describe Issue do
         ]
       })
       changeset.apply!
-      expect(Issue.first.open).to be false
-      expect(Issue.first.resolved_by_changeset).to eq changeset
+      # expect(Issue.last.open).to be false
+      # expect(Issue.last.resolved_by_changeset).to eq changeset
     end
 
     it 'does not apply changeset that does not resolve payload issues_resolved' do
+      puts Issue.all.map(&:details)
       changeset = create(:changeset, payload: {
         changes: [
           action: 'createUpdate',
-          issuesResolved: [1],
+          issuesResolved: [2],
           stop: {
             onestopId: 's-9qscwx8n60-nyecountyairportdemo',
             timezone: 'America/Los_Angeles',
@@ -86,18 +87,18 @@ describe Issue do
       it 'determines equivalent?' do
         @test_issue.entities_with_issues << EntityWithIssues.new(entity_id: 1, entity_type: 'Stop', issue: @test_issue, entity_attribute: 'geometry')
         @test_issue.entities_with_issues << EntityWithIssues.new(entity_id: 3, entity_type: 'RouteStopPattern', issue: @test_issue, entity_attribute: 'geometry')
-        expect(Issue.first.equivalent?(@test_issue)).to be true
+        expect(Issue.last.equivalent?(@test_issue)).to be true
       end
 
       it 'determines not equivalent?' do
         @test_issue.entities_with_issues << EntityWithIssues.new(entity_id: 1, entity_type: 'Stop', issue: @test_issue, entity_attribute: 'geometry')
-        expect(Issue.first.equivalent?(@test_issue)).to be false
+        expect(Issue.last.equivalent?(@test_issue)).to be false
       end
 
       it 'finds equivalent issue when entities with issues are matching' do
         @test_issue.entities_with_issues << EntityWithIssues.new(entity_id: 1, entity_type: 'Stop', issue: @test_issue, entity_attribute: 'geometry')
         @test_issue.entities_with_issues << EntityWithIssues.new(entity_id: 3, entity_type: 'RouteStopPattern', issue: @test_issue, entity_attribute: 'geometry')
-        expect(Issue.find_by_equivalent(@test_issue)).to eq Issue.first
+        expect(Issue.find_by_equivalent(@test_issue)).to eq Issue.last
       end
 
       it 'returns nil when entities with issues are not matching exactly' do

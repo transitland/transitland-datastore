@@ -21,11 +21,11 @@
 
 class Changeset < ActiveRecord::Base
   class Error < StandardError
-    attr_accessor :changeset, :message, :backtrace
+    attr_accessor :changeset, :message, :backtrace, :payload
 
-    def initialize(changeset: nil, change_payloads: [], message: '', backtrace: [])
+    def initialize(changeset: nil, payload: {}, message: '', backtrace: [])
       @changeset = changeset
-      @change_payloads = change_payloads
+      @payload = payload
       @message = message
       @backtrace = backtrace
     end
@@ -128,24 +128,23 @@ class Changeset < ActiveRecord::Base
 
   def create_change_payloads(entities)
     entities.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
-      changes = []
-      chunk.each do |entity|
-        changes << {
+      changes = chunk.map do |entity|
+        {
           :action => :createUpdate,
           entity.class.name.camelize(:lower) => entity.as_change.as_json.compact
         }
       end
+      payload = {changes: changes}
       begin
-        change_payloads = self.change_payloads.create!(payload: {changes: changes})
+        change_payload = self.change_payloads.create!(payload: payload)
       rescue StandardError => e
         fail Changeset::Error.new(
           changeset: self,
-          change_payloads: change_payloads,
+          payload: payload,
           message: e.message,
           backtrace: e.backtrace
         )
       end
-      change_payloads
     end
   end
 
