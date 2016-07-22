@@ -16,10 +16,9 @@ module OnestopId
 
     PREFIX = nil
     MODEL = nil
-
     MAX_LENGTH = 64
-    MAX_NAME_LENGTH = 64
-    MAX_GEOHASH_LENGTH = 10
+    GEOHASH_MAX_LENGTH = 10
+    NAME_MAX_LENGTH = 36
 
     def initialize(string: nil, **components)
       components = components.merge(self.parse(string)) if string
@@ -33,15 +32,16 @@ module OnestopId
     end
 
     def self.get_regex
+      # Cache
       self::REGEX ||= self.regex
     end
 
     def self.regex
-      /^(?<prefix>#{self::PREFIX})-(?<geohash>[0-9a-z]+)-(?<name>[[:alnum]~]+)$/
+      /^(?<prefix>#{self::PREFIX})-(?<geohash>[0-9a-z]+)-(?<name>[[:alnum:]~]+)$/
     end
 
     def to_s
-      "#{prefix}-#{geohash[0...self.class::MAX_GEOHASH_LENGTH]}-#{name[0...self.class::MAX_NAME_LENGTH]}"[0...self.class::MAX_LENGTH]
+      "#{prefix}-#{geohash[0...self.class::GEOHASH_MAX_LENGTH]}-#{name[0...self.class::NAME_MAX_LENGTH]}"[0...self.class::MAX_LENGTH]
     end
 
     def validate!
@@ -113,11 +113,11 @@ module OnestopId
     MODEL = StopEgress
 
     def self.regex
-      /^(?<prefix>#{self::PREFIX})-(?<geohash>[0-9a-z]+)-(?<name>[[:alnum]~]+)>(?<suffix>[[:alnum]~]+)$/
+      /^(?<prefix>#{self::PREFIX})-(?<geohash>[0-9a-z]+)-(?<name>[[:alnum:]~]+)>(?<suffix>[[:alnum:]~]+)$/
     end
 
     def to_s
-      "#{prefix}-#{geohash[0...10]}-#{name}>#{suffix}"[0...MAX_LENGTH]
+      "#{prefix}-#{geohash[0...self.class::GEOHASH_MAX_LENGTH]}-#{name[0...self.class::NAME_MAX_LENGTH]}>#{suffix[0...14]}"[0...self.class::MAX_LENGTH]
     end
 
     def suffix
@@ -133,11 +133,11 @@ module OnestopId
     MODEL = StopPlatform
 
     def self.regex
-      /^(?<prefix>#{self::PREFIX})-(?<geohash>[0-9a-z]+)-(?<name>[[:alnum]~]+)<(?<suffix>[[:alnum]~]+)$/
+      /^(?<prefix>#{self::PREFIX})-(?<geohash>[0-9a-z]+)-(?<name>[[:alnum:]~]+)<(?<suffix>[[:alnum:]~]+)$/
     end
 
     def to_s
-      "#{prefix}-#{geohash[0...10]}-#{name}<#{suffix}"[0...MAX_LENGTH]
+      "#{prefix}-#{geohash[0...self.class::GEOHASH_MAX_LENGTH]}-#{name[0...self.class::NAME_MAX_LENGTH]}<#{suffix[0...14]}"[0...self.class::MAX_LENGTH]
     end
 
     def suffix
@@ -156,13 +156,14 @@ module OnestopId
   class RouteStopPatternOnestopId < OnestopIdBase
     PREFIX = :r
     MODEL = RouteStopPattern
+    HASH_LENGTH = 6
 
     def self.regex
-      /^(?<prefix>#{self::PREFIX})-(?<geohash>[0-9a-z]+)-(?<name>[[:alnum]~]+)-(?<stop_hash>\h+)-(?<geometry_hash>\h+)$/
+      /^(?<prefix>#{self::PREFIX})-(?<geohash>[0-9a-z]+)-(?<name>[[:alnum:]~]+)-(?<stop_hash>\h+)-(?<geometry_hash>\h+)$/
     end
 
     def to_s
-      "#{prefix}-#{geohash[0...10]}-#{name}-#{stop_hash}-#{geometry_hash}"[0...MAX_LENGTH]
+      "#{prefix}-#{geohash[0...self.class::GEOHASH_MAX_LENGTH]}-#{name[0...self.class::NAME_MAX_LENGTH]}-#{stop_hash[0...self.class::HASH_LENGTH]}-#{geometry_hash[0...self.class::HASH_LENGTH]}"[0...self.class::MAX_LENGTH]
     end
 
     def stop_hash
@@ -172,7 +173,7 @@ module OnestopId
       @stop_hash = value.downcase.gsub(HEX_FILTER, '~')
     end
     def stop_pattern=(value)
-      self.stop_hash = self.generate_hash_from_array(value)
+      self.stop_hash = self.generate_hash_from_array(value)[0...6]
     end
 
     def geometry_hash
@@ -182,7 +183,7 @@ module OnestopId
       @geometry_hash = value.downcase.gsub(HEX_FILTER, '~')
     end
     def geometry_coords=(value)
-      self.geometry_hash = self.generate_hash_from_array(value)
+      self.geometry_hash = self.generate_hash_from_array(value)[0...6]
     end
 
     def route_onestop_id=(value)
