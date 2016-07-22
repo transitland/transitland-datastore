@@ -2,10 +2,36 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.0...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.1...HEAD)
 
 **Merged pull requests:**
 
+- production release 4.9.1 [\#699](https://github.com/transitland/transitland-datastore/pull/699) ([drewda](https://github.com/drewda))
+
+## [4.9.1](https://github.com/transitland/transitland-datastore/tree/4.9.1) (2016-07-22)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.0...4.9.1)
+
+**Implemented enhancements:**
+
+- Coordinates in JSON are sometimes strings, not float [\#695](https://github.com/transitland/transitland-datastore/issues/695)
+
+**Fixed bugs:**
+
+- CircleCI failing on onestop-id-tidy branch with issue specs [\#693](https://github.com/transitland/transitland-datastore/issues/693)
+- FeedEater import succeeds, but doesn't persist stops/routes/SSPs because of Exception on ChangePayload validation error [\#687](https://github.com/transitland/transitland-datastore/issues/687)
+- OnestopIDs: Improve name filter [\#685](https://github.com/transitland/transitland-datastore/issues/685)
+
+**Closed issues:**
+
+- HashHelpers.merge\_hashes filters out nil-like values [\#686](https://github.com/transitland/transitland-datastore/issues/686)
+
+**Merged pull requests:**
+
+- Stop OnestopID: Filter special characters [\#702](https://github.com/transitland/transitland-datastore/pull/702) ([irees](https://github.com/irees))
+- HashHelpers: dont remove empty keys [\#698](https://github.com/transitland/transitland-datastore/pull/698) ([irees](https://github.com/irees))
+- Encode BigDecimal as float [\#697](https://github.com/transitland/transitland-datastore/pull/697) ([irees](https://github.com/irees))
+- JSON Schema: Stop osmWayId [\#696](https://github.com/transitland/transitland-datastore/pull/696) ([irees](https://github.com/irees))
+- removing duplicate entities in quality check spec [\#694](https://github.com/transitland/transitland-datastore/pull/694) ([doublestranded](https://github.com/doublestranded))
 - Production release 4.9.0 [\#678](https://github.com/transitland/transitland-datastore/pull/678) ([drewda](https://github.com/drewda))
 
 ## [4.9.0](https://github.com/transitland/transitland-datastore/tree/4.9.0) (2016-07-15)
