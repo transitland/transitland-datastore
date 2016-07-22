@@ -11,6 +11,22 @@ describe GTFSGraph do
     end
   end
 
+  context 'errors' do
+    before(:each) {
+      feed_version = create(:feed_version_example)
+      feed = feed_version.feed
+      @graph = GTFSGraph.new(feed, feed_version)
+    }
+
+    it 'fails and logs payload errors' do
+      allow_any_instance_of(ChangePayload).to receive(:payload_validation_errors).and_return([{message: 'payload validation error'}])
+      expect {
+        @graph.create_change_osr
+      }.to raise_error(Changeset::Error)
+      expect(@graph.import_log.include?('payload validation error')).to be_truthy
+    end
+  end
+
   context 'can apply level 0 and 1 changesets' do
 
     context 'Caltrain' do

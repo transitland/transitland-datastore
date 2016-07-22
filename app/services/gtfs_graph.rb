@@ -89,11 +89,13 @@ class GTFSGraph
       graph_log "  route geometries: #{rsps.size}"
       changeset.create_change_payloads(rsps)
     rescue Changeset::Error => e
-      graph_log "Error: #{e.message}"
+      graph_log "Changeset Error: #{e}"
       graph_log "Payload:"
-      changeset.change_payloads.each do |change_payload|
-        graph_log change_payload.to_json
-      end
+      graph_log e.payload.to_json
+      raise e
+    rescue StandardError => e
+      graph_log "Error: #{e}"
+      raise e
     end
     graph_log "Changeset apply"
     t = Time.now
