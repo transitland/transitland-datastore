@@ -4,6 +4,7 @@ module OnestopId
 
   COMPONENT_SEPARATOR = '-'
   GEOHASH_FILTER = /[^0123456789bcdefghjkmnpqrstuvwxyz]/
+  HEX_FILTER = /\H/
   NAME_TILDE = /[\-\:\&\@\/]/
   NAME_FILTER = /[^[:alnum:]\~\>\<]/
   IDENTIFIER_TEMPLATE = Addressable::Template.new("gtfs://{feed_onestop_id}/{entity_prefix}/{entity_id}")
@@ -15,6 +16,10 @@ module OnestopId
 
     PREFIX = nil
     MODEL = nil
+
+    MAX_LENGTH = 64
+    MAX_NAME_LENGTH = 64
+    MAX_GEOHASH_LENGTH = 10
 
     def initialize(string: nil, **components)
       components = components.merge(self.parse(string)) if string
@@ -32,11 +37,11 @@ module OnestopId
     end
 
     def self.regex
-      /^(?<prefix>#{self::PREFIX})-(?<geohash>.+)-(?<name>.+)$/
+      /^(?<prefix>#{self::PREFIX})-(?<geohash>[0-9a-z]+)-(?<name>[[:alnum]~]+)$/
     end
 
     def to_s
-      "#{prefix}-#{geohash}-#{name}"
+      "#{prefix}-#{geohash[0...self.class::MAX_GEOHASH_LENGTH]}-#{name[0...self.class::MAX_NAME_LENGTH]}"[0...self.class::MAX_LENGTH]
     end
 
     def validate!
@@ -70,14 +75,14 @@ module OnestopId
       @geohash
     end
     def geohash=(value)
-      @geohash = value.downcase.gsub(GEOHASH_FILTER, '')[0...10]
+      @geohash = value.downcase.gsub(GEOHASH_FILTER, '')
     end
 
     def name
       @name
     end
     def name=(value)
-      @name = value.downcase.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')[0...36]
+      @name = value.downcase.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')
     end
 
     def validate
@@ -108,18 +113,18 @@ module OnestopId
     MODEL = StopEgress
 
     def self.regex
-      /^(?<prefix>#{self::PREFIX})-(?<geohash>.+)-(?<name>.+)>(?<suffix>.+)$/
+      /^(?<prefix>#{self::PREFIX})-(?<geohash>[0-9a-z]+)-(?<name>[[:alnum]~]+)>(?<suffix>[[:alnum]~]+)$/
     end
 
     def to_s
-      "#{prefix}-#{geohash}-#{name}>#{suffix}"
+      "#{prefix}-#{geohash[0...10]}-#{name}>#{suffix}"[0...MAX_LENGTH]
     end
 
     def suffix
       @suffix
     end
     def suffix=(value)
-      @suffix = value.downcase.gsub(self.class::NAME_TILDE, '~').gsub(NAME_FILTER, '')[0...12]
+      @suffix = value.downcase.gsub(self.class::NAME_TILDE, '~').gsub(NAME_FILTER, '')
     end
   end
 
@@ -128,18 +133,18 @@ module OnestopId
     MODEL = StopPlatform
 
     def self.regex
-      /^(?<prefix>#{self::PREFIX})-(?<geohash>.+)-(?<name>.+)<(?<suffix>.+)$/
+      /^(?<prefix>#{self::PREFIX})-(?<geohash>[0-9a-z]+)-(?<name>[[:alnum]~]+)<(?<suffix>[[:alnum]~]+)$/
     end
 
     def to_s
-      "#{prefix}-#{geohash}-#{name}<#{suffix}"
+      "#{prefix}-#{geohash[0...10]}-#{name}<#{suffix}"[0...MAX_LENGTH]
     end
 
     def suffix
       @suffix
     end
     def suffix=(value)
-      @suffix = value.downcase.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')[0...12]
+      @suffix = value.downcase.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')
     end
   end
 
@@ -153,18 +158,18 @@ module OnestopId
     MODEL = RouteStopPattern
 
     def self.regex
-      /^(?<prefix>#{self::PREFIX})-(?<geohash>.+)-(?<name>.+)-(?<stop_hash>.+)-(?<geometry_hash>.+)$/
+      /^(?<prefix>#{self::PREFIX})-(?<geohash>[0-9a-z]+)-(?<name>[[:alnum]~]+)-(?<stop_hash>\h+)-(?<geometry_hash>\h+)$/
     end
 
     def to_s
-      "#{prefix}-#{geohash}-#{name}-#{stop_hash}-#{geometry_hash}"
+      "#{prefix}-#{geohash[0...10]}-#{name}-#{stop_hash}-#{geometry_hash}"[0...MAX_LENGTH]
     end
 
     def stop_hash
       @stop_hash
     end
     def stop_hash=(value)
-      @stop_hash = value[0...6]
+      @stop_hash = value.downcase.gsub(HEX_FILTER, '~')
     end
     def stop_pattern=(value)
       self.stop_hash = self.generate_hash_from_array(value)
@@ -174,7 +179,7 @@ module OnestopId
       @geometry_hash
     end
     def geometry_hash=(value)
-      @geometry_hash = value[0...6]
+      @geometry_hash = value.downcase.gsub(HEX_FILTER, '~')
     end
     def geometry_coords=(value)
       self.geometry_hash = self.generate_hash_from_array(value)

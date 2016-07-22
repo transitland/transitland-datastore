@@ -27,9 +27,9 @@ describe OnestopId do
       expect(
         TestOnestopId.new(
           geohash: '9q9',
-          name: 'pneumonoultramicroscopicsilicovolcanoconiosis'
+          name: 'collywobbles'*10
         ).to_s
-      ).to eq('s-9q9-pneumonoultramicroscopicsilicovolcan')
+      ).to eq('s-9q9-collywobblescollywobblescollywobblescollywobblescollywobbl')
     end
 
     it 'truncates beyond maximum geohash length' do
@@ -71,11 +71,11 @@ describe OnestopId do
   end
 
   context 'RouteOnestopId' do
-    it 'truncates beyond maximum length' do
+    it 'reserves 13 characters for suffix' do
       expect(
         OnestopId::RouteOnestopId.new(
           geohash: '9q9',
-          name: 'pneumonoultramicroscopicsilicovolcanoconiosis'
+          name: 'flibbertigibbet'*10
         ).to_s
       ).to eq('r-9q9-pneumonoultramicroscopicsilicovolcan')
     end
