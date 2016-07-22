@@ -188,6 +188,7 @@ module OnestopId
 
     def route_onestop_id=(value)
       r = RouteOnestopId.new(string: value)
+      return unless r
       self.geohash = r.geohash
       self.name = r.name
     end
@@ -195,8 +196,14 @@ module OnestopId
     def validate
       errors = super[1]
       errors << 'invalid stop pattern hash' unless stop_hash.present?
+      errors << 'invalid stop pattern hash' unless validate_hash(stop_hash)
       errors << 'invalid geometry hash' unless geometry_hash.present?
+      errors << 'invalid geometry hash' unless validate_hash(geometry_hash)
       return (errors.size == 0), errors
+    end
+
+    def validate_hash(value)
+      (value.is_a? String) && value.length == HASH_LENGTH
     end
 
     def generate_hash_from_array(array)
