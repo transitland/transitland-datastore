@@ -13,7 +13,7 @@
     "timezone": { "type": "string" },
     "tags": { "type": "object" },
     "name": { "type": "string" },
-    "osmWayId": {"type": ["string", "null"]},
+    "osmWayId": {"type": ["integer", "null"]},
     "parentStopOnestopId": {
       "type": "string",
       "format": "stop-onestop-id"
