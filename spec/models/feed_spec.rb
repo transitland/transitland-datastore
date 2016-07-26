@@ -279,7 +279,7 @@ describe Feed do
     end
   end
 
-  context 'active feed version' do
+  context '#activate_feed_version' do
     it 'sets the active feed version' do
       feed = create(:feed)
       fv = create(:feed_version, feed: feed)
@@ -297,6 +297,23 @@ describe Feed do
       feed.activate_feed_version(fv2.sha1, 1)
       expect(feed.active_feed_version).to eq(fv2)
     end
+
+    it 'deletes old feed version ssps' do
+      feed = create(:feed)
+      # feed versions
+      fv1 = create(:feed_version, feed: feed)
+      ssp1 = create(:schedule_stop_pair, feed: feed, feed_version: fv1)
+      fv2 = create(:feed_version, feed: feed)
+      ssp2 = create(:schedule_stop_pair, feed: feed, feed_version: fv2)
+      # activate
+      feed.activate_feed_version(fv1.sha1, 2)
+      expect(fv1.imported_schedule_stop_pairs.count).to eq(1)
+      expect(feed.imported_schedule_stop_pairs.where_active).to match_array([ssp1])
+      feed.activate_feed_version(fv2.sha1, 2)
+      expect(fv1.imported_schedule_stop_pairs.count).to eq(0)
+      expect(feed.imported_schedule_stop_pairs.where_active).to match_array([ssp2])
+    end
+
   end
 
   context '.where_latest_fetch_exception' do
