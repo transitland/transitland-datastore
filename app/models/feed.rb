@@ -253,14 +253,19 @@ class Feed < BaseFeed
   end
 
   def activate_feed_version(feed_version_sha1, import_level)
-    new_active_feed_version = self.feed_versions.find_by!(sha1: feed_version_sha1)
-    old_active_feed_version = self.active_feed_version
+    feed_version = self.feed_versions.find_by!(sha1: feed_version_sha1)
     self.transaction do
-      self.update!(active_feed_version: new_active_feed_version)
-      new_active_feed_version.update!(import_level: import_level)
+      self.update!(active_feed_version: feed_version)
+      feed_version.update!(import_level: import_level)
     end
-    if old_active_feed_version && old_active_feed_version != new_active_feed_version
-      old_active_feed_version.delete_schedule_stop_pairs!
+  end
+
+  def deactivate_feed_version(feed_version_sha1)
+    feed_version = self.feed_versions.find_by!(sha1: feed_version_sha1)
+    if feed_version == self.active_feed_version
+      fail ArgumentError.new('Cannot deactivate current active_feed_version')
+    else
+      feed_version.delete_schedule_stop_pairs!
     end
   end
 
