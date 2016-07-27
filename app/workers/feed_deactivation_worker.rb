@@ -1,4 +1,4 @@
-class FeedDectivationWorker
+class FeedDeactivationWorker
   include Sidekiq::Worker
 
   def perform(feed_onestop_id, feed_version_sha1)
