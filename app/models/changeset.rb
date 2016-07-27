@@ -190,9 +190,13 @@ class Changeset < ActiveRecord::Base
     end
 
     rsps_to_update_distances.merge(self.route_stop_patterns_created_or_updated.map(&:onestop_id))
-    rsps_to_update_distances.each { |onestop_id|
-      rsp = RouteStopPattern.find_by_onestop_id!(onestop_id)
+    rsps_to_update_distances = RouteStopPattern.where(onestop_id: rsps_to_update_distances.to_a.join(','))
+    rsps_to_update_distances.each { |rsp|
       rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
+      rsp.ordered_ssps.each_with_index do |ssp, i|
+        ssp.origin_dist_traveled = rsp.stop_pattern[i]
+        ssp.destination_dist_traveled = rsp.stop_pattern[i+1]
+      end
     }
     #mainly for testing
     [rsps_to_update_distances.size, operators_to_update_convex_hull.size]

@@ -300,6 +300,10 @@ class RouteStopPattern < BaseRouteStopPattern
   scope :with_trips, -> (search_string) { where{trips.within(search_string)} }
   scope :with_stops, -> (search_string) { where{stop_pattern.within(search_string)} }
 
+  def ordered_ssps()
+    ScheduleStopPair.where(route_stop_pattern: self).order(:origin_departure_time)
+  end
+
   ##### FromGTFS ####
   def self.create_from_gtfs(trip, route_onestop_id, stop_pattern, trip_stop_points, shape_points)
     # both trip_stop_points and stop_pattern correspond to stop_times.
