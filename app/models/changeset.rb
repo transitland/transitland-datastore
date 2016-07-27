@@ -194,8 +194,9 @@ class Changeset < ActiveRecord::Base
     rsps_to_update_distances.each { |rsp|
       rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
       rsp.ordered_ssps.each_with_index do |ssp, i|
-        ssp.origin_dist_traveled = rsp.stop_pattern[i]
-        ssp.destination_dist_traveled = rsp.stop_pattern[i+1]
+        ssp.origin_dist_traveled = rsp.stop_distances[i]
+        ssp.destination_dist_traveled = rsp.stop_distances[i+1]
+        ssp.save!
       end
     }
     #mainly for testing
