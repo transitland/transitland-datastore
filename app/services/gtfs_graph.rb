@@ -307,7 +307,15 @@ class GTFSGraph
     @feed.operators_in_feed.each do |oif|
       entity = agencies[oif.gtfs_agency_id]
       # Skip Operator if not found
-      next unless entity
+      if entity.nil?
+        graph_log "    #{oif.operator.onestop_id}: Skipping, GTFS agency_id #{oif.gtfs_agency_id} not found."
+        next
+      end
+      # Skip if no stops
+      if entity.stops.empty?
+        graph_log "    #{oif.operator.onestop_id}: Skipping, GTFS agency_id #{oif.gtfs_agency_id} has no stops."
+        next
+      end
       # Create Operator from GTFS
       operator = Operator.from_gtfs(entity)
       operator.onestop_id = oif.operator.onestop_id # Override Onestop ID
