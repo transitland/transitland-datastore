@@ -58,7 +58,11 @@ class FeedVersion < ActiveRecord::Base
   end
 
   def delete_schedule_stop_pairs!
-    self.imported_schedule_stop_pairs.delete_all
+    # Delete SSPs in batches.
+    # http://stackoverflow.com/questions/8290900/
+    self.imported_schedule_stop_pairs.select(:id).find_in_batches do |ssp_batch|
+      ScheduleStopPair.delete(ssp_batch)
+    end
   end
 
   def is_active_feed_version
