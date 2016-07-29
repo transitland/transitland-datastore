@@ -156,6 +156,9 @@ class GTFSGraph
         next
       end
 
+      # Lookup last stop for fallback Headsign
+      last_stop_name = @gtfs.stop(gtfs_stop_times.last.stop_id).stop_name
+
       # Create SSPs for all gtfs_stop_time edges
       ssp_trip = []
       gtfs_stop_times[0..-2].each_index do |i|
@@ -174,6 +177,7 @@ class GTFSGraph
           graph_log "Trip #{gtfs_trip.trip_id}: Missing Stop: #{@gtfs_to_onestop_id[gtfs_destination_stop]}"
           next
         end
+
         # Create SSP
         ssp_trip << ScheduleStopPair.new(
           # Feed
@@ -198,7 +202,7 @@ class GTFSGraph
           operator: tl_route.operator,
           # Trip
           trip: gtfs_trip.id.presence,
-          trip_headsign: (gtfs_origin_stop_time.stop_headsign || gtfs_trip.trip_headsign).presence,
+          trip_headsign: (gtfs_origin_stop_time.stop_headsign || gtfs_trip.trip_headsign || last_stop_name).presence,
           trip_short_name: gtfs_trip.trip_short_name.presence,
           shape_dist_traveled: gtfs_destination_stop_time.shape_dist_traveled.to_f,
           block_id: gtfs_trip.block_id,
@@ -307,7 +311,15 @@ class GTFSGraph
     @feed.operators_in_feed.each do |oif|
       entity = agencies[oif.gtfs_agency_id]
       # Skip Operator if not found
-      next unless entity
+      if entity.nil?
+        graph_log "    #{oif.operator.onestop_id}: Skipping, GTFS agency_id #{oif.gtfs_agency_id} not found."
+        next
+      end
+      # Skip if no stops
+      if entity.stops.empty?
+        graph_log "    #{oif.operator.onestop_id}: Skipping, GTFS agency_id #{oif.gtfs_agency_id} has no stops."
+        next
+      end
       # Create Operator from GTFS
       operator = Operator.from_gtfs(entity)
       operator.onestop_id = oif.operator.onestop_id # Override Onestop ID

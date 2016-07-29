@@ -256,6 +256,31 @@ describe GTFSGraph do
       expect(RouteStopPattern.where(onestop_id: 'r-9qsb-20-9b1b33-d2e3e5').count).to eq (1)
       expect(RouteStopPattern.where(onestop_id: 'r-9qsb-20-9b1b33-d2e3e5').first.stop_distances).to eq ([0.0, 0.0])
     end
+
+    it 'headsign: fall back to trip_headsign and last stop name' do
+      # Mock GTFS::StopTime return stop_headsign "AAMV1 Test" for trip "AAMV1"
+      allow_any_instance_of(GTFS::StopTime).to receive(:stop_headsign) do |stoptime|
+        if stoptime.trip_id == 'AAMV1'
+          'AAMV1 Test'
+        else
+          stoptime.instance_variable_get('@stop_headsign')
+        end
+      end
+      # Import
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_trips_special_stop_times, import_level: 2)
+      # Use stop_headsign
+      expect(
+        @feed_version.imported_schedule_stop_pairs.where(trip: 'AAMV1').pluck(:trip_headsign).uniq
+      ).to match_array(["AAMV1 Test"])
+      # Use trip_headsign
+      expect(
+        @feed_version.imported_schedule_stop_pairs.where(trip: 'STBA').pluck(:trip_headsign).uniq
+      ).to match_array(["Shuttle"])
+      # Use last stop name
+      expect(
+        @feed_version.imported_schedule_stop_pairs.where(trip: 'CITY1').pluck(:trip_headsign).uniq
+      ).to match_array(["E Main St / S Irving St (Demo)"])
+    end
   end
 
   context 'new feed version integration' do
