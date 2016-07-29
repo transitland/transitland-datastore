@@ -300,8 +300,13 @@ class RouteStopPattern < BaseRouteStopPattern
   scope :with_trips, -> (search_string) { where{trips.within(search_string)} }
   scope :with_stops, -> (search_string) { where{stop_pattern.within(search_string)} }
 
-  def ordered_ssps()
-    ScheduleStopPair.where(route_stop_pattern: self).order(:origin_departure_time)
+  def ordered_ssp_trip_chunks(&block)
+    # TODO: can we load chunks with ActiveRecord directly?
+    if block
+      ScheduleStopPair.where(route_stop_pattern: self).order(:trip, :origin_departure_time).slice_when { |s1, s2|
+        !s1.trip.eql?(s2.trip)
+      }.each {|trip_chunk| yield trip_chunk }
+    end
   end
 
   ##### FromGTFS ####
