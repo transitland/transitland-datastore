@@ -181,7 +181,7 @@ class Changeset < ActiveRecord::Base
       self.stops_created_or_updated.each do |stop|
         operators_to_update_convex_hull.merge(OperatorServingStop.where(stop: stop).map(&:operator))
       end
-      rsps_to_update_distances.merge(RouteStopPattern.with_stops(self.stops_created_or_updated.map(&:onestop_id)))
+      rsps_to_update_distances.merge(RouteStopPattern.with_stops(self.stops_created_or_updated.map(&:onestop_id).join(',')))
 
       operators_to_update_convex_hull.each { |operator|
         operator.geometry = operator.recompute_convex_hull_around_stops
@@ -189,8 +189,7 @@ class Changeset < ActiveRecord::Base
       }
     end
 
-    rsps_to_update_distances.merge(self.route_stop_patterns_created_or_updated.map(&:onestop_id))
-    rsps_to_update_distances = RouteStopPattern.where(onestop_id: rsps_to_update_distances.to_a.join(','))
+    rsps_to_update_distances.merge(self.route_stop_patterns_created_or_updated)
     rsps_to_update_distances.each { |rsp|
       rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
       rsp.ordered_ssp_trip_chunks { |trip_chunk|
