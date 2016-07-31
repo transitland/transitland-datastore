@@ -181,9 +181,10 @@ describe Changeset do
 
     context 'computed attributes' do
       it 'recomputes rsp stop distances from rsp update changeset' do
-        create(:stop_richmond_offset)
-        create(:stop_millbrae)
-        create(:route_stop_pattern_bart)
+        richmond = create(:stop_richmond_offset)
+        millbrae = create(:stop_millbrae)
+        rsp = create(:route_stop_pattern_bart)
+        create(:schedule_stop_pair, origin: richmond, destination: millbrae, route_stop_pattern: rsp)
 
         # now, a minor tweak to the first rsp geometry endpoint to demonstrate a change in stop distance for the second stop
         changeset = create(:changeset, payload: {
@@ -199,13 +200,17 @@ describe Changeset do
           ]
         })
         changeset.apply!
+        saved_ssp = ScheduleStopPair.first
+        expect(saved_ssp.origin_dist_traveled).to eq 0.0
+        expect(saved_ssp.destination_dist_traveled).to eq 37748.7
         expect(RouteStopPattern.find_by_onestop_id!('r-9q8y-richmond~dalycity~millbrae-45cad3-46d384').stop_distances).to eq [0.0, 37748.7]
       end
 
       it 'recomputes rsp stop distances from stop update changeset' do
-        create(:stop_richmond_offset)
-        create(:stop_millbrae)
-        create(:route_stop_pattern_bart)
+        richmond = create(:stop_richmond_offset)
+        millbrae = create(:stop_millbrae)
+        rsp = create(:route_stop_pattern_bart)
+        create(:schedule_stop_pair, origin: richmond, destination: millbrae, route_stop_pattern: rsp)
         changeset = create(:changeset, payload: {
           changes: [
             {
@@ -220,6 +225,9 @@ describe Changeset do
           ]
         })
         changeset.apply!
+        saved_ssp = ScheduleStopPair.first
+        expect(saved_ssp.origin_dist_traveled).to eq 0.0
+        expect(saved_ssp.destination_dist_traveled).to eq 37641.4
         expect(RouteStopPattern.find_by_onestop_id!('r-9q8y-richmond~dalycity~millbrae-45cad3-46d384').stop_distances).to eq [0.0, 37641.4]
       end
 
