@@ -128,6 +128,11 @@ class Stop < BaseStop
       .select('DISTINCT ON (current_routes_serving_stop.route_id) *')
   end
 
+  # Route vehicle_type serving stop
+  def served_by_vehicle_types
+    self.routes_serving_stop.map(&:route).map(&:vehicle_type).uniq
+  end
+
   # Station Hierarchy
   has_many :stop_egresses, class_name: 'StopEgress', foreign_key: :parent_stop_id
   has_many :stop_platforms, class_name: 'StopPlatform', foreign_key: :parent_stop_id
