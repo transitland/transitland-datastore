@@ -133,6 +133,12 @@ class Stop < BaseStop
     self.routes_serving_stop.map(&:route).map(&:vehicle_type).uniq
   end
 
+  scope :served_by_vehicle_types, -> (vehicle_types) {
+    joins{routes_serving_stop.route}
+      .where({current_routes: {vehicle_type: vehicle_types}})
+      .distinct
+  }
+
   # Station Hierarchy
   has_many :stop_egresses, class_name: 'StopEgress', foreign_key: :parent_stop_id
   has_many :stop_platforms, class_name: 'StopPlatform', foreign_key: :parent_stop_id
