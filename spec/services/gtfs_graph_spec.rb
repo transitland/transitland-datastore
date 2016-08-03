@@ -97,18 +97,18 @@ describe GTFSGraph do
         r = @feed.imported_routes.find_by(onestop_id: 'r-9q9j-bullet')
         expect(r.route_stop_patterns.size).to eq(12)
         expect(r.route_stop_patterns.map(&:onestop_id)).to contain_exactly(
-          "r-9q9j-bullet-6168c2-7e7ad6",
-          "r-9q9j-bullet-dea476-32bf22",
-          "r-9q9j-bullet-06b68d-7e7ad6",
-          "r-9q9j-bullet-761397-32bf22",
-          "r-9q9j-bullet-d1201b-32bf22",
-          "r-9q9j-bullet-752be5-7e7ad6",
-          "r-9q9j-bullet-c43c1d-7e7ad6",
-          "r-9q9j-bullet-49de87-7e7ad6",
-          "r-9q9j-bullet-e11172-5571f5",
-          "r-9q9j-bullet-9a247a-32bf22",
-          "r-9q9j-bullet-cf14f2-32bf22",
-          "r-9q9j-bullet-078a92-c1d264"
+            "r-9q9j-bullet-ed69fc-5f96a1",
+            "r-9q9j-bullet-1de4fb-725db6",
+            "r-9q9j-bullet-cfa925-5f96a1",
+            "r-9q9j-bullet-2e5135-725db6",
+            "r-9q9j-bullet-4fea71-725db6",
+            "r-9q9j-bullet-804eb5-5f96a1",
+            "r-9q9j-bullet-b18930-5f96a1",
+            "r-9q9j-bullet-bed20a-5f96a1",
+            "r-9q9j-bullet-8f1c16-6724bf",
+            "r-9q9j-bullet-3fbb97-725db6",
+            "r-9q9j-bullet-d2a2b0-725db6",
+            "r-9q9j-bullet-899813-f23867"
         )
       end
 
@@ -185,7 +185,7 @@ describe GTFSGraph do
       #     expect SSPs for this route & rsp trips to be skipped
       block_before_level_2 = Proc.new { |graph|
         Route.find_by_onestop_id!('r-9qsb-20').delete
-        RouteStopPattern.find_by_onestop_id!('r-9qt1-50-011bb4-6fba7c').delete
+        RouteStopPattern.find_by_onestop_id!('r-9qt1-50-5cba7c-25211f').delete
       }
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 2, block_before_level_2: block_before_level_2)
       expect(@feed.imported_schedule_stop_pairs.count).to eq(13) # WAS 17
@@ -204,7 +204,7 @@ describe GTFSGraph do
         onestop_id: "s-9qkxnx40xt-furnacecreekresortdemo"
       )
       route = @feed.imported_routes.find_by!(onestop_id: 'r-9qsb-20')
-      route_stop_pattern = @feed.imported_route_stop_patterns.find_by!(onestop_id: 'r-9qsb-20-ff1621-c84772')
+      route_stop_pattern = @feed.imported_route_stop_patterns.find_by!(onestop_id: 'r-9qsb-20-8d5767-8c7aa5')
       operator = @feed.operators.find_by(onestop_id: 'o-9qs-demotransitauthority')
       trip = 'BFC1'
       found = @feed.imported_schedule_stop_pairs.where(
@@ -255,8 +255,8 @@ describe GTFSGraph do
       # trip 'ONESTOP' has 1 unique stop, but 2 stop times
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_trips_special_stop_times, import_level: 2)
       expect(@feed.imported_route_stop_patterns.size).to eq(8)
-      expect(RouteStopPattern.where(onestop_id: 'r-9qsb-20-9b1b33-d2e3e5').count).to eq (1)
-      expect(RouteStopPattern.where(onestop_id: 'r-9qsb-20-9b1b33-d2e3e5').first.stop_distances).to eq ([0.0, 0.0])
+      expect(RouteStopPattern.where(onestop_id: 'r-9qsb-20-67f86f-b61116').count).to eq (1)
+      expect(RouteStopPattern.where(onestop_id: 'r-9qsb-20-67f86f-b61116').first.stop_distances).to eq ([0.0, 0.0])
     end
 
     it 'headsign: fall back to trip_headsign and last stop name' do
