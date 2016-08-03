@@ -97,23 +97,25 @@ describe GTFSGraph do
         r = @feed.imported_routes.find_by(onestop_id: 'r-9q9j-bullet')
         expect(r.route_stop_patterns.size).to eq(12)
         expect(r.route_stop_patterns.map(&:onestop_id)).to contain_exactly(
-          "r-9q9j-bullet-06b68d-0bca5d",
-          "r-9q9j-bullet-078a92-c05b8d",
-          "r-9q9j-bullet-49de87-0bca5d",
-          "r-9q9j-bullet-6168c2-0bca5d",
-          "r-9q9j-bullet-752be5-0bca5d",
-          "r-9q9j-bullet-761397-6e2d1a",
-          "r-9q9j-bullet-9a247a-6e2d1a",
-          "r-9q9j-bullet-c43c1d-0bca5d",
-          "r-9q9j-bullet-cf14f2-6e2d1a",
-          "r-9q9j-bullet-d1201b-6e2d1a",
-          "r-9q9j-bullet-dea476-6e2d1a",
-          "r-9q9j-bullet-e11172-ba265d"
+          "r-9q9j-bullet-6168c2-7e7ad6",
+          "r-9q9j-bullet-dea476-32bf22",
+          "r-9q9j-bullet-06b68d-7e7ad6",
+          "r-9q9j-bullet-761397-32bf22",
+          "r-9q9j-bullet-d1201b-32bf22",
+          "r-9q9j-bullet-752be5-7e7ad6",
+          "r-9q9j-bullet-c43c1d-7e7ad6",
+          "r-9q9j-bullet-49de87-7e7ad6",
+          "r-9q9j-bullet-e11172-5571f5",
+          "r-9q9j-bullet-9a247a-32bf22",
+          "r-9q9j-bullet-cf14f2-32bf22",
+          "r-9q9j-bullet-078a92-c1d264"
         )
       end
 
       it 'calculated and stored distances for Route Stop Patterns' do
-        expect(@feed.imported_route_stop_patterns[0].stop_distances).to match_array([46.1, 2565.9, 8002.4, 14688.5, 17656.6, 21810.1, 24362.9, 26122.0, 28428.0, 30576.9, 32583.5, 35274.7, 37262.8, 40756.8, 44607.6, 46357.8, 48369.9, 50918.5, 54858.4, 57964.7, 62275.7, 65457.2, 71336.4, 75359.4])
+        expect(@feed.imported_route_stop_patterns[0].stop_distances).to match_array([46.1, 2565.9, 8002.4, 14688.5,
+          17656.6, 21810.1, 24362.9, 26122.0, 28428.0, 30576.9, 32583.5, 35274.7, 37262.8, 40756.8, 44607.6, 46357.8,
+          48369.9, 50918.5, 54858.4, 57964.7, 62275.7, 65457.2, 71336.4, 75359.4].map{|value| be_within(2.0).of(value)})
       end
 
       it 'created known Operator that serves known Routes' do
