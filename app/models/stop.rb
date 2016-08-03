@@ -128,6 +128,10 @@ class Stop < BaseStop
       .select('DISTINCT ON (current_routes_serving_stop.route_id) *')
   end
 
+  def vehicle_types_serving_stop_and_platforms
+    routes_serving_stop_and_platforms.map(&:route).map(&:vehicle_type).uniq
+  end
+
   # Route vehicle_type serving stop
   def served_by_vehicle_types
     self.routes_serving_stop.map(&:route).map(&:vehicle_type).uniq
