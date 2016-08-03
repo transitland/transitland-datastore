@@ -136,25 +136,25 @@ describe RouteStopPattern do
                                                      [-122.0123,45.0123]])).to match_array([[-122.0123,45.0123],[-122.9876,45.9876],[-122.0123,45.0123]])
   end
 
-  context 'new import' do
-    before(:each) do
-      @route = create(:route, onestop_id: route_onestop_id)
-      @saved_rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, route: @route)
-      import_sp = [ stop_a.onestop_id, stop_b.onestop_id, stop_c.onestop_id ]
-      import_geometry = RouteStopPattern.line_string([stop_a.geometry[:coordinates],
-                                                      stop_b.geometry[:coordinates],
-                                                      stop_c.geometry[:coordinates]])
-      import_onestop_id = OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: route_onestop_id,
-                                                                  stop_pattern: import_sp,
-                                                                  geometry_coords: import_geometry.coordinates).to_s
-      @import_rsp = RouteStopPattern.new(
-        onestop_id: import_onestop_id,
-        stop_pattern: import_sp,
-        geometry: import_geometry,
-        route: @route
-      )
-    end
-  end
+  # context 'new import' do
+  #   before(:each) do
+  #     @route = create(:route, onestop_id: route_onestop_id)
+  #     @saved_rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, route: @route)
+  #     import_sp = [ stop_a.onestop_id, stop_b.onestop_id, stop_c.onestop_id ]
+  #     import_geometry = RouteStopPattern.line_string([stop_a.geometry[:coordinates],
+  #                                                     stop_b.geometry[:coordinates],
+  #                                                     stop_c.geometry[:coordinates]])
+  #     import_onestop_id = OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: route_onestop_id,
+  #                                                                 stop_pattern: import_sp,
+  #                                                                 geometry_coords: import_geometry.coordinates).to_s
+  #     @import_rsp = RouteStopPattern.new(
+  #       onestop_id: import_onestop_id,
+  #       stop_pattern: import_sp,
+  #       geometry: import_geometry,
+  #       route: @route
+  #     )
+  #   end
+  # end
 
   it 'can be found by stops' do
     rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id)
@@ -170,6 +170,24 @@ describe RouteStopPattern do
     expect(RouteStopPattern.with_trips('trip1,trip2')).to match_array([rsp])
     expect(RouteStopPattern.with_trips('trip3')).to match_array([])
     expect(RouteStopPattern.with_trips('trip1,trip3')).to match_array([])
+  end
+
+  it 'ordered_ssp_trip_chunks' do
+    route = create(:route, onestop_id: @onestop_id)
+    rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, trips: ['trip1','trip2'])
+    ssp_1a = create(:schedule_stop_pair, origin: stop_a, origin_departure_time: "09:00:00", destination: stop_b, route: route, route_stop_pattern: rsp, trip: 'trip1')
+    ssp_1b = create(:schedule_stop_pair, origin: stop_b, origin_departure_time: "09:30:00", destination: stop_c, route: route, route_stop_pattern: rsp, trip: 'trip1')
+    ssp_2a = create(:schedule_stop_pair, origin: stop_a, origin_departure_time: "10:00:00", destination: stop_b, route: route, route_stop_pattern: rsp, trip: 'trip2')
+    ssp_2b = create(:schedule_stop_pair, origin: stop_b, origin_departure_time: "10:30:00", destination: stop_c, route: route, route_stop_pattern: rsp, trip: 'trip2')
+    chunks = []
+    rsp.ordered_ssp_trip_chunks { |trip_chunk|
+      ssps = []
+      trip_chunk.each_with_index do |ssp, i|
+        ssps << ssp
+      end
+      chunks << ssps
+    }
+    expect(chunks).to match_array([[ssp_1a, ssp_1b],[ssp_2a, ssp_2b]])
   end
 
   context 'calculate_distances' do
