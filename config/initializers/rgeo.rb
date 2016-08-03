@@ -20,7 +20,7 @@ module RGeo
       end
 
       def locators(point)
-        _segments.collect { |segment| segment.locator(point) }
+        _segments.map { |segment| segment.locator(point) unless segment.s.eql?(segment.e) }.compact
       end
 
       def before?(target)
