@@ -59,8 +59,8 @@ describe Api::V1::IssuesController do
     it 'creates an issue when no equivalent exists' do
       post :create, issue: @issue1
       expect(response.status).to eq 202
-      expect(Issue.count).to eq 3
-      expect(EntityWithIssues.count).to eq 7
+      expect(Issue.count).to eq 3 # was 2
+      expect(EntityWithIssues.count).to eq 7 # was 5
     end
 
     it 'does not create issue when an equivalent one exists' do
