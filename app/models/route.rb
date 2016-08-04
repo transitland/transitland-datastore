@@ -177,7 +177,8 @@ class Route < BaseRoute
   }
 
   scope :where_vehicle_type, -> (vehicle_types) {
-    where(vehicle_type: Array.wrap(vehicle_types).map { |vt| GTFS::Route.match_vehicle_type(vt).to_s.to_i } )
+    vehicle_types = Array.wrap(vehicle_types).map { |vt| GTFS::Route.match_vehicle_type(vt).to_s.to_i }
+    where(vehicle_type: vehicle_types)
   }
 
   ##### FromGTFS ####

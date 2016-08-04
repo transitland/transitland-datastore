@@ -138,6 +138,7 @@ class Stop < BaseStop
   end
 
   scope :served_by_vehicle_types, -> (vehicle_types) {
+    vehicle_types = Array.wrap(vehicle_types).map { |vt| GTFS::Route.match_vehicle_type(vt).to_s.to_i }
     joins{routes_serving_stop.route}
       .where({current_routes: {vehicle_type: vehicle_types}})
       .distinct
