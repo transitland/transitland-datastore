@@ -48,16 +48,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     end
     if params[:vehicle_type].present?
       # some count be integers, some could be strings
-      vehicle_types_mixed = params[:vehicle_type].split(',')
-      # turn them all into integers
-      vehicle_types_integers = vehicle_types_mixed.map do |vt|
-        if vt.match(/\d+/)
-          vt.to_i
-        elsif vt.to_s
-          GTFS::Route::VEHICLE_TYPES.invert[vt.to_s.titleize.to_sym].to_s.to_i
-        end
-      end
-      @routes = @routes.where(vehicle_type: vehicle_types_integers)
+      @routes = @routes.where_vehicle_type(AllowFiltering.param_as_array(params, :vehicle_type))
     end
     if params[:bbox].present?
       @routes = @routes.stop_within_bbox(params[:bbox])
