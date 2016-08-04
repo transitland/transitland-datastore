@@ -105,6 +105,30 @@ describe Stop do
     end
   end
 
+  context '.served_by_vehicle_types' do
+    before(:each) do
+      @route1 = create(:route, vehicle_type: 'metro')
+      @route2 = create(:route, vehicle_type: 'bus')
+      @stop1 = create(:stop)
+      @stop2 = create(:stop)
+      RouteServingStop.create!(route: @route1, stop: @stop1)
+      RouteServingStop.create!(route: @route2, stop: @stop2)
+    end
+
+    it 'accepts a string' do
+      expect(Stop.served_by_vehicle_types('metro')).to match_array([@stop1])
+    end
+
+    it 'accepts an integer' do
+      expect(Stop.served_by_vehicle_types(3)).to match_array([@stop2])
+    end
+
+    it 'accepts a mix of strings and integers' do
+      expect(Stop.served_by_vehicle_types(['metro', 3])).to match_array([@stop1, @stop2])
+    end
+
+  end
+
   context 'served_by' do
     before(:each) do
       @bart = create(:operator, name: 'BART')
