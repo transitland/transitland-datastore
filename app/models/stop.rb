@@ -129,7 +129,8 @@ class Stop < BaseStop
   end
 
   def vehicle_types_serving_stop_and_platforms
-    routes_serving_stop_and_platforms.map(&:route).map(&:vehicle_type).uniq
+    # Use cacheable relations
+    (self.stop_platforms + [self]).map { |s| s.served_by_vehicle_types }.flatten.uniq
   end
 
   # Route vehicle_type serving stop
