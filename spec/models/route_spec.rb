@@ -102,6 +102,11 @@ describe Route do
       it 'accepts a mix of string and integer vehicle_types' do
         expect(Route.where_vehicle_type(['metro', 3])).to match_array([@route1, @route2])
       end
+
+      it 'fails when invalid vehicle_type' do
+        expect{ Route.where_vehicle_type('unicycle') }.to raise_error(KeyError)
+      end
+
     end
 
     context '.where_serves' do

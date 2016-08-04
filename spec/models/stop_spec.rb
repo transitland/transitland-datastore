@@ -130,6 +130,9 @@ describe Stop do
       expect(Stop.served_by_vehicle_types(['metro', 3])).to match_array([@stop1, @stop2])
     end
 
+    it 'fails when invalid vehicle_type' do
+      expect{ Stop.served_by_vehicle_types('unicycle') }.to raise_error(KeyError)
+    end
   end
 
   context 'served_by' do
