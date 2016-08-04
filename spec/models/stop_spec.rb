@@ -109,10 +109,13 @@ describe Stop do
     before(:each) do
       @route1 = create(:route, vehicle_type: 'metro')
       @route2 = create(:route, vehicle_type: 'bus')
+      @route3 = create(:route, vehicle_type: 'tram')
       @stop1 = create(:stop)
       @stop2 = create(:stop)
+      @stop3 = create(:stop)
       RouteServingStop.create!(route: @route1, stop: @stop1)
       RouteServingStop.create!(route: @route2, stop: @stop2)
+      RouteServingStop.create!(route: @route3, stop: @stop3)
     end
 
     it 'accepts a string' do
