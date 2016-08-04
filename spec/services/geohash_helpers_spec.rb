@@ -54,7 +54,7 @@ describe GeohashHelpers do
       [-122.434092, 37.732921]
     ].map { |lon,lat| GEOFACTORY.point(lon, lat)}
   }
-  
+
   it 'encode' do
     expect(GeohashHelpers.encode(test_point, precision=test_geohash.length)).to eq(test_geohash)
   end
@@ -69,9 +69,9 @@ describe GeohashHelpers do
     expect(GeohashHelpers.adjacent('9p', :e)).to eq('9r')
     expect(GeohashHelpers.adjacent('9p', :s)).to eq('9n')
     expect(GeohashHelpers.adjacent('9p', :w)).to eq('8z')
-    expect(GeohashHelpers.adjacent('9p', :n)).to eq('c0')    
+    expect(GeohashHelpers.adjacent('9p', :n)).to eq('c0')
   end
-  
+
   it 'adjacent requires valid direction' do
     expect {
       GeohashHelpers.adjacent('9p', :x)
@@ -99,7 +99,16 @@ describe GeohashHelpers do
   it 'fit' do
     expect(GeohashHelpers.fit(test_geometries)).to eq('9q9')
   end
-  
+
+  it 'fit works with a single geometry' do
+    expect(GeohashHelpers.fit(test_geometries.take(1))).to eq('9q9p9h03')
+  end
+
+
+  it 'fit fails with no geometries' do
+    expect { GeohashHelpers.fit([]) }.to raise_error(ArgumentError)
+  end
+
   it 'neighbors_bbox' do
     # geohash 9q9
     bbox = GeohashHelpers.neighbors_bbox('9q9')
@@ -110,7 +119,7 @@ describe GeohashHelpers do
     expect(bbox.max_point).to eq(max_point)
     expect(bbox.min_point).to eq(min_point)
     expect(bbox.contains?(max_point)).to be true
-    expect(bbox.contains?(min_point)).to be true    
+    expect(bbox.contains?(min_point)).to be true
   end
-  
+
 end
