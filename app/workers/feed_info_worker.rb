@@ -21,7 +21,8 @@ class FeedInfoWorker
         @url,
         progress_download: progress_download,
         progress_graph: progress_graph,
-        strict: false
+        strict: false,
+        tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
       )
       feed_info = FeedInfo.new(url: @url, gtfs: gtfs)
       feed, operators = feed_info.parse_feed_and_operators
