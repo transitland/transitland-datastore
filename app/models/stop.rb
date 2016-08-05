@@ -83,6 +83,9 @@ class Stop < BaseStop
       :identifiers,
       :last_conflated_at,
       :type
+    ],
+    sticky_attributes: [
+      :geometry
     ]
   })
 

@@ -11,7 +11,9 @@ module CurrentTrackedByChangeset
 
   module ClassMethods
     attr_reader :kind_of_model_tracked,
-                :virtual_attributes
+                :virtual_attributes,
+                :sticky_attributes
+    attr_accessor :activated_sticky_attributes
 
     def apply_change(changeset: nil, attrs: {}, action: nil, cache: {})
       apply_changes(changeset: changeset, changes: [attrs], action: action, cache: cache)
@@ -102,6 +104,7 @@ module CurrentTrackedByChangeset
         attribute_names.map(&:to_sym) +
         @virtual_attributes.map(&:to_sym) -
         @protected_attributes.map(&:to_sym) -
+        @activated_sticky_attributes.map(&:to_sym) -
         reflections.values.map(&:foreign_key).map(&:to_sym) -
         [:id, :created_at, :updated_at, :version]
       )
@@ -109,7 +112,7 @@ module CurrentTrackedByChangeset
 
     private
 
-    def current_tracked_by_changeset(kind_of_model_tracked: nil, virtual_attributes: [], protected_attributes: [])
+    def current_tracked_by_changeset(kind_of_model_tracked: nil, virtual_attributes: [], protected_attributes: [], sticky_attributes: [])
       if [:onestop_entity, :relationship].include?(kind_of_model_tracked)
         @kind_of_model_tracked = kind_of_model_tracked
       else
@@ -117,6 +120,8 @@ module CurrentTrackedByChangeset
       end
       @virtual_attributes = virtual_attributes
       @protected_attributes = protected_attributes
+      @sticky_attributes = sticky_attributes
+      @activated_sticky_attributes = []
     end
   end
 

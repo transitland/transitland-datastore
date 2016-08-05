@@ -129,6 +129,7 @@ class Changeset < ActiveRecord::Base
   def create_change_payloads(entities)
     entities.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
       changes = chunk.map do |entity|
+        filter_sticky_attributes(entity)
         {
           :action => :createUpdate,
           entity.class.name.camelize(:lower) => entity.as_change.as_json.compact
@@ -151,6 +152,12 @@ class Changeset < ActiveRecord::Base
   def destroy_all_change_payloads
     # Destroy change payloads
     change_payloads.destroy_all
+  end
+
+  def filter_sticky_attributes(entity)
+    if self.imported_from_feed && self.imported_from_feed_version && self.imported_from_feed.feed_version_imports.size > 1
+      entity.class.activated_sticky_attributes = entity.class.sticky_attributes
+    end
   end
 
   def issues_unresolved(resolving_issues, changeset_issues)
