@@ -13,7 +13,6 @@ module CurrentTrackedByChangeset
     attr_reader :kind_of_model_tracked,
                 :virtual_attributes,
                 :sticky_attributes
-    attr_accessor :activated_sticky_attributes
 
     def apply_change(changeset: nil, attrs: {}, action: nil, cache: {})
       apply_changes(changeset: changeset, changes: [attrs], action: action, cache: cache)
@@ -96,7 +95,7 @@ module CurrentTrackedByChangeset
       Object.const_get("Old#{self.to_s}").new
     end
 
-    def changeable_attributes
+    def changeable_attributes(sticky: false)
       # Allow editing of attribute, minus foreign keys and protected attrs
       # TODO: read directly from JSON schema?
       # Convert everything to symbol
@@ -104,10 +103,11 @@ module CurrentTrackedByChangeset
         attribute_names.map(&:to_sym) +
         @virtual_attributes.map(&:to_sym) -
         @protected_attributes.map(&:to_sym) -
-        @activated_sticky_attributes.map(&:to_sym) -
         reflections.values.map(&:foreign_key).map(&:to_sym) -
         [:id, :created_at, :updated_at, :version]
       )
+      @changeable_attributes -= @sticky_attributes if sticky
+      @changeable_attributes
     end
 
     private
@@ -121,13 +121,12 @@ module CurrentTrackedByChangeset
       @virtual_attributes = virtual_attributes
       @protected_attributes = protected_attributes
       @sticky_attributes = sticky_attributes
-      @activated_sticky_attributes = []
     end
   end
 
-  def as_change
+  def as_change(sticky: false)
     Hash[
-      slice(*self.class.changeable_attributes).
+      slice(*self.class.changeable_attributes(sticky: sticky)).
       map { |k, v| [k.to_s.camelize(:lower).to_sym, v] }
     ]
   end
