@@ -4,65 +4,55 @@ module OnestopId
 
   COMPONENT_SEPARATOR = '-'
   GEOHASH_FILTER = /[^0123456789bcdefghjkmnpqrstuvwxyz]/
+  HEX_FILTER = /\H/
   NAME_TILDE = /[\-\:\&\@\/]/
   NAME_FILTER = /[^[:alnum:]\~\>\<]/
   IDENTIFIER_TEMPLATE = Addressable::Template.new("gtfs://{feed_onestop_id}/{entity_prefix}/{entity_id}")
 
-  class OnestopIdException < StandardError
+  class OnestopIdError < StandardError
   end
 
   class OnestopIdBase
 
     PREFIX = nil
     MODEL = nil
-    NUM_COMPONENTS = 3
     MAX_LENGTH = 64
     GEOHASH_MAX_LENGTH = 10
+    NAME_MAX_LENGTH = 36
 
-    attr_accessor :geohash, :name
-
-    def initialize(string: nil, geohash: nil, name: nil)
-      if string.nil? && (geohash.nil? || name.nil?)
-        fail ArgumentError.new('argument must be either a onestop id string or both a geohash and name.')
+    def initialize(string: nil, **components)
+      components = components.merge(self.parse(string)) if string
+      components.each do |component, value|
+        self.send("#{component}=", value)
       end
-      if string && string.length > 0
-        geohash = string.split(COMPONENT_SEPARATOR)[1]
-        name = string.split(COMPONENT_SEPARATOR)[2]
-      else
-        geohash = geohash.to_s.downcase.gsub(GEOHASH_FILTER, '')
-        name = name.to_s.downcase.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')
-      end
-      @geohash = geohash
-      @name = name
     end
 
     def self.match?(value)
-      if value && value.length > 0
-        split = value.split(COMPONENT_SEPARATOR)
-        split[0].to_sym == self::PREFIX && split.size == self::NUM_COMPONENTS
-      end
+      self.get_regex.match(value)
+    end
+
+    def self.get_regex
+      # Cache
+      self::REGEX ||= self.regex
+    end
+
+    def self.regex
+      /^(?<prefix>#{self::PREFIX})-(?<geohash>[0-9a-z]+)-(?<name>[[:alnum:]~]+)$/
     end
 
     def to_s
-      [
-        self.class::PREFIX,
-        @geohash[0...self.class::GEOHASH_MAX_LENGTH],
-        @name
-      ].join(COMPONENT_SEPARATOR)[0...self.class::MAX_LENGTH]
-    end
-
-    def validate
-      errors = []
-      errors << 'invalid geohash' unless @geohash.present?
-      errors << 'invalid name' unless @name.present?
-      errors << 'invalid geohash' unless validate_geohash(@geohash)
-      errors << 'invalid name' unless validate_name(@name)
-      return (errors.size == 0), errors
+      "#{prefix}-#{geohash[0...self.class::GEOHASH_MAX_LENGTH]}-#{name[0...self.class::NAME_MAX_LENGTH]}"[0...self.class::MAX_LENGTH]
     end
 
     def validate!
       valid, errors = self.validate
-      raise OnestopIdException.new(errors.join(', ')) unless valid
+      fail OnestopIdError.new(errors.join(', ')) unless valid
+    end
+
+    def parse(string)
+      match = self.class.regex.match(string)
+      fail OnestopIdError.new('Could not parse') unless match
+      Hash[match.names.zip(match.captures)]
     end
 
     def valid?
@@ -73,14 +63,33 @@ module OnestopId
       return validate[1]
     end
 
-    private
+    ##### Component handlers #####
 
-    def validate_geohash(value)
-      !(value =~ GEOHASH_FILTER)
+    def prefix
+      self.class::PREFIX
+    end
+    def prefix=(value)
     end
 
-    def validate_name(value)
-      !(value =~ NAME_FILTER)
+    def geohash
+      @geohash
+    end
+    def geohash=(value)
+      @geohash = value.downcase.gsub(GEOHASH_FILTER, '')
+    end
+
+    def name
+      @name
+    end
+    def name=(value)
+      @name = value.downcase.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')
+    end
+
+    def validate
+      errors = []
+      errors << 'invalid geohash' unless geohash.present?
+      errors << 'invalid name' unless name.present?
+      return (errors.size == 0), errors
     end
   end
 
@@ -97,114 +106,108 @@ module OnestopId
   class StopOnestopId < OnestopIdBase
     PREFIX = :s
     MODEL = Stop
-    def self.match?(value)
-      super && !value.include?('<') && !value.include?('>')
-    end
   end
 
   class StopEgressOnestopId < OnestopIdBase
     PREFIX = :s
     MODEL = StopEgress
-    def self.match?(value)
-      super && value.include?('>')
+
+    def self.regex
+      /^(?<prefix>#{self::PREFIX})-(?<geohash>[0-9a-z]+)-(?<name>[[:alnum:]~]+)>(?<suffix>[[:alnum:]~]+)$/
+    end
+
+    def to_s
+      "#{prefix}-#{geohash[0...self.class::GEOHASH_MAX_LENGTH]}-#{name[0...self.class::NAME_MAX_LENGTH]}>#{suffix[0...14]}"[0...self.class::MAX_LENGTH]
+    end
+
+    def suffix
+      @suffix
+    end
+    def suffix=(value)
+      @suffix = value.downcase.gsub(self.class::NAME_TILDE, '~').gsub(NAME_FILTER, '')
     end
   end
 
   class StopPlatformOnestopId < OnestopIdBase
     PREFIX = :s
     MODEL = StopPlatform
-    def self.match?(value)
-      super && value.include?('<')
+
+    def self.regex
+      /^(?<prefix>#{self::PREFIX})-(?<geohash>[0-9a-z]+)-(?<name>[[:alnum:]~]+)<(?<suffix>[[:alnum:]~]+)$/
+    end
+
+    def to_s
+      "#{prefix}-#{geohash[0...self.class::GEOHASH_MAX_LENGTH]}-#{name[0...self.class::NAME_MAX_LENGTH]}<#{suffix[0...14]}"[0...self.class::MAX_LENGTH]
+    end
+
+    def suffix
+      @suffix
+    end
+    def suffix=(value)
+      @suffix = value.downcase.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')
     end
   end
 
   class RouteOnestopId < OnestopIdBase
     PREFIX = :r
     MODEL = Route
-
-    def to_s
-      geohash = @geohash[0...self.class::GEOHASH_MAX_LENGTH]
-      # Both Route and their RouteStopPatterns will share a name component whose max length
-      # is dependent on the fixed length components of the RouteStopPattern onestop id (which includes the Route onestop id)
-      # a variable length route geohash, and the total limitation of 64 chars for all onestop ids.
-      # Route onestop ids will have 1 prefix, 2 dashes, and a variable-length route geohash up to 10 characters long.
-      # RouteStopPattern onestop ids will have a route onestop id plus 2 dashes and 2 geohashes (stop pattern and geometry)
-      # of 6 chars long each. The final max value of the name length is computed in RouteStopPatternOnestopId.max_name_length
-      # and will be between 64 - (1 + 2 + 10 + 2 + 2*6) = 37 and 46 chars long.
-      [
-        self.class::PREFIX,
-        geohash,
-        @name[0...RouteStopPatternOnestopId.max_name_length(geohash.length)],
-      ].join(COMPONENT_SEPARATOR)[0...self.class::MAX_LENGTH]
-    end
   end
 
   class RouteStopPatternOnestopId < OnestopIdBase
     PREFIX = :r
     MODEL = RouteStopPattern
-    NUM_COMPONENTS = 5
     HASH_LENGTH = 6
 
-    attr_accessor :stop_hash, :geometry_hash
-
-    def initialize(string: nil, route_onestop_id: nil, stop_pattern: nil, geometry_coords: nil)
-      if string.nil? && (route_onestop_id.nil? || stop_pattern.nil? || geometry_coords.nil?)
-        fail ArgumentError.new("argument must include a route onestop id,stop pattern array of stop onestop ids,and array of geographic coordinate arrays.")
-      end
-      if string && string.length > 0
-        geohash = string.split(COMPONENT_SEPARATOR)[1]
-        name = string.split(COMPONENT_SEPARATOR)[2]
-        stop_hash = string.split(COMPONENT_SEPARATOR)[3]
-        geometry_hash = string.split(COMPONENT_SEPARATOR)[4]
-      else
-        geohash = route_onestop_id.split(COMPONENT_SEPARATOR)[1].downcase.gsub(GEOHASH_FILTER, '')
-        name = route_onestop_id.split(COMPONENT_SEPARATOR)[2].downcase.gsub(NAME_TILDE, '~').gsub(NAME_FILTER, '')
-        stop_hash = RouteStopPatternOnestopId.generate_hash_from_array(stop_pattern)
-        geometry_hash = RouteStopPatternOnestopId.generate_hash_from_array(geometry_coords)
-      end
-      @geohash = geohash
-      @name = name
-      @stop_hash = stop_hash
-      @geometry_hash = geometry_hash
+    def self.regex
+      /^(?<prefix>#{self::PREFIX})-(?<geohash>[0-9a-z]+)-(?<name>[[:alnum:]~]+)-(?<stop_hash>\h+)-(?<geometry_hash>\h+)$/
     end
 
     def to_s
-      geohash = @geohash[0...self.class::GEOHASH_MAX_LENGTH]
-      [
-        self.class::PREFIX,
-        geohash,
-        @name[0...self.class.max_name_length(geohash.length)],
-        @stop_hash,
-        @geometry_hash
-      ].join(COMPONENT_SEPARATOR)[0...self.class::MAX_LENGTH]
+      "#{prefix}-#{geohash[0...self.class::GEOHASH_MAX_LENGTH]}-#{name[0...self.class::NAME_MAX_LENGTH]}-#{stop_hash[0...self.class::HASH_LENGTH]}-#{geometry_hash[0...self.class::HASH_LENGTH]}"[0...self.class::MAX_LENGTH]
+    end
+
+    def stop_hash
+      @stop_hash
+    end
+    def stop_hash=(value)
+      @stop_hash = value.downcase.gsub(HEX_FILTER, '~')
+    end
+    def stop_pattern=(value)
+      self.stop_hash = self.generate_hash_from_array(value)[0...6]
+    end
+
+    def geometry_hash
+      @geometry_hash
+    end
+    def geometry_hash=(value)
+      @geometry_hash = value.downcase.gsub(HEX_FILTER, '~')
+    end
+    def geometry_coords=(value)
+      self.geometry_hash = self.generate_hash_from_array(value)[0...6]
+    end
+
+    def route_onestop_id=(value)
+      r = RouteOnestopId.new(string: value)
+      return unless r
+      self.geohash = r.geohash
+      self.name = r.name
     end
 
     def validate
       errors = super[1]
-      errors << 'invalid stop pattern hash' unless @stop_hash.present?
-      errors << 'invalid stop pattern hash' unless validate_hash(@stop_hash)
-      errors << 'invalid geometry hash' unless @geometry_hash.present?
-      errors << 'invalid geometry hash' unless validate_hash(@geometry_hash)
+      errors << 'invalid stop pattern hash' unless stop_hash.present?
+      errors << 'invalid stop pattern hash' unless validate_hash(stop_hash)
+      errors << 'invalid geometry hash' unless geometry_hash.present?
+      errors << 'invalid geometry hash' unless validate_hash(geometry_hash)
       return (errors.size == 0), errors
     end
 
-    def self.generate_hash_from_array(array)
-      Digest::MD5.hexdigest(array.flatten.join(','))[0...HASH_LENGTH]
-    end
-
-    def self.route_onestop_id(onestop_id)
-      onestop_id.split(COMPONENT_SEPARATOR)[0..2].join(COMPONENT_SEPARATOR)
-    end
-
-    def self.max_name_length(geohash_length)
-      num_fixed_chars = NUM_COMPONENTS + 2*(HASH_LENGTH)
-      MAX_LENGTH - (num_fixed_chars + geohash_length)
-    end
-
-    private
-
     def validate_hash(value)
       (value.is_a? String) && value.length == HASH_LENGTH
+    end
+
+    def generate_hash_from_array(array)
+      Digest::MD5.hexdigest(array.flatten.join(','))
     end
   end
 
