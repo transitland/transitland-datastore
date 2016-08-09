@@ -339,7 +339,7 @@ class GTFSGraph
         stops << stop.parent_stop if stop.parent_stop
       }}
       # Copy Operator timezone to fill missing Stop timezones
-      stops.each { |stop| stop.timezone ||= operator.timezone }
+      stops.each { |stop| stop.timezone = stop.timezone.presence || operator.timezone }
       # Add references and identifiers
       routes.each { |route| route.operated_by = operator.onestop_id }
       operator.serves ||= Set.new
