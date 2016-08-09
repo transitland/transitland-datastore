@@ -176,6 +176,11 @@ class Route < BaseRoute
     where(id: RouteServingStop.select(:route_id).where(stop: Stop.geometry_within_bbox(bbox)))
   }
 
+  scope :where_vehicle_type, -> (vehicle_types) {
+    vehicle_types = Array.wrap(vehicle_types).map { |vt| GTFS::Route.match_vehicle_type(vt).to_s.to_i }
+    where(vehicle_type: vehicle_types)
+  }
+
   ##### FromGTFS ####
   include FromGTFS
   def self.from_gtfs(entity, attrs={})

@@ -85,6 +85,30 @@ describe Route do
       expect(Route.geometry_within_bbox(@bbox_should_contain_geom_only)).to match_array([@route])
     end
 
+    context '.where_vehicle_type' do
+      before(:each) do
+        @route1 = create(:route, vehicle_type: 'metro')
+        @route2 = create(:route, vehicle_type: 'bus')
+      end
+
+      it 'accepts string vehicle types' do
+        expect(Route.where_vehicle_type('metro')).to match_array([@route1])
+      end
+
+      it 'accepts integer vehicle types' do
+        expect(Route.where_vehicle_type(3)).to match_array([@route2])
+      end
+
+      it 'accepts a mix of string and integer vehicle_types' do
+        expect(Route.where_vehicle_type(['metro', 3])).to match_array([@route1, @route2])
+      end
+
+      it 'fails when invalid vehicle_type' do
+        expect{ Route.where_vehicle_type('unicycle') }.to raise_error(KeyError)
+      end
+
+    end
+
     context '.where_serves' do
       before(:each) do
         @stop1, @stop2, @stop3 = create_list(:stop, 3)
