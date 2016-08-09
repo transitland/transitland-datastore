@@ -177,7 +177,9 @@ class Route < BaseRoute
   }
 
   scope :where_vehicle_type, -> (vehicle_types) {
-    vehicle_types = Array.wrap(vehicle_types).map { |vt| GTFS::Route.match_vehicle_type(vt).to_s.to_i }
+    # Titleize input: high_speed_rail_service -> High Speed Rail Service
+    # Then convert back to GTFS spec vehicle_type integer.
+    vehicle_types = Array.wrap(vehicle_types).map { |vt| GTFS::Route.match_vehicle_type(vt.to_s.titleize).to_s.to_i }
     where(vehicle_type: vehicle_types)
   }
 

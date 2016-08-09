@@ -47,7 +47,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
       @routes = @routes.traverses(params[:traverses].split(','))
     end
     if params[:vehicle_type].present?
-      # some count be integers, some could be strings
+      # some could be integers, some could be strings
       @routes = @routes.where_vehicle_type(AllowFiltering.param_as_array(params, :vehicle_type))
     end
     if params[:bbox].present?
