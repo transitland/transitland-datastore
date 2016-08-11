@@ -29,6 +29,15 @@ describe Api::V1::IssuesController do
         expect(issues.length).to eq 0
       }})
     end
+
+    it 'returns issues with feed' do
+      changeset = create(:changeset)
+      Issue.new(created_by_changeset: changeset, issue_type: 'stop_position_inaccurate').save!
+      get :index, feed_onestop_id: 'f-9qs-example'
+      expect_json({ issues: -> (issues) {
+        expect(issues.length).to eq 2
+      }})
+    end
   end
 
   context 'GET show' do
@@ -59,7 +68,8 @@ describe Api::V1::IssuesController do
     it 'creates an issue when no equivalent exists' do
       post :create, issue: @issue1
       expect(response.status).to eq 202
-      expect(Issue.count).to eq 3
+      expect(Issue.count).to eq 3 # was 2
+      expect(EntityWithIssues.count).to eq 7 # was 5
     end
 
     it 'does not create issue when an equivalent one exists' do

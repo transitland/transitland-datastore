@@ -1,11 +1,28 @@
 # Change Log
 
-## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
+## [4.9.2](https://github.com/transitland/transitland-datastore/tree/4.9.2) (2016-07-28)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.1...4.9.2)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.1...HEAD)
+**Implemented enhancements:**
+
+- ScheduleStopPair: when a trip has no headsign, fall back to name of last stop [\#705](https://github.com/transitland/transitland-datastore/issues/705)
+
+**Fixed bugs:**
+
+- Issues request returning routes on next page [\#706](https://github.com/transitland/transitland-datastore/issues/706)
+- Issues not saving or appearing on dev or prod [\#688](https://github.com/transitland/transitland-datastore/issues/688)
+
+**Closed issues:**
+
+- automatically removed outdated ScheduleStopPairs after feed re-imports \(and delete any outdated SSPs currently in database\) [\#690](https://github.com/transitland/transitland-datastore/issues/690)
 
 **Merged pull requests:**
 
+- SSP: headsign fallback [\#711](https://github.com/transitland/transitland-datastore/pull/711) ([irees](https://github.com/irees))
+- Update gems [\#709](https://github.com/transitland/transitland-datastore/pull/709) ([drewda](https://github.com/drewda))
+- FeedVersion activation: delete old FeedVersion SSPs [\#708](https://github.com/transitland/transitland-datastore/pull/708) ([irees](https://github.com/irees))
+- fixed for next page pagination [\#707](https://github.com/transitland/transitland-datastore/pull/707) ([doublestranded](https://github.com/doublestranded))
+- GTFSGraph: Skip agencies without stops [\#703](https://github.com/transitland/transitland-datastore/pull/703) ([irees](https://github.com/irees))
 - production release 4.9.1 [\#699](https://github.com/transitland/transitland-datastore/pull/699) ([drewda](https://github.com/drewda))
 
 ## [4.9.1](https://github.com/transitland/transitland-datastore/tree/4.9.1) (2016-07-22)

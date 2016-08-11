@@ -12,7 +12,11 @@ class FeedInfo
   end
 
   def open
-    @gtfs ||= GTFS::Source.build(@source || @url, {strict: false})
+    @gtfs ||= GTFS::Source.build(
+      @source || @url,
+      strict: false,
+      tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
+    )
     yield self
   end
 

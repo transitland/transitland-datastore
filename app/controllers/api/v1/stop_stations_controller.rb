@@ -49,6 +49,8 @@ class Api::V1::StopStationsController < Api::V1::BaseApiController
     if params[:import_level].present?
       @stops = @stops.where_import_level(AllowFiltering.param_as_array(params, :import_level))
     end
+    # TODO: served_by_vehicle_types
+
 
     @stops = @stops.includes{[
       stop_transfers,
