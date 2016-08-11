@@ -22,7 +22,6 @@
 pip-log.txt
 pip-delete-this-directory.txt
 .Python
-env/
 build/
 develop-eggs/
 dist/
