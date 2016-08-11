@@ -1,4 +1,9 @@
-require 'memory_profiler'
+begin
+  require 'memory_profiler'
+rescue LoadError
+
+end
+
 namespace :profile do
   task test: :environment do
     if defined?(MemoryProfiler)
