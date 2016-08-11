@@ -15,7 +15,12 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
       @issues = @issues.with_type(params[:issue_type])
     end
 
-    @issues = @issues.includes{[entities_with_issues: :entity, created_by_changeset: [:imported_from_feed, :imported_from_feed_version]]}
+    if params[:feed_onestop_id].present?
+      @issues = @issues.from_feed(params[:feed_onestop_id])
+    end
+
+    # entities_with_issues entity still loading with n+1 queries; not sure how to fix
+    @issues = @issues.includes([:entities_with_issues, created_by_changeset: [:imported_from_feed, :imported_from_feed_version]])
 
     respond_to do |format|
       format.json do
