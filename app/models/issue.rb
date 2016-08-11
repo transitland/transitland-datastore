@@ -18,7 +18,7 @@ class Issue < ActiveRecord::Base
   belongs_to :resolved_by_changeset, class_name: 'Changeset'
 
   scope :with_type, -> (search_string) { where(issue_type: search_string.split(',')) }
-  scope :from_feed, -> (feed_onestop_id) { where(imported_from_feed: { onestop_id: feed_onestop_id }) }
+  scope :from_feed, -> (feed_onestop_id) { joins(created_by_changeset: :imported_from_feed).where(created_by_changeset: {imported_from_feed: {onestop_id: feed_onestop_id}}) }
 
   extend Enumerize
   enumerize :issue_type,

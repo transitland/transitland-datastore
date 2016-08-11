@@ -16,10 +16,10 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
     end
 
     if params[:feed_onestop_id].present?
-      @issues = @issues.where(created_by_changeset: {imported_from_feed: { onestop_id: params[:feed_onestop_id] }})
+      @issues = @issues.from_feed(params[:feed_onestop_id])
     end
 
-    # TODO: known n+1 query 
+    # entities_with_issues entity still loading with n+1 queries; not sure how to fix
     @issues = @issues.includes([:entities_with_issues, created_by_changeset: [:imported_from_feed, :imported_from_feed_version]])
 
     respond_to do |format|

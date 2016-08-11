@@ -32,6 +32,18 @@ describe Issue do
     expect(Issue.with_type('fake1,fake2').size).to eq 0
   end
 
+  it '.from_feed' do
+    feed1 = build(:feed_sfmta)
+    feed2 = build(:feed_bart)
+    changeset1 = create(:changeset, imported_from_feed: feed1)
+    changeset2 = create(:changeset, imported_from_feed: feed2)
+    Issue.new(created_by_changeset: changeset1, issue_type: 'stop_position_inaccurate').save!
+    Issue.new(created_by_changeset: changeset1, issue_type: 'rsp_line_inaccurate').save!
+    Issue.new(created_by_changeset: changeset2, issue_type: 'rsp_line_inaccurate').save!
+    expect(Issue.from_feed('f-9q8y-sfmta').size).to eq 2
+    expect(Issue.from_feed('f-9q9-bart').size).to eq 1
+  end
+
   context 'existing issues' do
     before(:each) do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_issues, import_level: 1)
