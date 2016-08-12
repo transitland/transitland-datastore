@@ -50,6 +50,9 @@ class Api::V1::StopsController < Api::V1::BaseApiController
     if params[:import_level].present?
       @stops = @stops.where_import_level(AllowFiltering.param_as_array(params, :import_level))
     end
+    if params[:served_by_vehicle_types].present?
+      @stops = @stops.served_by_vehicle_types(AllowFiltering.param_as_array(params, :served_by_vehicle_types))
+    end
 
     @stops = @stops.includes{[
       operators_serving_stop,
