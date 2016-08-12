@@ -216,6 +216,29 @@ describe Api::V1::ChangesetsController do
     end
   end
 
+  context 'POST apply_async' do
+    it 'applies async' do
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              name: '1st Ave. & Holloway Street',
+              timezone: 'America/Los_Angeles'
+            }
+          }
+        ]
+      })
+      Sidekiq::Testing.fake! do
+        expect {
+          post :apply_async, id: changeset.id
+        }.to change(ChangesetApplyWorker.jobs, :size).by(1)
+      end
+      expect(response.status).to eq 200
+    end
+  end
+
   context 'POST apply' do
     it 'should be able to apply a clean Changeset' do
       changeset = create(:changeset, payload: {
