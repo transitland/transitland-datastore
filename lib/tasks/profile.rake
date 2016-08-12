@@ -12,7 +12,7 @@ def create_feed(feed_onestop_id, path)
 end
 
 namespace :profile do
-  task test: :environment do
+  task :test, [:directory] => [:environment] do |t, args|
     if defined?(MemoryProfiler)
       report = MemoryProfiler.report(allow_files: 'app') do
         feed_onestop_id = 'f-9q9-caltrain'
@@ -23,7 +23,9 @@ namespace :profile do
         graph.cleanup
         graph.create_change_osr
       end
-      report.pretty_print(to_file: "profile_log_#{Time.new.to_i}.log")
+      f = "profile_log_#{Time.new.to_i}.log"
+      f = File.join(args[:directory].to_s, f) if args[:directory]
+      report.pretty_print(to_file: f)
     end
   end
 end
