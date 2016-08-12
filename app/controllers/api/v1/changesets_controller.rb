@@ -4,7 +4,7 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   include AllowFiltering
 
   before_filter :require_api_auth_token, only: [:update, :check, :apply, :revert, :destroy]
-  before_action :set_changeset, only: [:show, :update, :check, :apply, :revert, :destroy]
+  before_action :set_changeset, only: [:show, :update, :check, :apply, :apply_async, :revert, :destroy]
 
   def index
     @changesets = Changeset.where('').include{[
@@ -97,6 +97,11 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   def apply
     applied = @changeset.apply!
     render json: { applied: applied }
+  end
+
+  def apply_async
+    worker = ChangesetApplyWorker.perform_async(@changeset.id)
+    render json: { pending: true, worker: worker }
   end
 
   def revert

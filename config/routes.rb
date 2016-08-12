@@ -9,6 +9,7 @@ Rails.application.routes.draw do
         member do
           post 'check'
           post 'apply'
+          post 'apply_async'
           post 'revert'
         end
         resources :change_payloads, only: [:index, :show, :create, :update, :destroy]
