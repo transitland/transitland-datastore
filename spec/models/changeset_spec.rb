@@ -326,6 +326,13 @@ describe Changeset do
         @changeset1.apply!
         expect(ChangesetMailer.instance_method :application).to be_delayed(@changeset1.id)
       end
+    it 'saves error if failed' do
+      expect { @changeset2_bad.apply! }.to raise_error(Changeset::Error)
+      @changeset2_bad.reload
+      expect(@changeset2_bad.applied).to be false
+      expect(@changeset2_bad.error).to be_truthy
+    end
+  end
 
       it 'not sent to admin user' do
         @changeset1.user = create(:user, admin: true)
