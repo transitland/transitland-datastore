@@ -118,22 +118,9 @@ describe RouteStopPattern do
     expect(RouteStopPattern.line_string([[1,2],[2,2]]).is_a?(RGeo::Geographic::SphericalLineStringImpl)).to be true
   end
 
-  it '#simplify_geometry' do
-    expect(RouteStopPattern.simplify_geometry([[-122.0123456,45.01234567],
-                                               [-122.0123478,45.01234589],
-                                               [-123.0,45.0]])).to match_array([[-122.01235,45.01235],[-123.0,45.0]])
-  end
-
   it '#set_precision' do
     expect(RouteStopPattern.set_precision([[-122.0123456,45.01234567],
                                            [-122.9123478,45.91234589]])).to match_array([[-122.01235,45.01235],[-122.91235,45.91235]])
-  end
-
-  it '#remove_duplicate_points' do
-    expect(RouteStopPattern.remove_duplicate_points([[-122.0123,45.0123],
-                                                     [-122.0123,45.0123],
-                                                     [-122.9876,45.9876],
-                                                     [-122.0123,45.0123]])).to match_array([[-122.0123,45.0123],[-122.9876,45.9876],[-122.0123,45.0123]])
   end
 
   context 'new import' do
@@ -205,6 +192,16 @@ describe RouteStopPattern do
     end
 
     it 'can calculate distances when the geometry and stop coordinates are equal' do
+      expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
+                                                              a_value_within(0.1).of(12617.9271),
+                                                              a_value_within(0.1).of(17001.5107)])
+    end
+
+    it 'can calculate distances when coordinates are repeated' do
+      @rsp.geometry = RouteStopPattern.line_string([stop_a.geometry[:coordinates],
+                                            stop_b.geometry[:coordinates],
+                                            stop_b.geometry[:coordinates],
+                                            stop_c.geometry[:coordinates]])
       expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(12617.9271),
                                                               a_value_within(0.1).of(17001.5107)])
@@ -496,7 +493,7 @@ describe RouteStopPattern do
       shape_points = [[-122.401811, 37.706675]]
       single_point_rsp = RouteStopPattern.new(
         stop_pattern: stop_pattern,
-        geometry: RouteStopPattern.line_string(RouteStopPattern.simplify_geometry(shape_points))
+        geometry: RouteStopPattern.line_string(RouteStopPattern.set_precision(shape_points))
       )
       has_issues, issues = single_point_rsp.evaluate_geometry(trip, trip_stop_points)
       expect(has_issues).to be true
