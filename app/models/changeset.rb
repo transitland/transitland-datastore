@@ -192,15 +192,11 @@ class Changeset < ActiveRecord::Base
     rsps_to_update_distances.merge(self.route_stop_patterns_created_or_updated)
     rsps_to_update_distances.each { |rsp|
       rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
-      ssps = []
       rsp.ordered_ssp_trip_chunks { |trip_chunk|
         trip_chunk.each_with_index do |ssp, i|
-          ssp.origin_dist_traveled = rsp.stop_distances[i]
-          ssp.destination_dist_traveled = rsp.stop_distances[i+1]
-          ssps << ssp
+          ssp.update(origin_dist_traveled: rsp.stop_distances[i], destination_dist_traveled: rsp.stop_distances[i+1])
         end
       }
-      ScheduleStopPair.import [:origin_dist_traveled, :destination_dist_traveled], ssps
     }
     #mainly for testing
     [rsps_to_update_distances.size, operators_to_update_convex_hull.size]

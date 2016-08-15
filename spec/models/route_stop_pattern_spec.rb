@@ -123,14 +123,6 @@ describe RouteStopPattern do
                                            [-122.9123478,45.91234589]])).to match_array([[-122.01235,45.01235],[-122.91235,45.91235]])
   end
 
-<<<<<<< HEAD
-  it '#remove_duplicate_points' do
-    expect(RouteStopPattern.remove_duplicate_points([[-122.0123,45.0123],
-                                                     [-122.0123,45.0123],
-                                                     [-122.9876,45.9876],
-                                                     [-122.0123,45.0123]])).to match_array([[-122.0123,45.0123],[-122.9876,45.9876],[-122.0123,45.0123]])
-  end
-
   # context 'new import' do
   #   before(:each) do
   #     @route = create(:route, onestop_id: route_onestop_id)
@@ -150,27 +142,6 @@ describe RouteStopPattern do
   #     )
   #   end
   # end
-=======
-  context 'new import' do
-    before(:each) do
-      @route = create(:route, onestop_id: route_onestop_id)
-      @saved_rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, route: @route)
-      import_sp = [ stop_a.onestop_id, stop_b.onestop_id, stop_c.onestop_id ]
-      import_geometry = RouteStopPattern.line_string([stop_a.geometry[:coordinates],
-                                                      stop_b.geometry[:coordinates],
-                                                      stop_c.geometry[:coordinates]])
-      import_onestop_id = OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: route_onestop_id,
-                                                                  stop_pattern: import_sp,
-                                                                  geometry_coords: import_geometry.coordinates).to_s
-      @import_rsp = RouteStopPattern.new(
-        onestop_id: import_onestop_id,
-        stop_pattern: import_sp,
-        geometry: import_geometry,
-        route: @route
-      )
-    end
-  end
->>>>>>> origin
 
   it 'can be found by stops' do
     rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id)
