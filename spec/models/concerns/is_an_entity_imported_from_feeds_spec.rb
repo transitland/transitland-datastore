@@ -69,6 +69,13 @@ describe IsAnEntityImportedFromFeeds do
     end
   end
 
+  context '.where_active' do
+    it 'finds entities referenced by active feed_version' do
+      # see notes in before(:each)
+      expect(Stop.where_active).to match_array([@stop1, @stop2])
+    end
+  end
+
   context '.where_inactive' do
     it 'finds entities not referenced by active feed_version' do
       # see notes in before(:each)
