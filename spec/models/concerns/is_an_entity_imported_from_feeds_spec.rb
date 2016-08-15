@@ -17,6 +17,9 @@ describe IsAnEntityImportedFromFeeds do
     # activate
     @feed.activate_feed_version(@fv1.sha1, 1)
     @feed.activate_feed_version(@fv2.sha1, 2)
+    # --> only stops referenced by @fv2 are active
+    #     @stop1, @stop2 active
+    #     @stop0, @stop3 inactive
   end
 
   context '.where_import_level' do
@@ -65,4 +68,12 @@ describe IsAnEntityImportedFromFeeds do
       expect(Stop.where_imported_from_feed_version(@fv2)).to match_array([@stop1, @stop2])
     end
   end
+
+  context '.where_inactive' do
+    it 'finds entities not referenced by active feed_version' do
+      # see notes in before(:each)
+      expect(Stop.where_inactive).to match_array([@stop0, @stop3])
+    end
+  end
+
 end
