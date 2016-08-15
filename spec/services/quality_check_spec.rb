@@ -51,7 +51,7 @@ describe QualityCheck::GeometryQualityCheck do
             {
               action: 'createUpdate',
               routeStopPattern: {
-                onestopId: 'r-9q8y-richmond~dalycity~millbrae-45cad3-46d384',
+                onestopId: 'r-9q8y-richmond~dalycity~millbrae-e8fb80-61d4dc',
                 stopPattern: ['s-9q8zzf1nks-richmond','s-9q8vzhbf8h-millbrae'],
                 geometry: {
                   type: "LineString",

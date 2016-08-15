@@ -118,7 +118,7 @@ describe OnestopId do
             route_onestop_id: 'r-9q9-the~route',
             stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2'],
             geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]).geometry_hash
-      ).to eq('48fed0')
+      ).to eq('e0b430')
     end
 
     it 'produces the first 6 hexadecimal characters of the stop MD5 hash' do
@@ -126,7 +126,7 @@ describe OnestopId do
             route_onestop_id: 'r-9q9-the~route',
             stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2'],
             geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]).stop_hash
-      ).to eq('fca1a5')
+      ).to eq('b5c0d1')
     end
 
     it 'truncates beyond maximum length' do
@@ -136,7 +136,7 @@ describe OnestopId do
           stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2'],
           geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]
         ).to_s
-      ).to eq('r-9q9-pneumonoultramicroscopicsilicovolcanoconiosi-fca1a5-48fed0')
+      ).to eq('r-9q9-pneumonoultramicroscopicsilicovolcanoconiosi-b5c0d1-e0b430')
     end
 
     context '#validate' do

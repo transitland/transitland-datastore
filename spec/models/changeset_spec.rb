@@ -186,13 +186,14 @@ describe Changeset do
         rsp = create(:route_stop_pattern_bart)
         create(:schedule_stop_pair, origin: richmond, destination: millbrae, route_stop_pattern: rsp)
 
+
         # now, a minor tweak to the first rsp geometry endpoint to demonstrate a change in stop distance for the second stop
         changeset = create(:changeset, payload: {
           changes: [
             {
               action: 'createUpdate',
               routeStopPattern: {
-                onestopId: 'r-9q8y-richmond~dalycity~millbrae-45cad3-46d384',
+                onestopId: 'r-9q8y-richmond~dalycity~millbrae-e8fb80-61d4dc',
                 stopPattern: ['s-9q8zzf1nks-richmond', 's-9q8vzhbf8h-millbrae'],
                 geometry: { type: "LineString", coordinates: [[-122.351529, 37.937750], [-122.38666, 37.599787]] }
               }
@@ -203,7 +204,7 @@ describe Changeset do
         saved_ssp = ScheduleStopPair.first
         expect(saved_ssp.origin_dist_traveled).to eq 0.0
         expect(saved_ssp.destination_dist_traveled).to eq 37748.7
-        expect(RouteStopPattern.find_by_onestop_id!('r-9q8y-richmond~dalycity~millbrae-45cad3-46d384').stop_distances).to eq [0.0, 37748.7]
+        expect(RouteStopPattern.find_by_onestop_id!('r-9q8y-richmond~dalycity~millbrae-e8fb80-61d4dc').stop_distances).to eq [0.0, 37748.7]
       end
 
       it 'recomputes rsp stop distances from stop update changeset' do
@@ -228,7 +229,7 @@ describe Changeset do
         saved_ssp = ScheduleStopPair.first
         expect(saved_ssp.origin_dist_traveled).to eq 0.0
         expect(saved_ssp.destination_dist_traveled).to eq 37641.4
-        expect(RouteStopPattern.find_by_onestop_id!('r-9q8y-richmond~dalycity~millbrae-45cad3-46d384').stop_distances).to eq [0.0, 37641.4]
+        expect(RouteStopPattern.find_by_onestop_id!('r-9q8y-richmond~dalycity~millbrae-e8fb80-61d4dc').stop_distances).to eq [0.0, 37641.4]
       end
 
       it 'avoids duplication of rsp distance calculation' do
@@ -255,7 +256,7 @@ describe Changeset do
             {
               action: 'createUpdate',
               routeStopPattern: {
-                onestopId: 'r-9q8y-richmond~dalycity~millbrae-45cad3-46d384',
+                onestopId: 'r-9q8y-richmond~dalycity~millbrae-e8fb80-61d4dc',
                 stopPattern: ['s-9q8zzf1nks-richmond', 's-9q8vzhbf8h-millbrae'],
                 geometry: { type: "LineString", coordinates: [[-122.351529, 37.937750], [-122.38666, 37.599787]] }
               }

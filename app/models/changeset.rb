@@ -175,9 +175,9 @@ class Changeset < ActiveRecord::Base
     # changesets complicates this. E.g, We don't want to recompute the stop_distances of one RouteStopPattern
     # multiple times if there are multiple Stops of that RouteStopPattern in the changeset.
     rsps_to_update_distances = Set.new
+    operators_to_update_convex_hull = Set.new
 
-    if self.stops_created_or_updated
-      operators_to_update_convex_hull = Set.new
+    unless self.stops_created_or_updated.empty?
       self.stops_created_or_updated.each do |stop|
         operators_to_update_convex_hull.merge(OperatorServingStop.where(stop: stop).map(&:operator))
       end
@@ -192,13 +192,15 @@ class Changeset < ActiveRecord::Base
     rsps_to_update_distances.merge(self.route_stop_patterns_created_or_updated)
     rsps_to_update_distances.each { |rsp|
       rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
+      ssps = []
       rsp.ordered_ssp_trip_chunks { |trip_chunk|
         trip_chunk.each_with_index do |ssp, i|
           ssp.origin_dist_traveled = rsp.stop_distances[i]
           ssp.destination_dist_traveled = rsp.stop_distances[i+1]
-          ssp.save!
+          ssps << ssp
         end
       }
+      ScheduleStopPair.import [:origin_dist_traveled, :destination_dist_traveled], ssps
     }
     #mainly for testing
     [rsps_to_update_distances.size, operators_to_update_convex_hull.size]
