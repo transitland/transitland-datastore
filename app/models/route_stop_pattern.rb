@@ -108,17 +108,8 @@ class RouteStopPattern < BaseRouteStopPattern
     )
   end
 
-  def self.simplify_geometry(points)
-    points = self.set_precision(points)
-    self.remove_duplicate_points(points)
-  end
-
   def self.set_precision(points)
     points.map { |c| c.map { |n| n.round(COORDINATE_PRECISION) } }
-  end
-
-  def self.remove_duplicate_points(points)
-    points.chunk{ |c| c }.map(&:first)
   end
 
   def nearest_point(locators, nearest_seg_index)
@@ -285,7 +276,7 @@ class RouteStopPattern < BaseRouteStopPattern
       # create a new geometry from the trip stop points
       stop_points = RouteStopPattern.set_precision(stop_points)
       if stop_points.uniq.size != 1
-        self.geometry = RouteStopPattern.line_string(RouteStopPattern.remove_duplicate_points(stop_points))
+        self.geometry = RouteStopPattern.line_string(stop_points)
       else
         self.geometry = RouteStopPattern.line_string(stop_points)
       end
@@ -309,7 +300,7 @@ class RouteStopPattern < BaseRouteStopPattern
     # Rgeo produces nil if there is only one coordinate in the array
     rsp = RouteStopPattern.new(
       stop_pattern: stop_pattern,
-      geometry: self.line_string(self.simplify_geometry(shape_points))
+      geometry: self.line_string(self.set_precision(shape_points))
     )
     has_issues, issues = rsp.evaluate_geometry(trip, trip_stop_points)
     rsp.tl_geometry(trip_stop_points, issues) if has_issues

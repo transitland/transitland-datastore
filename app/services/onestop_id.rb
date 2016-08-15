@@ -189,7 +189,7 @@ module OnestopId
     end
 
     def self.generate_hash_from_array(array)
-      Digest::MD5.hexdigest(array.flatten.join(','))[0...HASH_LENGTH]
+      Digest::MD5.hexdigest(array.to_s)[0...HASH_LENGTH]
     end
 
     def self.route_onestop_id(onestop_id)

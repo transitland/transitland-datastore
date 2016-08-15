@@ -35,9 +35,10 @@ class StopStationSerializer < CurrentEntitySerializer
                :geometry,
                :name,
                :tags,
+               :served_by_vehicle_types,
                :timezone,
                :created_at,
-               :updated_at
+               :updated_at,
                :last_conflated_at
      has_many :operators_serving_stop
      has_many :routes_serving_stop
@@ -102,6 +103,7 @@ class StopStationSerializer < CurrentEntitySerializer
              :name,
              :tags,
              :timezone,
+             :vehicle_types_serving_stop_and_platforms,
              :created_at,
              :updated_at
 

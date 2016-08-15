@@ -15,7 +15,12 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
       @issues = @issues.with_type(params[:issue_type])
     end
 
-    @issues = @issues.includes{[entities_with_issues: :entity, created_by_changeset: [:imported_from_feed, :imported_from_feed_version]]}
+    if params[:feed_onestop_id].present?
+      @issues = @issues.from_feed(params[:feed_onestop_id])
+    end
+
+    # entities_with_issues entity still loading with n+1 queries; not sure how to fix
+    @issues = @issues.includes([:entities_with_issues, created_by_changeset: [:imported_from_feed, :imported_from_feed_version]])
 
     respond_to do |format|
       format.json do
@@ -46,7 +51,8 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
     entities_with_issues_params = issue_params_copy.delete(:entities_with_issues).try(:compact)
     @issue.update!(issue_params_copy)
     entities_with_issues_params.each do |ewi|
-      set_entity_with_issues_params(ewi)
+      ewi_params[:entity] = OnestopId.find!(ewi_params.delete(:onestop_id))
+      @issue.entities_with_issues << EntityWithIssues.find_or_initialize_by(ewi_params)
     end
     render json: @issue
   end
@@ -60,7 +66,10 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
     issue_params_copy = issue_params
     entities_with_issues_params = issue_params_copy.delete(:entities_with_issues).try(:compact)
     @issue = Issue.new(issue_params_copy)
-    entities_with_issues_params.each { |ewi| set_entity_with_issues_params(ewi) }
+    entities_with_issues_params.each { |ewi|
+      ewi[:entity] = OnestopId.find!(ewi.delete(:onestop_id))
+      @issue.entities_with_issues << EntityWithIssues.create(ewi)
+    }
     @issue.created_by_changeset_id = issue_params_copy[:created_by_changeset_id] || @issue.changeset_from_entities.id
 
     existing_issue = Issue.find_by_equivalent(@issue)
