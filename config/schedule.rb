@@ -11,7 +11,7 @@ env :PATH, ENV['PATH']
 # make sure to run through bundle
 job_type :runner, "cd :path && bin/bundle exec rails runner -e :environment ':task' :output"
 
-every 5.minutes do
+every 30.minutes do
   runner 'FeedFetcherService.fetch_some_ready_feeds_async'
 end
 
