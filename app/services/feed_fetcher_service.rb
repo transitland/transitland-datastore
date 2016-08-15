@@ -29,7 +29,7 @@ class FeedFetcherService
     feed_groups = Feed.where{
       (last_fetched_at == nil) | (last_fetched_at <= since)
     }.order(last_fetched_at: :asc).in_groups(split)
-    async_enqueue_and_return_workers(feed_groups.first) # only the first group
+    async_enqueue_and_return_workers(feed_groups.first.compact) # only the first group
   end
 
   private
