@@ -206,8 +206,6 @@ class Changeset < ActiveRecord::Base
 
     Changeset.transaction do
       begin
-        self.update!(error: nil)
-
         # Apply ChangePayloads, collect issues
         resolving_issues = []
         change_payloads.each do |change_payload|
@@ -254,7 +252,6 @@ class Changeset < ActiveRecord::Base
     if error
       logger.error "Error applying Changeset #{self.id}: #{error.message}"
       logger.error error.backtrace
-      self.update!(error: error.message)
       raise Changeset::Error.new(changeset: self, message: error.message, backtrace: error.backtrace)
     end
 
