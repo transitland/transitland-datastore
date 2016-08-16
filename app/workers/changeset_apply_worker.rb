@@ -6,9 +6,18 @@ class ChangesetApplyWorker
                   queue: :feed_eater,
                   retry: false
 
-  def perform(changeset_id)
+  def perform(changeset_id, cachekey)
     logger.info "ChangesetApplyWorker: #{changeset_id}"
     changeset = Changeset.find(changeset_id)
     changeset.apply!
+
+    errors = []
+    warnings = []
+    response = {}
+    response[:status] = errors.size > 0 ? 'error' : 'complete'
+    response[:errors] = errors
+    response[:warnings] = warnings
+    Rails.cache.write(cachekey, response, expires_in: 1.day)
+    response
   end
 end

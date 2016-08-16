@@ -15,7 +15,7 @@ describe ChangesetApplyWorker do
     }
     changeset = create(:changeset, payload: payload)
     Sidekiq::Testing.inline! do
-      ChangesetApplyWorker.perform_async(changeset.id)
+      ChangesetApplyWorker.perform_async(changeset.id, 'test')
     end
     expect(changeset.reload.applied).to eq(true)
     expect(Stop.find_by_onestop_id(onestop_id)).to be_truthy

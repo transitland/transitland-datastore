@@ -100,8 +100,18 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   end
 
   def apply_async
-    worker = ChangesetApplyWorker.perform_async(@changeset.id)
-    render json: { pending: true, worker: worker }
+    cachekey = "changesets/#{@changeset.id}/apply_async"
+    cachedata = Rails.cache.read(cachekey)
+    if !cachedata
+      cachedata = {status: 'queued'}
+      Rails.cache.write(cachekey, cachedata, expires_in: 1.day)
+      ChangesetApplyWorker.perform_async(@changeset.id, cachekey)
+    end
+    if cachedata[:status] == 'error'
+      render json: cachedata, status: 500
+    else
+      render json: cachedata
+    end
   end
 
   def revert
