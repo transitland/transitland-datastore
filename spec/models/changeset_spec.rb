@@ -11,7 +11,6 @@
 #  user_id         :integer
 #  feed_id         :integer
 #  feed_version_id :integer
-#  error           :string
 #
 # Indexes
 #
@@ -194,12 +193,12 @@ describe Changeset do
       expect(OldOperatorServingStop.first.stop).to eq Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS')
     end
 
-    it 'saves error if failed' do
-      expect { @changeset2_bad.apply! }.to raise_error(Changeset::Error)
-      @changeset2_bad.reload
-      expect(@changeset2_bad.applied).to be false
-      expect(@changeset2_bad.error).to be_truthy
-    end
+    # it 'saves error if failed' do
+    #   expect { @changeset2_bad.apply! }.to raise_error(Changeset::Error)
+    #   @changeset2_bad.reload
+    #   expect(@changeset2_bad.applied).to be false
+    #   expect(@changeset2_bad.error).to be_truthy
+    # end
   end
 
   context 'computed attributes' do

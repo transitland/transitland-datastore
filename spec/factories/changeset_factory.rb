@@ -11,7 +11,6 @@
 #  user_id         :integer
 #  feed_id         :integer
 #  feed_version_id :integer
-#  error           :string
 #
 # Indexes
 #

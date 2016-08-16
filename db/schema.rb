@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160812003905) do
+ActiveRecord::Schema.define(version: 20160614041303) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -36,7 +36,6 @@ ActiveRecord::Schema.define(version: 20160812003905) do
     t.integer  "user_id"
     t.integer  "feed_id"
     t.integer  "feed_version_id"
-    t.string   "error"
   end
 
   add_index "changesets", ["feed_id"], name: "index_changesets_on_feed_id", using: :btree
