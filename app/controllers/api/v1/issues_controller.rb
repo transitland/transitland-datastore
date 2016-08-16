@@ -49,8 +49,9 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
     issue_params_copy = issue_params
     entities_with_issues_params = issue_params_copy.delete(:entities_with_issues).try(:compact)
     @issue.update!(issue_params_copy)
+    # allowing addition and deletion of EntityWithIssues
+    # An Issue's entities_with_issues will be completely replaced by update request, if specified
     unless entities_with_issues_params.nil?
-      # need to allow addition and deletion of EntityWithIssues
       @issue.entities_with_issues.each { |ewi| @issue.entities_with_issues.delete(ewi) }
       entities_with_issues_params.each do |ewi|
         ewi[:entity] = OnestopId.find!(ewi.delete(:onestop_id))
