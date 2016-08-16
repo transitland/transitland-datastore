@@ -1,5 +1,49 @@
 # Change Log
 
+## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
+
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.3...HEAD)
+
+**Merged pull requests:**
+
+- Production release 4.9.3 [\#727](https://github.com/transitland/transitland-datastore/pull/727) ([irees](https://github.com/irees))
+
+## [4.9.3](https://github.com/transitland/transitland-datastore/tree/4.9.3) (2016-08-15)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.2...4.9.3)
+
+**Implemented enhancements:**
+
+- Query Issues by Feed [\#724](https://github.com/transitland/transitland-datastore/issues/724)
+
+**Fixed bugs:**
+
+- Create Issue EntitiesWithIssues bug [\#722](https://github.com/transitland/transitland-datastore/issues/722)
+
+**Closed issues:**
+
+- Feed fetcher schedule fix [\#736](https://github.com/transitland/transitland-datastore/issues/736)
+- GTFS: Configure temporary directory [\#718](https://github.com/transitland/transitland-datastore/issues/718)
+- RSP memory use reduction part 1 [\#715](https://github.com/transitland/transitland-datastore/issues/715)
+- automatically removed outdated ScheduleStopPairs after feed re-imports \(and delete any outdated SSPs currently in database\) [\#690](https://github.com/transitland/transitland-datastore/issues/690)
+- in Stop, StopStation, and StopPlatform list the vehicle\_types that serve it [\#632](https://github.com/transitland/transitland-datastore/issues/632)
+- Case-insensitive queries [\#578](https://github.com/transitland/transitland-datastore/issues/578)
+- throw error when `vehicle\_type` value is invalid [\#474](https://github.com/transitland/transitland-datastore/issues/474)
+- Profiling and benchmarking of RSP generation process \(and FeedEater\) [\#469](https://github.com/transitland/transitland-datastore/issues/469)
+
+**Merged pull requests:**
+
+- Feed fetcher service fix [\#737](https://github.com/transitland/transitland-datastore/pull/737) ([irees](https://github.com/irees))
+- Memory profiler fix [\#731](https://github.com/transitland/transitland-datastore/pull/731) ([doublestranded](https://github.com/doublestranded))
+- Baldur/memprofile work [\#729](https://github.com/transitland/transitland-datastore/pull/729) ([doublestranded](https://github.com/doublestranded))
+- AllowFiltering: Case insensitive queries [\#728](https://github.com/transitland/transitland-datastore/pull/728) ([irees](https://github.com/irees))
+- Fix Milan: empty stop timezone [\#726](https://github.com/transitland/transitland-datastore/pull/726) ([irees](https://github.com/irees))
+- Query by feed [\#725](https://github.com/transitland/transitland-datastore/pull/725) ([doublestranded](https://github.com/doublestranded))
+- ensuring distinct entities\_with\_issues created for each new issue [\#723](https://github.com/transitland/transitland-datastore/pull/723) ([doublestranded](https://github.com/doublestranded))
+- Config: GTFS\_TMPDIR\_BASEPATH [\#721](https://github.com/transitland/transitland-datastore/pull/721) ([irees](https://github.com/irees))
+- Rsp optimization 1 [\#720](https://github.com/transitland/transitland-datastore/pull/720) ([doublestranded](https://github.com/doublestranded))
+- Production release 4.9.2 [\#716](https://github.com/transitland/transitland-datastore/pull/716) ([irees](https://github.com/irees))
+- Stop: served\_by\_vehicle\_types [\#712](https://github.com/transitland/transitland-datastore/pull/712) ([irees](https://github.com/irees))
+
 ## [4.9.2](https://github.com/transitland/transitland-datastore/tree/4.9.2) (2016-07-28)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.1...4.9.2)
 
@@ -11,10 +55,6 @@
 
 - Issues request returning routes on next page [\#706](https://github.com/transitland/transitland-datastore/issues/706)
 - Issues not saving or appearing on dev or prod [\#688](https://github.com/transitland/transitland-datastore/issues/688)
-
-**Closed issues:**
-
-- automatically removed outdated ScheduleStopPairs after feed re-imports \(and delete any outdated SSPs currently in database\) [\#690](https://github.com/transitland/transitland-datastore/issues/690)
 
 **Merged pull requests:**
 
