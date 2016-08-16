@@ -12,7 +12,7 @@ def create_feed(feed_onestop_id, path)
 end
 
 namespace :profile do
-  task :test, [:directory] => [:environment] do |t, args|
+  task :import, [:directory] => [:environment] do |t, args|
     if defined?(MemoryProfiler)
       report = MemoryProfiler.report(allow_files: 'app') do
         feed_onestop_id = 'f-9q9-caltrain'
