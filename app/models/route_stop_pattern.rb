@@ -296,7 +296,7 @@ class RouteStopPattern < BaseRouteStopPattern
 
   def ordered_ssp_trip_chunks(&block)
     if block
-      ScheduleStopPair.includes(:origin, :destination, :route, :operator).where(route_stop_pattern: self).order(:trip, :origin_departure_time).slice_when { |s1, s2|
+      ScheduleStopPair.where(route_stop_pattern: self).order(:trip, :origin_departure_time).slice_when { |s1, s2|
         !s1.trip.eql?(s2.trip)
       }.each {|trip_chunk| yield trip_chunk }
     end
