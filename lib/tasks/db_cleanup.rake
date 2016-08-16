@@ -20,9 +20,9 @@ namespace :db do
             end
 
             # Delete EIFFs
-            entities_imported = EntityImportedFromFeed.where(entity_id: entities_to_delete, entity_type: entity.to_s)
+            entities_imported = EntityImportedFromFeed.where(entity_id: entities_to_delete, entity_type: entity)
             puts "Found #{entities_imported.size} EntityImportedFromFeed #{entity.to_s}s to delete."
-            if (mode == 1 && !entities_imported.empty?)
+            if (mode == 1)
               puts "Deleting unreferenced EntityImportedFromFeed #{entity.to_s}s."
               entities_imported.delete_all
             end
@@ -31,20 +31,21 @@ namespace :db do
             if (entity == Route)
               route_serving_stops = RouteServingStop.where(route_id: entities_to_delete)
               puts "Found #{route_serving_stops.size} RouteServingStops to delete."
-              if (mode == 1 && !route_serving_stops.empty?)
+              if (mode == 1)
                 puts "Deleting unreferenced RouteServingStops."
                 route_serving_stops.delete_all
               end
             end
-
+            
             if (entity == Stop)
               operator_serving_stops = OperatorServingStop.where(stop_id: entities_to_delete)
               puts "Found #{operator_serving_stops.size} OperatorServingStops to delete."
-              if (mode == 1 && !operator_serving_stops.empty?)
+              if (mode == 1)
                 puts "Deleting unreferenced OperatorServingStops."
                 operator_serving_stops.delete_all
               end
             end
+
           end
         end
       rescue
