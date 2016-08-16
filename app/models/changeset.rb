@@ -194,7 +194,8 @@ class Changeset < ActiveRecord::Base
       rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
       rsp.ordered_ssp_trip_chunks { |trip_chunk|
         trip_chunk.each_with_index do |ssp, i|
-          ssp.update(origin_dist_traveled: rsp.stop_distances[i], destination_dist_traveled: rsp.stop_distances[i+1])
+          ssp.update_column(:origin_dist_traveled, rsp.stop_distances[i])
+          ssp.update_column(:destination_dist_traveled, rsp.stop_distances[i+1])
         end
       }
     }
