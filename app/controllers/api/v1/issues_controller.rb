@@ -46,13 +46,16 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
   end
 
   def update
-    # TODO: allow for deletion of individual EntityWithIssues
     issue_params_copy = issue_params
     entities_with_issues_params = issue_params_copy.delete(:entities_with_issues).try(:compact)
     @issue.update!(issue_params_copy)
-    entities_with_issues_params.each do |ewi|
-      ewi_params[:entity] = OnestopId.find!(ewi_params.delete(:onestop_id))
-      @issue.entities_with_issues << EntityWithIssues.find_or_initialize_by(ewi_params)
+    unless entities_with_issues_params.nil?
+      # need to allow addition and deletion of EntityWithIssues
+      @issue.entities_with_issues.each { |ewi| @issue.entities_with_issues.delete(ewi) }
+      entities_with_issues_params.each do |ewi|
+        ewi[:entity] = OnestopId.find!(ewi.delete(:onestop_id))
+        @issue.entities_with_issues << EntityWithIssues.create(ewi)
+      end
     end
     render json: @issue
   end
@@ -82,11 +85,6 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
   end
 
   private
-
-  def set_entity_with_issues_params(ewi_params)
-    ewi_params[:entity] = OnestopId.find!(ewi_params.delete(:onestop_id))
-    @issue.entities_with_issues << EntityWithIssues.find_or_initialize_by(ewi_params)
-  end
 
   def set_issue
     @issue = Issue.find(params[:id])
