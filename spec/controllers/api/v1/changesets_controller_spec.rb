@@ -217,8 +217,8 @@ describe Api::V1::ChangesetsController do
   end
 
   context 'POST apply_async' do
-    it 'applies async' do
-      changeset = create(:changeset, payload: {
+    before(:each) do
+      @changeset = create(:changeset, payload: {
         changes: [
           {
             action: 'createUpdate',
@@ -230,13 +230,62 @@ describe Api::V1::ChangesetsController do
           }
         ]
       })
+      @cachekey = "changesets/#{@changeset.id}/apply_async"
+      Rails.cache.delete(@cachekey)
+    end
+
+    after(:each) do
+      Rails.cache.delete(@cachekey)
+    end
+
+    it 'enqueues job' do
       Sidekiq::Testing.fake! do
         expect {
-          post :apply_async, id: changeset.id
+          post :apply_async, id: @changeset.id
         }.to change(ChangesetApplyWorker.jobs, :size).by(1)
       end
       expect(response.status).to eq 200
     end
+
+    it 'returns enqueued job' do
+      Sidekiq::Testing.fake! do
+        expect(ChangesetApplyWorker.jobs.size).to eq(0)
+        post :apply_async, id: @changeset.id
+        expect(ChangesetApplyWorker.jobs.size).to eq(1)
+        post :apply_async, id: @changeset.id
+        expect(ChangesetApplyWorker.jobs.size).to eq(1)
+      end
+    end
+
+    it 'returns completed job' do
+      Sidekiq::Testing.inline! do
+        post :apply_async, id: @changeset.id
+      end
+      post :apply_async, id: @changeset.id
+      expect_json({ status: 'complete' })
+      expect(@changeset.reload.applied).to be true
+    end
+
+    it 'returns errors' do
+      # missing timezone
+      payload = {changes: [{action: 'createUpdate', stop: {onestopId: 's-9q9-test'}}]}
+      @changeset.change_payloads.first.update(payload: payload)
+      # Test
+      Sidekiq::Testing.inline! do
+        post :apply_async, id: @changeset.id
+      end
+      post :apply_async, id: @changeset.id
+      expect_json({
+        status: 'error',
+        errors: -> (errors) {
+          expect(errors.size).to eq(1)
+          expect(errors.first[:exception]).to eq('ChangesetError')
+        }
+      })
+      expect(@changeset.reload.applied).to be false
+      expect(response.status).to eq(500)
+    end
+
   end
 
   context 'POST apply' do
