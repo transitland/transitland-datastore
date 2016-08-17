@@ -201,7 +201,6 @@ class Changeset < ActiveRecord::Base
   def apply!
     fail Changeset::Error.new(changeset: self, message: 'has already been applied.') if applied
     changeset_issues = nil
-    error = nil
 
     Changeset.transaction do
       begin
@@ -242,16 +241,11 @@ class Changeset < ActiveRecord::Base
           raise Changeset::Error.new(changeset: self, message: message)
         end
 
-      rescue StandardError => e
-        error = e
+      rescue StandardError => error
+        logger.error "Error applying Changeset #{self.id}: #{error.message}"
+        logger.error error.backtrace
+        raise Changeset::Error.new(changeset: self, message: error.message, backtrace: error.backtrace)
       end
-    end
-
-    # Process outside of transaction block to update error message.
-    if error
-      logger.error "Error applying Changeset #{self.id}: #{error.message}"
-      logger.error error.backtrace
-      raise Changeset::Error.new(changeset: self, message: error.message, backtrace: error.backtrace)
     end
 
     unless Figaro.env.send_changeset_emails_to_users.presence == 'false'
