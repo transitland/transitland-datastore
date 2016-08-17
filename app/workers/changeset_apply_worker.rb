@@ -8,11 +8,23 @@ class ChangesetApplyWorker
 
   def perform(changeset_id, cachekey)
     logger.info "ChangesetApplyWorker: #{changeset_id}"
-    changeset = Changeset.find(changeset_id)
-    changeset.apply!
-
+    # Processing
     errors = []
     warnings = []
+    response = {}
+    response[:status] = 'processing'
+    Rails.cache.write(cachekey, response, expires_in: 1.day)
+    # Apply
+    changeset = Changeset.find(changeset_id)
+    begin
+      changeset.apply!
+    rescue StandardError => error
+      errors << {
+        exception: 'ChangesetError',
+        message: error.message
+      }
+    end
+    # Update status
     response = {}
     response[:status] = errors.size > 0 ? 'error' : 'complete'
     response[:errors] = errors
