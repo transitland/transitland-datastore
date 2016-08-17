@@ -40,6 +40,15 @@ describe Api::V1::OperatorsController do
         }})
       end
 
+      it 'filters by name, case insensitive' do
+        operator = create(:operator, name: 'TEST')
+        get :index, name: operator.name.downcase
+        expect_json({ operators: -> (operators) {
+          expect(operators.first[:onestop_id]).to eq operator.onestop_id
+          expect(operators.count).to eq 1
+        }})
+      end
+
       it 'filters by short_name' do
         operators = create_list(:operator, 3)
         operator = create(:operator, short_name: 'Test 123')

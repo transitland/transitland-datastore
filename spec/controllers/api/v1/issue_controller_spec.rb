@@ -58,7 +58,7 @@ describe Api::V1::IssuesController do
             "entity_attribute": "geometry"
           },
           {
-            "onestop_id": "r-9qt1-50-ae7ffd-028743",
+            "onestop_id": "r-9qt1-50-f8249d-e5d0eb",
             "entity_attribute": "geometry"
           }
         ]
@@ -82,7 +82,7 @@ describe Api::V1::IssuesController do
             "entity_attribute": "geometry"
           },
           {
-            "onestop_id": "r-9qscy-30-90db19-304219",
+            "onestop_id": "r-9qscy-30-a41e99-fcca25",
             "entity_attribute": "geometry"
           }
         ]
@@ -106,6 +106,29 @@ describe Api::V1::IssuesController do
       }
       post :update, id: 1, issue: issue
       expect(Issue.find(1).details).to eq "This is a test of updating"
+    end
+
+    it 'avoids deleting EntitiesWithIssues when param not supplied' do
+      issue = {
+        "details": "This is a test of updating"
+      }
+      post :update, id: 1, issue: issue
+      expect(Issue.find(1).entities_with_issues.size).to eq 3
+    end
+
+    it 'creates specified EntitiesWithIssues and deletes existing EntitiesWithIssues' do
+      issue = {
+        "details": "This is a test of updating",
+        entities_with_issues: [
+          {
+            "onestop_id": 's-9qscwx8n60-nyecountyairportdemo',
+            "entity_attribute": 'geometry'
+          }
+        ]
+      }
+      post :update, id: 1, issue: issue
+      expect(Issue.find(1).entities_with_issues.size).to eq 1
+      expect(Issue.find(1).entities_with_issues[0].entity.onestop_id).to eq 's-9qscwx8n60-nyecountyairportdemo'
     end
   end
 
