@@ -106,4 +106,4 @@ gem 'marginalia', group: [:development, :staging]
 gem 'unicorn', group: [:staging, :production]
 
 # profiling
-gem 'memory_profiler', group: [:development]
+gem 'memory_profiler', group: [:test, :development]
