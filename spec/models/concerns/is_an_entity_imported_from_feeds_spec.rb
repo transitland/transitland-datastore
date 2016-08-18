@@ -28,11 +28,6 @@ describe IsAnEntityImportedFromFeeds do
       expect(Stop.where_import_level(2)).to match_array([@stop1, @stop2])
     end
 
-    # TODO: where_active
-    # it 'chains with where_active' do
-    #   expect(Stop.where_import_level(1).where_active).to match_array([@stop1])
-    # end
-
     it 'excludes non matching' do
       expect(Stop.where_import_level(0)).to match_array([])
     end
@@ -69,17 +64,17 @@ describe IsAnEntityImportedFromFeeds do
     end
   end
 
-  context '.where_active' do
+  context '.where_imported_from_active_feed_version' do
     it 'finds entities referenced by active feed_version' do
       # see notes in before(:each)
-      expect(Stop.where_active).to match_array([@stop1, @stop2])
+      expect(Stop.where_imported_from_active_feed_version).to match_array([@stop1, @stop2])
     end
   end
 
-  context '.where_inactive' do
+  context '.where_not_imported_from_active_feed_version' do
     it 'finds entities not referenced by active feed_version' do
       # see notes in before(:each)
-      expect(Stop.where_inactive).to match_array([@stop0, @stop3])
+      expect(Stop.where_not_imported_from_active_feed_version).to match_array([@stop0, @stop3])
     end
   end
 

@@ -7,7 +7,7 @@ namespace :db do
       puts mode == 0 ? "logging mode" : "delete mode"
       begin
         [Stop,Route,RouteStopPattern].each do |entity|
-          entities_inactive = entity.where_inactive
+          entities_inactive = entity.where_not_imported_from_active_feed_version
           puts "Found #{entities_inactive.count} #{entity.to_s}s to delete."
 
           entities_inactive.find_in_batches do |entities_to_delete|
@@ -36,7 +36,7 @@ namespace :db do
                 route_serving_stops.delete_all
               end
             end
-            
+
             if (entity == Stop)
               operator_serving_stops = OperatorServingStop.where(stop_id: entities_to_delete)
               puts "Found #{operator_serving_stops.size} OperatorServingStops to delete."
