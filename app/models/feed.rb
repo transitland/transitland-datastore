@@ -59,7 +59,7 @@ class Feed < BaseFeed
   belongs_to :active_feed_version, class_name: 'FeedVersion'
 
   has_many :operators_in_feed
-  has_many :operators, through: :operators_in_feed
+  has_many :operators, -> { distinct }, through: :operators_in_feed
 
   has_many :entities_imported_from_feed
   has_many :imported_operators, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'
