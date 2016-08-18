@@ -123,7 +123,7 @@ class ScheduleStopPair < BaseScheduleStopPair
   }
 
   # Active Feed Version
-  scope :where_active, -> {
+  scope :where_imported_from_active_feed_version, -> {
     joins('INNER JOIN current_feeds ON feed_version_id = current_feeds.active_feed_version_id')
   }
 
