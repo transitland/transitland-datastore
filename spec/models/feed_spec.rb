@@ -94,30 +94,6 @@ describe Feed do
       expect(changeset2.feeds_created_or_updated).to match_array([Feed.first])
     end
 
-    it 'can modify a feed, modifying a GTFS agency ID' do
-      changeset2 = create(:changeset, payload: {
-        changes: [
-          {
-            action: 'createUpdate',
-            feed: {
-              onestopId: 'f-9q9-caltrain',
-              includesOperators: [
-                {
-                  operatorOnestopId: 'o-9q9-caltrain',
-                  gtfsAgencyId: 'new-id'
-                }
-              ]
-            }
-          }
-        ]
-      })
-      @changeset1.apply!
-      changeset2.apply!
-      expect(Feed.first.operators).to match_array([Operator.first])
-      expect(Feed.first.operators_in_feed.first.gtfs_agency_id).to eq 'new-id'
-      expect(changeset2.feeds_created_or_updated).to match_array([Feed.first])
-    end
-
     it 'can modify a feed, adding another operator' do
       changeset2 = create(:changeset, payload: {
         changes: [
