@@ -134,7 +134,8 @@ describe Feed do
               onestopId: 'f-9q9-caltrain',
               doesNotIncludeOperators: [
                 {
-                  operatorOnestopId: 'o-9q9-caltrain'
+                  operatorOnestopId: 'o-9q9-caltrain',
+                  gtfsAgencyId: 'caltrain-ca-us'
                 }
               ]
             }
