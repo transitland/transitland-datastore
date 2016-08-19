@@ -10,12 +10,15 @@
 #  open                     :boolean          default(TRUE)
 #  created_at               :datetime
 #  updated_at               :datetime
+#  status                   :integer          default(0)
 #
 
 class Issue < ActiveRecord::Base
   has_many :entities_with_issues
   belongs_to :created_by_changeset, class_name: 'Changeset'
   belongs_to :resolved_by_changeset, class_name: 'Changeset'
+
+  enum status: [ :current, :stale]
 
   scope :with_type, -> (search_string) { where(issue_type: search_string.split(',')) }
   scope :from_feed, -> (feed_onestop_id) { joins(created_by_changeset: :imported_from_feed).where(created_by_changeset: {imported_from_feed: {onestop_id: feed_onestop_id}}) }
