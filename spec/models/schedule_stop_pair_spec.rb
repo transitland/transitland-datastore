@@ -157,7 +157,7 @@ RSpec.describe ScheduleStopPair, type: :model do
   end
 
   context 'scopes' do
-    it 'where_active' do
+    it 'where_imported_from_active_feed_version' do
       feed = create(:feed)
       feed_version1 = create(:feed_version, feed: feed)
       feed_version2 = create(:feed_version, feed: feed)
@@ -165,7 +165,7 @@ RSpec.describe ScheduleStopPair, type: :model do
       ssp1 = create(:schedule_stop_pair, feed_version: feed_version1, feed: feed)
       ssp2 = create(:schedule_stop_pair, feed_version: feed_version2, feed: feed)
       expect(ScheduleStopPair.all).to match_array([ssp1, ssp2])
-      expect(ScheduleStopPair.where_active).to match_array([ssp2])
+      expect(ScheduleStopPair.where_imported_from_active_feed_version).to match_array([ssp2])
     end
 
     it 'where_import_level' do

@@ -322,7 +322,7 @@ describe Feed do
       expect(@fv1.imported_schedule_stop_pairs.count).to eq(1)
       @feed.deactivate_feed_version(@fv1.sha1)
       expect(@fv1.imported_schedule_stop_pairs.count).to eq(0)
-      expect(@feed.imported_schedule_stop_pairs.where_active).to match_array([@ssp2])
+      expect(@feed.imported_schedule_stop_pairs.where_imported_from_active_feed_version).to match_array([@ssp2])
     end
 
     it 'cannot deactivate current active_feed_version' do
