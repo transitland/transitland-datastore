@@ -234,6 +234,7 @@ class Changeset < ActiveRecord::Base
         if (unresolved_issues.empty?)
           resolving_issues.each { |issue| issue.update!({ open: false, resolved_by_changeset: self}) }
           changeset_issues.each(&:save!)
+          Issue.bulk_deactivate
         else
           message = unresolved_issues.map { |issue| "Issue #{issue.id} was not resolved." }.join(" ")
           logger.error "Error applying Changeset #{self.id}: " + message

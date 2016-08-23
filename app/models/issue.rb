@@ -18,9 +18,10 @@ class Issue < ActiveRecord::Base
   belongs_to :created_by_changeset, class_name: 'Changeset'
   belongs_to :resolved_by_changeset, class_name: 'Changeset'
 
-  enum status: [ :current, :stale]
+  enum status: [:active, :inactive]
 
   scope :with_type, -> (search_string) { where(issue_type: search_string.split(',')) }
+  # TODO: make based on entities
   scope :from_feed, -> (feed_onestop_id) { joins(created_by_changeset: :imported_from_feed).where(created_by_changeset: {imported_from_feed: {onestop_id: feed_onestop_id}}) }
 
   extend Enumerize
@@ -35,8 +36,13 @@ class Issue < ActiveRecord::Base
                  'uncategorized']
 
   def changeset_from_entities
+    #TODO need to find a single changeset in common to all entities, or bail
     entities_with_issues.map { |ewi| Changeset.find(ewi.entity.created_or_updated_in_changeset_id) }
                              .max_by { |changeset| changeset.updated_at }
+  end
+
+  def outdated?
+    entities_with_issues.any? { |ewi| ewi.entity.created_or_updated_in_changeset.updated_at.to_i > created_by_changeset.applied_at.to_i}
   end
 
   def equivalent?(issue)
@@ -52,5 +58,9 @@ class Issue < ActiveRecord::Base
       Set.new(existing.entities_with_issues.map(&:entity_type)) == Set.new(issue.entities_with_issues.map(&:entity_type)) &&
       Set.new(existing.entities_with_issues.map(&:entity_attribute)) == Set.new(issue.entities_with_issues.map(&:entity_attribute))
     }
+  end
+
+  def self.bulk_deactivate
+    Issue.includes(:entities_with_issues).all.select{ |issue| issue.outdated? }.each {|issue| issue.update(status: 1) }
   end
 end
