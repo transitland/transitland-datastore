@@ -21,8 +21,14 @@ class Issue < ActiveRecord::Base
   enum status: [:active, :inactive]
 
   scope :with_type, -> (search_string) { where(issue_type: search_string.split(',')) }
-  # TODO: make based on entities
-  scope :from_feed, -> (feed_onestop_id) { joins(created_by_changeset: :imported_from_feed).where(created_by_changeset: {imported_from_feed: {onestop_id: feed_onestop_id}}) }
+  scope :from_feed, -> (feed_onestop_id) {
+    where("issues.id IN (SELECT entities_with_issues.issue_id FROM entities_with_issues INNER JOIN
+    entities_imported_from_feed ON entities_with_issues.entity_id=entities_imported_from_feed.entity_id
+    AND entities_with_issues.entity_type=entities_imported_from_feed.entity_type WHERE entities_imported_from_feed.feed_id=?)
+    OR issues.id in (SELECT issues.id FROM issues INNER JOIN changesets ON
+    issues.created_by_changeset_id=changesets.id WHERE changesets.feed_id=?)",
+    Feed.find_by_onestop_id!(feed_onestop_id), Feed.find_by_onestop_id!(feed_onestop_id))
+  }
 
   extend Enumerize
   enumerize :issue_type,
@@ -36,9 +42,13 @@ class Issue < ActiveRecord::Base
                  'uncategorized']
 
   def changeset_from_entities
-    #TODO need to find a single changeset in common to all entities, or bail
-    entities_with_issues.map { |ewi| Changeset.find(ewi.entity.created_or_updated_in_changeset_id) }
-                             .max_by { |changeset| changeset.updated_at }
+    # all entities must have the same created or updated in changeset
+    changesets = entities_with_issues.map { |ewi| ewi.entity.created_or_updated_in_changeset }
+    if changesets.all? {|changeset| changeset.id == changesets.first.id }
+      changesets.first
+    else
+      raise "test"
+    end
   end
 
   def outdated?
@@ -61,6 +71,6 @@ class Issue < ActiveRecord::Base
   end
 
   def self.bulk_deactivate
-    Issue.includes(:entities_with_issues).all.select{ |issue| issue.outdated? }.each {|issue| issue.update(status: 1) }
+    Issue.includes(:entities_with_issues).select{ |issue| issue.outdated? }.each {|issue| issue.update(status: 1) }
   end
 end
