@@ -21,11 +21,11 @@
 
 class Changeset < ActiveRecord::Base
   class Error < StandardError
-    attr_accessor :changeset, :message, :backtrace
+    attr_accessor :changeset, :message, :backtrace, :payload
 
-    def initialize(changeset: nil, change_payloads: [], message: '', backtrace: [])
+    def initialize(changeset: nil, payload: {}, message: '', backtrace: [])
       @changeset = changeset
-      @change_payloads = change_payloads
+      @payload = payload
       @message = message
       @backtrace = backtrace
     end
@@ -128,24 +128,23 @@ class Changeset < ActiveRecord::Base
 
   def create_change_payloads(entities)
     entities.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
-      changes = []
-      chunk.each do |entity|
-        changes << {
+      changes = chunk.map do |entity|
+        {
           :action => :createUpdate,
           entity.class.name.camelize(:lower) => entity.as_change.as_json.compact
         }
       end
+      payload = {changes: changes}
       begin
-        change_payloads = self.change_payloads.create!(payload: {changes: changes})
+        change_payload = self.change_payloads.create!(payload: payload)
       rescue StandardError => e
         fail Changeset::Error.new(
           changeset: self,
-          change_payloads: change_payloads,
+          payload: payload,
           message: e.message,
           backtrace: e.backtrace
         )
       end
-      change_payloads
     end
   end
 
@@ -176,13 +175,13 @@ class Changeset < ActiveRecord::Base
     # changesets complicates this. E.g, We don't want to recompute the stop_distances of one RouteStopPattern
     # multiple times if there are multiple Stops of that RouteStopPattern in the changeset.
     rsps_to_update_distances = Set.new
+    operators_to_update_convex_hull = Set.new
 
-    if self.stops_created_or_updated
-      operators_to_update_convex_hull = Set.new
+    unless self.stops_created_or_updated.empty?
       self.stops_created_or_updated.each do |stop|
-        rsps_to_update_distances.merge(RouteStopPattern.with_stops(stop.onestop_id).map(&:onestop_id))
         operators_to_update_convex_hull.merge(OperatorServingStop.where(stop: stop).map(&:operator))
       end
+      rsps_to_update_distances.merge(RouteStopPattern.with_stops(self.stops_created_or_updated.map(&:onestop_id).join(',')))
 
       operators_to_update_convex_hull.each { |operator|
         operator.geometry = operator.recompute_convex_hull_around_stops
@@ -190,10 +189,15 @@ class Changeset < ActiveRecord::Base
       }
     end
 
-    rsps_to_update_distances.merge(self.route_stop_patterns_created_or_updated.map(&:onestop_id))
-    rsps_to_update_distances.each { |onestop_id|
-      rsp = RouteStopPattern.find_by_onestop_id!(onestop_id)
+    rsps_to_update_distances.merge(self.route_stop_patterns_created_or_updated)
+    rsps_to_update_distances.each { |rsp|
       rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
+      rsp.ordered_ssp_trip_chunks { |trip_chunk|
+        trip_chunk.each_with_index do |ssp, i|
+          ssp.update_column(:origin_dist_traveled, rsp.stop_distances[i])
+          ssp.update_column(:destination_dist_traveled, rsp.stop_distances[i+1])
+        end
+      }
     }
     #mainly for testing
     [rsps_to_update_distances.size, operators_to_update_convex_hull.size]
@@ -202,13 +206,16 @@ class Changeset < ActiveRecord::Base
   def apply!
     fail Changeset::Error.new(changeset: self, message: 'has already been applied.') if applied
     changeset_issues = nil
+
     Changeset.transaction do
       begin
+        # Apply ChangePayloads, collect issues
         resolving_issues = []
         change_payloads.each do |change_payload|
           resolving_issues += change_payload.apply!
         end
         self.update(applied: true, applied_at: Time.now)
+
         # Create any feed-entity associations
         if self.imported_from_feed && self.imported_from_feed_version
           eiff_batch = []
@@ -224,7 +231,10 @@ class Changeset < ActiveRecord::Base
           EntityImportedFromFeed.import eiff_batch
         end
 
+        # Update computed properties
         update_computed_attributes unless self.imported_from_feed && self.imported_from_feed_version
+
+        # Check for issues
         changeset_issues = check_quality
         unresolved_issues = issues_unresolved(resolving_issues, changeset_issues)
         if (unresolved_issues.empty?)
@@ -235,12 +245,14 @@ class Changeset < ActiveRecord::Base
           logger.error "Error applying Changeset #{self.id}: " + message
           raise Changeset::Error.new(changeset: self, message: message)
         end
-      rescue => e
-        logger.error "Error applying Changeset #{self.id}: #{e.message}"
-        logger.error e.backtrace
-        raise Changeset::Error.new(changeset: self, message: e.message, backtrace: e.backtrace)
+
+      rescue StandardError => error
+        logger.error "Error applying Changeset #{self.id}: #{error.message}"
+        logger.error error.backtrace
+        raise Changeset::Error.new(changeset: self, message: error.message, backtrace: error.backtrace)
       end
     end
+
     unless Figaro.env.send_changeset_emails_to_users.presence == 'false'
       if self.user && self.user.email.present? && !self.user.admin
         ChangesetMailer.delay.application(self.id)

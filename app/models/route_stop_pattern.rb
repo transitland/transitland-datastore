@@ -108,17 +108,8 @@ class RouteStopPattern < BaseRouteStopPattern
     )
   end
 
-  def self.simplify_geometry(points)
-    points = self.set_precision(points)
-    self.remove_duplicate_points(points)
-  end
-
   def self.set_precision(points)
     points.map { |c| c.map { |n| n.round(COORDINATE_PRECISION) } }
-  end
-
-  def self.remove_duplicate_points(points)
-    points.chunk{ |c| c }.map(&:first)
   end
 
   def nearest_point(locators, nearest_seg_index)
@@ -175,7 +166,10 @@ class RouteStopPattern < BaseRouteStopPattern
   end
 
   def calculate_distances(stops=nil)
-    stops = self.stop_pattern.map {|onestop_id| Stop.find_by_onestop_id!(onestop_id) } if stops.nil?
+    if stops.nil?
+      stop_hash = Hash[Stop.find_by_onestop_ids!(self.stop_pattern).map { |s| [s.onestop_id, s] }]
+      stops = self.stop_pattern.map{|s| stop_hash.fetch(s) }
+    end
     if stops.map(&:onestop_id).uniq.size == 1
       self.stop_distances = Array.new(stops.size).map{|i| 0.0}
       return self.stop_distances
@@ -285,7 +279,7 @@ class RouteStopPattern < BaseRouteStopPattern
       # create a new geometry from the trip stop points
       stop_points = RouteStopPattern.set_precision(stop_points)
       if stop_points.uniq.size != 1
-        self.geometry = RouteStopPattern.line_string(RouteStopPattern.remove_duplicate_points(stop_points))
+        self.geometry = RouteStopPattern.line_string(stop_points)
       else
         self.geometry = RouteStopPattern.line_string(stop_points)
       end
@@ -300,6 +294,14 @@ class RouteStopPattern < BaseRouteStopPattern
   scope :with_trips, -> (search_string) { where{trips.within(search_string)} }
   scope :with_stops, -> (search_string) { where{stop_pattern.within(search_string)} }
 
+  def ordered_ssp_trip_chunks(&block)
+    if block
+      ScheduleStopPair.where(route_stop_pattern: self).order(:trip, :origin_departure_time).slice_when { |s1, s2|
+        !s1.trip.eql?(s2.trip)
+      }.each {|trip_chunk| yield trip_chunk }
+    end
+  end
+
   ##### FromGTFS ####
   def self.create_from_gtfs(trip, route_onestop_id, stop_pattern, trip_stop_points, shape_points)
     # both trip_stop_points and stop_pattern correspond to stop_times.
@@ -309,7 +311,7 @@ class RouteStopPattern < BaseRouteStopPattern
     # Rgeo produces nil if there is only one coordinate in the array
     rsp = RouteStopPattern.new(
       stop_pattern: stop_pattern,
-      geometry: self.line_string(self.simplify_geometry(shape_points))
+      geometry: self.line_string(self.set_precision(shape_points))
     )
     has_issues, issues = rsp.evaluate_geometry(trip, trip_stop_points)
     rsp.tl_geometry(trip_stop_points, issues) if has_issues

@@ -128,6 +128,23 @@ class Stop < BaseStop
       .select('DISTINCT ON (current_routes_serving_stop.route_id) *')
   end
 
+  def vehicle_types_serving_stop_and_platforms
+    # Use cacheable relations
+    (self.stop_platforms + [self]).map { |s| s.served_by_vehicle_types }.flatten.uniq
+  end
+
+  # Route vehicle_type serving stop
+  def served_by_vehicle_types
+    self.routes_serving_stop.map(&:route).map(&:vehicle_type).uniq
+  end
+
+  scope :served_by_vehicle_types, -> (vehicle_types) {
+    vehicle_types = Array.wrap(vehicle_types).map { |vt| GTFS::Route.match_vehicle_type(vt).to_s.to_i }
+    joins{routes_serving_stop.route}
+      .where({current_routes: {vehicle_type: vehicle_types}})
+      .distinct
+  }
+
   # Station Hierarchy
   has_many :stop_egresses, class_name: 'StopEgress', foreign_key: :parent_stop_id
   has_many :stop_platforms, class_name: 'StopPlatform', foreign_key: :parent_stop_id
@@ -283,7 +300,7 @@ class Stop < BaseStop
     point = Stop::GEOFACTORY.point(*entity.coordinates)
     geohash = GeohashHelpers.encode(point)
     # Use stop_id as a fallback for an invalid onestop ID name component
-    onestop_id = OnestopId.handler_by_model(self).new(geohash: geohash, name: entity.stop_name)
+    onestop_id = OnestopId.handler_by_model(self).new(geohash: geohash, name: entity.stop_name.gsub(/[\>\<]/, ''))
     if onestop_id.valid? == false
       old_onestop_id = onestop_id.to_s
       onestop_id = OnestopId.handler_by_model(self).new(geohash: geohash, name: entity.id)

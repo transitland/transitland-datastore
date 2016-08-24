@@ -17,4 +17,5 @@ end
 
 every 1.day, at: '12:01 am' do
   runner 'Stop.re_conflate_with_osm'
+  rake 'enqueue_next_feed_versions'
 end

@@ -12,14 +12,14 @@ describe Api::V1::IssuesController do
       get :index
       expect_json_types({ issues: :array })
       expect_json({ issues: -> (issues) {
-        expect(issues.length).to eq 1
+        expect(issues.length).to be > 0
       }})
     end
 
     it 'returns issues with correct issue_type' do
       get :index, issue_type: 'stop_rsp_distance_gap,route_color,fake'
       expect_json({ issues: -> (issues) {
-        expect(issues.length).to eq 1
+        expect(issues.length).to be > 0
       }})
     end
 
@@ -27,6 +27,15 @@ describe Api::V1::IssuesController do
       get :index, issue_type: 'route_color,fake'
       expect_json({ issues: -> (issues) {
         expect(issues.length).to eq 0
+      }})
+    end
+
+    it 'returns issues with feed' do
+      changeset = create(:changeset)
+      Issue.new(created_by_changeset: changeset, issue_type: 'stop_position_inaccurate').save!
+      get :index, feed_onestop_id: 'f-9qs-example'
+      expect_json({ issues: -> (issues) {
+        expect(issues.length).to eq 2
       }})
     end
   end
@@ -42,14 +51,14 @@ describe Api::V1::IssuesController do
     before(:each) do
       @issue1 = {
         "details": "This is a test issue",
-        "issue_type": 'stop_rsp_distance_gap',
+        "issue_type": 'rsp_line_inaccurate',
         "entities_with_issues": [
           {
-            "onestop_id": "s-9qscwx8n60-nyecountyairportdemo",
+            "onestop_id": "s-9qt0rnrkjt-amargosavalleydemo",
             "entity_attribute": "geometry"
           },
           {
-            "onestop_id": "r-9qscy-10-7beffb-b49819",
+            "onestop_id": "r-9qt1-50-f8249d-e5d0eb",
             "entity_attribute": "geometry"
           }
         ]
@@ -59,7 +68,8 @@ describe Api::V1::IssuesController do
     it 'creates an issue when no equivalent exists' do
       post :create, issue: @issue1
       expect(response.status).to eq 202
-      expect(Issue.count).to eq 2
+      expect(Issue.count).to eq 3 # was 2
+      expect(EntityWithIssues.count).to eq 7 # was 5
     end
 
     it 'does not create issue when an equivalent one exists' do
@@ -72,14 +82,14 @@ describe Api::V1::IssuesController do
             "entity_attribute": "geometry"
           },
           {
-            "onestop_id": "r-9qscy-30-90db19-304219",
+            "onestop_id": "r-9qscy-30-a41e99-fcca25",
             "entity_attribute": "geometry"
           }
         ]
       }
       post :create, issue: issue2
       expect(response.status).to eq 409
-      expect(Issue.count).to eq 1
+      expect(Issue.count).to be > 0
     end
 
     it 'requires auth token to create issue' do
@@ -96,6 +106,29 @@ describe Api::V1::IssuesController do
       }
       post :update, id: 1, issue: issue
       expect(Issue.find(1).details).to eq "This is a test of updating"
+    end
+
+    it 'avoids deleting EntitiesWithIssues when param not supplied' do
+      issue = {
+        "details": "This is a test of updating"
+      }
+      post :update, id: 1, issue: issue
+      expect(Issue.find(1).entities_with_issues.size).to eq 3
+    end
+
+    it 'creates specified EntitiesWithIssues and deletes existing EntitiesWithIssues' do
+      issue = {
+        "details": "This is a test of updating",
+        entities_with_issues: [
+          {
+            "onestop_id": 's-9qscwx8n60-nyecountyairportdemo',
+            "entity_attribute": 'geometry'
+          }
+        ]
+      }
+      post :update, id: 1, issue: issue
+      expect(Issue.find(1).entities_with_issues.size).to eq 1
+      expect(Issue.find(1).entities_with_issues[0].entity.onestop_id).to eq 's-9qscwx8n60-nyecountyairportdemo'
     end
   end
 

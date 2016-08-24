@@ -82,10 +82,15 @@ module AllowFiltering
     collection
   end
 
-  def self.by_attribute_array(collection, params, attribute_name)
+  def self.by_attribute_array(collection, params, attribute_name, case_sensitive=false)
     values = param_as_array(params, attribute_name)
+    if case_sensitive
+      t = collection.arel_table[attribute_name].in(values)
+    else
+      t = collection.arel_table[attribute_name].lower.in(values.map(&:downcase))
+    end
     if values.present?
-      collection = collection.where({attribute_name => values})
+      collection = collection.where(t)
     end
     collection
   end

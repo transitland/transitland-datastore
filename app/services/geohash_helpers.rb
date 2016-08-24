@@ -1,18 +1,18 @@
 module GeohashHelpers
   GEOFACTORY = RGeo::Geographic.simple_mercator_factory
-  BASESEQUENCE = '0123456789bcdefghjkmnpqrstuvwxyz'    
+  BASESEQUENCE = '0123456789bcdefghjkmnpqrstuvwxyz'
 
   def self.encode(geometry, precision=10)
     # Encode a RGeo point to a geohash.
     GeoHash.encode(geometry.lat, geometry.lon, precision)
   end
-    
+
   def self.decode(geohash, decimals=5)
     # Decode a geohash to an RGeo point.
     p = GeoHash.decode(geohash, decimals)
     GEOFACTORY.point(p[1], p[0])
   end
-  
+
   def self.decode_bbox(geohash)
     # Decode a geohash to an RGeo bounding box.
     p = GeoHash.decode_bbox(geohash)
@@ -21,7 +21,7 @@ module GeohashHelpers
       GEOFACTORY.point(p[1][1], p[1][0])
     )
   end
-  
+
   def self.adjacent(geohash, direction)
     # Return the neighboring geohash in a given n,s,e,w direction.
     # Based on an MIT licensed implementation by Chris Veness from:
@@ -49,7 +49,7 @@ module GeohashHelpers
     end
     parent + BASESEQUENCE[neighbor[direction][t].index(last)]
   end
-  
+
   def self.neighbors(geohash)
     {
       n:  adjacent(geohash, :n),
@@ -72,17 +72,19 @@ module GeohashHelpers
       decode_bbox(neighborhood[:sw]).min_point
     )
   end
-  
+
   def self.centroid(geometries)
     # Simple geometric average of geometries
     GEOFACTORY.point(
       geometries.map { |x| x.lon }.sum / geometries.size,
-      geometries.map { |x| x.lat }.sum / geometries.size,      
+      geometries.map { |x| x.lat }.sum / geometries.size,
     )
   end
-  
+
   def self.fit(geometries)
     # Fit a collection of points inside a geohash+neighbors
+    geometries ||= []
+    raise ArgumentError.new('Need at least 1 geometry') if geometries.size == 0
     start = encode(centroid(geometries))
     geohashes = geometries.map { |x| encode(x) }
     for i in 1..(start.length-1) do
@@ -93,7 +95,7 @@ module GeohashHelpers
         break
       end
     end
-    g[0..-2]    
+    g[0..-2]
   end
-    
+
 end

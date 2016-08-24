@@ -20,15 +20,15 @@ module RGeo
       end
 
       def locators(point)
-        _segments.collect { |segment| segment.locator(point) }
+        _segments.map { |segment| segment.locator(point) unless segment.s.eql?(segment.e) }.compact
       end
 
       def before?(target)
-        return _segments[0].tproj(target) < 0.0 ? true : false
+        return _segments.find{ |seg| !seg.s.eql?(seg.e) }.tproj(target) < 0.0 ? true : false
       end
 
       def after?(target)
-        return _segments[-1].tproj(target) > 1.0 ? true : false
+        return _segments.reverse_each.detect { |seg| !seg.s.eql?(seg.e) }.tproj(target) > 1.0 ? true : false
       end
     end
 

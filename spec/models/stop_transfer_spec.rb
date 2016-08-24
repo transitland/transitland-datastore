@@ -58,6 +58,7 @@ describe StopTransfer do
           onestopId: stop1.onestop_id,
           includesStopTransfers: [
             {
+              transferType: 'timed',
               toStopOnestopId: stop2.onestop_id,
               minTransferTime: 120,
             }

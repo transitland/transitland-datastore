@@ -108,7 +108,7 @@ describe Api::V1::RoutesController do
         route_stop_pattern = create(:route_stop_pattern_bart)
         other_route_stop_pattern = create(:route_stop_pattern)
 
-        get :index, traverses: "r-9q8y-richmond~dalycity~millbrae-45cad3-46d384,#{other_route_stop_pattern.onestop_id}"
+        get :index, traverses: "r-9q8y-richmond~dalycity~millbrae-e8fb80-61d4dc,#{other_route_stop_pattern.onestop_id}"
         expect_json({ routes: -> (routes) {
           expect(routes.length).to eq 2
           expect(routes.first[:onestop_id]).to eq 'r-9q8y-richmond~dalycity~millbrae'
