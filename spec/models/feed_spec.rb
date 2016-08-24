@@ -486,7 +486,7 @@ describe Feed do
     end
   end
 
-  context '.enqueue_next_feed_version' do
+  context '.enqueue_next_feed_versions' do
     let(:date) { DateTime.now }
     let(:feed) { create(:feed) }
 
@@ -495,7 +495,7 @@ describe Feed do
       fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date - 1.months)
       feed.update!(active_feed_version: fv1)
       expect {
-        feed.enqueue_next_feed_version(date)
+        Feed.enqueue_next_feed_versions(date)
       }.to change(FeedEaterWorker.jobs, :size).by(1)
     end
 
@@ -503,7 +503,10 @@ describe Feed do
       fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date - 2.months)
       feed.update!(active_feed_version: fv1)
       expect {
-        feed.enqueue_next_feed_version(date)
+        Feed.enqueue_next_feed_versions(date)
+      }.to change(FeedEaterWorker.jobs, :size).by(0)
+    end
+
       }.to change(FeedEaterWorker.jobs, :size).by(0)
     end
 
@@ -513,7 +516,7 @@ describe Feed do
       create(:feed_version_import, feed_version: fv2)
       feed.update!(active_feed_version: fv1)
       expect {
-        feed.enqueue_next_feed_version(date)
+        Feed.enqueue_next_feed_versions(date)
       }.to change(FeedEaterWorker.jobs, :size).by(0)
     end
   end
