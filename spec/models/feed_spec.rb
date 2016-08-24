@@ -507,6 +507,21 @@ describe Feed do
       }.to change(FeedEaterWorker.jobs, :size).by(0)
     end
 
+    it 'allows max_imports' do
+      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date - 2.months)
+      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date - 1.months)
+      feed.update!(active_feed_version: fv1)
+      expect {
+        Feed.enqueue_next_feed_versions(date, max_imports: 0)
+      }.to change(FeedEaterWorker.jobs, :size).by(0)
+    end
+
+    it 'skips if manual_import tag is true' do
+      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date - 2.months)
+      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date - 1.months)
+      feed.update!(active_feed_version: fv1, tags: {manual_import:"true"})
+      expect {
+        Feed.enqueue_next_feed_versions(date)
       }.to change(FeedEaterWorker.jobs, :size).by(0)
     end
 
