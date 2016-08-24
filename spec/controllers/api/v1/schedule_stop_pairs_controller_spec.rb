@@ -35,8 +35,8 @@ describe Api::V1::ScheduleStopPairsController do
       end
     end
 
-    context 'where_active' do
-      it 'explicitly sets where_active' do
+    context 'active' do
+      it 'explicitly sets where_imported_from_active_feed_version' do
         get :index, active: 'true', feed_version_sha1: @feed_version_inactive.sha1
         expect_json_sizes(schedule_stop_pairs: 0)
       end

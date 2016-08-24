@@ -166,7 +166,10 @@ class RouteStopPattern < BaseRouteStopPattern
   end
 
   def calculate_distances(stops=nil)
-    stops = self.stop_pattern.map {|onestop_id| Stop.find_by_onestop_id!(onestop_id) } if stops.nil?
+    if stops.nil?
+      stop_hash = Hash[Stop.find_by_onestop_ids!(self.stop_pattern).map { |s| [s.onestop_id, s] }]
+      stops = self.stop_pattern.map{|s| stop_hash.fetch(s) }
+    end
     if stops.map(&:onestop_id).uniq.size == 1
       self.stop_distances = Array.new(stops.size).map{|i| 0.0}
       return self.stop_distances
@@ -290,6 +293,14 @@ class RouteStopPattern < BaseRouteStopPattern
 
   scope :with_trips, -> (search_string) { where{trips.within(search_string)} }
   scope :with_stops, -> (search_string) { where{stop_pattern.within(search_string)} }
+
+  def ordered_ssp_trip_chunks(&block)
+    if block
+      ScheduleStopPair.where(route_stop_pattern: self).order(:trip, :origin_departure_time).slice_when { |s1, s2|
+        !s1.trip.eql?(s2.trip)
+      }.each {|trip_chunk| yield trip_chunk }
+    end
+  end
 
   ##### FromGTFS ####
   def self.create_from_gtfs(trip, route_onestop_id, stop_pattern, trip_stop_points, shape_points)
