@@ -19,7 +19,7 @@ module HasAGeographicGeometry
       geometry_collection = RGeo::Geographic.simple_mercator_factory.projection_factory.collection(projected_geometries)
       convex_hull = geometry_collection.convex_hull
       if (geometry_collection.size < 3)
-        convex_hull = convex_hull.buffer(0.5)
+        convex_hull = convex_hull.buffer(100)
       end
 
       if projected == false
