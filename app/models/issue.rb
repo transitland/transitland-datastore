@@ -18,7 +18,7 @@ class Issue < ActiveRecord::Base
   belongs_to :created_by_changeset, class_name: 'Changeset'
   belongs_to :resolved_by_changeset, class_name: 'Changeset'
 
-  enum status: [:active, :inactive]
+  enum status: [:active, :inactive, :pending]
 
   scope :with_type, -> (search_string) { where(issue_type: search_string.split(',')) }
   scope :from_feed, -> (feed_onestop_id) {
@@ -42,12 +42,10 @@ class Issue < ActiveRecord::Base
                  'uncategorized']
 
   def changeset_from_entities
-    # all entities must have the same created or updated in changeset
+    # all entities must have the same created or updated in changeset, or no changeset will represent them
     changesets = entities_with_issues.map { |ewi| ewi.entity.created_or_updated_in_changeset }
     if changesets.all? {|changeset| changeset.id == changesets.first.id }
       changesets.first
-    else
-      raise "test"
     end
   end
 
@@ -71,6 +69,8 @@ class Issue < ActiveRecord::Base
   end
 
   def self.bulk_deactivate
+    # This is primarily for new Feed Version imports.
+    # We need the outdated? method to capture all issues created outside imports.
     Issue.includes(:entities_with_issues).select{ |issue| issue.outdated? }.each {|issue| issue.update(status: 1) }
   end
 end
