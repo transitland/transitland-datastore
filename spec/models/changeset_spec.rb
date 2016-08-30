@@ -308,7 +308,12 @@ describe Changeset do
         ]
       })
       changeset.apply!
-      expect(Operator.find_by_onestop_id!(operator.onestop_id).geometry[:coordinates]).to match_array([a_value_within(0.001).of(-122.5), a_value_within(0.001).of(37.9)])
+      convex_hull_coordinates = Operator.find_by_onestop_id!(operator.onestop_id).geometry[:coordinates].first.map {|a| a.map { |b| b.round(4) } }
+      expect(convex_hull_coordinates).to match_array([[-122.5009, 37.9],
+                                                      [-122.5, 37.8993],
+                                                      [-122.5, 37.9007],
+                                                      [-122.4991, 37.9],
+                                                      [-122.4991, 37.9]])
     end
   end
 
