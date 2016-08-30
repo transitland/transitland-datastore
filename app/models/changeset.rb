@@ -215,6 +215,7 @@ class Changeset < ActiveRecord::Base
           resolving_issues += change_payload.apply!
         end
         self.update(applied: true, applied_at: Time.now)
+        resolving_issues.each {|issue| issue.update(status: 2) }
 
         # Create any feed-entity associations
         if self.imported_from_feed && self.imported_from_feed_version
@@ -238,7 +239,7 @@ class Changeset < ActiveRecord::Base
         changeset_issues = check_quality
         unresolved_issues = issues_unresolved(resolving_issues, changeset_issues)
         if (unresolved_issues.empty?)
-          resolving_issues.each { |issue| issue.update!({ open: false, resolved_by_changeset: self}) }
+          resolving_issues.each { |issue| issue.update!({ open: false, status: 1, resolved_by_changeset: self}) }
           changeset_issues.each(&:save!)
           Issue.bulk_deactivate
         else
