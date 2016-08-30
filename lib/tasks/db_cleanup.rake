@@ -7,35 +7,45 @@ namespace :db do
       puts mode == 0 ? "logging mode" : "delete mode"
       begin
         [Stop,Route,RouteStopPattern].each do |entity|
-          entities_to_delete = entity.where('').reject { |e| e.imported_from_feed_versions.any?(&:is_active_feed_version) }
-          entities_to_delete_ids = entities_to_delete.map(&:id)
-          if (entity == Route)
-            route_serving_stops = RouteServingStop.where(route_id: entities_to_delete_ids)
-            puts "Found #{route_serving_stops.size} RouteServingStops to delete."
-            if (mode == 1 && !route_serving_stops.empty?)
-              puts "Deleting unreferenced RouteServingStops."
-              route_serving_stops.delete_all
+          entities_inactive = entity.where_not_imported_from_active_feed_version
+          puts "Found #{entities_inactive.count} #{entity.to_s}s to delete."
+
+          entities_inactive.find_in_batches do |entities_to_delete|
+
+            # Delete entities
+            entities_to_delete.each { |e| puts " #{entity.to_s}: #{e.onestop_id}" }
+            if (mode == 1)
+              puts "Deleting unreferenced #{entity.to_s}s."
+              entities_to_delete.each { |e| e.delete }
             end
-          end
-          if (entity == Stop)
-            operator_serving_stops = OperatorServingStop.where(stop_id: entities_to_delete_ids)
-            puts "Found #{operator_serving_stops.size} OperatorServingStops to delete."
-            if (mode == 1 && !operator_serving_stops.empty?)
-              puts "Deleting unreferenced OperatorServingStops."
-              operator_serving_stops.delete_all
+
+            # Delete EIFFs
+            entities_imported = EntityImportedFromFeed.where(entity_id: entities_to_delete, entity_type: entity)
+            puts "Found #{entities_imported.size} EntityImportedFromFeed #{entity.to_s}s to delete."
+            if (mode == 1)
+              puts "Deleting unreferenced EntityImportedFromFeed #{entity.to_s}s."
+              entities_imported.delete_all
             end
-          end
-          entities_imported = EntityImportedFromFeed.where(entity_id: entities_to_delete_ids, entity_type: entity.to_s)
-          puts "Found #{entities_imported.size} EntityImportedFromFeed #{entity.to_s}s to delete."
-          if (mode && !entities_imported.empty?)
-            puts "Deleting unreferenced EntityImportedFromFeed #{entity.to_s}s."
-            entities_imported.delete_all
-          end
-          puts "Found #{entities_to_delete.size} #{entity.to_s}s to delete."
-          entities_to_delete.each { |e| puts " #{entity.to_s}: #{e.onestop_id}" } if !entities_to_delete.empty?
-          if (mode == 1 && !entities_to_delete.empty?)
-            puts "Deleting unreferenced #{entity.to_s}s."
-            entities_to_delete.each { |e| e.delete }
+
+            # Delete OSR / RSS
+            if (entity == Route)
+              route_serving_stops = RouteServingStop.where(route_id: entities_to_delete)
+              puts "Found #{route_serving_stops.size} RouteServingStops to delete."
+              if (mode == 1)
+                puts "Deleting unreferenced RouteServingStops."
+                route_serving_stops.delete_all
+              end
+            end
+
+            if (entity == Stop)
+              operator_serving_stops = OperatorServingStop.where(stop_id: entities_to_delete)
+              puts "Found #{operator_serving_stops.size} OperatorServingStops to delete."
+              if (mode == 1)
+                puts "Deleting unreferenced OperatorServingStops."
+                operator_serving_stops.delete_all
+              end
+            end
+
           end
         end
       rescue

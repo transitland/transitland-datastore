@@ -206,13 +206,16 @@ class Changeset < ActiveRecord::Base
   def apply!
     fail Changeset::Error.new(changeset: self, message: 'has already been applied.') if applied
     changeset_issues = nil
+
     Changeset.transaction do
       begin
+        # Apply ChangePayloads, collect issues
         resolving_issues = []
         change_payloads.each do |change_payload|
           resolving_issues += change_payload.apply!
         end
         self.update(applied: true, applied_at: Time.now)
+
         # Create any feed-entity associations
         if self.imported_from_feed && self.imported_from_feed_version
           eiff_batch = []
@@ -228,7 +231,10 @@ class Changeset < ActiveRecord::Base
           EntityImportedFromFeed.import eiff_batch
         end
 
+        # Update computed properties
         update_computed_attributes unless self.imported_from_feed && self.imported_from_feed_version
+
+        # Check for issues
         changeset_issues = check_quality
         unresolved_issues = issues_unresolved(resolving_issues, changeset_issues)
         if (unresolved_issues.empty?)
@@ -240,12 +246,14 @@ class Changeset < ActiveRecord::Base
           logger.error "Error applying Changeset #{self.id}: " + message
           raise Changeset::Error.new(changeset: self, message: message)
         end
-      rescue => e
-        logger.error "Error applying Changeset #{self.id}: #{e.message}"
-        logger.error e.backtrace
-        raise Changeset::Error.new(changeset: self, message: e.message, backtrace: e.backtrace)
+
+      rescue StandardError => error
+        logger.error "Error applying Changeset #{self.id}: #{error.message}"
+        logger.error error.backtrace
+        raise Changeset::Error.new(changeset: self, message: error.message, backtrace: error.backtrace)
       end
     end
+
     unless Figaro.env.send_changeset_emails_to_users.presence == 'false'
       if self.user && self.user.email.present? && !self.user.admin
         ChangesetMailer.delay.application(self.id)

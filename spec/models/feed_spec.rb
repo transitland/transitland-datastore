@@ -322,7 +322,7 @@ describe Feed do
       expect(@fv1.imported_schedule_stop_pairs.count).to eq(1)
       @feed.deactivate_feed_version(@fv1.sha1)
       expect(@fv1.imported_schedule_stop_pairs.count).to eq(0)
-      expect(@feed.imported_schedule_stop_pairs.where_active).to match_array([@ssp2])
+      expect(@feed.imported_schedule_stop_pairs.where_imported_from_active_feed_version).to match_array([@ssp2])
     end
 
     it 'cannot deactivate current active_feed_version' do
@@ -486,7 +486,7 @@ describe Feed do
     end
   end
 
-  context '.enqueue_next_feed_version' do
+  context '.enqueue_next_feed_versions' do
     let(:date) { DateTime.now }
     let(:feed) { create(:feed) }
 
@@ -495,7 +495,7 @@ describe Feed do
       fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date - 1.months)
       feed.update!(active_feed_version: fv1)
       expect {
-        feed.enqueue_next_feed_version(date)
+        Feed.enqueue_next_feed_versions(date)
       }.to change(FeedEaterWorker.jobs, :size).by(1)
     end
 
@@ -503,7 +503,25 @@ describe Feed do
       fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date - 2.months)
       feed.update!(active_feed_version: fv1)
       expect {
-        feed.enqueue_next_feed_version(date)
+        Feed.enqueue_next_feed_versions(date)
+      }.to change(FeedEaterWorker.jobs, :size).by(0)
+    end
+
+    it 'allows max_imports' do
+      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date - 2.months)
+      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date - 1.months)
+      feed.update!(active_feed_version: fv1)
+      expect {
+        Feed.enqueue_next_feed_versions(date, max_imports: 0)
+      }.to change(FeedEaterWorker.jobs, :size).by(0)
+    end
+
+    it 'skips if manual_import tag is true' do
+      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date - 2.months)
+      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date - 1.months)
+      feed.update!(active_feed_version: fv1, tags: {manual_import:"true"})
+      expect {
+        Feed.enqueue_next_feed_versions(date)
       }.to change(FeedEaterWorker.jobs, :size).by(0)
     end
 
@@ -513,7 +531,7 @@ describe Feed do
       create(:feed_version_import, feed_version: fv2)
       feed.update!(active_feed_version: fv1)
       expect {
-        feed.enqueue_next_feed_version(date)
+        Feed.enqueue_next_feed_versions(date)
       }.to change(FeedEaterWorker.jobs, :size).by(0)
     end
   end

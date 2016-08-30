@@ -2,11 +2,47 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.3...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.4...HEAD)
 
 **Merged pull requests:**
 
+- Production release 4.9.4 [\#738](https://github.com/transitland/transitland-datastore/pull/738) ([irees](https://github.com/irees))
+
+## [4.9.4](https://github.com/transitland/transitland-datastore/tree/4.9.4) (2016-08-24)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.3...4.9.4)
+
+**Implemented enhancements:**
+
+- Issue controller update method fix and improvement [\#740](https://github.com/transitland/transitland-datastore/issues/740)
+- Integrate memory\_profiling rake with CircleCI [\#733](https://github.com/transitland/transitland-datastore/issues/733)
+- Changeset::Error errors to array [\#730](https://github.com/transitland/transitland-datastore/issues/730)
+- Updating SSP distances in computed attributes [\#665](https://github.com/transitland/transitland-datastore/issues/665)
+
+**Fixed bugs:**
+
+- For profiling rake task some local environs failed [\#749](https://github.com/transitland/transitland-datastore/issues/749)
+- Issue controller update method fix and improvement [\#740](https://github.com/transitland/transitland-datastore/issues/740)
+- Updating SSP distances in computed attributes [\#665](https://github.com/transitland/transitland-datastore/issues/665)
+
+**Closed issues:**
+
+- specify how many feeds enqueue\_next\_feed\_versions re-imports and any feeds to skip [\#753](https://github.com/transitland/transitland-datastore/issues/753)
+- Automate routine new feed version imports [\#745](https://github.com/transitland/transitland-datastore/issues/745)
+- background application of changesets through API [\#634](https://github.com/transitland/transitland-datastore/issues/634)
+- where\_active/where\_inactive scope for all entities [\#540](https://github.com/transitland/transitland-datastore/issues/540)
+
+**Merged pull requests:**
+
+- Enqueue next feed versions limit [\#754](https://github.com/transitland/transitland-datastore/pull/754) ([irees](https://github.com/irees))
+- Upgrade Rails to 4.2.7.1 & update gems [\#751](https://github.com/transitland/transitland-datastore/pull/751) ([drewda](https://github.com/drewda))
+- fixing OperatorInFeed bug and some comments [\#750](https://github.com/transitland/transitland-datastore/pull/750) ([doublestranded](https://github.com/doublestranded))
+- Daily crontab: enqueue next feed version [\#744](https://github.com/transitland/transitland-datastore/pull/744) ([irees](https://github.com/irees))
+- Issues controller update fix [\#741](https://github.com/transitland/transitland-datastore/pull/741) ([doublestranded](https://github.com/doublestranded))
+- Entity: where\_imported\_from\_active\_feed\_version [\#739](https://github.com/transitland/transitland-datastore/pull/739) ([irees](https://github.com/irees))
+- Circle ci profile logging [\#734](https://github.com/transitland/transitland-datastore/pull/734) ([doublestranded](https://github.com/doublestranded))
+- ChangesetApplyWorker [\#732](https://github.com/transitland/transitland-datastore/pull/732) ([irees](https://github.com/irees))
 - Production release 4.9.3 [\#727](https://github.com/transitland/transitland-datastore/pull/727) ([irees](https://github.com/irees))
+- Ssp distance computed attribute [\#717](https://github.com/transitland/transitland-datastore/pull/717) ([doublestranded](https://github.com/doublestranded))
 
 ## [4.9.3](https://github.com/transitland/transitland-datastore/tree/4.9.3) (2016-08-15)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.2...4.9.3)
