@@ -12,3 +12,4 @@ production:
   - feed_eater
   - feed_eater_schedule
   - default
+  - changeset_apply
