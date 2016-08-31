@@ -37,14 +37,11 @@ describe CurrentTrackedByChangeset do
       expect(stop1.identifiers).to match_array(['foo'])
     end
 
-    it 'ignores nil values' do
+    it 'converts empty string to nil' do
       route1 = create(:route, color: 'FFFFFF')
-      route2 = create(:route, color: nil)
-      route3 = create(:route, color: '')
+      route2 = create(:route, color: '')
       route1.merge(route2)
-      expect(route1.color).to eq('FFFFFF')
-      route1.merge(route3)
-      expect(route1.color).to eq('FFFFFF')
+      expect(route1.color).to eq(nil)
     end
   end
 

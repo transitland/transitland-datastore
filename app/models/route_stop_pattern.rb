@@ -31,8 +31,7 @@
 class BaseRouteStopPattern < ActiveRecord::Base
   self.abstract_class = true
 
-
-  attr_accessor :traversed_by, :distance_issues, :first_stop_before_geom, :last_stop_after_geom
+  attr_accessor :traversed_by, :first_stop_before_geom, :last_stop_after_geom
 end
 
 class RouteStopPattern < BaseRouteStopPattern
@@ -109,17 +108,8 @@ class RouteStopPattern < BaseRouteStopPattern
     )
   end
 
-  def self.simplify_geometry(points)
-    points = self.set_precision(points)
-    self.remove_duplicate_points(points)
-  end
-
   def self.set_precision(points)
     points.map { |c| c.map { |n| n.round(COORDINATE_PRECISION) } }
-  end
-
-  def self.remove_duplicate_points(points)
-    points.chunk{ |c| c }.map(&:first)
   end
 
   def nearest_point(locators, nearest_seg_index)
@@ -176,8 +166,14 @@ class RouteStopPattern < BaseRouteStopPattern
   end
 
   def calculate_distances(stops=nil)
-    stops = self.stop_pattern.map {|onestop_id| Stop.find_by_onestop_id!(onestop_id) } if stops.nil?
-    self.distance_issues = 0
+    if stops.nil?
+      stop_hash = Hash[Stop.find_by_onestop_ids!(self.stop_pattern).map { |s| [s.onestop_id, s] }]
+      stops = self.stop_pattern.map{|s| stop_hash.fetch(s) }
+    end
+    if stops.map(&:onestop_id).uniq.size == 1
+      self.stop_distances = Array.new(stops.size).map{|i| 0.0}
+      return self.stop_distances
+    end
     self.stop_distances = []
     route = cartesian_cast(self[:geometry])
     num_segments = route.coordinates.size - 1
@@ -227,8 +223,6 @@ class RouteStopPattern < BaseRouteStopPattern
 
       distance_to_line = distance_to_nearest_point(stop_spherical, nearest_point)
       if !test_distance(distance_to_line)
-        logger.info "Distance issue: Found outlier stop #{stops[i].onestop_id} in route stop pattern #{self.onestop_id}. Distance to line: #{distance_to_line}"
-        self.distance_issues += 1
         if (i==0)
           self.stop_distances << 0.0
         elsif (i==stops.size-1)
@@ -243,28 +237,6 @@ class RouteStopPattern < BaseRouteStopPattern
       a = b
     end
     self.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
-  end
-
-  def evaluate_distances
-    geometry_length = self[:geometry].length
-    self.stop_distances.each_index do |i|
-      if (i != 0)
-        if (self.stop_distances[i-1] == self.stop_distances[i])
-          unless self.stop_pattern[i].eql? self.stop_pattern[i-1]
-            logger.info "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}/#{self.stop_pattern.size}, of route stop pattern #{self.onestop_id} has the same distance as #{self.stop_pattern[i-1]}, which may indicate a segment matching issue or outlier stop."
-            self.distance_issues += 1
-          end
-        elsif (self.stop_distances[i-1] > self.stop_distances[i])
-          logger.info "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}/#{self.stop_pattern.size}, of route stop pattern #{self.onestop_id} occurs after stop #{self.stop_pattern[i-1]} but has a distance less than #{self.stop_pattern[i-1]}"
-          self.distance_issues += 1
-        end
-      end
-      # we'll be lenient if this difference is less than 5 meters.
-      if (self.stop_distances[i] > geometry_length && (self.stop_distances[i] - geometry_length) > 5.0)
-        logger.info "Distance issue: stop #{self.stop_pattern[i]}, number #{i+1}/#{self.stop_pattern.size}, of route stop pattern #{self.onestop_id} has a distance #{self.stop_distances[i]} greater than the length of the geometry, #{geometry_length}"
-        self.distance_issues += 1
-      end
-    end
   end
 
   def cartesian_cast(geometry)
@@ -282,7 +254,7 @@ class RouteStopPattern < BaseRouteStopPattern
   def evaluate_geometry(trip, stop_points)
     # makes judgements on geometry so modifications can be made by tl_geometry
     issues = []
-    if trip.shape_id.nil? || self.geometry[:coordinates].empty?
+    if trip.shape_id.nil? || self.geometry.nil? || self.geometry[:coordinates].empty?
       issues << :empty
     else
       cartesian_line = cartesian_cast(self[:geometry])
@@ -302,30 +274,44 @@ class RouteStopPattern < BaseRouteStopPattern
   def tl_geometry(stop_points, issues)
     # modify rsp geometry based on issues array from evaluate_geometry
     self.first_stop_before_geom = false
+    self.last_stop_after_geom = false
     if issues.include?(:empty)
       # create a new geometry from the trip stop points
-      self.geometry = RouteStopPattern.line_string(RouteStopPattern.simplify_geometry(stop_points))
+      stop_points = RouteStopPattern.set_precision(stop_points)
+      if stop_points.uniq.size != 1
+        self.geometry = RouteStopPattern.line_string(stop_points)
+      else
+        self.geometry = RouteStopPattern.line_string(stop_points)
+      end
       self.is_generated = true
       self.is_modified = true
     end
-    if issues.include?(:has_before_stop)
-      self.first_stop_before_geom = true
-    end
-    if issues.include?(:has_after_stop)
-      self.last_stop_after_geom = true
-    end
+    self.first_stop_before_geom = true if issues.include?(:has_before_stop)
+    self.last_stop_after_geom = true if issues.include?(:has_after_stop)
     # more geometry modification can go here
   end
 
   scope :with_trips, -> (search_string) { where{trips.within(search_string)} }
   scope :with_stops, -> (search_string) { where{stop_pattern.within(search_string)} }
 
+  def ordered_ssp_trip_chunks(&block)
+    if block
+      ScheduleStopPair.where(route_stop_pattern: self).order(:trip, :origin_departure_time).slice_when { |s1, s2|
+        !s1.trip.eql?(s2.trip)
+      }.each {|trip_chunk| yield trip_chunk }
+    end
+  end
+
   ##### FromGTFS ####
   def self.create_from_gtfs(trip, route_onestop_id, stop_pattern, trip_stop_points, shape_points)
+    # both trip_stop_points and stop_pattern correspond to stop_times.
+    # GTFSGraph should already filter out stop_times of size 0 or 1 (using filter_empty).
+    # We can still have one unique stop, but must have at least 2 stop times.
     raise ArgumentError.new('Need at least two stops') if stop_pattern.length < 2
+    # Rgeo produces nil if there is only one coordinate in the array
     rsp = RouteStopPattern.new(
       stop_pattern: stop_pattern,
-      geometry: self.line_string(self.simplify_geometry(shape_points))
+      geometry: self.line_string(self.set_precision(shape_points))
     )
     has_issues, issues = rsp.evaluate_geometry(trip, trip_stop_points)
     rsp.tl_geometry(trip_stop_points, issues) if has_issues

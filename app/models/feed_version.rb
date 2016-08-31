@@ -58,25 +58,21 @@ class FeedVersion < ActiveRecord::Base
   end
 
   def delete_schedule_stop_pairs!
-    self.imported_schedule_stop_pairs.delete_all
+    # Delete SSPs in batches.
+    # http://stackoverflow.com/questions/8290900/
+    self.imported_schedule_stop_pairs.select(:id).find_in_batches do |ssp_batch|
+      ScheduleStopPair.delete(ssp_batch)
+    end
   end
 
   def is_active_feed_version
     !!self.feed.active_feed_version && (self.feed.active_feed_version == self)
   end
 
-  def async_feed_eater(import_level=0)
-    FeedEaterWorker.perform_async(
-      self.feed.onestop_id,
-      self.sha1,
-      import_level
-    )
-  end
-
   def open_gtfs
     fail StandardError.new('No file') unless file.present?
     filename = file.local_path_copying_locally_if_needed
-    yield GTFS::Source.build(filename, {strict: false})
+    yield gtfs_source_build(filename)
     file.remove_any_local_cached_copies
   end
 
@@ -85,7 +81,7 @@ class FeedVersion < ActiveRecord::Base
     # Update fetched time
     self.fetched_at = DateTime.now
     # Download the raw feed
-    gtfs_raw = GTFS::Source.build(self.url, {strict: false})
+    gtfs_raw = gtfs_source_build(self.url)
     # Do we need to normalize?
     if self.url_fragment
       # Get temporary path
@@ -93,7 +89,7 @@ class FeedVersion < ActiveRecord::Base
         tmp_file_path = File.join(dir, 'normalized.zip')
         # Create normalize archive
         gtfs_raw.create_archive(tmp_file_path)
-        gtfs_normalized = GTFS::Source.build(tmp_file_path, {strict: false})
+        gtfs_normalized = gtfs_source_build(tmp_file_path)
         # Update
         self.file = File.open(gtfs_normalized.archive)
         self.file_raw = File.open(gtfs_raw.archive)
@@ -122,6 +118,14 @@ class FeedVersion < ActiveRecord::Base
   end
 
   private
+
+  def gtfs_source_build(source)
+    GTFS::Source.build(
+      source,
+      strict: false,
+      tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
+    )
+  end
 
   def compute_and_set_hashes
     if file.present? && file_changed?

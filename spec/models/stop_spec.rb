@@ -14,15 +14,19 @@
 #  identifiers                        :string           default([]), is an Array
 #  timezone                           :string
 #  last_conflated_at                  :datetime
+#  type                               :string
+#  parent_stop_id                     :integer
+#  osm_way_id                         :integer
 #
 # Indexes
 #
-#  #c_stops_cu_in_changeset_id_index   (created_or_updated_in_changeset_id)
-#  index_current_stops_on_geometry     (geometry)
-#  index_current_stops_on_identifiers  (identifiers)
-#  index_current_stops_on_onestop_id   (onestop_id)
-#  index_current_stops_on_tags         (tags)
-#  index_current_stops_on_updated_at   (updated_at)
+#  #c_stops_cu_in_changeset_id_index      (created_or_updated_in_changeset_id)
+#  index_current_stops_on_geometry        (geometry)
+#  index_current_stops_on_identifiers     (identifiers)
+#  index_current_stops_on_onestop_id      (onestop_id)
+#  index_current_stops_on_parent_stop_id  (parent_stop_id)
+#  index_current_stops_on_tags            (tags)
+#  index_current_stops_on_updated_at      (updated_at)
 #
 
 describe Stop do
@@ -98,6 +102,36 @@ describe Stop do
       expect { Stop.geometry_within_bbox('-122.25,37.25,-122.0') }.to raise_error(ArgumentError)
       expect { Stop.geometry_within_bbox() }.to raise_error(ArgumentError)
       expect { Stop.geometry_within_bbox([-122.25,37.25,-122.0]) }.to raise_error(ArgumentError)
+    end
+  end
+
+  context '.served_by_vehicle_types' do
+    before(:each) do
+      @route1 = create(:route, vehicle_type: 'metro')
+      @route2 = create(:route, vehicle_type: 'bus')
+      @route3 = create(:route, vehicle_type: 'tram')
+      @stop1 = create(:stop)
+      @stop2 = create(:stop)
+      @stop3 = create(:stop)
+      RouteServingStop.create!(route: @route1, stop: @stop1)
+      RouteServingStop.create!(route: @route2, stop: @stop2)
+      RouteServingStop.create!(route: @route3, stop: @stop3)
+    end
+
+    it 'accepts a string' do
+      expect(Stop.served_by_vehicle_types('metro')).to match_array([@stop1])
+    end
+
+    it 'accepts an integer' do
+      expect(Stop.served_by_vehicle_types(3)).to match_array([@stop2])
+    end
+
+    it 'accepts a mix of strings and integers' do
+      expect(Stop.served_by_vehicle_types(['metro', 3])).to match_array([@stop1, @stop2])
+    end
+
+    it 'fails when invalid vehicle_type' do
+      expect{ Stop.served_by_vehicle_types('unicycle') }.to raise_error(KeyError)
     end
   end
 

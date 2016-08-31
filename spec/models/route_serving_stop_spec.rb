@@ -33,7 +33,8 @@ describe RouteServingStop do
             stop: {
               onestopId: 's-9q8yt4b-19Hollway',
               name: '19th Ave & Holloway St',
-              timezone: 'America/Los_Angeles'
+              timezone: 'America/Los_Angeles',
+              geometry: { type: "Point", coordinates: [-122.475075, 37.721323] }
             }
           },
           {

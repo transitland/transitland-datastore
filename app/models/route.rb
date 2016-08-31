@@ -149,6 +149,14 @@ class Route < BaseRoute
     route_color.upcase if route_color && Route.color_valid?(route_color.upcase)
   end
 
+  scope :where_serves, -> (onestop_ids_and_models) {
+    # Accept one or more Stop models / onestop_ids.
+    onestop_ids_and_models = Array.wrap(onestop_ids_and_models)
+    stops, onestop_ids = onestop_ids_and_models.partition { |i| i.is_a?(Stop) }
+    stops += Stop.find_by_onestop_ids!(onestop_ids)
+    joins{routes_serving_stop.route}.where{routes_serving_stop.stop_id.in(stops.map(&:id))}.uniq
+  }
+
   scope :operated_by, -> (model_or_onestop_id) {
     if model_or_onestop_id.is_a?(Operator)
       where(operator: model_or_onestop_id)
@@ -166,6 +174,13 @@ class Route < BaseRoute
 
   scope :stop_within_bbox, -> (bbox) {
     where(id: RouteServingStop.select(:route_id).where(stop: Stop.geometry_within_bbox(bbox)))
+  }
+
+  scope :where_vehicle_type, -> (vehicle_types) {
+    # Titleize input: high_speed_rail_service -> High Speed Rail Service
+    # Then convert back to GTFS spec vehicle_type integer.
+    vehicle_types = Array.wrap(vehicle_types).map { |vt| GTFS::Route.match_vehicle_type(vt.to_s.titleize).to_s.to_i }
+    where(vehicle_type: vehicle_types)
   }
 
   ##### FromGTFS ####

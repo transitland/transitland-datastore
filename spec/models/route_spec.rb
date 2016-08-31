@@ -84,39 +84,94 @@ describe Route do
       expect(Route.geometry_within_bbox(@bbox_should_neither_contain_stop_nor_geom)).to match_array([])
       expect(Route.geometry_within_bbox(@bbox_should_contain_geom_only)).to match_array([@route])
     end
+  end
 
-    context 'validate route color' do
-      before(:each) do
-        @route = create(:route)
-      end
+  context '.where_vehicle_type' do
+    before(:each) do
+      @route1 = create(:route, vehicle_type: 'metro')
+      @route2 = create(:route, vehicle_type: 'bus')
+      @route3 = create(:route, vehicle_type: 'high_speed_rail_service')
+    end
 
-      it 'validates true an acceptable color' do
-        @route.color = 'FFFF33'
-        expect(@route.valid?).to be true
-        expect(@route.errors).to match_array([])
+    it 'accepts string vehicle types' do
+      expect(Route.where_vehicle_type('metro')).to match_array([@route1])
+    end
 
-        @route.color = ''
-        expect(@route.valid?).to be true
-        expect(@route.errors).to match_array([])
-      end
+    it 'accepts integer vehicle types' do
+      expect(Route.where_vehicle_type(3)).to match_array([@route2])
+    end
 
-      it 'validates false a color with the wrong length' do
-        @route.color = 'AAA'
-        expect(@route.valid?).to be false
-        expect(@route.errors.messages[:color]).to include 'invalid color'
-      end
+    it 'accepts a mix of string and integer vehicle_types' do
+      expect(Route.where_vehicle_type(['metro', 3])).to match_array([@route1, @route2])
+    end
 
-      it 'validates false a color with lower case letters' do
-        @route.color = 'FFaF33'
-        expect(@route.valid?).to be false
-        expect(@route.errors.messages[:color]).to include 'invalid color'
-      end
+    it 'fails when invalid vehicle_type' do
+      expect{ Route.where_vehicle_type('unicycle') }.to raise_error(KeyError)
+    end
 
-      it 'validates false a color with the wrong characters' do
-        @route.color = 'FF%F33'
-        expect(@route.valid?).to be false
-        expect(@route.errors.messages[:color]).to include 'invalid color'
-      end
+    it 'accepts parameterized strings' do
+      expect(Route.where_vehicle_type('high_speed_rail_service')).to match_array([@route3])
+      expect(Route.where_vehicle_type('High Speed Rail Service')).to match_array([@route3])
+    end
+
+  end
+
+  context '.where_serves' do
+    before(:each) do
+      @stop1, @stop2, @stop3 = create_list(:stop, 3)
+      @route1, @route2, @route3 = create_list(:route, 3)
+      @route1.routes_serving_stop.create!(stop: @stop1)
+      @route1.routes_serving_stop.create!(stop: @stop2)
+      @route2.routes_serving_stop.create!(stop: @stop2)
+      @route3.routes_serving_stop.create!(stop: @stop3)
+    end
+
+    it 'finds routes serving a single stop' do
+      expect(Route.where_serves(@stop1)).to match_array([@route1])
+      expect(Route.where_serves(@stop2)).to match_array([@route1, @route2])
+      expect(Route.where_serves(@stop3)).to match_array([@route3])
+    end
+
+    it 'finds routes serving multiple stops' do
+      expect(Route.where_serves([@stop1, @stop2, @stop3])).to match_array([@route1, @route2, @route3])
+    end
+
+    it 'finds routes serving stop onestop id' do
+      expect(Route.where_serves(@stop1.onestop_id)).to match_array([@route1])
+    end
+  end
+
+  context 'validate route color' do
+    before(:each) do
+      @route = create(:route)
+    end
+
+    it 'validates true an acceptable color' do
+      @route.color = 'FFFF33'
+      expect(@route.valid?).to be true
+      expect(@route.errors).to match_array([])
+
+      @route.color = ''
+      expect(@route.valid?).to be true
+      expect(@route.errors).to match_array([])
+    end
+
+    it 'validates false a color with the wrong length' do
+      @route.color = 'AAA'
+      expect(@route.valid?).to be false
+      expect(@route.errors.messages[:color]).to include 'invalid color'
+    end
+
+    it 'validates false a color with lower case letters' do
+      @route.color = 'FFaF33'
+      expect(@route.valid?).to be false
+      expect(@route.errors.messages[:color]).to include 'invalid color'
+    end
+
+    it 'validates false a color with the wrong characters' do
+      @route.color = 'FF%F33'
+      expect(@route.valid?).to be false
+      expect(@route.errors.messages[:color]).to include 'invalid color'
     end
   end
 end

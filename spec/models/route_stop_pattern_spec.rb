@@ -75,11 +75,21 @@ describe RouteStopPattern do
       expect(RouteStopPattern.find(rsp.id).geometry[:coordinates]).to eq @geom.points.map{|p| [p.x,p.y]}
     end
 
-    it 'cannot be created when stop_pattern has less than two stops' do
+    it 'cannot be created when trip has less than two stop times' do
       sp = [stop_1.onestop_id]
       expect(build(:route_stop_pattern, stop_pattern: sp, geometry: @geom, onestop_id: @onestop_id)
         .valid?
       ).to be false
+    end
+
+    it 'can be created when trip has two stop times and only one unique stop' do
+      trip = GTFS::Trip.new(trip_id: 'test', shape_id: 'test')
+      sp = [stop_1.onestop_id, stop_1.onestop_id]
+      trip_stop_points = [[-122.401811, 37.706675],[-122.401811, 37.706675]]
+      shape_points = []
+      rsp = RouteStopPattern.create_from_gtfs(trip, 'r-9q9j-bullet', sp, trip_stop_points, shape_points)
+      expect(rsp.geometry[:coordinates]).to eq [[-122.40181, 37.70667],[-122.40181, 37.70667]]
+      expect(rsp.calculate_distances).to eq [0.0,0.0]
     end
 
     it 'cannot be created when stop_distances size does not match stop_pattern size' do
@@ -89,7 +99,7 @@ describe RouteStopPattern do
       expect(rsp.errors[:stop_distances].size).to eq(1)
     end
 
-    it 'cannot be created when geometry has less than two points' do
+    it 'is not valid when geometry has less than two points' do
       rsp = build(:route_stop_pattern,
             stop_pattern: @sp,
             geometry: @geom,
@@ -108,43 +118,30 @@ describe RouteStopPattern do
     expect(RouteStopPattern.line_string([[1,2],[2,2]]).is_a?(RGeo::Geographic::SphericalLineStringImpl)).to be true
   end
 
-  it '#simplify_geometry' do
-    expect(RouteStopPattern.simplify_geometry([[-122.0123456,45.01234567],
-                                               [-122.0123478,45.01234589],
-                                               [-123.0,45.0]])).to match_array([[-122.01235,45.01235],[-123.0,45.0]])
-  end
-
   it '#set_precision' do
     expect(RouteStopPattern.set_precision([[-122.0123456,45.01234567],
                                            [-122.9123478,45.91234589]])).to match_array([[-122.01235,45.01235],[-122.91235,45.91235]])
   end
 
-  it '#remove_duplicate_points' do
-    expect(RouteStopPattern.remove_duplicate_points([[-122.0123,45.0123],
-                                                     [-122.0123,45.0123],
-                                                     [-122.9876,45.9876],
-                                                     [-122.0123,45.0123]])).to match_array([[-122.0123,45.0123],[-122.9876,45.9876],[-122.0123,45.0123]])
-  end
-
-  context 'new import' do
-    before(:each) do
-      @route = create(:route, onestop_id: route_onestop_id)
-      @saved_rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, route: @route)
-      import_sp = [ stop_a.onestop_id, stop_b.onestop_id, stop_c.onestop_id ]
-      import_geometry = RouteStopPattern.line_string([stop_a.geometry[:coordinates],
-                                                      stop_b.geometry[:coordinates],
-                                                      stop_c.geometry[:coordinates]])
-      import_onestop_id = OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: route_onestop_id,
-                                                                  stop_pattern: import_sp,
-                                                                  geometry_coords: import_geometry.coordinates).to_s
-      @import_rsp = RouteStopPattern.new(
-        onestop_id: import_onestop_id,
-        stop_pattern: import_sp,
-        geometry: import_geometry,
-        route: @route
-      )
-    end
-  end
+  # context 'new import' do
+  #   before(:each) do
+  #     @route = create(:route, onestop_id: route_onestop_id)
+  #     @saved_rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, route: @route)
+  #     import_sp = [ stop_a.onestop_id, stop_b.onestop_id, stop_c.onestop_id ]
+  #     import_geometry = RouteStopPattern.line_string([stop_a.geometry[:coordinates],
+  #                                                     stop_b.geometry[:coordinates],
+  #                                                     stop_c.geometry[:coordinates]])
+  #     import_onestop_id = OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: route_onestop_id,
+  #                                                                 stop_pattern: import_sp,
+  #                                                                 geometry_coords: import_geometry.coordinates).to_s
+  #     @import_rsp = RouteStopPattern.new(
+  #       onestop_id: import_onestop_id,
+  #       stop_pattern: import_sp,
+  #       geometry: import_geometry,
+  #       route: @route
+  #     )
+  #   end
+  # end
 
   it 'can be found by stops' do
     rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id)
@@ -160,6 +157,24 @@ describe RouteStopPattern do
     expect(RouteStopPattern.with_trips('trip1,trip2')).to match_array([rsp])
     expect(RouteStopPattern.with_trips('trip3')).to match_array([])
     expect(RouteStopPattern.with_trips('trip1,trip3')).to match_array([])
+  end
+
+  it 'ordered_ssp_trip_chunks' do
+    route = create(:route, onestop_id: @onestop_id)
+    rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, trips: ['trip1','trip2'])
+    ssp_1a = create(:schedule_stop_pair, origin: stop_a, origin_departure_time: "09:00:00", destination: stop_b, route: route, route_stop_pattern: rsp, trip: 'trip1')
+    ssp_1b = create(:schedule_stop_pair, origin: stop_b, origin_departure_time: "09:30:00", destination: stop_c, route: route, route_stop_pattern: rsp, trip: 'trip1')
+    ssp_2a = create(:schedule_stop_pair, origin: stop_a, origin_departure_time: "10:00:00", destination: stop_b, route: route, route_stop_pattern: rsp, trip: 'trip2')
+    ssp_2b = create(:schedule_stop_pair, origin: stop_b, origin_departure_time: "10:30:00", destination: stop_c, route: route, route_stop_pattern: rsp, trip: 'trip2')
+    chunks = []
+    rsp.ordered_ssp_trip_chunks { |trip_chunk|
+      ssps = []
+      trip_chunk.each_with_index do |ssp, i|
+        ssps << ssp
+      end
+      chunks << ssps
+    }
+    expect(chunks).to match_array([[ssp_1a, ssp_1b],[ssp_2a, ssp_2b]])
   end
 
   context 'calculate_distances' do
@@ -195,6 +210,16 @@ describe RouteStopPattern do
     end
 
     it 'can calculate distances when the geometry and stop coordinates are equal' do
+      expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
+                                                              a_value_within(0.1).of(12617.9271),
+                                                              a_value_within(0.1).of(17001.5107)])
+    end
+
+    it 'can calculate distances when coordinates are repeated' do
+      @rsp.geometry = RouteStopPattern.line_string([stop_a.geometry[:coordinates],
+                                            stop_b.geometry[:coordinates],
+                                            stop_b.geometry[:coordinates],
+                                            stop_c.geometry[:coordinates]])
       expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(12617.9271),
                                                               a_value_within(0.1).of(17001.5107)])
@@ -479,13 +504,34 @@ describe RouteStopPattern do
       has_issues, issues = @empty_rsp.evaluate_geometry(@trip, [])
       expect(has_issues).to be true
       expect(issues).to match_array([:empty])
+
+      trip = GTFS::Trip.new(trip_id: 'test', shape_id: 'test')
+      stop_pattern = [stop_1.onestop_id, stop_1.onestop_id]
+      trip_stop_points = [[-122.401811, 37.706675],[-122.301811, 37.806675]]
+      shape_points = [[-122.401811, 37.706675]]
+      single_point_rsp = RouteStopPattern.new(
+        stop_pattern: stop_pattern,
+        geometry: RouteStopPattern.line_string(RouteStopPattern.set_precision(shape_points))
+      )
+      has_issues, issues = single_point_rsp.evaluate_geometry(trip, trip_stop_points)
+      expect(has_issues).to be true
+      expect(issues).to match_array([:empty])
     end
 
     it 'adds geometry consisting of stop points' do
       issues = [:empty]
       stop_points = @geom_points
       @empty_rsp.tl_geometry(stop_points, issues)
-      expect(@empty_rsp.geometry[:coordinates]).to eq(RouteStopPattern.simplify_geometry(stop_points))
+      expect(@empty_rsp.geometry[:coordinates]).to eq(RouteStopPattern.set_precision(stop_points))
+      expect(@empty_rsp.is_generated).to be true
+      expect(@empty_rsp.is_modified).to be true
+    end
+
+    it 'does not remove points if generating geometry from stops' do
+      issues = [:empty]
+      stop_points = [[-122.401811, 37.706675], [-122.394935, 37.776348], [-122.401811, 37.706675]]
+      @empty_rsp.tl_geometry(stop_points, issues)
+      expect(@empty_rsp.geometry[:coordinates]).to eq(RouteStopPattern.set_precision(stop_points))
       expect(@empty_rsp.is_generated).to be true
       expect(@empty_rsp.is_modified).to be true
     end

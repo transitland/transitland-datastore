@@ -13,22 +13,27 @@
     "timezone": { "type": "string" },
     "tags": { "type": "object" },
     "name": { "type": "string" },
+    "osmWayId": {"type": ["integer", "null"]},
+    "parentStopOnestopId": {
+      "type": "string",
+      "format": "stop-onestop-id"
+    },
     "identifiedBy": {
-      "type": "array",
+      "type": ["array", "null"],
       "uniqueItems": true,
       "items": {
         "type": "string"
       }
     },
     "notIdentifiedBy": {
-      "type": "array",
+      "type": ["array", "null"],
       "uniqueItems": true,
       "items": {
         "type": "string"
       }
     },
     "servedBy": {
-      "type": "array",
+      "type": ["array", "null"],
       "uniqueItems": true,
       "items": {
         "type": "string",
@@ -36,11 +41,43 @@
       }
     },
     "notServedBy": {
-      "type": "array",
+      "type": ["array", "null"],
       "uniqueItems": true,
       "items": {
         "type": "string",
         "format": "operator-onestop-id"
+      }
+    },
+    "includesStopTransfers": {
+      "type": ["array", "null"],
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": ["toStopOnestopId", "transferType"],
+        "toStopOnestopId": {
+          "type": "string",
+          "format": "stop-onestop-id"
+        },
+        "transferType": {
+          "type": "string"
+        },
+        "minTransferTime": {
+          "type": ["number", "null"]
+        }
+      }
+    },
+    "doesNotIncludeStopTransfers": {
+      "type": ["array", "null"],
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": ["destinationOnestopId"],
+        "destinationOnestopId": {
+          "type": "string",
+          "format": "stop-onestop-id"
+        }
       }
     }
   }

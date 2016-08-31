@@ -12,6 +12,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     properties[:color] = entity.color
     properties[:operated_by_onestop_id] = entity.operator.try(:onestop_id)
     properties[:operated_by_name] = entity.operator.try(:name)
+    properties[:stops_served_by_route] = entity.stops.map { |stop| {onestop_id: stop.onestop_id, name: stop.name } }
     properties[:route_stop_patterns_by_onestop_id] = entity.route_stop_patterns.map(&:onestop_id)
   }
 
@@ -25,6 +26,18 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     @routes = AllowFiltering.by_identifer_and_identifier_starts_with(@routes, params)
     @routes = AllowFiltering.by_updated_since(@routes, params)
 
+    if params[:imported_from_feed].present?
+      @routes = @routes.where_imported_from_feed(Feed.find_by_onestop_id(params[:imported_from_feed]))
+    end
+
+    if params[:imported_from_feed_version].present?
+      @routes = @routes.where_imported_from_feed_version(FeedVersion.find_by!(sha1: params[:imported_from_feed_version]))
+    end
+
+    if params[:serves].present?
+      @routes = @routes.where_serves(AllowFiltering.param_as_array(params, :serves))
+    end
+
     if params[:operated_by].present? || params[:operatedBy].present?
       # we previously allowed `operatedBy`, so we'll continue to honor that for the time being
       operator_onestop_id = params[:operated_by] || params[:operatedBy]
@@ -34,17 +47,8 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
       @routes = @routes.traverses(params[:traverses].split(','))
     end
     if params[:vehicle_type].present?
-      # some count be integers, some could be strings
-      vehicle_types_mixed = params[:vehicle_type].split(',')
-      # turn them all into integers
-      vehicle_types_integers = vehicle_types_mixed.map do |vt|
-        if vt.match(/\d+/)
-          vt.to_i
-        elsif vt.to_s
-          GTFS::Route::VEHICLE_TYPES.invert[vt.to_s.titleize.to_sym].to_s.to_i
-        end
-      end
-      @routes = @routes.where(vehicle_type: vehicle_types_integers)
+      # some could be integers, some could be strings
+      @routes = @routes.where_vehicle_type(AllowFiltering.param_as_array(params, :vehicle_type))
     end
     if params[:bbox].present?
       @routes = @routes.stop_within_bbox(params[:bbox])
@@ -62,6 +66,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
 
     @routes = @routes.includes{[
       operator,
+      stops,
       route_stop_patterns,
       imported_from_feeds,
       imported_from_feed_versions
@@ -88,7 +93,9 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
             :onestop_id,
             :tag_key,
             :tag_value,
-            :import_level
+            :import_level,
+            :imported_from_feed,
+            :imported_from_feed_version
           )
         )
       end
