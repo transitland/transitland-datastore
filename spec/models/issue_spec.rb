@@ -47,13 +47,17 @@ describe Issue do
   context 'existing issues' do
     before(:each) do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_issues, import_level: 1)
+      # Issues:
+      # 1 - 6: rsp_line_inaccurate
+      # 7: distance_calculation_inaccurate (s-9qkxnx40xt-furnacecreekresortdemo & r-9qsb-20-8d5767-6bb5fc)
+      # 8: stop_rsp_distance_gap (s-9qscwx8n60-nyecountyairportdemo & r-9qscy-30-a41e99-fcca25)
     end
 
     it 'can be resolved' do
       changeset = create(:changeset, payload: {
         changes: [
           action: 'createUpdate',
-          issuesResolved: [1],
+          issuesResolved: [8],
           stop: {
             onestopId: 's-9qscwx8n60-nyecountyairportdemo',
             timezone: 'America/Los_Angeles',
@@ -65,16 +69,15 @@ describe Issue do
         ]
       })
       changeset.apply!
-      # expect(Issue.last.open).to be false
-      # expect(Issue.last.resolved_by_changeset).to eq changeset
+      expect(Issue.find(8).open).to be false
+      expect(Issue.find(8).resolved_by_changeset).to eq changeset
     end
 
     it 'does not apply changeset that does not resolve payload issues_resolved' do
-      puts Issue.all.map(&:details)
       changeset = create(:changeset, payload: {
         changes: [
           action: 'createUpdate',
-          issuesResolved: [2],
+          issuesResolved: [8],
           stop: {
             onestopId: 's-9qscwx8n60-nyecountyairportdemo',
             timezone: 'America/Los_Angeles',
