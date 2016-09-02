@@ -63,7 +63,7 @@ class Issue < ActiveRecord::Base
     Issue.includes(:entities_with_issues)
       .select{ |issue| issue.outdated? }
       .each {|issue|
-        log("Deprecating issue: #{issue.as_json(include: [:entities_with_issues], only: [:id, :created_by_changeset_id, :issue_type, :details])}")
+        log("Deprecating issue: #{issue.as_json(include: [:entities_with_issues])}")
         EntityWithIssues.delete issue.entities_with_issues
         issue.delete
       }

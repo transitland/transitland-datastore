@@ -89,6 +89,35 @@ describe Issue do
       }.to raise_error(Changeset::Error)
     end
 
+    it 'deprecates issues of old feed version imports' do
+      load_feed(feed_version: @feed_version, import_level: 1)
+      expect(Issue.count).to eq 2
+      expect{Issue.find(1)}.to raise_error(ActiveRecord::RecordNotFound)
+      expect(Issue.find(3).created_by_changeset_id).to eq 2
+    end
+
+    it 'deprecates issues created by older changesets of associated entities' do
+      # NOTE: although this changeset would resolve an issue,
+      # we are explicitly avoiding that
+      changeset = create(:changeset, payload: {
+        changes: [
+          action: 'createUpdate',
+          stop: {
+            onestopId: 's-9qscwx8n60-nyecountyairportdemo',
+            timezone: 'America/Los_Angeles',
+            "geometry": {
+              "type": "Point",
+              "coordinates": [-116.784582, 36.888446]
+            }
+          }
+        ]
+      })
+      sleep(1)
+      changeset.apply!
+      expect{Issue.find(2)}.to raise_error(ActiveRecord::RecordNotFound)
+      expect(Issue.find(4).created_by_changeset_id).to eq 2
+    end
+
     context 'equivalency' do
       before(:each) do
         @test_issue = Issue.new(created_by_changeset: @feed_version.changesets_imported_from_this_feed_version.first,
