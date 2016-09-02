@@ -31,10 +31,19 @@ class Issue < ActiveRecord::Base
                  'route_name',
                  'uncategorized']
 
-  def changeset_from_entities
-    entities_with_issues.map { |ewi| Changeset.find(ewi.entity.created_or_updated_in_changeset_id) }
-                             .max_by { |changeset| changeset.updated_at }
-  end
+   def changeset_from_entities
+     # all entities must have the same created or updated in changeset
+     changesets = entities_with_issues.map { |ewi| ewi.entity.created_or_updated_in_changeset }
+     if changesets.all? {|changeset| changeset.id == changesets.first.id }
+       changesets.first
+     else
+       raise "test"
+     end
+   end
+
+   def outdated?
+     entities_with_issues.any? { |ewi| ewi.entity.created_or_updated_in_changeset.updated_at.to_i > created_by_changeset.applied_at.to_i}
+   end
 
   def equivalent?(issue)
     self.issue_type == issue.issue_type &&
@@ -49,5 +58,9 @@ class Issue < ActiveRecord::Base
       Set.new(existing.entities_with_issues.map(&:entity_type)) == Set.new(issue.entities_with_issues.map(&:entity_type)) &&
       Set.new(existing.entities_with_issues.map(&:entity_attribute)) == Set.new(issue.entities_with_issues.map(&:entity_attribute))
     }
+  end
+
+  def self.bulk_deactivate
+    Issue.includes(:entities_with_issues).select{ |issue| issue.outdated? }.each {|issue| issue.update(status: 1) }
   end
 end

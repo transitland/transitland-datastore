@@ -70,7 +70,6 @@ describe Issue do
     end
 
     it 'does not apply changeset that does not resolve payload issues_resolved' do
-      puts Issue.all.map(&:details)
       changeset = create(:changeset, payload: {
         changes: [
           action: 'createUpdate',
