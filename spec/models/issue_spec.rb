@@ -65,8 +65,8 @@ describe Issue do
         ]
       })
       changeset.apply!
-      # expect(Issue.last.open).to be false
-      # expect(Issue.last.resolved_by_changeset).to eq changeset
+      expect(Issue.find(1).open).to be false
+      expect(Issue.find(1).resolved_by_changeset).to eq changeset
     end
 
     it 'does not apply changeset that does not resolve payload issues_resolved' do
