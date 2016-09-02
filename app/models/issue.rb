@@ -31,19 +31,17 @@ class Issue < ActiveRecord::Base
                  'route_name',
                  'uncategorized']
 
-   def changeset_from_entities
-     # all entities must have the same created or updated in changeset
-     changesets = entities_with_issues.map { |ewi| ewi.entity.created_or_updated_in_changeset }
-     if changesets.all? {|changeset| changeset.id == changesets.first.id }
-       changesets.first
-     else
-       raise "test"
-     end
-   end
+  def changeset_from_entities
+    # all entities must have the same created or updated in changeset, or no changeset will represent them
+    changesets = entities_with_issues.map { |ewi| ewi.entity.created_or_updated_in_changeset }
+    if changesets.all? {|changeset| changeset.id == changesets.first.id }
+     changesets.first
+    end
+  end
 
-   def outdated?
-     entities_with_issues.any? { |ewi| ewi.entity.created_or_updated_in_changeset.updated_at.to_i > created_by_changeset.applied_at.to_i}
-   end
+  def outdated?
+    entities_with_issues.any? { |ewi| ewi.entity.created_or_updated_in_changeset.updated_at.to_i > created_by_changeset.applied_at.to_i}
+  end
 
   def equivalent?(issue)
     self.issue_type == issue.issue_type &&
@@ -61,6 +59,13 @@ class Issue < ActiveRecord::Base
   end
 
   def self.bulk_deactivate
-    Issue.includes(:entities_with_issues).select{ |issue| issue.outdated? }.each {|issue| issue.update(status: 1) }
+    # We need the outdated? method to capture all issues created outside imports, as well as the ones from old imports.
+    Issue.includes(:entities_with_issues)
+      .select{ |issue| issue.outdated? }
+      .each {|issue|
+        log("Deprecating issue: #{issue.as_json(include: [:entities_with_issues], only: [:id, :created_by_changeset_id, :issue_type, :details])}")
+        EntityWithIssues.delete issue.entities_with_issues
+        issue.delete
+      }
   end
 end
