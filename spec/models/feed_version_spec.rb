@@ -132,16 +132,37 @@ describe FeedVersion do
     end
   end
 
-  context '#imported_schedule_stop_pairs' do
+  context '#delete_schedule_stop_pairs' do
     before(:each) do
       @feed_version = create(:feed_version)
       @ssp = create(:schedule_stop_pair, feed: @feed_version.feed, feed_version: @feed_version)
     end
 
-    it '#delete_schedule_stop_pairs' do
+    it 'deletes ssps' do
       @feed_version.delete_schedule_stop_pairs!
       expect(ScheduleStopPair.exists?(@ssp.id)).to be false
       expect(@feed_version.imported_schedule_stop_pairs.count).to eq(0)
+    end
+  end
+
+  context '#extend_schedule_stop_pairs_service_end_date' do
+    before(:each) do
+      @feed_version = create(:feed_version)
+      @extend_from = Date.parse('2016-01-01')
+      @extend_to = Date.parse('2017-01-01')
+      @ssp1 = create(:schedule_stop_pair, feed: @feed_version.feed, feed_version: @feed_version, service_end_date: @extend_from)
+      @ssp2 = create(:schedule_stop_pair, feed: @feed_version.feed, feed_version: @feed_version, service_end_date: @extend_from - 1.day)
+    end
+
+    it 'extends ssp service_end_date' do
+      @feed_version.extend_schedule_stop_pairs_service_end_date(@extend_from, @extend_to)
+      expect(@ssp1.reload.service_end_date).to eq(@extend_to)
+    end
+
+    it 'does not extend before extend_from' do
+      service_end_date = @ssp2.service_end_date
+      @feed_version.extend_schedule_stop_pairs_service_end_date(@extend_from, @extend_to)
+      expect(@ssp2.reload.service_end_date).to eq(service_end_date)
     end
   end
 
