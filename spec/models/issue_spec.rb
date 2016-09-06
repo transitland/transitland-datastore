@@ -46,7 +46,9 @@ describe Issue do
 
   context 'existing issues' do
     before(:each) do
-      @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_issues, import_level: 1)
+      Timecop.freeze(3.minutes.ago) do
+        @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_issues, import_level: 1)
+      end
     end
 
     it 'can be resolved' do
@@ -97,23 +99,24 @@ describe Issue do
     end
 
     it 'deprecates issues created by older changesets of associated entities' do
-      # NOTE: although this changeset would resolve an issue,
-      # we are explicitly avoiding that
-      changeset = create(:changeset, payload: {
-        changes: [
-          action: 'createUpdate',
-          stop: {
-            onestopId: 's-9qscwx8n60-nyecountyairportdemo',
-            timezone: 'America/Los_Angeles',
-            "geometry": {
-              "type": "Point",
-              "coordinates": [-116.784582, 36.888446]
+      Timecop.freeze(2.minutes.ago) do
+        # NOTE: although this changeset would resolve an issue,
+        # we are explicitly avoiding that
+        changeset = create(:changeset, payload: {
+          changes: [
+            action: 'createUpdate',
+            stop: {
+              onestopId: 's-9qscwx8n60-nyecountyairportdemo',
+              timezone: 'America/Los_Angeles',
+              "geometry": {
+                "type": "Point",
+                "coordinates": [-116.784582, 36.888446]
+              }
             }
-          }
-        ]
-      })
-      sleep(1)
-      changeset.apply!
+          ]
+        })
+        changeset.apply!
+      end
       expect{Issue.find(2)}.to raise_error(ActiveRecord::RecordNotFound)
       expect(Issue.find(4).created_by_changeset_id).to eq 2
     end
