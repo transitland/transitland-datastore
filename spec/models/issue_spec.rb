@@ -32,9 +32,38 @@ describe Issue do
     expect(Issue.with_type('fake1,fake2').size).to eq 0
   end
 
-  it '.from_feed' do
-    feed1 = build(:feed_sfmta)
-    feed2 = build(:feed_bart)
+  it '.from_feed having entities_with_issues' do
+    feed_version1 = create(:feed_version_sfmta_6731593)
+    stop1 = create(:stop)
+    stop1.entities_imported_from_feed.create(feed: feed_version1.feed, feed_version: feed_version1)
+    rsp1 = create(:route_stop_pattern)
+    rsp1.entities_imported_from_feed.create(feed: feed_version1.feed, feed_version: feed_version1)
+
+    feed_version2 = create(:feed_version_bart)
+    stop2 = create(:stop_richmond)
+    stop2.entities_imported_from_feed.create(feed: feed_version2.feed, feed_version: feed_version2)
+    rsp2 = create(:route_stop_pattern_bart)
+    rsp2.entities_imported_from_feed.create(feed: feed_version2.feed, feed_version: feed_version2)
+
+    changeset1 = create(:changeset)
+    changeset2 = create(:changeset)
+
+    @test_issue = Issue.create(created_by_changeset: changeset1,
+                          issue_type: 'stop_rsp_distance_gap')
+    @test_issue.entities_with_issues << EntityWithIssues.new(entity_id: stop1.id, entity_type: 'Stop', issue: @test_issue, entity_attribute: 'geometry')
+    @test_issue.entities_with_issues << EntityWithIssues.new(entity_id: rsp1.id, entity_type: 'RouteStopPattern', issue: @test_issue, entity_attribute: 'geometry')
+    @other_issue = Issue.create(created_by_changeset: changeset2,
+                          issue_type: 'stop_rsp_distance_gap')
+    @other_issue.entities_with_issues << EntityWithIssues.new(entity_id: stop2.id, entity_type: 'Stop', issue: @other_issue, entity_attribute: 'geometry')
+    @other_issue.entities_with_issues << EntityWithIssues.new(entity_id: rsp2.id, entity_type: 'RouteStopPattern', issue: @other_issue, entity_attribute: 'geometry')
+
+    expect(Issue.from_feed('f-9q8y-sfmta').size).to eq 1
+    expect(Issue.from_feed('f-9q9-bart').size).to eq 1
+  end
+
+  it '.from_feed having no entities_with_issues' do
+    feed1 = create(:feed_sfmta)
+    feed2 = create(:feed_bart)
     changeset1 = create(:changeset, imported_from_feed: feed1)
     changeset2 = create(:changeset, imported_from_feed: feed2)
     Issue.new(created_by_changeset: changeset1, issue_type: 'stop_position_inaccurate').save!
@@ -48,6 +77,10 @@ describe Issue do
     before(:each) do
       Timecop.freeze(3.minutes.ago) do
         @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_issues, import_level: 1)
+        # Issues:
+        # 1 - 6: rsp_line_inaccurate
+        # 7: distance_calculation_inaccurate (s-9qkxnx40xt-furnacecreekresortdemo & r-9qsb-20-8d5767-6bb5fc)
+        # 8: stop_rsp_distance_gap (s-9qscwx8n60-nyecountyairportdemo & r-9qscy-30-a41e99-fcca25)
       end
     end
 
@@ -55,7 +88,7 @@ describe Issue do
       changeset = create(:changeset, payload: {
         changes: [
           action: 'createUpdate',
-          issuesResolved: [1],
+          issuesResolved: [8],
           stop: {
             onestopId: 's-9qscwx8n60-nyecountyairportdemo',
             timezone: 'America/Los_Angeles',
@@ -67,15 +100,15 @@ describe Issue do
         ]
       })
       changeset.apply!
-      expect(Issue.find(1).open).to be false
-      expect(Issue.find(1).resolved_by_changeset).to eq changeset
+      expect(Issue.find(8).open).to be false
+      expect(Issue.find(8).resolved_by_changeset).to eq changeset
     end
 
     it 'does not apply changeset that does not resolve payload issues_resolved' do
       changeset = create(:changeset, payload: {
         changes: [
           action: 'createUpdate',
-          issuesResolved: [2],
+          issuesResolved: [8],
           stop: {
             onestopId: 's-9qscwx8n60-nyecountyairportdemo',
             timezone: 'America/Los_Angeles',
