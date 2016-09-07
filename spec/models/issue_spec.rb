@@ -83,43 +83,80 @@ describe Issue do
     end
 
     it 'can be resolved' do
-      changeset = create(:changeset, payload: {
-        changes: [
-          action: 'createUpdate',
-          issuesResolved: [8],
-          stop: {
-            onestopId: 's-9qscwx8n60-nyecountyairportdemo',
-            timezone: 'America/Los_Angeles',
-            "geometry": {
-              "type": "Point",
-              "coordinates": [-116.784582, 36.888446]
+      Timecop.freeze(3.minutes.from_now) do
+        changeset = create(:changeset, payload: {
+          changes: [
+            action: 'createUpdate',
+            issuesResolved: [8],
+            stop: {
+              onestopId: 's-9qscwx8n60-nyecountyairportdemo',
+              timezone: 'America/Los_Angeles',
+              "geometry": {
+                "type": "Point",
+                "coordinates": [-116.784582, 36.888446]
+              }
             }
-          }
-        ]
-      })
-      changeset.apply!
-      expect(Issue.find(8).open).to be false
-      expect(Issue.find(8).resolved_by_changeset).to eq changeset
+          ]
+        })
+        expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>1/)
+        expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>2/)
+        expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>5/)
+        expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>6/)
+        expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>8.*"resolved_by_changeset_id"=>2.*"open"=>false/)
+        changeset.apply!
+      end
     end
 
     it 'does not apply changeset that does not resolve payload issues_resolved' do
-      changeset = create(:changeset, payload: {
-        changes: [
-          action: 'createUpdate',
-          issuesResolved: [8],
-          stop: {
-            onestopId: 's-9qscwx8n60-nyecountyairportdemo',
-            timezone: 'America/Los_Angeles',
-            "geometry": {
-              "type": "Point",
-              "coordinates": [-100.0, 50.0]
+      Timecop.freeze(3.minutes.from_now) do
+        changeset = create(:changeset, payload: {
+          changes: [
+            action: 'createUpdate',
+            issuesResolved: [8],
+            stop: {
+              onestopId: 's-9qscwx8n60-nyecountyairportdemo',
+              timezone: 'America/Los_Angeles',
+              "geometry": {
+                "type": "Point",
+                "coordinates": [-100.0, 50.0]
+              }
             }
-          }
-        ]
-      })
-      expect {
+          ]
+        })
+        expect {
+          changeset.apply!
+        }.to raise_error(Changeset::Error)
+      end
+    end
+
+    it 'deprecates issues of old feed version imports' do
+      load_feed(feed_version: @feed_version, import_level: 1)
+      expect(Issue.count).to eq 8
+      expect{Issue.find(1)}.to raise_error(ActiveRecord::RecordNotFound)
+      expect(Issue.find(9).created_by_changeset_id).to eq 2
+    end
+
+    it 'deprecates issues created by older changesets of associated entities' do
+      Timecop.freeze(3.minutes.from_now) do
+        # NOTE: although this changeset would resolve an issue,
+        # we are explicitly avoiding that
+        changeset = create(:changeset, payload: {
+          changes: [
+            action: 'createUpdate',
+            stop: {
+              onestopId: 's-9qscwx8n60-nyecountyairportdemo',
+              timezone: 'America/Los_Angeles',
+              "geometry": {
+                "type": "Point",
+                "coordinates": [-116.784582, 36.888446]
+              }
+            }
+          ]
+        })
         changeset.apply!
-      }.to raise_error(Changeset::Error)
+      end
+      expect{Issue.find(2)}.to raise_error(ActiveRecord::RecordNotFound)
+      expect(Issue.find(9).created_by_changeset_id).to eq 2
     end
 
     context 'equivalency' do
