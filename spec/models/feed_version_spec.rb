@@ -27,12 +27,6 @@
 #
 
 describe FeedVersion do
-  let (:example_url)              { 'http://localhost:8000/example.zip' }
-  let (:example_nested_flat)      { 'http://localhost:8000/example_nested.zip#example_nested/example' }
-  let (:example_nested_zip)       { 'http://localhost:8000/example_nested.zip#example_nested/nested/example.zip' }
-  let (:example_sha1_raw)         { '2a7503435dcedeec8e61c2e705f6098e560e6bc6' }
-  let (:example_nested_sha1_raw)  { '65d278fdd3f5a9fae775a283ef6ca2cb7b961add' }
-
   context '#compute_and_set_hashes' do
     it 'computes file hashes' do
       feed_version = create(:feed_version_bart)
