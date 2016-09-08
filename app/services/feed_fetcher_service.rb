@@ -54,7 +54,7 @@ class FeedFetcherService
     ensure
       feed.update(
         latest_fetch_exception_log: fetch_exception_log,
-        last_fetched_at: feed_version.try(:fetched_at) || DateTime.now
+        last_fetched_at: DateTime.now
       )
     end
     # Return if there was not a successful fetch.
