@@ -185,44 +185,6 @@ class Feed < BaseFeed
     return true
   end
 
-  def url_fragment
-    (self.url || "").partition("#").last.presence
-  end
-
-  def fetch_and_return_feed_version
-    # Check Feed URL for new files.
-    fetch_exception_log = nil
-    feed_version = nil
-    logger.info "Fetching feed #{onestop_id} from #{url}"
-    # Try to fetch and normalize feed; log error
-    begin
-      feed_version = fetch_and_normalize_feed_version
-    rescue GTFS::InvalidSourceException => e
-      fetch_exception_log = e.message
-      if e.backtrace.present?
-        fetch_exception_log << "\n"
-        fetch_exception_log << e.backtrace.join("\n")
-      end
-      logger.error fetch_exception_log
-    ensure
-      self.update(
-        latest_fetch_exception_log: fetch_exception_log,
-        last_fetched_at: feed_version.try(:fetched_at) || DateTime.now
-      )
-    end
-    # Return if there was not a successful fetch.
-    return unless feed_version
-    return unless feed_version.valid?
-    if feed_version.persisted?
-      logger.info "File downloaded from #{url} has an existing sha1 hash: #{feed_version.sha1}"
-    else
-      logger.info "File downloaded from #{url} has a new sha1 hash: #{feed_version.sha1}"
-      feed_version.save!
-    end
-    # Return found/created FeedVersion
-    feed_version
-  end
-
   def find_next_feed_version(date)
     # Find a feed_version where:
     #   1. newer than active_feed_version
@@ -342,36 +304,6 @@ class Feed < BaseFeed
   end
 
   private
-
-  def fetch_and_normalize_feed_version
-    gtfs = GTFS::Source.build(
-      self.url,
-      strict: false,
-      tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
-    )
-    # Normalize
-    gtfs_file = nil
-    gtfs_file_raw = nil
-    if self.url_fragment
-      # Get temporary path; deletes after block
-      Dir.mktmpdir do |dir|
-        tmp_file_path = File.join(dir, 'normalized.zip')
-        # Create normalize archive
-        gtfs.create_archive(tmp_file_path)
-        gtfs_file = File.open(tmp_file_path)
-        gtfs_file_raw = File.open(gtfs.archive)
-      end
-    else
-      gtfs_file = File.open(gtfs.archive)
-    end
-    sha1 = Digest::SHA1.file(gtfs_file).hexdigest
-    FeedVersion.find_by(sha1: sha1) || FeedVersion.new(
-      feed: self,
-      file: gtfs_file,
-      file_raw: gtfs_file_raw,
-      fetched_at: DateTime.now
-    )
-  end
 
   def set_default_values
     if self.new_record?
