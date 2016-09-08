@@ -27,12 +27,6 @@
 #
 
 describe FeedVersion do
-  let (:example_url)              { 'http://localhost:8000/example.zip' }
-  let (:example_nested_flat)      { 'http://localhost:8000/example_nested.zip#example_nested/example' }
-  let (:example_nested_zip)       { 'http://localhost:8000/example_nested.zip#example_nested/nested/example.zip' }
-  let (:example_sha1_raw)         { '2a7503435dcedeec8e61c2e705f6098e560e6bc6' }
-  let (:example_nested_sha1_raw)  { '65d278fdd3f5a9fae775a283ef6ca2cb7b961add' }
-
   context '#compute_and_set_hashes' do
     it 'computes file hashes' do
       feed_version = create(:feed_version_bart)
@@ -53,82 +47,6 @@ describe FeedVersion do
       expect(feed_version.tags['feed_version']).to eq '36'
       expect(feed_version.tags['feed_publisher_url']).to eq 'http://www.bart.gov'
       expect(feed_version.tags['feed_publisher_name']).to eq 'Bay Area Rapid Transit'
-    end
-  end
-
-  context '#url_fragment' do
-    it 'returns fragment present' do
-      feed_version = FeedVersion.new(url: example_nested_zip)
-      expect(feed_version.url_fragment).to eq('example_nested/nested/example.zip')
-    end
-
-    it 'returns nil if not present' do
-      feed_version = FeedVersion.new(url: example_url)
-      expect(feed_version.url_fragment).to be nil
-    end
-  end
-
-  context '#fetch_and_normalize' do
-    it 'downloads feed' do
-      feed_version = FeedVersion.new(url: example_url)
-      expect(feed_version.sha1).to be nil
-      expect(feed_version.fetched_at).to be nil
-      VCR.use_cassette('feed_fetch_example_local') do
-        feed_version.fetch_and_normalize
-      end
-      expect(feed_version.sha1).to eq example_sha1_raw
-      expect(feed_version.fetched_at).to be_truthy
-    end
-
-    it 'normalizes feed' do
-      feed_version = FeedVersion.new(url: example_url)
-      VCR.use_cassette('feed_fetch_example_local') do
-        feed_version.fetch_and_normalize
-      end
-      expect(feed_version.sha1).to be_truthy # eq example_sha1
-      expect(feed_version.fetched_at).to be_truthy
-    end
-
-    it 'normalizes nested gtfs zip' do
-      feed_version = FeedVersion.new(url: example_nested_zip)
-      VCR.use_cassette('feed_fetch_nested') do
-        feed_version.fetch_and_normalize
-      end
-      expect(feed_version.sha1).to be_truthy # eq example_nested_sha1_zip
-      expect(feed_version.sha1_raw).to eq example_nested_sha1_raw
-      expect(feed_version.fetched_at).to be_truthy
-    end
-
-    it 'normalizes nested gtfs flat' do
-      feed_version = FeedVersion.new(url: example_nested_flat)
-      VCR.use_cassette('feed_fetch_nested') do
-        feed_version.fetch_and_normalize
-      end
-      expect(feed_version.sha1).to be_truthy # eq example_nested_sha1_flat
-      expect(feed_version.sha1_raw).to eq example_nested_sha1_raw
-      expect(feed_version.fetched_at).to be_truthy
-    end
-
-    it 'normalizes consistent sha1' do
-      feed_versions = []
-      2.times.each do |i|
-        feed_version = FeedVersion.new(url: example_nested_flat)
-        VCR.use_cassette('feed_fetch_nested') do
-          feed_version.fetch_and_normalize
-        end
-        feed_versions << feed_version
-        sleep 5
-      end
-      fv1, fv2 = feed_versions
-      expect(fv1.sha1).to eq fv2.sha1
-      expect(fv1.fetched_at).not_to eq(fv2.fetched_at)
-    end
-
-    it 'fails if files already exist' do
-      feed_version = create(:feed_version_bart)
-      VCR.use_cassette('feed_fetch_bart') do
-        expect { feed_version.fetch_and_normalize }.to raise_error(StandardError)
-      end
     end
   end
 

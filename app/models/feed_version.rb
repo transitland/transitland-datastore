@@ -82,38 +82,6 @@ class FeedVersion < ActiveRecord::Base
     file.remove_any_local_cached_copies
   end
 
-  def fetch_and_normalize
-    fail StandardError.new('Files exist') if (file.present? || file_raw.present?)
-    # Update fetched time
-    self.fetched_at = DateTime.now
-    # Download the raw feed
-    gtfs_raw = gtfs_source_build(self.url)
-    # Do we need to normalize?
-    if self.url_fragment
-      # Get temporary path
-      Dir.mktmpdir do |dir|
-        tmp_file_path = File.join(dir, 'normalized.zip')
-        # Create normalize archive
-        gtfs_raw.create_archive(tmp_file_path)
-        gtfs_normalized = gtfs_source_build(tmp_file_path)
-        # Update
-        self.file = File.open(gtfs_normalized.archive)
-        self.file_raw = File.open(gtfs_raw.archive)
-      end
-    else
-      self.file = File.open(gtfs_raw.archive)
-    end
-    # Compute hashes
-    compute_and_set_hashes
-    # Cleanup
-    self.file.remove_any_local_cached_copies if self.file
-    self.file_raw.remove_any_local_cached_copies if self.file_raw
-  end
-
-  def url_fragment
-    (self.url || "").partition("#").last.presence
-  end
-
   def download_url
     if self.feed.license_redistribute.presence == 'no'
       nil
