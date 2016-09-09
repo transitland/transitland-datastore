@@ -130,7 +130,9 @@ describe Issue do
     end
 
     it 'deprecates issues of old feed version imports' do
-      load_feed(feed_version: @feed_version, import_level: 1)
+      Timecop.freeze(3.minutes.from_now) do
+        load_feed(feed_version: @feed_version, import_level: 1)
+      end
       expect(Issue.count).to eq 8
       expect{Issue.find(1)}.to raise_error(ActiveRecord::RecordNotFound)
       expect(Issue.find(9).created_by_changeset_id).to eq 2
