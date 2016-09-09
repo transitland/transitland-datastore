@@ -277,12 +277,7 @@ class RouteStopPattern < BaseRouteStopPattern
     self.last_stop_after_geom = false
     if issues.include?(:empty)
       # create a new geometry from the trip stop points
-      stop_points = RouteStopPattern.set_precision(stop_points)
-      if stop_points.uniq.size != 1
-        self.geometry = RouteStopPattern.line_string(stop_points)
-      else
-        self.geometry = RouteStopPattern.line_string(stop_points)
-      end
+      self.geometry = RouteStopPattern.line_string(RouteStopPattern.set_precision(stop_points))
       self.is_generated = true
       self.is_modified = true
     end

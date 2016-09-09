@@ -185,41 +185,6 @@ class Feed < BaseFeed
     return true
   end
 
-  def fetch_and_return_feed_version
-    # Check Feed URL for new files.
-    fetch_exception_log = nil
-    feed_version = FeedVersion.new(feed: self, url: self.url)
-    logger.info "Fetching feed #{onestop_id} from #{url}"
-    # Try to fetch and normalize feed; log error
-    begin
-      feed_version.fetch_and_normalize
-    rescue GTFS::InvalidSourceException => e
-      fetch_exception_log = e.message
-      if e.backtrace.present?
-        fetch_exception_log << "\n"
-        fetch_exception_log << e.backtrace.join("\n")
-      end
-      logger.error fetch_exception_log
-    ensure
-      self.update(
-        latest_fetch_exception_log: fetch_exception_log,
-        last_fetched_at: feed_version.fetched_at || DateTime.now
-      )
-    end
-    # Check for known Feed Version
-    feed_version = self.feed_versions.find_by(sha1: feed_version.sha1) || feed_version
-    # Return if there was not a successful fetch.
-    return unless feed_version.valid?
-    if feed_version.persisted?
-      logger.info "File downloaded from #{url} has an existing sha1 hash: #{feed_version.sha1}"
-    else
-      logger.info "File downloaded from #{url} has a new sha1 hash: #{feed_version.sha1}"
-      feed_version.save!
-    end
-    # Return found/created FeedVersion
-    feed_version
-  end
-
   def find_next_feed_version(date)
     # Find a feed_version where:
     #   1. newer than active_feed_version

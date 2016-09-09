@@ -337,23 +337,29 @@ describe Api::V1::ChangesetsController do
     end
 
     it 'resolves issue with issues_resolved changeset' do
-      changeset = create(:changeset, payload: {
-        changes: [
-          action: 'createUpdate',
-          issuesResolved: [1],
-          stop: {
-            onestopId: 's-9qscwx8n60-nyecountyairportdemo',
-            timezone: 'America/Los_Angeles',
-            "geometry": {
-              "type": "Point",
-              "coordinates": [-116.784582, 36.88845]
+      Timecop.freeze(3.minutes.from_now) do
+        # Moving this stop will create other stop_rsp_distance_gap issues, but we only care about this one issue
+        changeset = create(:changeset, payload: {
+          changes: [
+            action: 'createUpdate',
+            issuesResolved: [8],
+            stop: {
+              onestopId: 's-9qscwx8n60-nyecountyairportdemo',
+              timezone: 'America/Los_Angeles',
+              "geometry": {
+                "type": "Point",
+                "coordinates": [-116.784582, 36.88845]
+              }
             }
-          }
-        ]
-      })
-      post :apply, id: changeset.id
-      expect(Issue.find(1).open).to be false
-      expect(Issue.find(1).resolved_by_changeset).to eq changeset
+          ]
+        })
+        expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>1/)
+        expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>2/)
+        expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>5/)
+        expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>6/)
+        expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>8.*"resolved_by_changeset_id"=>2.*"open"=>false/)
+        post :apply, id: changeset.id
+      end
     end
   end
 

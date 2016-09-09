@@ -2,11 +2,23 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.4...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.5...HEAD)
+
+**Merged pull requests:**
+
+- Production release 4.9.5 [\#755](https://github.com/transitland/transitland-datastore/pull/755) ([doublestranded](https://github.com/doublestranded))
+
+## [4.9.5](https://github.com/transitland/transitland-datastore/tree/4.9.5) (2016-08-24)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.4...4.9.5)
+
+**Closed issues:**
+
+- upgrade to Ruby 2.3 [\#691](https://github.com/transitland/transitland-datastore/issues/691)
 
 **Merged pull requests:**
 
 - Production release 4.9.4 [\#738](https://github.com/transitland/transitland-datastore/pull/738) ([irees](https://github.com/irees))
+- upgrade to Ruby 2.3.1 [\#692](https://github.com/transitland/transitland-datastore/pull/692) ([drewda](https://github.com/drewda))
 
 ## [4.9.4](https://github.com/transitland/transitland-datastore/tree/4.9.4) (2016-08-24)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.3...4.9.4)
