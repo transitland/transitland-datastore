@@ -8,7 +8,7 @@ def extend_feed_version(feed_version, extend_from_date: nil, extend_to_date: nil
   puts "  active_feed_version: #{feed_version.sha1}"
   puts "    latest_calendar_date: #{feed_version.latest_calendar_date}"
   puts "    ssp total: #{ssp_total}"
-  if feed_version.tags["extend_from_date"].presence
+  if (feed_version.tags || {})["extend_from_date"]
     puts "  already extended, skipping:"
     puts "    extend_from_date: #{feed_version.tags['extend_from_date']}"
     puts "    extend_to_date: #{feed_version.tags['extend_to_date']}"
@@ -32,7 +32,7 @@ end
 
 task :feed_extend_schedule_auto, [:expired_on_date] => [:environment] do |t, args|
   args.with_defaults(expired_on_date: nil)
-  expired_on_date = expired_on_date.date ? Date.parse(args.expired_on_date) : (DateTime.now + 1.week)
+  expired_on_date = args.expired_on_date ? Date.parse(args.expired_on_date) : (DateTime.now + 1.week)
   feed_versions = FeedVersion.where_active.where('latest_calendar_date <= ?', expired_on_date)
   feed_versions.each do |feed_version|
     extend_feed_version(feed_version)
