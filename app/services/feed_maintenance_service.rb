@@ -4,6 +4,10 @@ class FeedMaintenanceService
   DEFAULT_EXTEND_FROM_DATE = 1.month
   DEFAULT_EXTEND_TO_DATE = 1.year
 
+  def self.logger
+    Rails.logger
+  end
+
   def self.extend_feed_version(feed_version, extend_from_date: nil, extend_to_date: nil)
     feed = feed_version.feed
     previously_extended = (feed_version.tags || {})["extend_from_date"]
@@ -11,19 +15,19 @@ class FeedMaintenanceService
     extend_to_date ||= (feed_version.latest_calendar_date + DEFAULT_EXTEND_TO_DATE)
     ssp_total = feed_version.imported_schedule_stop_pairs.count
     ssp_updated = feed_version.imported_schedule_stop_pairs.where('service_end_date >= ?', extend_from_date).count
-    puts "Feed: #{feed.onestop_id}"
-    puts "  active_feed_version: #{feed_version.sha1}"
-    puts "    latest_calendar_date: #{feed_version.latest_calendar_date}"
-    puts "    ssp total: #{ssp_total}"
+    logger.info "Feed: #{feed.onestop_id}"
+    logger.info "  active_feed_version: #{feed_version.sha1}"
+    logger.info "    latest_calendar_date: #{feed_version.latest_calendar_date}"
+    logger.info "    ssp total: #{ssp_total}"
     if previously_extended
-      puts "  already extended, skipping:"
-      puts "    extend_from_date: #{feed_version.tags['extend_from_date']}"
-      puts "    extend_to_date: #{feed_version.tags['extend_to_date']}"
+      logger.info "  already extended, skipping:"
+      logger.info "    extend_from_date: #{feed_version.tags['extend_from_date']}"
+      logger.info "    extend_to_date: #{feed_version.tags['extend_to_date']}"
     else
-      puts "  extending:"
-      puts "    extend_from_date: #{extend_from_date}"
-      puts "    extend_to_date: #{extend_to_date}"
-      puts "    ssp to update: #{ssp_updated}"
+      logger.info "  extending:"
+      logger.info "    extend_from_date: #{extend_from_date}"
+      logger.info "    extend_to_date: #{extend_to_date}"
+      logger.info "    ssp to update: #{ssp_updated}"
       feed_version.extend_schedule_stop_pairs_service_end_date(extend_from_date, extend_to_date)
     end
   end
