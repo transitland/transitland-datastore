@@ -71,6 +71,11 @@ FactoryGirl.define do
       association :feed, factory: :feed_nycdotsiferry
     end
 
+    factory :feed_version_mtanyctbusstatenisland_trip_YU_S6_Weekday_030000_MISC_112 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/mtanyctbusstatenisland-trip-YU_S6-Weekday-030000_MISC_112.zip')) }
+      association :feed, factory: :feed_mtanyctbusstatenisland
+    end
+
     factory :feed_version_rome do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/rome-trip-754_4655513.zip')) }
       association :feed, factory: :feed_rome
