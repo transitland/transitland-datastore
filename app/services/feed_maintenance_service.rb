@@ -1,11 +1,14 @@
 class FeedMaintenanceService
   include Singleton
 
+  DEFAULT_EXTEND_FROM_DATE = 1.month
+  DEFAULT_EXTEND_TO_DATE = 1.year
+
   def self.extend_feed_version(feed_version, extend_from_date: nil, extend_to_date: nil)
     feed = feed_version.feed
     previously_extended = (feed_version.tags || {})["extend_from_date"]
-    extend_from_date ||= (feed_version.latest_calendar_date - 1.month)
-    extend_to_date ||= (feed_version.latest_calendar_date + 1.year)
+    extend_from_date ||= (feed_version.latest_calendar_date - DEFAULT_EXTEND_FROM_DATE)
+    extend_to_date ||= (feed_version.latest_calendar_date + DEFAULT_EXTEND_TO_DATE)
     ssp_total = feed_version.imported_schedule_stop_pairs.count
     ssp_updated = feed_version.imported_schedule_stop_pairs.where('service_end_date >= ?', extend_from_date).count
     puts "Feed: #{feed.onestop_id}"
