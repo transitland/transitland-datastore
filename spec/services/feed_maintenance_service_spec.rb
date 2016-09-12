@@ -33,12 +33,12 @@ describe FeedMaintenanceService do
       @feed_version.tags['extend_from_date'] = '2016-05-01'
       @feed_version.tags['extend_to_date'] = '2016-07-01'
       @feed_version.save!
-      updated_at = @feed_version.updated_at
+      updated_at = @feed_version.reload.updated_at
       FeedMaintenanceService.extend_feed_version(
         @feed_version
       )
       @feed_version.reload
-      expect(@feed_version.updated_at).to eq(updated_at)
+      expect(@feed_version.tags['extend_to_date']).to eq('2016-07-01')
     end
 
   end
