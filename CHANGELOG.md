@@ -2,10 +2,45 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.5...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.6...HEAD)
 
 **Merged pull requests:**
 
+- Production release 4.9.6 [\#759](https://github.com/transitland/transitland-datastore/pull/759) ([irees](https://github.com/irees))
+
+## [4.9.6](https://github.com/transitland/transitland-datastore/tree/4.9.6) (2016-09-09)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.5...4.9.6)
+
+**Implemented enhancements:**
+
+- Deactivation \(deprecation\) of Issues [\#766](https://github.com/transitland/transitland-datastore/issues/766)
+- Automatically create rsp\_line\_inaccurate issues [\#752](https://github.com/transitland/transitland-datastore/issues/752)
+
+**Fixed bugs:**
+
+- Issue deprecation spec sometimes fails [\#775](https://github.com/transitland/transitland-datastore/issues/775)
+- CarrierWave: cache files not always deleted [\#770](https://github.com/transitland/transitland-datastore/issues/770)
+- Query Issues by Feed from Entities [\#764](https://github.com/transitland/transitland-datastore/issues/764)
+- Move Changeset apply worker to default Sidekiq queue [\#762](https://github.com/transitland/transitland-datastore/issues/762)
+- if an operator only has two stops, its convex hull is a LineString rather than a Polygon [\#714](https://github.com/transitland/transitland-datastore/issues/714)
+
+**Closed issues:**
+
+- model methods and rake task to "push out" ScheduleStopPairs end calendar date [\#647](https://github.com/transitland/transitland-datastore/issues/647)
+
+**Merged pull requests:**
+
+- adding TimeCop to spec [\#776](https://github.com/transitland/transitland-datastore/pull/776) ([doublestranded](https://github.com/doublestranded))
+- last\_fetched\_at did not update unless FeedVersion was new [\#774](https://github.com/transitland/transitland-datastore/pull/774) ([irees](https://github.com/irees))
+- Bump gtfs: relative redirect fix [\#772](https://github.com/transitland/transitland-datastore/pull/772) ([irees](https://github.com/irees))
+- Feed fetch: disk space leak [\#769](https://github.com/transitland/transitland-datastore/pull/769) ([irees](https://github.com/irees))
+- Issues deactivation [\#767](https://github.com/transitland/transitland-datastore/pull/767) ([doublestranded](https://github.com/doublestranded))
+- issues queryable by feed from entities [\#765](https://github.com/transitland/transitland-datastore/pull/765) ([doublestranded](https://github.com/doublestranded))
+- Changeset worker fix [\#763](https://github.com/transitland/transitland-datastore/pull/763) ([doublestranded](https://github.com/doublestranded))
+- update gems [\#760](https://github.com/transitland/transitland-datastore/pull/760) ([drewda](https://github.com/drewda))
+- FeedVersion: extend schedule [\#758](https://github.com/transitland/transitland-datastore/pull/758) ([irees](https://github.com/irees))
+- Operator bbox fix [\#757](https://github.com/transitland/transitland-datastore/pull/757) ([doublestranded](https://github.com/doublestranded))
+- Rsp line inaccurate auto issues [\#756](https://github.com/transitland/transitland-datastore/pull/756) ([doublestranded](https://github.com/doublestranded))
 - Production release 4.9.5 [\#755](https://github.com/transitland/transitland-datastore/pull/755) ([doublestranded](https://github.com/doublestranded))
 
 ## [4.9.5](https://github.com/transitland/transitland-datastore/tree/4.9.5) (2016-08-24)
