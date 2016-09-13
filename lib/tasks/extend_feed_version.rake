@@ -13,3 +13,9 @@ task :extend_expired_feed_versions, [:expired_on_date] => [:environment] do |t, 
   args.with_defaults(expired_on_date: nil)
   FeedMaintenanceService.extend_expired_feed_versions(args.expired_on_date)
 end
+
+task :extend_expired_feed_versions_cron, [] => [:environment] do |t, args|
+  if Figaro.env.extend_expired_feed_versions.presence == 'true'
+    FeedMaintenanceService.extend_expired_feed_versions
+  end
+end
