@@ -51,14 +51,12 @@ class FeedMaintenanceService
     previously_extended = (feed_version.tags || {})["extend_from_date"]
     extend_from_date ||= (feed_version.latest_calendar_date - DEFAULT_EXTEND_FROM_DATE)
     extend_to_date ||= (feed_version.latest_calendar_date + DEFAULT_EXTEND_TO_DATE)
-    ssp_total = feed_version.imported_schedule_stop_pairs.count
-    ssp_updated = feed_version.imported_schedule_stop_pairs.where('service_end_date >= ?', extend_from_date).count
     if previously_extended
       # Do nothing
-      # log "  already extended, skipping:"
-      # log "    extend_from_date: #{feed_version.tags['extend_from_date']}"
-      # log "    extend_to_date: #{feed_version.tags['extend_to_date']}"
+      # log "  already extended, skipping"
     else
+      ssp_total = feed_version.imported_schedule_stop_pairs.count
+      ssp_updated = feed_version.imported_schedule_stop_pairs.where('service_end_date >= ?', extend_from_date).count
       log "Feed: #{feed.onestop_id}"
       log "  active_feed_version: #{feed_version.sha1}"
       log "    latest_calendar_date: #{feed_version.latest_calendar_date}"
