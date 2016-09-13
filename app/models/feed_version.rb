@@ -69,6 +69,10 @@ class FeedVersion < ActiveRecord::Base
     self.imported_schedule_stop_pairs.where('service_end_date >= ?', extend_from_date).select(:id).find_in_batches do |ssp_batch|
       ScheduleStopPair.where(id: ssp_batch).update_all(service_end_date: extend_to_date)
     end
+    self.tags ||= {}
+    self.tags["extend_from_date"] = extend_from_date
+    self.tags["extend_to_date"] = extend_to_date
+    self.update!(tags: self.tags)
   end
 
   def is_active_feed_version
