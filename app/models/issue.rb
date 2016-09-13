@@ -13,7 +13,7 @@
 #
 
 class Issue < ActiveRecord::Base
-  has_many :entities_with_issues
+  has_many :entities_with_issues, dependent: :delete_all
   belongs_to :created_by_changeset, class_name: 'Changeset'
   belongs_to :resolved_by_changeset, class_name: 'Changeset'
 
@@ -72,8 +72,7 @@ class Issue < ActiveRecord::Base
       .select{ |issue| issue.outdated? }
       .each {|issue|
         log("Deprecating issue: #{issue.as_json(include: [:entities_with_issues])}")
-        EntityWithIssues.delete issue.entities_with_issues
-        issue.delete
+        issue.destroy
       }
   end
 end
