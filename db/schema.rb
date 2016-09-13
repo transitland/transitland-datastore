@@ -11,12 +11,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160614041303) do
+ActiveRecord::Schema.define(version: 20160913205612) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "postgis"
   enable_extension "hstore"
+  enable_extension "pg_stat_statements"
+  enable_extension "postgis"
 
   create_table "change_payloads", force: :cascade do |t|
     t.json     "payload"
@@ -67,6 +68,7 @@ ActiveRecord::Schema.define(version: 20160614041303) do
   add_index "current_feeds", ["active_feed_version_id"], name: "index_current_feeds_on_active_feed_version_id", using: :btree
   add_index "current_feeds", ["created_or_updated_in_changeset_id"], name: "index_current_feeds_on_created_or_updated_in_changeset_id", using: :btree
   add_index "current_feeds", ["geometry"], name: "index_current_feeds_on_geometry", using: :gist
+  add_index "current_feeds", ["onestop_id"], name: "index_current_feeds_on_onestop_id", unique: true, using: :btree
 
   create_table "current_operators", force: :cascade do |t|
     t.string    "name"
@@ -140,7 +142,7 @@ ActiveRecord::Schema.define(version: 20160614041303) do
 
   add_index "current_route_stop_patterns", ["created_or_updated_in_changeset_id"], name: "c_rsp_cu_in_changeset", using: :btree
   add_index "current_route_stop_patterns", ["identifiers"], name: "index_current_route_stop_patterns_on_identifiers", using: :gin
-  add_index "current_route_stop_patterns", ["onestop_id"], name: "index_current_route_stop_patterns_on_onestop_id", using: :btree
+  add_index "current_route_stop_patterns", ["onestop_id"], name: "index_current_route_stop_patterns_on_onestop_id", unique: true, using: :btree
   add_index "current_route_stop_patterns", ["route_id"], name: "index_current_route_stop_patterns_on_route_id", using: :btree
   add_index "current_route_stop_patterns", ["stop_pattern"], name: "index_current_route_stop_patterns_on_stop_pattern", using: :gin
   add_index "current_route_stop_patterns", ["trips"], name: "index_current_route_stop_patterns_on_trips", using: :gin
@@ -163,6 +165,7 @@ ActiveRecord::Schema.define(version: 20160614041303) do
   add_index "current_routes", ["created_or_updated_in_changeset_id"], name: "c_route_cu_in_changeset", using: :btree
   add_index "current_routes", ["geometry"], name: "index_current_routes_on_geometry", using: :gist
   add_index "current_routes", ["identifiers"], name: "index_current_routes_on_identifiers", using: :gin
+  add_index "current_routes", ["onestop_id"], name: "index_current_routes_on_onestop_id", unique: true, using: :btree
   add_index "current_routes", ["operator_id"], name: "index_current_routes_on_operator_id", using: :btree
   add_index "current_routes", ["tags"], name: "index_current_routes_on_tags", using: :btree
   add_index "current_routes", ["updated_at"], name: "index_current_routes_on_updated_at", using: :btree
@@ -278,7 +281,7 @@ ActiveRecord::Schema.define(version: 20160614041303) do
   add_index "current_stops", ["created_or_updated_in_changeset_id"], name: "#c_stops_cu_in_changeset_id_index", using: :btree
   add_index "current_stops", ["geometry"], name: "index_current_stops_on_geometry", using: :gist
   add_index "current_stops", ["identifiers"], name: "index_current_stops_on_identifiers", using: :gin
-  add_index "current_stops", ["onestop_id"], name: "index_current_stops_on_onestop_id", using: :btree
+  add_index "current_stops", ["onestop_id"], name: "index_current_stops_on_onestop_id", unique: true, using: :btree
   add_index "current_stops", ["parent_stop_id"], name: "index_current_stops_on_parent_stop_id", using: :btree
   add_index "current_stops", ["tags"], name: "index_current_stops_on_tags", using: :btree
   add_index "current_stops", ["updated_at"], name: "index_current_stops_on_updated_at", using: :btree
