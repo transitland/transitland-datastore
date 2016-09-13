@@ -5,10 +5,6 @@ class FeedMaintenanceService
   DEFAULT_EXTEND_TO_DATE = 1.year
   DEFAULT_EXPIRED_ON_DATE = 1.week
 
-  def self.logger
-    Rails.logger
-  end
-
   def self.enqueue_next_feed_versions(date, import_level: nil, max_imports: nil)
     # Find feed versions that can be updated
     queue = []
@@ -28,12 +24,12 @@ class FeedMaintenanceService
     end
     # The maximum number of feeds to enqueue
     max_imports ||= queue.size
-    logger.info "enqueue_next_feed_versions: found #{queue.size} feeds to update; max_imports = #{max_imports}"
+    log "enqueue_next_feed_versions: found #{queue.size} feeds to update; max_imports = #{max_imports}"
     # Sort by last_imported_at, asc.
     queue = queue.sort_by { |feed, _, _| feed.last_imported_at }.first(max_imports)
     # Enqueue
     queue.each do |feed, next_feed_version, import_level|
-      logger.info "enqueue_next_feed_versions: adding #{feed.onestop_id} #{next_feed_version.sha1} #{import_level}"
+      log "enqueue_next_feed_versions: adding #{feed.onestop_id} #{next_feed_version.sha1} #{import_level}"
       FeedEaterWorker.perform_async(
         feed.onestop_id,
         next_feed_version.sha1,
@@ -57,19 +53,19 @@ class FeedMaintenanceService
     extend_to_date ||= (feed_version.latest_calendar_date + DEFAULT_EXTEND_TO_DATE)
     ssp_total = feed_version.imported_schedule_stop_pairs.count
     ssp_updated = feed_version.imported_schedule_stop_pairs.where('service_end_date >= ?', extend_from_date).count
-    logger.info "Feed: #{feed.onestop_id}"
-    logger.info "  active_feed_version: #{feed_version.sha1}"
-    logger.info "    latest_calendar_date: #{feed_version.latest_calendar_date}"
-    logger.info "    ssp total: #{ssp_total}"
+    log "Feed: #{feed.onestop_id}"
+    log "  active_feed_version: #{feed_version.sha1}"
+    log "    latest_calendar_date: #{feed_version.latest_calendar_date}"
+    log "    ssp total: #{ssp_total}"
     if previously_extended
-      logger.info "  already extended, skipping:"
-      logger.info "    extend_from_date: #{feed_version.tags['extend_from_date']}"
-      logger.info "    extend_to_date: #{feed_version.tags['extend_to_date']}"
+      log "  already extended, skipping:"
+      log "    extend_from_date: #{feed_version.tags['extend_from_date']}"
+      log "    extend_to_date: #{feed_version.tags['extend_to_date']}"
     else
-      logger.info "  extending:"
-      logger.info "    extend_from_date: #{extend_from_date}"
-      logger.info "    extend_to_date: #{extend_to_date}"
-      logger.info "    ssp to update: #{ssp_updated}"
+      log "  extending:"
+      log "    extend_from_date: #{extend_from_date}"
+      log "    extend_to_date: #{extend_to_date}"
+      log "    ssp to update: #{ssp_updated}"
       feed_version.extend_schedule_stop_pairs_service_end_date(extend_from_date, extend_to_date)
     end
   end

@@ -4,10 +4,6 @@ class FeedFetcherService
   REFETCH_WAIT = 24.hours
   SPLIT_REFETCH_INTO_GROUPS = 48 # and only refetch the first group
 
-  def self.logger
-    Rails.logger
-  end
-
   def self.fetch_this_feed_now(feed)
     sync_fetch_and_return_feed_versions([feed])
   end
@@ -40,7 +36,7 @@ class FeedFetcherService
     # Check Feed URL for new files.
     fetch_exception_log = nil
     feed_version = nil
-    logger.info "Fetching feed #{feed.onestop_id} from #{feed.url}"
+    log "Fetching feed #{feed.onestop_id} from #{feed.url}"
     # Try to fetch and normalize feed; log error
     begin
       feed_version = fetch_and_normalize_feed_version(feed)
@@ -50,7 +46,7 @@ class FeedFetcherService
         fetch_exception_log << "\n"
         fetch_exception_log << e.backtrace.join("\n")
       end
-      logger.error fetch_exception_log
+      log fetch_exception_log, level=:error
     ensure
       feed.update(
         latest_fetch_exception_log: fetch_exception_log,
@@ -61,9 +57,9 @@ class FeedFetcherService
     return unless feed_version
     return unless feed_version.valid?
     if feed_version.persisted?
-      logger.info "File downloaded from #{feed.url} has an existing sha1 hash: #{feed_version.sha1}"
+      log "File downloaded from #{feed.url} has an existing sha1 hash: #{feed_version.sha1}"
     else
-      logger.info "File downloaded from #{feed.url} has a new sha1 hash: #{feed_version.sha1}"
+      log "File downloaded from #{feed.url} has a new sha1 hash: #{feed_version.sha1}"
       feed_version.save!
     end
     # Return found/created FeedVersion

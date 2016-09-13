@@ -10,7 +10,7 @@ describe FeedFetcherService do
 
   context 'synchronously' do
     before(:each) do
-      allow_any_instance_of(Feed).to receive(:fetch_and_return_feed_version) { true }
+      allow(FeedFetcherService).to receive(:fetch_and_return_feed_version) { true }
     end
 
     it 'fetch_this_feed_now(feed)' do
@@ -156,7 +156,6 @@ describe FeedFetcherService do
       feed_version = nil
       feed_versions = []
       2.times.each do |i|
-        # feed_version = FeedVersion.new(url: example_nested_flat)
         VCR.use_cassette('feed_fetch_nested') do
           feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
         end
