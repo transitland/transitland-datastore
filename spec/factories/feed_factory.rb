@@ -160,6 +160,26 @@ FactoryGirl.define do
     end
   end
 
+  factory :feed_mtanyctbusstatenisland, class: Feed do
+    onestop_id 'f-dr5r-mtanyctbusstatenisland'
+    url 'http://web.mta.info/developers/data/nyct/bus/google_transit_staten_island.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'MTA New York City Transit',
+        onestop_id: 'o-dr5r-nyct',
+        timezone: 'America/New_York',
+        website: 'http://www.google.com',
+        version: 1
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: 'MTA NYCT'
+      )
+    end
+  end
+
   factory :feed_example, class: Feed do
     onestop_id 'f-9qs-example'
     url 'http://www.bart.gov/dev/schedules/google_transit.zip'

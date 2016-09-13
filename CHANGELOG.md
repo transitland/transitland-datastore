@@ -2,10 +2,27 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.6...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.7...HEAD)
 
 **Merged pull requests:**
 
+- Production release 4.9.7 [\#777](https://github.com/transitland/transitland-datastore/pull/777) ([irees](https://github.com/irees))
+
+## [4.9.7](https://github.com/transitland/transitland-datastore/tree/4.9.7) (2016-09-12)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.6...4.9.7)
+
+**Fixed bugs:**
+
+- RSP distance duplicate points bug [\#773](https://github.com/transitland/transitland-datastore/issues/773)
+
+**Closed issues:**
+
+- Manual Changesets slow [\#780](https://github.com/transitland/transitland-datastore/issues/780)
+
+**Merged pull requests:**
+
+- for now, only bulk deactivate if import or issue-resolving [\#781](https://github.com/transitland/transitland-datastore/pull/781) ([doublestranded](https://github.com/doublestranded))
+- Dist segment matching fix [\#778](https://github.com/transitland/transitland-datastore/pull/778) ([doublestranded](https://github.com/doublestranded))
 - Production release 4.9.6 [\#759](https://github.com/transitland/transitland-datastore/pull/759) ([irees](https://github.com/irees))
 
 ## [4.9.6](https://github.com/transitland/transitland-datastore/tree/4.9.6) (2016-09-09)

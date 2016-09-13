@@ -216,13 +216,10 @@ describe RouteStopPattern do
     end
 
     it 'can calculate distances when coordinates are repeated' do
-      @rsp.geometry = RouteStopPattern.line_string([stop_a.geometry[:coordinates],
-                                            stop_b.geometry[:coordinates],
-                                            stop_b.geometry[:coordinates],
-                                            stop_c.geometry[:coordinates]])
-      expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
-                                                              a_value_within(0.1).of(12617.9271),
-                                                              a_value_within(0.1).of(17001.5107)])
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_mtanyctbusstatenisland_trip_YU_S6_Weekday_030000_MISC_112, import_level: 1)
+      distances = @feed.imported_route_stop_patterns[0].calculate_distances
+      # expect all distances to be increasing
+      expect(distances[1..-1].each_with_index.map { |v, i| v > distances[i] }.all?).to be true
     end
 
     it 'can calculate distances when a stop is on a segment between two geometry coordinates' do
