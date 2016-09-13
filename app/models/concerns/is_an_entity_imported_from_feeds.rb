@@ -2,6 +2,7 @@ module IsAnEntityImportedFromFeeds
   extend ActiveSupport::Concern
   included do
     has_many :entities_imported_from_feed, as: :entity
+    has_many :entities_with_issues, as: :entity, dependent: :destroy
     has_many :imported_from_feeds, through: :entities_imported_from_feed, source: :feed
     has_many :imported_from_feed_versions, through: :entities_imported_from_feed, source: :feed_version
     scope :where_import_level, -> (import_level) {
