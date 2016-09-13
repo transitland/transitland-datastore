@@ -73,6 +73,7 @@ class RouteStopPattern < BaseRouteStopPattern
   include HasTags
   include UpdatedSince
   include IsAnEntityImportedFromFeeds
+  include IsAnEntityWithIssues
 
   # Tracked by changeset
   include CurrentTrackedByChangeset

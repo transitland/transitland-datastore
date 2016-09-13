@@ -47,6 +47,7 @@ class Route < BaseRoute
   include HasTags
   include UpdatedSince
   include IsAnEntityImportedFromFeeds
+  include IsAnEntityWithIssues
 
   include CanBeSerializedToCsv
   def self.csv_column_names

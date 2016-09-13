@@ -161,6 +161,13 @@ describe Issue do
     #   expect(Issue.find(9).created_by_changeset_id).to eq 2
     # end
 
+    it 'destroys entities_with_issues when issue destroyed' do
+      Issue.find(8).destroy
+      expect{Issue.find(8)}.to raise_error(ActiveRecord::RecordNotFound)
+      expect{EntityWithIssues.find(10)}.to raise_error(ActiveRecord::RecordNotFound)
+      expect{EntityWithIssues.find(11)}.to raise_error(ActiveRecord::RecordNotFound)
+    end
+
     context 'equivalency' do
       before(:each) do
         @test_issue = Issue.new(created_by_changeset: @feed_version.changesets_imported_from_this_feed_version.first,
