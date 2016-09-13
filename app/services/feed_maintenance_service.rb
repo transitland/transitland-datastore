@@ -3,9 +3,18 @@ class FeedMaintenanceService
 
   DEFAULT_EXTEND_FROM_DATE = 1.month
   DEFAULT_EXTEND_TO_DATE = 1.year
+  DEFAULT_EXPIRED_ON_DATE = 1.week
 
   def self.logger
     Rails.logger
+  end
+
+  def self.extend_expired_feed_versions(expired_on_date)
+    expired_on_date ||= (DateTime.now + DEFAULT_EXPIRED_ON_DATE)
+    feed_versions = FeedVersion.where_active.where('latest_calendar_date <= ?', expired_on_date)
+    feed_versions.each do |feed_version|
+      self.extend_feed_version(feed_version)
+    end
   end
 
   def self.extend_feed_version(feed_version, extend_from_date: nil, extend_to_date: nil)
