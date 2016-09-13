@@ -23,13 +23,13 @@ end
 task :enqueue_next_feed_versions, [:date] => [:environment] do |t, args|
   args.with_defaults(date: nil)
   date = args.date ? Date.parse(args.date) : DateTime.now
-  Feed.enqueue_next_feed_versions(date)
+  FeedMaintenanceService.enqueue_next_feed_versions(date)
 end
 
 task :enqueue_next_feed_versions_cron, [] => [:environment] do |t, args|
   date = DateTime.now
   max_imports = (Figaro.env.enqueue_next_feed_versions_max.presence || 0).to_i
   if max_imports > 0
-    Feed.enqueue_next_feed_versions(date, max_imports: max_imports)
+    FeedMaintenanceService.enqueue_next_feed_versions(date, max_imports: max_imports)
   end
 end
