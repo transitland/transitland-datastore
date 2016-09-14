@@ -17,6 +17,9 @@ describe IsAnEntityImportedFromFeeds do
     # activate
     @feed.activate_feed_version(@fv1.sha1, 1)
     @feed.activate_feed_version(@fv2.sha1, 2)
+    # --> only stops referenced by @fv2 are active
+    #     @stop1, @stop2 active
+    #     @stop0, @stop3 inactive
   end
 
   context '.where_import_level' do
@@ -24,11 +27,6 @@ describe IsAnEntityImportedFromFeeds do
       expect(Stop.where_import_level(1)).to match_array([@stop0, @stop1])
       expect(Stop.where_import_level(2)).to match_array([@stop1, @stop2])
     end
-
-    # TODO: where_active
-    # it 'chains with where_active' do
-    #   expect(Stop.where_import_level(1).where_active).to match_array([@stop1])
-    # end
 
     it 'excludes non matching' do
       expect(Stop.where_import_level(0)).to match_array([])
@@ -65,4 +63,19 @@ describe IsAnEntityImportedFromFeeds do
       expect(Stop.where_imported_from_feed_version(@fv2)).to match_array([@stop1, @stop2])
     end
   end
+
+  context '.where_imported_from_active_feed_version' do
+    it 'finds entities referenced by active feed_version' do
+      # see notes in before(:each)
+      expect(Stop.where_imported_from_active_feed_version).to match_array([@stop1, @stop2])
+    end
+  end
+
+  context '.where_not_imported_from_active_feed_version' do
+    it 'finds entities not referenced by active feed_version' do
+      # see notes in before(:each)
+      expect(Stop.where_not_imported_from_active_feed_version).to match_array([@stop0, @stop3])
+    end
+  end
+
 end

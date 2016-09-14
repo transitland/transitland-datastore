@@ -28,6 +28,7 @@
 #  index_current_feeds_on_active_feed_version_id              (active_feed_version_id)
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
 #  index_current_feeds_on_geometry                            (geometry)
+#  index_current_feeds_on_onestop_id                          (onestop_id) UNIQUE
 #
 
 class BaseFeed < ActiveRecord::Base
@@ -185,41 +186,6 @@ class Feed < BaseFeed
     return true
   end
 
-  def fetch_and_return_feed_version
-    # Check Feed URL for new files.
-    fetch_exception_log = nil
-    feed_version = FeedVersion.new(feed: self, url: self.url)
-    logger.info "Fetching feed #{onestop_id} from #{url}"
-    # Try to fetch and normalize feed; log error
-    begin
-      feed_version.fetch_and_normalize
-    rescue GTFS::InvalidSourceException => e
-      fetch_exception_log = e.message
-      if e.backtrace.present?
-        fetch_exception_log << "\n"
-        fetch_exception_log << e.backtrace.join("\n")
-      end
-      logger.error fetch_exception_log
-    ensure
-      self.update(
-        latest_fetch_exception_log: fetch_exception_log,
-        last_fetched_at: feed_version.fetched_at || DateTime.now
-      )
-    end
-    # Check for known Feed Version
-    feed_version = self.feed_versions.find_by(sha1: feed_version.sha1) || feed_version
-    # Return if there was not a successful fetch.
-    return unless feed_version.valid?
-    if feed_version.persisted?
-      logger.info "File downloaded from #{url} has an existing sha1 hash: #{feed_version.sha1}"
-    else
-      logger.info "File downloaded from #{url} has a new sha1 hash: #{feed_version.sha1}"
-      feed_version.save!
-    end
-    # Return found/created FeedVersion
-    feed_version
-  end
-
   def find_next_feed_version(date)
     # Find a feed_version where:
     #   1. newer than active_feed_version
@@ -233,23 +199,6 @@ class Feed < BaseFeed
       .where('earliest_calendar_date <= ?', date)
       .reorder(earliest_calendar_date: :desc, created_at: :desc)
       .first
-  end
-
-  def enqueue_next_feed_version(date, import_level=nil)
-    # Enqueue FeedEater job for self.find_next_feed_version
-    # Use the previous import_level, or default to 2
-    import_level ||= self.active_feed_version.try(:import_level) || 2
-    # Find the next feed_version
-    next_feed_version = self.find_next_feed_version(date)
-    return unless next_feed_version
-    # Return if it's been imported before
-    return if next_feed_version.feed_version_imports.last
-    # Enqueue
-    FeedEaterWorker.perform_async(
-      self.onestop_id,
-      next_feed_version.sha1,
-      import_level
-    )
   end
 
   def activate_feed_version(feed_version_sha1, import_level)

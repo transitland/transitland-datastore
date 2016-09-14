@@ -89,7 +89,7 @@ describe Api::V1::RouteStopPatternsController do
 
   describe 'GET show' do
     it 'returns route stop patterns by OnestopID' do
-      get :show, id: 'r-9q9j-bullet-32e326-0e096a'
+      get :show, id: 'r-9q9j-bullet-fc9abc-c83be2'
       expect_json_types({
         onestop_id: :string,
         route_onestop_id: :string,
@@ -101,7 +101,7 @@ describe Api::V1::RouteStopPatternsController do
         updated_at: :date
       })
       expect_json({ onestop_id: -> (onestop_id) {
-        expect(onestop_id).to eq 'r-9q9j-bullet-32e326-0e096a'
+        expect(onestop_id).to eq 'r-9q9j-bullet-fc9abc-c83be2'
       }})
     end
 

@@ -23,7 +23,7 @@
 #  #c_stops_cu_in_changeset_id_index      (created_or_updated_in_changeset_id)
 #  index_current_stops_on_geometry        (geometry)
 #  index_current_stops_on_identifiers     (identifiers)
-#  index_current_stops_on_onestop_id      (onestop_id)
+#  index_current_stops_on_onestop_id      (onestop_id) UNIQUE
 #  index_current_stops_on_parent_stop_id  (parent_stop_id)
 #  index_current_stops_on_tags            (tags)
 #  index_current_stops_on_updated_at      (updated_at)
@@ -45,6 +45,7 @@ class Stop < BaseStop
   include HasTags
   include UpdatedSince
   include IsAnEntityImportedFromFeeds
+  include IsAnEntityWithIssues
 
   include CanBeSerializedToCsv
   def self.csv_column_names
@@ -130,6 +131,23 @@ class Stop < BaseStop
       .where('stop_id IN (?) OR stop_id = ?', Stop.where(parent_stop_id: self.id).select(:id), self.id)
       .select('DISTINCT ON (current_routes_serving_stop.route_id) *')
   end
+
+  def vehicle_types_serving_stop_and_platforms
+    # Use cacheable relations
+    (self.stop_platforms + [self]).map { |s| s.served_by_vehicle_types }.flatten.uniq
+  end
+
+  # Route vehicle_type serving stop
+  def served_by_vehicle_types
+    self.routes_serving_stop.map(&:route).map(&:vehicle_type).uniq
+  end
+
+  scope :served_by_vehicle_types, -> (vehicle_types) {
+    vehicle_types = Array.wrap(vehicle_types).map { |vt| GTFS::Route.match_vehicle_type(vt).to_s.to_i }
+    joins{routes_serving_stop.route}
+      .where({current_routes: {vehicle_type: vehicle_types}})
+      .distinct
+  }
 
   # Station Hierarchy
   has_many :stop_egresses, class_name: 'StopEgress', foreign_key: :parent_stop_id

@@ -15,7 +15,12 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
       @issues = @issues.with_type(params[:issue_type])
     end
 
-    @issues = @issues.includes{[entities_with_issues: :entity, created_by_changeset: [:imported_from_feed, :imported_from_feed_version]]}
+    if params[:feed_onestop_id].present?
+      @issues = @issues.from_feed(params[:feed_onestop_id])
+    end
+
+    # entities_with_issues entity still loading with n+1 queries; not sure how to fix
+    @issues = @issues.includes([:entities_with_issues, created_by_changeset: [:imported_from_feed, :imported_from_feed_version]])
 
     respond_to do |format|
       format.json do
@@ -41,13 +46,17 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
   end
 
   def update
-    # TODO: allow for deletion of individual EntityWithIssues
     issue_params_copy = issue_params
     entities_with_issues_params = issue_params_copy.delete(:entities_with_issues).try(:compact)
     @issue.update!(issue_params_copy)
-    entities_with_issues_params.each do |ewi|
-      ewi_params[:entity] = OnestopId.find!(ewi_params.delete(:onestop_id))
-      @issue.entities_with_issues << EntityWithIssues.find_or_initialize_by(ewi_params)
+    # allowing addition and deletion of EntityWithIssues
+    # An Issue's entities_with_issues will be completely replaced by update request, if specified
+    unless entities_with_issues_params.nil?
+      @issue.entities_with_issues.each { |ewi| @issue.entities_with_issues.delete(ewi) }
+      entities_with_issues_params.each do |ewi|
+        ewi[:entity] = OnestopId.find!(ewi.delete(:onestop_id))
+        @issue.entities_with_issues << EntityWithIssues.create(ewi)
+      end
     end
     render json: @issue
   end
@@ -77,11 +86,6 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
   end
 
   private
-
-  def set_entity_with_issues_params(ewi_params)
-    ewi_params[:entity] = OnestopId.find!(ewi_params.delete(:onestop_id))
-    @issue.entities_with_issues << EntityWithIssues.find_or_initialize_by(ewi_params)
-  end
 
   def set_issue
     @issue = Issue.find(params[:id])

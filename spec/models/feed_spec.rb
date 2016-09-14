@@ -28,6 +28,7 @@
 #  index_current_feeds_on_active_feed_version_id              (active_feed_version_id)
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
 #  index_current_feeds_on_geometry                            (geometry)
+#  index_current_feeds_on_onestop_id                          (onestop_id) UNIQUE
 #
 
 require 'sidekiq/testing'
@@ -193,41 +194,6 @@ describe Feed do
     end
   end
 
-  context 'fetch_and_return_feed_version' do
-    it 'creates a feed version the first time a file is downloaded' do
-      feed = create(:feed_caltrain)
-      expect(feed.feed_versions.count).to eq 0
-      VCR.use_cassette('feed_fetch_caltrain') do
-        feed.fetch_and_return_feed_version
-      end
-      expect(feed.feed_versions.count).to eq 1
-    end
-
-    it "does not create a duplicate, if remote file hasn't changed since last download" do
-      feed = create(:feed_caltrain)
-      VCR.use_cassette('feed_fetch_caltrain') do
-        @feed_version1 = feed.fetch_and_return_feed_version
-      end
-      expect(feed.feed_versions.count).to eq 1
-      VCR.use_cassette('feed_fetch_caltrain') do
-        @feed_version2 = feed.fetch_and_return_feed_version
-      end
-      expect(feed.feed_versions.count).to eq 1
-      expect(@feed_version1).to eq @feed_version2
-    end
-
-    it 'logs fetch errors' do
-      feed = create(:feed_caltrain, url: 'http://httpbin.org/status/404')
-      expect(feed.feed_versions.count).to eq 0
-      VCR.use_cassette('feed_fetch_404') do
-        feed.fetch_and_return_feed_version
-      end
-      expect(feed.feed_versions.count).to eq 0
-      expect(feed.latest_fetch_exception_log).to be_present
-      expect(feed.latest_fetch_exception_log).to include('404')
-    end
-  end
-
   it 'gets a bounding box around all its stops' do
     feed = build(:feed)
     stops = []
@@ -322,7 +288,7 @@ describe Feed do
       expect(@fv1.imported_schedule_stop_pairs.count).to eq(1)
       @feed.deactivate_feed_version(@fv1.sha1)
       expect(@fv1.imported_schedule_stop_pairs.count).to eq(0)
-      expect(@feed.imported_schedule_stop_pairs.where_active).to match_array([@ssp2])
+      expect(@feed.imported_schedule_stop_pairs.where_imported_from_active_feed_version).to match_array([@ssp2])
     end
 
     it 'cannot deactivate current active_feed_version' do
@@ -485,37 +451,4 @@ describe Feed do
       expect(feed.find_next_feed_version(date)).to be_nil
     end
   end
-
-  context '.enqueue_next_feed_version' do
-    let(:date) { DateTime.now }
-    let(:feed) { create(:feed) }
-
-    it 'enqueues next_feed_version' do
-      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date - 2.months)
-      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date - 1.months)
-      feed.update!(active_feed_version: fv1)
-      expect {
-        feed.enqueue_next_feed_version(date)
-      }.to change(FeedEaterWorker.jobs, :size).by(1)
-    end
-
-    it 'does not enqueue if no next_feed_version' do
-      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date - 2.months)
-      feed.update!(active_feed_version: fv1)
-      expect {
-        feed.enqueue_next_feed_version(date)
-      }.to change(FeedEaterWorker.jobs, :size).by(0)
-    end
-
-    it 'does not enqueue if next_feed_version has a feed_version_import attempt' do
-      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date - 2.months)
-      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date - 1.months)
-      create(:feed_version_import, feed_version: fv2)
-      feed.update!(active_feed_version: fv1)
-      expect {
-        feed.enqueue_next_feed_version(date)
-      }.to change(FeedEaterWorker.jobs, :size).by(0)
-    end
-  end
-
 end

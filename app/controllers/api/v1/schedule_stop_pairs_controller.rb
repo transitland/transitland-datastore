@@ -119,7 +119,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
 
     # Explicitly use active Feed Versions
     if params[:active].presence == 'true'
-      @ssps = @ssps.where_active
+      @ssps = @ssps.where_imported_from_active_feed_version
     end
     # Feed
     feed_onestop_id = params[:feed_onestop_id].presence || params[:imported_from_feed].presence

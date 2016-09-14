@@ -21,6 +21,7 @@
 #  c_route_cu_in_changeset               (created_or_updated_in_changeset_id)
 #  index_current_routes_on_geometry      (geometry)
 #  index_current_routes_on_identifiers   (identifiers)
+#  index_current_routes_on_onestop_id    (onestop_id) UNIQUE
 #  index_current_routes_on_operator_id   (operator_id)
 #  index_current_routes_on_tags          (tags)
 #  index_current_routes_on_updated_at    (updated_at)
@@ -47,6 +48,7 @@ class Route < BaseRoute
   include HasTags
   include UpdatedSince
   include IsAnEntityImportedFromFeeds
+  include IsAnEntityWithIssues
 
   include CanBeSerializedToCsv
   def self.csv_column_names
@@ -174,6 +176,13 @@ class Route < BaseRoute
 
   scope :stop_within_bbox, -> (bbox) {
     where(id: RouteServingStop.select(:route_id).where(stop: Stop.geometry_within_bbox(bbox)))
+  }
+
+  scope :where_vehicle_type, -> (vehicle_types) {
+    # Titleize input: high_speed_rail_service -> High Speed Rail Service
+    # Then convert back to GTFS spec vehicle_type integer.
+    vehicle_types = Array.wrap(vehicle_types).map { |vt| GTFS::Route.match_vehicle_type(vt.to_s.titleize).to_s.to_i }
+    where(vehicle_type: vehicle_types)
   }
 
   ##### FromGTFS ####

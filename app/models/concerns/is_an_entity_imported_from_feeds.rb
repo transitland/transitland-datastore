@@ -25,5 +25,17 @@ module IsAnEntityImportedFromFeeds
         })
         .distinct
     }
+
+    scope :where_imported_from_active_feed_version, -> {
+      joins(:entities_imported_from_feed)
+        .joins('INNER JOIN current_feeds ON entities_imported_from_feed.feed_version_id = current_feeds.active_feed_version_id')
+        .distinct
+    }
+
+    scope :where_not_imported_from_active_feed_version, -> {
+      # This may be possible with a complex outer join, but this will do.
+      where(id: self.all.select(:id).pluck(:id) - self.where_imported_from_active_feed_version.select(:id).pluck(:id))
+    }
+
   end
 end

@@ -23,7 +23,7 @@
 #  #c_stops_cu_in_changeset_id_index      (created_or_updated_in_changeset_id)
 #  index_current_stops_on_geometry        (geometry)
 #  index_current_stops_on_identifiers     (identifiers)
-#  index_current_stops_on_onestop_id      (onestop_id)
+#  index_current_stops_on_onestop_id      (onestop_id) UNIQUE
 #  index_current_stops_on_parent_stop_id  (parent_stop_id)
 #  index_current_stops_on_tags            (tags)
 #  index_current_stops_on_updated_at      (updated_at)
@@ -36,6 +36,7 @@ class StopSerializer < CurrentEntitySerializer
              :tags,
              :timezone,
              :osm_way_id,
+             :served_by_vehicle_types,
              :created_at,
              :updated_at
 

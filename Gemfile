@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.2.7'
+gem 'rails', '4.2.7.1'
 
 # Transitland Datastore components
 path 'components' do
@@ -28,7 +28,7 @@ gem 'whenever', require: false # to manage crontab
 # data model
 gem 'squeel'
 gem 'enumerize'
-gem 'gtfs', github: 'transitland/gtfs', tag: '55b07692bb0a048316ddea9f4f022da48d00970d'
+gem 'gtfs', github: 'transitland/gtfs', tag: 'dab8bdecccc466cccadd6f2ddfff78e95d8375c7'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 gem 'json-schema', '2.5.2' # running into problems with 2.6.0
@@ -104,3 +104,6 @@ gem 'marginalia', group: [:development, :staging]
 
 # web server
 gem 'unicorn', group: [:staging, :production]
+
+# profiling
+gem 'memory_profiler', group: [:test, :development]

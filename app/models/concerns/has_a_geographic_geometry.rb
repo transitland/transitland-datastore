@@ -18,6 +18,12 @@ module HasAGeographicGeometry
       projected_geometries = entities.map { |e| e.geometry(as: :wkt, projected: true)}
       geometry_collection = RGeo::Geographic.simple_mercator_factory.projection_factory.collection(projected_geometries)
       convex_hull = geometry_collection.convex_hull
+      if (geometry_collection.size < 3)
+        # 100 is in units of degrees Lat/Lon
+        # Might be worthwhile to consider options
+        # to turn this off or change magnitude.
+        convex_hull = convex_hull.buffer(100)
+      end
 
       if projected == false
         convex_hull = RGeo::Feature.cast(convex_hull,

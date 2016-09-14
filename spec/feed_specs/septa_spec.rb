@@ -38,22 +38,23 @@ describe 'SEPTA', optional: true do
     # end
   end
 
-  context 'FeedVersion' do
-    it 'downloads and normalizes' do
-      feed_version = feed.feed_versions.new(url: url_rail)
-      VCR.use_cassette('feed_fetch_septa') do
-        feed_version.fetch_and_normalize
-      end
-      expect(feed_version.sha1_raw).to eq('7753eb566a28e29119475da6b3b03b3fc0922b3d')
-      expect(feed_version.sha1).to be_truthy
-    end
-  end
+  # context 'FeedVersion' do
+  #   it 'downloads and normalizes' do
+  #     feed_version = feed.feed_versions.new(url: url_rail)
+  #     VCR.use_cassette('feed_fetch_septa') do
+  #       feed_version.fetch_and_normalize
+  #     end
+  #     expect(feed_version.sha1_raw).to eq('7753eb566a28e29119475da6b3b03b3fc0922b3d')
+  #     expect(feed_version.sha1).to be_truthy
+  #   end
+  # end
 
   context 'GTFSGraph' do
     it 'imports' do
       feed_version = nil
       VCR.use_cassette('feed_fetch_septa') do
-        feed_version = feed.fetch_and_return_feed_version
+        feed_version = FeedFetcherService.fetch_and_return_feed_version(feed)
+        feed_version.save!
       end
       expect(feed_version.sha1_raw).to eq('7753eb566a28e29119475da6b3b03b3fc0922b3d')
       load_feed(feed_version: feed_version)
