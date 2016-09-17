@@ -10,8 +10,7 @@ class GTFSGraph
     # GTFS Graph / TransitLand wrapper
     @feed = feed
     @feed_version = feed_version
-    @gtfs = nil
-    @feed_version.open_gtfs { |gtfs| @gtfs = gtfs }
+    @gtfs = @feed_version.open_gtfs
 
     @log = []
     # GTFS entity to Onestop ID
