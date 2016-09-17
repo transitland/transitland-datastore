@@ -66,6 +66,10 @@ class FeedFetcherService
     feed_version
   end
 
+  def self.url_fragment(url)
+    (url || "").partition("#").last.presence
+  end
+
   def self.fetch_and_normalize_feed_version(feed)
     gtfs = GTFS::Source.build(
       feed.url,
@@ -90,17 +94,44 @@ class FeedFetcherService
       gtfs_file = File.open(gtfs.archive)
       sha1 = Digest::SHA1.file(gtfs_file).hexdigest
     end
-    FeedVersion.find_by(sha1: sha1) || FeedVersion.new(
-      feed: feed,
-      url: feed.url,
-      file: gtfs_file,
-      file_raw: gtfs_file_raw,
-      fetched_at: DateTime.now
-    )
+    # Create a new FeedVersion
+    feed_version = FeedVersion.find_by(sha1: sha1)
+    if !feed_version
+      data = {
+        feed: feed,
+        url: feed.url,
+        file: gtfs_file,
+        file_raw: gtfs_file_raw,
+        fetched_at: DateTime.now
+      }
+      data = data.merge!(read_gtfs_info(gtfs))
+      feed_version = FeedVersion.new(data)
+    end
+    feed_version
   end
 
-  def self.url_fragment(url)
-    (url || "").partition("#").last.presence
+  def self.read_gtfs_info(gtfs)
+    start_date, end_date = gtfs.service_period_range
+    earliest_calendar_date = start_date
+    latest_calendar_date = end_date
+    tags = {}
+    if gtfs.file_present?('feed_info.txt') && gtfs.feed_infos.count > 0
+      feed_info = gtfs.feed_infos[0]
+      tags.merge!({
+        feed_publisher_name: feed_info.feed_publisher_name,
+        feed_publisher_url:  feed_info.feed_publisher_url,
+        feed_lang:           feed_info.feed_lang,
+        feed_start_date:     feed_info.feed_start_date,
+        feed_end_date:       feed_info.feed_end_date,
+        feed_version:        feed_info.feed_version,
+        feed_id:             feed_info.feed_id
+      })
+    end
+    return {
+      earliest_calendar_date: earliest_calendar_date,
+      latest_calendar_date: latest_calendar_date,
+      tags: tags
+    }
   end
 
   private

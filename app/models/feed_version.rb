@@ -42,7 +42,7 @@ class FeedVersion < ActiveRecord::Base
   validates :sha1, presence: true, uniqueness: true
   validates :feed, presence: true
 
-  before_validation :compute_and_set_hashes, :read_gtfs_info
+  before_validation :compute_and_set_hashes
 
   scope :where_active, -> {
     joins('INNER JOIN current_feeds ON feed_versions.id = current_feeds.active_feed_version_id')
@@ -113,31 +113,4 @@ class FeedVersion < ActiveRecord::Base
     end
   end
 
-  def read_gtfs_info
-    if file.present? && file_changed?
-      open_gtfs do |gtfs|
-        start_date, end_date = gtfs.service_period_range
-        self.earliest_calendar_date ||= start_date
-        self.latest_calendar_date ||= end_date
-        begin
-          if gtfs.feed_infos.count > 0
-            feed_info = gtfs.feed_infos[0]
-            feed_version_tags = {
-              feed_publisher_name: feed_info.feed_publisher_name,
-              feed_publisher_url:  feed_info.feed_publisher_url,
-              feed_lang:           feed_info.feed_lang,
-              feed_start_date:     feed_info.feed_start_date,
-              feed_end_date:       feed_info.feed_end_date,
-              feed_version:        feed_info.feed_version,
-              feed_id:             feed_info.feed_id
-            }
-            feed_version_tags.delete_if { |k, v| v.blank? }
-            self.tags = feed_version_tags
-          end
-        rescue GTFS::InvalidSourceException
-          return
-        end
-      end
-    end
-  end
 end
