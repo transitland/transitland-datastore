@@ -82,8 +82,13 @@ class FeedVersion < ActiveRecord::Base
   def open_gtfs
     fail StandardError.new('No file') unless file.present?
     filename = file.local_path_copying_locally_if_needed
-    yield gtfs_source_build(filename)
+    gtfs = GTFS::Source.build(
+      filename,
+      strict: false,
+      tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
+    )
     file.remove_any_local_cached_copies
+    gtfs
   end
 
   def download_url
@@ -96,14 +101,6 @@ class FeedVersion < ActiveRecord::Base
   end
 
   private
-
-  def gtfs_source_build(source)
-    GTFS::Source.build(
-      source,
-      strict: false,
-      tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
-    )
-  end
 
   def compute_and_set_hashes
     if file.present? && file_changed?
