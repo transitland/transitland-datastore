@@ -41,6 +41,9 @@ class BaseRoute < ActiveRecord::Base
             in: GTFS::Route::VEHICLE_TYPES.invert.inject({}) {
               |hash, (k,v)| hash[k.to_s.parameterize('_').to_sym] = v.to_s.to_i if k.present?; hash
             }
+  enumerize :wheelchair_accessible, in: [:some_trips, :all_trips, :no_trips, :unknown]
+  enumerize :bikes_allowed, in: [:some_trips, :all_trips, :no_trips, :unknown]
+
 end
 
 class Route < BaseRoute
