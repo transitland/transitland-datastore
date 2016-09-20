@@ -153,8 +153,12 @@ class Changeset < ActiveRecord::Base
     change_payloads.destroy_all
   end
 
+  def import?
+    self.imported_from_feed && self.imported_from_feed_version
+  end
+
   def sticky?
-    self.imported_from_feed && self.imported_from_feed_version && self.imported_from_feed.feed_version_imports.size > 1
+    import? && self.imported_from_feed.feed_version_imports.size > 1
   end
 
   def issues_unresolved(resolving_issues, changeset_issues)
@@ -200,7 +204,7 @@ class Changeset < ActiveRecord::Base
         rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
       rescue StandardError
         log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
-        rsp.fallback_distances
+        rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.fallback_distances })
       end
 
       rsp.ordered_ssp_trip_chunks { |trip_chunk|
@@ -228,7 +232,7 @@ class Changeset < ActiveRecord::Base
         self.update(applied: true, applied_at: Time.now)
 
         # Create any feed-entity associations
-        if self.imported_from_feed && self.imported_from_feed_version
+        if import?
           eiff_batch = []
           self.entities_created_or_updated do |entity|
             eiff_batch << entity
@@ -242,8 +246,8 @@ class Changeset < ActiveRecord::Base
           EntityImportedFromFeed.import eiff_batch
         end
 
-        # Update computed properties
-        update_computed_attributes# unless self.imported_from_feed && self.imported_from_feed_version
+        # Update attributes that derive from imported attributes between models
+        update_computed_attributes
 
         # Check for issues
         changeset_issues = check_quality
