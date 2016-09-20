@@ -42,6 +42,8 @@ class RouteSerializer < CurrentEntitySerializer
              :stops_served_by_route,
              :operated_by_onestop_id,
              :operated_by_name,
+             :wheelchair_accessible,
+             :bikes_allowed,
              :created_at,
              :updated_at,
              :route_stop_patterns_by_onestop_id
