@@ -6,6 +6,30 @@ class GTFSGraph
   CHANGE_PAYLOAD_MAX_ENTITIES = Figaro.env.feed_eater_change_payload_max_entities.try(:to_i) || 1_000
   STOP_TIMES_MAX_LOAD = Figaro.env.feed_eater_stop_times_max_load.try(:to_i) || 100_000
 
+  def self.to_tfn(value)
+    case value.to_i
+    when 0
+      nil
+    when 1
+      true
+    when 2
+      false
+    end
+  end
+
+  def self.to_pickup_type(value)
+    case value.to_i
+    when 0
+      nil
+    when 1
+      :unavailable
+    when 2
+      :ask_agency
+    when 3
+      :ask_driver
+    end
+  end
+
   def initialize(feed, feed_version)
     # GTFS Graph / TransitLand wrapper
     @feed = feed
@@ -482,30 +506,6 @@ class GTFSGraph
     end
     rsp_map.each do |trip_id,onestop_id|
       @gtfs_to_onestop_id[@gtfs.trip(trip_id)] = onestop_id
-    end
-  end
-
-  def to_tfn(value)
-    case value.to_i
-    when 0
-      nil
-    when 1
-      true
-    when 2
-      false
-    end
-  end
-
-  def to_pickup_type(value)
-    case value.to_i
-    when 0
-      nil
-    when 1
-      :unavailable
-    when 2
-      :ask_agency
-    when 3
-      :ask_driver
     end
   end
 end

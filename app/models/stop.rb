@@ -316,7 +316,7 @@ class Stop < BaseStop
       onestop_id: onestop_id.to_s,
       geometry: point.to_s
     )
-    stop.wheelchair_boarding = to_tfn(entity.wheelchair_boarding)
+    stop.wheelchair_boarding = GTFSGraph.to_tfn(entity.wheelchair_boarding)
     # Copy over GTFS attributes to tags
     stop.tags ||= {}
     stop.tags[:wheelchair_boarding] = entity.wheelchair_boarding
