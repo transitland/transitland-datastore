@@ -17,6 +17,12 @@
     "tags": { "type": "object" },
     "color": { "type": "string" },
     "geometry": { "type": "object" },
+    "wheelchairAccessible": {
+      "type": ["string","null"]
+    },
+    "bikesAllowed": {
+      "type": ["string","null"]
+    },
     "vehicleType": {
       "type": ["string", "integer"],
       "format": "vehicle-type"
