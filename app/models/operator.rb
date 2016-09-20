@@ -18,7 +18,6 @@
 #  country                            :string
 #  state                              :string
 #  metro                              :string
-#  edited_attributes                  :string           default([]), is an Array
 #
 # Indexes
 #
