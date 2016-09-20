@@ -485,6 +485,28 @@ class GTFSGraph
     end
   end
 
+  def to_trips_accessible(trips, key)
+    # All combinations of 0,1,2 to:
+    #    [:some_trips, :all_trips, :no_trips, :unknown]
+    values = trips.map { |trip| trip.send(key).to_i }.to_set
+    case values
+    when Set.new([0])
+      :unknown
+    when Set.new([1])
+      :all_trips
+    when Set.new([2])
+      :no_trips
+    when Set.new([0,1])
+      :some_trips
+    when Set.new([0,2])
+      :no_trips
+    when Set.new([1,2])
+      :some_trips
+    when Set.new([0,1,2])
+      :some_trips
+    end
+  end
+
   def to_tfn(value)
     case value.to_i
     when 0
