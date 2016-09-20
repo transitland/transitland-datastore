@@ -33,7 +33,7 @@ class GTFSGraph
     load_tl_transfers
     load_tl_routes
     rsps = load_tl_route_stop_patterns
-    calculate_rsp_distances(rsps)
+    #calculate_rsp_distances(rsps)
     operators = load_tl_operators
     fail GTFSGraph::Error.new('No agencies found that match operators_in_feed') unless operators.size > 0
 
@@ -103,18 +103,18 @@ class GTFSGraph
     graph_log "  apply done: time #{Time.now - t}"
   end
 
-  def calculate_rsp_distances(rsps)
-    graph_log "Calculating distances"
-    rsps.each do |rsp|
-      stops = rsp.stop_pattern.map { |onestop_id| find_by_onestop_id(onestop_id) }
-      begin
-        rsp.calculate_distances(stops=stops)
-      rescue StandardError
-        graph_log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
-        rsp.fallback_distances(stops=stops)
-      end
-    end
-  end
+  # def calculate_rsp_distances(rsps)
+  #   graph_log "Calculating distances"
+  #   rsps.each do |rsp|
+  #     stops = rsp.stop_pattern.map { |onestop_id| find_by_onestop_id(onestop_id) }
+  #     begin
+  #       rsp.calculate_distances(stops=stops)
+  #     rescue StandardError
+  #       graph_log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
+  #       rsp.fallback_distances(stops=stops)
+  #     end
+  #   end
+  # end
 
   def ssp_schedule_async
     agency_map, route_map, stop_map, rsp_map = make_gtfs_id_map
@@ -323,11 +323,11 @@ class GTFSGraph
       # Create Operator from GTFS
       operator = Operator.from_gtfs(entity)
       operator.onestop_id = oif.operator.onestop_id # Override Onestop ID
-      operator_original = operator # for merging geometry
+      #operator_original = operator # for merging geometry
       # ... or check if Operator exists, or another local Operator, or new.
       operator = find_by_entity(operator)
       # Merge convex hulls
-      operator[:geometry] = Operator.convex_hull([operator, operator_original], as: :wkt, projected: false)
+      #operator[:geometry] = Operator.convex_hull([operator, operator_original], as: :wkt, projected: false)
 
       # Operator routes & stops
       routes = entity.routes.map { |route| find_by_gtfs_entity(route) }.compact.to_set

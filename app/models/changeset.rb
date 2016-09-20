@@ -131,7 +131,7 @@ class Changeset < ActiveRecord::Base
       changes = chunk.map do |entity|
         {
           :action => :createUpdate,
-          entity.class.name.camelize(:lower) => entity.as_change(sticky: sticky).as_json.compact
+          entity.class.name.camelize(:lower) => entity.as_change.as_json.compact
         }
       end
       payload = {changes: changes}
@@ -153,7 +153,7 @@ class Changeset < ActiveRecord::Base
     change_payloads.destroy_all
   end
 
-  def sticky
+  def sticky?
     self.imported_from_feed && self.imported_from_feed_version && self.imported_from_feed.feed_version_imports.size > 1
   end
 
@@ -194,8 +194,15 @@ class Changeset < ActiveRecord::Base
     end
 
     rsps_to_update_distances.merge(self.route_stop_patterns_created_or_updated)
+    log "Calculating distances" unless rsps_to_update_distances.empty?
     rsps_to_update_distances.each { |rsp|
-      rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
+      begin
+        rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
+      rescue StandardError
+        log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
+        rsp.fallback_distances
+      end
+
       rsp.ordered_ssp_trip_chunks { |trip_chunk|
         trip_chunk.each_with_index do |ssp, i|
           ssp.update_column(:origin_dist_traveled, rsp.stop_distances[i])
@@ -236,7 +243,7 @@ class Changeset < ActiveRecord::Base
         end
 
         # Update computed properties
-        update_computed_attributes unless self.imported_from_feed && self.imported_from_feed_version
+        update_computed_attributes# unless self.imported_from_feed && self.imported_from_feed_version
 
         # Check for issues
         changeset_issues = check_quality
@@ -257,6 +264,8 @@ class Changeset < ActiveRecord::Base
           logger.error "Error applying Changeset #{self.id}: " + message
           raise Changeset::Error.new(changeset: self, message: message)
         end
+
+        # TODO save attribute names as sticky if non-import
 
       rescue StandardError => error
         logger.error "Error applying Changeset #{self.id}: #{error.message}"
