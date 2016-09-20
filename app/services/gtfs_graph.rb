@@ -363,11 +363,17 @@ class GTFSGraph
       next if stops.empty?
       # Search by similarity
       route = find_and_update_entity(Route.from_gtfs(entity))
+      # Update accessibility
+      trips = entity.trips
+      route.wheelchair_accessible = to_trips_accessible(trips, :wheelchair_accessible)
+      route.bikes_allowed = to_trips_accessible(trips, :bikes_allowed)
       # Add references and identifiers
       route.serves ||= Set.new
       route.serves |= stops.map(&:onestop_id)
       add_identifier(route, 'r', entity)
       graph_log "    #{route.onestop_id}: #{route.name}"
+      graph_log "    wheelchair_accessible: #{route.wheelchair_accessible}"
+      graph_log "    bikes_allowed: #{route.bikes_allowed}"
     end
   end
 
