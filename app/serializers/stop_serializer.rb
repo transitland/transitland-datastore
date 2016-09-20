@@ -17,6 +17,7 @@
 #  type                               :string
 #  parent_stop_id                     :integer
 #  osm_way_id                         :integer
+#  edited_attributes                  :string           default([]), is an Array
 #
 # Indexes
 #

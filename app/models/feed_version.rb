@@ -20,6 +20,7 @@
 #  file_raw               :string
 #  sha1_raw               :string
 #  md5_raw                :string
+#  edited_attributes      :string           default([]), is an Array
 #
 # Indexes
 #

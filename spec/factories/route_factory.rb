@@ -15,6 +15,7 @@
 #  identifiers                        :string           default([]), is an Array
 #  vehicle_type                       :integer
 #  color                              :string
+#  edited_attributes                  :string           default([]), is an Array
 #
 # Indexes
 #

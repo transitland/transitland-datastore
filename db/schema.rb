@@ -11,12 +11,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160913205612) do
+ActiveRecord::Schema.define(version: 20160914234206) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "hstore"
   enable_extension "postgis"
+  enable_extension "hstore"
 
   create_table "change_payloads", force: :cascade do |t|
     t.json     "payload"
@@ -62,6 +62,7 @@ ActiveRecord::Schema.define(version: 20160913205612) do
     t.text      "latest_fetch_exception_log"
     t.text      "license_attribution_text"
     t.integer   "active_feed_version_id"
+    t.string    "edited_attributes",                                                                              default: [], array: true
   end
 
   add_index "current_feeds", ["active_feed_version_id"], name: "index_current_feeds_on_active_feed_version_id", using: :btree
@@ -85,6 +86,7 @@ ActiveRecord::Schema.define(version: 20160913205612) do
     t.string    "country"
     t.string    "state"
     t.string    "metro"
+    t.string    "edited_attributes",                                                                              default: [], array: true
   end
 
   add_index "current_operators", ["created_or_updated_in_changeset_id"], name: "#c_operators_cu_in_changeset_id_index", using: :btree
@@ -137,6 +139,7 @@ ActiveRecord::Schema.define(version: 20160913205612) do
     t.integer   "created_or_updated_in_changeset_id"
     t.integer   "route_id"
     t.float     "stop_distances",                                                                                 default: [],                 array: true
+    t.string    "edited_attributes",                                                                              default: [],                 array: true
   end
 
   add_index "current_route_stop_patterns", ["created_or_updated_in_changeset_id"], name: "c_rsp_cu_in_changeset", using: :btree
@@ -159,6 +162,7 @@ ActiveRecord::Schema.define(version: 20160913205612) do
     t.string    "identifiers",                                                                                    default: [], array: true
     t.integer   "vehicle_type"
     t.string    "color"
+    t.string    "edited_attributes",                                                                              default: [], array: true
   end
 
   add_index "current_routes", ["created_or_updated_in_changeset_id"], name: "c_route_cu_in_changeset", using: :btree
@@ -275,6 +279,7 @@ ActiveRecord::Schema.define(version: 20160913205612) do
     t.string    "type"
     t.integer   "parent_stop_id"
     t.integer   "osm_way_id"
+    t.string    "edited_attributes",                                                                              default: [], array: true
   end
 
   add_index "current_stops", ["created_or_updated_in_changeset_id"], name: "#c_stops_cu_in_changeset_id_index", using: :btree
@@ -351,6 +356,7 @@ ActiveRecord::Schema.define(version: 20160913205612) do
     t.string   "file_raw"
     t.string   "sha1_raw"
     t.string   "md5_raw"
+    t.string   "edited_attributes",      default: [], array: true
   end
 
   add_index "feed_versions", ["feed_type", "feed_id"], name: "index_feed_versions_on_feed_type_and_feed_id", using: :btree
