@@ -230,10 +230,10 @@ class GTFSGraph
           shape_dist_traveled: gtfs_destination_stop_time.shape_dist_traveled.to_f,
           block_id: gtfs_trip.block_id,
           # Accessibility
-          pickup_type: to_pickup_type(gtfs_origin_stop_time.pickup_type),
-          drop_off_type: to_pickup_type(gtfs_destination_stop_time.drop_off_type),
-          wheelchair_accessible: to_tfn(gtfs_trip.wheelchair_accessible),
-          bikes_allowed: to_tfn(gtfs_trip.bikes_allowed),
+          pickup_type: self.class.to_pickup_type(gtfs_origin_stop_time.pickup_type),
+          drop_off_type: self.class.to_pickup_type(gtfs_destination_stop_time.drop_off_type),
+          wheelchair_accessible: self.class.to_tfn(gtfs_trip.wheelchair_accessible),
+          bikes_allowed: self.class.to_tfn(gtfs_trip.bikes_allowed),
           # service period
           service_start_date: gtfs_service_period.start_date,
           service_end_date: gtfs_service_period.end_date,
