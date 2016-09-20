@@ -11,12 +11,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160913205612) do
+ActiveRecord::Schema.define(version: 20160920191755) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "hstore"
   enable_extension "postgis"
+  enable_extension "hstore"
 
   create_table "change_payloads", force: :cascade do |t|
     t.json     "payload"
@@ -62,6 +62,7 @@ ActiveRecord::Schema.define(version: 20160913205612) do
     t.text      "latest_fetch_exception_log"
     t.text      "license_attribution_text"
     t.integer   "active_feed_version_id"
+    t.string    "edited_attributes",                                                                              default: [], array: true
   end
 
   add_index "current_feeds", ["active_feed_version_id"], name: "index_current_feeds_on_active_feed_version_id", using: :btree
@@ -85,6 +86,7 @@ ActiveRecord::Schema.define(version: 20160913205612) do
     t.string    "country"
     t.string    "state"
     t.string    "metro"
+    t.string    "edited_attributes",                                                                              default: [], array: true
   end
 
   add_index "current_operators", ["created_or_updated_in_changeset_id"], name: "#c_operators_cu_in_changeset_id_index", using: :btree
@@ -137,6 +139,7 @@ ActiveRecord::Schema.define(version: 20160913205612) do
     t.integer   "created_or_updated_in_changeset_id"
     t.integer   "route_id"
     t.float     "stop_distances",                                                                                 default: [],                 array: true
+    t.string    "edited_attributes",                                                                              default: [],                 array: true
   end
 
   add_index "current_route_stop_patterns", ["created_or_updated_in_changeset_id"], name: "c_rsp_cu_in_changeset", using: :btree
@@ -159,6 +162,7 @@ ActiveRecord::Schema.define(version: 20160913205612) do
     t.string    "identifiers",                                                                                    default: [], array: true
     t.integer   "vehicle_type"
     t.string    "color"
+    t.string    "edited_attributes",                                                                              default: [], array: true
   end
 
   add_index "current_routes", ["created_or_updated_in_changeset_id"], name: "c_route_cu_in_changeset", using: :btree
@@ -275,6 +279,8 @@ ActiveRecord::Schema.define(version: 20160913205612) do
     t.string    "type"
     t.integer   "parent_stop_id"
     t.integer   "osm_way_id"
+    t.string    "edited_attributes",                                                                              default: [], array: true
+    t.boolean   "wheelchair_boarding"
   end
 
   add_index "current_stops", ["created_or_updated_in_changeset_id"], name: "#c_stops_cu_in_changeset_id_index", using: :btree
@@ -284,6 +290,7 @@ ActiveRecord::Schema.define(version: 20160913205612) do
   add_index "current_stops", ["parent_stop_id"], name: "index_current_stops_on_parent_stop_id", using: :btree
   add_index "current_stops", ["tags"], name: "index_current_stops_on_tags", using: :btree
   add_index "current_stops", ["updated_at"], name: "index_current_stops_on_updated_at", using: :btree
+  add_index "current_stops", ["wheelchair_boarding"], name: "index_current_stops_on_wheelchair_boarding", using: :btree
 
   create_table "entities_imported_from_feed", force: :cascade do |t|
     t.integer  "entity_id"
@@ -387,6 +394,7 @@ ActiveRecord::Schema.define(version: 20160913205612) do
     t.text      "latest_fetch_exception_log"
     t.text      "license_attribution_text"
     t.integer   "active_feed_version_id"
+    t.string    "edited_attributes",                                                                              default: [], array: true
   end
 
   add_index "old_feeds", ["active_feed_version_id"], name: "index_old_feeds_on_active_feed_version_id", using: :btree
@@ -413,6 +421,7 @@ ActiveRecord::Schema.define(version: 20160913205612) do
     t.string    "country"
     t.string    "state"
     t.string    "metro"
+    t.string    "edited_attributes",                                                                              default: [], array: true
   end
 
   add_index "old_operators", ["created_or_updated_in_changeset_id"], name: "o_operators_cu_in_changeset_id_index", using: :btree
@@ -479,6 +488,7 @@ ActiveRecord::Schema.define(version: 20160913205612) do
     t.string    "route_type"
     t.integer   "current_id"
     t.float     "stop_distances",                                                                                 default: [],                 array: true
+    t.string    "edited_attributes",                                                                              default: [],                 array: true
   end
 
   add_index "old_route_stop_patterns", ["created_or_updated_in_changeset_id"], name: "o_rsp_cu_in_changeset", using: :btree
@@ -505,6 +515,7 @@ ActiveRecord::Schema.define(version: 20160913205612) do
     t.string    "identifiers",                                                                                    default: [], array: true
     t.integer   "vehicle_type"
     t.string    "color"
+    t.string    "edited_attributes",                                                                              default: [], array: true
   end
 
   add_index "old_routes", ["created_or_updated_in_changeset_id"], name: "o_route_cu_in_changeset", using: :btree
@@ -637,6 +648,8 @@ ActiveRecord::Schema.define(version: 20160913205612) do
     t.string    "type"
     t.integer   "parent_stop_id"
     t.integer   "osm_way_id"
+    t.string    "edited_attributes",                                                                              default: [], array: true
+    t.boolean   "wheelchair_boarding"
   end
 
   add_index "old_stops", ["created_or_updated_in_changeset_id"], name: "o_stops_cu_in_changeset_id_index", using: :btree
@@ -645,6 +658,7 @@ ActiveRecord::Schema.define(version: 20160913205612) do
   add_index "old_stops", ["geometry"], name: "index_old_stops_on_geometry", using: :gist
   add_index "old_stops", ["identifiers"], name: "index_old_stops_on_identifiers", using: :gin
   add_index "old_stops", ["parent_stop_id"], name: "index_old_stops_on_parent_stop_id", using: :btree
+  add_index "old_stops", ["wheelchair_boarding"], name: "index_old_stops_on_wheelchair_boarding", using: :btree
 
   create_table "users", force: :cascade do |t|
     t.string   "email",                                  null: false

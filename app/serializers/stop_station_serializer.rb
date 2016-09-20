@@ -37,6 +37,7 @@ class StopStationSerializer < CurrentEntitySerializer
                :tags,
                :served_by_vehicle_types,
                :timezone,
+               :wheelchair_boarding,
                :created_at,
                :updated_at,
                :last_conflated_at
@@ -52,6 +53,7 @@ class StopStationSerializer < CurrentEntitySerializer
                :tags,
                :timezone,
                :osm_way_id,
+               :wheelchair_boarding,
                :created_at,
                :updated_at
                :last_conflated_at
@@ -104,6 +106,7 @@ class StopStationSerializer < CurrentEntitySerializer
              :tags,
              :timezone,
              :vehicle_types_serving_stop_and_platforms,
+             :wheelchair_boarding,
              :created_at,
              :updated_at
 

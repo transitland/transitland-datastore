@@ -53,6 +53,9 @@ class Api::V1::StopsController < Api::V1::BaseApiController
     if params[:served_by_vehicle_types].present?
       @stops = @stops.served_by_vehicle_types(AllowFiltering.param_as_array(params, :served_by_vehicle_types))
     end
+    if params[:wheelchair_boarding].present?
+      @stops = @stops.where(wheelchair_boarding: AllowFiltering.to_boolean(params[:wheelchair_boarding] ))
+    end
 
     @stops = @stops.includes{[
       operators_serving_stop,
