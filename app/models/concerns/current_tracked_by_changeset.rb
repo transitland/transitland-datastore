@@ -104,7 +104,7 @@ module CurrentTrackedByChangeset
         @virtual_attributes.map(&:to_sym) -
         @protected_attributes.map(&:to_sym) -
         reflections.values.map(&:foreign_key).map(&:to_sym) -
-        [:id, :created_at, :updated_at, :version]
+        [:id, :created_at, :updated_at, :version, :edited_attributes]
       )
       @changeable_attributes
     end
@@ -123,10 +123,15 @@ module CurrentTrackedByChangeset
     end
   end
 
+  def attribute_sticks?(attribute)
+    self.class.sticky_attributes.include?(attribute) && self.edited_attributes.include?(attribute)
+  end
+
   def as_change(sticky: false)
     Hash[
-      slice(*self.class.changeable_attributes).
-      map { |k, v| [k.to_s.camelize(:lower).to_sym, v] }
+      slice(*self.class.changeable_attributes)
+      .reject { |k, v| attribute_sticks?(k) && sticky }
+      .map { |k, v| [k.to_s.camelize(:lower).to_sym, v] }
     ]
   end
 

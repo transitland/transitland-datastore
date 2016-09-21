@@ -131,7 +131,7 @@ class Changeset < ActiveRecord::Base
       changes = chunk.map do |entity|
         {
           :action => :createUpdate,
-          entity.class.name.camelize(:lower) => entity.as_change(sticky: sticky).as_json.compact
+          entity.class.name.camelize(:lower) => entity.as_change(sticky: sticky?).as_json.compact
         }
       end
       payload = {changes: changes}
