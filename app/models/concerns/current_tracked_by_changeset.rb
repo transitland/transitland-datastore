@@ -106,7 +106,6 @@ module CurrentTrackedByChangeset
         reflections.values.map(&:foreign_key).map(&:to_sym) -
         [:id, :created_at, :updated_at, :version, :edited_attributes]
       )
-      @changeable_attributes
     end
 
     private

@@ -247,7 +247,7 @@ class Changeset < ActiveRecord::Base
         end
 
         # Update attributes that derive from imported attributes between models
-        update_computed_attributes
+        update_computed_attributes unless import?
 
         # Check for issues
         changeset_issues = check_quality
@@ -257,7 +257,7 @@ class Changeset < ActiveRecord::Base
           changeset_issues.each(&:save!)
           # Temporarily disabling deactivation for non-import changesets until faster implementation
           # or all-async changesets
-          Issue.bulk_deactivate if self.imported_from_feed && self.imported_from_feed_version
+          Issue.bulk_deactivate if import?
           resolving_issues.each {|issue|
             log("Deprecating issue: #{issue.as_json(include: [:entities_with_issues])}")
             EntityWithIssues.delete issue.entities_with_issues
