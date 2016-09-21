@@ -79,6 +79,9 @@
           "format": "stop-onestop-id"
         }
       }
+    },
+    "wheelchairBoarding": {
+      "type": ["boolean", "null"]
     }
   }
 }

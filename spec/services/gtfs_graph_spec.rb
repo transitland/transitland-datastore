@@ -11,6 +11,12 @@ describe GTFSGraph do
     end
   end
 
+  context 'to_trip_accessible' do
+    it 'returns all_trips if all_trips are 1' do
+      trips = [GTFS::Trip.new(wheelchair_accessible: '1', GTFS::Trip.new(wheelchair_accessible: '1')]
+    end
+  end
+
   context 'errors' do
     before(:each) {
       feed_version = create(:feed_version_example)
