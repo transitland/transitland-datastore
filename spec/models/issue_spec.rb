@@ -102,6 +102,7 @@ describe Issue do
         # expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>2/)
         # expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>5/)
         # expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>6/)
+        expect(Sidekiq::Logging.logger).to receive(:info).with(/Calculating distances/)
         expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>8.*"resolved_by_changeset_id"=>2.*"open"=>false/)
         changeset.apply!
       end
