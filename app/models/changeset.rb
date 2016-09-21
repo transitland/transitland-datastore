@@ -198,6 +198,7 @@ class Changeset < ActiveRecord::Base
     end
 
     rsps_to_update_distances.merge(self.route_stop_patterns_created_or_updated)
+    log "Calculating distances" unless rsps_to_update_distances.empty?
     rsps_to_update_distances.each { |rsp|
       begin
         rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
@@ -267,6 +268,8 @@ class Changeset < ActiveRecord::Base
           logger.error "Error applying Changeset #{self.id}: " + message
           raise Changeset::Error.new(changeset: self, message: message)
         end
+
+        # TODO save attribute names as sticky if non-import
 
       rescue StandardError => error
         logger.error "Error applying Changeset #{self.id}: #{error.message}"
