@@ -96,8 +96,6 @@ class Operator < BaseOperator
       changeset: changeset
     )
     super(changeset)
-    old_operator = Operator.find_by_onestop_id!(self.onestop_id)
-    old_operator.geometry = Operator.convex_hull([self, old_operator], as: :wkt, projected: false) unless old_operator.nil?
   end
   def before_destroy_making_history(changeset, old_model)
     operators_serving_stop.each do |operator_serving_stop|

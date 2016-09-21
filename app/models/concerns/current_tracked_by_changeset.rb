@@ -95,7 +95,7 @@ module CurrentTrackedByChangeset
       Object.const_get("Old#{self.to_s}").new
     end
 
-    def changeable_attributes
+    def changeable_attributes(sticky: false)
       # Allow editing of attribute, minus foreign keys and protected attrs
       # TODO: read directly from JSON schema?
       # Convert everything to symbol
@@ -106,6 +106,7 @@ module CurrentTrackedByChangeset
         reflections.values.map(&:foreign_key).map(&:to_sym) -
         [:id, :created_at, :updated_at, :version]
       )
+      @changeable_attributes -= @sticky_attributes if sticky
       @changeable_attributes
     end
 
@@ -123,9 +124,9 @@ module CurrentTrackedByChangeset
     end
   end
 
-  def as_change
+  def as_change(sticky: false)
     Hash[
-      slice(*self.class.changeable_attributes).
+      slice(*self.class.changeable_attributes(sticky: sticky)).
       map { |k, v| [k.to_s.camelize(:lower).to_sym, v] }
     ]
   end
