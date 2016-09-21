@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160914234206) do
+ActiveRecord::Schema.define(version: 20160920191755) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -280,6 +280,7 @@ ActiveRecord::Schema.define(version: 20160914234206) do
     t.integer   "parent_stop_id"
     t.integer   "osm_way_id"
     t.string    "edited_attributes",                                                                              default: [], array: true
+    t.boolean   "wheelchair_boarding"
   end
 
   add_index "current_stops", ["created_or_updated_in_changeset_id"], name: "#c_stops_cu_in_changeset_id_index", using: :btree
@@ -289,6 +290,7 @@ ActiveRecord::Schema.define(version: 20160914234206) do
   add_index "current_stops", ["parent_stop_id"], name: "index_current_stops_on_parent_stop_id", using: :btree
   add_index "current_stops", ["tags"], name: "index_current_stops_on_tags", using: :btree
   add_index "current_stops", ["updated_at"], name: "index_current_stops_on_updated_at", using: :btree
+  add_index "current_stops", ["wheelchair_boarding"], name: "index_current_stops_on_wheelchair_boarding", using: :btree
 
   create_table "entities_imported_from_feed", force: :cascade do |t|
     t.integer  "entity_id"
@@ -647,6 +649,7 @@ ActiveRecord::Schema.define(version: 20160914234206) do
     t.integer   "parent_stop_id"
     t.integer   "osm_way_id"
     t.string    "edited_attributes",                                                                              default: [], array: true
+    t.boolean   "wheelchair_boarding"
   end
 
   add_index "old_stops", ["created_or_updated_in_changeset_id"], name: "o_stops_cu_in_changeset_id_index", using: :btree
@@ -655,6 +658,7 @@ ActiveRecord::Schema.define(version: 20160914234206) do
   add_index "old_stops", ["geometry"], name: "index_old_stops_on_geometry", using: :gist
   add_index "old_stops", ["identifiers"], name: "index_old_stops_on_identifiers", using: :gin
   add_index "old_stops", ["parent_stop_id"], name: "index_old_stops_on_parent_stop_id", using: :btree
+  add_index "old_stops", ["wheelchair_boarding"], name: "index_old_stops_on_wheelchair_boarding", using: :btree
 
   create_table "users", force: :cascade do |t|
     t.string   "email",                                  null: false

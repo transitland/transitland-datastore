@@ -27,6 +27,8 @@
 #
 
 class FeedVersion < ActiveRecord::Base
+  include HasTags
+
   belongs_to :feed, polymorphic: true
   has_many :feed_version_imports, -> { order 'created_at DESC' }, dependent: :destroy
   has_many :changesets_imported_from_this_feed_version, class_name: 'Changeset'
@@ -42,7 +44,7 @@ class FeedVersion < ActiveRecord::Base
   validates :sha1, presence: true, uniqueness: true
   validates :feed, presence: true
 
-  before_validation :compute_and_set_hashes, :read_gtfs_info
+  before_validation :compute_and_set_hashes
 
   scope :where_active, -> {
     joins('INNER JOIN current_feeds ON feed_versions.id = current_feeds.active_feed_version_id')
@@ -82,8 +84,13 @@ class FeedVersion < ActiveRecord::Base
   def open_gtfs
     fail StandardError.new('No file') unless file.present?
     filename = file.local_path_copying_locally_if_needed
-    yield gtfs_source_build(filename)
+    gtfs = GTFS::Source.build(
+      filename,
+      strict: false,
+      tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
+    )
     file.remove_any_local_cached_copies
+    gtfs
   end
 
   def download_url
@@ -97,14 +104,6 @@ class FeedVersion < ActiveRecord::Base
 
   private
 
-  def gtfs_source_build(source)
-    GTFS::Source.build(
-      source,
-      strict: false,
-      tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
-    )
-  end
-
   def compute_and_set_hashes
     if file.present? && file_changed?
       self.sha1 = Digest::SHA1.file(file.path).hexdigest
@@ -116,31 +115,4 @@ class FeedVersion < ActiveRecord::Base
     end
   end
 
-  def read_gtfs_info
-    if file.present? && file_changed?
-      open_gtfs do |gtfs|
-        start_date, end_date = gtfs.service_period_range
-        self.earliest_calendar_date ||= start_date
-        self.latest_calendar_date ||= end_date
-        begin
-          if gtfs.feed_infos.count > 0
-            feed_info = gtfs.feed_infos[0]
-            feed_version_tags = {
-              feed_publisher_name: feed_info.feed_publisher_name,
-              feed_publisher_url:  feed_info.feed_publisher_url,
-              feed_lang:           feed_info.feed_lang,
-              feed_start_date:     feed_info.feed_start_date,
-              feed_end_date:       feed_info.feed_end_date,
-              feed_version:        feed_info.feed_version,
-              feed_id:             feed_info.feed_id
-            }
-            feed_version_tags.delete_if { |k, v| v.blank? }
-            self.tags = feed_version_tags
-          end
-        rescue GTFS::InvalidSourceException
-          return
-        end
-      end
-    end
-  end
 end

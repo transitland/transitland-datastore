@@ -35,21 +35,6 @@ describe FeedVersion do
     end
   end
 
-  context '#read_gtfs_info' do
-    it 'reads earliest and latest dates from calendars.txt' do
-      feed_version = create(:feed_version_bart)
-      expect(feed_version.earliest_calendar_date).to eq Date.parse('2013-11-28')
-      expect(feed_version.latest_calendar_date).to eq Date.parse('2017-01-01')
-    end
-    it 'reads feed_info.txt and puts into tags' do
-      feed_version = create(:feed_version_bart)
-      expect(feed_version.tags['feed_lang']).to eq 'en'
-      expect(feed_version.tags['feed_version']).to eq '36'
-      expect(feed_version.tags['feed_publisher_url']).to eq 'http://www.bart.gov'
-      expect(feed_version.tags['feed_publisher_name']).to eq 'Bay Area Rapid Transit'
-    end
-  end
-
   context '#delete_schedule_stop_pairs' do
     before(:each) do
       @feed_version = create(:feed_version)

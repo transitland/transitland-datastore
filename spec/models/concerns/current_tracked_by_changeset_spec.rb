@@ -62,5 +62,9 @@ describe CurrentTrackedByChangeset do
     it "does not include foreign keys" do
       expect(stop.as_change[:created_or_updated_in_changeset]).to be nil
     end
+
+    it "filters out edited attributes" do
+      
+    end
   end
 end

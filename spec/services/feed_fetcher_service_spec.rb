@@ -104,6 +104,31 @@ describe FeedFetcherService do
     end
   end
 
+  context '#read_gtfs_info' do
+    it 'reads earliest and latest dates from calendars.txt' do
+      feed = create(:feed, url: example_url)
+      feed_version = nil
+      VCR.use_cassette('feed_fetch_example_local') do
+        feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
+        feed_version.save!
+      end
+      expect(feed_version.earliest_calendar_date).to eq Date.parse('2007-01-01')
+      expect(feed_version.latest_calendar_date).to eq Date.parse('2010-12-31')
+    end
+    it 'reads feed_info.txt and puts into tags' do
+      feed = create(:feed, url: example_url)
+      feed_version = nil
+      VCR.use_cassette('feed_fetch_example_local') do
+        feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
+        feed_version.save!
+      end
+      expect(feed_version.tags['feed_lang']).to eq 'en-US'
+      expect(feed_version.tags['feed_version']).to eq '1.0'
+      expect(feed_version.tags['feed_publisher_url']).to eq 'http://google.com'
+      expect(feed_version.tags['feed_publisher_name']).to eq 'Google'
+    end
+  end
+
   context '#fetch_and_normalize' do
     it 'downloads feed' do
       feed = create(:feed, url: example_url)
