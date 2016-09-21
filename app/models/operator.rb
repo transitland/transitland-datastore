@@ -74,6 +74,13 @@ class Operator < BaseOperator
     ],
     protected_attributes: [
       :identifiers
+    ],
+    sticky_attributes: [
+      :short_name,
+      :country,
+      :metro,
+      :state,
+      :website
     ]
   })
   def after_create_making_history(changeset)

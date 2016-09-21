@@ -82,6 +82,10 @@ class Route < BaseRoute
     ],
     protected_attributes: [
       :identifiers
+    ],
+    sticky_attributes: [
+      :color,
+      :vehicle_type
     ]
   })
 

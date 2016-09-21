@@ -129,7 +129,7 @@ module CurrentTrackedByChangeset
   def as_change(sticky: false)
     Hash[
       slice(*self.class.changeable_attributes)
-      .reject { |k, v| attribute_sticks?(k) && sticky }
+      .reject { |k, v| attribute_sticks?(k.to_sym) && sticky }
       .map { |k, v| [k.to_s.camelize(:lower).to_sym, v] }
     ]
   end

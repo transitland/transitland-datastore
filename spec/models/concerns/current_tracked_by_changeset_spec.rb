@@ -64,7 +64,9 @@ describe CurrentTrackedByChangeset do
     end
 
     it "filters out edited attributes" do
-      
+      stop.wheelchair_boarding = true
+      stop.edited_attributes << :wheelchair_boarding
+      expect(stop.as_change(sticky: true)[:wheelchairBoarding]).to be nil
     end
   end
 end
