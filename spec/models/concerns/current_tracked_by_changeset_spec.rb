@@ -69,4 +69,12 @@ describe CurrentTrackedByChangeset do
       expect(stop.as_change(sticky: true)[:wheelchairBoarding]).to be nil
     end
   end
+
+  it 'updates edited_attributes during create and update' do
+    stop.wheelchair_boarding = true
+    changeset = create(:changeset)
+    changeset.create_change_payloads([stop])
+    Stop.apply_changes_create_update(changeset: changeset, changes: [changeset.change_payloads.first.payload_as_ruby_hash[:changes][0][:stop]])
+    expect(Stop.find_by_onestop_id!(stop.onestop_id).edited_attributes).to include("wheelchair_boarding")
+  end
 end
