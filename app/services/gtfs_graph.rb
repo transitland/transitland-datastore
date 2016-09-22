@@ -414,8 +414,6 @@ class GTFSGraph
       route.serves |= stops.map(&:onestop_id)
       add_identifier(route, 'r', entity)
       graph_log "    #{route.onestop_id}: #{route.name}"
-      graph_log "    wheelchair_accessible: #{route.wheelchair_accessible}"
-      graph_log "    bikes_allowed: #{route.bikes_allowed}"
     end
   end
 
