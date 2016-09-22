@@ -89,6 +89,8 @@ class Stop < BaseStop
       :type
     ],
     sticky_attributes: [
+      :name,
+      :geometry,
       :wheelchair_boarding
     ]
   })

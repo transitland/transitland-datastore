@@ -154,6 +154,7 @@ class Changeset < ActiveRecord::Base
   end
 
   def import?
+    # TODO "manual" vs feed fetch
     self.imported_from_feed && self.imported_from_feed_version
   end
 

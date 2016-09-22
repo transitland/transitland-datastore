@@ -84,6 +84,8 @@ class Route < BaseRoute
       :identifiers
     ],
     sticky_attributes: [
+      :name,
+      :geometry,
       :color,
       :vehicle_type
     ]

@@ -36,7 +36,7 @@ module CurrentTrackedByChangeset
       changes.each do |change|
         existing_model = find_existing_model(change)
         attrs_to_apply = apply_params(change, cache)
-        unless changeset.import?
+        unless !self.column_names.include?("edited_attributes") || changeset.nil? || changeset.import?
           attrs_to_apply.update({ edited_attributes: attrs_to_apply.keys.select { |a| self.sticky_attributes.include?(a) } })
         end
         if existing_model

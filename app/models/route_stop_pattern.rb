@@ -87,6 +87,9 @@ class RouteStopPattern < BaseRouteStopPattern
     ],
     protected_attributes: [
       :identifiers
+    ],
+    sticky_attributes: [
+      :geometry
     ]
   })
   class << RouteStopPattern
