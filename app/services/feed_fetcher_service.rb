@@ -4,10 +4,6 @@ class FeedFetcherService
   REFETCH_WAIT = 24.hours
   SPLIT_REFETCH_INTO_GROUPS = 48 # and only refetch the first group
 
-  def self.logger
-    Rails.logger
-  end
-
   def self.fetch_this_feed_now(feed)
     sync_fetch_and_return_feed_versions([feed])
   end
@@ -40,7 +36,7 @@ class FeedFetcherService
     # Check Feed URL for new files.
     fetch_exception_log = nil
     feed_version = nil
-    logger.info "Fetching feed #{feed.onestop_id} from #{feed.url}"
+    log "Fetching feed #{feed.onestop_id} from #{feed.url}"
     # Try to fetch and normalize feed; log error
     begin
       feed_version = fetch_and_normalize_feed_version(feed)
@@ -50,7 +46,7 @@ class FeedFetcherService
         fetch_exception_log << "\n"
         fetch_exception_log << e.backtrace.join("\n")
       end
-      logger.error fetch_exception_log
+      log fetch_exception_log, level=:error
     ensure
       feed.update(
         latest_fetch_exception_log: fetch_exception_log,
@@ -61,13 +57,17 @@ class FeedFetcherService
     return unless feed_version
     return unless feed_version.valid?
     if feed_version.persisted?
-      logger.info "File downloaded from #{feed.url} has an existing sha1 hash: #{feed_version.sha1}"
+      log "File downloaded from #{feed.url} has an existing sha1 hash: #{feed_version.sha1}"
     else
-      logger.info "File downloaded from #{feed.url} has a new sha1 hash: #{feed_version.sha1}"
+      log "File downloaded from #{feed.url} has a new sha1 hash: #{feed_version.sha1}"
       feed_version.save!
     end
     # Return found/created FeedVersion
     feed_version
+  end
+
+  def self.url_fragment(url)
+    (url || "").partition("#").last.presence
   end
 
   def self.fetch_and_normalize_feed_version(feed)
@@ -94,17 +94,44 @@ class FeedFetcherService
       gtfs_file = File.open(gtfs.archive)
       sha1 = Digest::SHA1.file(gtfs_file).hexdigest
     end
-    FeedVersion.find_by(sha1: sha1) || FeedVersion.new(
-      feed: feed,
-      url: feed.url,
-      file: gtfs_file,
-      file_raw: gtfs_file_raw,
-      fetched_at: DateTime.now
-    )
+    # Create a new FeedVersion
+    feed_version = FeedVersion.find_by(sha1: sha1)
+    if !feed_version
+      data = {
+        feed: feed,
+        url: feed.url,
+        file: gtfs_file,
+        file_raw: gtfs_file_raw,
+        fetched_at: DateTime.now
+      }
+      data = data.merge!(read_gtfs_info(gtfs))
+      feed_version = FeedVersion.new(data)
+    end
+    feed_version
   end
 
-  def self.url_fragment(url)
-    (url || "").partition("#").last.presence
+  def self.read_gtfs_info(gtfs)
+    start_date, end_date = gtfs.service_period_range
+    earliest_calendar_date = start_date
+    latest_calendar_date = end_date
+    tags = {}
+    if gtfs.file_present?('feed_info.txt') && gtfs.feed_infos.count > 0
+      feed_info = gtfs.feed_infos[0]
+      tags.merge!({
+        feed_publisher_name: feed_info.feed_publisher_name,
+        feed_publisher_url:  feed_info.feed_publisher_url,
+        feed_lang:           feed_info.feed_lang,
+        feed_start_date:     feed_info.feed_start_date,
+        feed_end_date:       feed_info.feed_end_date,
+        feed_version:        feed_info.feed_version,
+        feed_id:             feed_info.feed_id
+      })
+    end
+    return {
+      earliest_calendar_date: earliest_calendar_date,
+      latest_calendar_date: latest_calendar_date,
+      tags: tags
+    }
   end
 
   private

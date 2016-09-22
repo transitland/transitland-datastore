@@ -6,12 +6,53 @@ class GTFSGraph
   CHANGE_PAYLOAD_MAX_ENTITIES = Figaro.env.feed_eater_change_payload_max_entities.try(:to_i) || 1_000
   STOP_TIMES_MAX_LOAD = Figaro.env.feed_eater_stop_times_max_load.try(:to_i) || 100_000
 
+
+  def self.to_trips_accessible(trips, key)
+    # All combinations of 0,1,2 to:
+    #    [:some_trips, :all_trips, :no_trips, :unknown]
+    values = trips.map { |trip| trip.send(key).to_i }.to_set
+    if values == Set.new([0])
+      :unknown
+    elsif values == Set.new([1])
+      :all_trips
+    elsif values == Set.new([2])
+      :no_trips
+    elsif values.include?(1)
+      :some_trips
+    else
+      :no_trips
+    end
+  end
+
+  def self.to_tfn(value)
+    case value.to_i
+    when 0
+      nil
+    when 1
+      true
+    when 2
+      false
+    end
+  end
+
+  def self.to_pickup_type(value)
+    case value.to_i
+    when 0
+      nil
+    when 1
+      :unavailable
+    when 2
+      :ask_agency
+    when 3
+      :ask_driver
+    end
+  end
+
   def initialize(feed, feed_version)
     # GTFS Graph / TransitLand wrapper
     @feed = feed
     @feed_version = feed_version
-    @gtfs = nil
-    @feed_version.open_gtfs { |gtfs| @gtfs = gtfs }
+    @gtfs = @feed_version.open_gtfs
 
     @log = []
     # GTFS entity to Onestop ID
@@ -207,10 +248,10 @@ class GTFSGraph
           shape_dist_traveled: gtfs_destination_stop_time.shape_dist_traveled.to_f,
           block_id: gtfs_trip.block_id,
           # Accessibility
-          pickup_type: to_pickup_type(gtfs_origin_stop_time.pickup_type),
-          drop_off_type: to_pickup_type(gtfs_destination_stop_time.drop_off_type),
-          wheelchair_accessible: to_tfn(gtfs_trip.wheelchair_accessible),
-          bikes_allowed: to_tfn(gtfs_trip.bikes_allowed),
+          pickup_type: self.class.to_pickup_type(gtfs_origin_stop_time.pickup_type),
+          drop_off_type: self.class.to_pickup_type(gtfs_destination_stop_time.drop_off_type),
+          wheelchair_accessible: self.class.to_tfn(gtfs_trip.wheelchair_accessible),
+          bikes_allowed: self.class.to_tfn(gtfs_trip.bikes_allowed),
           # service period
           service_start_date: gtfs_service_period.start_date,
           service_end_date: gtfs_service_period.end_date,
@@ -364,6 +405,10 @@ class GTFSGraph
       next if stops.empty?
       # Search by similarity
       route = find_and_update_entity(Route.from_gtfs(entity))
+      # Update accessibility
+      trips = entity.trips
+      route.wheelchair_accessible = self.class.to_trips_accessible(trips, :wheelchair_accessible)
+      route.bikes_allowed = self.class.to_trips_accessible(trips, :bikes_allowed)
       # Add references and identifiers
       route.serves ||= Set.new
       route.serves |= stops.map(&:onestop_id)
@@ -483,30 +528,6 @@ class GTFSGraph
     end
     rsp_map.each do |trip_id,onestop_id|
       @gtfs_to_onestop_id[@gtfs.trip(trip_id)] = onestop_id
-    end
-  end
-
-  def to_tfn(value)
-    case value.to_i
-    when 0
-      nil
-    when 1
-      true
-    when 2
-      false
-    end
-  end
-
-  def to_pickup_type(value)
-    case value.to_i
-    when 0
-      nil
-    when 1
-      :unavailable
-    when 2
-      :ask_agency
-    when 3
-      :ask_driver
     end
   end
 end

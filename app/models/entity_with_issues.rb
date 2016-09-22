@@ -16,6 +16,6 @@
 #
 
 class EntityWithIssues < ActiveRecord::Base
-  belongs_to :issue
+  belongs_to :issue, dependent: :destroy
   belongs_to :entity, polymorphic: true
 end
