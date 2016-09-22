@@ -15,8 +15,8 @@
 #  identifiers                        :string           default([]), is an Array
 #  vehicle_type                       :integer
 #  color                              :string
-#  wheelchair_accessible              :string
-#  bikes_allowed                      :string
+#  wheelchair_accessible              :string           default("unknown")
+#  bikes_allowed                      :string           default("unknown")
 #
 # Indexes
 #

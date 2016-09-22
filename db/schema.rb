@@ -15,8 +15,9 @@ ActiveRecord::Schema.define(version: 20160920191755) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "postgis"
   enable_extension "hstore"
+  enable_extension "pg_stat_statements"
+  enable_extension "postgis"
 
   create_table "change_payloads", force: :cascade do |t|
     t.json     "payload"
@@ -156,11 +157,11 @@ ActiveRecord::Schema.define(version: 20160920191755) do
     t.datetime  "created_at"
     t.datetime  "updated_at"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
-    t.string    "identifiers",                                                                                    default: [], array: true
+    t.string    "identifiers",                                                                                    default: [],        array: true
     t.integer   "vehicle_type"
     t.string    "color"
-    t.string    "wheelchair_accessible"
-    t.string    "bikes_allowed"
+    t.string    "wheelchair_accessible",                                                                          default: "unknown"
+    t.string    "bikes_allowed",                                                                                  default: "unknown"
   end
 
   add_index "current_routes", ["bikes_allowed"], name: "index_current_routes_on_bikes_allowed", using: :btree
@@ -508,11 +509,11 @@ ActiveRecord::Schema.define(version: 20160920191755) do
     t.datetime  "created_at"
     t.datetime  "updated_at"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
-    t.string    "identifiers",                                                                                    default: [], array: true
+    t.string    "identifiers",                                                                                    default: [],        array: true
     t.integer   "vehicle_type"
     t.string    "color"
-    t.string    "wheelchair_accessible"
-    t.string    "bikes_allowed"
+    t.string    "wheelchair_accessible",                                                                          default: "unknown"
+    t.string    "bikes_allowed",                                                                                  default: "unknown"
   end
 
   add_index "old_routes", ["bikes_allowed"], name: "index_old_routes_on_bikes_allowed", using: :btree
