@@ -269,8 +269,6 @@ class Changeset < ActiveRecord::Base
           raise Changeset::Error.new(changeset: self, message: message)
         end
 
-        # TODO save attribute names as sticky if non-import
-
       rescue StandardError => error
         logger.error "Error applying Changeset #{self.id}: #{error.message}"
         logger.error error.backtrace
