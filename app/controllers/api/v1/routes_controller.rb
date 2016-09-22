@@ -64,6 +64,13 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
       @routes = @routes.where_import_level(AllowFiltering.param_as_array(params, :import_level))
     end
 
+    if params[:wheelchair_accessible].present?
+      @routes = @routes.where(wheelchair_accessible: params[:wheelchair_accessible])
+    end
+    if params[:bikes_allowed].present?
+      @routes = @routes.where(bikes_allowed: params[:bikes_allowed])
+    end
+
     @routes = @routes.includes{[
       operator,
       stops,
