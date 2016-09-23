@@ -203,9 +203,8 @@ describe Changeset do
 
   context 'sticky and edited attributes' do
     # import-related changeset integration tests are in gtfs_graph_spec
-
-    it 'allows not-import changeset to preserve sticky and edited attributes' do
-      changeset = create(:changeset, payload: {
+    before(:each) {
+      @changeset = create(:changeset, payload: {
         changes: [
           {
             action: 'createUpdate',
@@ -217,9 +216,29 @@ describe Changeset do
           }
         ]
       })
-      changeset.apply!
+      @changeset.apply!
+    }
+
+    it 'allows non-import changeset to preserve sticky and edited attributes' do
       edited_attrs = Set.new(Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS').edited_attributes.map(&:to_sym))
       expect(Set.new(Stop.sticky_attributes)).to satisfy { |st| edited_attrs.subset?(st) }
+    end
+
+    it 'allows non-import changeset to write over previous non-import changeset' do
+      changeset2 = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              name: 'Second Edit',
+              timezone: 'America/Los_Angeles'
+            }
+          }
+        ]
+      })
+      changeset2.apply!
+      expect(Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS').name).to eq 'Second Edit'
     end
   end
 
