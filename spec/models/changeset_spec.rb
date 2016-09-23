@@ -201,6 +201,28 @@ describe Changeset do
     # end
   end
 
+  context 'sticky and edited attributes' do
+    # import-related changeset integration tests are in gtfs_graph_spec
+
+    it 'allows not-import changeset to preserve sticky and edited attributes' do
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              name: '1st Ave. & Holloway St.',
+              timezone: 'America/Los_Angeles'
+            }
+          }
+        ]
+      })
+      changeset.apply!
+      edited_attrs = Set.new(Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS').edited_attributes.map(&:to_sym))
+      expect(Set.new(Stop.sticky_attributes)).to satisfy { |st| edited_attrs.subset?(st) }
+    end
+  end
+
   context 'computed attributes' do
     it 'recomputes rsp stop distances from rsp update changeset' do
       richmond = create(:stop_richmond_offset)

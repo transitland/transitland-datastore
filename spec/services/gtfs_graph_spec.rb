@@ -329,4 +329,40 @@ describe GTFSGraph do
       expect(@feed_version_update_add.imported_stops.find_by_onestop_id('s-9qscv9zzb5-bullfrogdemo').created_at).to eq original_creation_time
     end
   end
+
+  context 'sticky and edited attributes' do
+    before(:each) {
+      @feed, @original_feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 1)
+      @original_feed_version.feed_version_imports.create(
+        import_level: 1
+      )
+    }
+
+    it 'allows data from the first feed version import to be saved' do
+      expect(Stop.first.send Stop.sticky_attributes.first).to be
+    end
+
+    it 'prevents subsequent feed version imports from modifying edited and sticky attributes' do
+      # assuming name is a sticky attribute
+      non_import_changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            stop: {
+              onestopId: 's-9qscwx8n60-nyecountyairportdemo',
+              name: 'Edited Stop Name',
+              timezone: 'America/Los_Angeles'
+            }
+          }
+        ]
+      })
+      non_import_changeset.apply!
+      @feed_version_update_add = create(:feed_version_example_update_add, feed: @feed)
+      @feed_version_update_add.feed_version_imports.create(
+        import_level: 1
+      )
+      load_feed(feed_version: @feed_version_update_add, import_level: 1)
+      expect(Stop.find_by_onestop_id!('s-9qscwx8n60-nyecountyairportdemo').name).to eq "Edited Stop Name"
+    end
+  end
 end
