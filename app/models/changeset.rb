@@ -240,9 +240,7 @@ class Changeset < ActiveRecord::Base
         if (unresolved_issues.empty?)
           resolving_issues.each { |issue| issue.update!({ open: false, resolved_by_changeset: self}) }
           changeset_issues.each(&:save!)
-          # Temporarily disabling deactivation for non-import changesets until faster implementation
-          # or all-async changesets
-          Issue.bulk_deactivate if self.imported_from_feed && self.imported_from_feed_version
+          DeactivateIssuesWorker.perform_async("deactivate_issues/#{self.id}/apply_async")
           resolving_issues.each {|issue|
             log("Deprecating issue: #{issue.as_json(include: [:entities_with_issues])}")
             EntityWithIssues.delete issue.entities_with_issues
