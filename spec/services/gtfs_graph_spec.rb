@@ -332,10 +332,8 @@ describe GTFSGraph do
 
   context 'sticky and edited attributes' do
     before(:each) {
-      @feed, @original_feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 1)
-      @original_feed_version.feed_version_imports.create(
-        import_level: 1
-      )
+      @create_fv_import = Proc.new { |graph| graph.feed_version.feed_version_imports.create!( import_level: 1) }
+      @feed, @original_feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 1, block_before_level_1: @create_fv_import)
     }
 
     it 'allows data from the first feed version import to be saved' do
@@ -358,10 +356,7 @@ describe GTFSGraph do
       })
       non_import_changeset.apply!
       @feed_version_update_add = create(:feed_version_example_update_add, feed: @feed)
-      @feed_version_update_add.feed_version_imports.create(
-        import_level: 1
-      )
-      load_feed(feed_version: @feed_version_update_add, import_level: 1)
+      load_feed(feed_version: @feed_version_update_add, import_level: 1, block_before_level_1: @create_fv_import)
       expect(Stop.find_by_onestop_id!('s-9qscwx8n60-nyecountyairportdemo').name).to eq "Edited Stop Name"
     end
   end

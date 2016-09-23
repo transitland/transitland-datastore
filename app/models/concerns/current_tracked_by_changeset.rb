@@ -126,7 +126,7 @@ module CurrentTrackedByChangeset
   end
 
   def attribute_sticks?(attribute)
-    self.class.sticky_attributes.include?(attribute) && self.edited_attributes.include?(attribute)
+    self.class.sticky_attributes.map(&:to_sym).include?(attribute) && self.edited_attributes.map(&:to_sym).include?(attribute)
   end
 
   def as_change(sticky: false)

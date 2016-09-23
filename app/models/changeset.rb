@@ -158,7 +158,7 @@ class Changeset < ActiveRecord::Base
   end
 
   def sticky?
-    import? && self.imported_from_feed.feed_version_imports.size > 0
+    import? && self.imported_from_feed.feed_version_imports.size > 1
   end
 
   def issues_unresolved(resolving_issues, changeset_issues)
