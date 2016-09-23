@@ -337,7 +337,10 @@ describe GTFSGraph do
     }
 
     it 'allows data from the first feed version import to be saved' do
-      expect(Stop.first.send Stop.sticky_attributes.first).to be
+      # assumes :name is a sticky attribute, and is required to be not nil on the model
+      # fail if :name is not sticky so it can be adjusted to something else
+      expect(Stop.sticky_attributes.map(&:to_sym)).to include(:name)
+      expect(Stop.first.name).to be
     end
 
     it 'prevents subsequent feed version imports from modifying edited and sticky attributes' do
