@@ -131,7 +131,7 @@ class Changeset < ActiveRecord::Base
       changes = chunk.map do |entity|
         {
           :action => :createUpdate,
-          entity.class.name.camelize(:lower) => entity.as_change.as_json.compact
+          entity.class.name.camelize(:lower) => entity.as_change(sticky: sticky?).as_json.compact
         }
       end
       payload = {changes: changes}
@@ -151,6 +151,14 @@ class Changeset < ActiveRecord::Base
   def destroy_all_change_payloads
     # Destroy change payloads
     change_payloads.destroy_all
+  end
+
+  def import?
+    !!self.imported_from_feed && !!self.imported_from_feed_version
+  end
+
+  def sticky?
+    import? && self.imported_from_feed.feed_version_imports.size > 1
   end
 
   def issues_unresolved(resolving_issues, changeset_issues)
@@ -190,8 +198,15 @@ class Changeset < ActiveRecord::Base
     end
 
     rsps_to_update_distances.merge(self.route_stop_patterns_created_or_updated)
+    log "Calculating distances" unless rsps_to_update_distances.empty?
     rsps_to_update_distances.each { |rsp|
-      rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
+      begin
+        rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
+      rescue StandardError
+        log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
+        rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.fallback_distances })
+      end
+
       rsp.ordered_ssp_trip_chunks { |trip_chunk|
         trip_chunk.each_with_index do |ssp, i|
           ssp.update_column(:origin_dist_traveled, rsp.stop_distances[i])
@@ -217,7 +232,7 @@ class Changeset < ActiveRecord::Base
         self.update(applied: true, applied_at: Time.now)
 
         # Create any feed-entity associations
-        if self.imported_from_feed && self.imported_from_feed_version
+        if import?
           eiff_batch = []
           self.entities_created_or_updated do |entity|
             eiff_batch << entity
@@ -231,8 +246,8 @@ class Changeset < ActiveRecord::Base
           EntityImportedFromFeed.import eiff_batch
         end
 
-        # Update computed properties
-        update_computed_attributes unless self.imported_from_feed && self.imported_from_feed_version
+        # Update attributes that derive from imported attributes between models
+        update_computed_attributes unless import?
 
         # Check for issues
         changeset_issues = check_quality
@@ -242,7 +257,7 @@ class Changeset < ActiveRecord::Base
           changeset_issues.each(&:save!)
           # Temporarily disabling deactivation for non-import changesets until faster implementation
           # or all-async changesets
-          Issue.bulk_deactivate if self.imported_from_feed && self.imported_from_feed_version
+          Issue.bulk_deactivate if import?
           resolving_issues.each {|issue|
             log("Deprecating issue: #{issue.as_json(include: [:entities_with_issues])}")
             EntityWithIssues.delete issue.entities_with_issues

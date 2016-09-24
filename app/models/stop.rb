@@ -17,6 +17,7 @@
 #  type                               :string
 #  parent_stop_id                     :integer
 #  osm_way_id                         :integer
+#  edited_attributes                  :string           default([]), is an Array
 #  wheelchair_boarding                :boolean
 #
 # Indexes
@@ -86,6 +87,11 @@ class Stop < BaseStop
       :identifiers,
       :last_conflated_at,
       :type
+    ],
+    sticky_attributes: [
+      :name,
+      :geometry,
+      :wheelchair_boarding
     ]
   })
 
