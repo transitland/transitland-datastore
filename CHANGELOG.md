@@ -2,10 +2,42 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.7...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.8...HEAD)
 
 **Merged pull requests:**
 
+- \[WIP\] Production release 4.9.8 [\#783](https://github.com/transitland/transitland-datastore/pull/783) ([irees](https://github.com/irees))
+
+## [4.9.8](https://github.com/transitland/transitland-datastore/tree/4.9.8) (2016-09-22)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.7...4.9.8)
+
+**Implemented enhancements:**
+
+- Promote wheelchair boarding tag to Stop attr [\#800](https://github.com/transitland/transitland-datastore/issues/800)
+
+**Fixed bugs:**
+
+- FeedVersionUploader: remove\_any\_local\_cached\_copies [\#791](https://github.com/transitland/transitland-datastore/issues/791)
+- OnestopID: Uniqueness constraint [\#779](https://github.com/transitland/transitland-datastore/issues/779)
+- Operator: update convex hull as computed property [\#704](https://github.com/transitland/transitland-datastore/issues/704)
+
+**Closed issues:**
+
+- Automatically extend expiring FeedVersions [\#784](https://github.com/transitland/transitland-datastore/issues/784)
+- Remove Issues on cleanup Entities task [\#768](https://github.com/transitland/transitland-datastore/issues/768)
+- aggregate `wheelchair\_accessible` and `bikes\_allowed` on `Route` model [\#672](https://github.com/transitland/transitland-datastore/issues/672)
+
+**Merged pull requests:**
+
+- Route wheelchair\_accessible: remove debugging log line [\#802](https://github.com/transitland/transitland-datastore/pull/802) ([irees](https://github.com/irees))
+- added wheelchair\_boarding to Stop as attribute [\#801](https://github.com/transitland/transitland-datastore/pull/801) ([doublestranded](https://github.com/doublestranded))
+- Route: aggregate accessibility information [\#799](https://github.com/transitland/transitland-datastore/pull/799) ([irees](https://github.com/irees))
+- FeedVersion: include HasTags concern [\#798](https://github.com/transitland/transitland-datastore/pull/798) ([irees](https://github.com/irees))
+- Correctly rm cached files [\#796](https://github.com/transitland/transitland-datastore/pull/796) ([irees](https://github.com/irees))
+- Modify extend\_feed\_version logging to reduce unnecessary queries [\#788](https://github.com/transitland/transitland-datastore/pull/788) ([irees](https://github.com/irees))
+- OnestopID uniqueness constraints [\#786](https://github.com/transitland/transitland-datastore/pull/786) ([irees](https://github.com/irees))
+- adding dependent destroy associations [\#785](https://github.com/transitland/transitland-datastore/pull/785) ([doublestranded](https://github.com/doublestranded))
+- Automatically extend schedules [\#782](https://github.com/transitland/transitland-datastore/pull/782) ([irees](https://github.com/irees))
 - Production release 4.9.7 [\#777](https://github.com/transitland/transitland-datastore/pull/777) ([irees](https://github.com/irees))
 
 ## [4.9.7](https://github.com/transitland/transitland-datastore/tree/4.9.7) (2016-09-12)

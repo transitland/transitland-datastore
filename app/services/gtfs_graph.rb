@@ -8,6 +8,24 @@ class GTFSGraph
   CHANGE_PAYLOAD_MAX_ENTITIES = Figaro.env.feed_eater_change_payload_max_entities.try(:to_i) || 1_000
   STOP_TIMES_MAX_LOAD = Figaro.env.feed_eater_stop_times_max_load.try(:to_i) || 100_000
 
+
+  def self.to_trips_accessible(trips, key)
+    # All combinations of 0,1,2 to:
+    #    [:some_trips, :all_trips, :no_trips, :unknown]
+    values = trips.map { |trip| trip.send(key).to_i }.to_set
+    if values == Set.new([0])
+      :unknown
+    elsif values == Set.new([1])
+      :all_trips
+    elsif values == Set.new([2])
+      :no_trips
+    elsif values.include?(1)
+      :some_trips
+    else
+      :no_trips
+    end
+  end
+
   def self.to_tfn(value)
     case value.to_i
     when 0
@@ -389,6 +407,10 @@ class GTFSGraph
       next if stops.empty?
       # Search by similarity
       route = find_and_update_entity(Route.from_gtfs(entity))
+      # Update accessibility
+      trips = entity.trips
+      route.wheelchair_accessible = self.class.to_trips_accessible(trips, :wheelchair_accessible)
+      route.bikes_allowed = self.class.to_trips_accessible(trips, :bikes_allowed)
       # Add references and identifiers
       route.serves ||= Set.new
       route.serves |= stops.map(&:onestop_id)

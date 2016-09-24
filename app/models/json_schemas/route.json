@@ -17,6 +17,14 @@
     "tags": { "type": "object" },
     "color": { "type": "string" },
     "geometry": { "type": "object" },
+    "wheelchairAccessible": {
+      "type": "string",
+      "enum": [ "unknown", "all_trips", "no_trips", "some_trips" ]
+    },
+    "bikesAllowed": {
+      "type": "string",
+      "enum": [ "unknown", "all_trips", "no_trips", "some_trips" ]
+    },
     "vehicleType": {
       "type": ["string", "integer"],
       "format": "vehicle-type"
