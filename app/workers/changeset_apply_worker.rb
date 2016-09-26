@@ -15,8 +15,9 @@ class ChangesetApplyWorker
     Rails.cache.write(cachekey, response, expires_in: 1.day)
     # Apply
     changeset = Changeset.find(changeset_id)
+    after_apply = Proc.new { |changeset| Issue.bulk_deactivate }
     begin
-      changeset.apply!
+      changeset.apply!(block_after_apply: after_apply)
     rescue StandardError => error
       errors << {
         exception: 'ChangesetError',
