@@ -358,4 +358,38 @@ describe GTFSGraph do
       expect(@feed_version_update_add.imported_stops.find_by_onestop_id('s-9qscv9zzb5-bullfrogdemo').created_at).to eq original_creation_time
     end
   end
+
+  context 'sticky and edited attributes' do
+    before(:each) {
+      @create_fv_import = Proc.new { |graph| graph.feed_version.feed_version_imports.create!( import_level: 1) }
+      @feed, @original_feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 1, block_before_level_1: @create_fv_import)
+    }
+
+    it 'allows data from the first feed version import to be saved' do
+      # assumes :name is a sticky attribute, and is required to be not nil on the model
+      # fail if :name is not sticky so it can be adjusted to something else
+      expect(Stop.sticky_attributes.map(&:to_sym)).to include(:name)
+      expect(Stop.first.name).to be
+    end
+
+    it 'prevents subsequent feed version imports from modifying edited and sticky attributes' do
+      # assuming name is a sticky attribute
+      non_import_changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            stop: {
+              onestopId: 's-9qscwx8n60-nyecountyairportdemo',
+              name: 'Edited Stop Name',
+              timezone: 'America/Los_Angeles'
+            }
+          }
+        ]
+      })
+      non_import_changeset.apply!
+      @feed_version_update_add = create(:feed_version_example_update_add, feed: @feed)
+      load_feed(feed_version: @feed_version_update_add, import_level: 1, block_before_level_1: @create_fv_import)
+      expect(Stop.find_by_onestop_id!('s-9qscwx8n60-nyecountyairportdemo').name).to eq "Edited Stop Name"
+    end
+  end
 end

@@ -15,6 +15,7 @@
 #  identifiers                        :string           default([]), is an Array
 #  vehicle_type                       :integer
 #  color                              :string
+#  edited_attributes                  :string           default([]), is an Array
 #  wheelchair_accessible              :string           default("unknown")
 #  bikes_allowed                      :string           default("unknown")
 #
@@ -88,6 +89,12 @@ class Route < BaseRoute
     ],
     protected_attributes: [
       :identifiers
+    ],
+    sticky_attributes: [
+      :name,
+      :geometry,
+      :color,
+      :vehicle_type
     ]
   })
 
