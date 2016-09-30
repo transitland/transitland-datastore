@@ -131,15 +131,15 @@ describe Issue do
     end
 
     it 'deprecates issues of old feed version imports' do
-      Timecop.freeze(3.minutes.from_now) do
-        load_feed(feed_version: @feed_version, import_level: 1)
-      end
-      expect(Issue.count).to eq 8
-      expect{Issue.find(1)}.to raise_error(ActiveRecord::RecordNotFound)
-      expect(Issue.find(9).created_by_changeset_id).to eq 2
+      # Timecop.freeze(3.minutes.from_now) do
+      #   load_feed(feed_version: @feed_version, import_level: 1)
+      # end
+      # expect(Issue.count).to eq 8
+      # expect{Issue.find(1)}.to raise_error(ActiveRecord::RecordNotFound)
+      # expect(Issue.find(9).created_by_changeset_id).to eq 2
     end
 
-    # it 'deprecates issues created by older changesets of associated entities' do
+    it 'deprecates issues created by older changesets of associated entities' do
     #   Timecop.freeze(3.minutes.from_now) do
     #     # NOTE: although this changeset would resolve an issue,
     #     # we are explicitly avoiding that
@@ -160,7 +160,7 @@ describe Issue do
     #   end
     #   expect{Issue.find(2)}.to raise_error(ActiveRecord::RecordNotFound)
     #   expect(Issue.find(9).created_by_changeset_id).to eq 2
-    # end
+    end
 
     it 'destroys entities_with_issues when issue destroyed' do
       Issue.find(8).destroy
