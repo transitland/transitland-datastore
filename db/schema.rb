@@ -17,7 +17,6 @@ ActiveRecord::Schema.define(version: 20160920191755) do
   enable_extension "plpgsql"
   enable_extension "postgis"
   enable_extension "hstore"
-  enable_extension "pg_stat_statements"
 
   create_table "change_payloads", force: :cascade do |t|
     t.json     "payload"
@@ -163,9 +162,9 @@ ActiveRecord::Schema.define(version: 20160920191755) do
     t.string    "identifiers",                                                                                    default: [],        array: true
     t.integer   "vehicle_type"
     t.string    "color"
+    t.string    "edited_attributes",                                                                              default: [],        array: true
     t.string    "wheelchair_accessible",                                                                          default: "unknown"
     t.string    "bikes_allowed",                                                                                  default: "unknown"
-    t.string    "edited_attributes",                                                                              default: [],        array: true
   end
 
   add_index "current_routes", ["bikes_allowed"], name: "index_current_routes_on_bikes_allowed", using: :btree
@@ -284,8 +283,8 @@ ActiveRecord::Schema.define(version: 20160920191755) do
     t.string    "type"
     t.integer   "parent_stop_id"
     t.integer   "osm_way_id"
-    t.boolean   "wheelchair_boarding"
     t.string    "edited_attributes",                                                                              default: [], array: true
+    t.boolean   "wheelchair_boarding"
   end
 
   add_index "current_stops", ["created_or_updated_in_changeset_id"], name: "#c_stops_cu_in_changeset_id_index", using: :btree
@@ -520,9 +519,9 @@ ActiveRecord::Schema.define(version: 20160920191755) do
     t.string    "identifiers",                                                                                    default: [],        array: true
     t.integer   "vehicle_type"
     t.string    "color"
+    t.string    "edited_attributes",                                                                              default: [],        array: true
     t.string    "wheelchair_accessible",                                                                          default: "unknown"
     t.string    "bikes_allowed",                                                                                  default: "unknown"
-    t.string    "edited_attributes",                                                                              default: [],        array: true
   end
 
   add_index "old_routes", ["bikes_allowed"], name: "index_old_routes_on_bikes_allowed", using: :btree
@@ -657,8 +656,8 @@ ActiveRecord::Schema.define(version: 20160920191755) do
     t.string    "type"
     t.integer   "parent_stop_id"
     t.integer   "osm_way_id"
-    t.boolean   "wheelchair_boarding"
     t.string    "edited_attributes",                                                                              default: [], array: true
+    t.boolean   "wheelchair_boarding"
   end
 
   add_index "old_stops", ["created_or_updated_in_changeset_id"], name: "o_stops_cu_in_changeset_id_index", using: :btree
