@@ -48,7 +48,8 @@ class Issue < ActiveRecord::Base
 
   def outdated?
     # This can create false negatives if different changesets w/ same entities are made less than 1 second apart.
-    entities_with_issues.any? { |ewi| ewi.entity.created_or_updated_in_changeset.updated_at.to_i > created_at.to_i }
+    # Using the Issue updated_at value to account for the addition of entities_with_issues to the Issue later on.
+    entities_with_issues.any? { |ewi| ewi.entity.created_or_updated_in_changeset.updated_at.to_i > updated_at.to_i }
   end
 
   def equivalent?(issue)
