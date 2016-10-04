@@ -27,12 +27,12 @@ namespace :db do
         end
 
         unless wheelchair_result.eql?(:unknown)
-          route.update_attribute(:wheelchair_accessible, wheelchair_result)
           puts "Updating Route #{route.onestop_id} wheelchair_accessible to #{wheelchair_result}"
+          route.update_column(:wheelchair_accessible, wheelchair_result)
         end
         unless bike_result.eql?(:unknown)
           puts "Updating Route #{route.onestop_id} bikes_allowed to #{bike_result}"
-          route.update_attribute(:bikes_allowed, bike_result)
+          route.update_column(:bikes_allowed, bike_result)
         end
       end
     end
