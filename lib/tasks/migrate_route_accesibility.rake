@@ -10,7 +10,7 @@ namespace :db do
         elsif ssps.where(wheelchair_accessible: true).length > 0
           wheelchair_result = :some_trips
         else
-          if ssps.where(wheelchair_accessible: false) == ssps.length
+          if ssps.where(wheelchair_accessible: false).length == ssps.length
             wheelchair_result = :no_trips
           end
         end
@@ -21,14 +21,19 @@ namespace :db do
         elsif ssps.where(bikes_allowed: true).length > 0
           bike_result = :some_trips
         else
-          if ssps.where(bikes_allowed: false) == ssps.length
+          if ssps.where(bikes_allowed: false).length == ssps.length
             bike_result = :no_trips
           end
         end
 
-        puts "Updating Route #{route.onestop_id} wheelchair_accessible to #{wheelchair_result}"
-        puts "Updating Route #{route.onestop_id} bikes_allowed to #{bike_result}"
-        route.update(wheelchair_accessible: wheelchair_result, bikes_allowed: bike_result)
+        unless wheelchair_result.eql?(:unknown)
+          route.update_attribute(:wheelchair_accessible, wheelchair_result)
+          puts "Updating Route #{route.onestop_id} wheelchair_accessible to #{wheelchair_result}"
+        end
+        unless bike_result.eql?(:unknown)
+          puts "Updating Route #{route.onestop_id} bikes_allowed to #{bike_result}"
+          route.update_attribute(:bikes_allowed, bike_result)
+        end
       end
     end
   end
