@@ -37,6 +37,7 @@ class FeedMaintenanceService
     feed = feed_version.feed
     log "enqueue_next_feed_versions: adding #{feed.onestop_id} #{feed_version.sha1} #{import_level}"
     # Create issue
+    self.create_feed_version_issue(feed_version, :feed_version_maintenance_import)
     # Enqueue
     FeedEaterWorker.perform_async(
       feed.onestop_id,
@@ -77,6 +78,7 @@ class FeedMaintenanceService
     log "    extend_from_date: #{extend_from_date}"
     log "    extend_to_date: #{extend_to_date}"
     log "    ssp to update: #{ssp_updated}"
+    self.create_feed_version_issue(feed_version, :feed_version_maintenance_extend)
     feed_version.extend_schedule_stop_pairs_service_end_date(extend_from_date, extend_to_date)
   end
 
