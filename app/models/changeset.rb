@@ -21,11 +21,11 @@
 
 class Changeset < ActiveRecord::Base
   class Error < StandardError
-    attr_accessor :changeset, :message, :backtrace
+    attr_accessor :changeset, :message, :backtrace, :payload
 
-    def initialize(changeset: nil, change_payloads: [], message: '', backtrace: [])
+    def initialize(changeset: nil, payload: {}, message: '', backtrace: [])
       @changeset = changeset
-      @change_payloads = change_payloads
+      @payload = payload
       @message = message
       @backtrace = backtrace
     end
@@ -112,40 +112,39 @@ class Changeset < ActiveRecord::Base
 
   def trial_succeeds?
     trial_succeeds = false
+    issues = []
     Changeset.transaction do
       begin
-        apply!
+        trial_succeeds, issues = apply!
       rescue Exception => e
         raise ActiveRecord::Rollback
       else
-        trial_succeeds = true
         raise ActiveRecord::Rollback
       end
     end
     self.reload
-    trial_succeeds
+    return trial_succeeds, issues
   end
 
   def create_change_payloads(entities)
     entities.each_slice(CHANGE_PAYLOAD_MAX_ENTITIES).each do |chunk|
-      changes = []
-      chunk.each do |entity|
-        changes << {
+      changes = chunk.map do |entity|
+        {
           :action => :createUpdate,
-          entity.class.name.camelize(:lower) => entity.as_change.as_json.compact
+          entity.class.name.camelize(:lower) => entity.as_change(sticky: sticky?).as_json.compact
         }
       end
+      payload = {changes: changes}
       begin
-        change_payloads = self.change_payloads.create!(payload: {changes: changes})
+        change_payload = self.change_payloads.create!(payload: payload)
       rescue StandardError => e
         fail Changeset::Error.new(
           changeset: self,
-          change_payloads: change_payloads,
+          payload: payload,
           message: e.message,
           backtrace: e.backtrace
         )
       end
-      change_payloads
     end
   end
 
@@ -154,16 +153,86 @@ class Changeset < ActiveRecord::Base
     change_payloads.destroy_all
   end
 
+  def import?
+    !!self.imported_from_feed && !!self.imported_from_feed_version
+  end
+
+  def sticky?
+    import? && self.imported_from_feed.feed_version_imports.size > 1
+  end
+
+  def issues_unresolved(resolving_issues, changeset_issues)
+    changeset_issues.map { |c| resolving_issues.map { |r| r if c.equivalent?(r) } }.flatten.compact
+  end
+
+  def check_quality
+    gqc = QualityCheck::GeometryQualityCheck.new(changeset: self)
+    issues = []
+    issues += gqc.check
+    issues
+  end
+
+  def update_computed_attributes
+    # This method updates the changeset's entity attributes that are computed/derived from the attribute data
+    # of multiple entity types. For example, here RouteStopPatterns will have to have their stop distances recomputed
+    # using both the RouteStopPattern and its stop_pattern Stops' geometries. Operators have their convex hulls
+    # recomputed from the Stops it serves.
+    #
+    # Ideally we would like to define methods at the model level (that would be the first place to put new
+    # recomputed attribute functionality if possible) but the need to avoid duplicate recomputation on entities of update
+    # changesets complicates this. E.g, We don't want to recompute the stop_distances of one RouteStopPattern
+    # multiple times if there are multiple Stops of that RouteStopPattern in the changeset.
+    rsps_to_update_distances = Set.new
+    operators_to_update_convex_hull = Set.new
+
+    unless self.stops_created_or_updated.empty?
+      self.stops_created_or_updated.each do |stop|
+        operators_to_update_convex_hull.merge(OperatorServingStop.where(stop: stop).map(&:operator))
+      end
+      rsps_to_update_distances.merge(RouteStopPattern.with_stops(self.stops_created_or_updated.map(&:onestop_id).join(',')))
+
+      operators_to_update_convex_hull.each { |operator|
+        operator.geometry = operator.recompute_convex_hull_around_stops
+        operator.update_making_history(changeset: self)
+      }
+    end
+
+    rsps_to_update_distances.merge(self.route_stop_patterns_created_or_updated)
+    log "Calculating distances" unless rsps_to_update_distances.empty?
+    rsps_to_update_distances.each { |rsp|
+      begin
+        rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
+      rescue StandardError
+        log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
+        rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.fallback_distances })
+      end
+
+      rsp.ordered_ssp_trip_chunks { |trip_chunk|
+        trip_chunk.each_with_index do |ssp, i|
+          ssp.update_column(:origin_dist_traveled, rsp.stop_distances[i])
+          ssp.update_column(:destination_dist_traveled, rsp.stop_distances[i+1])
+        end
+      }
+    }
+    #mainly for testing
+    [rsps_to_update_distances.size, operators_to_update_convex_hull.size]
+  end
+
   def apply!
     fail Changeset::Error.new(changeset: self, message: 'has already been applied.') if applied
+    changeset_issues = nil
+
     Changeset.transaction do
       begin
+        # Apply ChangePayloads, collect issues
+        resolving_issues = []
         change_payloads.each do |change_payload|
-          change_payload.apply!
+          resolving_issues += change_payload.apply!
         end
         self.update(applied: true, applied_at: Time.now)
+
         # Create any feed-entity associations
-        if self.imported_from_feed && self.imported_from_feed_version
+        if import?
           eiff_batch = []
           self.entities_created_or_updated do |entity|
             eiff_batch << entity
@@ -176,12 +245,37 @@ class Changeset < ActiveRecord::Base
           end
           EntityImportedFromFeed.import eiff_batch
         end
-      rescue => e
-        logger.error "Error applying Changeset #{self.id}: #{e.message}"
-        logger.error e.backtrace
-        raise Changeset::Error.new(changeset: self, message: e.message, backtrace: e.backtrace)
+
+        # Update attributes that derive from imported attributes between models
+        update_computed_attributes unless import?
+
+        # Check for issues
+        changeset_issues = check_quality
+        unresolved_issues = issues_unresolved(resolving_issues, changeset_issues)
+        if (unresolved_issues.empty?)
+          resolving_issues.each { |issue| issue.update!({ open: false, resolved_by_changeset: self}) }
+          changeset_issues.each(&:save!)
+          # Temporarily disabling deactivation for non-import changesets until faster implementation
+          # or all-async changesets
+          Issue.bulk_deactivate if import?
+          resolving_issues.each {|issue|
+            log("Deprecating issue: #{issue.as_json(include: [:entities_with_issues])}")
+            EntityWithIssues.delete issue.entities_with_issues
+            issue.delete
+          }
+        else
+          message = unresolved_issues.map { |issue| "Issue #{issue.id} was not resolved." }.join(" ")
+          logger.error "Error applying Changeset #{self.id}: " + message
+          raise Changeset::Error.new(changeset: self, message: message)
+        end
+
+      rescue StandardError => error
+        logger.error "Error applying Changeset #{self.id}: #{error.message}"
+        logger.error error.backtrace
+        raise Changeset::Error.new(changeset: self, message: error.message, backtrace: error.backtrace)
       end
     end
+
     unless Figaro.env.send_changeset_emails_to_users.presence == 'false'
       if self.user && self.user.email.present? && !self.user.admin
         ChangesetMailer.delay.application(self.id)
@@ -196,11 +290,9 @@ class Changeset < ActiveRecord::Base
     end
     # ...and fetching any new feeds
     if Figaro.env.auto_fetch_feed_version.presence == 'true'
-      self.feeds_created_or_updated.each do |created_or_updated_feed|
-        created_or_updated_feed.async_fetch_feed_version
-      end
+      FeedFetcherService.fetch_these_feeds_async(self.feeds_created_or_updated)
     end
-    true
+    return true, changeset_issues
   end
 
   def revert!

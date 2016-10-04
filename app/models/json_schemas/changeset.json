@@ -27,6 +27,22 @@
             }
           },
           {
+            "required": ["stopPlatform"],
+            "properties": {
+              "stopPlatform": {
+                "$ref": "./stop.json"
+              }
+            }
+          },
+          {
+            "required": ["stopEgress"],
+            "properties": {
+              "stopPlatform": {
+                "$ref": "./stop.json"
+              }
+            }
+          },
+          {
             "required": ["operator"],
             "properties": {
               "operator": {
@@ -62,6 +78,12 @@
         "properties": {
           "action": {
             "type": { "enum": ["createUpdate", "destroy"] }
+          },
+          "issuesResolved": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
           }
         }
       }

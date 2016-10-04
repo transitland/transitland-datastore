@@ -15,16 +15,22 @@
 #  identifiers                        :string           default([]), is an Array
 #  vehicle_type                       :integer
 #  color                              :string
+#  edited_attributes                  :string           default([]), is an Array
+#  wheelchair_accessible              :string           default("unknown")
+#  bikes_allowed                      :string           default("unknown")
 #
 # Indexes
 #
-#  c_route_cu_in_changeset               (created_or_updated_in_changeset_id)
-#  index_current_routes_on_geometry      (geometry)
-#  index_current_routes_on_identifiers   (identifiers)
-#  index_current_routes_on_operator_id   (operator_id)
-#  index_current_routes_on_tags          (tags)
-#  index_current_routes_on_updated_at    (updated_at)
-#  index_current_routes_on_vehicle_type  (vehicle_type)
+#  c_route_cu_in_changeset                        (created_or_updated_in_changeset_id)
+#  index_current_routes_on_bikes_allowed          (bikes_allowed)
+#  index_current_routes_on_geometry               (geometry)
+#  index_current_routes_on_identifiers            (identifiers)
+#  index_current_routes_on_onestop_id             (onestop_id) UNIQUE
+#  index_current_routes_on_operator_id            (operator_id)
+#  index_current_routes_on_tags                   (tags)
+#  index_current_routes_on_updated_at             (updated_at)
+#  index_current_routes_on_vehicle_type           (vehicle_type)
+#  index_current_routes_on_wheelchair_accessible  (wheelchair_accessible)
 #
 
 class RouteSerializer < CurrentEntitySerializer
@@ -34,8 +40,11 @@ class RouteSerializer < CurrentEntitySerializer
              :geometry,
              :color,
              :tags,
+             :stops_served_by_route,
              :operated_by_onestop_id,
              :operated_by_name,
+             :wheelchair_accessible,
+             :bikes_allowed,
              :created_at,
              :updated_at,
              :route_stop_patterns_by_onestop_id
@@ -46,6 +55,10 @@ class RouteSerializer < CurrentEntitySerializer
 
   def operated_by_name
     object.operator.try(:name)
+  end
+
+  def stops_served_by_route
+    object.stops.map { |stop| { stop_onestop_id: stop.onestop_id, stop_name: stop.name } }
   end
 
   def route_stop_patterns_by_onestop_id

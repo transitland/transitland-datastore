@@ -3,8 +3,8 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   include DownloadableCsv
   include AllowFiltering
 
-  before_filter :verify_jwt_token, only: [:update, :check, :apply, :revert, :destroy]
-  before_action :set_changeset, only: [:show, :update, :check, :apply, :revert, :destroy]
+  before_filter :verify_jwt_token, only: [:update, :check, :apply, :apply_async, :revert, :destroy]
+  before_action :set_changeset, only: [:show, :update, :check, :apply, :apply_async, :revert, :destroy]
 
   def index
     @changesets = Changeset.where('').include{[
@@ -90,13 +90,28 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   end
 
   def check
-    trial_succeeds = @changeset.trial_succeeds?
-    render json: { trialSucceeds: trial_succeeds }
+    trial_succeeds, issues = @changeset.trial_succeeds?
+    render json: {trialSucceeds: trial_succeeds, issues: issues.as_json }
   end
 
   def apply
     applied = @changeset.apply!
     render json: { applied: applied }
+  end
+
+  def apply_async
+    cachekey = "changesets/#{@changeset.id}/apply_async"
+    cachedata = Rails.cache.read(cachekey)
+    if !cachedata
+      cachedata = {status: 'queued'}
+      Rails.cache.write(cachekey, cachedata, expires_in: 1.day)
+      ChangesetApplyWorker.perform_async(@changeset.id, cachekey)
+    end
+    if cachedata[:status] == 'error'
+      render json: cachedata, status: 500
+    else
+      render json: cachedata
+    end
   end
 
   def revert

@@ -54,9 +54,7 @@
 #  c_ssp_service_end_date                                       (service_end_date)
 #  c_ssp_service_start_date                                     (service_start_date)
 #  c_ssp_trip                                                   (trip)
-#  index_current_schedule_stop_pairs_on_feed_id                 (feed_id)
 #  index_current_schedule_stop_pairs_on_feed_id_and_id          (feed_id,id)
-#  index_current_schedule_stop_pairs_on_feed_version_id         (feed_version_id)
 #  index_current_schedule_stop_pairs_on_feed_version_id_and_id  (feed_version_id,id)
 #  index_current_schedule_stop_pairs_on_operator_id             (operator_id)
 #  index_current_schedule_stop_pairs_on_origin_departure_time   (origin_departure_time)
@@ -125,7 +123,7 @@ class ScheduleStopPair < BaseScheduleStopPair
   }
 
   # Active Feed Version
-  scope :where_active, -> {
+  scope :where_imported_from_active_feed_version, -> {
     joins('INNER JOIN current_feeds ON feed_version_id = current_feeds.active_feed_version_id')
   }
 

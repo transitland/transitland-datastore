@@ -22,12 +22,14 @@
 #  latest_fetch_exception_log         :text
 #  license_attribution_text           :text
 #  active_feed_version_id             :integer
+#  edited_attributes                  :string           default([]), is an Array
 #
 # Indexes
 #
 #  index_current_feeds_on_active_feed_version_id              (active_feed_version_id)
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
 #  index_current_feeds_on_geometry                            (geometry)
+#  index_current_feeds_on_onestop_id                          (onestop_id) UNIQUE
 #
 
 class BaseFeed < ActiveRecord::Base
@@ -72,6 +74,14 @@ class Feed < BaseFeed
   has_many :changesets_imported_from_this_feed, class_name: 'Changeset'
 
   after_initialize :set_default_values
+
+  scope :where_latest_fetch_exception, -> (flag) {
+    if flag
+      where.not(latest_fetch_exception_log: nil)
+    else
+      where(latest_fetch_exception_log: nil)
+    end
+  }
 
   scope :where_active_feed_version_import_level, -> (import_level) {
     import_level = import_level.to_i
@@ -177,59 +187,36 @@ class Feed < BaseFeed
     return true
   end
 
-  def fetch_and_return_feed_version
-    # Check Feed URL for new files.
-    fetch_exception_log = nil
-    feed_version = FeedVersion.new(feed: self, url: self.url)
-    logger.info "Fetching feed #{onestop_id} from #{url}"
-    # Try to fetch and normalize feed; log error
-    begin
-      feed_version.fetch_and_normalize
-    rescue GTFS::InvalidSourceException => e
-      fetch_exception_log = e.message
-      if e.backtrace.present?
-        fetch_exception_log << "\n"
-        fetch_exception_log << e.backtrace.join("\n")
-      end
-      logger.error fetch_exception_log
-    ensure
-      self.update(
-        latest_fetch_exception_log: fetch_exception_log,
-        last_fetched_at: feed_version.fetched_at || DateTime.now
-      )
-    end
-    # Check for known Feed Version
-    feed_version = self.feed_versions.find_by(sha1: feed_version.sha1) || feed_version
-    # Return if there was not a successful fetch.
-    return unless feed_version.valid?
-    if feed_version.persisted?
-      logger.info "File downloaded from #{url} has an existing sha1 hash: #{feed_version.sha1}"
-    else
-      logger.info "File downloaded from #{url} has a new sha1 hash: #{feed_version.sha1}"
-      feed_version.save!
-    end
-    # Return found/created FeedVersion
-    feed_version
+  def find_next_feed_version(date)
+    # Find a feed_version where:
+    #   1. newer than active_feed_version
+    #   2. service begins on or later than active_feed_version
+    #   3. service begins on or before specified date
+    active_feed_version = self.active_feed_version
+    return unless active_feed_version
+    self.feed_versions
+      .where('created_at > ?', active_feed_version.created_at)
+      .where('earliest_calendar_date >= ?', active_feed_version.earliest_calendar_date)
+      .where('earliest_calendar_date <= ?', date)
+      .reorder(earliest_calendar_date: :desc, created_at: :desc)
+      .first
   end
 
   def activate_feed_version(feed_version_sha1, import_level)
+    feed_version = self.feed_versions.find_by!(sha1: feed_version_sha1)
     self.transaction do
-      feed_version = self.feed_versions.find_by!(sha1: feed_version_sha1)
       self.update!(active_feed_version: feed_version)
       feed_version.update!(import_level: import_level)
     end
   end
 
-  def self.async_fetch_all_feeds
-    workers = []
-    Feed.find_each do |feed|
-      workers << feed.async_fetch_feed_version
+  def deactivate_feed_version(feed_version_sha1)
+    feed_version = self.feed_versions.find_by!(sha1: feed_version_sha1)
+    if feed_version == self.active_feed_version
+      fail ArgumentError.new('Cannot deactivate current active_feed_version')
+    else
+      feed_version.delete_schedule_stop_pairs!
     end
-    workers
-  end
-
-  def async_fetch_feed_version
-    FeedFetcherWorker.perform_async(onestop_id)
   end
 
   def set_bounding_box_from_stops(stops)

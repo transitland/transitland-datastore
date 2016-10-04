@@ -22,12 +22,14 @@
 #  latest_fetch_exception_log         :text
 #  license_attribution_text           :text
 #  active_feed_version_id             :integer
+#  edited_attributes                  :string           default([]), is an Array
 #
 # Indexes
 #
 #  index_current_feeds_on_active_feed_version_id              (active_feed_version_id)
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
 #  index_current_feeds_on_geometry                            (geometry)
+#  index_current_feeds_on_onestop_id                          (onestop_id) UNIQUE
 #
 
 FactoryGirl.define do
@@ -156,6 +158,26 @@ FactoryGirl.define do
       feed.operators_in_feed.create(
         operator: operator,
         gtfs_agency_id: 'NYC DOT'
+      )
+    end
+  end
+
+  factory :feed_mtanyctbusstatenisland, class: Feed do
+    onestop_id 'f-dr5r-mtanyctbusstatenisland'
+    url 'http://web.mta.info/developers/data/nyct/bus/google_transit_staten_island.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'MTA New York City Transit',
+        onestop_id: 'o-dr5r-nyct',
+        timezone: 'America/New_York',
+        website: 'http://www.google.com',
+        version: 1
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: 'MTA NYCT'
       )
     end
   end

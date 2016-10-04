@@ -54,9 +54,7 @@
 #  c_ssp_service_end_date                                       (service_end_date)
 #  c_ssp_service_start_date                                     (service_start_date)
 #  c_ssp_trip                                                   (trip)
-#  index_current_schedule_stop_pairs_on_feed_id                 (feed_id)
 #  index_current_schedule_stop_pairs_on_feed_id_and_id          (feed_id,id)
-#  index_current_schedule_stop_pairs_on_feed_version_id         (feed_version_id)
 #  index_current_schedule_stop_pairs_on_feed_version_id_and_id  (feed_version_id,id)
 #  index_current_schedule_stop_pairs_on_operator_id             (operator_id)
 #  index_current_schedule_stop_pairs_on_origin_departure_time   (origin_departure_time)
@@ -159,7 +157,7 @@ RSpec.describe ScheduleStopPair, type: :model do
   end
 
   context 'scopes' do
-    it 'where_active' do
+    it 'where_imported_from_active_feed_version' do
       feed = create(:feed)
       feed_version1 = create(:feed_version, feed: feed)
       feed_version2 = create(:feed_version, feed: feed)
@@ -167,7 +165,7 @@ RSpec.describe ScheduleStopPair, type: :model do
       ssp1 = create(:schedule_stop_pair, feed_version: feed_version1, feed: feed)
       ssp2 = create(:schedule_stop_pair, feed_version: feed_version2, feed: feed)
       expect(ScheduleStopPair.all).to match_array([ssp1, ssp2])
-      expect(ScheduleStopPair.where_active).to match_array([ssp2])
+      expect(ScheduleStopPair.where_imported_from_active_feed_version).to match_array([ssp2])
     end
 
     it 'where_import_level' do

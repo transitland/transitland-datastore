@@ -13,6 +13,7 @@ class Api::V1::StopsController < Api::V1::BaseApiController
   }
 
   before_action :set_stop, only: [:show]
+  SERIALIZER = StopSerializer
 
   def index
     @stops = Stop.where('')
@@ -21,6 +22,14 @@ class Api::V1::StopsController < Api::V1::BaseApiController
     @stops = AllowFiltering.by_tag_keys_and_values(@stops, params)
     @stops = AllowFiltering.by_identifer_and_identifier_starts_with(@stops, params)
     @stops = AllowFiltering.by_updated_since(@stops, params)
+
+    if params[:imported_from_feed].present?
+      @stops = @stops.where_imported_from_feed(Feed.find_by_onestop_id(params[:imported_from_feed]))
+    end
+
+    if params[:imported_from_feed_version].present?
+      @stops = @stops.where_imported_from_feed_version(FeedVersion.find_by!(sha1: params[:imported_from_feed_version]))
+    end
 
     if params[:served_by].present? || params[:servedBy].present?
       # we previously allowed `servedBy`, so we'll continue to honor that for the time being
@@ -40,6 +49,12 @@ class Api::V1::StopsController < Api::V1::BaseApiController
     end
     if params[:import_level].present?
       @stops = @stops.where_import_level(AllowFiltering.param_as_array(params, :import_level))
+    end
+    if params[:served_by_vehicle_types].present?
+      @stops = @stops.served_by_vehicle_types(AllowFiltering.param_as_array(params, :served_by_vehicle_types))
+    end
+    if params[:wheelchair_boarding].present?
+      @stops = @stops.where(wheelchair_boarding: AllowFiltering.to_boolean(params[:wheelchair_boarding] ))
     end
 
     @stops = @stops.includes{[
@@ -74,7 +89,9 @@ class Api::V1::StopsController < Api::V1::BaseApiController
             :onestop_id,
             :tag_key,
             :tag_value,
-            :import_level
+            :import_level,
+            :imported_from_feed,
+            :imported_from_feed_version
           )
         )
       end
@@ -90,7 +107,11 @@ class Api::V1::StopsController < Api::V1::BaseApiController
   def show
     respond_to do |format|
       format.json do
-        render json: @stop
+        if self.class::SERIALIZER
+          render json: @stop, serializer: self.class::SERIALIZER
+        else
+          render json: @stop
+        end
       end
       format.geojson do
         render json: Geojson.from_entity(@stop, &GEOJSON_ENTITY_PROPERTIES)

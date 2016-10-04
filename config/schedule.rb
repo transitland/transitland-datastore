@@ -11,10 +11,12 @@ env :PATH, ENV['PATH']
 # make sure to run through bundle
 job_type :runner, "cd :path && bin/bundle exec rails runner -e :environment ':task' :output"
 
-every 1.day, at: '12:01 pm' do
-  runner 'Feed.async_fetch_all_feeds'
+every 30.minutes do
+  runner 'FeedFetcherService.fetch_some_ready_feeds_async'
 end
 
 every 1.day, at: '12:01 am' do
   runner 'Stop.re_conflate_with_osm'
+  rake 'feed:maintenance:extend_expired_feed_versions_cron'
+  rake 'feed:maintenance:enqueue_next_feed_versions_cron'
 end

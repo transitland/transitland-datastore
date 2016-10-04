@@ -15,7 +15,6 @@
 #
 #  #c_operators_serving_stop_cu_in_changeset_id_index               (created_or_updated_in_changeset_id)
 #  index_current_operators_serving_stop_on_operator_id              (operator_id)
-#  index_current_operators_serving_stop_on_stop_id                  (stop_id)
 #  index_current_operators_serving_stop_on_stop_id_and_operator_id  (stop_id,operator_id) UNIQUE
 #
 
@@ -34,7 +33,8 @@ describe OperatorServingStop do
             stop: {
               onestopId: 's-9q8yt4b-19Hollway',
               name: '19th Ave & Holloway St',
-              timezone: 'America/Los_Angeles'
+              timezone: 'America/Los_Angeles',
+              geometry: { type: "Point", coordinates: [-122.475075, 37.721323] }
             }
           },
           {

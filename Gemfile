@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.2.6'
+gem 'rails', '4.2.7.1'
 
 # Transitland Datastore components
 path 'components' do
@@ -21,14 +21,14 @@ gem 'redis-rails'
 
 # background processing
 gem 'sidekiq', '< 5'
-gem 'sidekiq-unique-jobs'
+gem 'sidekiq-unique-jobs', group: [:development, :staging, :production] # doesn't play well with test
 gem 'sidekiq-limit_fetch'
 gem 'whenever', require: false # to manage crontab
 
 # data model
 gem 'squeel'
 gem 'enumerize'
-gem 'gtfs', github: 'transitland/gtfs', tag: '4f99e646ed51763f318310ee4d5fc48d06e3402b'
+gem 'gtfs', github: 'transitland/gtfs', tag: 'dab8bdecccc466cccadd6f2ddfff78e95d8375c7'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 gem 'json-schema', '2.5.2' # running into problems with 2.6.0
@@ -67,6 +67,7 @@ gem 'pry-rescue', group: [:development, :test]
 gem 'pry-stack_explorer', group: [:development, :test]
 gem 'rubocop', require: false, group: [:development, :test]
 gem 'rubocop-rspec', require: false, group: [:development, :test]
+gem 'active_record_doctor', group: :development
 
 # code coverage and documentation
 gem 'rails-erd', group: :development
@@ -82,7 +83,6 @@ gem 'rspec-sidekiq', group: :test
 gem 'vcr', group: :test
 gem 'webmock', group: :test
 gem 'airborne', group: :test
-gem 'mock_redis', group: :test # used by sidekiq-unique-jobs
 gem 'timecop', group: :test
 gem 'rspec_junit_formatter', '0.2.2', group: :test
 # ^ for CircleCI: https://circleci.com/docs/test-metadata#rspec
@@ -105,3 +105,6 @@ gem 'marginalia', group: [:development, :staging]
 
 # web server
 gem 'unicorn', group: [:staging, :production]
+
+# profiling
+gem 'memory_profiler', group: [:test, :development]

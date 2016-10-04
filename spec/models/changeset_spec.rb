@@ -42,29 +42,6 @@ describe Changeset do
       changeset = build(:changeset, payload: payload)
       expect(changeset.change_payloads.count).equal?(1)
     end
-
-    context 'creation e-mail' do
-      it 'sent to normal user' do
-        allow(Figaro.env).to receive(:send_changeset_emails_to_users) { 'true' }
-        user = create(:user)
-        changeset = create(:changeset, user: user)
-        expect(ChangesetMailer.instance_method :creation).to be_delayed(changeset.id)
-      end
-
-      it 'not sent to admin user' do
-        allow(Figaro.env).to receive(:send_changeset_emails_to_users) { 'false' }
-        user = create(:user, admin: true)
-        changeset = create(:changeset, user: user)
-        expect(ChangesetMailer.instance_method :creation).to_not be_delayed(changeset.id)
-      end
-
-      it 'not sent when disabled' do
-        allow(Figaro.env).to receive(:send_changeset_emails_to_users) { 'false' }
-        user = create(:user)
-        changeset = create(:changeset, user: user)
-        expect(ChangesetMailer.instance_method :creation).to_not be_delayed(changeset.id)
-      end
-    end
   end
 
   it 'sorts payloads by created_at' do
@@ -136,10 +113,10 @@ describe Changeset do
       @changeset1.apply!
       expect(Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS').name).to eq '1st Ave. & Holloway Street'
       expect(@changeset2.applied).to eq false
-      expect(@changeset2.trial_succeeds?).to eq true
+      expect(@changeset2.trial_succeeds?).to eq [true, []]
       expect(@changeset2.reload.applied).to eq false
       expect(Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS').name).to eq '1st Ave. & Holloway Street'
-      expect(@changeset2_bad.trial_succeeds?).to eq false
+      expect(@changeset2_bad.trial_succeeds?).to eq [false, []]
       @changeset2.apply!
       expect(Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS').name).to eq '1st Ave. & Holloway St.'
     end
@@ -216,25 +193,215 @@ describe Changeset do
       expect(OldOperatorServingStop.first.stop).to eq Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS')
     end
 
-    context 'application e-mail' do
-      it 'sent to normal user' do
-        @changeset1.user = create(:user)
-        @changeset1.apply!
-        expect(ChangesetMailer.instance_method :application).to be_delayed(@changeset1.id)
-      end
+    # it 'saves error if failed' do
+    #   expect { @changeset2_bad.apply! }.to raise_error(Changeset::Error)
+    #   @changeset2_bad.reload
+    #   expect(@changeset2_bad.applied).to be false
+    #   expect(@changeset2_bad.error).to be_truthy
+    # end
+  end
 
-      it 'not sent to admin user' do
-        @changeset1.user = create(:user, admin: true)
-        @changeset1.apply!
-        expect(ChangesetMailer.instance_method :application).to_not be_delayed(@changeset1.id)
-      end
+  context 'sticky and edited attributes' do
+    # import-related changeset integration tests are in gtfs_graph_spec
+    before(:each) {
+      @changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              name: '1st Ave. & Holloway St.',
+              timezone: 'America/Los_Angeles'
+            }
+          }
+        ]
+      })
+      @changeset.apply!
+    }
 
-      it 'not sent when disabled' do
-        allow(Figaro.env).to receive(:send_changeset_emails_to_users) { 'false' }
-        @changeset1.user = create(:user)
-        @changeset1.apply!
-        expect(ChangesetMailer.instance_method :application).to_not be_delayed(@changeset1.id)
+    it 'allows non-import changeset to preserve sticky and edited attributes' do
+      edited_attrs = Set.new(Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS').edited_attributes.map(&:to_sym))
+      expect(Set.new(Stop.sticky_attributes)).to satisfy { |st| edited_attrs.subset?(st) }
+    end
+
+    it 'allows non-import changeset to write over previous non-import changeset' do
+      changeset2 = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              name: 'Second Edit',
+              timezone: 'America/Los_Angeles'
+            }
+          }
+        ]
+      })
+      changeset2.apply!
+      expect(Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS').name).to eq 'Second Edit'
+    end
+  end
+
+  context 'computed attributes' do
+    it 'recomputes rsp stop distances from rsp update changeset' do
+      richmond = create(:stop_richmond_offset)
+      millbrae = create(:stop_millbrae)
+      rsp = create(:route_stop_pattern_bart)
+      create(:schedule_stop_pair, origin: richmond, destination: millbrae, route_stop_pattern: rsp)
+
+      # now, a minor tweak to the first rsp geometry endpoint to demonstrate a change in stop distance for the second stop
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            routeStopPattern: {
+              onestopId: 'r-9q8y-richmond~dalycity~millbrae-e8fb80-61d4dc',
+              stopPattern: ['s-9q8zzf1nks-richmond', 's-9q8vzhbf8h-millbrae'],
+              geometry: { type: "LineString", coordinates: [[-122.351529, 37.937750], [-122.38666, 37.599787]] }
+            }
+          }
+        ]
+      })
+      changeset.apply!
+      saved_ssp = ScheduleStopPair.first
+      expect(saved_ssp.origin_dist_traveled).to eq 0.0
+      expect(saved_ssp.destination_dist_traveled).to eq 37748.7
+      expect(RouteStopPattern.find_by_onestop_id!('r-9q8y-richmond~dalycity~millbrae-e8fb80-61d4dc').stop_distances).to eq [0.0, 37748.7]
+    end
+
+    it 'recomputes rsp stop distances from stop update changeset' do
+      richmond = create(:stop_richmond_offset)
+      millbrae = create(:stop_millbrae)
+      rsp = create(:route_stop_pattern_bart)
+      create(:schedule_stop_pair, origin: richmond, destination: millbrae, route_stop_pattern: rsp)
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            stop: {
+              onestopId: 's-9q8zzf1nks-richmond',
+              timezone: 'America/Los_Angeles',
+              name: 'Richmond',
+              geometry: { type: "Point", coordinates: [-122.353165, 37.936887] }
+            }
+          }
+        ]
+      })
+      changeset.apply!
+      saved_ssp = ScheduleStopPair.first
+      expect(saved_ssp.origin_dist_traveled).to eq 0.0
+      expect(saved_ssp.destination_dist_traveled).to eq 37641.4
+      expect(RouteStopPattern.find_by_onestop_id!('r-9q8y-richmond~dalycity~millbrae-e8fb80-61d4dc').stop_distances).to eq [0.0, 37641.4]
+    end
+
+    it 'avoids duplication of rsp distance calculation' do
+      create(:stop_richmond_offset)
+      create(:stop_millbrae)
+      create(:route_stop_pattern_bart)
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            stop: {
+              onestopId: 's-9q8zzf1nks-richmond',
+              timezone: 'America/Los_Angeles',
+              name: 'Richmond',
+              geometry: { type: "Point", coordinates: [-122.353165, 37.936887] }
+            },
+            stop: {
+              onestopId: 's-9q8vzhbf8h-millbrae',
+              timezone: 'America/Los_Angeles',
+              name: 'Millbrae',
+              geometry: { type: "Point", coordinates: [-122.38266, 37.599487] }
+            }
+          },
+          {
+            action: 'createUpdate',
+            routeStopPattern: {
+              onestopId: 'r-9q8y-richmond~dalycity~millbrae-e8fb80-61d4dc',
+              stopPattern: ['s-9q8zzf1nks-richmond', 's-9q8vzhbf8h-millbrae'],
+              geometry: { type: "LineString", coordinates: [[-122.351529, 37.937750], [-122.38666, 37.599787]] }
+            }
+          }
+        ]
+      })
+      changeset.change_payloads.each do |change_payload|
+        change_payload.apply!
       end
+      expect(changeset.update_computed_attributes).to eq [1,0]
+    end
+
+    it 'recomputes operator convex hull on stop update changeset' do
+      stop = create(:stop_richmond)
+      operator = create(:operator, geometry: { type: "Point", coordinates: stop.geometry[:coordinates] } )
+      OperatorServingStop.new(operator: operator, stop: stop).save!
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            stop: {
+              onestopId: 's-9q8zzf1nks-richmond',
+              timezone: 'America/Los_Angeles',
+              name: 'Richmond',
+              geometry: { type: "Point", coordinates: [-122.5, 37.9] }
+            }
+          }
+        ]
+      })
+      changeset.apply!
+      convex_hull_coordinates = Operator.find_by_onestop_id!(operator.onestop_id).geometry[:coordinates].first.map {|a| a.map { |b| b.round(4) } }
+      expect(convex_hull_coordinates).to match_array([[-122.5009, 37.9],
+                                                      [-122.5, 37.8993],
+                                                      [-122.5, 37.9007],
+                                                      [-122.4991, 37.9],
+                                                      [-122.4991, 37.9]])
+    end
+  end
+
+  context 'creation e-mail' do
+    it 'sent to normal user' do
+      allow(Figaro.env).to receive(:send_changeset_emails_to_users) { 'true' }
+      user = create(:user)
+      changeset = create(:changeset, user: user)
+      expect(ChangesetMailer.instance_method :creation).to be_delayed(changeset.id)
+    end
+
+    it 'not sent to admin user' do
+      allow(Figaro.env).to receive(:send_changeset_emails_to_users) { 'false' }
+      user = create(:user, admin: true)
+      changeset = create(:changeset, user: user)
+      expect(ChangesetMailer.instance_method :creation).to_not be_delayed(changeset.id)
+    end
+
+    it 'not sent when disabled' do
+      allow(Figaro.env).to receive(:send_changeset_emails_to_users) { 'false' }
+      user = create(:user)
+      changeset = create(:changeset, user: user)
+      expect(ChangesetMailer.instance_method :creation).to_not be_delayed(changeset.id)
+    end
+  end
+
+  context 'application e-mail' do
+    it 'sent to normal user' do
+      @changeset1 = create(:changeset)
+      @changeset1.user = create(:user)
+      @changeset1.apply!
+      expect(ChangesetMailer.instance_method :application).to be_delayed(@changeset1.id)
+    end
+
+    it 'not sent to admin user' do
+      @changeset1 = create(:changeset)
+      @changeset1.user = create(:user, admin: true)
+      @changeset1.apply!
+      expect(ChangesetMailer.instance_method :application).to_not be_delayed(@changeset1.id)
+    end
+
+    it 'not sent when disabled' do
+      @changeset1 = create(:changeset)
+      allow(Figaro.env).to receive(:send_changeset_emails_to_users) { 'false' }
+      @changeset1.user = create(:user)
+      @changeset1.apply!
+      expect(ChangesetMailer.instance_method :application).to_not be_delayed(@changeset1.id)
     end
   end
 

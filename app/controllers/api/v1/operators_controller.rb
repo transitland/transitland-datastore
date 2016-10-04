@@ -35,6 +35,14 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
     @operators = AllowFiltering.by_attribute_array(@operators, params, :name)
     @operators = AllowFiltering.by_attribute_array(@operators, params, :short_name)
 
+    if params[:imported_from_feed].present?
+      @operators = @operators.where_imported_from_feed(Feed.find_by_onestop_id(params[:imported_from_feed]))
+    end
+
+    if params[:imported_from_feed_version].present?
+      @operators = @operators.where_imported_from_feed_version(FeedVersion.find_by!(sha1: params[:imported_from_feed_version]))
+    end
+
     if [params[:lat], params[:lon]].map(&:present?).all?
       point = Operator::GEOFACTORY.point(params[:lon], params[:lat])
       r = params[:r] || 100 # meters TODO: move this to a more logical place
@@ -75,7 +83,9 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
             :tag_value,
             :import_level,
             :name,
-            :short_name
+            :short_name,
+            :imported_from_feed,
+            :imported_from_feed_version
           )
         )
       end

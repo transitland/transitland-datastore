@@ -1,6 +1,6 @@
 task :enqueue_feed_fetcher_workers, [] => [:environment] do |t, args|
   begin
-    workers = Feed.async_fetch_all_feeds
+    workers = FeedFetcherService.fetch_all_feeds_async
     if workers
       puts "FeedEaterWorkers #{workers} created and enqueued."
     else

@@ -71,6 +71,11 @@ FactoryGirl.define do
       association :feed, factory: :feed_nycdotsiferry
     end
 
+    factory :feed_version_mtanyctbusstatenisland_trip_YU_S6_Weekday_030000_MISC_112 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/mtanyctbusstatenisland-trip-YU_S6-Weekday-030000_MISC_112.zip')) }
+      association :feed, factory: :feed_mtanyctbusstatenisland
+    end
+
     factory :feed_version_rome do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/rome-trip-754_4655513.zip')) }
       association :feed, factory: :feed_rome
@@ -78,6 +83,11 @@ FactoryGirl.define do
 
     factory :feed_version_example do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example.zip')) }
+      association :feed, factory: :feed_example
+    end
+
+    factory :feed_version_example_issues do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example-issues.zip')) }
       association :feed, factory: :feed_example
     end
 
@@ -89,8 +99,8 @@ FactoryGirl.define do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example-update-delete.zip')) }
     end
 
-    factory :feed_version_example_trips_without_stop_times do
-      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example-trips-without-stop-times.zip')) }
+    factory :feed_version_example_trips_special_stop_times do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example-trips-special-stop-times.zip')) }
       association :feed, factory: :feed_example
     end
   end

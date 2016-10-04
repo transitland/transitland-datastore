@@ -64,15 +64,7 @@ module AllowFiltering
   def self.by_boolean_attribute(collection, params, boolean_attribute_name)
     unless params[boolean_attribute_name].nil?
       conditions = {}
-      conditions[boolean_attribute_name] = case params[boolean_attribute_name]
-        when 'true' then true
-        when true then true
-        when 1 then true
-        when '1' then true
-        when 'false' then false
-        when false then false
-        when '0' then false
-      end
+      conditions[boolean_attribute_name] = to_boolean(params[boolean_attribute_name])
       collection = collection.where(conditions)
     end
     collection
@@ -90,10 +82,15 @@ module AllowFiltering
     collection
   end
 
-  def self.by_attribute_array(collection, params, attribute_name)
+  def self.by_attribute_array(collection, params, attribute_name, case_sensitive=false)
     values = param_as_array(params, attribute_name)
+    if case_sensitive
+      t = collection.arel_table[attribute_name].in(values)
+    else
+      t = collection.arel_table[attribute_name].lower.in(values.map(&:downcase))
+    end
     if values.present?
-      collection = collection.where({attribute_name => values})
+      collection = collection.where(t)
     end
     collection
   end
@@ -106,6 +103,20 @@ module AllowFiltering
       (values += value.split(',')) if value.is_a?(String)
     end
     values
+  end
+
+  def self.to_boolean(value)
+    case value
+      when 'true' then true
+      when true then true
+      when 1 then true
+      when '1' then true
+      when 'false' then false
+      when false then false
+      when 0 then false
+      when '0' then false
+      when nil then false
+    end
   end
 
 end

@@ -1,0 +1,3 @@
+describe EntityWithIssues do
+
+end
