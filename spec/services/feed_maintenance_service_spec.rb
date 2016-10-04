@@ -7,9 +7,9 @@ describe FeedMaintenanceService do
     @feed_version.feed.update!(active_feed_version: @feed_version)
   end
 
-  context '.extend_feed_version' do
+  context '.extend_expired_feed_version' do
     it 'extends a feed' do
-      FeedMaintenanceService.extend_feed_version(
+      FeedMaintenanceService.extend_expired_feed_version(
         @feed_version,
         extend_from_date: '2016-05-01',
         extend_to_date: '2016-12-31'
@@ -20,7 +20,7 @@ describe FeedMaintenanceService do
     end
 
     it 'defaults to -1 month, +1 year' do
-      FeedMaintenanceService.extend_feed_version(
+      FeedMaintenanceService.extend_expired_feed_version(
         @feed_version
       )
       @feed_version.reload
@@ -34,12 +34,23 @@ describe FeedMaintenanceService do
       @feed_version.tags['extend_to_date'] = '2016-07-01'
       @feed_version.save!
       updated_at = @feed_version.reload.updated_at
-      FeedMaintenanceService.extend_feed_version(
+      FeedMaintenanceService.extend_expired_feed_version(
         @feed_version
       )
       @feed_version.reload
       expect(@feed_version.tags['extend_to_date']).to eq('2016-07-01')
     end
+
+    it 'creates an issue for the feed_version' do
+      expect(EntityWithIssues.where(entity: @feed_version).count).to eq(0)
+      FeedMaintenanceService.extend_expired_feed_version(
+        @feed_version,
+        extend_from_date: '2016-05-01',
+        extend_to_date: '2016-12-31'
+      )
+      expect(EntityWithIssues.where(entity: @feed_version).count).to eq(1)
+    end
+
   end
 
   context '.enqueue_next_feed_versions' do
@@ -90,6 +101,14 @@ describe FeedMaintenanceService do
         FeedMaintenanceService.enqueue_next_feed_versions(date)
       }.to change(FeedEaterWorker.jobs, :size).by(0)
     end
-  end
 
+    it 'creates an issue for the feed_version' do
+      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date - 2.months)
+      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date - 1.months)
+      feed.update!(active_feed_version: fv1)
+      expect(EntityWithIssues.where(entity: fv2).count).to eq(0)
+      FeedMaintenanceService.enqueue_next_feed_versions(date)
+      expect(EntityWithIssues.where(entity: fv2).count).to eq(1)
+    end
+  end
 end
