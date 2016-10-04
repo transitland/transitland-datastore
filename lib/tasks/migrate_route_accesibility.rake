@@ -2,7 +2,7 @@ namespace :db do
   namespace :migrate do
     task :migrate_route_accessibility, [] => [:environment] do |t, args|
       Route.find_each do |route|
-        ssps = ScheduleStopPair.select(:trip).select(:wheelchair_accessible).select(:bikes_allowed).where(route_id: Route.first.id).uniq(:trip)
+        ssps = ScheduleStopPair.select(:trip).select(:wheelchair_accessible).select(:bikes_allowed).where(route_id: route.id).uniq(:trip)
 
         wheelchair_result = :unknown
         if ssps.where(wheelchair_accessible: true).length == ssps.length
@@ -26,6 +26,8 @@ namespace :db do
           end
         end
 
+        puts "Updating Route #{route.onestop_id} wheelchair_accessible to #{wheelchair_result}"
+        puts "Updating Route #{route.onestop_id} bikes_allowed to #{bike_result}"
         route.update(wheelchair_accessible: wheelchair_result, bikes_allowed: bike_result)
       end
     end
