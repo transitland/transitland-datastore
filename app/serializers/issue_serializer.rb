@@ -3,7 +3,7 @@
 # Table name: issues
 #
 #  id                       :integer          not null, primary key
-#  created_by_changeset_id  :integer          not null
+#  created_by_changeset_id  :integer
 #  resolved_by_changeset_id :integer
 #  details                  :string
 #  issue_type               :string
