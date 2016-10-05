@@ -86,11 +86,9 @@ class FeedMaintenanceService
 
   def self.create_feed_version_issue(feed_version, issue_type)
     # Create issue
-    changeset = Changeset.create!(notes: "Issue placeholder for Feed Maintenance: #{issue_type}")
     issue = Issue.create!(
       details: "#{issue_type}: #{feed_version.feed.onestop_id} #{feed_version.sha1}",
       issue_type: issue_type,
-      created_by_changeset: changeset
     )
     issue.entities_with_issues.create!(entity: feed_version)
   end
