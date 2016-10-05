@@ -2,7 +2,9 @@ Rails.application.routes.default_url_options = TransitlandDatastore::Application
 
 Rails.application.routes.draw do
   namespace :api do
+    get '/', to: 'api#index'
     namespace :v1 do
+      get '/', to: 'api_v1#index'
       get '/onestop_id/:onestop_id', to: 'onestop_id#show'
       get '/activity_updates', to: 'activity_updates#index'
       resources :changesets, only: [:index, :show, :create, :update, :destroy] do
