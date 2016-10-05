@@ -49,6 +49,7 @@ describe FeedMaintenanceService do
         extend_to_date: '2016-12-31'
       )
       expect(EntityWithIssues.where(entity: @feed_version).count).to eq(1)
+      expect(EntityWithIssues.where(entity: @feed_version).first.issue.issue_type).to eq(:feed_version_maintenance_extend)
     end
   end
 
@@ -102,6 +103,7 @@ describe FeedMaintenanceService do
       expect(EntityWithIssues.where(entity: @fv2).count).to eq(0)
       FeedMaintenanceService.enqueue_next_feed_versions(date)
       expect(EntityWithIssues.where(entity: @fv2).count).to eq(1)
+      expect(EntityWithIssues.where(entity: @fv2).first.issue.issue_type).to eq(:feed_version_maintenance_import)
     end
   end
 end
