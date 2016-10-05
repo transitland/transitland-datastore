@@ -4,6 +4,8 @@ namespace :db do
       Route.find_each do |route|
         ssps = ScheduleStopPair.select(:trip).select(:wheelchair_accessible).select(:bikes_allowed).where(route_id: route.id).uniq(:trip)
 
+        next if ssps.length == 0
+
         wheelchair_result = :unknown
         if ssps.where(wheelchair_accessible: true).length == ssps.length
           wheelchair_result = :all_trips
