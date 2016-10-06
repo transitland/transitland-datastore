@@ -36,6 +36,8 @@ class Issue < ActiveRecord::Base
                  'route_color',
                  'stop_name',
                  'route_name',
+                 'feed_version_maintenance_extend',
+                 'feed_version_maintenance_import',
                  'uncategorized']
 
   def changeset_from_entities
