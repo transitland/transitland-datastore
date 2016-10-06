@@ -49,7 +49,7 @@ class Issue < ActiveRecord::Base
   def outdated?
     # This can create false negatives if different changesets w/ same entities are made less than 1 second apart.
     # Using the Issue updated_at value to account for the addition of entities_with_issues to the Issue later on.
-    entities_with_issues.any? { |ewi| ewi.entity.created_or_updated_in_changeset.updated_at.to_i > updated_at.to_i }
+    entities_with_issues.any? { |ewi| ewi.entity.created_or_updated_in_changeset.updated_at.to_i > created_at.to_i }
   end
 
   def equivalent?(issue)
@@ -67,13 +67,16 @@ class Issue < ActiveRecord::Base
     }
   end
 
-  def self.bulk_deactivate
-    # We need the outdated? method to capture all issues created outside imports, as well as the ones from old imports.
-    Issue.includes(:entities_with_issues)
-      .select{ |issue| issue.outdated? }
-      .each {|issue|
-        log("Deprecating issue: #{issue.as_json(include: [:entities_with_issues])}")
-        issue.destroy
-      }
+  def deprecate
+    log("Deprecating issue: #{self.as_json(include: [:entities_with_issues])}")
+    self.destroy
+  end
+
+  def self.bulk_deprecate(issues: nil)
+    if issues.nil?
+      Issue.includes(:entities_with_issues).select{ |issue| issue.outdated? }.each {|issue| issue.deprecate }
+    else
+      issues.each { |issue| issue.deprecate } unless issues.nil?
+    end
   end
 end

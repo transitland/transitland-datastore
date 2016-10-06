@@ -246,6 +246,14 @@ class Changeset < ActiveRecord::Base
           EntityImportedFromFeed.import eiff_batch
         end
 
+        issue_candidates_to_deprecate = Set.new
+        self.entities_created_or_updated do |entity|
+          # Collect Issue candidates for deprecation
+          issue_candidates_to_deprecate.merge(Issue.joins(:entities_with_issues).where(entities_with_issues: { entity: entity }).select { |issue|
+            entity.updated_at.to_i > issue.created_at.to_i
+          })
+        end
+
         # Update attributes that derive from imported attributes between models
         update_computed_attributes unless import?
 
@@ -255,14 +263,11 @@ class Changeset < ActiveRecord::Base
         if (unresolved_issues.empty?)
           resolving_issues.each { |issue| issue.update!({ open: false, resolved_by_changeset: self}) }
           changeset_issues.each(&:save!)
-          # Temporarily disabling deactivation for non-import changesets until faster implementation
-          # or all-async changesets
-          Issue.bulk_deactivate if import?
-          resolving_issues.each {|issue|
-            log("Deprecating issue: #{issue.as_json(include: [:entities_with_issues])}")
-            EntityWithIssues.delete issue.entities_with_issues
-            issue.delete
-          }
+          # separate the resolving issues so they are logged as "resolved"
+          Issue.bulk_deprecate(issues: issue_candidates_to_deprecate.keep_if { |i|
+              !resolving_issues.map(&:id).include?(i.id)
+            }.merge(resolving_issues)
+          )
         else
           message = unresolved_issues.map { |issue| "Issue #{issue.id} was not resolved." }.join(" ")
           logger.error "Error applying Changeset #{self.id}: " + message
