@@ -16,11 +16,6 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     properties[:route_stop_patterns_by_onestop_id] = entity.route_stop_patterns.map(&:onestop_id)
   }
 
-  RESPONSE_FORMATS_BY_ACTION = {
-    :index => [:json, :geojson],
-    :show => [:json, :geojson],
-  }
-
   before_action :set_route, only: [:show]
 
   def index
