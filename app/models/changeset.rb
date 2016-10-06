@@ -231,10 +231,16 @@ class Changeset < ActiveRecord::Base
         end
         self.update(applied: true, applied_at: Time.now)
 
-        # Create any feed-entity associations
-        if import?
-          eiff_batch = []
-          self.entities_created_or_updated do |entity|
+        issue_candidates_to_deprecate = Set.new
+        eiff_batch = []
+        self.entities_created_or_updated do |entity|
+          # Collect Issue candidates for deprecation
+          issue_candidates_to_deprecate.merge(Issue.joins(:entities_with_issues).where(entities_with_issues: { entity: entity }).select { |issue|
+            entity.updated_at.to_i > issue.created_at.to_i
+          })
+
+          # Create any feed-entity associations
+          if import?
             eiff_batch << entity
               .entities_imported_from_feed
               .new(feed: self.imported_from_feed, feed_version: self.imported_from_feed_version)
@@ -243,16 +249,8 @@ class Changeset < ActiveRecord::Base
               eiff_batch = []
             end
           end
-          EntityImportedFromFeed.import eiff_batch
         end
-
-        issue_candidates_to_deprecate = Set.new
-        self.entities_created_or_updated do |entity|
-          # Collect Issue candidates for deprecation
-          issue_candidates_to_deprecate.merge(Issue.joins(:entities_with_issues).where(entities_with_issues: { entity: entity }).select { |issue|
-            entity.updated_at.to_i > issue.created_at.to_i
-          })
-        end
+        EntityImportedFromFeed.import eiff_batch unless eiff_batch.empty?
 
         # Update attributes that derive from imported attributes between models
         update_computed_attributes unless import?
