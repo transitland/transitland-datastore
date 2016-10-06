@@ -264,10 +264,7 @@ class Changeset < ActiveRecord::Base
           resolving_issues.each { |issue| issue.update!({ open: false, resolved_by_changeset: self}) }
           changeset_issues.each(&:save!)
           # separate the resolving issues so they are logged as "resolved"
-          Issue.bulk_deprecate(issues: issue_candidates_to_deprecate.keep_if { |i|
-              !resolving_issues.map(&:id).include?(i.id)
-            }.merge(resolving_issues)
-          )
+          Issue.bulk_deprecate(issues: issue_candidates_to_deprecate.keep_if { |i| !resolving_issues.map(&:id).include?(i.id) }.merge(resolving_issues))
         else
           message = unresolved_issues.map { |issue| "Issue #{issue.id} was not resolved." }.join(" ")
           logger.error "Error applying Changeset #{self.id}: " + message
