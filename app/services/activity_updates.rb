@@ -2,7 +2,7 @@ class ActivityUpdates
   include Singleton
 
   def self.updates_since(since=24.hours.ago)
-    updates = changesets_created(since) + changesets_updated(since) + changesets_applied(since) + feeds_imported(since) + feeds_versions_fetched(since) + feed_maintenance_issues(since)
+    updates = changesets_created(since) + changesets_updated(since) + changesets_applied(since) + feeds_imported(since) + feeds_versions_fetched(since) + issues_created(since)
     updates.sort_by { |update| update[:at_datetime] }.reverse
   end
 
@@ -103,22 +103,17 @@ class ActivityUpdates
     updates || []
   end
 
-  def self.feed_maintenance_issues(since)
+  def self.issues_created(since)
     issue_types = [:feed_version_maintenance_extend, :feed_version_maintenance_import]
-    ewis = EntityWithIssues
-      .where(entity_type: 'FeedVersion')
-      .joins(:issue).where('issues.created_at > ?', since)
-      .where('issues.issue_type IN (?)', issue_types)
-    updates = ewis.map do |ewi|
-      issue = ewi.issue
-      feed_version = ewi.entity
+    issues = Issue.where(issue_type: issue_types).where('created_at > ?', since)
+    updates = issues.map do |issue|
       {
-        id: "fv-#{feed_version.sha1}-maintenance",
-        entity_type: 'feed_version',
-        entity_id: feed_version.feed.onestop_id,
+        id: "issue-#{issue.id}-created",
+        entity_type: 'issue',
+        entity_id: issue.id,
         entity_action: issue.issue_type,
-        note: note,
-        at_datetime: feed_version.created_at
+        note: issue.details,
+        at_datetime: issue.created_at
       }
     end
     updates || []
