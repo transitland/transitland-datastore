@@ -41,7 +41,7 @@ class Issue < ActiveRecord::Base
   def changeset_from_entities
     # all entities must have the same created or updated in changeset, or no changeset will represent them
     changesets = entities_with_issues.map { |ewi| ewi.entity.created_or_updated_in_changeset }
-    if changesets.all? {|changeset| changeset.id == changesets.first.id }
+    if changesets.all? { |changeset| changeset.id == changesets.first.id }
      changesets.first
     end
   end

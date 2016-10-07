@@ -98,10 +98,6 @@ describe Issue do
             }
           ]
         })
-        # expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>1/)
-        # expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>2/)
-        # expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>5/)
-        # expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>6/)
         expect(Sidekiq::Logging.logger).to receive(:info).with(/Calculating distances/)
         expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>8.*"resolved_by_changeset_id"=>2.*"open"=>false/)
         changeset.apply!
@@ -130,7 +126,7 @@ describe Issue do
       end
     end
 
-    it 'deprecates issues of old feed version imports' do
+    it 'deprecates issues of old feed version imports with the same entities' do
       Timecop.freeze(3.minutes.from_now) do
         load_feed(feed_version: @feed_version, import_level: 1)
       end
@@ -139,28 +135,39 @@ describe Issue do
       expect(Issue.find(9).created_by_changeset_id).to eq 2
     end
 
-    # it 'deprecates issues created by older changesets of associated entities' do
-    #   Timecop.freeze(3.minutes.from_now) do
-    #     # NOTE: although this changeset would resolve an issue,
-    #     # we are explicitly avoiding that
-    #     changeset = create(:changeset, payload: {
-    #       changes: [
-    #         action: 'createUpdate',
-    #         stop: {
-    #           onestopId: 's-9qscwx8n60-nyecountyairportdemo',
-    #           timezone: 'America/Los_Angeles',
-    #           "geometry": {
-    #             "type": "Point",
-    #             "coordinates": [-116.784582, 36.888446]
-    #           }
-    #         }
-    #       ]
-    #     })
-    #     changeset.apply!
-    #   end
-    #   expect{Issue.find(2)}.to raise_error(ActiveRecord::RecordNotFound)
-    #   expect(Issue.find(9).created_by_changeset_id).to eq 2
-    # end
+    it 'deprecates issues created by older changesets of associated entities' do
+      Timecop.freeze(3.minutes.from_now) do
+        # NOTE: although this changeset would resolve an issue,
+        # we are explicitly avoiding that just to test deprecation. Furthermore, this changeset
+        # creates a similar issue (but involving a different rsp) to the
+        # one being deprecated.
+        changeset = create(:changeset, payload: {
+          changes: [
+            action: 'createUpdate',
+            stop: {
+              onestopId: 's-9qscwx8n60-nyecountyairportdemo',
+              timezone: 'America/Los_Angeles',
+              "geometry": {
+                "type": "Point",
+                "coordinates": [-116.784582, 36.888446]
+              }
+            }
+          ]
+        })
+        expect(Sidekiq::Logging.logger).to receive(:info).with(/Calculating distances/)
+        # making sure open=true because we are not resolving the issue here
+        expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>8.*"open"=>true/)
+        changeset.apply!
+      end
+      expect{Issue.find(8)}.to raise_error(ActiveRecord::RecordNotFound)
+      # similar to issue 8, but involves a different rsp
+      expect(Issue.find(9).created_by_changeset_id).to eq 2
+    end
+
+    it 'ignores FeedVersion issues during deprecation' do
+      Issue.create!(issue_type: 'feed_version_maintenance_extend', details: 'extend this feed')
+      .entities_with_issues.create!(entity: FeedVersion.first)
+    end
 
     it 'destroys entities_with_issues when issue destroyed' do
       Issue.find(8).destroy
