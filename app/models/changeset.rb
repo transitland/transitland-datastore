@@ -255,8 +255,9 @@ class Changeset < ActiveRecord::Base
         # Update attributes that derive from imported attributes between models
         update_computed_attributes unless import?
 
-        # Check for issues
+        # Check for issues on this changeset
         changeset_issues = check_quality
+        # check if a changeset's specified issuesResolved are actually resolved.
         unresolved_issues = issues_unresolved(resolving_issues, changeset_issues)
         if (unresolved_issues.empty?)
           resolving_issues.each { |issue| issue.update!({ open: false, resolved_by_changeset: self}) }
