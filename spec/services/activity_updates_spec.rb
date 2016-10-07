@@ -114,4 +114,37 @@ describe ActivityUpdates do
     expect(ActivityUpdates.updates_since[0][:entity_id]).to eq Feed.first.onestop_id
     expect(ActivityUpdates.updates_since[0][:entity_action]).to eq 'fetched'
   end
+
+  context 'feed_maintenance_issues' do
+    it 'feeds maintenance extended' do
+      issue_type = "feed_version_maintenance_extend"
+      Timecop.travel(10.minutes.ago) do
+        @fv = create(:feed_version)
+        @issue = Issue.create!(issue_type: issue_type)
+        @issue.entities_with_issues.create!(entity: @fv)
+      end
+      updates = ActivityUpdates.issues(1.day.ago)
+      expect(updates.length).to eq(1)
+      expect(updates.first[:at_datetime]).to be_within(1.second).of(@issue.created_at)
+      expect(updates.first[:entity_type]).to eq('issue')
+      expect(updates.first[:entity_id]).to eq(@issue.id)
+      expect(updates.first[:entity_action]).to eq(issue_type)
+    end
+
+    it 'feeds maintenance imported' do
+      issue_type = "feed_version_maintenance_import"
+      Timecop.travel(10.minutes.ago) do
+        @fv = create(:feed_version)
+        @issue = Issue.create!(issue_type: issue_type)
+        @issue.entities_with_issues.create!(entity: @fv)
+      end
+      updates = ActivityUpdates.issues(1.day.ago)
+      expect(updates.length).to eq(1)
+      expect(updates.first[:at_datetime]).to be_within(1.second).of(@issue.created_at)
+      expect(updates.first[:entity_type]).to eq('issue')
+      expect(updates.first[:entity_id]).to eq(@issue.id)
+      expect(updates.first[:entity_action]).to eq(issue_type)
+    end
+  end
+
 end
