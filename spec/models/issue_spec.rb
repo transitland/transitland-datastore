@@ -165,8 +165,14 @@ describe Issue do
     end
 
     it 'ignores FeedVersion issues during deprecation' do
-      Issue.create!(issue_type: 'feed_version_maintenance_extend', details: 'extend this feed')
-      .entities_with_issues.create!(entity: FeedVersion.first)
+      # duplicate the entire feed import, which should deprecate all previous imports' issues
+      # except the the FeedVersion issue
+      issue = Issue.create!(issue_type: 'feed_version_maintenance_extend', details: 'extend this feed')
+      issue.entities_with_issues.create!(entity: FeedVersion.first)
+      Timecop.freeze(3.minutes.from_now) do
+        load_feed(feed_version: @feed_version, import_level: 1)
+      end
+      expect(Issue.find(issue.id).issue_type).to eq 'feed_version_maintenance_extend'
     end
 
     it 'destroys entities_with_issues when issue destroyed' do
