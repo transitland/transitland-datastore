@@ -27,10 +27,10 @@ class IssueSerializer < ApplicationSerializer
   has_many :entities_with_issues
 
   def imported_from_feed_onestop_id
-    object.created_by_changeset.imported_from_feed.try(:onestop_id)
+    object.created_by_changeset.try(:imported_from_feed).try(:onestop_id)
   end
 
   def imported_from_feed_version_sha1
-    object.created_by_changeset.imported_from_feed_version.try(:sha1)
+    object.created_by_changeset.try(:imported_from_feed_version).try(:sha1)
   end
 end
