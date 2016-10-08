@@ -123,8 +123,9 @@ describe ActivityUpdates do
         @issue = Issue.create!(issue_type: issue_type)
         @issue.entities_with_issues.create!(entity: @fv)
       end
-      updates = ActivityUpdates.issues(1.day.ago)
+      updates = ActivityUpdates.issues_created(1.day.ago)
       expect(updates.length).to eq(1)
+      expect(updates.first[:id]).to eq("issue-#{@issue.id}-created")
       expect(updates.first[:at_datetime]).to be_within(1.second).of(@issue.created_at)
       expect(updates.first[:entity_type]).to eq('issue')
       expect(updates.first[:entity_id]).to eq(@issue.id)
@@ -138,8 +139,9 @@ describe ActivityUpdates do
         @issue = Issue.create!(issue_type: issue_type)
         @issue.entities_with_issues.create!(entity: @fv)
       end
-      updates = ActivityUpdates.issues(1.day.ago)
+      updates = ActivityUpdates.issues_created(1.day.ago)
       expect(updates.length).to eq(1)
+      expect(updates.first[:id]).to eq("issue-#{@issue.id}-created")
       expect(updates.first[:at_datetime]).to be_within(1.second).of(@issue.created_at)
       expect(updates.first[:entity_type]).to eq('issue')
       expect(updates.first[:entity_id]).to eq(@issue.id)
