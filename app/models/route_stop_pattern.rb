@@ -41,6 +41,7 @@ class RouteStopPattern < BaseRouteStopPattern
   COORDINATE_PRECISION = 5
   DISTANCE_PRECISION = 1
   OUTLIER_THRESHOLD = 100
+  FIRST_MATCH_THRESHOLD = 25
 
   belongs_to :route
   has_many :schedule_stop_pairs
@@ -121,25 +122,28 @@ class RouteStopPattern < BaseRouteStopPattern
     locators[nearest_seg_index].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326))
   end
 
-  def nearest_segment_index(locators, point, s, e, first=true, side_filter=false, side=1)
-    # 'side' must be positive or negative, but not zero. positive
-    # will match targets to the right of the segment direction; negative left.
-    side *= -1 # there seems to be a bug in RGeo which gives the reverse of the documented value.
-    if side_filter
-      results = locators[s..e].select { |locator|  locator.segment.side(point)*side >= 0 }
-      results = locators[s..e] if results.empty?
-    else
-      results = locators[s..e]
+  def nearest_segment_index_reverse(locators, s, e, threshold=false, point=nil)
+    if threshold && point
+      a = locators[s..e].reverse_each.map{ |loc| loc.interpolate_point(Stop::GEOFACTORY) }
+      match_point = a.detect { |closest_point| closest_point.distance(point) < FIRST_MATCH_THRESHOLD }
+      unless match_point.nil?
+        return s + a.rindex(match_point)
+      end
     end
-    if first
-      seg_distances = results.map(&:distance_from_segment)
-      # make sure to get the first minimum if 'first' is true and there are multiple values
-      s + seg_distances.index(seg_distances.min)
-    else
-      seg_distances = results.map(&:distance_from_segment)
-      # otherwise get the last minimum if there are multiple values
-      s + seg_distances.rindex(seg_distances.min)
+    a = locators[s..e].map(&:distance_from_segment)
+    s + a.rindex(a.min)
+  end
+
+  def nearest_segment_index_forward(locators, s, e, threshold=false, point=nil)
+    if threshold && point
+      a = locators[s..e].map{ |loc| loc.interpolate_point(Stop::GEOFACTORY) }
+      match_point = a.detect { |closest_point| closest_point.distance(point) < FIRST_MATCH_THRESHOLD }
+      unless match_point.nil?
+        return s + a.index(match_point)
+      end
     end
+    a = locators[s..e].map(&:distance_from_segment)
+    s + a.index(a.min)
   end
 
   def distance_along_line_to_nearest(cartesian_route, nearest_point, nearest_seg_index)
@@ -205,7 +209,7 @@ class RouteStopPattern < BaseRouteStopPattern
           next_stop_spherical = stops[i+1]
           next_stop = cartesian_cast(next_stop_spherical[:geometry])
           next_stop_locators = route.locators(next_stop)
-          next_nearest_seg_index = nearest_segment_index(next_stop_locators, next_stop, a, num_segments-1, first=false)
+          next_nearest_seg_index = nearest_segment_index_reverse(next_stop_locators, a, num_segments-1, threshold=true, point=next_stop_spherical[:geometry])
           next_nearest_point = nearest_point(next_stop_locators, next_nearest_seg_index)
           distance_to_line = distance_to_nearest_point(next_stop_spherical, next_nearest_point)
           if test_distance(distance_to_line)
@@ -217,11 +221,15 @@ class RouteStopPattern < BaseRouteStopPattern
       end
 
       locators = route.locators(this_stop)
-      b = nearest_segment_index(locators, this_stop, a, c)
+      b = nearest_segment_index_forward(locators, a, c)
       nearest_point = nearest_point(locators, b)
       distance = distance_along_line_to_nearest(route, nearest_point, b)
       if (i!=0 && distance <= self.stop_distances[i-1] && !stops[i].onestop_id.eql?(stops[i-1].onestop_id))
-        b = nearest_segment_index(locators, this_stop, a, num_segments - 1)
+        if (a == num_segments - 1)
+          b = nearest_segment_index_forward(locators, a, num_segments - 1)
+        else
+          b = nearest_segment_index_forward(locators, a + 1, num_segments - 1)
+        end
         nearest_point = nearest_point(locators, b)
         distance = distance_along_line_to_nearest(route, nearest_point, b)
       end
