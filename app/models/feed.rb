@@ -90,11 +90,10 @@ class Feed < BaseFeed
   }
 
   scope :where_latest_feed_version_import_success, -> (import_success) {
-    joins(:feed_versions)
-      .joins(:feed_version_imports)
+    joins(:feed_version_imports)
       .joins('LEFT OUTER JOIN feed_version_imports fvi2 ON (feed_versions.id = fvi2.id AND feed_version_imports.created_at < fvi2.created_at)')
-      .where('fvi2.success': import_success)
       .where('fvi2.created_at IS NOT NULL')
+      .where('fvi2.success': import_success)
       .distinct
   }
 
