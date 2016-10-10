@@ -221,7 +221,11 @@ class RouteStopPattern < BaseRouteStopPattern
       nearest_point = nearest_point(locators, b)
       distance = distance_along_line_to_nearest(route, nearest_point, b)
       if (i!=0 && distance <= self.stop_distances[i-1] && !stops[i].onestop_id.eql?(stops[i-1].onestop_id))
-        b = nearest_segment_index(locators, this_stop, a, num_segments - 1)
+        if a == num_segments-1
+          b = nearest_segment_index(locators, this_stop, a, num_segments - 1)
+        else
+          b = nearest_segment_index(locators, this_stop, a + 1, num_segments - 1)
+        end
         nearest_point = nearest_point(locators, b)
         distance = distance_along_line_to_nearest(route, nearest_point, b)
       end
