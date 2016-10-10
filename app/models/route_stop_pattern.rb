@@ -220,7 +220,10 @@ class RouteStopPattern < BaseRouteStopPattern
       b = nearest_segment_index(locators, this_stop, a, c)
       nearest_point = nearest_point(locators, b)
       distance = distance_along_line_to_nearest(route, nearest_point, b)
-      if (i!=0 && distance <= self.stop_distances[i-1] && !stops[i].onestop_id.eql?(stops[i-1].onestop_id))
+      # check to make sure the distance is increasing, other than the edge cases.
+      # if not, we can do a retry with some segment-matching adjustments
+      equivalent_stop = stops[i].onestop_id.eql?(stops[i-1].onestop_id) || stops[i][:geometry].eql?(stops[i-1][:geometry])
+      if (i!=0 && distance <= self.stop_distances[i-1] && distance!=0.0 && !equivalent_stop)
         if a == num_segments-1
           b = nearest_segment_index(locators, this_stop, a, num_segments - 1)
         else
