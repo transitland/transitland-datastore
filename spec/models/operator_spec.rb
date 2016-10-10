@@ -103,7 +103,6 @@ describe Operator do
     changeset = Changeset.create!()
     changeset.change_payloads.create!(payload: payload)
     changeset.apply!
-    binding.pry
     expect(feed.reload.operators_in_feed.count).to eq(0)
   end
 
