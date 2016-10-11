@@ -232,7 +232,7 @@ class Changeset < ActiveRecord::Base
       old_issues_to_deprecate.keep_if { |i|
           !issues_changeset_is_resolving.map(&:id).include?(i.id)
         }.merge(issues_changeset_is_resolving)
-      Issue.bulk_deprecate(issues: old_issues_to_deprecate)
+      Issue.bulk_deprecate(old_issues_to_deprecate)
     else
       message = unresolved_issues.map { |issue| "Issue #{issue.id} was not resolved." }.join(" ")
       logger.error "Error applying Changeset #{self.id}: #{message}"
@@ -245,7 +245,7 @@ class Changeset < ActiveRecord::Base
     self.entities_created_or_updated do |entity|
       issues_to_deprecate.merge(Issue.issues_of_entity(entity))
     end
-    return issues_to_deprecate
+    issues_to_deprecate
   end
 
   def create_feed_entity_associations
