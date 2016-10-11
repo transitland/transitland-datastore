@@ -68,6 +68,14 @@ class Issue < ActiveRecord::Base
     }
   end
 
+  def self.issues_of_entity(entity)
+    Issue.joins(:entities_with_issues)
+      .where(entities_with_issues: { entity: entity })
+      .select { |issue|
+        entity.updated_at.to_i > issue.created_at.to_i
+      }
+  end
+
   def deprecate
     log("Deprecating issue: #{self.as_json(include: [:entities_with_issues])}")
     self.destroy

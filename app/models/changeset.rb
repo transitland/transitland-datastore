@@ -226,8 +226,12 @@ class Changeset < ActiveRecord::Base
 
       new_issues_created_by_changeset.each(&:save!)
 
-      # separate the resolving issues so they are logged as "resolved" during deprecation
-      old_issues_to_deprecate.keep_if { |i| !issues_changeset_is_resolving.map(&:id).include?(i.id) }.merge(issues_changeset_is_resolving)
+      # need to make sure the right instances of the resolving issues -
+      # those containing open=false and resolved_by_changeset - are stored
+      # in old_issues_to_deprecate so they are logged as "resolved" during deprecation; before the transaction is complete.
+      old_issues_to_deprecate.keep_if { |i|
+          !issues_changeset_is_resolving.map(&:id).include?(i.id)
+        }.merge(issues_changeset_is_resolving)
       Issue.bulk_deprecate(issues: old_issues_to_deprecate)
     else
       message = unresolved_issues.map { |issue| "Issue #{issue.id} was not resolved." }.join(" ")
@@ -237,15 +241,11 @@ class Changeset < ActiveRecord::Base
   end
 
   def collect_issues_to_deprecate
-    issue_to_deprecate = Set.new
+    issues_to_deprecate = Set.new
     self.entities_created_or_updated do |entity|
-      issue_to_deprecate.merge(Issue.joins(:entities_with_issues)
-        .where(entities_with_issues: { entity: entity })
-        .select { |issue|
-          entity.updated_at.to_i > issue.created_at.to_i
-        })
+      issues_to_deprecate.merge(Issue.issues_of_entity(entity))
     end
-    return issue_to_deprecate
+    return issues_to_deprecate
   end
 
   def create_feed_entity_associations
@@ -279,15 +279,16 @@ class Changeset < ActiveRecord::Base
 
         create_feed_entity_associations
 
-        old_issues_to_deprecate = collect_issues_to_deprecate
-
-        # Update attributes that derive from imported attributes between models
-        # This needs to be done before quality checks
+        # Update attributes that derive from attributes between models
+        # This needs to be done before quality checks. Only on import.
         update_computed_attributes unless import?
+
+        old_issues_to_deprecate = collect_issues_to_deprecate
 
         # Check for new issues on this changeset
         new_issues_created_by_changeset = check_quality
 
+        # save new issues; deprecate old issues; resolve changeset-specified issues
         cycle_issues(issues_changeset_is_resolving, new_issues_created_by_changeset, old_issues_to_deprecate)
 
       rescue StandardError => error
