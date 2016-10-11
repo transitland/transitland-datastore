@@ -218,34 +218,40 @@ class Changeset < ActiveRecord::Base
     [rsps_to_update_distances.size, operators_to_update_convex_hull.size]
   end
 
-  def cycle_issues(resolving_issues, changeset_issues, issue_candidates_to_deprecate)
+  def cycle_issues(issues_changeset_is_resolving, new_issues_created_by_changeset, old_issues_to_deprecate)
     # check if a changeset's specified issuesResolved, if any, are actually resolved.
-    unresolved_issues = issues_unresolved(resolving_issues, changeset_issues)
+    unresolved_issues = issues_unresolved(issues_changeset_is_resolving, new_issues_created_by_changeset)
     if (unresolved_issues.empty?)
-      resolving_issues.each { |issue| issue.update!({ open: false, resolved_by_changeset: self}) }
-      changeset_issues.each(&:save!)
+      issues_changeset_is_resolving.each { |issue| issue.update!({ open: false, resolved_by_changeset: self}) }
+
+      new_issues_created_by_changeset.each(&:save!)
+
       # separate the resolving issues so they are logged as "resolved" during deprecation
-      Issue.bulk_deprecate(issues: issue_candidates_to_deprecate.keep_if { |i| !resolving_issues.map(&:id).include?(i.id) }.merge(resolving_issues))
+      old_issues_to_deprecate.keep_if { |i| !issues_changeset_is_resolving.map(&:id).include?(i.id) }.merge(issues_changeset_is_resolving)
+      Issue.bulk_deprecate(issues: old_issues_to_deprecate)
     else
       message = unresolved_issues.map { |issue| "Issue #{issue.id} was not resolved." }.join(" ")
-      logger.error "Error applying Changeset #{self.id}: " + message
+      logger.error "Error applying Changeset #{self.id}: #{message}"
       raise Changeset::Error.new(changeset: self, message: message)
     end
   end
 
-  def external_entity_associations
-    issue_candidates_to_deprecate = Set.new
-    eiff_batch = []
+  def collect_issues_to_deprecate
+    issue_to_deprecate = Set.new
     self.entities_created_or_updated do |entity|
-      # Collect Issue candidates for deprecation
-      issue_candidates_to_deprecate.merge(Issue.joins(:entities_with_issues)
+      issue_to_deprecate.merge(Issue.joins(:entities_with_issues)
         .where(entities_with_issues: { entity: entity })
         .select { |issue|
           entity.updated_at.to_i > issue.created_at.to_i
         })
+    end
+    return issue_to_deprecate
+  end
 
-      # Create any feed-entity associations
-      if import?
+  def create_feed_entity_associations
+    if import?
+      eiff_batch = []
+      self.entities_created_or_updated do |entity|
         eiff_batch << entity
           .entities_imported_from_feed
           .new(feed: self.imported_from_feed, feed_version: self.imported_from_feed_version)
@@ -254,34 +260,35 @@ class Changeset < ActiveRecord::Base
           eiff_batch = []
         end
       end
+      EntityImportedFromFeed.import eiff_batch
     end
-    EntityImportedFromFeed.import eiff_batch unless eiff_batch.empty?
-    return issue_candidates_to_deprecate
   end
 
   def apply!
     fail Changeset::Error.new(changeset: self, message: 'has already been applied.') if applied
-    changeset_issues = nil
+    new_issues_created_by_changeset = nil
 
     Changeset.transaction do
       begin
         # Apply ChangePayloads, collect issues
-        resolving_issues = []
+        issues_changeset_is_resolving = []
         change_payloads.each do |change_payload|
-          resolving_issues += change_payload.apply!
+          issues_changeset_is_resolving += change_payload.apply!
         end
         self.update(applied: true, applied_at: Time.now)
 
-        issue_candidates_to_deprecate = external_entity_associations
+        create_feed_entity_associations
+
+        old_issues_to_deprecate = collect_issues_to_deprecate
 
         # Update attributes that derive from imported attributes between models
         # This needs to be done before quality checks
         update_computed_attributes unless import?
 
         # Check for new issues on this changeset
-        changeset_issues = check_quality
+        new_issues_created_by_changeset = check_quality
 
-        cycle_issues(resolving_issues, changeset_issues, issue_candidates_to_deprecate)
+        cycle_issues(issues_changeset_is_resolving, new_issues_created_by_changeset, old_issues_to_deprecate)
 
       rescue StandardError => error
         logger.error "Error applying Changeset #{self.id}: #{error.message}"
@@ -306,7 +313,7 @@ class Changeset < ActiveRecord::Base
     if Figaro.env.auto_fetch_feed_version.presence == 'true'
       FeedFetcherService.fetch_these_feeds_async(self.feeds_created_or_updated)
     end
-    return true, changeset_issues
+    return true, new_issues_created_by_changeset
   end
 
   def revert!
