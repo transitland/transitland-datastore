@@ -48,11 +48,6 @@ class Issue < ActiveRecord::Base
     end
   end
 
-  def outdated?
-    # This can create false negatives if different changesets w/ same entities are made less than 1 second apart.
-    entities_with_issues.any? { |ewi| ewi.entity.created_or_updated_in_changeset.updated_at.to_i > created_at.to_i }
-  end
-
   def equivalent?(issue)
     self.issue_type == issue.issue_type &&
     Set.new(self.entities_with_issues.map(&:entity_id)) == Set.new(issue.entities_with_issues.map(&:entity_id)) &&
@@ -81,11 +76,7 @@ class Issue < ActiveRecord::Base
     self.destroy
   end
 
-  def self.bulk_deprecate(issues: nil)
-    if issues.nil?
-      Issue.includes(:entities_with_issues).select{ |issue| issue.outdated? }.each {|issue| issue.deprecate }
-    else
-      issues.each { |issue| issue.deprecate } unless issues.nil?
-    end
+  def self.bulk_deprecate(issues)
+    issues.each { |issue| issue.deprecate } unless issues.empty?
   end
 end
