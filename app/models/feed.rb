@@ -105,7 +105,7 @@ class Feed < BaseFeed
   scope :where_active_feed_version_update, -> {
     # Find feeds that have a feed_version newer than
     #   the current active_feed_version
-    joins(p %{
+    joins(%{
       INNER JOIN (
         SELECT DISTINCT feed_versions.feed_id
         FROM feed_versions
@@ -123,7 +123,7 @@ class Feed < BaseFeed
 
   scope :where_latest_feed_version_import_status, -> (import_status) {
     # see: http://stackoverflow.com/questions/121387/fetch-the-row-which-has-the-max-value-for-a-column/123481#123481
-    joins(p %{
+    joins(%{
       INNER JOIN (
         SELECT fv.feed_id, MAX(fvi1.id) fvi_max_id
         FROM feed_versions fv
@@ -134,7 +134,7 @@ class Feed < BaseFeed
         )
         WHERE fvi2.id IS NULL GROUP BY (fv.feed_id)
       ) fvi_max
-      ON id = fvi_max.feed_id
+      ON current_feeds.id = fvi_max.feed_id
     })
       .joins('INNER JOIN feed_version_imports ON (feed_version_imports.id = fvi_max.fvi_max_id)')
       .where('feed_version_imports.success': import_status)
