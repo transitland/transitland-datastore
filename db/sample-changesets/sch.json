@@ -1,0 +1,90 @@
+{
+  "changeset": {
+    "user": {
+      "email": "transitland@mapzen.com",
+      "name": "Transitland staff",
+      "user_type": "data_enthusists"
+    },
+    "payload": {
+      "changes": [
+        {
+          "action": "createUpdate",
+          "operator": {
+            "onestopId": "o-c23p1-seattlechildrenshospitalshuttle",
+            "name": "Seattle Children's Hospital Shuttle",
+            "shortName": "BART",
+            "identifiedBy": [
+              "usntd://98"
+            ],
+            "country": "United States",
+            "state": "Washington",
+            "metro": "Seattle",
+            "timezone": "America/Los_Angeles",
+            "website": "",
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    -121.97640000000001,
+                    37.557354999999994
+                  ],
+                  [
+                    -122.38665999999999,
+                    37.599786999999985
+                  ],
+                  [
+                    -122.46623299999997,
+                    37.684638000000014
+                  ],
+                  [
+                    -122.4690807,
+                    37.70612055
+                  ],
+                  [
+                    -122.35316500000002,
+                    37.936887
+                  ],
+                  [
+                    -122.024597,
+                    38.00327499999998
+                  ],
+                  [
+                    -121.945154,
+                    38.018913999999995
+                  ],
+                  [
+                    -121.900367,
+                    37.701694999999994
+                  ],
+                  [
+                    -121.97640000000001,
+                    37.557354999999994
+                  ]
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "action": "createUpdate",
+          "feed": {
+            "onestopId": "f-c23p1-seattlechildrenshospitalshuttle",
+            "url": "http://transitfeeds.com/link?u=http://developer.onebusaway.org/tmp/sound/gtfs/modified/98_gtfs.zip",
+            "licenseUrl": "http://www.bart.gov/schedules/developers/developer-license-agreement",
+            "licenseUseWithoutAttribution": "yes",
+            "licenseCreateDerivedProduct": "unknown",
+            "licenseRedistribute": "yes",
+            "includesOperators": [
+              {
+                "gtfsAgencyId": "98",
+                "operatorOnestopId": "o-c23p1-seattlechildrenshospitalshuttle"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "notes": "In this changeset, we're creating a SCH operator and feed, and we're associating them with each other."
+  }
+}

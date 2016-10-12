@@ -53,6 +53,7 @@ class ChangePayload < ActiveRecord::Base
     cache = {}
     changes = []
     issues_to_resolve = []
+    old_issues_to_deprecate = Set.new
     entity_types = {
       feed: Feed,
       stop: Stop,
@@ -79,8 +80,12 @@ class ChangePayload < ActiveRecord::Base
           action: action,
           changes: chunked_changes.map(&:last)
         )
+        chunked_changes.map(&:last).each do |change|
+          entity = entity_types[entity_type].find_by_onestop_id!(change[:onestop_id])
+          old_issues_to_deprecate.merge(Issue.issues_of_entity(entity, entity_attributes: change.keys))
+        end
       }
-    issues_to_resolve
+    [issues_to_resolve, old_issues_to_deprecate]
   end
 
   def revert!

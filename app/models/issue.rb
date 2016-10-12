@@ -63,9 +63,9 @@ class Issue < ActiveRecord::Base
     }
   end
 
-  def self.issues_of_entity(entity)
+  def self.issues_of_entity(entity, entity_attributes: [])
     Issue.joins(:entities_with_issues)
-      .where(entities_with_issues: { entity: entity })
+      .where(entities_with_issues: { entity: entity }).where("entity_attribute IN (?)", entity_attributes)
       .select { |issue|
         entity.updated_at.to_i > issue.created_at.to_i
       }

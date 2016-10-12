@@ -72,6 +72,8 @@ class Changeset < ActiveRecord::Base
   belongs_to :imported_from_feed, class_name: 'Feed', foreign_key: 'feed_id'
   belongs_to :imported_from_feed_version, class_name: 'FeedVersion', foreign_key: 'feed_version_id'
 
+  attr_accessor :old_issues_to_deprecate
+
   def set_user_by_params(user_params)
     self.user = User.find_or_initialize_by(email: user_params[:email].downcase)
     self.user.update_attributes(user_params)
@@ -182,6 +184,7 @@ class Changeset < ActiveRecord::Base
     # recomputed attribute functionality if possible) but the need to avoid duplicate recomputation on entities of update
     # changesets complicates this. E.g, We don't want to recompute the stop_distances of one RouteStopPattern
     # multiple times if there are multiple Stops of that RouteStopPattern in the changeset.
+
     rsps_to_update_distances = Set.new
     operators_to_update_convex_hull = Set.new
 
@@ -193,6 +196,7 @@ class Changeset < ActiveRecord::Base
 
       operators_to_update_convex_hull.each { |operator|
         operator.geometry = operator.recompute_convex_hull_around_stops
+        @old_issues_to_deprecate.merge(Issue.issues_of_entity(operator, entity_attributes: ["geometry"]))
         operator.update_making_history(changeset: self)
       }
     end
@@ -200,6 +204,8 @@ class Changeset < ActiveRecord::Base
     rsps_to_update_distances.merge(self.route_stop_patterns_created_or_updated)
     log "Calculating distances" unless rsps_to_update_distances.empty?
     rsps_to_update_distances.each { |rsp|
+      @old_issues_to_deprecate.merge(Issue.issues_of_entity(rsp, entity_attributes: ["stop_distances"]))
+
       begin
         rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
       rescue StandardError
@@ -218,7 +224,7 @@ class Changeset < ActiveRecord::Base
     [rsps_to_update_distances.size, operators_to_update_convex_hull.size]
   end
 
-  def cycle_issues(issues_changeset_is_resolving, new_issues_created_by_changeset, old_issues_to_deprecate)
+  def cycle_issues(issues_changeset_is_resolving, new_issues_created_by_changeset)
     # check if a changeset's specified issuesResolved, if any, are actually resolved.
     unresolved_issues = issues_unresolved(issues_changeset_is_resolving, new_issues_created_by_changeset)
     if (unresolved_issues.empty?)
@@ -229,23 +235,15 @@ class Changeset < ActiveRecord::Base
       # need to make sure the right instances of the resolving issues -
       # those containing open=false and resolved_by_changeset - are stored
       # in old_issues_to_deprecate so they are logged as "resolved" during deprecation; before the transaction is complete.
-      old_issues_to_deprecate.keep_if { |i|
+      @old_issues_to_deprecate.keep_if { |i|
           !issues_changeset_is_resolving.map(&:id).include?(i.id)
         }.merge(issues_changeset_is_resolving)
-      Issue.bulk_deprecate(old_issues_to_deprecate)
+      Issue.bulk_deprecate(@old_issues_to_deprecate)
     else
       message = unresolved_issues.map { |issue| "Issue #{issue.id} was not resolved." }.join(" ")
       logger.error "Error applying Changeset #{self.id}: #{message}"
       raise Changeset::Error.new(changeset: self, message: message)
     end
-  end
-
-  def collect_issues_to_deprecate
-    issues_to_deprecate = Set.new
-    self.entities_created_or_updated do |entity|
-      issues_to_deprecate.merge(Issue.issues_of_entity(entity))
-    end
-    issues_to_deprecate
   end
 
   def create_feed_entity_associations
@@ -267,13 +265,16 @@ class Changeset < ActiveRecord::Base
   def apply!
     fail Changeset::Error.new(changeset: self, message: 'has already been applied.') if applied
     new_issues_created_by_changeset = nil
+    @old_issues_to_deprecate = Set.new
 
     Changeset.transaction do
       begin
         # Apply ChangePayloads, collect issues
         issues_changeset_is_resolving = []
         change_payloads.each do |change_payload|
-          issues_changeset_is_resolving += change_payload.apply!
+          payload_issues_changeset_is_resolving, payload_old_issues_to_deprecate = change_payload.apply!
+          issues_changeset_is_resolving += payload_issues_changeset_is_resolving
+          @old_issues_to_deprecate.merge(payload_old_issues_to_deprecate)
         end
         self.update(applied: true, applied_at: Time.now)
 
@@ -283,13 +284,11 @@ class Changeset < ActiveRecord::Base
         # This needs to be done before quality checks. Only on import.
         update_computed_attributes unless import?
 
-        old_issues_to_deprecate = collect_issues_to_deprecate
-
         # Check for new issues on this changeset
         new_issues_created_by_changeset = check_quality
 
         # save new issues; deprecate old issues; resolve changeset-specified issues
-        cycle_issues(issues_changeset_is_resolving, new_issues_created_by_changeset, old_issues_to_deprecate)
+        cycle_issues(issues_changeset_is_resolving, new_issues_created_by_changeset)
 
       rescue StandardError => error
         logger.error "Error applying Changeset #{self.id}: #{error.message}"
