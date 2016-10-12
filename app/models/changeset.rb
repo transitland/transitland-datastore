@@ -196,7 +196,7 @@ class Changeset < ActiveRecord::Base
 
       operators_to_update_convex_hull.each { |operator|
         operator.geometry = operator.recompute_convex_hull_around_stops
-        @old_issues_to_deprecate.merge(Issue.issues_of_entity(operator, entity_attributes: ["geometry"]))
+        @old_issues_to_deprecate.merge(Issue.entity_outdated_issues(operator, entity_attributes: ["geometry"]))
         operator.update_making_history(changeset: self)
       }
     end
@@ -204,7 +204,7 @@ class Changeset < ActiveRecord::Base
     rsps_to_update_distances.merge(self.route_stop_patterns_created_or_updated)
     log "Calculating distances" unless rsps_to_update_distances.empty?
     rsps_to_update_distances.each { |rsp|
-      @old_issues_to_deprecate.merge(Issue.issues_of_entity(rsp, entity_attributes: ["stop_distances"]))
+      @old_issues_to_deprecate.merge(Issue.entity_outdated_issues(rsp, entity_attributes: ["stop_distances"]))
 
       begin
         rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })

@@ -224,7 +224,7 @@ describe Changeset do
       expect(Set.new(Stop.sticky_attributes)).to satisfy { |st| edited_attrs.subset?(st) }
     end
 
-    it 'allows non-import changeset to write over previous non-import changeset' do
+    it 'allows non-import changeset to write over attributes of previous non-import changeset' do
       changeset2 = create(:changeset, payload: {
         changes: [
           {

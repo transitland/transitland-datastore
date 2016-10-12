@@ -64,11 +64,14 @@ class Issue < ActiveRecord::Base
   end
 
   def self.issues_of_entity(entity, entity_attributes: [])
-    Issue.joins(:entities_with_issues)
-      .where(entities_with_issues: { entity: entity }).where("entity_attribute IN (?)", entity_attributes)
-      .select { |issue|
-        entity.updated_at.to_i > issue.created_at.to_i
-      }
+    issues = Issue.joins(:entities_with_issues).where(entities_with_issues: { entity: entity })
+    issues = issues.where("entity_attribute IN (?)", entity_attributes) unless entity_attributes.empty?
+    return issues
+  end
+
+  def self.entity_outdated_issues(entity, entity_attributes: [])
+    Issue.issues_of_entity(entity, entity_attributes: entity_attributes)
+    .select { |issue| entity.updated_at.to_i > issue.created_at.to_i }
   end
 
   def deprecate

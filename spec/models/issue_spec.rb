@@ -126,53 +126,93 @@ describe Issue do
       end
     end
 
-    it 'deprecates issues of old feed version imports with the same entities' do
-      Timecop.freeze(3.minutes.from_now) do
-        load_feed(feed_version: @feed_version, import_level: 1)
+    context 'issue deprecation' do
+      it 'deprecates issues of old feed version imports with the same entities' do
+        Timecop.freeze(3.minutes.from_now) do
+          load_feed(feed_version: @feed_version, import_level: 1)
+        end
+        expect(Issue.count).to eq 8
+        expect{Issue.find(1)}.to raise_error(ActiveRecord::RecordNotFound)
+        expect(Issue.find(9).created_by_changeset_id).to eq 2
       end
-      expect(Issue.count).to eq 8
-      expect{Issue.find(1)}.to raise_error(ActiveRecord::RecordNotFound)
-      expect(Issue.find(9).created_by_changeset_id).to eq 2
-    end
 
-    it 'deprecates issues created by older changesets of associated entities' do
-      Timecop.freeze(3.minutes.from_now) do
-        # NOTE: although this changeset would resolve an issue,
-        # we are explicitly avoiding that just to test deprecation. Furthermore, this changeset
-        # creates a similar issue (but involving a different rsp) to the
-        # one being deprecated.
-        changeset = create(:changeset, payload: {
-          changes: [
-            action: 'createUpdate',
-            stop: {
-              onestopId: 's-9qscwx8n60-nyecountyairportdemo',
-              timezone: 'America/Los_Angeles',
-              "geometry": {
-                "type": "Point",
-                "coordinates": [-116.784582, 36.888446]
+      it 'deprecates issues created by older changesets of associated entities' do
+        Timecop.freeze(3.minutes.from_now) do
+          # NOTE: although this changeset would resolve an issue,
+          # we are explicitly avoiding that just to test deprecation. Furthermore, this changeset
+          # creates a similar issue (but involving a different rsp) to the
+          # one being deprecated.
+          changeset = create(:changeset, payload: {
+            changes: [
+              action: 'createUpdate',
+              stop: {
+                onestopId: 's-9qscwx8n60-nyecountyairportdemo',
+                timezone: 'America/Los_Angeles',
+                "geometry": {
+                  "type": "Point",
+                  "coordinates": [-116.784582, 36.888446]
+                }
               }
-            }
-          ]
-        })
-        expect(Sidekiq::Logging.logger).to receive(:info).with(/Calculating distances/)
-        # making sure open=true because we are not resolving the issue here
-        expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>8.*"open"=>true/)
-        changeset.apply!
+            ]
+          })
+          expect(Sidekiq::Logging.logger).to receive(:info).with(/Calculating distances/)
+          # making sure open=true because we are not resolving the issue here
+          expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>8.*"open"=>true/)
+          changeset.apply!
+        end
+        expect{Issue.find(8)}.to raise_error(ActiveRecord::RecordNotFound)
+        # similar to issue 8, but involves a different rsp
+        expect(Issue.find(9).created_by_changeset_id).to eq 2
       end
-      expect{Issue.find(8)}.to raise_error(ActiveRecord::RecordNotFound)
-      # similar to issue 8, but involves a different rsp
-      expect(Issue.find(9).created_by_changeset_id).to eq 2
-    end
 
-    it 'ignores FeedVersion issues during deprecation' do
-      # duplicate the entire feed import, which should deprecate all previous imports' issues
-      # except the the FeedVersion issue
-      issue = Issue.create!(issue_type: 'feed_version_maintenance_extend', details: 'extend this feed')
-      issue.entities_with_issues.create!(entity: FeedVersion.first)
-      Timecop.freeze(3.minutes.from_now) do
-        load_feed(feed_version: @feed_version, import_level: 1)
+      it 'ignores FeedVersion issues during deprecation' do
+        # duplicate the entire feed import, which should deprecate all previous imports' issues
+        # except the the FeedVersion issue
+        issue = Issue.create!(issue_type: 'feed_version_maintenance_extend', details: 'extend this feed')
+        issue.entities_with_issues.create!(entity: FeedVersion.first)
+        Timecop.freeze(3.minutes.from_now) do
+          load_feed(feed_version: @feed_version, import_level: 1)
+        end
+        expect(Issue.find(issue.id).issue_type).to eq 'feed_version_maintenance_extend'
       end
-      expect(Issue.find(issue.id).issue_type).to eq 'feed_version_maintenance_extend'
+
+      context 'entity attributes' do
+        before(:each) do
+          @rsp = RouteStopPattern.find_by_onestop_id!('r-9qsb-20-8d5767-6bb5fc')
+        end
+
+        it '.issues_of_entity' do
+          issue = Issue.create!(issue_type: 'rsp_line_inaccurate', details: 'this is a fake geometry issue')
+          issue.entities_with_issues.create!(entity: @rsp, entity_attribute: 'geometry')
+          expect(Issue.issues_of_entity(@rsp, entity_attributes: ["stop_distances"])).to match_array([Issue.find(7)])
+          expect(Issue.issues_of_entity(@rsp, entity_attributes: [])).to match_array([issue, Issue.find(7)])
+        end
+
+        it 'only deprecates issues of specified entity attributes' do
+          issue = Issue.create!(issue_type: 'rsp_line_inaccurate', details: 'this is a fake geometry issue')
+          issue.entities_with_issues.create!(entity: @rsp, entity_attribute: 'geometry')
+          # here we are modifying this rsp's geometry, which should deprecate the rsp_line_inaccurate issue
+          # even without technically resolving it, because the entity attribute geometry has been modified.
+          # other issues on the rsp involving other attributes should be left alone.
+          changeset = create(:changeset, payload: {
+            changes: [
+              action: 'createUpdate',
+              routeStopPattern: {
+                onestopId: @rsp.onestop_id,
+                "geometry": {
+                  "type": "LineString",
+                  "coordinates": [[-117.13316, 36.42529], [-117.05, 36.65], [-116.81797, 36.88108]]
+                }
+              }
+            ]
+          })
+          expect(Sidekiq::Logging.logger).to receive(:info).with(/Calculating distances/)
+          expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>9.*"resolved_by_changeset_id"=>nil.*"open"=>true/)
+          changeset.apply!
+          expect(Issue.find(7).issue_type).to eq 'distance_calculation_inaccurate'
+          expect(Issue.find(7).entities_with_issues.map(&:entity)).to include(@rsp)
+        end
+      end
     end
 
     it 'destroys entities_with_issues when issue destroyed' do
