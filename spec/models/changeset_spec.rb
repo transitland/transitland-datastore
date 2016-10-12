@@ -325,6 +325,7 @@ describe Changeset do
           }
         ]
       })
+      changeset.old_issues_to_deprecate = Set.new
       changeset.change_payloads.each do |change_payload|
         change_payload.apply!
       end
