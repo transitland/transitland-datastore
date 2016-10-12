@@ -371,7 +371,7 @@ describe Feed do
     end
 
     it 'with_latest_feed_version_import' do
-      expect(Feed.with_latest_feed_version_import.first.fvi_latest_id).to eq(@feed1_fvi1.id)
+      expect(Feed.with_latest_feed_version_import.first.latest_feed_version_import_id).to eq(@feed1_fvi1.id)
     end
   end
 

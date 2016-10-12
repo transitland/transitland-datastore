@@ -132,13 +132,13 @@ class Feed < BaseFeed
       ) fvi_max
       ON current_feeds.id = fvi_max.feed_id
     })
-      .joins('INNER JOIN feed_version_imports fvi_latest ON (fvi_latest.id = fvi_max.fvi_max_id)')
-      .select(['current_feeds.*', 'fvi_latest.id fvi_latest_id', 'fvi_latest.success', 'fvi_latest.created_at'])
+      .joins('INNER JOIN feed_version_imports latest_feed_version_import ON (latest_feed_version_import.id = fvi_max.fvi_max_id)')
+      .select(['current_feeds.*', 'latest_feed_version_import.id AS latest_feed_version_import_id'])
   }
 
   scope :where_latest_feed_version_import_status, -> (import_status) {
     # filter by latest fvi's success status.
-    with_latest_feed_version_import.where('fvi_latest.success': import_status)
+    with_latest_feed_version_import.where('latest_feed_version_import.success': import_status)
     # Another approach, preserved here for now:
     # see: http://stackoverflow.com/questions/121387/fetch-the-row-which-has-the-max-value-for-a-column/123481#123481
     # LEFT OUTER JOIN feed_version_imports fvi2 ON (
