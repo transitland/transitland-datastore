@@ -68,29 +68,14 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
       @feeds = @feeds.where_latest_feed_version_import_status(AllowFiltering.to_boolean(params[:latest_feed_version_import_status]))
     end
 
+    # Sort by latest import
+    if params[:sort_key] == 'latest_feed_version_import.created_at'
+      @feeds = @feeds.with_latest_feed_version_import #.reorder("fvi_latest_created_at": params[:sort_order])
+    end
+
     respond_to do |format|
       format.json do
-        render paginated_json_collection(
-          @feeds,
-          Proc.new { |params| api_v1_feeds_url(params) },
-          params[:sort_key],
-          params[:sort_order],
-          params[:offset],
-          params[:per_page],
-          params[:total],
-          params.slice(
-            :tag_key,
-            :tag_value,
-            :bbox,
-            :last_imported_since,
-            :active_feed_version_valid,
-            :active_feed_version_expired,
-            :active_feed_version_update,
-            :active_feed_version_import_level,
-            :latest_feed_version_import_status,
-            :latest_fetch_exception
-          )
-        )
+        render paginated_json_collection_new(@feeds, Proc.new { |params| api_v1_feeds_url(params) })
       end
       format.geojson do
         render json: Geojson.from_entity_collection(@feeds, &GEOJSON_ENTITY_PROPERTIES)
@@ -131,9 +116,5 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
   end
 
   private
-
-  def set_feed
-    @feed = Feed.find_by_onestop_id!(params[:id])
-  end
 
 end
