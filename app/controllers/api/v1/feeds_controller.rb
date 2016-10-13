@@ -111,6 +111,10 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
 
   private
 
+  def set_feed
+    @feed = Feed.find_by_onestop_id!(params[:id])
+  end
+
   def sort_reorder(collection)
     if sort_key == 'latest_feed_version_import.created_at'.to_sym
       collection = collection.with_latest_feed_version_import
