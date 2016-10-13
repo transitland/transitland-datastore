@@ -5,12 +5,13 @@ module JsonCollectionPagination
 
   def paginated_json_collection(collection, path_helper, sort_key, sort_order, offset, per_page, total, params)
     # Backwards compatibility
-    self.params ||= {}
-    self.params[:sort_key] = sort_key
-    self.params[:sort_order] = sort_order
-    self.params[:offset] = offset
-    self.params[:per_page] = per_page
-    self.params[:total] = total
+    params = request.try(:parameters) ? self.params : {}
+    params[:sort_key] = sort_key
+    params[:sort_order] = sort_order
+    params[:offset] = offset
+    params[:per_page] = per_page
+    params[:total] = total
+    self.params = params
     paginated_json_collection_new(collection)
   end
 
