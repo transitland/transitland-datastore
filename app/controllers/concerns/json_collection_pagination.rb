@@ -61,10 +61,14 @@ module JsonCollectionPagination
     end
 
     # Return results + meta
-    if self.class::SERIALIZER
-      { json: data_on_page, meta: meta, each_serializer: self.class::SERIALIZER }
-    else
-      { json: data_on_page, meta: meta }
+    geojson = false
+    result = { json: data_on_page, meta: meta }
+    if geojson
+      result[:each_serializer] = GeoJSONSerializer
+      result[:root] = :features
+    elsif self.class::SERIALIZER
+      result[:each_serializer] = self.class::SERIALIZER
     end
+    result
   end
 end
