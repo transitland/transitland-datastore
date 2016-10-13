@@ -35,6 +35,9 @@ describe JsonCollectionPagination do
   before do
     class FakeController < ApplicationController
       include JsonCollectionPagination
+      def url_for(params)
+        "http://blah/offset=#{params[:offset]}"
+      end
     end
   end
   after { Object.send :remove_const, :FakeController }
@@ -119,7 +122,7 @@ describe JsonCollectionPagination do
     it 'allows pagination to be disabled' do
       data = object.send(:paginated_json_collection, collection, path_helper, 'id', 'desc', 0, '∞', false, {})
       expect(data[:json].items.count).to eq 15
-      expect(data[:meta][:per_page]).to eq '∞'
+      expect(data[:meta][:per_page]).to eq false
     end
   end
 end
