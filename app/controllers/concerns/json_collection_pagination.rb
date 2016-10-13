@@ -141,7 +141,8 @@ module JsonCollectionPagination
   end
 
   def sort_per_page
-    per_page = (params[:per_page].presence || self.class::PER_PAGE).to_i
+    return false if ['false', false, '∞'].include?(params[:per_page])
+    (params[:per_page].presence || self.class::PER_PAGE).to_i
   end
 
   def sort_total
