@@ -6,7 +6,6 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
   GEOJSON_ENTITY_PROPERTIES = Proc.new { |properties, entity|
     # title property to follow GeoJSON simple style spec
     properties[:title] = "Feed #{entity.onestop_id}"
-
     properties[:url] = entity.url
     properties[:feed_format] = entity.feed_format
     properties[:license_name] = entity.license_name
@@ -68,14 +67,9 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
       @feeds = @feeds.where_latest_feed_version_import_status(AllowFiltering.to_boolean(params[:latest_feed_version_import_status]))
     end
 
-    # Sort by latest import
-    if params[:sort_key] == 'latest_feed_version_import.created_at'
-      @feeds = @feeds.with_latest_feed_version_import #.reorder("fvi_latest_created_at": params[:sort_order])
-    end
-
     respond_to do |format|
       format.json do
-        render paginated_json_collection_new(@feeds, Proc.new { |params| api_v1_feeds_url(params) })
+        render paginated_json_collection_new(@feeds)
       end
       format.geojson do
         render json: Geojson.from_entity_collection(@feeds, &GEOJSON_ENTITY_PROPERTIES)
@@ -117,4 +111,12 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
 
   private
 
+  def sort_reorder(collection)
+    if sort_key == 'latest_feed_version_import.created_at'.to_sym
+      collection = collection.with_latest_feed_version_import
+      collection.reorder("latest_feed_version_import.created_at #{sort_order}")
+    else
+      super
+    end
+  end
 end
