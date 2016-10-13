@@ -83,7 +83,7 @@ class ChangePayload < ActiveRecord::Base
         chunked_changes.map(&:last).each do |change|
           if entity_types[entity_type].included_modules.include?(HasAOnestopId)
             # deleting an entity should destroy, not deprecate, associated issues
-            if action.to_sym.eql?(:createUpdate)
+            if action.to_s.eql?("createUpdate")
               entity = entity_types[entity_type].find_by_onestop_id!(change[:onestop_id])
               old_issues_to_deprecate.merge(Issue.issues_of_entity(entity, entity_attributes: change.keys))
             end
