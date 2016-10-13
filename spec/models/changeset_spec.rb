@@ -325,11 +325,10 @@ describe Changeset do
           }
         ]
       })
-      changeset.old_issues_to_deprecate = Set.new
       changeset.change_payloads.each do |change_payload|
         change_payload.apply!
       end
-      expect(changeset.update_computed_attributes).to eq [1,0]
+      expect(changeset.update_computed_attributes[1]).to eq [1,0]
     end
 
     it 'recomputes operator convex hull on stop update changeset' do

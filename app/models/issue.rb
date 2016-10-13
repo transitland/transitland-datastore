@@ -55,6 +55,11 @@ class Issue < ActiveRecord::Base
     Set.new(self.entities_with_issues.map(&:entity_attribute)) == Set.new(issue.entities_with_issues.map(&:entity_attribute))
   end
 
+  def deprecate
+    log("Deprecating issue: #{self.as_json(include: [:entities_with_issues])}")
+    self.destroy
+  end
+
   def self.find_by_equivalent(issue)
     where(created_by_changeset_id: issue.created_by_changeset_id, issue_type: issue.issue_type, open: true).detect { |existing|
       Set.new(existing.entities_with_issues.map(&:entity_id)) == Set.new(issue.entities_with_issues.map(&:entity_id)) &&
@@ -72,14 +77,5 @@ class Issue < ActiveRecord::Base
   def self.entity_outdated_issues(entity, entity_attributes: [])
     Issue.issues_of_entity(entity, entity_attributes: entity_attributes)
     .select { |issue| entity.updated_at.to_i > issue.created_at.to_i }
-  end
-
-  def deprecate
-    log("Deprecating issue: #{self.as_json(include: [:entities_with_issues])}")
-    self.destroy
-  end
-
-  def self.bulk_deprecate(issues)
-    issues.each { |issue| issue.deprecate } unless issues.empty?
   end
 end
