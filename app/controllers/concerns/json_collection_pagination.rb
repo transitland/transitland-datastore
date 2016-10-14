@@ -3,18 +3,7 @@ module JsonCollectionPagination
   PER_PAGE ||= 50
   SERIALIZER = nil
 
-  def paginated_json_collection(collection, path_helper, sort_key, sort_order, offset, per_page, total, params)
-    # Backwards compatibility
-    params[:sort_key] = sort_key
-    params[:sort_order] = sort_order
-    params[:offset] = offset
-    params[:per_page] = per_page
-    params[:total] = total
-    self.params = params
-    paginated_json_collection_new(collection)
-  end
-
-  def paginated_json_collection_new(collection)
+  def paginated_json_collection(collection)
     # Meta
     per_page = sort_per_page
     offset = sort_offset
