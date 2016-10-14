@@ -69,7 +69,7 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
 
     respond_to do |format|
       format.json do
-        render paginated_json_collection_new(@feeds)
+        render paginated_json_collection(@feeds)
       end
       format.geojson do
         render json: Geojson.from_entity_collection(@feeds, &GEOJSON_ENTITY_PROPERTIES)

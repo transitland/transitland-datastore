@@ -89,31 +89,7 @@ class Api::V1::StopStationsController < Api::V1::BaseApiController
 
     respond_to do |format|
       format.json do
-        render paginated_json_collection(
-          @stops,
-          Proc.new { |params| api_v1_stops_url(params) },
-          params[:sort_key],
-          params[:sort_order],
-          params[:offset],
-          params[:per_page],
-          params[:total],
-          params.slice(
-            :identifier,
-            :identifier_starts_with,
-            :served_by,
-            :servedBy,
-            :lat,
-            :lon,
-            :r,
-            :bbox,
-            :onestop_id,
-            :tag_key,
-            :tag_value,
-            :import_level,
-            :imported_from_feed,
-            :imported_from_feed_version
-          )
-        )
+        render paginated_json_collection(@stops)
       end
       format.geojson do
         render json: Geojson.from_entity_collection(@stops, &GEOJSON_ENTITY_PROPERTIES)
@@ -140,6 +116,25 @@ class Api::V1::StopStationsController < Api::V1::BaseApiController
   end
 
   private
+
+  def query_params
+    params.slice(
+      :identifier,
+      :identifier_starts_with,
+      :served_by,
+      :servedBy,
+      :lat,
+      :lon,
+      :r,
+      :bbox,
+      :onestop_id,
+      :tag_key,
+      :tag_value,
+      :import_level,
+      :imported_from_feed,
+      :imported_from_feed_version
+    )
+  end
 
   def set_stop
     @stop = Stop.find_by_onestop_id!(params[:id])
