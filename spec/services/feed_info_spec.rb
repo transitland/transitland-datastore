@@ -115,7 +115,6 @@ describe FeedInfo do
         changeset: changeset,
         payload: {changes: changes}
       )
-      # binding.pry
       changeset.apply!
       # Test
       f = Feed.find_by_onestop_id!(feed.onestop_id)

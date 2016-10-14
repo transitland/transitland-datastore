@@ -64,6 +64,10 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
       @feeds = @feeds.where_active_feed_version_import_level(params[:active_feed_version_import_level])
     end
 
+    if params[:latest_feed_version_import_status].present?
+      @feeds = @feeds.where_latest_feed_version_import_status(AllowFiltering.to_boolean(params[:latest_feed_version_import_status]))
+    end
+
     respond_to do |format|
       format.json do
         render paginated_json_collection(
@@ -77,10 +81,14 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
           params.slice(
             :tag_key,
             :tag_value,
+            :bbox,
             :last_imported_since,
             :active_feed_version_valid,
             :active_feed_version_expired,
-            :active_feed_version_update
+            :active_feed_version_update,
+            :active_feed_version_import_level,
+            :latest_feed_version_import_status,
+            :latest_fetch_exception
           )
         )
       end
