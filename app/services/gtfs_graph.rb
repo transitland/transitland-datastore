@@ -3,6 +3,8 @@ class GTFSGraph
   class Error < StandardError
   end
 
+  attr_accessor :feed, :feed_version
+
   CHANGE_PAYLOAD_MAX_ENTITIES = Figaro.env.feed_eater_change_payload_max_entities.try(:to_i) || 1_000
   STOP_TIMES_MAX_LOAD = Figaro.env.feed_eater_stop_times_max_load.try(:to_i) || 100_000
 

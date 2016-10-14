@@ -18,6 +18,7 @@
 #  country                            :string
 #  state                              :string
 #  metro                              :string
+#  edited_attributes                  :string           default([]), is an Array
 #
 # Indexes
 #
@@ -89,6 +90,20 @@ describe Operator do
       [-73.8583, 40.7244],
       [-73.9737, 40.6806]
     ])
+  end
+
+  it 'destroys OperatorInFeed records' do
+    operator = create(:operator)
+    feed = create(:feed)
+    feed.operators_in_feed.create!(operator: operator, gtfs_agency_id: 'test')
+    operator.reload
+    expect(operator.operators_in_feed.count).to eq(1)
+    expect(feed.reload.operators_in_feed.count).to eq(1)
+    payload = {changes: [{action: "destroy", operator: {onestopId: operator.onestop_id}}]}
+    changeset = Changeset.create!()
+    changeset.change_payloads.create!(payload: payload)
+    changeset.apply!
+    expect(feed.reload.operators_in_feed.count).to eq(0)
   end
 
 end

@@ -1,11 +1,6 @@
 require 'sidekiq/web'
 
 if Rails.env.production? || Rails.env.staging?
-  # Disable Rack::Protection because it doesn't always work nicely behind load balancers.
-  Sidekiq::Web.instance_variable_get(:@middleware).delete_if do |middleware|
-    middleware.first == Rack::Protection
-  end
-
   Sidekiq::Web.use Rack::Auth::Basic do |username, password|
     username == Figaro.env.admin_username && password == Figaro.env.admin_password
   end

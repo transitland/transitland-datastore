@@ -1,4 +1,6 @@
 class Api::V1::BaseApiController < ApplicationController
+  API_KIND = 'JSON-psuedo-RESTful'
+
   protect_from_forgery with: :null_session
 
   before_filter :set_default_response_format

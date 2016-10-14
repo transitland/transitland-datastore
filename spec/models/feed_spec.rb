@@ -22,6 +22,7 @@
 #  latest_fetch_exception_log         :text
 #  license_attribution_text           :text
 #  active_feed_version_id             :integer
+#  edited_attributes                  :string           default([]), is an Array
 #
 # Indexes
 #
@@ -360,6 +361,50 @@ describe Feed do
     it 'active_feed_version that has not started' do
       expect(Feed.where_active_feed_version_valid('2014-06-01').count).to eq(0)
     end
+  end
+
+  context '.where_latest_feed_version_import_status' do
+    before(:each) do
+      # Create several feeds with different #'s of FVs and FVIs
+
+      # Last import: true
+      @feed1 = create(:feed)
+      @feed1_fv1 = create(:feed_version, feed: @feed1)
+      create(:feed_version_import, feed_version: @feed1_fv1, success: false, created_at: '2016-01-01')
+      create(:feed_version_import, feed_version: @feed1_fv1, success: true, created_at: '2016-01-02')
+
+      # Last import: false
+      @feed2 = create(:feed)
+      @feed2_fv1 = create(:feed_version, feed: @feed2)
+      create(:feed_version_import, feed_version: @feed2_fv1, success: true, created_at: '2016-01-01')
+      create(:feed_version_import, feed_version: @feed2_fv1, success: true, created_at: '2016-01-02')
+      @feed2_fv2 = create(:feed_version, feed: @feed2)
+      create(:feed_version_import, feed_version: @feed2_fv2, success: false, created_at: '2016-01-02')
+      create(:feed_version_import, feed_version: @feed2_fv2, success: false, created_at: '2016-01-03')
+      # create(:feed_version_import, feed_version: @feed2_fv2, success: false, created_at: '2016-01-03')
+
+      # Last import: nil
+      @feed3 = create(:feed)
+      @feed3_fv1 = create(:feed_version, feed: @feed3)
+      create(:feed_version_import, feed_version: @feed3_fv1, success: nil, created_at: '2016-01-01')
+
+      # Last import: does not exist
+      @feed4 = create(:feed)
+      @feed4_fv1 = create(:feed_version, feed: @feed4)
+    end
+
+    it 'finds successful import' do
+      expect(Feed.where_latest_feed_version_import_status(true)).to match_array([@feed1])
+    end
+
+    it 'finds failed import' do
+      expect(Feed.where_latest_feed_version_import_status(false)).to match_array([@feed2])
+    end
+
+    it 'finds in progress import' do
+      expect(Feed.where_latest_feed_version_import_status(nil)).to match_array([@feed3])
+    end
+
   end
 
   context '.where_newer_feed_version' do
