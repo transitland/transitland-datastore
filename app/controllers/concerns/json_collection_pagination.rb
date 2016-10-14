@@ -54,7 +54,7 @@ module JsonCollectionPagination
   private
 
   def query_params
-    params.dup()
+    params.slice()
   end
 
   def sort_key
