@@ -111,6 +111,21 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
 
   private
 
+  def query_params
+    params.slice(
+      :tag_key,
+      :tag_value,
+      :bbox,
+      :last_imported_since,
+      :active_feed_version_valid,
+      :active_feed_version_expired,
+      :active_feed_version_update,
+      :active_feed_version_import_level,
+      :latest_feed_version_import_status,
+      :latest_fetch_exception
+    )
+  end
+
   def set_feed
     @feed = Feed.find_by_onestop_id!(params[:id])
   end
