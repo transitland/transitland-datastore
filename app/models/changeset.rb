@@ -233,7 +233,8 @@ class Changeset < ActiveRecord::Base
 
       # need to make sure the right instances of the resolving issues -
       # those containing open=false and resolved_by_changeset - are added
-      # to old_issues_to_deprecate so they are logged as "resolved" during deprecation; before the transaction is complete.
+      # to old_issues_to_deprecate so they are logged as "resolved" during deprecation,
+      # before the transaction is complete.
       old_issues_to_deprecate.keep_if { |i|
           !issues_changeset_is_resolving.map(&:id).include?(i.id)
         }.merge(issues_changeset_is_resolving)
@@ -263,7 +264,7 @@ class Changeset < ActiveRecord::Base
 
   def apply!
     fail Changeset::Error.new(changeset: self, message: 'has already been applied.') if applied
-    new_issues_created_by_changeset = nil
+    new_issues_created_by_changeset = []
     old_issues_to_deprecate = Set.new
 
     Changeset.transaction do

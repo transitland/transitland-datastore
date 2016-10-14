@@ -137,6 +137,7 @@ describe Issue do
       end
 
       it 'deprecates issues created by older changesets of associated entities' do
+        changeset = nil
         Timecop.freeze(3.minutes.from_now) do
           # NOTE: although this changeset would resolve an issue,
           # we are explicitly avoiding that just to test deprecation. Furthermore, this changeset
@@ -162,7 +163,7 @@ describe Issue do
         end
         expect{Issue.find(8)}.to raise_error(ActiveRecord::RecordNotFound)
         # similar to issue 8, but involves a different rsp
-        expect(Issue.find(9).created_by_changeset_id).to eq 2
+        expect(Issue.find(9).created_by_changeset_id).to eq changeset.id
       end
 
       it 'ignores FeedVersion issues during deprecation' do
