@@ -19,7 +19,12 @@ module JsonCollectionPagination
     collection = sort_reorder(collection)
 
     # Setup prev/next links
-    if per_page
+    if ['false', '∞'].include?(per_page)
+      data_on_page = collection.to_a
+    else
+      # Get the current page of results.
+      #  Add +1 to limit to see if there is a next page.
+      #  This will be dropped in the return.
       data = collection.offset(offset).limit(per_page+1).to_a
       # Previous and next page
       meta_prev = url_for(query_params.merge(meta).merge({
@@ -32,8 +37,6 @@ module JsonCollectionPagination
       (meta[:next] = meta_next) if data.size > per_page
       # Slice data
       data_on_page = data[0...per_page]
-    else
-      data_on_page = collection
     end
 
     if include_total
@@ -73,8 +76,14 @@ module JsonCollectionPagination
   end
 
   def sort_per_page
-    return false if ['false', false, '∞'].include?(params[:per_page])
-    (params[:per_page].presence || self.class::PER_PAGE).to_i
+    # per_page magic values: false, ∞
+    per_page = params[:per_page].presence.to_s
+    if ['false', '∞'].include?(per_page)
+      per_page
+    else
+      # class default
+      (per_page.presence || self.class::PER_PAGE).to_i
+    end
   end
 
   def sort_total
