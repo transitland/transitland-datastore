@@ -199,6 +199,46 @@ class Route < BaseRoute
     where(vehicle_type: vehicle_types)
   }
 
+  def self.representative_geometry(route, rsps)
+    stop_pairs_to_rsps = {}
+
+    rsps.each do |rsp|
+      rsp.stop_pattern.each_cons(2) do |s1, s2|
+        if stop_pairs_to_rsps.has_key?([s1,s2])
+          stop_pairs_to_rsps[[s1,s2]].add(rsp)
+        else
+          stop_pairs_to_rsps[[s1,s2]] = Set.new([rsp])
+        end
+      end
+    end
+
+    representative_rsps = Set.new
+
+    while (!stop_pairs_to_rsps.empty?)
+      key_value = stop_pairs_to_rsps.shift
+      rsp = key_value[1].max_by { |rsp|
+        rsp.stop_pattern.uniq.size
+      }
+      representative_rsps.add(rsp)
+
+      stop_pairs_to_rsps.each_pair { |key_pair, rsps|
+        stop_pairs_to_rsps.delete(key_pair) if rsps.include?(rsp)
+      }
+    end
+    representative_rsps
+  end
+
+  def self.geometry_from_rsps(route, rsps)
+    # rsps can be any enumerable subset of the route rsps
+    route.geometry = Route::GEOFACTORY.multi_line_string(
+      (rsps || []).map { |rsp|
+        Route::GEOFACTORY.line_string(
+          rsp.geometry[:coordinates].map { |lon, lat| Route::GEOFACTORY.point(lon, lat) }
+        )
+      }
+    )
+  end
+
   ##### FromGTFS ####
   include FromGTFS
   def self.from_gtfs(entity, attrs={})
