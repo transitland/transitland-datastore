@@ -17,14 +17,27 @@ namespace :db do
 
         while (!stop_pairs_to_rsps.empty?)
           key_value = stop_pairs_to_rsps.shift
-          rsp = key_value[1].first
+          rsp = key_value[1].max_by { |rsp_onestop_id|
+            RouteStopPattern.find_by_onestop_id!(rsp_onestop_id).stop_pattern.uniq.size
+          }
           representative_rsps.add(rsp)
 
           stop_pairs_to_rsps.each_pair { |key_pair, rsps|
             stop_pairs_to_rsps.delete(key_pair) if rsps.include?(rsp)
           }
         end
-        
+
+        puts "Route #{route.onestop_id} representative rsps. Was: #{route.route_stop_patterns.size}, Now: #{representative_rsps.size}"
+
+        route.geometry = Route::GEOFACTORY.multi_line_string(
+          (representative_rsps || []).map { |rsp|
+            rsp = RouteStopPattern.find_by_onestop_id!(rsp)
+            Route::GEOFACTORY.line_string(
+              rsp.geometry[:coordinates].map { |lon, lat| Route::GEOFACTORY.point(lon, lat) }
+            )
+          }
+        )
+        route.save!
       end
     end
   end
