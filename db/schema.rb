@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160930225228) do
+ActiveRecord::Schema.define(version: 20161017191437) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -234,12 +234,14 @@ ActiveRecord::Schema.define(version: 20160930225228) do
     t.float    "destination_dist_traveled"
     t.integer  "feed_id"
     t.integer  "feed_version_id"
+    t.boolean  "frequency_exact_times"
   end
 
   add_index "current_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "c_ssp_cu_in_changeset", using: :btree
   add_index "current_schedule_stop_pairs", ["destination_id"], name: "c_ssp_destination", using: :btree
   add_index "current_schedule_stop_pairs", ["feed_id", "id"], name: "index_current_schedule_stop_pairs_on_feed_id_and_id", using: :btree
   add_index "current_schedule_stop_pairs", ["feed_version_id", "id"], name: "index_current_schedule_stop_pairs_on_feed_version_id_and_id", using: :btree
+  add_index "current_schedule_stop_pairs", ["frequency_exact_times"], name: "index_current_schedule_stop_pairs_on_frequency_exact_times", using: :btree
   add_index "current_schedule_stop_pairs", ["operator_id"], name: "index_current_schedule_stop_pairs_on_operator_id", using: :btree
   add_index "current_schedule_stop_pairs", ["origin_departure_time"], name: "index_current_schedule_stop_pairs_on_origin_departure_time", using: :btree
   add_index "current_schedule_stop_pairs", ["origin_id"], name: "c_ssp_origin", using: :btree
@@ -601,6 +603,7 @@ ActiveRecord::Schema.define(version: 20160930225228) do
     t.float    "destination_dist_traveled"
     t.integer  "feed_id"
     t.integer  "feed_version_id"
+    t.boolean  "frequency_exact_times"
   end
 
   add_index "old_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "o_ssp_cu_in_changeset", using: :btree
@@ -609,6 +612,7 @@ ActiveRecord::Schema.define(version: 20160930225228) do
   add_index "old_schedule_stop_pairs", ["destroyed_in_changeset_id"], name: "o_ssp_d_in_changeset", using: :btree
   add_index "old_schedule_stop_pairs", ["feed_id"], name: "index_old_schedule_stop_pairs_on_feed_id", using: :btree
   add_index "old_schedule_stop_pairs", ["feed_version_id"], name: "index_old_schedule_stop_pairs_on_feed_version_id", using: :btree
+  add_index "old_schedule_stop_pairs", ["frequency_exact_times"], name: "index_old_schedule_stop_pairs_on_frequency_exact_times", using: :btree
   add_index "old_schedule_stop_pairs", ["operator_id"], name: "index_old_schedule_stop_pairs_on_operator_id", using: :btree
   add_index "old_schedule_stop_pairs", ["origin_type", "origin_id"], name: "o_ssp_origin", using: :btree
   add_index "old_schedule_stop_pairs", ["route_stop_pattern_id"], name: "index_old_schedule_stop_pairs_on_route_stop_pattern_id", using: :btree
