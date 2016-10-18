@@ -199,10 +199,10 @@ class Route < BaseRoute
     where(vehicle_type: vehicle_types)
   }
 
-  def self.representative_geometry(route, rsps)
+  def self.representative_geometry(route, route_rsps)
     stop_pairs_to_rsps = {}
 
-    rsps.each do |rsp|
+    route_rsps.each do |rsp|
       rsp.stop_pattern.each_cons(2) do |s1, s2|
         if stop_pairs_to_rsps.has_key?([s1,s2])
           stop_pairs_to_rsps[[s1,s2]].add(rsp)
@@ -221,17 +221,17 @@ class Route < BaseRoute
       }
       representative_rsps.add(rsp)
 
-      stop_pairs_to_rsps.each_pair { |key_pair, rsps|
-        stop_pairs_to_rsps.delete(key_pair) if rsps.include?(rsp)
+      stop_pairs_to_rsps.each_pair { |key_stop_pair, stop_pair_rsps|
+        stop_pairs_to_rsps.delete(key_stop_pair) if stop_pair_rsps.include?(rsp)
       }
     end
     representative_rsps
   end
 
-  def self.geometry_from_rsps(route, rsps)
-    # rsps can be any enumerable subset of the route rsps
+  def self.geometry_from_rsps(route, repr_rsps)
+    # repr_rsps can be any enumerable subset of the route rsps
     route.geometry = Route::GEOFACTORY.multi_line_string(
-      (rsps || []).map { |rsp|
+      (repr_rsps || []).map { |rsp|
         factory = RGeo::Geos.factory
         line = factory.line_string(rsp.geometry[:coordinates].map { |lon, lat| factory.point(lon, lat) })
         Route::GEOFACTORY.line_string(
