@@ -199,6 +199,9 @@ class GTFSGraph
         next
       end
 
+      # Lookup frequencies.txt
+      @gtfs_frequencies ||= @gtfs.frequencies.group_by(&:trip_id)
+
       # Lookup last stop for fallback Headsign
       last_stop_name = @gtfs.stop(gtfs_stop_times.last.stop_id).stop_name
 
