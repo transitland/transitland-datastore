@@ -232,10 +232,8 @@ class Route < BaseRoute
     # rsps can be any enumerable subset of the route rsps
     route.geometry = Route::GEOFACTORY.multi_line_string(
       (rsps || []).map { |rsp|
-        puts "RSP #{rsp.onestop_id} coord size before: #{rsp.geometry[:coordinates].size}"
         factory = RGeo::Geos.factory
         line = factory.line_string(rsp.geometry[:coordinates].map { |lon, lat| factory.point(lon, lat) })
-        puts "RSP #{rsp.onestop_id} coord size after: #{line.simplify(0.00001).coordinates.size}"
         Route::GEOFACTORY.line_string(
           line.simplify(0.00001).coordinates.map { |lon, lat| Route::GEOFACTORY.point(lon, lat) }
         )
