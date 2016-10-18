@@ -200,6 +200,7 @@ class Route < BaseRoute
   }
 
   def self.representative_geometry(route, route_rsps)
+    # build a hash of stop pair keys to a set of rsps that traverses them.
     stop_pairs_to_rsps = {}
 
     route_rsps.each do |rsp|
@@ -214,13 +215,17 @@ class Route < BaseRoute
 
     representative_rsps = Set.new
 
+    # every stop pair is guaranteed to be represented by at least one rsp
     while (!stop_pairs_to_rsps.empty?)
+      # choose and remove a random stop pair key
       key_value = stop_pairs_to_rsps.shift
+      # be greedy and choose the rsp with the most stops
       rsp = key_value[1].max_by { |rsp|
         rsp.stop_pattern.uniq.size
       }
       representative_rsps.add(rsp)
 
+      # remove the stop pair keys traversed by the chosen repr rsp
       stop_pairs_to_rsps.each_pair { |key_stop_pair, stop_pair_rsps|
         stop_pairs_to_rsps.delete(key_stop_pair) if stop_pair_rsps.include?(rsp)
       }
@@ -234,6 +239,7 @@ class Route < BaseRoute
       (repr_rsps || []).map { |rsp|
         factory = RGeo::Geos.factory
         line = factory.line_string(rsp.geometry[:coordinates].map { |lon, lat| factory.point(lon, lat) })
+        # Using Douglas-Peucker
         Route::GEOFACTORY.line_string(
           line.simplify(0.00001).coordinates.map { |lon, lat| Route::GEOFACTORY.point(lon, lat) }
         )
