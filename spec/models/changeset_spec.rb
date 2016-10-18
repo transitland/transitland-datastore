@@ -421,6 +421,31 @@ describe Changeset do
     end
   end
 
+  it 'will deprecate issues asynchronously for an import after the DB transaction is complete' do
+    expect(DeactivateIssuesWorker).to receive(:perform_async) { true }
+    load_feed(feed_version_name: :feed_version_example, import_level: 1)
+  end
+
+  it 'will deprecate issues asynchronously for a non-import changeset after the DB transaction is complete' do
+    expect(DeactivateIssuesWorker).to receive(:perform_async) { true }
+    Timecop.freeze(3.minutes.from_now) do
+      changeset = create(:changeset, payload: {
+        changes: [
+          action: 'createUpdate',
+          stop: {
+            onestopId: 's-9qscwx8n60-nyecountyairportdemo',
+            timezone: 'America/Los_Angeles',
+            "geometry": {
+              "type": "Point",
+              "coordinates": [-116.784582, 36.888446]
+            }
+          }
+        ]
+      })
+      changeset.apply!
+    end
+  end
+
   it 'will conflate stops with OSM after the DB transaction is complete' do
     allow(Figaro.env).to receive(:auto_conflate_stops_with_osm) { 'true' }
     changeset = create(:changeset, payload: {

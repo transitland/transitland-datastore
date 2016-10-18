@@ -218,7 +218,7 @@ class Changeset < ActiveRecord::Base
     [rsps_to_update_distances.size, operators_to_update_convex_hull.size]
   end
 
-  def apply!
+  def apply!(block_after_apply: nil)
     fail Changeset::Error.new(changeset: self, message: 'has already been applied.') if applied
     changeset_issues = nil
 
@@ -255,10 +255,7 @@ class Changeset < ActiveRecord::Base
         if (unresolved_issues.empty?)
           resolving_issues.each { |issue| issue.update!({ open: false, resolved_by_changeset: self}) }
           changeset_issues.each(&:save!)
-          # Temporarily disabling deactivation for non-import changesets until faster implementation
-          # or all-async changesets
-          Issue.bulk_deactivate if import?
-          resolving_issues.each {|issue|
+          resolving_issues.each { |issue|
             log("Deprecating issue: #{issue.as_json(include: [:entities_with_issues])}")
             EntityWithIssues.delete issue.entities_with_issues
             issue.delete
@@ -275,6 +272,9 @@ class Changeset < ActiveRecord::Base
         raise Changeset::Error.new(changeset: self, message: error.message, backtrace: error.backtrace)
       end
     end
+
+    block_after_apply ||= Proc.new { |changeset| DeactivateIssuesWorker.perform_async("deactivate_issues/#{changeset.id}/deactivate_async") }
+    block_after_apply.call(self)
 
     unless Figaro.env.send_changeset_emails_to_users.presence == 'false'
       if self.user && self.user.email.present? && !self.user.admin
