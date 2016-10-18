@@ -266,7 +266,7 @@ describe GTFSGraph do
       expect(s.destination_arrival_time).to eq('09:20:00')
       expect(s.destination_departure_time).to eq('09:20:00')
       expect(s.origin_dist_traveled).to eq 0.0
-      expect(s.destination_dist_traveled).to eq 58023.5
+      expect(s.destination_dist_traveled).to be_within(0.5).of(58023.5)
       expect(s.service_days_of_week).to match_array(
         [true, true, true, true, true, true, true]
       )
