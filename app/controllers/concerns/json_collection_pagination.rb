@@ -62,10 +62,13 @@ module JsonCollectionPagination
 
     # Return results + meta
     geojson = false
-    result = { json: data_on_page, meta: meta }
+
+    data_on_page = data_on_page.empty? ? collection.model.none : collection
+    result = { json: data_on_page, meta: meta, adapter: :json }
     if geojson
       result[:each_serializer] = GeoJSONSerializer
       result[:root] = :features
+      result[:adapter] = :geo_json_adapter
     elsif self.class::SERIALIZER
       result[:each_serializer] = self.class::SERIALIZER
     end
