@@ -71,6 +71,13 @@ class GTFSGraph
   def create_change_osr
     graph_log "Load GTFS"
     @gtfs.load_graph
+
+    # Lookup frequencies.txt
+    @gtfs_frequencies = {}
+    if @gtfs.file_present?('frequencies.txt')
+      @gtfs_frequencies = @gtfs.frequencies.group_by(&:trip_id)
+    end
+
     graph_log "Load TL"
     load_tl_stops
     load_tl_transfers
@@ -199,11 +206,10 @@ class GTFSGraph
         next
       end
 
-      # Lookup frequencies.txt
-      @gtfs_frequencies ||= @gtfs.frequencies.group_by(&:trip_id)
-
       # Lookup last stop for fallback Headsign
       last_stop_name = @gtfs.stop(gtfs_stop_times.last.stop_id).stop_name
+
+      frequencies = @gtfs_frequencies[gtfs_trip.trip_id] || []
 
       # Create SSPs for all gtfs_stop_time edges
       ssp_trip = []
