@@ -1,5 +1,5 @@
 class GeoJSONSerializer < ApplicationSerializer
-  attributes :geometry, :properties
+  attributes :geometry, :properties, :type
 
   def properties
     ActiveModel::Serializer
