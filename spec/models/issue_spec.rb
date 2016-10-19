@@ -190,28 +190,55 @@ describe Issue do
         end
 
         it 'only deprecates issues of specified entity attributes' do
+          # using uncategorized for now, because there is no issue type yet for wrong stop name
+          issue = Issue.create!(issue_type: 'uncategorized', details: 'this stop name is wrong')
+          issue.entities_with_issues.create!(entity: Stop.first, entity_attribute: 'name')
+          Timecop.freeze(3.minutes.from_now) do
+            # changing the stop geometry - should have nothing to do with the name!
+            changeset = create(:changeset, payload: {
+              changes: [
+                action: 'createUpdate',
+                stop: {
+                  onestopId: Stop.first.onestop_id,
+                  "geometry": {
+                    "type": "Point",
+                    "coordinates": [-116.784583, 36.868452]
+                  }
+                }
+              ]
+            })
+            changeset.apply!
+          end
+          expect(Issue.find(9).issue_type).to eq 'uncategorized'
+          expect(Issue.find(9).entities_with_issues.map(&:entity)).to include(Stop.first)
+        end
+
+        it 'deprecates issues of specified entity attributes ' do
+          # Issue 9
           issue = Issue.create!(issue_type: 'rsp_line_inaccurate', details: 'this is a fake geometry issue')
           issue.entities_with_issues.create!(entity: @rsp, entity_attribute: 'geometry')
           # here we are modifying this rsp's geometry, which should deprecate the rsp_line_inaccurate issue
           # even without technically resolving it, because the entity attribute geometry has been modified.
-          # other issues on the rsp involving other attributes should be left alone.
-          changeset = create(:changeset, payload: {
-            changes: [
-              action: 'createUpdate',
-              routeStopPattern: {
-                onestopId: @rsp.onestop_id,
-                "geometry": {
-                  "type": "LineString",
-                  "coordinates": [[-117.13316, 36.42529], [-117.05, 36.65], [-116.81797, 36.88108]]
+          # The distance calculation issue (7) on this rsp should also be deprecated, because its stop distances
+          # will be re-calculated in the update of computed attributes, which should also find obsolete stop distance issues.
+          Timecop.freeze(3.minutes.from_now) do
+            changeset = create(:changeset, payload: {
+              changes: [
+                action: 'createUpdate',
+                routeStopPattern: {
+                  onestopId: @rsp.onestop_id,
+                  "geometry": {
+                    "type": "LineString",
+                    "coordinates": [[-117.13316, 36.42529], [-117.05, 36.65], [-116.81797, 36.88108]]
+                  }
                 }
-              }
-            ]
-          })
-          expect(Sidekiq::Logging.logger).to receive(:info).with(/Calculating distances/)
-          expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>9.*"resolved_by_changeset_id"=>nil.*"open"=>true/)
-          changeset.apply!
-          expect(Issue.find(7).issue_type).to eq 'distance_calculation_inaccurate'
-          expect(Issue.find(7).entities_with_issues.map(&:entity)).to include(@rsp)
+              ]
+            })
+            expect(Sidekiq::Logging.logger).to receive(:info).with(/Calculating distances/)
+            expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>7.*"resolved_by_changeset_id"=>nil.*"open"=>true/)
+            expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>9.*"resolved_by_changeset_id"=>nil.*"open"=>true/)
+            changeset.apply!
+          end
         end
       end
     end
