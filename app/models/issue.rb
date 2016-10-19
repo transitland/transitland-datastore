@@ -36,6 +36,7 @@ class Issue < ActiveRecord::Base
                  'route_color',
                  'stop_name',
                  'route_name',
+                 'feed_fetch_error',
                  'feed_version_maintenance_extend',
                  'feed_version_maintenance_import',
                  'uncategorized']

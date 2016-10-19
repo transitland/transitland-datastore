@@ -47,6 +47,8 @@ class FeedFetcherService
         fetch_exception_log << e.backtrace.join("\n")
       end
       log fetch_exception_log, level=:error
+      Issue.create!(issue_type: 'feed_fetch_error', details: fetch_exception_log)
+        .entities_with_issues.create!(entity: feed)
     ensure
       feed.update(
         latest_fetch_exception_log: fetch_exception_log,
