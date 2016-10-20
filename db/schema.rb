@@ -206,7 +206,6 @@ ActiveRecord::Schema.define(version: 20161017191437) do
     t.string   "destination_departure_time"
     t.string   "frequency_start_time"
     t.string   "frequency_end_time"
-    t.string   "frequency_headway_seconds"
     t.hstore   "tags"
     t.date     "service_start_date"
     t.date     "service_end_date"
@@ -235,6 +234,7 @@ ActiveRecord::Schema.define(version: 20161017191437) do
     t.integer  "feed_id"
     t.integer  "feed_version_id"
     t.boolean  "frequency_exact_times"
+    t.integer  "frequency_headway_seconds"
   end
 
   add_index "current_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "c_ssp_cu_in_changeset", using: :btree
@@ -575,7 +575,6 @@ ActiveRecord::Schema.define(version: 20161017191437) do
     t.string   "destination_departure_time"
     t.string   "frequency_start_time"
     t.string   "frequency_end_time"
-    t.string   "frequency_headway_seconds"
     t.hstore   "tags"
     t.date     "service_start_date"
     t.date     "service_end_date"
@@ -604,6 +603,7 @@ ActiveRecord::Schema.define(version: 20161017191437) do
     t.integer  "feed_id"
     t.integer  "feed_version_id"
     t.boolean  "frequency_exact_times"
+    t.integer  "frequency_headway_seconds"
   end
 
   add_index "old_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "o_ssp_cu_in_changeset", using: :btree
