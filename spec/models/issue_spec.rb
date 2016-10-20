@@ -192,20 +192,27 @@ describe Issue do
         end
 
         it '.entity_outdated_issues' do
-          
+          expect(Issue.entity_outdated_issues(@rsp, entity_attributes: [])).to match_array([])
+          @rsp.updated_at = 3.minutes.from_now
+          expect(Issue.entity_outdated_issues(@rsp, entity_attributes: [])).to match_array([Issue.find(7)])
+        end
+
+        it '.entity_outdated_issues entities added to entities_with_issues after issue creation' do
+          Issue.find(7).entities_with_issues.create!(entity: Stop.last)
         end
 
         it 'only deprecates issues with entities_with_issues having attrs matching the changeset entity attrs' do
           # using uncategorized for now, because there is no issue type yet for wrong stop name
+          stop = Stop.first
           issue = Issue.create!(issue_type: 'uncategorized', details: 'this stop name is wrong')
-          issue.entities_with_issues.create!(entity: Stop.first, entity_attribute: 'name')
+          issue.entities_with_issues.create!(entity: stop, entity_attribute: 'name')
           Timecop.freeze(3.minutes.from_now) do
             # changing the stop geometry - should not deprecate issues on the stop name
             changeset = create(:changeset, payload: {
               changes: [
                 action: 'createUpdate',
                 stop: {
-                  onestopId: Stop.first.onestop_id,
+                  onestopId: stop.onestop_id,
                   "geometry": {
                     "type": "Point",
                     "coordinates": [-116.784583, 36.868452]
@@ -216,7 +223,7 @@ describe Issue do
             changeset.apply!
           end
           expect(Issue.find(9).issue_type).to eq 'uncategorized'
-          expect(Issue.find(9).entities_with_issues.map(&:entity)).to include(Stop.first)
+          expect(Issue.find(9).entities_with_issues.map(&:entity)).to include(stop)
         end
 
         it 'deprecates issues of entities whose attrs are affected by updating computed attrs' do

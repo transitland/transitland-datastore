@@ -76,6 +76,8 @@ class Issue < ActiveRecord::Base
 
   def self.entity_outdated_issues(entity, entity_attributes: [])
     Issue.issues_of_entity(entity, entity_attributes: entity_attributes)
-    .select { |issue| entity.updated_at.to_i > issue.created_at.to_i }
+    .select { |issue| issue.entities_with_issues
+      .select { |ewi| ewi.entity.eql?(entity) }
+      .any? { |ewi| entity.updated_at.to_i > ewi.created_at.to_i } }
   end
 end
