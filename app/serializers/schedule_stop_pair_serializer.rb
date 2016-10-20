@@ -98,6 +98,9 @@ class ScheduleStopPairSerializer < ApplicationSerializer
              :window_end,
              :origin_timepoint_source,
              :destination_timepoint_source,
+             :frequency_start_time,
+             :frequency_end_time,
+             :frequency_headway_seconds,
              :created_at,
              :updated_at
 
