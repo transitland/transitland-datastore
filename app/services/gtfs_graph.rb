@@ -213,6 +213,7 @@ class GTFSGraph
   end
 
   def make_ssp_trip(gtfs_trip, gtfs_stop_times, gtfs_frequency: nil)
+    # Create a pseudo-unique trip_id when using gtfs_frequency
     trip_id = gtfs_trip.id.presence
     if gtfs_frequency
       trip_id = "#{gtfs_trip.id.presence}-#{gtfs_frequency.start_time}-#{gtfs_frequency.end_time}-#{gtfs_frequency.headway_secs}"
