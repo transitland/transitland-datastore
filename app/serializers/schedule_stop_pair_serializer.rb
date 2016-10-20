@@ -16,7 +16,6 @@
 #  destination_departure_time         :string
 #  frequency_start_time               :string
 #  frequency_end_time                 :string
-#  frequency_headway_seconds          :string
 #  tags                               :hstore
 #  service_start_date                 :date
 #  service_end_date                   :date
@@ -45,6 +44,7 @@
 #  feed_id                            :integer
 #  feed_version_id                    :integer
 #  frequency_exact_times              :boolean
+#  frequency_headway_seconds          :integer
 #
 # Indexes
 #
