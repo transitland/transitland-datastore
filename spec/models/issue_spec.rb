@@ -183,18 +183,24 @@ describe Issue do
         end
 
         it '.issues_of_entity' do
-          issue = Issue.create!(issue_type: 'rsp_line_inaccurate', details: 'this is a fake geometry issue')
-          issue.entities_with_issues.create!(entity: @rsp, entity_attribute: 'geometry')
+          issue_1 = Issue.create!(issue_type: 'rsp_line_inaccurate', details: 'this is a fake geometry issue')
+          issue_1.entities_with_issues.create!(entity: @rsp, entity_attribute: 'geometry')
+          issue_2 = Issue.create!(issue_type: 'uncategorized', details: 'this is another fake issue without entities_with_issues entity_attribute')
+          issue_2.entities_with_issues.create!(entity: @rsp)
           expect(Issue.issues_of_entity(@rsp, entity_attributes: ["stop_distances"])).to match_array([Issue.find(7)])
-          expect(Issue.issues_of_entity(@rsp, entity_attributes: [])).to match_array([issue, Issue.find(7)])
+          expect(Issue.issues_of_entity(@rsp, entity_attributes: [])).to match_array([issue_2, issue_1, Issue.find(7)])
         end
 
-        it 'only deprecates issues of specified entity attributes' do
+        it '.entity_outdated_issues' do
+          
+        end
+
+        it 'only deprecates issues with entities_with_issues having attrs matching the changeset entity attrs' do
           # using uncategorized for now, because there is no issue type yet for wrong stop name
           issue = Issue.create!(issue_type: 'uncategorized', details: 'this stop name is wrong')
           issue.entities_with_issues.create!(entity: Stop.first, entity_attribute: 'name')
           Timecop.freeze(3.minutes.from_now) do
-            # changing the stop geometry - should have nothing to do with the name!
+            # changing the stop geometry - should not deprecate issues on the stop name
             changeset = create(:changeset, payload: {
               changes: [
                 action: 'createUpdate',
@@ -213,7 +219,7 @@ describe Issue do
           expect(Issue.find(9).entities_with_issues.map(&:entity)).to include(Stop.first)
         end
 
-        it 'deprecates issues of specified entity attributes ' do
+        it 'deprecates issues of entities whose attrs are affected by updating computed attrs' do
           # Issue 9
           issue = Issue.create!(issue_type: 'rsp_line_inaccurate', details: 'this is a fake geometry issue')
           issue.entities_with_issues.create!(entity: @rsp, entity_attribute: 'geometry')
