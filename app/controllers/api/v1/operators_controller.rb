@@ -63,31 +63,7 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
 
     respond_to do |format|
       format.json do
-        render paginated_json_collection(
-          @operators,
-          Proc.new { |params| api_v1_operators_url(params) },
-          params[:sort_key],
-          params[:sort_order],
-          params[:offset],
-          params[:per_page],
-          params[:total],
-          params.slice(
-            :identifier,
-            :identifier_starts_with,
-            :lat,
-            :lon,
-            :r,
-            :bbox,
-            :onestop_id,
-            :tag_key,
-            :tag_value,
-            :import_level,
-            :name,
-            :short_name,
-            :imported_from_feed,
-            :imported_from_feed_version
-          )
-        )
+        render paginated_json_collection(@operators)
       end
       format.geojson do
         render json: Geojson.from_entity_collection(@operators, &GEOJSON_ENTITY_PROPERTIES)
@@ -134,6 +110,25 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
   end
 
   private
+
+  def query_params
+    params.slice(
+      :identifier,
+      :identifier_starts_with,
+      :lat,
+      :lon,
+      :r,
+      :bbox,
+      :onestop_id,
+      :tag_key,
+      :tag_value,
+      :import_level,
+      :name,
+      :short_name,
+      :imported_from_feed,
+      :imported_from_feed_version
+    )
+  end
 
   def count_values(array_of_hashes, attr_name: nil)
     return_hash = {}

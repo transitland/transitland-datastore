@@ -363,6 +363,18 @@ describe Feed do
     end
   end
 
+  context '.with_latest_feed_version_import' do
+    before(:each) do
+      @feed1 = create(:feed)
+      @feed1_fv1 = create(:feed_version, feed: @feed1)
+      @feed1_fvi1 = create(:feed_version_import, feed_version: @feed1_fv1, success: true, created_at: '2016-01-02')
+    end
+
+    it 'with_latest_feed_version_import' do
+      expect(Feed.with_latest_feed_version_import.first.latest_feed_version_import_id).to eq(@feed1_fvi1.id)
+    end
+  end
+
   context '.where_latest_feed_version_import_status' do
     before(:each) do
       # Create several feeds with different #'s of FVs and FVIs
