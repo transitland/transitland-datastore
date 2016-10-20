@@ -2,7 +2,7 @@
 http_interactions:
 - request:
     method: get
-    uri: https://valhalla.mapzen.com/locate?api_key=valhalla-fL3QE_A&json=%7B%22locations%22:%5B%7B%22lat%22:0.0,%22lon%22:0.0%7D%5D,%22costing%22:%22transit%22%7D
+    uri: https://valhalla.mapzen.com/locate?api_key=fakeapikey&json=%7B%22locations%22:%5B%7B%22lat%22:0.0,%22lon%22:0.0%7D%5D,%22costing%22:%22transit%22%7D
     body:
       encoding: US-ASCII
       string: ''
@@ -37,6 +37,6 @@ http_interactions:
     body:
       encoding: UTF-8
       string: '[{"input_lon":0.000000,"input_lat":0.000000,"nodes":null,"edges":null}]'
-    http_version: 
+    http_version:
   recorded_at: Thu, 20 Oct 2016 23:01:09 GMT
 recorded_with: VCR 3.0.3
