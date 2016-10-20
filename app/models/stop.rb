@@ -284,7 +284,22 @@ class Stop < BaseStop
         tyr_locate_response = TyrService.locate(locations: locations)
         now = DateTime.now
         group.each_with_index do |stop, index|
-          osm_way_id = tyr_locate_response[index][:edges][0][:way_id]
+          osm_way_id = stop.osm_way_id
+
+          if tyr_locate_response[index].nil?
+            log "Index #{index} for stop #{stop.onestop_id} not found in Tyr Response."
+            next
+          end
+          if tyr_locate_response[index][:edges].present?
+            begin
+              osm_way_id = tyr_locate_response[index][:edges][0][:way_id]
+            rescue StandardError => e
+              log "Retrieving way_id in Tyr response for stop #{stop.onestop_id} resulted in error: #{e}"
+            end
+          else
+            log "Tyr response for Stop #{stop.onestop_id} did not contain edges. Leaving osm_way_id."
+          end
+
           if stop.osm_way_id != osm_way_id
             log "osm_way_id changed for Stop #{stop.onestop_id}: was \"#{stop.osm_way_id}\" now \"#{osm_way_id}\""
           end
