@@ -216,6 +216,8 @@ class Route < BaseRoute
     representative_rsps = Set.new
 
     # every stop pair is guaranteed to be represented by at least one rsp
+    # caveat: if a stop pair has multiple geometries, a rare possibility,
+    # those other geometries may not be represented.
     while (!stop_pairs_to_rsps.empty?)
       # choose and remove a random stop pair key
       key_value = stop_pairs_to_rsps.shift
