@@ -189,6 +189,8 @@ describe Stop do
     end
 
     it 'handles case of stop returning a valid Tyr response, but no edges' do
+      allow(Figaro.env).to receive(:tyr_auth_token) { 'fakeapikey' }
+      stub_const('TyrService::BASE_URL', 'https://valhalla.mapzen.com')
       VCR.use_cassette('null_island_stop') do
         stop = create(:stop, geometry: { type: 'Point', coordinates: [0.0, 0.0] })
         expect(Sidekiq::Logging.logger).to receive(:info).with(/Tyr response for Stop #{stop.onestop_id} did not contain edges. Leaving osm_way_id./)

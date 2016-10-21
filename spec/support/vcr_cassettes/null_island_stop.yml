@@ -23,11 +23,11 @@ http_interactions:
       Content-Type:
       - application/json;charset=utf-8
       Date:
-      - Thu, 20 Oct 2016 23:01:06 GMT
+      - Fri, 21 Oct 2016 00:30:53 GMT
       Server:
       - nginx/1.4.6 (Ubuntu)
       X-Apiaxleproxy-Qpd-Left:
-      - '49920'
+      - '49998'
       X-Apiaxleproxy-Qps-Left:
       - '1'
       Content-Length:
@@ -38,5 +38,5 @@ http_interactions:
       encoding: UTF-8
       string: '[{"input_lon":0.000000,"input_lat":0.000000,"nodes":null,"edges":null}]'
     http_version:
-  recorded_at: Thu, 20 Oct 2016 23:01:09 GMT
+  recorded_at: Fri, 21 Oct 2016 00:30:57 GMT
 recorded_with: VCR 3.0.3
