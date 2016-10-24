@@ -356,6 +356,25 @@ describe Changeset do
                                                       [-122.4991, 37.9],
                                                       [-122.4991, 37.9]])
     end
+
+    it 'recomputes route geometry on route stop pattern geometries update changeset' do
+      create(:stop_richmond_offset)
+      create(:stop_millbrae)
+      rsp = create(:route_stop_pattern_bart)
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            routeStopPattern: {
+              onestopId: 'r-9q8y-richmond~dalycity~millbrae-e8fb80-61d4dc',
+              geometry: { type: "LineString", coordinates: [[-100, 30.0], [-122.351529, 37.937750], [-122.38666, 37.599787]] }
+            }
+          }
+        ]
+      })
+      changeset.apply!
+      expect(Route.find_by_onestop_id!(rsp.route.onestop_id).geometry[:coordinates].flatten(1)).to include([-100, 30.0])
+    end
   end
 
   context 'creation e-mail' do
