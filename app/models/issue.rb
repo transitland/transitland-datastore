@@ -75,9 +75,9 @@ class Issue < ActiveRecord::Base
   end
 
   def self.entity_outdated_issues(entity, entity_attributes: [])
+    # this can be a useful method for entities with issues outside of changeset
     Issue.issues_of_entity(entity, entity_attributes: entity_attributes)
     .select { |issue| issue.entities_with_issues
-      .select { |ewi| ewi.entity.eql?(entity) }
-      .any? { |ewi| entity.updated_at.to_i > ewi.created_at.to_i } }
+      .any? { |ewi| ewi.entity.eql?(entity) && entity.updated_at.to_i > ewi.created_at.to_i  } }
   end
 end

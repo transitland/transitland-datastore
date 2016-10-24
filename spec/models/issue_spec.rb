@@ -188,6 +188,7 @@ describe Issue do
           issue_2 = Issue.create!(issue_type: 'uncategorized', details: 'this is another fake issue without entities_with_issues entity_attribute')
           issue_2.entities_with_issues.create!(entity: @rsp)
           expect(Issue.issues_of_entity(@rsp, entity_attributes: ["stop_distances"])).to match_array([Issue.find(7)])
+          expect(Issue.issues_of_entity(@rsp, entity_attributes: ["stop_distances", "dummy"])).to match_array([Issue.find(7)])
           expect(Issue.issues_of_entity(@rsp, entity_attributes: [])).to match_array([issue_2, issue_1, Issue.find(7)])
         end
 
@@ -230,7 +231,7 @@ describe Issue do
           # Issue 9
           issue = Issue.create!(issue_type: 'rsp_line_inaccurate', details: 'this is a fake geometry issue')
           issue.entities_with_issues.create!(entity: @rsp, entity_attribute: 'geometry')
-          # here we are modifying this rsp's geometry, which should deprecate the rsp_line_inaccurate issue
+          # here we are modifying this rsp's geometry, which should deprecate the existing rsp_line_inaccurate issue
           # even without technically resolving it, because the entity attribute geometry has been modified.
           # The distance calculation issue (7) on this rsp should also be deprecated, because its stop distances
           # will be re-calculated in the update of computed attributes, which should also find obsolete stop distance issues.
