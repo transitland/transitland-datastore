@@ -19,10 +19,6 @@ describe Issue do
     issue = Issue.new(created_by_changeset: changeset)
   end
 
-  it 'changeset_from_entities' do
-
-  end
-
   it '.with_type' do
     changeset = create(:changeset)
     Issue.new(created_by_changeset: changeset, issue_type: 'stop_position_inaccurate').save!

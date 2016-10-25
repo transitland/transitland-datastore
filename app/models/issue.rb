@@ -40,14 +40,6 @@ class Issue < ActiveRecord::Base
                  'feed_version_maintenance_import',
                  'uncategorized']
 
-  def changeset_from_entities
-    # all entities must have the same created or updated in changeset, or no changeset will represent them
-    changesets = entities_with_issues.map { |ewi| ewi.entity.created_or_updated_in_changeset }
-    if changesets.all? { |changeset| changeset.id == changesets.first.id }
-     changesets.first
-    end
-  end
-
   def equivalent?(issue)
     self.issue_type == issue.issue_type &&
     Set.new(self.entities_with_issues.map(&:entity_id)) == Set.new(issue.entities_with_issues.map(&:entity_id)) &&
