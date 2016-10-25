@@ -65,11 +65,4 @@ class Issue < ActiveRecord::Base
     issues = issues.where("entity_attribute IN (?)", entity_attributes) unless entity_attributes.empty?
     return issues
   end
-
-  def self.entity_outdated_issues(entity, entity_attributes: [])
-    # this can be a useful method for entities with issues outside of changeset
-    Issue.issues_of_entity(entity, entity_attributes: entity_attributes)
-    .select { |issue| issue.entities_with_issues
-      .any? { |ewi| ewi.entity.eql?(entity) && entity.updated_at.to_i > ewi.created_at.to_i  } }
-  end
 end
