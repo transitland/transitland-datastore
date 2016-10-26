@@ -116,16 +116,6 @@ describe Issue do
         expect(Issue.issues_of_entity(@rsp1, entity_attributes: ["stop_distances", "dummy"])).to match_array([Issue.find(@distance_calc_issue.id)])
         expect(Issue.issues_of_entity(@rsp1, entity_attributes: [])).to match_array([issue_2, issue_1, Issue.find(@distance_calc_issue.id)])
       end
-
-      it '.entity_outdated_issues' do
-        expect(Issue.entity_outdated_issues(@rsp1, entity_attributes: [])).to match_array([])
-        @rsp1.updated_at = 3.minutes.from_now
-        expect(Issue.entity_outdated_issues(@rsp1, entity_attributes: [])).to match_array([Issue.find(@distance_calc_issue.id)])
-      end
-
-      it '.entity_outdated_issues entities added to entities_with_issues after issue creation' do
-        Issue.find(@distance_calc_issue.id).entities_with_issues.create!(entity: Stop.last)
-      end
     end
 
     it 'destroys entities_with_issues when issue destroyed' do
