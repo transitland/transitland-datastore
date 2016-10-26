@@ -213,12 +213,6 @@ class GTFSGraph
   end
 
   def make_ssp_trip(gtfs_trip, gtfs_stop_times, gtfs_frequency: nil)
-    # Create a pseudo-unique trip_id when using gtfs_frequency
-    trip_id = gtfs_trip.id.presence
-    if gtfs_frequency
-      trip_id = "#{gtfs_trip.id.presence}-#{gtfs_frequency.start_time}-#{gtfs_frequency.end_time}-#{gtfs_frequency.headway_secs}"
-    end
-
     # Lookup tl_route from gtfs_trip.route_id
     gtfs_route = @gtfs.route(gtfs_trip.route_id)
     tl_route = find_by_gtfs_entity(gtfs_route)
@@ -227,8 +221,6 @@ class GTFSGraph
       return []
     end
     # Lookup tl_rsp from gtfs_trip.trip_id
-    # @gtfs_to_onestop_id[@gtfs.trip(trip_id)] = onestop_id
-    # tl_rsp = find_by_onestop_id(rsp_map[gtfs_trip.trip_id])
     tl_rsp = find_by_gtfs_entity(gtfs_trip)
     unless tl_rsp
       graph_log "Trip #{gtfs_trip.trip_id}: Missing RouteStopPattern"
@@ -286,7 +278,7 @@ class GTFSGraph
         # Operator
         operator: tl_route.operator,
         # Trip
-        trip: trip_id,
+        trip: gtfs_trip.trip_id,
         trip_headsign: (gtfs_origin_stop_time.stop_headsign || gtfs_trip.trip_headsign || last_stop_name).presence,
         trip_short_name: gtfs_trip.trip_short_name.presence,
         shape_dist_traveled: gtfs_destination_stop_time.shape_dist_traveled.to_f,

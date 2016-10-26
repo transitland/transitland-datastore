@@ -235,7 +235,7 @@ describe GTFSGraph do
       route = @feed.imported_routes.find_by!(onestop_id: 'r-9qsczp-40')
       route_stop_pattern = @feed.imported_route_stop_patterns.find_by!(onestop_id: 'r-9qsczp-40-1f22a1-3d01d2')
       operator = @feed.operators.find_by(onestop_id: 'o-9qs-demotransitauthority')
-      trip = 'CITY1-6:00:00-7:59:59-1800'
+      trip = 'CITY1'
       found = @feed.imported_schedule_stop_pairs.where(
         origin: origin,
         destination: destination,
@@ -307,11 +307,11 @@ describe GTFSGraph do
       ).to match_array(["AAMV1 Test"])
       # Use trip_headsign
       expect(
-        @feed_version.imported_schedule_stop_pairs.where(trip: 'STBA-6:00:00-22:00:00-1800').pluck(:trip_headsign).uniq
+        @feed_version.imported_schedule_stop_pairs.where(trip: 'STBA').pluck(:trip_headsign).uniq
       ).to match_array(["Shuttle"])
       # Use last stop name
       expect(
-        @feed_version.imported_schedule_stop_pairs.where(trip: 'CITY1-6:00:00-7:59:59-1800').pluck(:trip_headsign).uniq
+        @feed_version.imported_schedule_stop_pairs.where(trip: 'CITY1').pluck(:trip_headsign).uniq
       ).to match_array(["E Main St / S Irving St (Demo)"])
     end
   end
