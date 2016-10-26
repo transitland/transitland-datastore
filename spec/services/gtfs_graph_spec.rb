@@ -280,6 +280,7 @@ describe GTFSGraph do
       expect(s.frequency_start_time).to eq('6:00:00')
       expect(s.frequency_end_time).to eq('7:59:59')
       expect(s.frequency_headway_seconds).to eq(1800)
+      expect(s.frequency_exact_times).to eq(nil)
     end
 
     it 'can process a trip with 1 unique stop but at least 2 stop times' do

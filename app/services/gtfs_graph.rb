@@ -297,7 +297,8 @@ class GTFSGraph
         # frequency
         frequency_start_time: gtfs_frequency.try(:start_time),
         frequency_end_time: gtfs_frequency.try(:end_time),
-        frequency_headway_seconds: gtfs_frequency.try(:headway_secs)
+        frequency_headway_seconds: gtfs_frequency.try(:headway_secs),
+        frequency_exact_times: gtfs_frequency.try(:exact_times)
       )
     end
     ssp_trip
