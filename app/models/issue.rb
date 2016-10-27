@@ -31,6 +31,7 @@ class Issue < ActiveRecord::Base
   enumerize :issue_type,
             in: ['stop_position_inaccurate',
                  'stop_rsp_distance_gap',
+                 'missing_stop_conflation_result',
                  'distance_calculation_inaccurate',
                  'rsp_line_inaccurate',
                  'route_color',
