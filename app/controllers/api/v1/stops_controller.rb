@@ -68,15 +68,9 @@ class Api::V1::StopsController < Api::V1::BaseApiController
     ]} # TODO: check performance against eager_load, joins, etc.
 
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(@stops)
-      end
-      format.geojson do
-        render json: Geojson.from_entity_collection(@stops, &GEOJSON_ENTITY_PROPERTIES)
-      end
-      format.csv do
-        return_downloadable_csv(@stops, 'stops')
-      end
+      format.json { render paginated_json_collection(@stops) }
+      format.geojson { render paginated_geojson_collection(@stops) }
+      format.csv { return_downloadable_csv(@stops, 'stops') }
     end
   end
 
