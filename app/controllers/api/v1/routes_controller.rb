@@ -81,30 +81,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
 
     respond_to do |format|
       format.json do
-        render paginated_json_collection(
-          @routes,
-          Proc.new { |params| api_v1_routes_url(params) },
-          params[:sort_key],
-          params[:sort_order],
-          params[:offset],
-          params[:per_page],
-          params[:total],
-          params.slice(
-            :identifier,
-            :identifier_starts_with,
-            :operated_by,
-            :operatedBy,
-            :color,
-            :vehicle_type,
-            :bbox,
-            :onestop_id,
-            :tag_key,
-            :tag_value,
-            :import_level,
-            :imported_from_feed,
-            :imported_from_feed_version
-          )
-        )
+        render paginated_json_collection(@routes)
       end
       format.geojson do
         render json: Geojson.from_entity_collection(@routes, &GEOJSON_ENTITY_PROPERTIES)
@@ -127,6 +104,24 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
   end
 
   private
+
+  def query_params
+    params.slice(
+      :identifier,
+      :identifier_starts_with,
+      :operated_by,
+      :operatedBy,
+      :color,
+      :vehicle_type,
+      :bbox,
+      :onestop_id,
+      :tag_key,
+      :tag_value,
+      :import_level,
+      :imported_from_feed,
+      :imported_from_feed_version
+    )
+  end
 
   def set_route
     @route = Route.find_by_onestop_id!(params[:id])

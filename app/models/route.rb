@@ -199,6 +199,56 @@ class Route < BaseRoute
     where(vehicle_type: vehicle_types)
   }
 
+  def self.representative_geometry(route, route_rsps)
+    # build a hash of stop pair keys to a set of rsps that traverses them.
+    stop_pairs_to_rsps = {}
+
+    route_rsps.each do |rsp|
+      rsp.stop_pattern.each_cons(2) do |s1, s2|
+        if stop_pairs_to_rsps.has_key?([s1,s2])
+          stop_pairs_to_rsps[[s1,s2]].add(rsp)
+        else
+          stop_pairs_to_rsps[[s1,s2]] = Set.new([rsp])
+        end
+      end
+    end
+
+    representative_rsps = Set.new
+
+    # every stop pair is guaranteed to be represented by at least one rsp
+    # caveat: if a stop pair has multiple geometries, a rare possibility,
+    # those other geometries may not be represented.
+    while (!stop_pairs_to_rsps.empty?)
+      # choose and remove a random stop pair key
+      key_value = stop_pairs_to_rsps.shift
+      # be greedy and choose the rsp with the most stops
+      rsp = key_value[1].max_by { |rsp|
+        rsp.stop_pattern.uniq.size
+      }
+      representative_rsps.add(rsp)
+
+      # remove the stop pair keys traversed by the chosen repr rsp
+      stop_pairs_to_rsps.each_pair { |key_stop_pair, stop_pair_rsps|
+        stop_pairs_to_rsps.delete(key_stop_pair) if stop_pair_rsps.include?(rsp)
+      }
+    end
+    representative_rsps
+  end
+
+  def self.geometry_from_rsps(route, repr_rsps)
+    # repr_rsps can be any enumerable subset of the route rsps
+    route.geometry = Route::GEOFACTORY.multi_line_string(
+      (repr_rsps || []).map { |rsp|
+        factory = RGeo::Geos.factory
+        line = factory.line_string(rsp.geometry[:coordinates].map { |lon, lat| factory.point(lon, lat) })
+        # Using Douglas-Peucker
+        Route::GEOFACTORY.line_string(
+          line.simplify(0.00001).coordinates.map { |lon, lat| Route::GEOFACTORY.point(lon, lat) }
+        )
+      }
+    )
+  end
+
   ##### FromGTFS ####
   include FromGTFS
   def self.from_gtfs(entity, attrs={})
