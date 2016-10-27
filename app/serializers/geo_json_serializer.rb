@@ -1,5 +1,5 @@
 class GeoJSONSerializer < ApplicationSerializer
-  attributes :geometry, :properties, :type
+  attributes :geometry, :properties, :type, :id
 
   def properties
     ActiveModel::Serializer
@@ -11,6 +11,10 @@ class GeoJSONSerializer < ApplicationSerializer
 
   def type
     'Feature'
+  end
+
+  def id
+    object.try(:onestop_id)
   end
 
   def geometry
