@@ -80,5 +80,23 @@ RSpec.describe ChangePayload, type: :model do
       })
       expect(change_payload.valid?).to be true
     end
+
+    it 'apply! returns set of issues to deprecate' do
+      stop = create(:stop, onestop_id: 's-9q8yt4b-1AvHoS', name: '1st Ave. & Holloway St.')
+      issue = Issue.create!(issue_type: 'uncategorized', details: 'there\'s nothing wrong.')
+      issue.entities_with_issues.create!(entity: stop, entity_attribute: 'name')
+      change_payload = build(:change_payload, payload: {
+        changes: [
+          {
+            action: "createUpdate",
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              name: '1st Ave. & Holloway St.'
+            }
+          }
+        ]
+      })
+      expect(change_payload.apply!).to match_array([[], Set.new([issue])])
+    end
   end
 end
