@@ -99,13 +99,8 @@ class GTFSGraph
       route_rsps[rsp.route] << rsp
     end
     routes.each do |route|
-      route.geometry = Route::GEOFACTORY.multi_line_string(
-        (route_rsps[route] || []).map { |rsp|
-          Route::GEOFACTORY.line_string(
-            rsp.geometry[:coordinates].map { |lon, lat| Route::GEOFACTORY.point(lon, lat) }
-          )
-        }
-      )
+      representative_rsps = Route.representative_geometry(route, route_rsps[route] || [])
+      Route.geometry_from_rsps(route, representative_rsps)
     end
     ####
     graph_log "Create changeset"

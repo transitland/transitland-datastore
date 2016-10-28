@@ -2,14 +2,31 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.9...HEAD)
-
-**Fixed bugs:**
-
-- Issues on FeedVersions halting imports [\#825](https://github.com/transitland/transitland-datastore/issues/825)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.10...HEAD)
 
 **Merged pull requests:**
 
+- \[WIP\] Production release 4.9.10 [\#836](https://github.com/transitland/transitland-datastore/pull/836) ([doublestranded](https://github.com/doublestranded))
+
+## [4.9.10](https://github.com/transitland/transitland-datastore/tree/4.9.10) (2016-10-21)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.9...4.9.10)
+
+**Fixed bugs:**
+
+- Operator convex\_hull specs sometimes fail [\#833](https://github.com/transitland/transitland-datastore/issues/833)
+- OSM conflation for stops has been failing a lot recently [\#830](https://github.com/transitland/transitland-datastore/issues/830)
+- Issues on FeedVersions halting imports [\#825](https://github.com/transitland/transitland-datastore/issues/825)
+
+**Closed issues:**
+
+- Feed: sort by latest feed version import [\#823](https://github.com/transitland/transitland-datastore/issues/823)
+- Turn on automatic feed import and schedule extension [\#795](https://github.com/transitland/transitland-datastore/issues/795)
+
+**Merged pull requests:**
+
+- using match\_array instead of eq in convex hull expects [\#834](https://github.com/transitland/transitland-datastore/pull/834) ([doublestranded](https://github.com/doublestranded))
+- Tyr response guarding [\#832](https://github.com/transitland/transitland-datastore/pull/832) ([doublestranded](https://github.com/doublestranded))
+- Pagination refactor and feed sort by latest feed version import [\#821](https://github.com/transitland/transitland-datastore/pull/821) ([irees](https://github.com/irees))
 - Production release 4.9.9 [\#803](https://github.com/transitland/transitland-datastore/pull/803) ([irees](https://github.com/irees))
 
 ## [4.9.9](https://github.com/transitland/transitland-datastore/tree/4.9.9) (2016-10-14)
