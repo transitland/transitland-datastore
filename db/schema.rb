@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160920191755) do
+ActiveRecord::Schema.define(version: 20160930225228) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -367,7 +367,7 @@ ActiveRecord::Schema.define(version: 20160920191755) do
   add_index "feed_versions", ["feed_type", "feed_id"], name: "index_feed_versions_on_feed_type_and_feed_id", using: :btree
 
   create_table "issues", force: :cascade do |t|
-    t.integer  "created_by_changeset_id",                 null: false
+    t.integer  "created_by_changeset_id"
     t.integer  "resolved_by_changeset_id"
     t.string   "details"
     t.string   "issue_type"

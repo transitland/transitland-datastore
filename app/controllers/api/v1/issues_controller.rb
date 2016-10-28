@@ -24,19 +24,7 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
 
     respond_to do |format|
       format.json do
-        render paginated_json_collection(
-          @issues,
-          Proc.new { |params| api_v1_issues_url(params) },
-          params[:sort_key],
-          params[:sort_order],
-          params[:offset],
-          params[:per_page],
-          params[:total],
-          params.slice(
-            :open,
-            :issue_type
-          )
-        )
+        render paginated_json_collection(@issues)
       end
     end
   end
@@ -86,6 +74,10 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
   end
 
   private
+
+  def query_params
+    params.slice(:open, :issue_type)
+  end
 
   def set_issue
     @issue = Issue.find(params[:id])

@@ -3,7 +3,7 @@
 # Table name: issues
 #
 #  id                       :integer          not null, primary key
-#  created_by_changeset_id  :integer          not null
+#  created_by_changeset_id  :integer
 #  resolved_by_changeset_id :integer
 #  details                  :string
 #  issue_type               :string
@@ -36,6 +36,8 @@ class Issue < ActiveRecord::Base
                  'route_color',
                  'stop_name',
                  'route_name',
+                 'feed_version_maintenance_extend',
+                 'feed_version_maintenance_import',
                  'uncategorized']
 
   def changeset_from_entities
@@ -48,7 +50,11 @@ class Issue < ActiveRecord::Base
 
   def outdated?
     # This can create false negatives if different changesets w/ same entities are made less than 1 second apart.
-    entities_with_issues.any? { |ewi| ewi.entity.created_or_updated_in_changeset.updated_at.to_i > created_by_changeset.applied_at.to_i}
+    # Using the Issue updated_at value to account for the addition of entities_with_issues to the Issue later on.
+    entities_with_issues.any? { |ewi|
+      return false if ewi.entity_type == 'FeedVersion'
+      ewi.entity.created_or_updated_in_changeset.updated_at.to_i > updated_at.to_i
+    }
   end
 
   def equivalent?(issue)

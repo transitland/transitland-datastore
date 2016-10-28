@@ -115,7 +115,8 @@ module AllowFiltering
       when false then false
       when 0 then false
       when '0' then false
-      when nil then false
+      when nil then nil
+      when 'null' then nil
     end
   end
 

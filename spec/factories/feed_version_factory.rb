@@ -29,6 +29,8 @@
 FactoryGirl.define do
   factory :feed_version do
     sha1 { SecureRandom.hex(32) }
+    earliest_calendar_date '2016-01-01'
+    latest_calendar_date '2017-01-01'
     feed
 
     factory :feed_version_caltrain do

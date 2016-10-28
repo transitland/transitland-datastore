@@ -363,6 +363,62 @@ describe Feed do
     end
   end
 
+  context '.with_latest_feed_version_import' do
+    before(:each) do
+      @feed1 = create(:feed)
+      @feed1_fv1 = create(:feed_version, feed: @feed1)
+      @feed1_fvi1 = create(:feed_version_import, feed_version: @feed1_fv1, success: true, created_at: '2016-01-02')
+    end
+
+    it 'with_latest_feed_version_import' do
+      expect(Feed.with_latest_feed_version_import.first.latest_feed_version_import_id).to eq(@feed1_fvi1.id)
+    end
+  end
+
+  context '.where_latest_feed_version_import_status' do
+    before(:each) do
+      # Create several feeds with different #'s of FVs and FVIs
+
+      # Last import: true
+      @feed1 = create(:feed)
+      @feed1_fv1 = create(:feed_version, feed: @feed1)
+      create(:feed_version_import, feed_version: @feed1_fv1, success: false, created_at: '2016-01-01')
+      create(:feed_version_import, feed_version: @feed1_fv1, success: true, created_at: '2016-01-02')
+
+      # Last import: false
+      @feed2 = create(:feed)
+      @feed2_fv1 = create(:feed_version, feed: @feed2)
+      create(:feed_version_import, feed_version: @feed2_fv1, success: true, created_at: '2016-01-01')
+      create(:feed_version_import, feed_version: @feed2_fv1, success: true, created_at: '2016-01-02')
+      @feed2_fv2 = create(:feed_version, feed: @feed2)
+      create(:feed_version_import, feed_version: @feed2_fv2, success: false, created_at: '2016-01-02')
+      create(:feed_version_import, feed_version: @feed2_fv2, success: false, created_at: '2016-01-03')
+      # create(:feed_version_import, feed_version: @feed2_fv2, success: false, created_at: '2016-01-03')
+
+      # Last import: nil
+      @feed3 = create(:feed)
+      @feed3_fv1 = create(:feed_version, feed: @feed3)
+      create(:feed_version_import, feed_version: @feed3_fv1, success: nil, created_at: '2016-01-01')
+
+      # Last import: does not exist
+      @feed4 = create(:feed)
+      @feed4_fv1 = create(:feed_version, feed: @feed4)
+    end
+
+    it 'finds successful import' do
+      expect(Feed.where_latest_feed_version_import_status(true)).to match_array([@feed1])
+    end
+
+    it 'finds failed import' do
+      expect(Feed.where_latest_feed_version_import_status(false)).to match_array([@feed2])
+    end
+
+    it 'finds in progress import' do
+      expect(Feed.where_latest_feed_version_import_status(nil)).to match_array([@feed3])
+    end
+
+  end
+
   context '.where_newer_feed_version' do
     before(:each) do
       date0 = Date.parse('2014-01-01')

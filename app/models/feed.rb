@@ -105,7 +105,7 @@ class Feed < BaseFeed
   scope :where_active_feed_version_update, -> {
     # Find feeds that have a feed_version newer than
     #   the current active_feed_version
-    joins(p %{
+    joins(%{
       INNER JOIN (
         SELECT DISTINCT feed_versions.feed_id
         FROM feed_versions
@@ -119,6 +119,33 @@ class Feed < BaseFeed
       ) feeds_superseded
       ON current_feeds.id = feeds_superseded.feed_id
     })
+  }
+
+  scope :with_latest_feed_version_import, -> {
+    # Get the highest fvi id (=~ created_at) for each feed,
+    joins(%{
+      INNER JOIN (
+        SELECT fv.feed_id, MAX(fvi.id) fvi_max_id
+        FROM feed_versions fv
+        INNER JOIN feed_version_imports fvi ON (fvi.feed_version_id = fv.id)
+        GROUP BY (fv.feed_id)
+      ) fvi_max
+      ON current_feeds.id = fvi_max.feed_id
+    })
+      .joins('INNER JOIN feed_version_imports latest_feed_version_import ON (latest_feed_version_import.id = fvi_max.fvi_max_id)')
+      .select(['current_feeds.*', 'latest_feed_version_import.id AS latest_feed_version_import_id'])
+  }
+
+  scope :where_latest_feed_version_import_status, -> (import_status) {
+    # filter by latest fvi's success status.
+    with_latest_feed_version_import.where('latest_feed_version_import.success': import_status)
+    # Another approach, preserved here for now:
+    # see: http://stackoverflow.com/questions/121387/fetch-the-row-which-has-the-max-value-for-a-column/123481#123481
+    # LEFT OUTER JOIN feed_version_imports fvi2 ON (
+    #   fvi1.feed_version_id = fvi2.feed_version_id AND
+    #   fvi1.created_at < fvi2.created_at
+    # )
+    # WHERE fvi2.id IS NULL GROUP BY (fv.feed_id)
   }
 
   include CurrentTrackedByChangeset
