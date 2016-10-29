@@ -43,7 +43,7 @@
 #  destination_dist_traveled          :float
 #  feed_id                            :integer
 #  feed_version_id                    :integer
-#  frequency_exact_times              :boolean
+#  frequency_type                     :string
 #  frequency_headway_seconds          :integer
 #
 # Indexes
@@ -57,7 +57,7 @@
 #  c_ssp_trip                                                   (trip)
 #  index_current_schedule_stop_pairs_on_feed_id_and_id          (feed_id,id)
 #  index_current_schedule_stop_pairs_on_feed_version_id_and_id  (feed_version_id,id)
-#  index_current_schedule_stop_pairs_on_frequency_exact_times   (frequency_exact_times)
+#  index_current_schedule_stop_pairs_on_frequency_type          (frequency_type)
 #  index_current_schedule_stop_pairs_on_operator_id             (operator_id)
 #  index_current_schedule_stop_pairs_on_origin_departure_time   (origin_departure_time)
 #  index_current_schedule_stop_pairs_on_route_stop_pattern_id   (route_stop_pattern_id)
@@ -82,6 +82,10 @@ class BaseScheduleStopPair < ActiveRecord::Base
       :transitland_interpolated_geometric,
       :transitland_interpolated_shape
     ]
+  enumerize :frequency_type, in: [
+    :exact,
+    :window
+  ]
 end
 
 class ScheduleStopPair < BaseScheduleStopPair
