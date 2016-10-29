@@ -82,6 +82,10 @@
     "tripHeadsign": { "type": ["string","null"] },
     "tripShortName": { "type": ["string","null"] },
     "blockId": { "type": ["string","null"] },
+    "frequencyType": {
+      "type": ["string", "null"],
+      "enum": ["window", "exact", null]
+    },
     "frequencyStartTime": { "type": ["string","null"] },
     "frequencyEndTime": { "type": ["string","null"] },
     "frequencyHeadwaySeconds": { "type": ["string","null"] },
@@ -90,6 +94,6 @@
     "pickupType": { "type": ["string","null"] },
     "dropOffType": { "type": ["string","null"] },
     "shapeDistTraveled": { "type": ["number","null"] },
-    "tags": { "type": "object" }
+    "tags": { "type": ["object","null"] }
   }
 }
