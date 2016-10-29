@@ -173,6 +173,10 @@ class ScheduleStopPair < BaseScheduleStopPair
     self.operator = route.operator
   end
 
+  def route_stop_pattern_onestop_id
+    route_stop_pattern.onestop_id
+  end
+
   def origin_onestop_id
     origin.onestop_id
   end
