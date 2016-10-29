@@ -8,7 +8,6 @@ class GTFSGraph
   CHANGE_PAYLOAD_MAX_ENTITIES = Figaro.env.feed_eater_change_payload_max_entities.try(:to_i) || 1_000
   STOP_TIMES_MAX_LOAD = Figaro.env.feed_eater_stop_times_max_load.try(:to_i) || 100_000
 
-
   def self.to_trips_accessible(trips, key)
     # All combinations of 0,1,2 to:
     #    [:some_trips, :all_trips, :no_trips, :unknown]
@@ -47,6 +46,17 @@ class GTFSGraph
       :ask_agency
     when 3
       :ask_driver
+    end
+  end
+
+  def self.to_frequency_type(gtfs_frequency)
+    value = gtfs_frequency.try(:exact_times).to_i
+    if gtfs_frequency.nil?
+      nil
+    elsif value == 0
+      :window
+    elsif value == 1
+      :exact
     end
   end
 
@@ -295,10 +305,10 @@ class GTFSGraph
         service_added_dates: gtfs_service_period.added_dates,
         service_except_dates: gtfs_service_period.except_dates,
         # frequency
+        frequency_type: self.class.to_frequency_type(gtfs_frequency),
         frequency_start_time: gtfs_frequency.try(:start_time),
         frequency_end_time: gtfs_frequency.try(:end_time),
         frequency_headway_seconds: gtfs_frequency.try(:headway_secs),
-        frequency_exact_times: gtfs_frequency.try(:exact_times)
       )
     end
     ssp_trip
