@@ -101,6 +101,7 @@ class ScheduleStopPairSerializer < ApplicationSerializer
              :frequency_start_time,
              :frequency_end_time,
              :frequency_headway_seconds,
+             :frequency_type,
              :created_at,
              :updated_at
 
