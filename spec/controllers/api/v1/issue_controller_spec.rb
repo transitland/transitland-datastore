@@ -75,6 +75,7 @@ describe Api::V1::IssuesController do
     it 'does not create issue when an equivalent one exists' do
       issue2 = {
         "details": "This is a test issue",
+        "created_by_changeset_id": 1,
         "issue_type": 'stop_rsp_distance_gap',
         "entities_with_issues": [
           {

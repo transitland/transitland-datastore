@@ -2,11 +2,31 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.10...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.11...HEAD)
 
 **Merged pull requests:**
 
+- \[WIP\] Production release 4.9.11 [\#841](https://github.com/transitland/transitland-datastore/pull/841) ([irees](https://github.com/irees))
+
+## [4.9.11](https://github.com/transitland/transitland-datastore/tree/4.9.11) (2016-10-25)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.10...4.9.11)
+
+**Implemented enhancements:**
+
+- consider sidekiq-status for reporting progress within jobs [\#446](https://github.com/transitland/transitland-datastore/issues/446)
+
+**Closed issues:**
+
+- Schedule adjustments to reduce conflicts [\#838](https://github.com/transitland/transitland-datastore/issues/838)
+- include only one geometry for each route on routes endpoint [\#671](https://github.com/transitland/transitland-datastore/issues/671)
+
+**Merged pull requests:**
+
+- Valhalla runs at 3am UTC, not midnight; move 3 hrs forward. [\#840](https://github.com/transitland/transitland-datastore/pull/840) ([irees](https://github.com/irees))
+- Adjust schedule to reduce conflicts [\#839](https://github.com/transitland/transitland-datastore/pull/839) ([irees](https://github.com/irees))
+- update gems [\#837](https://github.com/transitland/transitland-datastore/pull/837) ([drewda](https://github.com/drewda))
 - \[WIP\] Production release 4.9.10 [\#836](https://github.com/transitland/transitland-datastore/pull/836) ([doublestranded](https://github.com/doublestranded))
+- Route rsps repr [\#827](https://github.com/transitland/transitland-datastore/pull/827) ([doublestranded](https://github.com/doublestranded))
 
 ## [4.9.10](https://github.com/transitland/transitland-datastore/tree/4.9.10) (2016-10-21)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.9...4.9.10)
