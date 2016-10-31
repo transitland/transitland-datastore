@@ -92,6 +92,22 @@ describe FeedFetcherService do
       expect(feed.latest_fetch_exception_log).to be_present
       expect(feed.latest_fetch_exception_log).to include('404')
     end
+
+    it 'saves and deprecates issues from errors' do
+      feed = create(:feed_caltrain)
+      working_url = feed.url
+      feed.update_column(:url, "http://httpbin.org/status/404")
+      VCR.use_cassette('feed_fetch_404') do
+        FeedFetcherService.fetch_and_return_feed_version(feed)
+      end
+      expect(Issue.issues_of_entity(feed).count).to eq 1
+      feed.update_column(:url, working_url)
+      feed.update_column(:last_fetched_at, (FeedFetcherService::REFETCH_WAIT + 3600).ago)
+      VCR.use_cassette('feed_fetch_caltrain') do
+        FeedFetcherService.fetch_and_return_feed_version(feed)
+      end
+      expect(Issue.issues_of_entity(feed).count).to eq 0
+    end
   end
 
   context '#url_fragment' do
