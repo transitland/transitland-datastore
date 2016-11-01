@@ -70,6 +70,7 @@ FactoryGirl.define do
     association :destination, factory: :stop
     association :route, factory: :route
     association :operator
+    association :route_stop_pattern, factory: :route_stop_pattern
     association :created_or_updated_in_changeset, factory: :changeset
     version 1
     trip "1234"
@@ -79,11 +80,16 @@ FactoryGirl.define do
     origin_departure_time "10:00:10"
     destination_arrival_time "10:10:00"
     destination_departure_time "10:10:10"
+    window_start "10:00:00"
+    window_end "10:10:00"
+    origin_timepoint_source :gtfs_exact
+    destination_timepoint_source :gtfs_exact
+    origin_dist_traveled 0.0
+    destination_dist_traveled 1.0
     service_start_date "2000-01-01"
     service_end_date "2100-01-01"
     service_added_dates []
     service_except_dates []
     service_days_of_week [true, true, true, true, true, false, false] # M - F
   end
-
 end
