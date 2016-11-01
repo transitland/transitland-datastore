@@ -66,34 +66,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
   def index
     respond_to do |format|
       format.json do
-        render paginated_json_collection(
-          @ssps,
-          Proc.new { |params| api_v1_schedule_stop_pairs_url(params) },
-          params[:sort_key],
-          params[:sort_order],
-          params[:offset],
-          params[:per_page],
-          params[:total],
-          params.slice(
-            :date,
-            :service_from_date,
-            :service_before_date,
-            :origin_onestop_id,
-            :destination_onestop_id,
-            :origin_departure_between,
-            :trip,
-            :route_onestop_id,
-            :route_stop_pattern_onestop_id,
-            :operator_onestop_id,
-            :bbox,
-            :updated_since,
-            :feed_version_sha1,
-            :feed_onestop_id,
-            :import_level,
-            :imported_from_feed,
-            :imported_from_feed_version
-          )
-        )
+        render paginated_json_collection(@ssps)
       end
       format.geojson do
         render json: Geojson.from_entity_collection(@ssps)
@@ -102,6 +75,28 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
   end
 
   private
+
+  def query_params
+    params.slice(
+      :date,
+      :service_from_date,
+      :service_before_date,
+      :origin_onestop_id,
+      :destination_onestop_id,
+      :origin_departure_between,
+      :trip,
+      :route_onestop_id,
+      :route_stop_pattern_onestop_id,
+      :operator_onestop_id,
+      :bbox,
+      :updated_since,
+      :feed_version_sha1,
+      :feed_onestop_id,
+      :import_level,
+      :imported_from_feed,
+      :imported_from_feed_version
+    )
+  end
 
   def set_schedule_stop_pairs
     @ssps = ScheduleStopPair.where('')
