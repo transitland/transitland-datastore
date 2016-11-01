@@ -224,7 +224,7 @@ class RouteStopPattern < BaseRouteStopPattern
       b = nearest_segment_index_forward(locators, a, c)
       nearest_point = nearest_point(locators, b)
       distance = distance_along_line_to_nearest(route, nearest_point, b)
-      if (i!=0 && distance <= self.stop_distances[i-1] && !stops[i].onestop_id.eql?(stops[i-1].onestop_id))
+      if (i!=0 && !(self.first_stop_before_geom && distance==0) && distance <= self.stop_distances[i-1] && !stops[i].onestop_id.eql?(stops[i-1].onestop_id))
         if (a == num_segments - 1)
           b = nearest_segment_index_forward(locators, a, num_segments - 1)
         else
