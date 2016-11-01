@@ -6,7 +6,6 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
   GEOJSON_ENTITY_PROPERTIES = Proc.new { |properties, entity|
     # title property to follow GeoJSON simple style spec
     properties[:title] = "Feed #{entity.onestop_id}"
-
     properties[:url] = entity.url
     properties[:feed_format] = entity.feed_format
     properties[:license_name] = entity.license_name
@@ -64,25 +63,13 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
       @feeds = @feeds.where_active_feed_version_import_level(params[:active_feed_version_import_level])
     end
 
+    if params[:latest_feed_version_import_status].present?
+      @feeds = @feeds.where_latest_feed_version_import_status(AllowFiltering.to_boolean(params[:latest_feed_version_import_status]))
+    end
+
     respond_to do |format|
       format.json do
-        render paginated_json_collection(
-          @feeds,
-          Proc.new { |params| api_v1_feeds_url(params) },
-          params[:sort_key],
-          params[:sort_order],
-          params[:offset],
-          params[:per_page],
-          params[:total],
-          params.slice(
-            :tag_key,
-            :tag_value,
-            :last_imported_since,
-            :active_feed_version_valid,
-            :active_feed_version_expired,
-            :active_feed_version_update
-          )
-        )
+        render paginated_json_collection(@feeds)
       end
       format.geojson do
         render json: Geojson.from_entity_collection(@feeds, &GEOJSON_ENTITY_PROPERTIES)
@@ -124,8 +111,31 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
 
   private
 
+  def query_params
+    params.slice(
+      :tag_key,
+      :tag_value,
+      :bbox,
+      :last_imported_since,
+      :active_feed_version_valid,
+      :active_feed_version_expired,
+      :active_feed_version_update,
+      :active_feed_version_import_level,
+      :latest_feed_version_import_status,
+      :latest_fetch_exception
+    )
+  end
+
   def set_feed
     @feed = Feed.find_by_onestop_id!(params[:id])
   end
 
+  def sort_reorder(collection)
+    if sort_key == 'latest_feed_version_import.created_at'.to_sym
+      collection = collection.with_latest_feed_version_import
+      collection.reorder("latest_feed_version_import.created_at #{sort_order}")
+    else
+      super
+    end
+  end
 end

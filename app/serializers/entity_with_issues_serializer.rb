@@ -17,8 +17,7 @@
 
 class EntityWithIssuesSerializer < ApplicationSerializer
   attributes  :onestop_id,
-              :id,
-              :entity_attribute,
+              :entity_attribute
 
   def onestop_id
     object.entity.try(:onestop_id)

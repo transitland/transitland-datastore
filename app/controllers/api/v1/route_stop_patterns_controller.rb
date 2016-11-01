@@ -62,24 +62,7 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
 
     respond_to do |format|
       format.json do
-        render paginated_json_collection(
-          @rsps,
-          Proc.new { |params| api_v1_route_stop_patterns_url(params) },
-          params[:sort_key],
-          params[:sort_order],
-          params[:offset],
-          params[:per_page],
-          params[:total],
-          params.slice(
-            :onestop_id,
-            :traversed_by,
-            :trip,
-            :bbox,
-            :stop_visited,
-            :imported_from_feed,
-            :imported_from_feed_version
-          )
-        )
+        render paginated_json_collection(@rsps)
       end
       format.geojson do
         render json: Geojson.from_entity_collection(@rsps, &GEOJSON_ENTITY_PROPERTIES)
@@ -99,6 +82,18 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
   end
 
   private
+
+  def query_params
+    params.slice(
+      :onestop_id,
+      :traversed_by,
+      :trip,
+      :bbox,
+      :stop_visited,
+      :imported_from_feed,
+      :imported_from_feed_version
+    )
+  end
 
   def set_route_stop_pattern
     @route_stop_pattern = RouteStopPattern.find_by_onestop_id!(params[:id])
