@@ -6,6 +6,7 @@
     "originOnestopId",
     "destinationOnestopId",
     "routeOnestopId",
+    "routeStopPatternOnestopId",
     "originArrivalTime",
     "originDepartureTime",
     "destinationArrivalTime",
@@ -18,6 +19,13 @@
     "windowEnd"
   ],
   "additionalProperties": false,
+  "dependencies": {
+    "frequencyType": [
+      "frequencyStartTime",
+      "frequencyEndTime",
+      "frequencyHeadwaySeconds"
+    ]
+  },
   "properties": {
     "originOnestopId": {
       "type": "string",
@@ -44,8 +52,8 @@
     "windowEnd": { "type": "string" },
     "originTimepointSource": { "type": "string" },
     "destinationTimepointSource": { "type": "string" },
-    "originDistTraveled": { "type": "float" },
-    "destinationDistTraveled": { "type": "float" },
+    "originDistTraveled": { "type": "number" },
+    "destinationDistTraveled": { "type": "number" },
     "serviceStartDate": {
       "type": "string",
       "format": "date"
@@ -86,9 +94,9 @@
       "type": ["string", "null"],
       "enum": ["window", "exact", null]
     },
-    "frequencyStartTime": { "type": ["string","null"] },
-    "frequencyEndTime": { "type": ["string","null"] },
-    "frequencyHeadwaySeconds": { "type": ["string","null"] },
+    "frequencyStartTime": { "type": ["string"] },
+    "frequencyEndTime": { "type": ["string"] },
+    "frequencyHeadwaySeconds": { "type": ["integer"] },
     "wheelchairAccessible": { "type": ["boolean","null"] },
     "bikesAllowed": { "type": ["boolean","null"] },
     "pickupType": { "type": ["string","null"] },
