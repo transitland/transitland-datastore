@@ -277,8 +277,8 @@ describe GTFSGraph do
       expect(s.destination_timepoint_source).to eq('gtfs_exact')
       expect(s.window_start).to eq('06:00:00')
       expect(s.window_end).to eq('06:05:00')
-      expect(s.frequency_start_time).to eq('6:00:00')
-      expect(s.frequency_end_time).to eq('7:59:59')
+      expect(s.frequency_start_time).to eq('06:00:00')
+      expect(s.frequency_end_time).to eq('07:59:59')
       expect(s.frequency_headway_seconds).to eq(1800)
       expect(s.frequency_type).to eq('window')
     end
