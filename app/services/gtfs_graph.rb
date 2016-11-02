@@ -54,7 +54,7 @@ class GTFSGraph
     if gtfs_frequency.nil?
       nil
     elsif value == 0
-      :window
+      :not_exact
     elsif value == 1
       :exact
     end

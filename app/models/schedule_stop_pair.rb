@@ -84,7 +84,7 @@ class BaseScheduleStopPair < ActiveRecord::Base
     ]
   enumerize :frequency_type, in: [
     :exact,
-    :window
+    :not_exact
   ]
 end
 
