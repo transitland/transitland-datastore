@@ -119,6 +119,7 @@ class ScheduleStopPair < BaseScheduleStopPair
   validates :frequency_start_time, presence: true, if: :frequency_type
   validates :frequency_end_time, presence: true, if: :frequency_type
   validates :frequency_headway_seconds, presence: true, if: :frequency_type
+  # TODO: numericality: { greater_than_or_equal_to: 0 }
 
   validate :validate_service_range
   validate :validate_service_exceptions
