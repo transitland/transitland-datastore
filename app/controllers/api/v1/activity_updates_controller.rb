@@ -20,7 +20,7 @@ class Api::V1::ActivityUpdatesController < Api::V1::BaseApiController
     end
 
     respond_to do |format|
-      format.json { render json: @activity_updates }
+      format.json { render json: {activity_updates: @activity_updates} }
       format.rss { render layout: false }
     end
   end
