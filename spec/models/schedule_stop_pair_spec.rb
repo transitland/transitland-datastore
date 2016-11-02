@@ -322,6 +322,45 @@ RSpec.describe ScheduleStopPair, type: :model do
     end
   end
 
+  context 'frequency' do
+    it 'frequency dependencies' do
+      ssp = create(:schedule_stop_pair)
+      expect(ssp.errors.size).to eq(0)
+      # frequency_type
+      ssp.frequency_type = :exact
+      ssp.valid?
+      expect(ssp.errors.size).to eq(3)
+      # frequency_headway_seconds
+      ssp.frequency_headway_seconds = 600
+      ssp.valid?
+      expect(ssp.errors.size).to eq(2)
+      # frequency_start_time, frequency_end_time
+      ssp.frequency_start_time = "01:00:00"
+      ssp.frequency_end_time = "02:00:00"
+      ssp.valid?
+      expect(ssp.errors.size).to eq(0)
+      expect(ssp.valid?).to be_truthy
+    end
+
+    # TODO: Not yet supported - need to update json-schema to 2.7.0.
+    # it 'JSON Schema dependencies' do
+    #   ssp = create(:schedule_stop_pair)
+    #   # base
+    #   errors = ChangePayload.payload_validation_errors({changes: [{action: "createUpdate", scheduleStopPair: ssp.as_change.except(:frequencyType).as_json}]})
+    #   expect(errors.size).to eq(0)
+    #   # error
+    #   ssp.frequency_type = :exact
+    #   errors = ChangePayload.payload_validation_errors({changes: [{action: "createUpdate", scheduleStopPair: ssp.as_change.as_json}]})
+    #   expect(errors.size).to be > 0
+    #   # fixed
+    #   ssp.frequency_start_time = '08:00:00'
+    #   ssp.frequency_end_time = '12:00:00'
+    #   ssp.frequency_headway_seconds = 600
+    #   errors = ChangePayload.payload_validation_errors({changes: [{action: "createUpdate", scheduleStopPair: ssp.as_change.as_json}]})
+    #   expect(errors.size).to eq(0)
+    # end
+  end
+
   context 'ssp interpolation' do
     it 'raises unknown interpolation method' do
       expect { ScheduleStopPair.interpolate([], :unknown) }.to raise_error(ArgumentError)
