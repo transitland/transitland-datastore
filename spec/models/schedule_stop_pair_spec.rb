@@ -323,6 +323,14 @@ RSpec.describe ScheduleStopPair, type: :model do
   end
 
   context 'frequency' do
+    it 'validates frequency_headway_seconds' do
+      ssp = create(:schedule_stop_pair)
+      ssp.frequency_headway_seconds = -100
+      expect(ssp.valid?).to be false
+      ssp.frequency_headway_seconds = 100
+      expect(ssp.valid?).to be true
+    end
+
     it 'frequency dependencies' do
       ssp = create(:schedule_stop_pair)
       expect(ssp.errors.size).to eq(0)
