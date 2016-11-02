@@ -73,7 +73,7 @@ GEM
       minitest (~> 5.1)
       thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
-    addressable (2.4.0)
+    addressable (2.3.8)
     airborne (0.2.7)
       activesupport (>= 3.0, < 5.0)
       rack (< 2.0)
@@ -418,7 +418,7 @@ DEPENDENCIES
   fog-aws
   foreman
   gtfs!
-  json-schema (= 2.7.0)
+  json-schema (= 2.5.2)
   logstasher
   marginalia
   memory_profiler
