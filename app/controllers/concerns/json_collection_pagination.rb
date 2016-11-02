@@ -43,16 +43,13 @@ module JsonCollectionPagination
       meta[:total] = collection.count
     end
     # Return results + meta
-    data_on_page = data_on_page.empty? ? collection.model.none : collection
+    data_on_page = data_on_page.empty? ? collection.model.none : data_on_page
     {json: data_on_page, meta: meta}
   end
 
   def paginated_json_collection(collection)
     result = paginated_collection(collection)
     result[:adapter] = :json
-    if self.class::SERIALIZER
-      result[:each_serializer] = self.class::SERIALIZER
-    end
     result
   end
 
