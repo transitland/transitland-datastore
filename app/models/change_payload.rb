@@ -49,14 +49,6 @@ class ChangePayload < ActiveRecord::Base
     !!sha1.match(/^[0-9a-f]{5,40}$/)
   })
 
-  def self.payload_validation_errors(payload)
-    JSON::Validator.fully_validate(
-      Rails.root.join('app', 'models', 'json_schemas', 'changeset.json'),
-      payload,
-      errors_as_objects: true
-    )
-  end
-
   def apply!
     cache = {}
     changes = []
@@ -108,8 +100,17 @@ class ChangePayload < ActiveRecord::Base
     end
   end
 
+  def payload_validation_errors
+    filename = Rails.root.join('app', 'models', 'json_schemas', 'changeset.json').to_s
+    JSON::Validator.fully_validate(
+      filename,
+      self.payload,
+      errors_as_objects: true
+    )
+  end
+
   def validate_payload
-    payload_validation_errors(self.payload).each do |error|
+    payload_validation_errors.each do |error|
       errors.add(:payload, error[:message])
     end
   end
