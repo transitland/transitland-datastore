@@ -116,8 +116,13 @@ class ScheduleStopPair < BaseScheduleStopPair
             :service_start_date,
             :service_end_date,
             presence: true
+  validates :frequency_start_time, presence: true, if: :frequency_type
+  validates :frequency_end_time, presence: true, if: :frequency_type
+  validates :frequency_headway_seconds, presence: true, if: :frequency_type
+
   validate :validate_service_range
   validate :validate_service_exceptions
+
 
   # Add scope for updated_since
   include UpdatedSince
@@ -225,6 +230,14 @@ class ScheduleStopPair < BaseScheduleStopPair
   end
 
   def destination_departure_time=(value)
+    super(GTFS::WideTime.parse(value))
+  end
+
+  def frequency_start_time=(value)
+    super(GTFS::WideTime.parse(value))
+  end
+
+  def frequency_end_time=(value)
     super(GTFS::WideTime.parse(value))
   end
 
