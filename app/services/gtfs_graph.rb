@@ -82,12 +82,6 @@ class GTFSGraph
     graph_log "Load GTFS"
     @gtfs.load_graph
 
-    # Lookup frequencies.txt
-    @gtfs_frequencies = {}
-    if @gtfs.file_present?('frequencies.txt')
-      @gtfs_frequencies = @gtfs.frequencies.group_by(&:trip_id)
-    end
-
     graph_log "Load TL"
     load_tl_stops
     load_tl_transfers
@@ -185,14 +179,21 @@ class GTFSGraph
     @gtfs.routes
     @gtfs.stops
     @gtfs.trips
+    # Lookup frequencies.txt
+    gtfs_frequencies = {}
+    if @gtfs.file_present?('frequencies.txt')
+      gtfs_frequencies = @gtfs.frequencies.group_by(&:trip_id)
+    end
     load_gtfs_id_map(agency_map, route_map, stop_map, rsp_map)
     gtfs_trips = gtfs_trip_ids.map { |gtfs_trip_id| @gtfs.trip(gtfs_trip_id) }
+
+    # Import
     graph_log "Create: SSPs"
     total = 0
     ssps = []
     @gtfs.trip_stop_times(trips=gtfs_trips, filter_empty=true) do |gtfs_trip,gtfs_stop_times|
       # Process frequencies
-      (@gtfs_frequencies[gtfs_trip.trip_id] || [nil]).each do |gtfs_frequency|
+      (gtfs_frequencies[gtfs_trip.trip_id] || [nil]).each do |gtfs_frequency|
         # Make SSPs for trip
         ssp_trip = self.make_ssp_trip(gtfs_trip, gtfs_stop_times, gtfs_frequency: gtfs_frequency)
         # Interpolate stop_times
