@@ -52,7 +52,6 @@ class FeedFetcherService
         .entities_with_issues.create!(entity: feed, entity_attribute: "url")
     ensure
       feed.update(
-        latest_fetch_exception_log: fetch_exception_log,
         last_fetched_at: DateTime.now
       )
     end

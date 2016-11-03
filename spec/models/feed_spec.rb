@@ -19,7 +19,6 @@
 #  updated_at                         :datetime
 #  created_or_updated_in_changeset_id :integer
 #  geometry                           :geography({:srid geometry, 4326
-#  latest_fetch_exception_log         :text
 #  license_attribution_text           :text
 #  active_feed_version_id             :integer
 #  edited_attributes                  :string           default([]), is an Array

@@ -15,7 +15,6 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
     properties[:license_redistribute] = entity.license_redistribute
     properties[:license_attribution_text] = entity.license_attribution_text
     properties[:last_fetched_at] = entity.last_fetched_at
-    properties[:latest_fetch_exception_log] = entity.latest_fetch_exception_log
     properties[:import_status] = entity.import_status
     properties[:last_imported_at] = entity.last_imported_at
     properties[:feed_versions_count] = entity.feed_versions.count

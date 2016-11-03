@@ -86,11 +86,10 @@ describe FeedFetcherService do
       feed = create(:feed_caltrain, url: 'http://httpbin.org/status/404')
       expect(feed.feed_versions.count).to eq 0
       VCR.use_cassette('feed_fetch_404') do
+        expect(Sidekiq::Logging.logger).to receive(:error).with(/404/)
         FeedFetcherService.fetch_and_return_feed_version(feed)
       end
       expect(feed.feed_versions.count).to eq 0
-      expect(feed.latest_fetch_exception_log).to be_present
-      expect(feed.latest_fetch_exception_log).to include('404')
     end
 
     it 'saves and deprecates issues from errors' do
