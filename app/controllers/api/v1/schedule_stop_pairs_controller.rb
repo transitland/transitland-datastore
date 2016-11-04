@@ -56,7 +56,6 @@
 #
 
 class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
-  include Geojson
   include JsonCollectionPagination
   include DownloadableCsv
   include AllowFiltering

@@ -4,7 +4,6 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
   include JsonCollectionPagination
   include DownloadableCsv
   include AllowFiltering
-  include Geojson
 
   before_action :set_operator, only: [:show]
 
