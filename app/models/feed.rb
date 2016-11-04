@@ -75,11 +75,11 @@ class Feed < BaseFeed
   after_initialize :set_default_values
 
   scope :where_latest_fetch_exception, -> (flag) {
-    # if flag
-    #   where.not(latest_fetch_exception_log: nil)
-    # else
-    #   where(latest_fetch_exception_log: nil)
-    # end
+    if flag
+      where("current_feeds.id IN (SELECT entities_with_issues.entity_id FROM entities_with_issues INNER JOIN issues ON entities_with_issues.issue_id=issues.id WHERE issues.issue_type='feed_fetch_error' AND entities_with_issues.entity_type='Feed')")
+    else
+      where("current_feeds.id NOT IN (SELECT entities_with_issues.entity_id FROM entities_with_issues INNER JOIN issues ON entities_with_issues.issue_id=issues.id WHERE issues.issue_type='feed_fetch_error' AND entities_with_issues.entity_type='Feed')")
+    end
   }
 
   scope :where_active_feed_version_import_level, -> (import_level) {
