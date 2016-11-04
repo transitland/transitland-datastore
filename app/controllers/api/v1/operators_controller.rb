@@ -62,15 +62,9 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
     ]}
 
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(@operators)
-      end
-      format.geojson do
-        render json: Geojson.from_entity_collection(@operators, &GEOJSON_ENTITY_PROPERTIES)
-      end
-      format.csv do
-        return_downloadable_csv(@operators, 'operators')
-      end
+      format.json { render paginated_json_collection(@operators) }
+      format.geojson { render paginated_geojson_collection(@operators) }
+      format.csv { return_downloadable_csv(@operators, 'operators') }
     end
   end
 

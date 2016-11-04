@@ -61,12 +61,8 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
     ]}
 
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(@rsps)
-      end
-      format.geojson do
-        render json: Geojson.from_entity_collection(@rsps, &GEOJSON_ENTITY_PROPERTIES)
-      end
+      format.json { render paginated_json_collection(@rsps) }
+      format.geojson { render paginated_geojson_collection(@rsps) }
     end
   end
 

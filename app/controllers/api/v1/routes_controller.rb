@@ -80,15 +80,9 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     ]}
 
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(@routes)
-      end
-      format.geojson do
-        render json: Geojson.from_entity_collection(@routes, &GEOJSON_ENTITY_PROPERTIES)
-      end
-      format.csv do
-        return_downloadable_csv(@routes, 'routes')
-      end
+      format.json { render paginated_json_collection(@routes) }
+      format.geojson { render paginated_geojson_collection(@routes) }
+      format.csv { return_downloadable_csv(@routes, 'routes') }
     end
   end
 

@@ -68,15 +68,9 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
     end
 
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(@feeds)
-      end
-      format.geojson do
-        render json: Geojson.from_entity_collection(@feeds, &GEOJSON_ENTITY_PROPERTIES)
-      end
-      format.csv do
-        return_downloadable_csv(@feeds, 'feeds')
-      end
+      format.json { render paginated_json_collection(@feeds) }
+      format.geojson { render paginated_geojson_collection(@feeds) }
+      format.csv { return_downloadable_csv(@feeds, 'feeds') }
     end
   end
 
