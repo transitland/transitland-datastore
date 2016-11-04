@@ -7,6 +7,7 @@ class GeoJSONSerializer < ApplicationSerializer
       .new(object)
       .as_json
       .except(:geometry)
+      .merge({title: object.try(:onestop_id)})
   end
 
   def type
