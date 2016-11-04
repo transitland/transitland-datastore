@@ -3,26 +3,6 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
   include DownloadableCsv
   include AllowFiltering
   include Geojson
-  GEOJSON_ENTITY_PROPERTIES = Proc.new { |properties, entity|
-    # title property to follow GeoJSON simple style spec
-    properties[:title] = "Feed #{entity.onestop_id}"
-    properties[:url] = entity.url
-    properties[:feed_format] = entity.feed_format
-    properties[:license_name] = entity.license_name
-    properties[:license_url] = entity.license_url
-    properties[:license_use_without_attribution] = entity.license_use_without_attribution
-    properties[:license_create_derived_product] = entity.license_create_derived_product
-    properties[:license_redistribute] = entity.license_redistribute
-    properties[:license_attribution_text] = entity.license_attribution_text
-    properties[:last_fetched_at] = entity.last_fetched_at
-    properties[:latest_fetch_exception_log] = entity.latest_fetch_exception_log
-    properties[:import_status] = entity.import_status
-    properties[:last_imported_at] = entity.last_imported_at
-    properties[:feed_versions_count] = entity.feed_versions.count
-    properties[:active_feed_version] = entity.active_feed_version
-    properties[:import_level_of_active_feed_version] = entity.active_feed_version.try(:import_level)
-    properties[:created_or_updated_in_changeset_id] = entity.created_or_updated_in_changeset_id
-  }
 
   before_action :set_feed, only: [:show]
 

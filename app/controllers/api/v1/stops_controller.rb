@@ -3,16 +3,7 @@ class Api::V1::StopsController < Api::V1::BaseApiController
   include DownloadableCsv
   include AllowFiltering
   include Geojson
-  GEOJSON_ENTITY_PROPERTIES = Proc.new { |properties, entity|
-    # title property to follow GeoJSON simple style spec
-    properties[:title] = entity.name
 
-    properties[:timezone] = entity.timezone
-    properties[:operators_serving_stop] = entity.operators.map(&:onestop_id).try(:uniq)
-    properties[:routes_serving_stop] = entity.routes.map(&:onestop_id).try(:uniq)
-  }
-
-  before_action :set_stop, only: [:show]
   SERIALIZER = StopSerializer
 
   def index

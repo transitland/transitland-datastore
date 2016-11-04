@@ -3,18 +3,6 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
   include DownloadableCsv
   include AllowFiltering
   include Geojson
-  GEOJSON_ENTITY_PROPERTIES = Proc.new { |properties, entity|
-    # properties for GeoJSON simple style spec
-    properties[:title] = entity.name
-    properties[:stroke] = "##{entity.color}" if entity.color.present?
-
-    properties[:vehicle_type] = entity.vehicle_type
-    properties[:color] = entity.color
-    properties[:operated_by_onestop_id] = entity.operator.try(:onestop_id)
-    properties[:operated_by_name] = entity.operator.try(:name)
-    properties[:stops_served_by_route] = entity.stops.map { |stop| {onestop_id: stop.onestop_id, name: stop.name } }
-    properties[:route_stop_patterns_by_onestop_id] = entity.route_stop_patterns.map(&:onestop_id)
-  }
 
   before_action :set_route, only: [:show]
 

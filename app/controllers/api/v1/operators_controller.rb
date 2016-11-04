@@ -5,19 +5,6 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
   include DownloadableCsv
   include AllowFiltering
   include Geojson
-  GEOJSON_ENTITY_PROPERTIES = Proc.new { |properties, entity|
-    # title property to follow GeoJSON simple style spec
-    title = name
-    title += " (#{entity.short_name})" if entity.short_name.present?
-    properties[:title] = title
-
-    properties[:short_name] = entity.short_name
-    properties[:website] = entity.website
-    properties[:country] = entity.country
-    properties[:state] = entity.state
-    properties[:metro] = entity.metro
-    properties[:timezone] = entity.timezone
-  }
 
   before_action :set_operator, only: [:show]
 

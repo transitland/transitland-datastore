@@ -3,18 +3,6 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
   include DownloadableCsv
   include AllowFiltering
   include Geojson
-  GEOJSON_ENTITY_PROPERTIES = Proc.new { |properties, entity|
-    # properties for GeoJSON simple style spec
-    properties[:title] = "Route stop pattern #{entity.onestop_id}"
-    properties[:stroke] = "##{entity.route.color}" if entity.route.color.present?
-
-    properties[:route_onestop_id] = entity.route.onestop_id
-    properties[:stop_pattern] = entity.stop_pattern
-    properties[:stop_distances] = entity.stop_distances
-    properties[:is_generated] = entity.is_generated
-    properties[:is_modified] = entity.is_modified
-    properties[:color] = entity.route.color
-  }
 
   before_action :set_route_stop_pattern, only: [:show]
 
