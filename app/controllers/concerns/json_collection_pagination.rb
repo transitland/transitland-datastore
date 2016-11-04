@@ -1,7 +1,6 @@
 module JsonCollectionPagination
   extend ActiveSupport::Concern
   PER_PAGE ||= 50
-  SERIALIZER = nil
 
   def paginated_collection(collection)
     # Meta

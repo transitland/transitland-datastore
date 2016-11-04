@@ -57,12 +57,8 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
 
   def show
     respond_to do |format|
-      format.json do
-        render json: @operator
-      end
-      format.geojson do
-        render json: Geojson.from_entity(@operator, &GEOJSON_ENTITY_PROPERTIES)
-      end
+      format.json { render json: @operator }
+      format.geojson { render json: @operator, serializer: GeoJSONSerializer }
     end
   end
 

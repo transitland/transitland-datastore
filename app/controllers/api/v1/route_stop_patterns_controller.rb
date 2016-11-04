@@ -56,12 +56,8 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
 
   def show
     respond_to do |format|
-      format.json do
-        render json: @route_stop_pattern
-      end
-      format.geojson do
-        render json: Geojson.from_entity(@route_stop_pattern, &GEOJSON_ENTITY_PROPERTIES)
-      end
+      format.json { render json: @route_stop_pattern }
+      format.geojson { render json: @route_stop_pattern, serializer: GeoJSONSerializer }
     end
   end
 

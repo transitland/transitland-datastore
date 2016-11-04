@@ -56,12 +56,8 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
 
   def show
     respond_to do |format|
-      format.json do
-        render json: @feed
-      end
-      format.geojson do
-        render json: Geojson.from_entity(@feed, &GEOJSON_ENTITY_PROPERTIES)
-      end
+      format.json { render json: @feed }
+      format.geojson { render json: @feed, serializer: GeoJSONSerializer }
     end
   end
 

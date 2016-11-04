@@ -4,8 +4,6 @@ class Api::V1::StopsController < Api::V1::BaseApiController
   include AllowFiltering
   include Geojson
 
-  SERIALIZER = StopSerializer
-
   def index
     @stops = Stop.where('')
 
@@ -68,9 +66,7 @@ class Api::V1::StopsController < Api::V1::BaseApiController
   def show
     respond_to do |format|
       format.json { render json: @stop }
-      format.geojson do
-        render json: Geojson.from_entity(@stop, &GEOJSON_ENTITY_PROPERTIES)
-      end
+      format.geojson { render json: @stop, serializer: GeoJSONSerializer }
     end
   end
 
