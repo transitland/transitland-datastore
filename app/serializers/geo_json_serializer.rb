@@ -20,4 +20,5 @@ class GeoJSONSerializer < ApplicationSerializer
   def geometry
     object.try(:geometry)
   end
+
 end
