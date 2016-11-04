@@ -4,6 +4,8 @@ class Api::V1::StopsController < Api::V1::BaseApiController
   include AllowFiltering
   include Geojson
 
+  before_action :set_stop, only: [:show]
+
   def index
     @stops = Stop.where('')
 
