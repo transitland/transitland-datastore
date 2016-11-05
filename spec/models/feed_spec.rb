@@ -308,7 +308,7 @@ describe Feed do
     let(:feed_succeed) { create(:feed) }
     let(:feed_failed) { create(:feed) }
     before(:each) do
-      Issue.create!(issue_type: 'feed_fetch_error').entities_with_issues.create!(entity: feed_failed, entity_attribute: 'url')
+      Issue.create!(issue_type: 'feed_fetch_invalid_source').entities_with_issues.create!(entity: feed_failed, entity_attribute: 'url')
     end
 
     it 'finds feeds with latest_fetch_exception_log' do
