@@ -70,8 +70,12 @@ class FeedInfoWorker
     end
 
     response = {}
-    response[:feed] = FeedSerializer.new(feed).as_json
-    response[:operators] = operators.map { |o| OperatorSerializer.new(o).as_json }
+    if feed
+      response[:feed] = FeedSerializer.new(feed).as_json
+    end
+    if operators
+      response[:operators] = operators.map { |o| OperatorSerializer.new(o).as_json }
+    end
     response[:status] = errors.size > 0 ? 'error' : 'complete'
     response[:errors] = errors
     response[:warnings] = warnings
