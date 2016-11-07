@@ -124,10 +124,15 @@ class RouteStopPattern < BaseRouteStopPattern
 
   def nearest_segment_index_reverse(locators, s, e, threshold=false, point=nil)
     if threshold && point
-      a = locators[s..e].reverse_each.map{ |loc| loc.interpolate_point(Stop::GEOFACTORY) }
-      match_point = a.detect { |closest_point| closest_point.distance(point) < FIRST_MATCH_THRESHOLD }
-      unless match_point.nil?
-        return s + a.rindex(match_point)
+      closest_points_and_dists = locators[s..e].reverse_each.map{ |loc|
+        closest_point = loc.interpolate_point(Stop::GEOFACTORY);
+        dist = closest_point.distance(point);
+        [closest_point, dist] if dist < FIRST_MATCH_THRESHOLD
+      }.compact
+
+      unless closest_points_and_dists.empty?
+        closest_point_and_dist = closest_points_and_dists.chunk_while { |a, b|  a[1] < b[1] }.to_a[0].min_by { |a| a[1] }
+        return s + closest_points_and_dists.rindex(closest_point_and_dist)
       end
     end
     a = locators[s..e].map(&:distance_from_segment)
@@ -136,10 +141,15 @@ class RouteStopPattern < BaseRouteStopPattern
 
   def nearest_segment_index_forward(locators, s, e, threshold=false, point=nil)
     if threshold && point
-      a = locators[s..e].map{ |loc| loc.interpolate_point(Stop::GEOFACTORY) }
-      match_point = a.detect { |closest_point| closest_point.distance(point) < FIRST_MATCH_THRESHOLD }
-      unless match_point.nil?
-        return s + a.index(match_point)
+      closest_points_and_dists = locators[s..e].map{ |loc|
+        closest_point = loc.interpolate_point(Stop::GEOFACTORY);
+        dist = closest_point.distance(point);
+        [closest_point, dist] if dist < FIRST_MATCH_THRESHOLD
+      }.compact
+
+      unless closest_points_and_dists.empty?
+        closest_point_and_dist = closest_points_and_dists.chunk_while { |a, b|  a[1] < b[1] }.to_a[0].min_by { |a| a[1] }
+        return s + closest_points_and_dists.index(closest_point_and_dist)
       end
     end
     a = locators[s..e].map(&:distance_from_segment)
