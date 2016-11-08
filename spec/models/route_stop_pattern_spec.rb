@@ -404,6 +404,13 @@ describe RouteStopPattern do
                                                               a_value_within(0.1).of(12617.9271),
                                                               a_value_within(0.1).of(17001.5107)])
     end
+
+    it 'can readjust distances when stops match to the same segment out of order' do
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_sfmta_7310245, import_level: 1)
+      distances = @feed.imported_route_stop_patterns[0].calculate_distances
+      # expect all distances to be increasing
+      expect(distances[1..-1].each_with_index.map { |v, i| v > distances[i] }.all?).to be true
+    end
   end
 
   context 'determining outlier stops' do
