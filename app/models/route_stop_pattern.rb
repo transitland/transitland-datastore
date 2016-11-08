@@ -41,7 +41,7 @@ class RouteStopPattern < BaseRouteStopPattern
   COORDINATE_PRECISION = 5
   DISTANCE_PRECISION = 1
   OUTLIER_THRESHOLD = 100
-  FIRST_MATCH_THRESHOLD = 25
+  FIRST_MATCH_THRESHOLD = 50
 
   belongs_to :route
   has_many :schedule_stop_pairs
@@ -122,35 +122,16 @@ class RouteStopPattern < BaseRouteStopPattern
     locators[nearest_seg_index].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326))
   end
 
-  def nearest_segment_index_reverse(locators, s, e, threshold=false, point=nil)
-    if threshold && point
-      closest_points_and_dists = locators[s..e].reverse_each.map{ |loc|
-        closest_point = loc.interpolate_point(Stop::GEOFACTORY);
-        dist = closest_point.distance(point);
-        [closest_point, dist] if dist < FIRST_MATCH_THRESHOLD
-      }.compact
+  def nearest_segment_index_forward(locators, s, e, point)
+    closest_points = locators[s..e].map{ |loc| loc.interpolate_point(Stop::GEOFACTORY) }
+    closest_points_and_dists = closest_points.map{ |closest_point|
+      dist = closest_point.distance(point);
+      [closest_point, dist] if dist < FIRST_MATCH_THRESHOLD
+    }.compact
 
-      unless closest_points_and_dists.empty?
-        closest_point_and_dist = closest_points_and_dists.chunk_while { |a, b|  a[1] < b[1] }.to_a[0].min_by { |a| a[1] }
-        return s + closest_points_and_dists.rindex(closest_point_and_dist)
-      end
-    end
-    a = locators[s..e].map(&:distance_from_segment)
-    s + a.rindex(a.min)
-  end
-
-  def nearest_segment_index_forward(locators, s, e, threshold=false, point=nil)
-    if threshold && point
-      closest_points_and_dists = locators[s..e].map{ |loc|
-        closest_point = loc.interpolate_point(Stop::GEOFACTORY);
-        dist = closest_point.distance(point);
-        [closest_point, dist] if dist < FIRST_MATCH_THRESHOLD
-      }.compact
-
-      unless closest_points_and_dists.empty?
-        closest_point_and_dist = closest_points_and_dists.chunk_while { |a, b|  a[1] < b[1] }.to_a[0].min_by { |a| a[1] }
-        return s + closest_points_and_dists.index(closest_point_and_dist)
-      end
+    unless closest_points_and_dists.empty?
+      closest_point = closest_points_and_dists.chunk_while { |a, b|  a[1] < b[1] }.to_a[0].min_by { |a| a[1] }[0]
+      return s + closest_points.index(closest_point)
     end
     a = locators[s..e].map(&:distance_from_segment)
     s + a.index(a.min)
@@ -198,69 +179,50 @@ class RouteStopPattern < BaseRouteStopPattern
     num_segments = route.coordinates.size - 1
     a = 0
     b = 0
-    c = 0
+    c = num_segments - 1
     stops.each_index do |i|
       stop_spherical = stops[i]
       this_stop = cartesian_cast(stop_spherical[:geometry])
       if i == 0 && self.first_stop_before_geom
         self.stop_distances << 0.0
-        next
-      elsif i == stops.size - 1
-        if self.last_stop_after_geom
-          self.stop_distances << self[:geometry].length
-          break
-        else
-          c = num_segments - 1
-        end
+      elsif i == stops.size - 1 && self.last_stop_after_geom
+        self.stop_distances << self[:geometry].length
       else
-        if (i + 1 == stops.size - 1) && self.last_stop_after_geom
-          c = num_segments - 1
-        else
-          next_stop_spherical = stops[i+1]
-          next_stop = cartesian_cast(next_stop_spherical[:geometry])
-          next_stop_locators = route.locators(next_stop)
-          next_nearest_seg_index = nearest_segment_index_reverse(next_stop_locators, a, num_segments-1, threshold=true, point=next_stop_spherical[:geometry])
-          next_nearest_point = nearest_point(next_stop_locators, next_nearest_seg_index)
-          distance_to_line = distance_to_nearest_point(next_stop_spherical, next_nearest_point)
-          if test_distance(distance_to_line)
-            c = next_nearest_seg_index
-          else
-            c = num_segments - 1
+        locators = route.locators(this_stop)
+        b = nearest_segment_index_forward(locators, a, c, this_stop)
+        nearest_point = nearest_point(locators, b)
+        distance = distance_along_line_to_nearest(route, nearest_point, b)
+        if (i!=0)
+          if !(self.first_stop_before_geom && distance==0) && !stops[i].onestop_id.eql?(stops[i-1].onestop_id)
+            while (distance <= self.stop_distances[i-1])
+              if (a == num_segments - 1)
+                distance = self[:geometry].length
+                break
+              end
+              a += 1
+              b = nearest_segment_index_forward(locators, a, c, this_stop)
+              nearest_point = nearest_point(locators, b)
+              distance = distance_along_line_to_nearest(route, nearest_point, b)
+            end
           end
         end
-      end
 
-      locators = route.locators(this_stop)
-      b = nearest_segment_index_forward(locators, a, c)
-      nearest_point = nearest_point(locators, b)
-      distance = distance_along_line_to_nearest(route, nearest_point, b)
-      if (i!=0 && distance <= self.stop_distances[i-1])
-        if !(self.first_stop_before_geom && distance==0) && !stops[i].onestop_id.eql?(stops[i-1].onestop_id)
-          if (a == num_segments - 1)
-            b = nearest_segment_index_forward(locators, a, num_segments - 1)
+        distance_to_line = distance_to_nearest_point(stop_spherical, nearest_point)
+        if !test_distance(distance_to_line)
+          if (i==0)
+            self.stop_distances << 0.0
+          elsif (i==stops.size-1)
+            self.stop_distances << self[:geometry].length
           else
-            b = nearest_segment_index_forward(locators, a + 1, num_segments - 1)
+            # interpolate using half the distance between previous and next stop
+            self.stop_distances << self.stop_distances[i-1] + stops[i-1][:geometry].distance(stops[i+1][:geometry])/2.0
           end
-          nearest_point = nearest_point(locators, b)
-          distance = distance_along_line_to_nearest(route, nearest_point, b)
-        end
-      end
-
-      distance_to_line = distance_to_nearest_point(stop_spherical, nearest_point)
-      if !test_distance(distance_to_line)
-        if (i==0)
-          self.stop_distances << 0.0
-        elsif (i==stops.size-1)
-          self.stop_distances << self[:geometry].length
         else
-          # interpolate using half the distance between previous and next stop
-          self.stop_distances << self.stop_distances[i-1] + stops[i-1][:geometry].distance(stops[i+1][:geometry])/2.0
+          self.stop_distances << distance
         end
-      else
-        self.stop_distances << distance
+        a = b
       end
-      a = b
-    end
+    end # end stop pattern loop
     self.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
   end
 

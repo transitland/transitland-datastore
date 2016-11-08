@@ -260,7 +260,7 @@ describe RouteStopPattern do
       # this is the midpoint between stop_a and stop_b, with a little offset
       target_point = @rsp.cartesian_cast(Stop::GEOFACTORY.point(-121.9664615, 37.36))
       locators = cartesian_line.locators(target_point)
-      i = @rsp.nearest_segment_index_forward(locators, 0, locators.size-1)
+      i = @rsp.nearest_segment_index_forward(locators, 0, locators.size-1, target_point)
       nearest_point = @rsp.nearest_point(locators, i)
       expect(@rsp.distance_along_line_to_nearest(cartesian_line, nearest_point, i)).to be_within(0.1).of(6508.84)
     end
@@ -273,10 +273,8 @@ describe RouteStopPattern do
       mid = Stop::GEOFACTORY.point(-121.9664615, 37.36)
       target_point = @rsp.cartesian_cast(mid)
       locators = cartesian_line.locators(target_point)
-      i = @rsp.nearest_segment_index_forward(locators, 0, locators.size - 1)
+      i = @rsp.nearest_segment_index_forward(locators, 0, locators.size - 1, target_point)
       expect(i).to eq 0
-      i = @rsp.nearest_segment_index_reverse(locators, 0, locators.size - 1, threshold=true, point=mid)
-      expect(i).to eq locators.size - 1
     end
 
     it 'accurately calculates the distances of nyc staten island ferry 2-stop routes with before/after stops' do
