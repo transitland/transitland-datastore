@@ -130,7 +130,7 @@ class RouteStopPattern < BaseRouteStopPattern
     }.compact
 
     unless closest_points_and_dists.empty?
-      closest_point = closest_points_and_dists.chunk_while { |a, b|  a[1] < b[1] }.to_a[0].min_by { |a| a[1] }[0]
+      closest_point = closest_points_and_dists.min_by { |a| a[1] }[0]
       return s + closest_points.index(closest_point)
     end
     a = locators[s..e].map(&:distance_from_segment)
