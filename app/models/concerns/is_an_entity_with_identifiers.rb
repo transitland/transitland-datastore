@@ -14,6 +14,7 @@ module IsAnEntityWithIdentifiers
     end
   end
 
+  # TODO: Connect with EIFF
   def add_identifier(identifier)
     self.identified_by ||= Set.new
     self.identified_by << identifier
