@@ -4,7 +4,7 @@ module HasAGeographicGeometry
   included do
     GEOFACTORY ||= RGeo::Geographic.spherical_factory(srid: 4326)
 
-    validates :onestop_id, presence: true
+    validates :geometry, presence: true
 
     scope :geometry_within_bbox, -> (bbox_coordinates) {
       if bbox_coordinates.is_a?(String)
