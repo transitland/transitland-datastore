@@ -34,7 +34,8 @@ describe Changeset do
             stop: {
               onestopId: 's-9q8yt4b-1AvHoS',
               name: '1st Ave. & Holloway St.',
-              timezone: 'America/Los_Angeles'
+              timezone: 'America/Los_Angeles',
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
             }
           }
         ]
@@ -68,7 +69,8 @@ describe Changeset do
             stop: {
               onestopId: 's-9q8yt4b-1AvHoS',
               name: '1st Ave. & Holloway Street',
-              timezone: 'America/Los_Angeles'
+              timezone: 'America/Los_Angeles',
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
             }
           }
         ]
@@ -80,7 +82,8 @@ describe Changeset do
             stop: {
               onestopId: 's-9q8yt4b-1AvHoS',
               name: '1st Ave. & Holloway St.',
-              timezone: 'America/Los_Angeles'
+              timezone: 'America/Los_Angeles',
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
             }
           }
         ]
@@ -91,7 +94,8 @@ describe Changeset do
             action: 'destroy',
             stop: {
               onestopId: 's-9q8yt4b-1Av',
-              timezone: 'America/Los_Angeles'
+              timezone: 'America/Los_Angeles',
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
             }
           }
         ]
@@ -102,7 +106,8 @@ describe Changeset do
             action: 'destroy',
             stop: {
               onestopId: 's-9q8yt4b-1AvHoS',
-              timezone: 'America/Los_Angeles'
+              timezone: 'America/Los_Angeles',
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
             }
           }
         ]
@@ -166,7 +171,8 @@ describe Changeset do
             operator: {
               onestopId: 'o-9q8y-SFMTA',
               name: 'SFMTA',
-              serves: ['s-9q8yt4b-1AvHoS']
+              serves: ['s-9q8yt4b-1AvHoS'],
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }              
             },
           }
         ]
@@ -211,7 +217,8 @@ describe Changeset do
             stop: {
               onestopId: 's-9q8yt4b-1AvHoS',
               name: '1st Ave. & Holloway St.',
-              timezone: 'America/Los_Angeles'
+              timezone: 'America/Los_Angeles',
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
             }
           }
         ]
@@ -232,7 +239,8 @@ describe Changeset do
             stop: {
               onestopId: 's-9q8yt4b-1AvHoS',
               name: 'Second Edit',
-              timezone: 'America/Los_Angeles'
+              timezone: 'America/Los_Angeles',
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
             }
           }
         ]
@@ -396,7 +404,7 @@ describe Changeset do
               stop: {
                 onestopId: 's-9qscwx8n60-nyecountyairportdemo',
                 timezone: 'America/Los_Angeles',
-                "geometry": {
+                geometry: {
                   "type": "Point",
                   "coordinates": [-116.784582, 36.888446]
                 }
@@ -418,7 +426,7 @@ describe Changeset do
               stop: {
                 onestopId: 's-9qscwx8n60-nyecountyairportdemo',
                 timezone: 'America/Los_Angeles',
-                "geometry": {
+                geometry: {
                   "type": "Point",
                   "coordinates": [-100.0, 50.0]
                 }
@@ -455,7 +463,7 @@ describe Changeset do
               stop: {
                 onestopId: 's-9qscwx8n60-nyecountyairportdemo',
                 timezone: 'America/Los_Angeles',
-                "geometry": {
+                geometry: {
                   "type": "Point",
                   "coordinates": [-116.784582, 36.888446]
                 }
@@ -524,7 +532,7 @@ describe Changeset do
                 action: 'createUpdate',
                 routeStopPattern: {
                   onestopId: rsp.onestop_id,
-                  "geometry": {
+                  geometry: {
                     "type": "LineString",
                     "coordinates": [[-117.13316, 36.42529], [-117.05, 36.65], [-116.81797, 36.88108]]
                   }
@@ -613,7 +621,8 @@ describe Changeset do
           stop: {
             onestopId: 's-9q8yt4b-1AvHoS',
             name: '1st Ave. & Holloway Street',
-            timezone: 'America/Los_Angeles'
+            timezone: 'America/Los_Angeles',
+            geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
           }
         }
       ]
