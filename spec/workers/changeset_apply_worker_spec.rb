@@ -8,7 +8,8 @@ describe ChangesetApplyWorker do
           stop: {
             onestopId:  's-9q9-test',
             name: '1st Ave. & Holloway St.',
-            timezone: 'America/Los_Angeles'
+            timezone: 'America/Los_Angeles',
+            geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }                          
           }
         }
       ]
