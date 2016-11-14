@@ -225,7 +225,8 @@ describe Api::V1::ChangesetsController do
             stop: {
               onestopId: 's-9q8yt4b-1AvHoS',
               name: '1st Ave. & Holloway Street',
-              timezone: 'America/Los_Angeles'
+              timezone: 'America/Los_Angeles',
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
             }
           }
         ]
@@ -297,7 +298,8 @@ describe Api::V1::ChangesetsController do
             stop: {
               onestopId: 's-9q8yt4b-1AvHoS',
               name: '1st Ave. & Holloway Street',
-              timezone: 'America/Los_Angeles'
+              timezone: 'America/Los_Angeles',
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
             }
           }
         ]
@@ -346,7 +348,7 @@ describe Api::V1::ChangesetsController do
             stop: {
               onestopId: 's-9qscwx8n60-nyecountyairportdemo',
               timezone: 'America/Los_Angeles',
-              "geometry": {
+              geometry: {
                 "type": "Point",
                 "coordinates": [-116.784582, 36.88845]
               }
