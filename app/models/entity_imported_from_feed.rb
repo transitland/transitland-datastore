@@ -9,6 +9,7 @@
 #  created_at      :datetime
 #  updated_at      :datetime
 #  feed_version_id :integer
+#  gtfs_id         :string
 #
 # Indexes
 #
