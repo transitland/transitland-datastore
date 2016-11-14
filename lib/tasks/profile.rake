@@ -10,8 +10,17 @@ end
 create_nycdot = Proc.new {
   feed_onestop_id = 'f-dr5r7-nycdotsiferry'
   path = Rails.root.join('spec/support/example_gtfs_archives/siferry-gtfs.zip')
-  feed = Feed.find_by_onestop_id(feed_onestop_id) || Feed.create!(onestop_id: feed_onestop_id, url: 'http://transit.land/example.zip', geometry: "POINT(-124.4,50.0)")
-  operator = Operator.find_by_onestop_id('o-dr5r7-nycdot') || Operator.create!(onestop_id: 'o-r5r7-nycdot', timezone: 'America/New_York', name: 'New York City Department of Transportation', geometry: "POLYGON ((-74.07221 40.6442, -74.0722 40.64412, -74.01266 40.70136, -74.072205 40.6441))")
+  feed = Feed.find_by_onestop_id(feed_onestop_id) || Feed.create!(
+    onestop_id: feed_onestop_id,
+    url: 'http://transit.land/example.zip',
+    geometry: {"type": "Polygon","coordinates": [[[-122.43,37.77],[-122.43,37.79],[-122.39,37.79],[-122.39,37.77],[-122.43,37.77]]]}
+  )
+  operator = Operator.find_by_onestop_id('o-dr5r7-nycdot') || Operator.create!(
+    onestop_id: 'o-r5r7-nycdot',
+    timezone: 'America/New_York',
+    name: 'New York City Department of Transportation',
+    geometry: {"type": "Polygon","coordinates": [[[-122.43,37.77],[-122.43,37.79],[-122.39,37.79],[-122.39,37.77],[-122.43,37.77]]]}
+  )
   OperatorInFeed.find_or_create_by(feed: feed, operator: operator, gtfs_agency_id: 'NYC DOT')
   feed_version = FeedVersion.where(sha1: Digest::SHA1.file(path).hexdigest).first
   if feed_version.nil?
@@ -25,8 +34,17 @@ create_nycdot = Proc.new {
 create_caltrain = Proc.new {
   feed_onestop_id = 'f-9q9-caltrain'
   path = Rails.root.join('spec/support/example_gtfs_archives/f-9q9-caltrain.zip')
-  feed = Feed.find_by_onestop_id(feed_onestop_id) || Feed.create!(onestop_id: feed_onestop_id, url: 'http://transit.land/example.zip', geometry: "POINT(-124.4,50.0)")
-  operator =  Operator.find_by_onestop_id('o-9q9-caltrain') || Operator.create!(onestop_id: 'o-9q9-caltrain', timezone: 'America/Los_Angeles', name: 'Caltrain', geometry: "POLYGON ((-121.56 37.0036, -122.23195 37.4854, -122.38 37.600))")
+  feed = Feed.find_by_onestop_id(feed_onestop_id) || Feed.create!(
+    onestop_id: feed_onestop_id,
+    url: 'http://transit.land/example.zip',
+    geometry: {"type": "Polygon","coordinates": [[[-122.43,37.77],[-122.43,37.79],[-122.39,37.79],[-122.39,37.77],[-122.43,37.77]]]}
+  )
+  operator =  Operator.find_by_onestop_id('o-9q9-caltrain') || Operator.create!(
+    onestop_id: 'o-9q9-caltrain',
+    timezone: 'America/Los_Angeles',
+    name: 'Caltrain',
+    geometry: {"type": "Polygon","coordinates": [[[-122.43,37.77],[-122.43,37.79],[-122.39,37.79],[-122.39,37.77],[-122.43,37.77]]]}
+  )
   OperatorInFeed.find_or_create_by(feed: feed, operator: operator, gtfs_agency_id: 'caltrain-ca-us')
   feed_version = FeedVersion.where(sha1: Digest::SHA1.file(path).hexdigest).first
   if feed_version.nil?
