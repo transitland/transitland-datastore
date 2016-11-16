@@ -334,7 +334,7 @@ class GTFSGraph
     # Create parent stops first
     gtfs_stops.each do |gtfs_stop|
       stop = find_and_update_entity(Stop.from_gtfs(gtfs_stop))
-      add_identifier(stop, 's', gtfs_stop)
+      add_identifier(stop, gtfs_stop)
       graph_log "    Stop: #{stop.onestop_id}: #{stop.name}"
     end
     # Create child stops
@@ -352,7 +352,7 @@ class GTFSGraph
       end
       # index
       stop = find_and_update_entity(stop)
-      add_identifier(stop, 's', gtfs_stop)
+      add_identifier(stop, gtfs_stop)
       graph_log "    StopPlatform: #{stop.onestop_id}: #{stop.name}"
     end
   end
@@ -414,7 +414,7 @@ class GTFSGraph
       routes.each { |route| route.operated_by = operator.onestop_id }
       operator.serves ||= Set.new
       operator.serves |= routes.map(&:onestop_id)
-      add_identifier(operator, 'o', entity)
+      add_identifier(operator, entity)
 
       # Add to found operators
       operators << operator
@@ -441,7 +441,7 @@ class GTFSGraph
       # Add references and identifiers
       route.serves ||= Set.new
       route.serves |= stops.map(&:onestop_id)
-      add_identifier(route, 'r', entity)
+      add_identifier(route, entity)
       graph_log "    #{route.onestop_id}: #{route.name}"
     end
   end
@@ -472,7 +472,8 @@ class GTFSGraph
           'shape',
           trip.shape_id
         )
-        rsp.add_identifier(identifier)
+        # add_identifier(rsp, trip.shape_id)
+        # rsp.add_identifier(identifier)
       end
       @gtfs_to_onestop_id[trip] = rsp.onestop_id
       rsp.trips << trip.trip_id unless rsp.trips.include?(trip.trip_id)
@@ -520,13 +521,9 @@ class GTFSGraph
 
   ##### Identifiers #####
 
-  def add_identifier(tl_entity, prefix, gtfs_entity)
-    identifier = OnestopId::create_identifier(
-      @feed.onestop_id,
-      prefix,
-      gtfs_entity.id
-    )
-    tl_entity.add_identifier(identifier)
+  def add_identifier(tl_entity, gtfs_entity)
+    tl_entity.add_feed_versions ||= []
+    tl_entity.add_feed_versions << {feedVersion: @feed_version.sha1, gtfsId: gtfs_entity.id}
     @gtfs_to_onestop_id[gtfs_entity] = tl_entity.onestop_id
   end
 
