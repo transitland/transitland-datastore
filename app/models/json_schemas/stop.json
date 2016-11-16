@@ -18,6 +18,12 @@
       "type": "string",
       "format": "stop-onestop-id"
     },
+    "addFeedVersion": {
+      "type": "string"
+    },
+    "removeFeedVersion": {
+      "type": "string"
+    },
     "identifiedBy": {
       "type": ["array", "null"],
       "uniqueItems": true,
