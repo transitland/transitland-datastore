@@ -83,7 +83,9 @@ class RouteStopPattern < BaseRouteStopPattern
     virtual_attributes: [
       :identified_by,
       :not_identified_by,
-      :traversed_by
+      :traversed_by,
+      :add_feed_versions,
+      :remove_feed_versions
     ],
     protected_attributes: [
       :identifiers

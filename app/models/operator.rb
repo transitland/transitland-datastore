@@ -70,7 +70,9 @@ class Operator < BaseOperator
       :serves,
       :does_not_serve,
       :identified_by,
-      :not_identified_by
+      :not_identified_by,
+      :add_feed_versions,
+      :remove_feed_versions
     ],
     protected_attributes: [
       :identifiers
@@ -84,6 +86,7 @@ class Operator < BaseOperator
     ]
   })
   def after_create_making_history(changeset)
+    update_feed_versions(changeset)
     OperatorRouteStopRelationship.manage_multiple(
       operator: {
         serves: self.serves || [],
@@ -94,6 +97,7 @@ class Operator < BaseOperator
     )
   end
   def before_update_making_history(changeset)
+    update_feed_versions(changeset)
     OperatorRouteStopRelationship.manage_multiple(
       operator: {
         serves: self.serves || [],
