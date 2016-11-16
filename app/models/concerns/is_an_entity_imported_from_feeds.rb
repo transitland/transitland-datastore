@@ -37,20 +37,20 @@ module IsAnEntityImportedFromFeeds
       where(id: self.all.select(:id).pluck(:id) - self.where_imported_from_active_feed_version.select(:id).pluck(:id))
     }
 
-    attr_accessor :add_feed_version, :remove_feed_version
+    attr_accessor :add_feed_versions, :remove_feed_versions
     def update_feed_versions(changeset)
-      if self.add_feed_version.present?
-        fv, gtfs_id = self.add_feed_version.split(":")
-        feed_version = FeedVersion.find_by!(sha1: fv)
+      (self.add_feed_versions || []).each do |eiff|
+        feed_version = FeedVersion.find_by!(sha1: eiff[:feed_version])
+        gtfs_id = eiff[:gtfs_id]
         self.entities_imported_from_feed.find_or_create_by!(
           feed_id: feed_version.feed_id,
           feed_version_id: feed_version.id,
           gtfs_id: gtfs_id
         )
       end
-      if self.remove_feed_version.present?
-        fv, gtfs_id = self.remove_feed_version.split(":")
-        feed_version = FeedVersion.find_by!(sha1: fv)
+      (self.remove_feed_versions || []).each do |eiff|
+        feed_version = FeedVersion.find_by!(sha1: eiff[:feed_version])
+        gtfs_id = eiff[:gtfs_id]
         self.entities_imported_from_feed.find_by!(
           feed_id: feed_version.feed_id,
           feed_version_id: feed_version.id,

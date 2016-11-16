@@ -33,7 +33,11 @@ describe IsAnEntityImportedFromFeeds do
             action: "createUpdate",
             stop: {
               onestopId: stop.onestop_id,
-              addFeedVersion: "#{feed_version.sha1}:#{gtfs_id}",
+              # sha1:gtfs_id
+              # [sha1, gtfs_id]
+              # { feed_version: sha1, gtfs_id: gtfs_id }
+              # similar to includesOperators
+              addFeedVersions: [{feedVersion: feed_version.sha1, gtfsId: gtfs_id}],
             }
           }
         ]
@@ -54,7 +58,7 @@ describe IsAnEntityImportedFromFeeds do
             action: "createUpdate",
             stop: {
               onestopId: stop.onestop_id,
-              removeFeedVersion: "#{feed_version.sha1}:#{gtfs_id}",
+              removeFeedVersions: [{feedVersion: feed_version.sha1, gtfsId: gtfs_id}],
             }
           }
         ]

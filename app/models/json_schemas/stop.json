@@ -18,11 +18,35 @@
       "type": "string",
       "format": "stop-onestop-id"
     },
-    "addFeedVersion": {
-      "type": "string"
+    "addFeedVersions": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": ["feedVersion", "gtfsId"],
+        "feedVersion": {
+          "type": "string"
+        },
+        "gtfsId": {
+          "type": "string"
+        }
+      }
     },
-    "removeFeedVersion": {
-      "type": "string"
+    "removeFeedVersions": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": ["feedVersion", "gtfsId"],
+        "feedVersion": {
+          "type": "string"
+        },
+        "gtfsId": {
+          "type": "string"
+        }
+      }
     },
     "identifiedBy": {
       "type": ["array", "null"],
