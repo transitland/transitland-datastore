@@ -1,0 +1,15 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"title": "Transitland Datastore Stop",
+	"type": "object",
+	"required": ["feedVersion", "gtfsId"],
+	"additionalProperties": false,
+	"properties": {
+		"feedVersion": {
+			"type": "string"
+		},
+		"gtfsId": {
+			"type": "string"
+		}
+	}
+}
