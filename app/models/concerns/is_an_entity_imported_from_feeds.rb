@@ -39,7 +39,7 @@ module IsAnEntityImportedFromFeeds
 
     attr_accessor :add_feed_version, :remove_feed_version
     def update_feed_versions(changeset)
-      if self.add_feed_version
+      if self.add_feed_version.present?
         fv, gtfs_id = self.add_feed_version.split(":")
         feed_version = FeedVersion.find_by!(sha1: fv)
         self.entities_imported_from_feed.find_or_create_by!(
@@ -48,7 +48,7 @@ module IsAnEntityImportedFromFeeds
           gtfs_id: gtfs_id
         )
       end
-      if self.remove_feed_version
+      if self.remove_feed_version.present?
         fv, gtfs_id = self.remove_feed_version.split(":")
         feed_version = FeedVersion.find_by!(sha1: fv)
         self.entities_imported_from_feed.find_by!(
