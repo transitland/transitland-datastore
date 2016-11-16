@@ -22,6 +22,49 @@ describe IsAnEntityImportedFromFeeds do
     #     @stop0, @stop3 inactive
   end
 
+  context 'changeset' do
+    it 'can add feed_version' do
+      feed_version = create(:feed_version)
+      stop = create(:stop, onestop_id: 's-9q9-test')
+      gtfs_id = 'test'
+      payload = {
+        changes: [
+          {
+            action: "createUpdate",
+            stop: {
+              onestopId: stop.onestop_id,
+              addFeedVersion: "#{feed_version.sha1}:#{gtfs_id}",
+            }
+          }
+        ]
+      }
+      c = Changeset.create!(payload: payload)
+      c.apply!
+      expect(stop.reload.entities_imported_from_feed.find_by(feed_version: feed_version, gtfs_id: gtfs_id)).to be_truthy
+    end
+
+    it 'can remove feed_version' do
+      feed_version = create(:feed_version)
+      stop = create(:stop, onestop_id: 's-9q9-test')
+      gtfs_id = 'test'
+      stop.entities_imported_from_feed.create!(feed_version_id: feed_version.id, feed_id: feed_version.feed_id, gtfs_id: gtfs_id)
+      payload = {
+        changes: [
+          {
+            action: "createUpdate",
+            stop: {
+              onestopId: stop.onestop_id,
+              removeFeedVersion: "#{feed_version.sha1}:#{gtfs_id}",
+            }
+          }
+        ]
+      }
+      c = Changeset.create!(payload: payload)
+      c.apply!
+      expect(stop.reload.entities_imported_from_feed.find_by(feed_version: feed_version, gtfs_id: gtfs_id)).to be_falsy
+    end
+  end
+
   context '.where_import_level' do
     it 'matches single import_level' do
       expect(Stop.where_import_level(1)).to match_array([@stop0, @stop1])
