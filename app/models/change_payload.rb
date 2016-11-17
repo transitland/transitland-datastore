@@ -21,6 +21,17 @@ class ChangePayload < ActiveRecord::Base
   after_initialize :set_default_values
   validate :validate_payload
 
+  ENTITY_TYPES = {
+    feed: Feed,
+    stop: Stop,
+    stop_platform: StopPlatform,
+    stop_egress: StopEgress,
+    operator: Operator,
+    route: Route,
+    schedule_stop_pair: ScheduleStopPair,
+    route_stop_pattern: RouteStopPattern
+  }
+
   onestop_id_format_proc = -> (onestop_id, expected_entity_type) do
     is_a_valid_onestop_id, onestop_id_errors = OnestopId.validate_onestop_id_string(onestop_id, expected_entity_type: expected_entity_type)
     raise JSON::Schema::CustomFormatError.new(onestop_id_errors.join(', ')) if !is_a_valid_onestop_id
@@ -52,23 +63,9 @@ class ChangePayload < ActiveRecord::Base
   def apply!
     cache = {}
     changes = []
-    issues_to_resolve = []
-    entity_types = {
-      feed: Feed,
-      stop: Stop,
-      stop_platform: StopPlatform,
-      stop_egress: StopEgress,
-      operator: Operator,
-      route: Route,
-      schedule_stop_pair: ScheduleStopPair,
-      route_stop_pattern: RouteStopPattern
-    }
     (payload_as_ruby_hash[:changes] || []).each do |change|
-      (entity_types.keys & change.keys).each do |entity_type|
+      (ENTITY_TYPES.keys & change.keys).each do |entity_type|
         changes << [entity_type, change[:action], change[entity_type]]
-        if change.has_key?(:issues_resolved)
-          issues_to_resolve += Issue.find(change[:issues_resolved])
-        end
       end
     end
     changes
@@ -76,13 +73,13 @@ class ChangePayload < ActiveRecord::Base
       .each { | chunk_key, chunked_changes |
         entity_type, action = chunk_key
         # puts "Applying... #{entity_type}, #{action}, #{chunked_changes.size}"
-        entity_types[entity_type].apply_changes(
+        ENTITY_TYPES[entity_type].apply_changes(
           changeset: changeset,
           action: action,
           changes: chunked_changes.map(&:last)
         )
       }
-    issues_to_resolve
+    resolving_and_deprecating_issues
   end
 
   def revert!
@@ -101,8 +98,9 @@ class ChangePayload < ActiveRecord::Base
   end
 
   def payload_validation_errors
+    filename = Rails.root.join('app', 'models', 'json_schemas', 'changeset.json').to_s
     JSON::Validator.fully_validate(
-      File.join(__dir__, 'json_schemas', 'changeset.json'),
+      filename,
       self.payload,
       errors_as_objects: true
     )
@@ -114,4 +112,24 @@ class ChangePayload < ActiveRecord::Base
     end
   end
 
+  private
+
+  def resolving_and_deprecating_issues
+    issues_to_resolve = []
+    old_issues_to_deprecate = Set.new
+    (payload_as_ruby_hash[:changes] || []).each do |change|
+      (ENTITY_TYPES.keys & change.keys).each do |entity_type|
+        issues_to_resolve += Issue.find(change[:issues_resolved]) if change.has_key?(:issues_resolved)
+        if ENTITY_TYPES[entity_type].included_modules.include?(HasAOnestopId)
+          action = change[:action]
+          change = change[entity_type]
+          if action.to_s.eql?("createUpdate")
+            entity = ENTITY_TYPES[entity_type].find_by_onestop_id!(change[:onestop_id])
+            old_issues_to_deprecate.merge(Issue.issues_of_entity(entity, entity_attributes: change.keys))
+          end
+        end
+      end
+    end
+    [issues_to_resolve, old_issues_to_deprecate]
+  end
 end
