@@ -16,7 +16,6 @@
 #  destination_departure_time         :string
 #  frequency_start_time               :string
 #  frequency_end_time                 :string
-#  frequency_headway_seconds          :string
 #  tags                               :hstore
 #  service_start_date                 :date
 #  service_end_date                   :date
@@ -44,6 +43,8 @@
 #  destination_dist_traveled          :float
 #  feed_id                            :integer
 #  feed_version_id                    :integer
+#  frequency_type                     :string
+#  frequency_headway_seconds          :integer
 #
 # Indexes
 #
@@ -56,6 +57,7 @@
 #  c_ssp_trip                                                   (trip)
 #  index_current_schedule_stop_pairs_on_feed_id_and_id          (feed_id,id)
 #  index_current_schedule_stop_pairs_on_feed_version_id_and_id  (feed_version_id,id)
+#  index_current_schedule_stop_pairs_on_frequency_type          (frequency_type)
 #  index_current_schedule_stop_pairs_on_operator_id             (operator_id)
 #  index_current_schedule_stop_pairs_on_origin_departure_time   (origin_departure_time)
 #  index_current_schedule_stop_pairs_on_route_stop_pattern_id   (route_stop_pattern_id)
@@ -318,6 +320,53 @@ RSpec.describe ScheduleStopPair, type: :model do
       expect(ssp.service_added_dates).to match_array([expect_unfiltered])
       expect(ssp.service_except_dates).to match_array([expect_unfiltered])
     end
+  end
+
+  context 'frequency' do
+    it 'validates frequency_headway_seconds' do
+      ssp = create(:schedule_stop_pair)
+      ssp.frequency_headway_seconds = -100
+      expect(ssp.valid?).to be false
+      ssp.frequency_headway_seconds = 100
+      expect(ssp.valid?).to be true
+    end
+
+    it 'frequency dependencies' do
+      ssp = create(:schedule_stop_pair)
+      expect(ssp.errors.size).to eq(0)
+      # frequency_type
+      ssp.frequency_type = :exact
+      ssp.valid?
+      expect(ssp.errors.size).to eq(3)
+      # frequency_headway_seconds
+      ssp.frequency_headway_seconds = 600
+      ssp.valid?
+      expect(ssp.errors.size).to eq(2)
+      # frequency_start_time, frequency_end_time
+      ssp.frequency_start_time = "01:00:00"
+      ssp.frequency_end_time = "02:00:00"
+      ssp.valid?
+      expect(ssp.errors.size).to eq(0)
+      expect(ssp.valid?).to be_truthy
+    end
+
+    # TODO: Not yet supported - need to update json-schema to 2.7.0.
+    # it 'JSON Schema dependencies' do
+    #   ssp = create(:schedule_stop_pair)
+    #   # base
+    #   errors = ChangePayload.payload_validation_errors({changes: [{action: "createUpdate", scheduleStopPair: ssp.as_change.except(:frequencyType).as_json}]})
+    #   expect(errors.size).to eq(0)
+    #   # error
+    #   ssp.frequency_type = :exact
+    #   errors = ChangePayload.payload_validation_errors({changes: [{action: "createUpdate", scheduleStopPair: ssp.as_change.as_json}]})
+    #   expect(errors.size).to be > 0
+    #   # fixed
+    #   ssp.frequency_start_time = '08:00:00'
+    #   ssp.frequency_end_time = '12:00:00'
+    #   ssp.frequency_headway_seconds = 600
+    #   errors = ChangePayload.payload_validation_errors({changes: [{action: "createUpdate", scheduleStopPair: ssp.as_change.as_json}]})
+    #   expect(errors.size).to eq(0)
+    # end
   end
 
   context 'ssp interpolation' do

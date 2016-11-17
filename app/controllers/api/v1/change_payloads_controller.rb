@@ -13,9 +13,7 @@ class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
     @change_payloads = AllowFiltering.by_primary_key_ids(@change_payloads, params)
 
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(@change_payloads)
-      end
+      format.json { render paginated_json_collection(@change_payloads) }
     end
   end
 
