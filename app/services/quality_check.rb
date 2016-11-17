@@ -55,7 +55,7 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
           stop_rsp_gap_pairs << [rsp.onestop_id, stop.onestop_id]
         end
       end
-      if !stop.geometry.nil? && stop.geometry[:coordinates].eql?([0.0, 0.0])
+      if stop.geometry[:coordinates].eql?([0.0, 0.0])
         issue = Issue.new(created_by_changeset: self.changeset,
                           issue_type: 'stop_position_inaccurate',
                           details: "Stop #{stop.onestop_id} is serving null island.")
