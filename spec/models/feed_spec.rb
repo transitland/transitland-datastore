@@ -312,11 +312,11 @@ describe Feed do
     end
 
     it 'finds feeds with latest_fetch_exception_log' do
-        expect(Feed.where_latest_fetch_exception(true)).to match_array([feed_failed])
+        expect(Feed.where_latest_fetch_exception(['feed_fetch_invalid_source'])).to match_array([feed_failed])
     end
 
     it 'finds feeds without latest_fetch_exception_log' do
-        expect(Feed.where_latest_fetch_exception(false)).to match_array([feed_succeed])
+        expect(Feed.where_latest_fetch_exception([])).to match_array([feed_succeed])
     end
   end
 

@@ -74,11 +74,12 @@ class Feed < BaseFeed
 
   after_initialize :set_default_values
 
-  scope :where_latest_fetch_exception, -> (flag) {
-    if flag
-      where("current_feeds.id IN (SELECT entities_with_issues.entity_id FROM entities_with_issues INNER JOIN issues ON entities_with_issues.issue_id=issues.id WHERE issues.issue_type IN ('feed_fetch_invalid_zip', 'feed_fetch_invalid_url', 'feed_fetch_invalid_response', 'feed_fetch_invalid_source') AND entities_with_issues.entity_type='Feed')")
+  scope :where_latest_fetch_exception, -> (issue_type_choices) {
+    if issue_type_choices.empty?
+      issue_type_choices = ['feed_fetch_invalid_source', 'feed_fetch_invalid_url', 'feed_fetch_invalid_zip', 'feed_fetch_invalid_response']
+      where("current_feeds.id NOT IN (SELECT entities_with_issues.entity_id FROM entities_with_issues INNER JOIN issues ON entities_with_issues.issue_id=issues.id WHERE issues.issue_type IN (?) AND entities_with_issues.entity_type='Feed')", issue_type_choices)
     else
-      where("current_feeds.id NOT IN (SELECT entities_with_issues.entity_id FROM entities_with_issues INNER JOIN issues ON entities_with_issues.issue_id=issues.id WHERE issues.issue_type IN ('feed_fetch_invalid_zip', 'feed_fetch_invalid_url', 'feed_fetch_invalid_response', 'feed_fetch_invalid_source') AND entities_with_issues.entity_type='Feed')")
+      where("current_feeds.id IN (SELECT entities_with_issues.entity_id FROM entities_with_issues INNER JOIN issues ON entities_with_issues.issue_id=issues.id WHERE issues.issue_type IN (?) AND entities_with_issues.entity_type='Feed')", issue_type_choices)
     end
   }
 
