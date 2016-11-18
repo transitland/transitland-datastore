@@ -2,11 +2,60 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.10...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.12...HEAD)
 
 **Merged pull requests:**
 
+- Production release 4.9.12 [\#843](https://github.com/transitland/transitland-datastore/pull/843) ([irees](https://github.com/irees))
+
+## [4.9.12](https://github.com/transitland/transitland-datastore/tree/4.9.12) (2016-11-14)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.11...4.9.12)
+
+**Implemented enhancements:**
+
+- Issues deprecated by Changeset Entity [\#816](https://github.com/transitland/transitland-datastore/issues/816)
+
+**Fixed bugs:**
+
+- NoMethodError: undefined method `match' for \#\<Array:0x007f6712bd9888\> [\#850](https://github.com/transitland/transitland-datastore/issues/850)
+- Import: "Undefined method 'factory'" [\#831](https://github.com/transitland/transitland-datastore/issues/831)
+- GeoJSON nested serializers [\#616](https://github.com/transitland/transitland-datastore/issues/616)
+
+**Closed issues:**
+
+- Geometry validation [\#855](https://github.com/transitland/transitland-datastore/issues/855)
+- use Onestop IDs as primary and foreign keys \(to reduce needs for cross-table joins\) [\#278](https://github.com/transitland/transitland-datastore/issues/278)
+
+**Merged pull requests:**
+
+- Geometry required [\#857](https://github.com/transitland/transitland-datastore/pull/857) ([irees](https://github.com/irees))
+- Fix jsonapi gem [\#856](https://github.com/transitland/transitland-datastore/pull/856) ([irees](https://github.com/irees))
+- Convert logging message to string [\#853](https://github.com/transitland/transitland-datastore/pull/853) ([irees](https://github.com/irees))
+- Fix for loading gtfs frequencies [\#852](https://github.com/transitland/transitland-datastore/pull/852) ([irees](https://github.com/irees))
+- \[WIP\] Production release 4.9.11 [\#841](https://github.com/transitland/transitland-datastore/pull/841) ([irees](https://github.com/irees))
+- Frequency based trips [\#828](https://github.com/transitland/transitland-datastore/pull/828) ([irees](https://github.com/irees))
+- GeoJSON Serializer / Pagination [\#822](https://github.com/transitland/transitland-datastore/pull/822) ([irees](https://github.com/irees))
+- Issue deactivation by entity [\#817](https://github.com/transitland/transitland-datastore/pull/817) ([doublestranded](https://github.com/doublestranded))
+
+## [4.9.11](https://github.com/transitland/transitland-datastore/tree/4.9.11) (2016-10-25)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.10...4.9.11)
+
+**Implemented enhancements:**
+
+- consider sidekiq-status for reporting progress within jobs [\#446](https://github.com/transitland/transitland-datastore/issues/446)
+
+**Closed issues:**
+
+- Schedule adjustments to reduce conflicts [\#838](https://github.com/transitland/transitland-datastore/issues/838)
+- include only one geometry for each route on routes endpoint [\#671](https://github.com/transitland/transitland-datastore/issues/671)
+
+**Merged pull requests:**
+
+- Valhalla runs at 3am UTC, not midnight; move 3 hrs forward. [\#840](https://github.com/transitland/transitland-datastore/pull/840) ([irees](https://github.com/irees))
+- Adjust schedule to reduce conflicts [\#839](https://github.com/transitland/transitland-datastore/pull/839) ([irees](https://github.com/irees))
+- update gems [\#837](https://github.com/transitland/transitland-datastore/pull/837) ([drewda](https://github.com/drewda))
 - \[WIP\] Production release 4.9.10 [\#836](https://github.com/transitland/transitland-datastore/pull/836) ([doublestranded](https://github.com/doublestranded))
+- Route rsps repr [\#827](https://github.com/transitland/transitland-datastore/pull/827) ([doublestranded](https://github.com/doublestranded))
 
 ## [4.9.10](https://github.com/transitland/transitland-datastore/tree/4.9.10) (2016-10-21)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.9...4.9.10)

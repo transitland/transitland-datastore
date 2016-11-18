@@ -2,26 +2,6 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
   include JsonCollectionPagination
   include DownloadableCsv
   include AllowFiltering
-  include Geojson
-  GEOJSON_ENTITY_PROPERTIES = Proc.new { |properties, entity|
-    # title property to follow GeoJSON simple style spec
-    properties[:title] = "Feed #{entity.onestop_id}"
-    properties[:url] = entity.url
-    properties[:feed_format] = entity.feed_format
-    properties[:license_name] = entity.license_name
-    properties[:license_url] = entity.license_url
-    properties[:license_use_without_attribution] = entity.license_use_without_attribution
-    properties[:license_create_derived_product] = entity.license_create_derived_product
-    properties[:license_redistribute] = entity.license_redistribute
-    properties[:license_attribution_text] = entity.license_attribution_text
-    properties[:last_fetched_at] = entity.last_fetched_at
-    properties[:import_status] = entity.import_status
-    properties[:last_imported_at] = entity.last_imported_at
-    properties[:feed_versions_count] = entity.feed_versions.count
-    properties[:active_feed_version] = entity.active_feed_version
-    properties[:import_level_of_active_feed_version] = entity.active_feed_version.try(:import_level)
-    properties[:created_or_updated_in_changeset_id] = entity.created_or_updated_in_changeset_id
-  }
 
   before_action :set_feed, only: [:show]
 
@@ -67,26 +47,16 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
     end
 
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(@feeds)
-      end
-      format.geojson do
-        render json: Geojson.from_entity_collection(@feeds, &GEOJSON_ENTITY_PROPERTIES)
-      end
-      format.csv do
-        return_downloadable_csv(@feeds, 'feeds')
-      end
+      format.json { render paginated_json_collection(@feeds) }
+      format.geojson { render paginated_geojson_collection(@feeds) }
+      format.csv { return_downloadable_csv(@feeds, 'feeds') }
     end
   end
 
   def show
     respond_to do |format|
-      format.json do
-        render json: @feed
-      end
-      format.geojson do
-        render json: Geojson.from_entity(@feed, &GEOJSON_ENTITY_PROPERTIES)
-      end
+      format.json { render json: @feed }
+      format.geojson { render json: @feed, serializer: GeoJSONSerializer }
     end
   end
 

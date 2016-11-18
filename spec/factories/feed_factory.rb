@@ -35,13 +35,40 @@ FactoryGirl.define do
   factory :feed do
     url 'http://www.ridemetro.org/News/Downloads/DataFiles/google_transit.zip'
     onestop_id { Faker::OnestopId.feed }
+    geometry { {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -122.43438720703125,
+              37.771393199665255
+            ],
+            [
+              -122.43438720703125,
+              37.79289719200161
+            ],
+            [
+              -122.39988327026369,
+              37.79289719200161
+            ],
+            [
+              -122.39988327026369,
+              37.771393199665255
+            ],
+            [
+              -122.43438720703125,
+              37.771393199665255
+            ]
+          ]
+        ]
+      }
+    }
     version 1
   end
 
-  factory :feed_caltrain, class: Feed do
+  factory :feed_caltrain, parent: :feed, class: Feed do
     onestop_id 'f-9q9-caltrain'
     url 'http://www.caltrain.com/Assets/GTFS/caltrain/GTFS-Caltrain-Devs.zip'
-    version 1
     after :create do |feed, evaluator|
       operator = create(
         :operator,
@@ -49,7 +76,6 @@ FactoryGirl.define do
         onestop_id: 'o-9q9-caltrain',
         timezone: 'America/Los_Angeles',
         website: 'http://www.caltrain.com',
-        version: 1
       )
       feed.operators_in_feed.create(
         operator: operator,
@@ -58,10 +84,9 @@ FactoryGirl.define do
     end
   end
 
-  factory :feed_vta, class: Feed do
+  factory :feed_vta, parent: :feed, class: Feed do
     onestop_id 'f-9q9-vta'
     url 'http://www.vta.org/sfc/servlet.shepherd/document/download/069A0000001NUea'
-    version 1
     after :create do |feed, evaluator|
       operator = create(
         :operator,
@@ -69,7 +94,6 @@ FactoryGirl.define do
         onestop_id: 'o-9q9-vta',
         timezone: 'America/Los_Angeles',
         website: 'http://www.vta.org/',
-        version: 1
       )
       feed.operators_in_feed.create(
         operator: operator,
@@ -78,10 +102,9 @@ FactoryGirl.define do
     end
   end
 
-  factory :feed_sfmta, class: Feed do
+  factory :feed_sfmta, parent: :feed, class: Feed do
     onestop_id 'f-9q8y-sfmta'
     url 'http://archives.sfmta.com/transitdata/google_transit.zip'
-    version 1
     after :create do |feed, evaluator|
       operator = create(
         :operator,
@@ -89,7 +112,6 @@ FactoryGirl.define do
         onestop_id: 'o-9q8y-sfmta',
         timezone: 'America/Los_Angeles',
         website: 'http://www.sfmta.com/',
-        version: 1
       )
       feed.operators_in_feed.create(
         operator: operator,
@@ -98,7 +120,7 @@ FactoryGirl.define do
     end
   end
 
-  factory :feed_bart, class: Feed do
+  factory :feed_bart, parent: :feed, class: Feed do
     onestop_id 'f-9q9-bart'
     url 'http://www.bart.gov/dev/schedules/google_transit.zip'
     version 1
@@ -110,7 +132,6 @@ FactoryGirl.define do
         onestop_id: 'o-9q9-bart',
         timezone: 'America/Los_Angeles',
         website: 'http://www.bart.gov',
-        version: 1
       )
       feed.operators_in_feed.create(
         operator: operator,
@@ -119,7 +140,7 @@ FactoryGirl.define do
     end
   end
 
-  factory :feed_rome, class: Feed do
+  factory :feed_rome, parent: :feed, class: Feed do
     onestop_id 'f-sr2-datimuoviromait'
     url 'http://dati.muovi.roma.it/gtfs/google_transit.zip'
     version 1
@@ -131,7 +152,6 @@ FactoryGirl.define do
         onestop_id: 'o-sr2-romaserviziperlamobilitsrl',
         timezone: 'Europe/Rome',
         website: 'http://www.agenziamobilita.roma.it',
-        version: 1
       )
       feed.operators_in_feed.create(
         operator: operator,
@@ -140,7 +160,7 @@ FactoryGirl.define do
     end
   end
 
-  factory :feed_nycdotsiferry, class: Feed do
+  factory :feed_nycdotsiferry, parent: :feed, class: Feed do
     onestop_id 'f-dr5r7-nycdotsiferry'
     url 'http://www.nyc.gov/html/dot/downloads/misc/siferry-gtfs.zip'
     version 1
@@ -152,7 +172,6 @@ FactoryGirl.define do
         onestop_id: 'o-dr5r7-nycdot',
         timezone: 'America/New_York',
         website: 'http://nyc.gov/dot',
-        version: 1
       )
       feed.operators_in_feed.create(
         operator: operator,
@@ -161,7 +180,7 @@ FactoryGirl.define do
     end
   end
 
-  factory :feed_mtanyctbusstatenisland, class: Feed do
+  factory :feed_mtanyctbusstatenisland, parent: :feed, class: Feed do
     onestop_id 'f-dr5r-mtanyctbusstatenisland'
     url 'http://web.mta.info/developers/data/nyct/bus/google_transit_staten_island.zip'
     version 1
@@ -172,7 +191,6 @@ FactoryGirl.define do
         onestop_id: 'o-dr5r-nyct',
         timezone: 'America/New_York',
         website: 'http://www.google.com',
-        version: 1
       )
       feed.operators_in_feed.create(
         operator: operator,
@@ -181,7 +199,7 @@ FactoryGirl.define do
     end
   end
 
-  factory :feed_example, class: Feed do
+  factory :feed_example, parent: :feed, class: Feed do
     onestop_id 'f-9qs-example'
     url 'http://www.bart.gov/dev/schedules/google_transit.zip'
     version 1
@@ -192,7 +210,6 @@ FactoryGirl.define do
         onestop_id: 'o-9qs-demotransitauthority',
         timezone: 'America/Los_Angeles',
         website: 'http://www.google.com',
-        version: 1
       )
       feed.operators_in_feed.create(
         operator: operator,

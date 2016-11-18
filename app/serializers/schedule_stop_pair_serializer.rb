@@ -16,7 +16,6 @@
 #  destination_departure_time         :string
 #  frequency_start_time               :string
 #  frequency_end_time                 :string
-#  frequency_headway_seconds          :string
 #  tags                               :hstore
 #  service_start_date                 :date
 #  service_end_date                   :date
@@ -44,6 +43,8 @@
 #  destination_dist_traveled          :float
 #  feed_id                            :integer
 #  feed_version_id                    :integer
+#  frequency_type                     :string
+#  frequency_headway_seconds          :integer
 #
 # Indexes
 #
@@ -56,6 +57,7 @@
 #  c_ssp_trip                                                   (trip)
 #  index_current_schedule_stop_pairs_on_feed_id_and_id          (feed_id,id)
 #  index_current_schedule_stop_pairs_on_feed_version_id_and_id  (feed_version_id,id)
+#  index_current_schedule_stop_pairs_on_frequency_type          (frequency_type)
 #  index_current_schedule_stop_pairs_on_operator_id             (operator_id)
 #  index_current_schedule_stop_pairs_on_origin_departure_time   (origin_departure_time)
 #  index_current_schedule_stop_pairs_on_route_stop_pattern_id   (route_stop_pattern_id)
@@ -96,6 +98,10 @@ class ScheduleStopPairSerializer < ApplicationSerializer
              :window_end,
              :origin_timepoint_source,
              :destination_timepoint_source,
+             :frequency_start_time,
+             :frequency_end_time,
+             :frequency_headway_seconds,
+             :frequency_type,
              :created_at,
              :updated_at
 
