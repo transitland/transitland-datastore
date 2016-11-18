@@ -19,7 +19,7 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
     @feeds = AllowFiltering.by_attribute_since(@feeds, params, :last_imported_since, :last_imported_at)
 
     if params[:latest_fetch_exception].present?
-      @feeds = @feeds.where_latest_fetch_exception(params[:latest_fetch_exception])
+      @feeds = @feeds.where_latest_fetch_exception(AllowFiltering.to_boolean(params[:latest_fetch_exception]))
     end
 
     if params[:bbox].present?
