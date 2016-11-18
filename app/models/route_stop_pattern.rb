@@ -94,14 +94,22 @@ class RouteStopPattern < BaseRouteStopPattern
       :geometry
     ]
   })
+
   class << RouteStopPattern
     alias_method :existing_before_create_making_history, :before_create_making_history
   end
-  def self.before_create_making_history(new_model, changeset)
+
+  def after_create_making_history(changeset)
+    update_feed_versions(changeset)
+  end
+
+  def before_create_making_history(new_model, changeset)
+    update_feed_versions(changeset)
     route = Route.find_by_onestop_id!(new_model.traversed_by)
     new_model.route = route
     self.existing_before_create_making_history(new_model, changeset)
   end
+
   # borrowed from schedule_stop_pair.rb
   def self.find_by_attributes(attrs = {})
     if attrs[:id].present?
