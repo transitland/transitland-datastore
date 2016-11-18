@@ -334,7 +334,7 @@ class GTFSGraph
     # Create parent stops first
     gtfs_stops.each do |gtfs_stop|
       stop = find_and_update_entity(Stop.from_gtfs(gtfs_stop))
-      add_identifier(stop, gtfs_stop)
+      add_identifier(stop, gtfs_stop, gtfs_stop.id)
       graph_log "    Stop: #{stop.onestop_id}: #{stop.name}"
     end
     # Create child stops
@@ -352,7 +352,7 @@ class GTFSGraph
       end
       # index
       stop = find_and_update_entity(stop)
-      add_identifier(stop, gtfs_stop)
+      add_identifier(stop, gtfs_stop, gtfs_stop.id)
       graph_log "    StopPlatform: #{stop.onestop_id}: #{stop.name}"
     end
   end
@@ -414,7 +414,7 @@ class GTFSGraph
       routes.each { |route| route.operated_by = operator.onestop_id }
       operator.serves ||= Set.new
       operator.serves |= routes.map(&:onestop_id)
-      add_identifier(operator, entity)
+      add_identifier(operator, entity, entity.id)
 
       # Add to found operators
       operators << operator
@@ -441,7 +441,7 @@ class GTFSGraph
       # Add references and identifiers
       route.serves ||= Set.new
       route.serves |= stops.map(&:onestop_id)
-      add_identifier(route, entity)
+      add_identifier(route, entity, entity.id)
       graph_log "    #{route.onestop_id}: #{route.name}"
     end
   end
@@ -472,7 +472,7 @@ class GTFSGraph
           'shape',
           trip.shape_id
         )
-        # add_identifier(rsp, trip.shape_id)
+        # add_identifier(rsp, nil, trip.shape_id)
         # rsp.add_identifier(identifier)
       end
       @gtfs_to_onestop_id[trip] = rsp.onestop_id
@@ -521,10 +521,10 @@ class GTFSGraph
 
   ##### Identifiers #####
 
-  def add_identifier(tl_entity, gtfs_entity)
+  def add_identifier(tl_entity, gtfs_entity, gtfs_id)
     tl_entity.add_feed_versions ||= []
-    tl_entity.add_feed_versions << {feedVersion: @feed_version.sha1, gtfsId: gtfs_entity.id}
-    @gtfs_to_onestop_id[gtfs_entity] = tl_entity.onestop_id
+    tl_entity.add_feed_versions << {feedVersion: @feed_version.sha1, gtfsId: gtfs_id}
+    @gtfs_to_onestop_id[gtfs_entity] = tl_entity.onestop_id if gtfs_entity
   end
 
   def make_gtfs_id_map
