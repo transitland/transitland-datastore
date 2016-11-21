@@ -66,14 +66,14 @@ class Api::V1::StopsController < Api::V1::BaseApiController
 
   def show
     respond_to do |format|
-      format.json { render json: @stop }
+      format.json { render json: @stop, serializer: StopSerializer }
       format.geojson { render json: @stop, serializer: GeoJSONSerializer }
     end
   end
 
   def paginated_json_collection(collection)
     result = super
-    result[:root] = :stop
+    result[:root] = :stops
     result[:each_serializer] = StopSerializer
     result
   end
