@@ -19,7 +19,6 @@
 #  updated_at                         :datetime
 #  created_or_updated_in_changeset_id :integer
 #  geometry                           :geography({:srid geometry, 4326
-#  latest_fetch_exception_log         :text
 #  license_attribution_text           :text
 #  active_feed_version_id             :integer
 #  edited_attributes                  :string           default([]), is an Array
@@ -308,7 +307,10 @@ describe Feed do
 
   context '.where_latest_fetch_exception' do
     let(:feed_succeed) { create(:feed) }
-    let(:feed_failed) { create(:feed, latest_fetch_exception_log: 'test') }
+    let(:feed_failed) { create(:feed) }
+    before(:each) do
+      Issue.create!(issue_type: 'feed_fetch_invalid_source').entities_with_issues.create!(entity: feed_failed, entity_attribute: 'url')
+    end
 
     it 'finds feeds with latest_fetch_exception_log' do
         expect(Feed.where_latest_fetch_exception(true)).to match_array([feed_failed])
