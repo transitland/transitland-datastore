@@ -59,7 +59,7 @@ describe Api::V1::FeedsController do
       it 'query: latest_fetch_exception' do
         feeds = create_list(:feed, 3)
         feed = feeds.first
-        feed.update!(latest_fetch_exception_log: 'test')
+        Issue.create!(issue_type: 'feed_fetch_invalid_source').entities_with_issues.create!(entity: feed, entity_attribute: 'url')
         get :index
         expect_json({feeds: -> (feeds) {expect(feeds.size).to eq(3)}})
         get :index, latest_fetch_exception: 'true'

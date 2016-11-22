@@ -59,7 +59,6 @@ ActiveRecord::Schema.define(version: 20161114223944) do
     t.datetime  "updated_at"
     t.integer   "created_or_updated_in_changeset_id"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
-    t.text      "latest_fetch_exception_log"
     t.text      "license_attribution_text"
     t.integer   "active_feed_version_id"
     t.string    "edited_attributes",                                                                              default: [], array: true
@@ -398,7 +397,6 @@ ActiveRecord::Schema.define(version: 20161114223944) do
     t.integer   "created_or_updated_in_changeset_id"
     t.integer   "destroyed_in_changeset_id"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
-    t.text      "latest_fetch_exception_log"
     t.text      "license_attribution_text"
     t.integer   "active_feed_version_id"
     t.string    "edited_attributes",                                                                              default: [], array: true
