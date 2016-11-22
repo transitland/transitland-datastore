@@ -43,7 +43,11 @@
                 "gtfsAgencyId": "NYC DOT",
                 "operatorOnestopId": "o-dr5r7-nycdot"
               }
-            ]
+            ],
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [[-74.012666,40.70135999999999],[-74.07220099999999,40.64416899999996]]
+            }
           }
         }
       ]
