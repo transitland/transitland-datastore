@@ -99,19 +99,17 @@ class Stop < BaseStop
 
   def after_create_making_history(changeset)
     super(changeset)
+    update_feed_versions(changeset)
     update_served_by(changeset)
     update_includes_stop_transfers(changeset)
     update_does_not_include_stop_transfers(changeset)
-    update_feed_versions(changeset)
-    return true
   end
   def before_update_making_history(changeset)
     super(changeset)
+    update_feed_versions(changeset)
     update_served_by(changeset)
     update_includes_stop_transfers(changeset)
     update_does_not_include_stop_transfers(changeset)
-    update_feed_versions(changeset)
-    return true
   end
   def before_destroy_making_history(changeset, old_model)
     operators_serving_stop.each do |operator_serving_stop|
