@@ -102,9 +102,11 @@ class RouteStopPattern < BaseRouteStopPattern
   def after_create_making_history(changeset)
     update_feed_versions(changeset)
   end
-
-  def before_create_making_history(new_model, changeset)
+  def before_update_making_history(changeset)
     update_feed_versions(changeset)
+  end
+
+  def self.before_create_making_history(new_model, changeset)
     route = Route.find_by_onestop_id!(new_model.traversed_by)
     new_model.route = route
     self.existing_before_create_making_history(new_model, changeset)
