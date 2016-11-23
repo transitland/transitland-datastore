@@ -472,7 +472,7 @@ class GTFSGraph
           'shape',
           trip.shape_id
         )
-        # add_identifier(rsp, nil, trip.shape_id)
+        add_identifier(rsp, nil, trip.shape_id)
         # rsp.add_identifier(identifier)
       end
       @gtfs_to_onestop_id[trip] = rsp.onestop_id
