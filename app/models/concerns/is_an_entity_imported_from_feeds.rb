@@ -39,24 +39,24 @@ module IsAnEntityImportedFromFeeds
 
     attr_accessor :add_feed_versions, :remove_feed_versions
     def update_feed_versions(changeset)
-      (self.add_feed_versions || []).each do |eiff|
-        feed_version = FeedVersion.find_by!(sha1: eiff[:feed_version])
-        gtfs_id = eiff[:gtfs_id]
-        self.entities_imported_from_feed.find_or_create_by!(
-          feed_id: feed_version.feed_id,
-          feed_version_id: feed_version.id,
-          gtfs_id: gtfs_id
-        )
-      end
-      (self.remove_feed_versions || []).each do |eiff|
-        feed_version = FeedVersion.find_by!(sha1: eiff[:feed_version])
-        gtfs_id = eiff[:gtfs_id]
-        self.entities_imported_from_feed.find_by!(
-          feed_id: feed_version.feed_id,
-          feed_version_id: feed_version.id,
-          gtfs_id: gtfs_id
-        ).delete
-      end
+      # (self.add_feed_versions || []).each do |eiff|
+      #   feed_version = FeedVersion.find_by!(sha1: eiff[:feed_version])
+      #   gtfs_id = eiff[:gtfs_id]
+      #   self.entities_imported_from_feed.find_or_create_by!(
+      #     feed_id: feed_version.feed_id,
+      #     feed_version_id: feed_version.id,
+      #     gtfs_id: gtfs_id
+      #   )
+      # end
+      # (self.remove_feed_versions || []).each do |eiff|
+      #   feed_version = FeedVersion.find_by!(sha1: eiff[:feed_version])
+      #   gtfs_id = eiff[:gtfs_id]
+      #   self.entities_imported_from_feed.find_by!(
+      #     feed_id: feed_version.feed_id,
+      #     feed_version_id: feed_version.id,
+      #     gtfs_id: gtfs_id
+      #   ).delete
+      # end
     end
   end
 end

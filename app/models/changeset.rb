@@ -261,19 +261,19 @@ class Changeset < ActiveRecord::Base
   end
 
   def create_feed_entity_associations
-    # if import?
-    #   eiff_batch = []
-    #   self.entities_created_or_updated do |entity|
-    #     eiff_batch << entity
-    #       .entities_imported_from_feed
-    #       .new(feed: self.imported_from_feed, feed_version: self.imported_from_feed_version)
-    #     if eiff_batch.size >= 1000
-    #       EntityImportedFromFeed.import eiff_batch
-    #       eiff_batch = []
-    #     end
-    #   end
-    #   EntityImportedFromFeed.import eiff_batch
-    # end
+    if import?
+      eiff_batch = []
+      self.entities_created_or_updated do |entity|
+        eiff_batch << entity
+          .entities_imported_from_feed
+          .new(feed: self.imported_from_feed, feed_version: self.imported_from_feed_version)
+        if eiff_batch.size >= 1000
+          EntityImportedFromFeed.import eiff_batch
+          eiff_batch = []
+        end
+      end
+      EntityImportedFromFeed.import eiff_batch
+    end
   end
 
   def apply!
