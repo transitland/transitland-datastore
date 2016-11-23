@@ -29,7 +29,6 @@
     "addFeedVersions": {
       "type": "array",
       "minItems": 1,
-      "uniqueItems": true,
       "items": {
         "$ref": "./imported_from_feed.json"
       }
@@ -37,11 +36,10 @@
     "removeFeedVersions": {
       "type": "array",
       "minItems": 1,
-      "uniqueItems": true,
       "items": {
         "$ref": "./imported_from_feed.json"
       }
-    },    
+    },
     "identifiedBy": {
       "type": "array",
       "uniqueItems": true,
