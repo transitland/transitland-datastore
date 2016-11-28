@@ -80,8 +80,8 @@ class FeedSerializer < ApplicationSerializer
                                   issue_type: issue.issue_type,
                                   open: issue.open,
                                   details: issue.details,
-                                  created_by_changeset: issue.created_by_changeset,
-                                  resolved_by_changeset_id: issue.resolved_by_changeset } }
+                                  created_by_changeset_id: issue.created_by_changeset_id,
+                                  resolved_by_changeset_id: issue.resolved_by_changeset_id } }
   end
 
   def active_feed_version
