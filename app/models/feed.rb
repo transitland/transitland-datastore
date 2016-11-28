@@ -54,6 +54,7 @@ class Feed < BaseFeed
   include HasTags
   include UpdatedSince
   include HasAGeographicGeometry
+  include IsAnEntityWithIssues
 
   has_many :feed_versions, -> { order 'created_at DESC' }, dependent: :destroy, as: :feed
   has_many :feed_version_imports, -> { order 'created_at DESC' }, through: :feed_versions
@@ -61,6 +62,8 @@ class Feed < BaseFeed
 
   has_many :operators_in_feed
   has_many :operators, through: :operators_in_feed
+
+  has_many :issues, through: :entities_with_issues
 
   has_many :entities_imported_from_feed
   has_many :imported_operators, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'
