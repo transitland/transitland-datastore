@@ -260,22 +260,6 @@ class Changeset < ActiveRecord::Base
     end
   end
 
-  def create_feed_entity_associations
-    # if import?
-    #   eiff_batch = []
-    #   self.entities_created_or_updated do |entity|
-    #     eiff_batch << entity
-    #       .entities_imported_from_feed
-    #       .new(feed: self.imported_from_feed, feed_version: self.imported_from_feed_version)
-    #     if eiff_batch.size >= 1000
-    #       EntityImportedFromFeed.import eiff_batch
-    #       eiff_batch = []
-    #     end
-    #   end
-    #   EntityImportedFromFeed.import eiff_batch
-    # end
-  end
-
   def apply!
     fail Changeset::Error.new(changeset: self, message: 'has already been applied.') if applied
     new_issues_created_by_changeset = []
@@ -291,8 +275,6 @@ class Changeset < ActiveRecord::Base
           old_issues_to_deprecate.merge(payload_old_issues_to_deprecate)
         end
         self.update(applied: true, applied_at: Time.now)
-
-        create_feed_entity_associations
 
         # Update attributes that derive from attributes between models
         # This needs to be done before quality checks. Only on import.
