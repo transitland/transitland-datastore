@@ -29,6 +29,16 @@
 #
 
 describe FeedVersion do
+  context '.where_calendar_coverage_begins_at_or_before' do
+    it 'finds FeedVersions with coverage on or before a date' do
+      date = '2016-01-01'
+      fv1 = create(:feed_version, earliest_calendar_date: '2016-01-01')
+      fv2 = create(:feed_version, earliest_calendar_date: '2016-02-01')
+      fv3 = create(:feed_version, earliest_calendar_date: '2016-03-01')
+      expect(FeedVersion.where_calendar_coverage_begins_at_or_before('2016-02-01')).to match_array([fv1, fv2])
+    end
+  end
+
   context '#compute_and_set_hashes' do
     it 'computes file hashes' do
       feed_version = create(:feed_version_bart)
