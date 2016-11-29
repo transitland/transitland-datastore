@@ -52,17 +52,17 @@ class FeedVersion < ActiveRecord::Base
     joins('INNER JOIN current_feeds ON feed_versions.id = current_feeds.active_feed_version_id')
   }
 
-  scope :calendar_coverage_begins_at_or_before, -> (date) {
+  scope :where_calendar_coverage_begins_at_or_before, -> (date) {
     date = date.is_a?(Date) ? date : Date.parse(date)
     where('earliest_calendar_date <= ?', date)
   }
 
-  scope :calendar_coverage_begins_at_or_after, -> (date) {
+  scope :where_calendar_coverage_begins_at_or_after, -> (date) {
     date = date.is_a?(Date) ? date : Date.parse(date)
     where('earliest_calendar_date >= ?', date)
   }
 
-  scope :calendar_coverage_includes, -> (date) {
+  scope :where_calendar_coverage_includes, -> (date) {
     date = date.is_a?(Date) ? date : Date.parse(date)
     where('earliest_calendar_date <= ?', date)
       .where('latest_calendar_date >= ?', date)
