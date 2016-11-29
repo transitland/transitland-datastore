@@ -83,7 +83,6 @@ describe GTFSGraph do
         expect(o.name).to eq('Caltrain')
         expect(o.onestop_id).to eq('o-9q9-caltrain')
         expect(o.geometry).to be
-        # expect(o.identifiers).to contain_exactly("gtfs://f-9q9-caltrain/o/caltrain-ca-us")
         expect(o.timezone).to eq('America/Los_Angeles')
         expect(o.website).to eq('http://www.caltrain.com')
       end
@@ -95,7 +94,6 @@ describe GTFSGraph do
         expect(r).to be_truthy
         expect(r.name).to eq('Bullet')
         expect(r.onestop_id).to eq('r-9q9j-bullet')
-        # expect(r.identifiers).to match_array(["gtfs://f-9q9-caltrain/r/Bu-121"])
         expect(r.vehicle_type).to eq(:rail)
         expect(r.vehicle_type_value).to eq(2)
         expect(r.tags['route_long_name']).to eq('Bullet')
@@ -112,9 +110,6 @@ describe GTFSGraph do
         expect(s.onestop_id).to eq('s-9q9k659e3r-sanjosecaltrainstation')
         # expect(s.tags['']) # no tags
         expect(s.geometry).to be
-        # expect(s.identifiers).to contain_exactly(
-        #   "gtfs://f-9q9-caltrain/s/ctsj"
-        # )
         expect(s.timezone).to eq('America/Los_Angeles')
       end
 
