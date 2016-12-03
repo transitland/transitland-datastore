@@ -216,6 +216,79 @@ describe Api::V1::ChangesetsController do
     end
   end
 
+  context 'POST apply_async' do
+    before(:each) do
+      @changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              name: '1st Ave. & Holloway Street',
+              timezone: 'America/Los_Angeles',
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
+            }
+          }
+        ]
+      })
+      @cachekey = "changesets/#{@changeset.id}/apply_async"
+      Rails.cache.delete(@cachekey)
+    end
+
+    after(:each) do
+      Rails.cache.delete(@cachekey)
+    end
+
+    it 'enqueues job' do
+      Sidekiq::Testing.fake! do
+        expect {
+          post :apply_async, id: @changeset.id
+        }.to change(ChangesetApplyWorker.jobs, :size).by(1)
+      end
+      expect(response.status).to eq 200
+    end
+
+    it 'returns enqueued job' do
+      Sidekiq::Testing.fake! do
+        expect(ChangesetApplyWorker.jobs.size).to eq(0)
+        post :apply_async, id: @changeset.id
+        expect(ChangesetApplyWorker.jobs.size).to eq(1)
+        post :apply_async, id: @changeset.id
+        expect(ChangesetApplyWorker.jobs.size).to eq(1)
+      end
+    end
+
+    it 'returns completed job' do
+      Sidekiq::Testing.inline! do
+        post :apply_async, id: @changeset.id
+      end
+      post :apply_async, id: @changeset.id
+      expect_json({ status: 'complete' })
+      expect(@changeset.reload.applied).to be true
+    end
+
+    it 'returns errors' do
+      # missing timezone
+      payload = {changes: [{action: 'createUpdate', stop: {onestopId: 's-9q9-test'}}]}
+      @changeset.change_payloads.first.update(payload: payload)
+      # Test
+      Sidekiq::Testing.inline! do
+        post :apply_async, id: @changeset.id
+      end
+      post :apply_async, id: @changeset.id
+      expect_json({
+        status: 'error',
+        errors: -> (errors) {
+          expect(errors.size).to eq(1)
+          expect(errors.first[:exception]).to eq('ChangesetError')
+        }
+      })
+      expect(@changeset.reload.applied).to be false
+      expect(response.status).to eq(500)
+    end
+
+  end
+
   context 'POST apply' do
     it 'should be able to apply a clean Changeset' do
       changeset = create(:changeset, payload: {
@@ -225,7 +298,8 @@ describe Api::V1::ChangesetsController do
             stop: {
               onestopId: 's-9q8yt4b-1AvHoS',
               name: '1st Ave. & Holloway Street',
-              timezone: 'America/Los_Angeles'
+              timezone: 'America/Los_Angeles',
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
             }
           }
         ]
@@ -265,23 +339,26 @@ describe Api::V1::ChangesetsController do
     end
 
     it 'resolves issue with issues_resolved changeset' do
-      changeset = create(:changeset, payload: {
-        changes: [
-          action: 'createUpdate',
-          issuesResolved: [1],
-          stop: {
-            onestopId: 's-9qscwx8n60-nyecountyairportdemo',
-            timezone: 'America/Los_Angeles',
-            "geometry": {
-              "type": "Point",
-              "coordinates": [-116.784582, 36.88845]
+      Timecop.freeze(3.minutes.from_now) do
+        # Moving this stop will create other stop_rsp_distance_gap issues, but we only care about this one issue
+        changeset = create(:changeset, payload: {
+          changes: [
+            action: 'createUpdate',
+            issuesResolved: [8],
+            stop: {
+              onestopId: 's-9qscwx8n60-nyecountyairportdemo',
+              timezone: 'America/Los_Angeles',
+              geometry: {
+                "type": "Point",
+                "coordinates": [-116.784582, 36.88845]
+              }
             }
-          }
-        ]
-      })
-      post :apply, id: changeset.id
-      expect(Issue.find(1).open).to be false
-      expect(Issue.find(1).resolved_by_changeset).to eq changeset
+          ]
+        })
+        expect(Sidekiq::Logging.logger).to receive(:info).with(/Calculating distances/)
+        expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>8.*"resolved_by_changeset_id"=>2.*"open"=>false/)
+        post :apply, id: changeset.id
+      end
     end
   end
 

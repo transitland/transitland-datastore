@@ -29,6 +29,8 @@
 FactoryGirl.define do
   factory :feed_version do
     sha1 { SecureRandom.hex(32) }
+    earliest_calendar_date '2016-01-01'
+    latest_calendar_date '2017-01-01'
     feed
 
     factory :feed_version_caltrain do
@@ -69,6 +71,11 @@ FactoryGirl.define do
     factory :feed_version_nycdotsiferry do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/siferry-gtfs.zip')) }
       association :feed, factory: :feed_nycdotsiferry
+    end
+
+    factory :feed_version_mtanyctbusstatenisland_trip_YU_S6_Weekday_030000_MISC_112 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/mtanyctbusstatenisland-trip-YU_S6-Weekday-030000_MISC_112.zip')) }
+      association :feed, factory: :feed_mtanyctbusstatenisland
     end
 
     factory :feed_version_rome do

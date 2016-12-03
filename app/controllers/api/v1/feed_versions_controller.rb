@@ -65,21 +65,8 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
     end
 
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(
-          @feed_versions,
-          Proc.new { |params| api_v1_feed_versions_url(params) },
-          params[:sort_key],
-          params[:sort_order],
-          params[:offset],
-          params[:per_page],
-          params[:total],
-          {}
-        )
-      end
-      format.csv do
-        return_downloadable_csv(@feed_versions, 'feed_versions')
-      end
+      format.json { render paginated_json_collection(@feed_versions) }
+      format.csv { return_downloadable_csv(@feed_versions, 'feed_versions') }
     end
   end
 

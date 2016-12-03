@@ -17,16 +17,19 @@
 #  type                               :string
 #  parent_stop_id                     :integer
 #  osm_way_id                         :integer
+#  edited_attributes                  :string           default([]), is an Array
+#  wheelchair_boarding                :boolean
 #
 # Indexes
 #
-#  #c_stops_cu_in_changeset_id_index      (created_or_updated_in_changeset_id)
-#  index_current_stops_on_geometry        (geometry)
-#  index_current_stops_on_identifiers     (identifiers)
-#  index_current_stops_on_onestop_id      (onestop_id)
-#  index_current_stops_on_parent_stop_id  (parent_stop_id)
-#  index_current_stops_on_tags            (tags)
-#  index_current_stops_on_updated_at      (updated_at)
+#  #c_stops_cu_in_changeset_id_index           (created_or_updated_in_changeset_id)
+#  index_current_stops_on_geometry             (geometry)
+#  index_current_stops_on_identifiers          (identifiers)
+#  index_current_stops_on_onestop_id           (onestop_id) UNIQUE
+#  index_current_stops_on_parent_stop_id       (parent_stop_id)
+#  index_current_stops_on_tags                 (tags)
+#  index_current_stops_on_updated_at           (updated_at)
+#  index_current_stops_on_wheelchair_boarding  (wheelchair_boarding)
 #
 
 describe Stop do
@@ -183,6 +186,16 @@ describe Stop do
       expect {
         Stop.re_conflate_with_osm(2.hours.ago)
       }.to change(ConflateStopsWithOsmWorker.jobs, :size).by(1)
+    end
+
+    it 'handles case of stop returning a valid Tyr response, but no edges' do
+      allow(Figaro.env).to receive(:tyr_auth_token) { 'fakeapikey' }
+      stub_const('TyrService::BASE_URL', 'https://valhalla.mapzen.com')
+      VCR.use_cassette('null_island_stop') do
+        stop = create(:stop, geometry: { type: 'Point', coordinates: [0.0, 0.0] })
+        expect(Sidekiq::Logging.logger).to receive(:info).with(/Tyr response for Stop #{stop.onestop_id} did not contain edges. Leaving osm_way_id./)
+        Stop.conflate_with_osm([stop])
+      end
     end
 
     it '.conflate_with_osm' do

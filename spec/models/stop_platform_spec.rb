@@ -1,3 +1,37 @@
+# == Schema Information
+#
+# Table name: current_stops
+#
+#  id                                 :integer          not null, primary key
+#  onestop_id                         :string
+#  geometry                           :geography({:srid geometry, 4326
+#  tags                               :hstore
+#  created_at                         :datetime
+#  updated_at                         :datetime
+#  name                               :string
+#  created_or_updated_in_changeset_id :integer
+#  version                            :integer
+#  identifiers                        :string           default([]), is an Array
+#  timezone                           :string
+#  last_conflated_at                  :datetime
+#  type                               :string
+#  parent_stop_id                     :integer
+#  osm_way_id                         :integer
+#  edited_attributes                  :string           default([]), is an Array
+#  wheelchair_boarding                :boolean
+#
+# Indexes
+#
+#  #c_stops_cu_in_changeset_id_index           (created_or_updated_in_changeset_id)
+#  index_current_stops_on_geometry             (geometry)
+#  index_current_stops_on_identifiers          (identifiers)
+#  index_current_stops_on_onestop_id           (onestop_id) UNIQUE
+#  index_current_stops_on_parent_stop_id       (parent_stop_id)
+#  index_current_stops_on_tags                 (tags)
+#  index_current_stops_on_updated_at           (updated_at)
+#  index_current_stops_on_wheelchair_boarding  (wheelchair_boarding)
+#
+
 describe StopPlatform do
   context 'serving_stop_and_platform' do
     it 'aggregates operators and routes' do
@@ -23,7 +57,8 @@ describe StopPlatform do
         stopPlatform: {
           onestopId: onestop_id,
           timezone: 'America/Los_Angeles',
-          parentStopOnestopId: stop.onestop_id
+          parentStopOnestopId: stop.onestop_id,
+          geometry: { type: "Point", coordinates: [-122.475075, 37.721323] }
         }
       }]}
       changeset = Changeset.create(payload: payload)
@@ -36,7 +71,7 @@ describe StopPlatform do
     it 'can be associated with a different parent stop' do
       stop1 = create(:stop)
       stop2 = create(:stop)
-      stop_platform = StopPlatform.create!(
+      stop_platform = create(:stop_platform,
         onestop_id: "#{stop1.onestop_id}<test",
         timezone: stop1.timezone,
         parent_stop: stop1
@@ -60,6 +95,7 @@ describe StopPlatform do
         stopPlatform: {
           onestopId: 's-123-foo<bar',
           timezone: 'America/Los_Angeles',
+          geometry: { type: "Point", coordinates: [-122.475075, 37.721323] }
         }
       }]}
       changeset = Changeset.create()
@@ -73,7 +109,8 @@ describe StopPlatform do
         stopPlatform: {
           onestopId: 's-123-foo<bar',
           timezone: 'America/Los_Angeles',
-          parentStopOnestopId: 's-123-foo'
+          parentStopOnestopId: 's-123-foo',
+          geometry: { type: "Point", coordinates: [-122.475075, 37.721323] }
         }
       }]}
       changeset = Changeset.create()

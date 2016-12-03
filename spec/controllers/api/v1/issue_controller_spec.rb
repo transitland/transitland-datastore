@@ -35,7 +35,7 @@ describe Api::V1::IssuesController do
       Issue.new(created_by_changeset: changeset, issue_type: 'stop_position_inaccurate').save!
       get :index, feed_onestop_id: 'f-9qs-example'
       expect_json({ issues: -> (issues) {
-        expect(issues.length).to eq 2
+        expect(issues.length).to eq 8
       }})
     end
   end
@@ -68,13 +68,14 @@ describe Api::V1::IssuesController do
     it 'creates an issue when no equivalent exists' do
       post :create, issue: @issue1
       expect(response.status).to eq 202
-      expect(Issue.count).to eq 3 # was 2
-      expect(EntityWithIssues.count).to eq 7 # was 5
+      expect(Issue.count).to eq 9 # was 8
+      expect(EntityWithIssues.count).to eq 13 # was 11
     end
 
     it 'does not create issue when an equivalent one exists' do
       issue2 = {
         "details": "This is a test issue",
+        "created_by_changeset_id": 1,
         "issue_type": 'stop_rsp_distance_gap',
         "entities_with_issues": [
           {
@@ -113,7 +114,7 @@ describe Api::V1::IssuesController do
         "details": "This is a test of updating"
       }
       post :update, id: 1, issue: issue
-      expect(Issue.find(1).entities_with_issues.size).to eq 3
+      expect(Issue.find(7).entities_with_issues.size).to eq 3
     end
 
     it 'creates specified EntitiesWithIssues and deletes existing EntitiesWithIssues' do

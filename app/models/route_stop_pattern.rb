@@ -17,12 +17,13 @@
 #  created_or_updated_in_changeset_id :integer
 #  route_id                           :integer
 #  stop_distances                     :float            default([]), is an Array
+#  edited_attributes                  :string           default([]), is an Array
 #
 # Indexes
 #
 #  c_rsp_cu_in_changeset                              (created_or_updated_in_changeset_id)
 #  index_current_route_stop_patterns_on_identifiers   (identifiers)
-#  index_current_route_stop_patterns_on_onestop_id    (onestop_id)
+#  index_current_route_stop_patterns_on_onestop_id    (onestop_id) UNIQUE
 #  index_current_route_stop_patterns_on_route_id      (route_id)
 #  index_current_route_stop_patterns_on_stop_pattern  (stop_pattern)
 #  index_current_route_stop_patterns_on_trips         (trips)
@@ -73,6 +74,7 @@ class RouteStopPattern < BaseRouteStopPattern
   include HasTags
   include UpdatedSince
   include IsAnEntityImportedFromFeeds
+  include IsAnEntityWithIssues
 
   # Tracked by changeset
   include CurrentTrackedByChangeset
@@ -85,6 +87,9 @@ class RouteStopPattern < BaseRouteStopPattern
     ],
     protected_attributes: [
       :identifiers
+    ],
+    sticky_attributes: [
+      :geometry
     ]
   })
   class << RouteStopPattern
@@ -277,12 +282,7 @@ class RouteStopPattern < BaseRouteStopPattern
     self.last_stop_after_geom = false
     if issues.include?(:empty)
       # create a new geometry from the trip stop points
-      stop_points = RouteStopPattern.set_precision(stop_points)
-      if stop_points.uniq.size != 1
-        self.geometry = RouteStopPattern.line_string(stop_points)
-      else
-        self.geometry = RouteStopPattern.line_string(stop_points)
-      end
+      self.geometry = RouteStopPattern.line_string(RouteStopPattern.set_precision(stop_points))
       self.is_generated = true
       self.is_modified = true
     end

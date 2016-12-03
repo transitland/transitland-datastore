@@ -17,16 +17,19 @@
 #  type                               :string
 #  parent_stop_id                     :integer
 #  osm_way_id                         :integer
+#  edited_attributes                  :string           default([]), is an Array
+#  wheelchair_boarding                :boolean
 #
 # Indexes
 #
-#  #c_stops_cu_in_changeset_id_index      (created_or_updated_in_changeset_id)
-#  index_current_stops_on_geometry        (geometry)
-#  index_current_stops_on_identifiers     (identifiers)
-#  index_current_stops_on_onestop_id      (onestop_id)
-#  index_current_stops_on_parent_stop_id  (parent_stop_id)
-#  index_current_stops_on_tags            (tags)
-#  index_current_stops_on_updated_at      (updated_at)
+#  #c_stops_cu_in_changeset_id_index           (created_or_updated_in_changeset_id)
+#  index_current_stops_on_geometry             (geometry)
+#  index_current_stops_on_identifiers          (identifiers)
+#  index_current_stops_on_onestop_id           (onestop_id) UNIQUE
+#  index_current_stops_on_parent_stop_id       (parent_stop_id)
+#  index_current_stops_on_tags                 (tags)
+#  index_current_stops_on_updated_at           (updated_at)
+#  index_current_stops_on_wheelchair_boarding  (wheelchair_boarding)
 #
 
 FactoryGirl.define do
@@ -43,30 +46,24 @@ FactoryGirl.define do
     association :created_or_updated_in_changeset, factory: :changeset
   end
 
-  factory :stop_richmond, class: Stop do
+  factory :stop_richmond, parent: :stop, class: Stop do
     onestop_id 's-9q8zzf1nks-richmond'
     geometry { "POINT(-122.353165 37.936887)" }
     timezone 'America/Los_Angeles'
     name 'Richmond'
-    version 1
-    association :created_or_updated_in_changeset, factory: :changeset
   end
 
-  factory :stop_richmond_offset, class: Stop do
+  factory :stop_richmond_offset, parent: :stop, class: Stop do
     onestop_id 's-9q8zzf1nks-richmond'
     geometry { "POINT(-122.350721 37.952326)" }
     timezone 'America/Los_Angeles'
     name 'Richmond'
-    version 1
-    association :created_or_updated_in_changeset, factory: :changeset
   end
 
-  factory :stop_millbrae, class: Stop do
+  factory :stop_millbrae, parent: :stop, class: Stop do
     onestop_id 's-9q8vzhbf8h-millbrae'
     geometry { "POINT(-122.38666 37.599787)" }
     timezone 'America/Los_Angeles'
     name 'Millbrae'
-    version 1
-    association :created_or_updated_in_changeset, factory: :changeset
   end
 end

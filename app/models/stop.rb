@@ -17,16 +17,19 @@
 #  type                               :string
 #  parent_stop_id                     :integer
 #  osm_way_id                         :integer
+#  edited_attributes                  :string           default([]), is an Array
+#  wheelchair_boarding                :boolean
 #
 # Indexes
 #
-#  #c_stops_cu_in_changeset_id_index      (created_or_updated_in_changeset_id)
-#  index_current_stops_on_geometry        (geometry)
-#  index_current_stops_on_identifiers     (identifiers)
-#  index_current_stops_on_onestop_id      (onestop_id)
-#  index_current_stops_on_parent_stop_id  (parent_stop_id)
-#  index_current_stops_on_tags            (tags)
-#  index_current_stops_on_updated_at      (updated_at)
+#  #c_stops_cu_in_changeset_id_index           (created_or_updated_in_changeset_id)
+#  index_current_stops_on_geometry             (geometry)
+#  index_current_stops_on_identifiers          (identifiers)
+#  index_current_stops_on_onestop_id           (onestop_id) UNIQUE
+#  index_current_stops_on_parent_stop_id       (parent_stop_id)
+#  index_current_stops_on_tags                 (tags)
+#  index_current_stops_on_updated_at           (updated_at)
+#  index_current_stops_on_wheelchair_boarding  (wheelchair_boarding)
 #
 
 class BaseStop < ActiveRecord::Base
@@ -45,6 +48,7 @@ class Stop < BaseStop
   include HasTags
   include UpdatedSince
   include IsAnEntityImportedFromFeeds
+  include IsAnEntityWithIssues
 
   include CanBeSerializedToCsv
   def self.csv_column_names
@@ -83,6 +87,11 @@ class Stop < BaseStop
       :identifiers,
       :last_conflated_at,
       :type
+    ],
+    sticky_attributes: [
+      :name,
+      :geometry,
+      :wheelchair_boarding
     ]
   })
 
@@ -275,7 +284,18 @@ class Stop < BaseStop
         tyr_locate_response = TyrService.locate(locations: locations)
         now = DateTime.now
         group.each_with_index do |stop, index|
-          osm_way_id = tyr_locate_response[index][:edges][0][:way_id]
+          osm_way_id = stop.osm_way_id
+
+          if tyr_locate_response[index].nil?
+            log "Index #{index} for stop #{stop.onestop_id} not found in Tyr Response."
+            next
+          end
+          if tyr_locate_response[index][:edges].present?
+            osm_way_id = tyr_locate_response[index][:edges][0][:way_id]
+          else
+            log "Tyr response for Stop #{stop.onestop_id} did not contain edges. Leaving osm_way_id."
+          end
+
           if stop.osm_way_id != osm_way_id
             log "osm_way_id changed for Stop #{stop.onestop_id}: was \"#{stop.osm_way_id}\" now \"#{osm_way_id}\""
           end
@@ -312,6 +332,7 @@ class Stop < BaseStop
       onestop_id: onestop_id.to_s,
       geometry: point.to_s
     )
+    stop.wheelchair_boarding = GTFSGraph.to_tfn(entity.wheelchair_boarding)
     # Copy over GTFS attributes to tags
     stop.tags ||= {}
     stop.tags[:wheelchair_boarding] = entity.wheelchair_boarding

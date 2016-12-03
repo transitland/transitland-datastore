@@ -20,7 +20,7 @@ module RGeo
       end
 
       def locators(point)
-        _segments.map { |segment| segment.locator(point) unless segment.s.eql?(segment.e) }.compact
+        _segments.collect { |segment| segment.locator(point) }
       end
 
       def before?(target)
@@ -50,6 +50,7 @@ module RGeo
       end
 
       def distance_on_segment
+        return 0 if segment.s.eql?(segment.e)
         segment.tproj(target) * segment.length
       end
 
@@ -70,6 +71,7 @@ module RGeo
       end
 
       def interpolate_point(factory)
+        return segment.e if segment.length == 0
         location = distance_on_segment / segment.length
         return segment.e if location >= 1
         return segment.s if location <= 0

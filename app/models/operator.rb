@@ -18,6 +18,7 @@
 #  country                            :string
 #  state                              :string
 #  metro                              :string
+#  edited_attributes                  :string           default([]), is an Array
 #
 # Indexes
 #
@@ -44,6 +45,7 @@ class Operator < BaseOperator
   include HasTags
   include UpdatedSince
   include IsAnEntityImportedFromFeeds
+  include IsAnEntityWithIssues
 
   include CanBeSerializedToCsv
   def self.csv_column_names
@@ -72,6 +74,13 @@ class Operator < BaseOperator
     ],
     protected_attributes: [
       :identifiers
+    ],
+    sticky_attributes: [
+      :short_name,
+      :country,
+      :metro,
+      :state,
+      :website
     ]
   })
   def after_create_making_history(changeset)
@@ -101,6 +110,9 @@ class Operator < BaseOperator
     end
     routes_serving_stop.each do |route_serving_stop|
       route_serving_stop.destroy_making_history(changeset: changeset)
+    end
+    operators_in_feed.each do |operator_in_feed|
+      operator_in_feed.destroy_making_history(changeset: changeset)
     end
     return true
   end

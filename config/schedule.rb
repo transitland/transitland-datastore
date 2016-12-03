@@ -13,8 +13,13 @@ job_type :runner, "cd :path && bin/bundle exec rails runner -e :environment ':ta
 
 every 30.minutes do
   runner 'FeedFetcherService.fetch_some_ready_feeds_async'
+  runner 'Stop.re_conflate_with_osm'
 end
 
-every 1.day, at: '12:01 am' do
-  runner 'Stop.re_conflate_with_osm'
+every 1.day, at: '2:00 pm' do
+  rake 'feed:maintenance:extend_expired_feed_versions_cron'
+end
+
+every 1.day, at: '3:00 pm' do
+  rake 'feed:maintenance:enqueue_next_feed_versions_cron'
 end
