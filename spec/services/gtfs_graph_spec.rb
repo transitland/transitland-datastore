@@ -204,6 +204,15 @@ describe GTFSGraph do
       # 'BFC2' is a 1 stop time trip; 'BFC1' has no stop times
       expect(@feed.imported_route_stop_patterns.size).to eq 8
     end
+
+    it 'allows multiple agency_ids to point to single Operator' do
+      # In this feed, Route "r-9qt1-50" is associated with agency_id "DTA2"
+      # where both "DTA" and "DTA2" point to "o-9qs-demotransitauthority"
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_multiple_agency_id_same_operator, import_level: 1)
+      operator = @feed.imported_operators.find_by_onestop_id!("o-9qs-demotransitauthority")
+      expect(operator.routes.find_by_onestop_id!("r-9qt1-50")).to be_truthy
+    end
+
   end
 
 
