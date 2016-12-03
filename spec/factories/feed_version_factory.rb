@@ -105,5 +105,19 @@ FactoryGirl.define do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example-trips-special-stop-times.zip')) }
       association :feed, factory: :feed_example
     end
+
+    factory :feed_version_example_multiple_agency_id_same_operator do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example-multiple-agency-id-same-operator.zip')) }
+      association :feed, factory: :feed_example
+      after :create do |feed_version, evaluator|
+        feed = feed_version.feed
+        operator = feed.operators_in_feed.first.operator
+        feed_version.feed.operators_in_feed.create!(
+          operator: operator,
+          gtfs_agency_id: 'DTA2'
+        )
+      end
+    end
+
   end
 end
