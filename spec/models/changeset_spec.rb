@@ -172,7 +172,7 @@ describe Changeset do
               onestopId: 'o-9q8y-SFMTA',
               name: 'SFMTA',
               serves: ['s-9q8yt4b-1AvHoS'],
-              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }              
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
             },
           }
         ]
@@ -425,6 +425,28 @@ describe Changeset do
               issuesResolved: [8],
               stop: {
                 onestopId: 's-9qscwx8n60-nyecountyairportdemo',
+                timezone: 'America/Los_Angeles',
+                geometry: {
+                  "type": "Point",
+                  "coordinates": [-100.0, 50.0]
+                }
+              }
+            ]
+          })
+          expect {
+            changeset.apply!
+          }.to raise_error(Changeset::Error)
+        end
+      end
+
+      it 'does not falsely resolve issues' do
+        Timecop.freeze(3.minutes.from_now) do
+          changeset = create(:changeset, payload: {
+            changes: [
+              action: 'createUpdate',
+              issuesResolved: [8],
+              stop: {
+                onestopId: 's-9qsczn2rk0-emainst~sirvingstdemo',
                 timezone: 'America/Los_Angeles',
                 geometry: {
                   "type": "Point",
