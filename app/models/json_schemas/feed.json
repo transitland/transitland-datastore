@@ -41,7 +41,7 @@
       "uniqueItems": true,
       "items": {
         "type": "object",
-        "required": ["operatorOnestopId"],
+        "required": ["operatorOnestopId", "gtfsAgencyId"],
         "operatorOnestopId": {
           "type": "string",
           "format": "operator-onestop-id"
