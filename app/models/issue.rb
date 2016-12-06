@@ -37,6 +37,10 @@ class Issue < ActiveRecord::Base
                  'route_color',
                  'stop_name',
                  'route_name',
+                 'feed_fetch_invalid_url',
+                 'feed_fetch_invalid_zip',
+                 'feed_fetch_invalid_response',
+                 'feed_fetch_invalid_source',
                  'feed_version_maintenance_extend',
                  'feed_version_maintenance_import',
                  'uncategorized']

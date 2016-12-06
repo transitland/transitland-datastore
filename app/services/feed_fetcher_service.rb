@@ -38,18 +38,29 @@ class FeedFetcherService
     feed_version = nil
     log "Fetching feed #{feed.onestop_id} from #{feed.url}"
     # Try to fetch and normalize feed; log error
-    begin
-      feed_version = fetch_and_normalize_feed_version(feed)
-    rescue GTFS::InvalidSourceException => e
+    error_handler = Proc.new { |e, issue_type|
       fetch_exception_log = e.message
       if e.backtrace.present?
         fetch_exception_log << "\n"
         fetch_exception_log << e.backtrace.join("\n")
       end
       log fetch_exception_log, level=:error
+      Issue.create!(issue_type: issue_type, details: fetch_exception_log)
+        .entities_with_issues.create!(entity: feed, entity_attribute: "url")
+    }
+    begin
+      Issue.issues_of_entity(feed, entity_attributes: ["url"]).each(&:deprecate)
+      feed_version = fetch_and_normalize_feed_version(feed)
+    rescue GTFS::InvalidURLException => e
+      error_handler.call(e, 'feed_fetch_invalid_url')
+    rescue GTFS::InvalidResponseException => e
+      error_handler.call(e, 'feed_fetch_invalid_response')
+    rescue GTFS::InvalidZipException => e
+      error_handler.call(e, 'feed_fetch_invalid_zip')
+    rescue GTFS::InvalidSourceException => e
+      error_handler.call(e, 'feed_fetch_invalid_source')
     ensure
       feed.update(
-        latest_fetch_exception_log: fetch_exception_log,
         last_fetched_at: DateTime.now
       )
     end

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161017191437) do
+ActiveRecord::Schema.define(version: 20161129205145) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -59,7 +59,6 @@ ActiveRecord::Schema.define(version: 20161017191437) do
     t.datetime  "updated_at"
     t.integer   "created_or_updated_in_changeset_id"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
-    t.text      "latest_fetch_exception_log"
     t.text      "license_attribution_text"
     t.integer   "active_feed_version_id"
     t.string    "edited_attributes",                                                                              default: [], array: true
@@ -305,6 +304,7 @@ ActiveRecord::Schema.define(version: 20161017191437) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer  "feed_version_id"
+    t.string   "gtfs_id"
   end
 
   add_index "entities_imported_from_feed", ["entity_type", "entity_id"], name: "index_entities_imported_from_feed_on_entity_type_and_entity_id", using: :btree
@@ -366,7 +366,9 @@ ActiveRecord::Schema.define(version: 20161017191437) do
     t.string   "md5_raw"
   end
 
+  add_index "feed_versions", ["earliest_calendar_date"], name: "index_feed_versions_on_earliest_calendar_date", using: :btree
   add_index "feed_versions", ["feed_type", "feed_id"], name: "index_feed_versions_on_feed_type_and_feed_id", using: :btree
+  add_index "feed_versions", ["latest_calendar_date"], name: "index_feed_versions_on_latest_calendar_date", using: :btree
 
   create_table "issues", force: :cascade do |t|
     t.integer  "created_by_changeset_id"
@@ -397,7 +399,6 @@ ActiveRecord::Schema.define(version: 20161017191437) do
     t.integer   "created_or_updated_in_changeset_id"
     t.integer   "destroyed_in_changeset_id"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
-    t.text      "latest_fetch_exception_log"
     t.text      "license_attribution_text"
     t.integer   "active_feed_version_id"
     t.string    "edited_attributes",                                                                              default: [], array: true
