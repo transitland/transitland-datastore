@@ -26,14 +26,14 @@
     "isGenerated": {
       "type": "boolean"
     },
-    "addFeedVersions": {
+    "addImportedFromFeedVersions": {
       "type": "array",
       "minItems": 1,
       "items": {
         "$ref": "./imported_from_feed.json"
       }
     },
-    "removeFeedVersions": {
+    "removeImportedFromFeedVersions": {
       "type": "array",
       "minItems": 1,
       "items": {

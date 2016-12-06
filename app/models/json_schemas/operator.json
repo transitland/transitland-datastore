@@ -17,7 +17,7 @@
     "timezone": { "type": "string" },
     "tags": { "type": "object" },
     "geometry": { "type": "object" },
-    "addFeedVersions": {
+    "addImportedFromFeedVersions": {
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
@@ -25,7 +25,7 @@
         "$ref": "./imported_from_feed.json"
       }
     },
-    "removeFeedVersions": {
+    "removeImportedFromFeedVersions": {
       "type": "array",
       "minItems": 1,
       "uniqueItems": true,
