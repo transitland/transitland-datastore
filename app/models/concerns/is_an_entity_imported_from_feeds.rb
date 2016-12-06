@@ -39,7 +39,7 @@ module IsAnEntityImportedFromFeeds
     }
 
     attr_accessor :add_feed_versions, :remove_feed_versions
-    def update_feed_versions(changeset)
+    def update_entity_imported_from_feeds(changeset)
       (self.add_feed_versions || []).each do |eiff|
         feed_version = FeedVersion.find_by!(sha1: eiff[:feed_version])
         gtfs_id = eiff[:gtfs_id]

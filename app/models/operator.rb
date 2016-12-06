@@ -86,7 +86,7 @@ class Operator < BaseOperator
     ]
   })
   def after_create_making_history(changeset)
-    update_feed_versions(changeset)
+    update_entity_imported_from_feeds(changeset)
     OperatorRouteStopRelationship.manage_multiple(
       operator: {
         serves: self.serves || [],
@@ -97,7 +97,7 @@ class Operator < BaseOperator
     )
   end
   def before_update_making_history(changeset)
-    update_feed_versions(changeset)
+    update_entity_imported_from_feeds(changeset)
     OperatorRouteStopRelationship.manage_multiple(
       operator: {
         serves: self.serves || [],

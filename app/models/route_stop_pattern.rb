@@ -100,10 +100,10 @@ class RouteStopPattern < BaseRouteStopPattern
   end
 
   def after_create_making_history(changeset)
-    update_feed_versions(changeset)
+    update_entity_imported_from_feeds(changeset)
   end
   def before_update_making_history(changeset)
-    update_feed_versions(changeset)
+    update_entity_imported_from_feeds(changeset)
   end
 
   def self.before_create_making_history(new_model, changeset)
