@@ -44,7 +44,7 @@ class StopEgress < Stop
       :includes_stop_transfers,
       :does_not_include_stop_transfers,
       :add_imported_from_feed_versions,
-      :remove_imported_from_feed_versions
+      :not_imported_from_feed_versions
     ],
     protected_attributes: [
       :identifiers,

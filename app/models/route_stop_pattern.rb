@@ -85,7 +85,7 @@ class RouteStopPattern < BaseRouteStopPattern
       :not_identified_by,
       :traversed_by,
       :add_imported_from_feed_versions,
-      :remove_imported_from_feed_versions
+      :not_imported_from_feed_versions
     ],
     protected_attributes: [
       :identifiers

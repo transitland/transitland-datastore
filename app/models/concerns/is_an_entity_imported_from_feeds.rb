@@ -38,7 +38,7 @@ module IsAnEntityImportedFromFeeds
       where(id: self.all.select(:id).pluck(:id) - self.where_imported_from_active_feed_version.select(:id).pluck(:id))
     }
 
-    attr_accessor :add_imported_from_feed_versions, :remove_imported_from_feed_versions
+    attr_accessor :add_imported_from_feed_versions, :not_imported_from_feed_versions
     def update_entity_imported_from_feeds(changeset)
       (self.add_imported_from_feed_versions || []).each do |eiff|
         feed_version = FeedVersion.find_by!(sha1: eiff[:feed_version])
@@ -49,7 +49,7 @@ module IsAnEntityImportedFromFeeds
           gtfs_id: gtfs_id
         )
       end
-      (self.remove_imported_from_feed_versions || []).each do |eiff|
+      (self.not_imported_from_feed_versions || []).each do |eiff|
         feed_version = FeedVersion.find_by!(sha1: eiff[:feed_version])
         gtfs_id = eiff[:gtfs_id]
         self.entities_imported_from_feed.find_by!(

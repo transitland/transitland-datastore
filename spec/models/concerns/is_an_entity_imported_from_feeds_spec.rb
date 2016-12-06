@@ -54,7 +54,7 @@ describe IsAnEntityImportedFromFeeds do
             action: "createUpdate",
             stop: {
               onestopId: stop.onestop_id,
-              removeImportedFromFeedVersions: [{feedVersion: feed_version.sha1, gtfsId: gtfs_id}],
+              notImportedFromFeedVersions: [{feedVersion: feed_version.sha1, gtfsId: gtfs_id}],
             }
           }
         ]

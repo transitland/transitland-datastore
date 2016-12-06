@@ -33,7 +33,7 @@
         "$ref": "./imported_from_feed.json"
       }
     },
-    "removeImportedFromFeedVersions": {
+    "notImportedFromFeedVersions": {
       "type": "array",
       "minItems": 1,
       "items": {
