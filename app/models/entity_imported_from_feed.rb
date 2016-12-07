@@ -23,5 +23,10 @@ class EntityImportedFromFeed < ActiveRecord::Base
   belongs_to :feed
   belongs_to :feed_version
 
-  # validates :entity_id, uniqueness: { scope: [:feed_id, :feed_version_id] }
+  validates :entity_id, uniqueness: { scope: [:feed_id, :feed_version_id, :gtfs_id] }
+  validates :entity,
+            :feed,
+            :feed_version,
+            :gtfs_id,
+            presence: true
 end
