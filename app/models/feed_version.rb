@@ -123,7 +123,7 @@ class FeedVersion < ActiveRecord::Base
   end
 
   def feedvalidator_url
-    if self.try(:file).try(:url)
+    if self.try(:file_feedvalidator).try(:url)
       # we don't want to include any query parameters
       self.file_feedvalidator.url.split('?').first
     end
