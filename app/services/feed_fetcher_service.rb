@@ -86,17 +86,21 @@ class FeedFetcherService
     # Validate
     return unless (Figaro.env.run_google_feedvalidator.present? || Figaro.env.run_google_feedvalidator == 'false')
     # Create a tempfile to use the filename.
-    outfile = Tempfile.new(['feedvalidator', '.html'])
-    outfile.close
+    outfile = nil
+    Tempfile.open(['feedvalidator', '.html']) do |tmpfile|
+      outfile = tmpfile.path
+    end
+    # Run feedvalidator
     feedvalidator_output = IO.popen([
       FEEDVALIDATOR_PATH,
       '-n',
       '-o',
-      outfile.path,
+      outfile,
       filename
     ]).read
+    # Unlink temporary file
     file_feedvalidator = File.open(outfile)
-    # File.unlink(outfile) if File.exists?(outfile)
+    File.unlink(outfile) if File.exists?(outfile)
     file_feedvalidator
   end
 
