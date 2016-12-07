@@ -68,12 +68,7 @@ class FeedFetcherService
     # Return if there was not a successful fetch.
     return unless feed_version
     return unless feed_version.valid?
-    if feed_version.persisted?
-      log "File downloaded from #{feed.url} has an existing sha1 hash: #{feed_version.sha1}"
-    else
-      log "File downloaded from #{feed.url} has a new sha1 hash: #{feed_version.sha1}"
-      feed_version.save!
-    end
+    log "File downloaded from #{feed.url}, sha1 hash: #{feed_version.sha1}"
     # Return found/created FeedVersion
     feed_version
   end
@@ -84,7 +79,7 @@ class FeedFetcherService
 
   def self.run_google_feedvalidator(filename)
     # Validate
-    return unless (Figaro.env.run_google_feedvalidator.present? && Figaro.env.run_google_feedvalidator == 'true')
+    return unless Figaro.env.run_google_feedvalidator.presence == 'true'
     # Create a tempfile to use the filename.
     outfile = nil
     Tempfile.open(['feedvalidator', '.html']) do |tmpfile|
@@ -98,9 +93,10 @@ class FeedFetcherService
       outfile,
       filename
     ]).read
+    return unless File.exists?(outfile)
     # Unlink temporary file
     file_feedvalidator = File.open(outfile)
-    File.unlink(outfile) if File.exists?(outfile)
+    File.unlink(outfile)
     file_feedvalidator
   end
 
@@ -129,11 +125,12 @@ class FeedFetcherService
       sha1 = Digest::SHA1.file(gtfs_file).hexdigest
     end
 
-    file_feedvalidator = run_google_feedvalidator(gtfs_file.path)
-
     # Create a new FeedVersion
     feed_version = FeedVersion.find_by(sha1: sha1)
     if !feed_version
+      # Validate the new data
+      file_feedvalidator = run_google_feedvalidator(gtfs_file.path)
+      # New FeedVersion
       data = {
         feed: feed,
         url: feed.url,
@@ -143,7 +140,7 @@ class FeedFetcherService
         fetched_at: DateTime.now
       }
       data = data.merge!(read_gtfs_info(gtfs))
-      feed_version = FeedVersion.new(data)
+      feed_version = FeedVersion.create!(data)
     end
     feed_version
   end
