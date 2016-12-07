@@ -20,6 +20,7 @@
 #  file_raw               :string
 #  sha1_raw               :string
 #  md5_raw                :string
+#  file_feedvalidator     :string
 #
 # Indexes
 #
@@ -42,6 +43,7 @@ class FeedVersion < ActiveRecord::Base
 
   mount_uploader :file, FeedVersionUploader
   mount_uploader :file_raw, FeedVersionUploaderRaw
+  mount_uploader :file_feedvalidator, FeedVersionUploaderFeedvalidator
 
   validates :sha1, presence: true, uniqueness: true
   validates :feed, presence: true
@@ -117,6 +119,13 @@ class FeedVersion < ActiveRecord::Base
     elsif self.try(:file).try(:url)
       # we don't want to include any query parameters
       self.file.url.split('?').first
+    end
+  end
+
+  def feedvalidator_url
+    if self.try(:file).try(:url)
+      # we don't want to include any query parameters
+      self.file_feedvalidator.url.split('?').first
     end
   end
 

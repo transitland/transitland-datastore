@@ -3,6 +3,7 @@ class FeedFetcherService
 
   REFETCH_WAIT = 24.hours
   SPLIT_REFETCH_INTO_GROUPS = 48 # and only refetch the first group
+  FEEDVALIDATOR_PATH = './virtualenv/bin/feedvalidator.py'
 
   def self.fetch_this_feed_now(feed)
     sync_fetch_and_return_feed_versions([feed])
@@ -81,6 +82,28 @@ class FeedFetcherService
     (url || "").partition("#").last.presence
   end
 
+  def self.run_google_feedvalidator(filename)
+    # Validate
+    return unless (Figaro.env.run_google_feedvalidator.present? && Figaro.env.run_google_feedvalidator == 'true')
+    # Create a tempfile to use the filename.
+    outfile = nil
+    Tempfile.open(['feedvalidator', '.html']) do |tmpfile|
+      outfile = tmpfile.path
+    end
+    # Run feedvalidator
+    feedvalidator_output = IO.popen([
+      FEEDVALIDATOR_PATH,
+      '-n',
+      '-o',
+      outfile,
+      filename
+    ]).read
+    # Unlink temporary file
+    file_feedvalidator = File.open(outfile)
+    File.unlink(outfile) if File.exists?(outfile)
+    file_feedvalidator
+  end
+
   def self.fetch_and_normalize_feed_version(feed)
     gtfs = GTFS::Source.build(
       feed.url,
@@ -105,6 +128,9 @@ class FeedFetcherService
       gtfs_file = File.open(gtfs.archive)
       sha1 = Digest::SHA1.file(gtfs_file).hexdigest
     end
+
+    file_feedvalidator = run_google_feedvalidator(gtfs_file.path)
+
     # Create a new FeedVersion
     feed_version = FeedVersion.find_by(sha1: sha1)
     if !feed_version
@@ -113,6 +139,7 @@ class FeedFetcherService
         url: feed.url,
         file: gtfs_file,
         file_raw: gtfs_file_raw,
+        file_feedvalidator: file_feedvalidator,
         fetched_at: DateTime.now
       }
       data = data.merge!(read_gtfs_info(gtfs))
