@@ -45,6 +45,7 @@ class FeedVersionSerializer < ApplicationSerializer
              :import_level,
              :is_active_feed_version,
              :changesets_imported_from_this_feed_version,
+             :url,
              :download_url,
              :feedvalidator_url
 
