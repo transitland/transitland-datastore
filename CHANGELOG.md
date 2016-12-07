@@ -2,10 +2,28 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.12...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.13...HEAD)
 
 **Merged pull requests:**
 
+- Production release 4.9.13 [\#858](https://github.com/transitland/transitland-datastore/pull/858) ([irees](https://github.com/irees))
+
+## [4.9.13](https://github.com/transitland/transitland-datastore/tree/4.9.13) (2016-11-21)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.12...4.9.13)
+
+**Implemented enhancements:**
+
+- When bulk deactivating issues, make sure it's done asynchronously [\#787](https://github.com/transitland/transitland-datastore/issues/787)
+
+**Closed issues:**
+
+- Override stops controller to use 'stops' as root [\#862](https://github.com/transitland/transitland-datastore/issues/862)
+- Save Feed fetch errors as issues [\#820](https://github.com/transitland/transitland-datastore/issues/820)
+
+**Merged pull requests:**
+
+- Stop serializer root fix [\#861](https://github.com/transitland/transitland-datastore/pull/861) ([irees](https://github.com/irees))
+- feed fetch errors create issues [\#844](https://github.com/transitland/transitland-datastore/pull/844) ([doublestranded](https://github.com/doublestranded))
 - Production release 4.9.12 [\#843](https://github.com/transitland/transitland-datastore/pull/843) ([irees](https://github.com/irees))
 
 ## [4.9.12](https://github.com/transitland/transitland-datastore/tree/4.9.12) (2016-11-14)

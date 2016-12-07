@@ -20,10 +20,13 @@
 #  file_raw               :string
 #  sha1_raw               :string
 #  md5_raw                :string
+#  file_feedvalidator     :string
 #
 # Indexes
 #
-#  index_feed_versions_on_feed_type_and_feed_id  (feed_type,feed_id)
+#  index_feed_versions_on_earliest_calendar_date  (earliest_calendar_date)
+#  index_feed_versions_on_feed_type_and_feed_id   (feed_type,feed_id)
+#  index_feed_versions_on_latest_calendar_date    (latest_calendar_date)
 #
 
 class FeedVersion < ActiveRecord::Base
@@ -40,6 +43,7 @@ class FeedVersion < ActiveRecord::Base
 
   mount_uploader :file, FeedVersionUploader
   mount_uploader :file_raw, FeedVersionUploaderRaw
+  mount_uploader :file_feedvalidator, FeedVersionUploaderFeedvalidator
 
   validates :sha1, presence: true, uniqueness: true
   validates :feed, presence: true
@@ -48,6 +52,22 @@ class FeedVersion < ActiveRecord::Base
 
   scope :where_active, -> {
     joins('INNER JOIN current_feeds ON feed_versions.id = current_feeds.active_feed_version_id')
+  }
+
+  scope :where_calendar_coverage_begins_at_or_before, -> (date) {
+    date = date.is_a?(Date) ? date : Date.parse(date)
+    where('earliest_calendar_date <= ?', date)
+  }
+
+  scope :where_calendar_coverage_begins_at_or_after, -> (date) {
+    date = date.is_a?(Date) ? date : Date.parse(date)
+    where('earliest_calendar_date >= ?', date)
+  }
+
+  scope :where_calendar_coverage_includes, -> (date) {
+    date = date.is_a?(Date) ? date : Date.parse(date)
+    where('earliest_calendar_date <= ?', date)
+      .where('latest_calendar_date >= ?', date)
   }
 
   def succeeded(timestamp)
@@ -99,6 +119,13 @@ class FeedVersion < ActiveRecord::Base
     elsif self.try(:file).try(:url)
       # we don't want to include any query parameters
       self.file.url.split('?').first
+    end
+  end
+
+  def feedvalidator_url
+    if self.try(:file_feedvalidator).try(:url)
+      # we don't want to include any query parameters
+      self.file_feedvalidator.url.split('?').first
     end
   end
 

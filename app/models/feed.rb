@@ -54,13 +54,16 @@ class Feed < BaseFeed
   include HasTags
   include UpdatedSince
   include HasAGeographicGeometry
+  include IsAnEntityWithIssues
 
   has_many :feed_versions, -> { order 'created_at DESC' }, dependent: :destroy, as: :feed
   has_many :feed_version_imports, -> { order 'created_at DESC' }, through: :feed_versions
   belongs_to :active_feed_version, class_name: 'FeedVersion'
 
   has_many :operators_in_feed
-  has_many :operators, through: :operators_in_feed
+  has_many :operators, -> { distinct }, through: :operators_in_feed
+
+  has_many :issues, through: :entities_with_issues
 
   has_many :entities_imported_from_feed
   has_many :imported_operators, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'
@@ -176,7 +179,11 @@ class Feed < BaseFeed
   def before_update_making_history(changeset)
     (self.includes_operators || []).each do |included_operator|
       operator = Operator.find_by!(onestop_id: included_operator[:operator_onestop_id])
-      existing_relationship = OperatorInFeed.find_by(operator: operator, feed: self)
+      existing_relationship = OperatorInFeed.find_by(
+        operator: operator,
+        gtfs_agency_id: included_operator[:gtfs_agency_id],
+        feed: self
+      )
       if existing_relationship
           existing_relationship.update_making_history(
             changeset: changeset,
@@ -199,7 +206,11 @@ class Feed < BaseFeed
     end
     (self.does_not_include_operators || []).each do |not_included_operator|
       operator = Operator.find_by!(onestop_id: not_included_operator[:operator_onestop_id])
-      existing_relationship = OperatorInFeed.find_by(operator: operator, feed: self)
+      existing_relationship = OperatorInFeed.find_by(
+        operator: operator,
+        gtfs_agency_id: not_included_operator[:gtfs_agency_id],
+        feed: self
+      )
       if existing_relationship
         existing_relationship.destroy_making_history(changeset: changeset)
       end

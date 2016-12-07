@@ -7,8 +7,6 @@ class FeedEaterWorker
                   queue: :feed_eater,
                   retry: false
 
-  FEEDVALIDATOR_PATH = './virtualenv/bin/feedvalidator.py'
-
   def perform(feed_onestop_id, feed_version_sha1=nil, import_level=0)
     feed = Feed.find_by!(onestop_id: feed_onestop_id)
 
@@ -22,21 +20,6 @@ class FeedEaterWorker
     feed_version_import = feed_version.feed_version_imports.create(
       import_level: import_level
     )
-
-    # Validate
-    # make sure to have local copy of file
-    feed_file_path = feed_version.file.local_path_copying_locally_if_needed
-    unless Figaro.env.run_google_feedvalidator.present? &&
-           Figaro.env.run_google_feedvalidator == 'false'
-      logger.info "FeedEaterWorker #{feed_onestop_id}: Validating feed"
-      validation_report = IO.popen([
-        FEEDVALIDATOR_PATH,
-        '-n',
-        '--output=CONSOLE',
-        feed_file_path
-      ]).read
-      feed_version_import.update(validation_report: validation_report)
-    end
 
     # Import feed
     graph = nil
