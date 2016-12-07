@@ -14,6 +14,33 @@ describe Api::V1::FeedVersionsController do
       })
     end
 
+    it 'calendar_coverage_begins_at_or_before' do
+      fv1 = create(:feed_version, earliest_calendar_date: '2016-01-01', latest_calendar_date: '2017-01-01')
+      fv2 = create(:feed_version, earliest_calendar_date: '2016-02-01', latest_calendar_date: '2017-02-01')
+      get :index, calendar_coverage_begins_at_or_before: '2016-01-01'
+      expect_json({feed_versions: -> (feed_versions) {
+        expect(feed_versions.map { |fv| fv[:sha1]}).to match_array([fv1.sha1])
+      }})
+    end
+
+    it 'calendar_coverage_begins_at_or_after' do
+      fv1 = create(:feed_version, earliest_calendar_date: '2016-01-01', latest_calendar_date: '2017-01-01')
+      fv2 = create(:feed_version, earliest_calendar_date: '2016-02-01', latest_calendar_date: '2017-02-01')
+      get :index, calendar_coverage_begins_at_or_after: '2016-02-01'
+      expect_json({feed_versions: -> (feed_versions) {
+        expect(feed_versions.map { |fv| fv[:sha1]}).to match_array([fv2.sha1])
+      }})
+    end
+
+    it 'calendar_coverage_includes' do
+      fv1 = create(:feed_version, earliest_calendar_date: '2016-01-01', latest_calendar_date: '2017-01-01')
+      fv2 = create(:feed_version, earliest_calendar_date: '2016-02-01', latest_calendar_date: '2017-02-01')
+      get :index, calendar_coverage_includes: '2017-01-15'
+      expect_json({feed_versions: -> (feed_versions) {
+        expect(feed_versions.map { |fv| fv[:sha1]}).to match_array([fv2.sha1])
+      }})
+    end
+
     it 'filters by SHA1 hash' do
       create_list(:feed_version, 2)
       sha1 = FeedVersion.first.sha1

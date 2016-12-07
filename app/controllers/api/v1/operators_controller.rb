@@ -4,20 +4,6 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
   include JsonCollectionPagination
   include DownloadableCsv
   include AllowFiltering
-  include Geojson
-  GEOJSON_ENTITY_PROPERTIES = Proc.new { |properties, entity|
-    # title property to follow GeoJSON simple style spec
-    title = name
-    title += " (#{entity.short_name})" if entity.short_name.present?
-    properties[:title] = title
-
-    properties[:short_name] = entity.short_name
-    properties[:website] = entity.website
-    properties[:country] = entity.country
-    properties[:state] = entity.state
-    properties[:metro] = entity.metro
-    properties[:timezone] = entity.timezone
-  }
 
   before_action :set_operator, only: [:show]
 
@@ -62,50 +48,16 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
     ]}
 
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(
-          @operators,
-          Proc.new { |params| api_v1_operators_url(params) },
-          params[:sort_key],
-          params[:sort_order],
-          params[:offset],
-          params[:per_page],
-          params[:total],
-          params.slice(
-            :identifier,
-            :identifier_starts_with,
-            :lat,
-            :lon,
-            :r,
-            :bbox,
-            :onestop_id,
-            :tag_key,
-            :tag_value,
-            :import_level,
-            :name,
-            :short_name,
-            :imported_from_feed,
-            :imported_from_feed_version
-          )
-        )
-      end
-      format.geojson do
-        render json: Geojson.from_entity_collection(@operators, &GEOJSON_ENTITY_PROPERTIES)
-      end
-      format.csv do
-        return_downloadable_csv(@operators, 'operators')
-      end
+      format.json { render paginated_json_collection(@operators) }
+      format.geojson { render paginated_geojson_collection(@operators) }
+      format.csv { return_downloadable_csv(@operators, 'operators') }
     end
   end
 
   def show
     respond_to do |format|
-      format.json do
-        render json: @operator
-      end
-      format.geojson do
-        render json: Geojson.from_entity(@operator, &GEOJSON_ENTITY_PROPERTIES)
-      end
+      format.json { render json: @operator }
+      format.geojson { render json: @operator, serializer: GeoJSONSerializer }
     end
   end
 
@@ -134,6 +86,25 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
   end
 
   private
+
+  def query_params
+    params.slice(
+      :identifier,
+      :identifier_starts_with,
+      :lat,
+      :lon,
+      :r,
+      :bbox,
+      :onestop_id,
+      :tag_key,
+      :tag_value,
+      :import_level,
+      :name,
+      :short_name,
+      :imported_from_feed,
+      :imported_from_feed_version
+    )
+  end
 
   def count_values(array_of_hashes, attr_name: nil)
     return_hash = {}

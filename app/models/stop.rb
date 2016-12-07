@@ -284,7 +284,24 @@ class Stop < BaseStop
         tyr_locate_response = TyrService.locate(locations: locations)
         now = DateTime.now
         group.each_with_index do |stop, index|
-          osm_way_id = tyr_locate_response[index][:edges][0][:way_id]
+          osm_way_id = stop.osm_way_id
+
+          if tyr_locate_response[index].nil?
+            log "Index #{index} for stop #{stop.onestop_id} not found in Tyr Response."
+            next
+          end
+
+          # Issues will disappear on their own when a way id is finally found (e.g. the stop location is fixed)
+          # An issue will be replaced when conflation occurs again and the missing way id persists
+          Issue.issues_of_entity(stop, entity_attributes: ["osm_way_id"]).each(&:deprecate)
+          if tyr_locate_response[index][:edges].present?
+            osm_way_id = tyr_locate_response[index][:edges][0][:way_id]
+          else
+            log "Tyr response for Stop #{stop.onestop_id} did not contain edges. Leaving osm_way_id."
+            Issue.create!(issue_type: 'missing_stop_conflation_result', details: 'Tyr response for Stop #{stop.onestop_id} did not contain edges. Leaving osm_way_id.')
+              .entities_with_issues.create!(entity: stop, entity_attribute: 'osm_way_id')
+          end
+
           if stop.osm_way_id != osm_way_id
             log "osm_way_id changed for Stop #{stop.onestop_id}: was \"#{stop.osm_way_id}\" now \"#{osm_way_id}\""
           end

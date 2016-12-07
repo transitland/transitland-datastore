@@ -21,6 +21,6 @@ class EntityWithIssuesSerializer < ApplicationSerializer
               :entity_attribute
 
   def onestop_id
-    object.entity.onestop_id
+    object.entity.try(:onestop_id)
   end
 end

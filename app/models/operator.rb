@@ -111,6 +111,9 @@ class Operator < BaseOperator
     routes_serving_stop.each do |route_serving_stop|
       route_serving_stop.destroy_making_history(changeset: changeset)
     end
+    operators_in_feed.each do |operator_in_feed|
+      operator_in_feed.destroy_making_history(changeset: changeset)
+    end
     return true
   end
 

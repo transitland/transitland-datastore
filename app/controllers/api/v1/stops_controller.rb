@@ -2,18 +2,8 @@ class Api::V1::StopsController < Api::V1::BaseApiController
   include JsonCollectionPagination
   include DownloadableCsv
   include AllowFiltering
-  include Geojson
-  GEOJSON_ENTITY_PROPERTIES = Proc.new { |properties, entity|
-    # title property to follow GeoJSON simple style spec
-    properties[:title] = entity.name
-
-    properties[:timezone] = entity.timezone
-    properties[:operators_serving_stop] = entity.operators.map(&:onestop_id).try(:uniq)
-    properties[:routes_serving_stop] = entity.routes.map(&:onestop_id).try(:uniq)
-  }
 
   before_action :set_stop, only: [:show]
-  SERIALIZER = StopSerializer
 
   def index
     @stops = Stop.where('')
@@ -68,58 +58,46 @@ class Api::V1::StopsController < Api::V1::BaseApiController
     ]} # TODO: check performance against eager_load, joins, etc.
 
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(
-          @stops,
-          Proc.new { |params| api_v1_stops_url(params) },
-          params[:sort_key],
-          params[:sort_order],
-          params[:offset],
-          params[:per_page],
-          params[:total],
-          params.slice(
-            :identifier,
-            :identifier_starts_with,
-            :served_by,
-            :servedBy,
-            :lat,
-            :lon,
-            :r,
-            :bbox,
-            :onestop_id,
-            :tag_key,
-            :tag_value,
-            :import_level,
-            :imported_from_feed,
-            :imported_from_feed_version
-          )
-        )
-      end
-      format.geojson do
-        render json: Geojson.from_entity_collection(@stops, &GEOJSON_ENTITY_PROPERTIES)
-      end
-      format.csv do
-        return_downloadable_csv(@stops, 'stops')
-      end
+      format.json { render paginated_json_collection(@stops) }
+      format.geojson { render paginated_geojson_collection(@stops) }
+      format.csv { return_downloadable_csv(@stops, 'stops') }
     end
   end
 
   def show
     respond_to do |format|
-      format.json do
-        if self.class::SERIALIZER
-          render json: @stop, serializer: self.class::SERIALIZER
-        else
-          render json: @stop
-        end
-      end
-      format.geojson do
-        render json: Geojson.from_entity(@stop, &GEOJSON_ENTITY_PROPERTIES)
-      end
+      format.json { render json: @stop, serializer: StopSerializer }
+      format.geojson { render json: @stop, serializer: GeoJSONSerializer }
     end
   end
 
+  def paginated_json_collection(collection)
+    result = super
+    result[:root] = :stops
+    result[:each_serializer] = StopSerializer
+    result
+  end
+
   private
+
+  def query_params
+    params.slice(
+      :identifier,
+      :identifier_starts_with,
+      :served_by,
+      :servedBy,
+      :lat,
+      :lon,
+      :r,
+      :bbox,
+      :onestop_id,
+      :tag_key,
+      :tag_value,
+      :import_level,
+      :imported_from_feed,
+      :imported_from_feed_version
+    )
+  end
 
   def set_stop
     @stop = Stop.find_by_onestop_id!(params[:id])

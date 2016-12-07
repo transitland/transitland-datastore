@@ -19,7 +19,6 @@
 #  updated_at                         :datetime
 #  created_or_updated_in_changeset_id :integer
 #  geometry                           :geography({:srid geometry, 4326
-#  latest_fetch_exception_log         :text
 #  license_attribution_text           :text
 #  active_feed_version_id             :integer
 #  edited_attributes                  :string           default([]), is an Array
@@ -46,13 +45,13 @@ class FeedSerializer < ApplicationSerializer
              :license_attribution_text,
              :last_fetched_at,
              :last_imported_at,
-             :latest_fetch_exception_log,
              :import_status,
              :created_at,
              :updated_at,
              :feed_versions_count,
              :feed_versions_url,
              :feed_versions,
+             :issues,
              :active_feed_version,
              :import_level_of_active_feed_version,
              :created_or_updated_in_changeset_id,
@@ -74,6 +73,15 @@ class FeedSerializer < ApplicationSerializer
 
   def feed_versions
     object.feed_versions.pluck(:sha1) if object.persisted?
+  end
+
+  def issues
+    object.issues.map { |issue| { id: issue.id,
+                                  issue_type: issue.issue_type,
+                                  open: issue.open,
+                                  details: issue.details,
+                                  created_by_changeset_id: issue.created_by_changeset_id,
+                                  resolved_by_changeset_id: issue.resolved_by_changeset_id } }
   end
 
   def active_feed_version

@@ -31,31 +31,30 @@ class Issue < ActiveRecord::Base
   enumerize :issue_type,
             in: ['stop_position_inaccurate',
                  'stop_rsp_distance_gap',
+                 'missing_stop_conflation_result',
                  'distance_calculation_inaccurate',
                  'rsp_line_inaccurate',
                  'route_color',
                  'stop_name',
                  'route_name',
+                 'feed_fetch_invalid_url',
+                 'feed_fetch_invalid_zip',
+                 'feed_fetch_invalid_response',
+                 'feed_fetch_invalid_source',
+                 'feed_version_maintenance_extend',
+                 'feed_version_maintenance_import',
                  'uncategorized']
-
-  def changeset_from_entities
-    # all entities must have the same created or updated in changeset, or no changeset will represent them
-    changesets = entities_with_issues.map { |ewi| ewi.entity.created_or_updated_in_changeset }
-    if changesets.all? { |changeset| changeset.id == changesets.first.id }
-     changesets.first
-    end
-  end
-
-  def outdated?
-    # This can create false negatives if different changesets w/ same entities are made less than 1 second apart.
-    entities_with_issues.any? { |ewi| ewi.entity.created_or_updated_in_changeset.updated_at.to_i > created_at.to_i }
-  end
 
   def equivalent?(issue)
     self.issue_type == issue.issue_type &&
     Set.new(self.entities_with_issues.map(&:entity_id)) == Set.new(issue.entities_with_issues.map(&:entity_id)) &&
     Set.new(self.entities_with_issues.map(&:entity_type)) == Set.new(issue.entities_with_issues.map(&:entity_type)) &&
     Set.new(self.entities_with_issues.map(&:entity_attribute)) == Set.new(issue.entities_with_issues.map(&:entity_attribute))
+  end
+
+  def deprecate
+    log("Deprecating issue: #{self.as_json(include: [:entities_with_issues])}")
+    self.destroy
   end
 
   def self.find_by_equivalent(issue)
@@ -66,16 +65,9 @@ class Issue < ActiveRecord::Base
     }
   end
 
-  def deprecate
-    log("Deprecating issue: #{self.as_json(include: [:entities_with_issues])}")
-    self.destroy
-  end
-
-  def self.bulk_deprecate(issues: nil)
-    if issues.nil?
-      Issue.includes(:entities_with_issues).select{ |issue| issue.outdated? }.each {|issue| issue.deprecate }
-    else
-      issues.each { |issue| issue.deprecate } unless issues.nil?
-    end
+  def self.issues_of_entity(entity, entity_attributes: [])
+    issues = Issue.joins(:entities_with_issues).where(entities_with_issues: { entity: entity })
+    issues = issues.where("entity_attribute IN (?)", entity_attributes) unless entity_attributes.empty?
+    return issues
   end
 end

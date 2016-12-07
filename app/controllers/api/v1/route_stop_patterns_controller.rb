@@ -2,19 +2,6 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
   include JsonCollectionPagination
   include DownloadableCsv
   include AllowFiltering
-  include Geojson
-  GEOJSON_ENTITY_PROPERTIES = Proc.new { |properties, entity|
-    # properties for GeoJSON simple style spec
-    properties[:title] = "Route stop pattern #{entity.onestop_id}"
-    properties[:stroke] = "##{entity.route.color}" if entity.route.color.present?
-
-    properties[:route_onestop_id] = entity.route.onestop_id
-    properties[:stop_pattern] = entity.stop_pattern
-    properties[:stop_distances] = entity.stop_distances
-    properties[:is_generated] = entity.is_generated
-    properties[:is_modified] = entity.is_modified
-    properties[:color] = entity.route.color
-  }
 
   before_action :set_route_stop_pattern, only: [:show]
 
@@ -61,44 +48,31 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
     ]}
 
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(
-          @rsps,
-          Proc.new { |params| api_v1_route_stop_patterns_url(params) },
-          params[:sort_key],
-          params[:sort_order],
-          params[:offset],
-          params[:per_page],
-          params[:total],
-          params.slice(
-            :onestop_id,
-            :traversed_by,
-            :trip,
-            :bbox,
-            :stop_visited,
-            :imported_from_feed,
-            :imported_from_feed_version
-          )
-        )
-      end
-      format.geojson do
-        render json: Geojson.from_entity_collection(@rsps, &GEOJSON_ENTITY_PROPERTIES)
-      end
+      format.json { render paginated_json_collection(@rsps) }
+      format.geojson { render paginated_geojson_collection(@rsps) }
     end
   end
 
   def show
     respond_to do |format|
-      format.json do
-        render json: @route_stop_pattern
-      end
-      format.geojson do
-        render json: Geojson.from_entity(@route_stop_pattern, &GEOJSON_ENTITY_PROPERTIES)
-      end
+      format.json { render json: @route_stop_pattern }
+      format.geojson { render json: @route_stop_pattern, serializer: GeoJSONSerializer }
     end
   end
 
   private
+
+  def query_params
+    params.slice(
+      :onestop_id,
+      :traversed_by,
+      :trip,
+      :bbox,
+      :stop_visited,
+      :imported_from_feed,
+      :imported_from_feed_version
+    )
+  end
 
   def set_route_stop_pattern
     @route_stop_pattern = RouteStopPattern.find_by_onestop_id!(params[:id])

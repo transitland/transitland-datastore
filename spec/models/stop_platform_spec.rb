@@ -57,7 +57,8 @@ describe StopPlatform do
         stopPlatform: {
           onestopId: onestop_id,
           timezone: 'America/Los_Angeles',
-          parentStopOnestopId: stop.onestop_id
+          parentStopOnestopId: stop.onestop_id,
+          geometry: { type: "Point", coordinates: [-122.475075, 37.721323] }
         }
       }]}
       changeset = Changeset.create(payload: payload)
@@ -70,7 +71,7 @@ describe StopPlatform do
     it 'can be associated with a different parent stop' do
       stop1 = create(:stop)
       stop2 = create(:stop)
-      stop_platform = StopPlatform.create!(
+      stop_platform = create(:stop_platform,
         onestop_id: "#{stop1.onestop_id}<test",
         timezone: stop1.timezone,
         parent_stop: stop1
@@ -94,6 +95,7 @@ describe StopPlatform do
         stopPlatform: {
           onestopId: 's-123-foo<bar',
           timezone: 'America/Los_Angeles',
+          geometry: { type: "Point", coordinates: [-122.475075, 37.721323] }
         }
       }]}
       changeset = Changeset.create()
@@ -107,7 +109,8 @@ describe StopPlatform do
         stopPlatform: {
           onestopId: 's-123-foo<bar',
           timezone: 'America/Los_Angeles',
-          parentStopOnestopId: 's-123-foo'
+          parentStopOnestopId: 's-123-foo',
+          geometry: { type: "Point", coordinates: [-122.475075, 37.721323] }
         }
       }]}
       changeset = Changeset.create()
