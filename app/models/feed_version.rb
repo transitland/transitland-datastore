@@ -122,6 +122,13 @@ class FeedVersion < ActiveRecord::Base
     end
   end
 
+  def feedvalidator_url
+    if self.try(:file).try(:url)
+      # we don't want to include any query parameters
+      self.file_feedvalidator.url.split('?').first
+    end
+  end
+
   private
 
   def compute_and_set_hashes
