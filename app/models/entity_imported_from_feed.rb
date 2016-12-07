@@ -27,6 +27,5 @@ class EntityImportedFromFeed < ActiveRecord::Base
   validates :entity,
             :feed,
             :feed_version,
-            :gtfs_id,
             presence: true
 end
