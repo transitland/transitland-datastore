@@ -40,7 +40,7 @@ module IsAnEntityImportedFromFeeds
 
     attr_accessor :add_imported_from_feed_versions, :not_imported_from_feed_versions
     def update_entity_imported_from_feeds(changeset)
-      (self.add_imported_from_feed_versions || []).each do |eiff|
+      (self.add_imported_from_feed_versions || []).uniq.each do |eiff|
         feed_version = FeedVersion.find_by!(sha1: eiff[:feed_version])
         gtfs_id = eiff[:gtfs_id]
         self.entities_imported_from_feed.find_or_create_by!(
@@ -49,7 +49,7 @@ module IsAnEntityImportedFromFeeds
           gtfs_id: gtfs_id
         )
       end
-      (self.not_imported_from_feed_versions || []).each do |eiff|
+      (self.not_imported_from_feed_versions || []).uniq.each do |eiff|
         feed_version = FeedVersion.find_by!(sha1: eiff[:feed_version])
         gtfs_id = eiff[:gtfs_id]
         self.entities_imported_from_feed.find_by!(
