@@ -71,8 +71,8 @@ class Operator < BaseOperator
       :does_not_serve,
       :identified_by,
       :not_identified_by,
-      :add_imported_from_feed_versions,
-      :not_imported_from_feed_versions
+      :add_imported_from_feeds,
+      :not_imported_from_feeds
     ],
     protected_attributes: [
       :identifiers

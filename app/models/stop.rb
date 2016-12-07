@@ -82,8 +82,8 @@ class Stop < BaseStop
       :not_identified_by,
       :includes_stop_transfers,
       :does_not_include_stop_transfers,
-      :add_imported_from_feed_versions,
-      :not_imported_from_feed_versions
+      :add_imported_from_feeds,
+      :not_imported_from_feeds
     ],
     protected_attributes: [
       :identifiers,

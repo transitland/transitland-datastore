@@ -514,8 +514,8 @@ class GTFSGraph
   ##### Identifiers #####
 
   def add_identifier(tl_entity, gtfs_entity, gtfs_id)
-    tl_entity.add_imported_from_feed_versions ||= []
-    tl_entity.add_imported_from_feed_versions << {feedVersion: @feed_version.sha1, gtfsId: gtfs_id}
+    tl_entity.add_imported_from_feeds ||= []
+    tl_entity.add_imported_from_feeds << {feedVersion: @feed_version.sha1, gtfsId: gtfs_id}
     @gtfs_to_onestop_id[gtfs_entity] = tl_entity.onestop_id if gtfs_entity
   end
 
