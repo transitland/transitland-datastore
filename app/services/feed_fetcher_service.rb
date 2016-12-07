@@ -139,7 +139,7 @@ class FeedFetcherService
         url: feed.url,
         file: gtfs_file,
         file_raw: gtfs_file_raw,
-        # file_feedvalidator: file_feedvalidator,
+        file_feedvalidator: file_feedvalidator,
         fetched_at: DateTime.now
       }
       data = data.merge!(read_gtfs_info(gtfs))
