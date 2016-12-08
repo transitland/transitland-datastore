@@ -18,6 +18,7 @@
 class EntityWithIssuesSerializer < ApplicationSerializer
   attributes  :onestop_id,
               :id,
+              :entity_type,
               :entity_attribute
 
   def onestop_id
