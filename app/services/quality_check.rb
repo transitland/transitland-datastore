@@ -17,11 +17,11 @@ class QualityCheck::StationHierarchyQualityCheck < QualityCheck
       parent_stop.stop_platforms.each do |stop_platform|
         self.stop_platform_parent_distance_gap(parent_stop, stop_platform)
       end
+    end
 
-      self.changeset.stop_platforms_created_or_updated.each do |stop_platform|
-        parent_stop = stop_platform.parent_stop
-        self.stop_platform_parent_distance_gap(parent_stop, stop_platform)
-      end
+    self.changeset.stop_platforms_created_or_updated.each do |stop_platform|
+      parent_stop = stop_platform.parent_stop
+      self.stop_platform_parent_distance_gap(parent_stop, stop_platform)
     end
     self.issues
   end
