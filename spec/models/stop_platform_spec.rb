@@ -117,5 +117,22 @@ describe StopPlatform do
       changeset.change_payloads.create!(payload: payload)
       expect{changeset.apply!}.to raise_error(Changeset::Error)
     end
+
+    it 'creates issues' do
+      stop = create(:stop, geometry: Stop::GEOFACTORY.point(-122.401811, 37.706675).to_s)
+      onestop_id = "#{stop.onestop_id}<test"
+      payload = {changes: [{
+        action: 'createUpdate',
+        stopPlatform: {
+          onestopId: onestop_id,
+          timezone: 'America/Los_Angeles',
+          parentStopOnestopId: stop.onestop_id,
+          geometry: { type: "Point", coordinates: [-122.475075, 37.721323] }
+        }
+      }]}
+      changeset = Changeset.create(payload: payload)
+      changeset.apply!
+      expect(Issue.where(issue_type: 'stop_platform_parent_distance_gap').size).to be >= 1
+    end
   end
 end

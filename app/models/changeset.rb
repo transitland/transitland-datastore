@@ -48,6 +48,9 @@ class Changeset < ActiveRecord::Base
   has_many :stops_created_or_updated, class_name: 'Stop', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :stops_destroyed, class_name: 'OldStop', foreign_key: 'destroyed_in_changeset_id'
 
+  has_many :stop_platforms_created_or_updated, class_name: 'StopPlatform', foreign_key: 'created_or_updated_in_changeset_id'
+  has_many :stop_platforms_destroyed, class_name: 'StopPlatform', foreign_key: 'destroyed_in_changeset_id'
+
   has_many :operators_created_or_updated, class_name: 'Operator', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :operators_destroyed, class_name: 'OldOperator', foreign_key: 'destroyed_in_changeset_id'
 
