@@ -43,6 +43,7 @@ class Issue < ActiveRecord::Base
                  'feed_fetch_invalid_source',
                  'feed_version_maintenance_extend',
                  'feed_version_maintenance_import',
+                 'stop_platform_parent_distance_gap',
                  'uncategorized']
 
   def equivalent?(issue)

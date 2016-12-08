@@ -167,8 +167,10 @@ class Changeset < ActiveRecord::Base
 
   def check_quality
     gqc = QualityCheck::GeometryQualityCheck.new(changeset: self)
+    shqc = QualityCheck::StationHierarchyQualityCheck.new(changeset: self)
     issues = []
     issues += gqc.check
+    issues += shqc.check
     issues
   end
 

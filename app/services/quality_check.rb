@@ -11,6 +11,23 @@ class QualityCheck
   end
 end
 
+class QualityCheck::StationHierarchyQualityCheck < QualityCheck
+  def check
+    self.changeset.stops_created_or_updated.each do |parent_stop|
+      stop.stop_platforms.each do |stop_platform|
+        if (parent_stop[:geometry].distance(stop_platform[:geometry]) > 500.0)
+          issue = Issue.new(created_by_changeset: self.changeset,
+                            issue_type: 'stop_platform_parent_distance_gap',
+                            details: "Stop Platform #{stop_platform.onestop_id} is too far from parent stop #{parent_stop.parent_stop_onestop_id}.")
+          issue.entities_with_issues.new(entity: parent_stop, issue: issue, entity_attribute: 'geometry')
+          issue.entities_with_issues.new(entity: stop_platform, issue: issue, entity_attribute: 'geometry')
+          self.issues << issue
+        end
+      end
+    end
+  end
+end
+
 class QualityCheck::GeometryQualityCheck < QualityCheck
 
   LAST_STOP_DISTANCE_LENIENCY = 5.0 #meters
