@@ -51,13 +51,13 @@ class FeedSerializer < ApplicationSerializer
              :feed_versions_count,
              :feed_versions_url,
              :feed_versions,
-             :issues,
              :active_feed_version,
              :import_level_of_active_feed_version,
              :created_or_updated_in_changeset_id,
              :changesets_imported_from_this_feed
 
   has_many :operators_in_feed
+  has_many :issues, through: :entities_with_issues
 
   def feed_versions_count
     object.feed_versions.count
@@ -73,15 +73,6 @@ class FeedSerializer < ApplicationSerializer
 
   def feed_versions
     object.feed_versions.pluck(:sha1) if object.persisted?
-  end
-
-  def issues
-    object.issues.map { |issue| { id: issue.id,
-                                  issue_type: issue.issue_type,
-                                  open: issue.open,
-                                  details: issue.details,
-                                  created_by_changeset_id: issue.created_by_changeset_id,
-                                  resolved_by_changeset_id: issue.resolved_by_changeset_id } }
   end
 
   def active_feed_version
