@@ -24,11 +24,13 @@ module RGeo
       end
 
       def before?(target)
-        return _segments.find{ |seg| !seg.s.eql?(seg.e) }.tproj(target) < 0.0 ? true : false
+        segs = _segments.find{ |seg| !seg.s.eql?(seg.e) }
+        return !segs.nil? && segs.tproj(target) < 0.0 ? true : false
       end
 
       def after?(target)
-        return _segments.reverse_each.detect { |seg| !seg.s.eql?(seg.e) }.tproj(target) > 1.0 ? true : false
+        segs = _segments.reverse_each.detect { |seg| !seg.s.eql?(seg.e) }
+        return !segs.nil? && segs.tproj(target) > 1.0 ? true : false
       end
     end
 
