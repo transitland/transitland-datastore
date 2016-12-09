@@ -2,11 +2,39 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.13...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.14...HEAD)
 
 **Merged pull requests:**
 
+- Production release 4.9.14 [\#863](https://github.com/transitland/transitland-datastore/pull/863) ([irees](https://github.com/irees))
+
+## [4.9.14](https://github.com/transitland/transitland-datastore/tree/4.9.14) (2016-12-07)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.13...4.9.14)
+
+**Implemented enhancements:**
+
+- Feed issues association [\#864](https://github.com/transitland/transitland-datastore/issues/864)
+- allow filtering of feed versions by calendar dates [\#851](https://github.com/transitland/transitland-datastore/issues/851)
+
+**Closed issues:**
+
+- FeedVersion: Attach feedvalidator.py output [\#868](https://github.com/transitland/transitland-datastore/issues/868)
+- Sample Changeset Feeds need geometries [\#859](https://github.com/transitland/transitland-datastore/issues/859)
+- Issue for null island stops [\#835](https://github.com/transitland/transitland-datastore/issues/835)
+- OperatorsInFeed: Operator referenced by multiple gtfs agency\_id's [\#735](https://github.com/transitland/transitland-datastore/issues/735)
+
+**Merged pull requests:**
+
+- FeedVersion serializer: url [\#874](https://github.com/transitland/transitland-datastore/pull/874) ([irees](https://github.com/irees))
+- Feedvalidator attachment fixes [\#873](https://github.com/transitland/transitland-datastore/pull/873) ([irees](https://github.com/irees))
+- FeedVersion: Attach feedvalidator.py output [\#872](https://github.com/transitland/transitland-datastore/pull/872) ([irees](https://github.com/irees))
+- update gems [\#870](https://github.com/transitland/transitland-datastore/pull/870) ([drewda](https://github.com/drewda))
+- FeedVersion: filter calendar dates [\#867](https://github.com/transitland/transitland-datastore/pull/867) ([irees](https://github.com/irees))
+- feed issue associations and serialization [\#865](https://github.com/transitland/transitland-datastore/pull/865) ([doublestranded](https://github.com/doublestranded))
+- copying operator geoms over to feed [\#860](https://github.com/transitland/transitland-datastore/pull/860) ([doublestranded](https://github.com/doublestranded))
 - Production release 4.9.13 [\#858](https://github.com/transitland/transitland-datastore/pull/858) ([irees](https://github.com/irees))
+- Null island stop issues [\#845](https://github.com/transitland/transitland-datastore/pull/845) ([doublestranded](https://github.com/doublestranded))
+- Feed: Operator referenced by multiple gtfs agency\_id's [\#743](https://github.com/transitland/transitland-datastore/pull/743) ([irees](https://github.com/irees))
 
 ## [4.9.13](https://github.com/transitland/transitland-datastore/tree/4.9.13) (2016-11-21)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.12...4.9.13)
