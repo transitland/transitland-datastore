@@ -12,6 +12,8 @@ class QualityCheck
 end
 
 class QualityCheck::StationHierarchyQualityCheck < QualityCheck
+  STOP_PLATFORM_PARENT_DIST_GAP_THRESHOLD = 500.0
+
   def check
     self.changeset.stops_created_or_updated.each do |parent_stop|
       parent_stop.stop_platforms.each do |stop_platform|
@@ -22,12 +24,14 @@ class QualityCheck::StationHierarchyQualityCheck < QualityCheck
     self.changeset.stop_platforms_created_or_updated.each do |stop_platform|
       parent_stop = stop_platform.parent_stop
       self.stop_platform_parent_distance_gap(parent_stop, stop_platform)
+      self.stop_platform_trips(stop_platform)
+      self.no_parent_station(stop_platform)
     end
     self.issues
   end
 
   def stop_platform_parent_distance_gap(parent_stop, stop_platform)
-    if (parent_stop[:geometry].distance(stop_platform[:geometry]) > 500.0)
+    if (parent_stop[:geometry].distance(stop_platform[:geometry]) > STOP_PLATFORM_PARENT_DIST_GAP_THRESHOLD)
       issue = Issue.new(created_by_changeset: self.changeset,
                         issue_type: 'stop_platform_parent_distance_gap',
                         details: "Stop Platform #{stop_platform.parent_stop_onestop_id} is too far from parent stop #{parent_stop.onestop_id}.")
@@ -36,8 +40,31 @@ class QualityCheck::StationHierarchyQualityCheck < QualityCheck
       self.issues << issue
     end
   end
+
+  def stop_platform_trips(stop_platform)
+    if (self.changeset.import? && [2,4].include?(self.changeset.imported_from_feed_version.import_level))
+      if (stop_platform.trips_in.size == 0 && stop_platform.trips_out.size == 0)
+        issue = Issue.new(created_by_changeset: self.changeset,
+                          issue_type: 'stop_platform_no_trips',
+                          details: "Stop Platform #{stop_platform.parent_stop_onestop_id} is not visited by any trips.")
+        issue.entities_with_issues.new(entity: stop_platform, issue: issue, entity_attribute: 'association')
+        self.issues << issue
+      end
+    end
+  end
+
+  def no_parent_station(stop_platform)
+    if (stop_platform.parent_stop.nil?)
+      issue = Issue.new(created_by_changeset: self.changeset,
+                        issue_type: 'stop_platform_no_parent',
+                        details: "Stop Platform #{stop_platform.parent_stop_onestop_id} is not visited by any trips.")
+      issue.entities_with_issues.new(entity: stop_platform, issue: issue, entity_attribute: 'association')
+      self.issues << issue
+    end
+  end
 end
 
+# TODO rename to RouteGeometry?
 class QualityCheck::GeometryQualityCheck < QualityCheck
 
   LAST_STOP_DISTANCE_LENIENCY = 5.0 #meters
