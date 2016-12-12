@@ -134,9 +134,5 @@ describe StopPlatform do
       changeset.apply!
       expect(Issue.where(issue_type: 'stop_platform_parent_distance_gap').size).to be >= 1
     end
-
-    it 'creates stop platform with no parent issues' do
-
-    end
   end
 end

@@ -52,16 +52,6 @@ class QualityCheck::StationHierarchyQualityCheck < QualityCheck
       end
     end
   end
-
-  def no_parent_station(stop_platform)
-    if (stop_platform.parent_stop.nil?)
-      issue = Issue.new(created_by_changeset: self.changeset,
-                        issue_type: 'stop_platform_no_parent',
-                        details: "Stop Platform #{stop_platform.parent_stop_onestop_id} is not visited by any trips.")
-      issue.entities_with_issues.new(entity: stop_platform, issue: issue, entity_attribute: 'association')
-      self.issues << issue
-    end
-  end
 end
 
 # TODO rename to RouteGeometry?
