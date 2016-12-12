@@ -25,7 +25,6 @@ class QualityCheck::StationHierarchyQualityCheck < QualityCheck
       parent_stop = stop_platform.parent_stop
       self.stop_platform_parent_distance_gap(parent_stop, stop_platform)
       self.stop_platform_trips(stop_platform)
-      self.no_parent_station(stop_platform)
     end
     self.issues
   end
