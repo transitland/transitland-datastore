@@ -42,7 +42,9 @@ class StopEgress < Stop
       :not_identified_by,
       :parent_stop_onestop_id,
       :includes_stop_transfers,
-      :does_not_include_stop_transfers
+      :does_not_include_stop_transfers,
+      :add_imported_from_feeds,
+      :not_imported_from_feeds
     ],
     protected_attributes: [
       :identifiers,

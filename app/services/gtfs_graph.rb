@@ -334,7 +334,7 @@ class GTFSGraph
     # Create parent stops first
     gtfs_stops.each do |gtfs_stop|
       stop = find_and_update_entity(Stop.from_gtfs(gtfs_stop))
-      add_identifier(stop, 's', gtfs_stop)
+      add_identifier(stop, gtfs_stop, gtfs_stop.id)
       graph_log "    Stop: #{stop.onestop_id}: #{stop.name}"
     end
     # Create child stops
@@ -352,7 +352,7 @@ class GTFSGraph
       end
       # index
       stop = find_and_update_entity(stop)
-      add_identifier(stop, 's', gtfs_stop)
+      add_identifier(stop, gtfs_stop, gtfs_stop.id)
       graph_log "    StopPlatform: #{stop.onestop_id}: #{stop.name}"
     end
   end
@@ -414,7 +414,7 @@ class GTFSGraph
       routes.each { |route| route.operated_by = operator.onestop_id }
       operator.serves ||= Set.new
       operator.serves |= routes.map(&:onestop_id)
-      add_identifier(operator, 'o', entity)
+      add_identifier(operator, entity, entity.id)
 
       # Add to found operators
       operators << operator
@@ -441,7 +441,7 @@ class GTFSGraph
       # Add references and identifiers
       route.serves ||= Set.new
       route.serves |= stops.map(&:onestop_id)
-      add_identifier(route, 'r', entity)
+      add_identifier(route, entity, entity.id)
       graph_log "    #{route.onestop_id}: #{route.name}"
     end
   end
@@ -465,15 +465,8 @@ class GTFSGraph
       test_rsp = RouteStopPattern.create_from_gtfs(trip, tl_route.onestop_id, stop_pattern, trip_stop_points, feed_shape_points)
       rsp = find_and_update_entity(test_rsp)
       rsp.traversed_by = tl_route.onestop_id
+      add_identifier(rsp, nil, trip.shape_id)
       graph_log "   #{rsp.onestop_id}"  if test_rsp.equal?(rsp)
-      unless trip.shape_id.blank?
-        identifier = OnestopId::create_identifier(
-          @feed.onestop_id,
-          'shape',
-          trip.shape_id
-        )
-        rsp.add_identifier(identifier)
-      end
       @gtfs_to_onestop_id[trip] = rsp.onestop_id
       rsp.trips << trip.trip_id unless rsp.trips.include?(trip.trip_id)
       rsp.route = tl_route
@@ -520,14 +513,10 @@ class GTFSGraph
 
   ##### Identifiers #####
 
-  def add_identifier(tl_entity, prefix, gtfs_entity)
-    identifier = OnestopId::create_identifier(
-      @feed.onestop_id,
-      prefix,
-      gtfs_entity.id
-    )
-    tl_entity.add_identifier(identifier)
-    @gtfs_to_onestop_id[gtfs_entity] = tl_entity.onestop_id
+  def add_identifier(tl_entity, gtfs_entity, gtfs_id)
+    tl_entity.add_imported_from_feeds ||= []
+    tl_entity.add_imported_from_feeds << {feedVersion: @feed_version.sha1, gtfsId: gtfs_id}
+    @gtfs_to_onestop_id[gtfs_entity] = tl_entity.onestop_id if gtfs_entity
   end
 
   def make_gtfs_id_map

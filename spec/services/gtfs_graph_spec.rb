@@ -83,7 +83,6 @@ describe GTFSGraph do
         expect(o.name).to eq('Caltrain')
         expect(o.onestop_id).to eq('o-9q9-caltrain')
         expect(o.geometry).to be
-        expect(o.identifiers).to contain_exactly("gtfs://f-9q9-caltrain/o/caltrain-ca-us")
         expect(o.timezone).to eq('America/Los_Angeles')
         expect(o.website).to eq('http://www.caltrain.com')
       end
@@ -95,7 +94,6 @@ describe GTFSGraph do
         expect(r).to be_truthy
         expect(r.name).to eq('Bullet')
         expect(r.onestop_id).to eq('r-9q9j-bullet')
-        expect(r.identifiers).to match_array(["gtfs://f-9q9-caltrain/r/Bu-121"])
         expect(r.vehicle_type).to eq(:rail)
         expect(r.vehicle_type_value).to eq(2)
         expect(r.tags['route_long_name']).to eq('Bullet')
@@ -112,9 +110,6 @@ describe GTFSGraph do
         expect(s.onestop_id).to eq('s-9q9k659e3r-sanjosecaltrainstation')
         # expect(s.tags['']) # no tags
         expect(s.geometry).to be
-        expect(s.identifiers).to contain_exactly(
-          "gtfs://f-9q9-caltrain/s/ctsj"
-        )
         expect(s.timezone).to eq('America/Los_Angeles')
       end
 
@@ -339,23 +334,22 @@ describe GTFSGraph do
       expect(@feed.imported_routes.size).to eq 5
       expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-60')).to be_falsey
       load_feed(feed_version: @feed_version_update_add, import_level: 1)
-      expect(@feed.imported_routes.size).to eq 11
-      expect(@feed.imported_stops.size).to eq 19
-      expect(@feed.imported_routes.uniq.size).to eq 6
+      expect(@feed.imported_stops.size).to eq 10
+      expect(@feed.imported_routes.size).to eq 6
       expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-60')).to be_truthy
       expect(@feed.imported_stops.find_by_onestop_id('s-9qt1hbwder-newstop')).to be_truthy
     end
 
     it 'does not delete a previous feed version entity' do
-      expect(@feed.imported_routes.size).to eq 5
       expect(@feed.imported_stops.size).to eq 9
+      expect(@feed.imported_routes.size).to eq 5
       expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-10')).to be_truthy
       load_feed(feed_version: @feed_version_update_delete, import_level: 1)
       expect(@original_feed_version.imported_routes.find_by_onestop_id('r-9qscy-10')).to be_truthy
       expect(@feed_version_update_delete.imported_routes.find_by_onestop_id('r-9qscy-10')).to be_falsey
       expect(@feed_version_update_delete.imported_stops.find_by_onestop_id('s-9qsczn2rk0-emainst~sirvingstdemo')).to be_falsey
-      expect(@feed.imported_routes.size).to eq 10
-      expect(@feed.imported_stops.size).to eq 17
+      expect(@feed.imported_stops.size).to eq 9
+      expect(@feed.imported_routes.size).to eq 6
     end
 
     it 'updates previous matching feed version entities with new attribute values' do
