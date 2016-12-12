@@ -12,12 +12,8 @@ class Api::V1::UsersController < Api::V1::BaseApiController
     @users = AllowFiltering.by_primary_key_ids(@users, params)
 
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(@users)
-      end
-      format.csv do
-        return_downloadable_csv(@users, 'users')
-      end
+      format.json { render paginated_json_collection(@users) }
+      format.csv { return_downloadable_csv(@users, 'users') }
     end
   end
 

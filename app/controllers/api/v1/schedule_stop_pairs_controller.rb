@@ -56,7 +56,6 @@
 #
 
 class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
-  include Geojson
   include JsonCollectionPagination
   include DownloadableCsv
   include AllowFiltering
@@ -65,12 +64,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
 
   def index
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(@ssps)
-      end
-      format.geojson do
-        render json: Geojson.from_entity_collection(@ssps)
-      end
+      format.json { render paginated_json_collection(@ssps) }
     end
   end
 

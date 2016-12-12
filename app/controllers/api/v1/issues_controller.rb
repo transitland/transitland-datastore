@@ -19,13 +19,15 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
       @issues = @issues.from_feed(params[:feed_onestop_id])
     end
 
+    if params[:of_entity].present?
+      @issues = @issues.issues_of_entity(OnestopId.find!(params[:of_entity]))
+    end
+
     # entities_with_issues entity still loading with n+1 queries; not sure how to fix
     @issues = @issues.includes([:entities_with_issues, created_by_changeset: [:imported_from_feed, :imported_from_feed_version]])
 
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(@issues)
-      end
+      format.json { render paginated_json_collection(@issues) }
     end
   end
 

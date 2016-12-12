@@ -4,20 +4,6 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
   include JsonCollectionPagination
   include DownloadableCsv
   include AllowFiltering
-  include Geojson
-  GEOJSON_ENTITY_PROPERTIES = Proc.new { |properties, entity|
-    # title property to follow GeoJSON simple style spec
-    title = name
-    title += " (#{entity.short_name})" if entity.short_name.present?
-    properties[:title] = title
-
-    properties[:short_name] = entity.short_name
-    properties[:website] = entity.website
-    properties[:country] = entity.country
-    properties[:state] = entity.state
-    properties[:metro] = entity.metro
-    properties[:timezone] = entity.timezone
-  }
 
   before_action :set_operator, only: [:show]
 
@@ -62,26 +48,16 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
     ]}
 
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(@operators)
-      end
-      format.geojson do
-        render json: Geojson.from_entity_collection(@operators, &GEOJSON_ENTITY_PROPERTIES)
-      end
-      format.csv do
-        return_downloadable_csv(@operators, 'operators')
-      end
+      format.json { render paginated_json_collection(@operators) }
+      format.geojson { render paginated_geojson_collection(@operators) }
+      format.csv { return_downloadable_csv(@operators, 'operators') }
     end
   end
 
   def show
     respond_to do |format|
-      format.json do
-        render json: @operator
-      end
-      format.geojson do
-        render json: Geojson.from_entity(@operator, &GEOJSON_ENTITY_PROPERTIES)
-      end
+      format.json { render json: @operator }
+      format.geojson { render json: @operator, serializer: GeoJSONSerializer }
     end
   end
 

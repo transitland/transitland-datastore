@@ -48,7 +48,7 @@ FactoryGirl.define do
     )}
   end
 
-  factory :route_stop_pattern_bart, class: RouteStopPattern do
+  factory :route_stop_pattern_bart, parent: :route_stop_pattern, class: RouteStopPattern do
     geometry { RouteStopPattern.line_string([
       [-122.353165, 37.936887],
       [-122.38666, 37.599787]
@@ -57,8 +57,6 @@ FactoryGirl.define do
       's-9q8zzf1nks-richmond',
       's-9q8vzhbf8h-millbrae'
     ]}
-    stop_distances {[nil,nil]}
-    version 1
     association :route, factory: :route, onestop_id: 'r-9q8y-richmond~dalycity~millbrae', name: 'Richmond - Daly City/Millbrae'
     after(:build) { |rsp_bart|
       rsp_bart.onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(

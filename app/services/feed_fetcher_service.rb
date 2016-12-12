@@ -3,6 +3,7 @@ class FeedFetcherService
 
   REFETCH_WAIT = 24.hours
   SPLIT_REFETCH_INTO_GROUPS = 48 # and only refetch the first group
+  FEEDVALIDATOR_PATH = './virtualenv/bin/feedvalidator.py'
 
   def self.fetch_this_feed_now(feed)
     sync_fetch_and_return_feed_versions([feed])
@@ -38,36 +39,65 @@ class FeedFetcherService
     feed_version = nil
     log "Fetching feed #{feed.onestop_id} from #{feed.url}"
     # Try to fetch and normalize feed; log error
-    begin
-      feed_version = fetch_and_normalize_feed_version(feed)
-    rescue GTFS::InvalidSourceException => e
+    error_handler = Proc.new { |e, issue_type|
       fetch_exception_log = e.message
       if e.backtrace.present?
         fetch_exception_log << "\n"
         fetch_exception_log << e.backtrace.join("\n")
       end
       log fetch_exception_log, level=:error
+      Issue.create!(issue_type: issue_type, details: fetch_exception_log)
+        .entities_with_issues.create!(entity: feed, entity_attribute: "url")
+    }
+    begin
+      Issue.issues_of_entity(feed, entity_attributes: ["url"]).each(&:deprecate)
+      feed_version = fetch_and_normalize_feed_version(feed)
+    rescue GTFS::InvalidURLException => e
+      error_handler.call(e, 'feed_fetch_invalid_url')
+    rescue GTFS::InvalidResponseException => e
+      error_handler.call(e, 'feed_fetch_invalid_response')
+    rescue GTFS::InvalidZipException => e
+      error_handler.call(e, 'feed_fetch_invalid_zip')
+    rescue GTFS::InvalidSourceException => e
+      error_handler.call(e, 'feed_fetch_invalid_source')
     ensure
       feed.update(
-        latest_fetch_exception_log: fetch_exception_log,
         last_fetched_at: DateTime.now
       )
     end
     # Return if there was not a successful fetch.
     return unless feed_version
     return unless feed_version.valid?
-    if feed_version.persisted?
-      log "File downloaded from #{feed.url} has an existing sha1 hash: #{feed_version.sha1}"
-    else
-      log "File downloaded from #{feed.url} has a new sha1 hash: #{feed_version.sha1}"
-      feed_version.save!
-    end
+    log "File downloaded from #{feed.url}, sha1 hash: #{feed_version.sha1}"
     # Return found/created FeedVersion
     feed_version
   end
 
   def self.url_fragment(url)
     (url || "").partition("#").last.presence
+  end
+
+  def self.run_google_feedvalidator(filename)
+    # Validate
+    return unless Figaro.env.run_google_feedvalidator.presence == 'true'
+    # Create a tempfile to use the filename.
+    outfile = nil
+    Tempfile.open(['feedvalidator', '.html']) do |tmpfile|
+      outfile = tmpfile.path
+    end
+    # Run feedvalidator
+    feedvalidator_output = IO.popen([
+      FEEDVALIDATOR_PATH,
+      '-n',
+      '-o',
+      outfile,
+      filename
+    ]).read
+    return unless File.exists?(outfile)
+    # Unlink temporary file
+    file_feedvalidator = File.open(outfile)
+    File.unlink(outfile)
+    file_feedvalidator
   end
 
   def self.fetch_and_normalize_feed_version(feed)
@@ -94,18 +124,23 @@ class FeedFetcherService
       gtfs_file = File.open(gtfs.archive)
       sha1 = Digest::SHA1.file(gtfs_file).hexdigest
     end
+
     # Create a new FeedVersion
     feed_version = FeedVersion.find_by(sha1: sha1)
     if !feed_version
+      # Validate the new data
+      file_feedvalidator = run_google_feedvalidator(gtfs_file.path)
+      # New FeedVersion
       data = {
         feed: feed,
         url: feed.url,
         file: gtfs_file,
         file_raw: gtfs_file_raw,
+        file_feedvalidator: file_feedvalidator,
         fetched_at: DateTime.now
       }
       data = data.merge!(read_gtfs_info(gtfs))
-      feed_version = FeedVersion.new(data)
+      feed_version = FeedVersion.create!(data)
     end
     feed_version
   end
