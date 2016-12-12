@@ -2,7 +2,7 @@ class FeedActivationWorker
   include Sidekiq::Worker
 
   def perform(feed_onestop_id, feed_version_sha1, import_level)
-    logger.info "FeedActivationWorker #{feed_onestop_id}: activating #{feed_version_sha1} at import_level #{import_level}"
+    log "FeedActivationWorker #{feed_onestop_id}: activating #{feed_version_sha1} at import_level #{import_level}"
     # Find Feed & FeedVersions
     feed = Feed.find_by_onestop_id!(feed_onestop_id)
     new_active_feed_version = feed.feed_versions.find_by!(sha1: feed_version_sha1)

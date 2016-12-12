@@ -7,12 +7,12 @@ class FeedFetcherWorker
   def perform(feed_onestop_id)
     begin
       feed = Feed.find_by_onestop_id!(feed_onestop_id)
-      logger.info "FeedFetcherWorker checking #{feed.onestop_id}"
+      log "FeedFetcherWorker checking #{feed.onestop_id}"
       feed_version = FeedFetcherService.fetch_and_return_feed_version(feed)
       if feed_version
-        logger.info "FeedFetcherWorker checked #{feed.onestop_id} and found sha1: #{feed_version.sha1}"
+        log "FeedFetcherWorker checked #{feed.onestop_id} and found sha1: #{feed_version.sha1}"
       else
-        logger.info "FeedFetcherWorker checked #{feed.onestop_id} and didn't return a FeedVersion"
+        log "FeedFetcherWorker checked #{feed.onestop_id} and didn't return a FeedVersion"
       end
     rescue Exception => e
       # NOTE: we're catching all exceptions, including Interrupt,
