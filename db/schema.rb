@@ -11,8 +11,8 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161129205145) do
-  
+ActiveRecord::Schema.define(version: 20161207070207) do
+
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "postgis"
@@ -364,6 +364,7 @@ ActiveRecord::Schema.define(version: 20161129205145) do
     t.string   "file_raw"
     t.string   "sha1_raw"
     t.string   "md5_raw"
+    t.string   "file_feedvalidator"
   end
 
   add_index "feed_versions", ["earliest_calendar_date"], name: "index_feed_versions_on_earliest_calendar_date", using: :btree
