@@ -13,6 +13,7 @@ end
 
 class QualityCheck::StationHierarchyQualityCheck < QualityCheck
   STOP_PLATFORM_PARENT_DIST_GAP_THRESHOLD = 500.0
+  MINIMUM_DIST_BETWEEN_PLATFORMS = 0.0
 
   def check
     self.changeset.stops_created_or_updated.each do |parent_stop|
@@ -21,10 +22,15 @@ class QualityCheck::StationHierarchyQualityCheck < QualityCheck
       end
     end
 
+    # TODO: evaluate efficiency
     self.changeset.stop_platforms_created_or_updated.each do |stop_platform|
       parent_stop = stop_platform.parent_stop
       self.stop_platform_parent_distance_gap(parent_stop, stop_platform)
       self.stop_platform_trips(stop_platform)
+      self.changeset.stop_platforms_created_or_updated.each do |other_stop_platform|
+        next if stop_platform.onestop_id.eql?(other_stop_platform.onestop_id)
+        self.distance_between_stop_platforms(stop_platform, other_stop_platform)
+      end
     end
     self.issues
   end
@@ -49,6 +55,17 @@ class QualityCheck::StationHierarchyQualityCheck < QualityCheck
         issue.entities_with_issues.new(entity: stop_platform, issue: issue, entity_attribute: 'association')
         self.issues << issue
       end
+    end
+  end
+
+  def distance_between_stop_platforms(stop_platform, other_stop_platform)
+    if (stop_platform[:geometry].distance(other_stop_platform[:geometry]) <= MINIMUM_DIST_BETWEEN_PLATFORMS)
+      issue = Issue.new(created_by_changeset: self.changeset,
+                        issue_type: 'stop_platforms_too_close',
+                        details: "Stop platform #{stop_platform.parent_stop_onestop_id} is too close to stop platform #{other_stop_platform.onestop_id}")
+      issue.entities_with_issues.new(entity: stop_platform, issue: issue, entity_attribute: 'geometry')
+      issue.entities_with_issues.new(entity: other_stop_platform, issue: issue, entity_attribute: 'geometry')
+      self.issues << issue
     end
   end
 end

@@ -134,5 +134,33 @@ describe StopPlatform do
       changeset.apply!
       expect(Issue.where(issue_type: 'stop_platform_parent_distance_gap').size).to be >= 1
     end
+
+    it 'creates stop platforms too close issues' do
+      stop = create(:stop, geometry: Stop::GEOFACTORY.point(-122.401811, 37.706675).to_s)
+      first_onestop_id = "#{stop.onestop_id}<test1"
+      second_onestop_id = "#{stop.onestop_id}<test2"
+      payload = {changes: [{
+        action: 'createUpdate',
+        stopPlatform: {
+          onestopId: first_onestop_id,
+          timezone: 'America/Los_Angeles',
+          parentStopOnestopId: stop.onestop_id,
+          geometry: { type: "Point", coordinates: [-122.475075, 37.721323] }
+        }
+      },
+      {
+        action: 'createUpdate',
+        stopPlatform: {
+          onestopId: second_onestop_id,
+          timezone: 'America/Los_Angeles',
+          parentStopOnestopId: stop.onestop_id,
+          geometry: { type: "Point", coordinates: [-122.475075, 37.721323] }
+        }
+      }
+      ]}
+      changeset = Changeset.create(payload: payload)
+      changeset.apply!
+      expect(Issue.where(issue_type: 'stop_platforms_too_close').size).to be >= 1
+    end
   end
 end
