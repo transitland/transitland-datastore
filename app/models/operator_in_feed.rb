@@ -30,7 +30,6 @@ class OperatorInFeed < BaseOperatorInFeed
 
   validates :operator, uniqueness: { scope: [:feed, :gtfs_agency_id] }, presence: true
   validates :feed, presence: true
-  validates :gtfs_agency_id, presence: true
 
   include CurrentTrackedByChangeset
   current_tracked_by_changeset kind_of_model_tracked: :relationship
