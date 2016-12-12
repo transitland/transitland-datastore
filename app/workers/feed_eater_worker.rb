@@ -45,7 +45,7 @@ class FeedEaterWorker
       # NOTE: we're catching all exceptions, including Interrupt,
       #   SignalException, and SyntaxError
       exception_log = "\n#{e}\n#{e.backtrace}\n"
-      logger.error exception_log
+      log exception_log, :error
       log "FeedEaterWorker #{feed_onestop_id}: Saving failed feed import"
       feed_version_import.failed(exception_log: exception_log)
       Raven.capture_exception(e) if defined?(Raven)

@@ -21,7 +21,7 @@ class FeedEaterScheduleWorker
       )
     rescue Exception => e
       exception_log = "\n#{e}\n#{e.backtrace}\n"
-      logger.error exception_log
+      log exception_log, :error
       feed_schedule_import.failed(exception_log: exception_log)
       Raven.capture_exception(e) if defined?(Raven)
     else

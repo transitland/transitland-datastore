@@ -17,8 +17,8 @@ class FeedFetcherWorker
     rescue Exception => e
       # NOTE: we're catching all exceptions, including Interrupt,
       #   SignalException, and SyntaxError
-      logger.error e.message
-      logger.error e.backtrace
+      log e.message, :error
+      log e.backtrace, :error
       Raven.capture_exception(e) if defined?(Raven)
     end
   end
