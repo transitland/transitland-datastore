@@ -255,7 +255,7 @@ class Changeset < ActiveRecord::Base
         .each(&:deprecate)
     else
       message = unresolved_issues.map { |issue| "Issue #{issue.id} was not resolved." }.join(" ")
-      logger.error "Error applying Changeset #{self.id}: #{message}"
+      log "Error applying Changeset #{self.id}: #{message}", :error
       raise Changeset::Error.new(changeset: self, message: message)
     end
   end
@@ -290,8 +290,8 @@ class Changeset < ActiveRecord::Base
         cycle_issues(issues_changeset_is_resolving, new_issues_created_by_changeset, old_issues_to_deprecate)
 
       rescue StandardError => error
-        logger.error "Error applying Changeset #{self.id}: #{error.message}"
-        logger.error error.backtrace
+        log "Error applying Changeset #{self.id}: #{error.message}", :error
+        log error.backtrace, :error
         raise Changeset::Error.new(changeset: self, message: error.message, backtrace: error.backtrace)
       end
     end
