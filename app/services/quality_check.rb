@@ -22,12 +22,12 @@ class QualityCheck::StationHierarchyQualityCheck < QualityCheck
       end
     end
 
-    # TODO: evaluate efficiency
     self.changeset.stop_platforms_created_or_updated.each do |stop_platform|
       parent_stop = stop_platform.parent_stop
       self.stop_platform_parent_distance_gap(parent_stop, stop_platform)
       self.stop_platform_trips(stop_platform)
-      self.changeset.stop_platforms_created_or_updated.each do |other_stop_platform|
+      # need to look at all platforms of parent stop, not just the ones in changeset
+      parent_stop.stop_platforms.each do |other_stop_platform|
         next if stop_platform.onestop_id.eql?(other_stop_platform.onestop_id)
         self.distance_between_stop_platforms(stop_platform, other_stop_platform)
       end
