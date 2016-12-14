@@ -15,8 +15,14 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
       @issues = @issues.with_type(params[:issue_type])
     end
 
-    if params[:feed_onestop_id].present?
-      @issues = @issues.from_feed(params[:feed_onestop_id])
+    if params[:category].present?
+      if params[:category] == 'route_geometry'
+        @issues = @issues.with_type('distance_calculation_inaccurate,stop_rsp_distance_gap,stop_position_inaccurate,rsp_line_inaccurate')
+      end
+    end
+
+    if params[:of_feed_entities].present?
+      @issues = @issues.from_feed(params[:of_feed_entities])
     end
 
     if params[:of_entity].present?
