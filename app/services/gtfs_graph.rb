@@ -491,11 +491,17 @@ class GTFSGraph
   def find_and_update_entity(gtfs_entity, new_entity)
     cached_entity = nil
     if gtfs_entity
-      cached_entity = EntityImportedFromFeed.find_by(
+      eiff = EntityImportedFromFeed.find_by(
         feed_version: @feed.active_feed_version,
         entity_type: entity_map(gtfs_entity),
         gtfs_id: gtfs_entity.id
       )
+      if eiff
+        puts "MATCHING EIFF: #{new_entity.onestop_id}: #{gtfs_entity.id}"
+        cached_entity = eiff.entity
+      else
+        puts "NO MATCHING EIFF: #{new_entity.onestop_id}: #{gtfs_entity.id}"
+      end
     end
     cached_entity ||= @onestop_id_to_entity[new_entity.onestop_id]
     if cached_entity
@@ -503,7 +509,7 @@ class GTFSGraph
     else
       found_entity = OnestopId.find(new_entity.onestop_id)
       if found_entity
-        found_entity.merge(entity)
+        found_entity.merge(new_entity)
         new_entity = found_entity
       end
     end
