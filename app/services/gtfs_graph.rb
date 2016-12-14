@@ -333,7 +333,7 @@ class GTFSGraph
     gtfs_platforms, gtfs_stops = @gtfs.stops.partition { |i| i.parent_station.presence }
     # Create parent stops first
     gtfs_stops.each do |gtfs_stop|
-      stop = find_and_update_entity(Stop.from_gtfs(gtfs_stop))
+      stop = find_and_update_entity(gtfs_stop, Stop.from_gtfs(gtfs_stop))
       add_identifier(stop, gtfs_stop, gtfs_stop.id)
       graph_log "    Stop: #{stop.onestop_id}: #{stop.name}"
     end
@@ -351,7 +351,7 @@ class GTFSGraph
         stop.parent_stop = parent_stop
       end
       # index
-      stop = find_and_update_entity(stop)
+      stop = find_and_update_entity(gtfs_stop, stop)
       add_identifier(stop, gtfs_stop, gtfs_stop.id)
       graph_log "    StopPlatform: #{stop.onestop_id}: #{stop.name}"
     end
@@ -433,7 +433,7 @@ class GTFSGraph
       # Skip Route if no Stops
       next if stops.empty?
       # Search by similarity
-      route = find_and_update_entity(Route.from_gtfs(entity))
+      route = find_and_update_entity(entity, Route.from_gtfs(entity))
       # Update accessibility
       trips = entity.trips
       route.wheelchair_accessible = self.class.to_trips_accessible(trips, :wheelchair_accessible)
@@ -463,7 +463,7 @@ class GTFSGraph
       trip_stop_points = tl_stops.map { |s| s.geometry[:coordinates] }
       # determine if RouteStopPattern exists
       test_rsp = RouteStopPattern.create_from_gtfs(trip, tl_route.onestop_id, stop_pattern, trip_stop_points, feed_shape_points)
-      rsp = find_and_update_entity(test_rsp)
+      rsp = find_and_update_entity(nil, test_rsp)
       rsp.traversed_by = tl_route.onestop_id
       add_identifier(rsp, nil, trip.shape_id)
       graph_log "   #{rsp.onestop_id}"  if test_rsp.equal?(rsp)
@@ -480,20 +480,35 @@ class GTFSGraph
     find_by_onestop_id(@gtfs_to_onestop_id[entity])
   end
 
-  def find_and_update_entity(entity)
-    onestop_id = entity.onestop_id
-    cached_entity = @onestop_id_to_entity[onestop_id]
+  def entity_map(gtfs_entity)
+    entity_map = {
+      GTFS::Stop => Stop,
+      GTFS::Route => Route
+    }
+    entity_map[gtfs_entity.class]
+  end
+
+  def find_and_update_entity(gtfs_entity, new_entity)
+    cached_entity = nil
+    if gtfs_entity
+      cached_entity = EntityImportedFromFeed.find_by(
+        feed_version: @feed.active_feed_version,
+        entity_type: entity_map(gtfs_entity),
+        gtfs_id: gtfs_entity.id
+      )
+    end
+    cached_entity ||= @onestop_id_to_entity[new_entity.onestop_id]
     if cached_entity
-      entity = cached_entity
+      new_entity = cached_entity
     else
-      found_entity = OnestopId.find(onestop_id)
+      found_entity = OnestopId.find(new_entity.onestop_id)
       if found_entity
         found_entity.merge(entity)
-        entity = found_entity
+        new_entity = found_entity
       end
     end
-    @onestop_id_to_entity[onestop_id] = entity
-    entity
+    @onestop_id_to_entity[new_entity.onestop_id] = new_entity
+    new_entity
   end
 
   def find_by_entity(entity)
