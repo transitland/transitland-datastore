@@ -476,38 +476,6 @@ class GTFSGraph
     rsps
   end
 
-  #######################
-
-  def entity_map(gtfs_entity)
-    entity_map = {
-      GTFS::Stop => Stop,
-      GTFS::Route => Route
-    }
-    entity_map[gtfs_entity.class]
-  end
-
-  def _find_by_gtfs_entity(gtfs_entity)
-    EntityImportedFromFeed.find_by(
-      feed_version: @feed.active_feed_version,
-      entity_type: entity_map(gtfs_entity),
-      gtfs_id: gtfs_entity.id
-    )
-  end
-
-  def _find_by_gtfs_entity_and_update(gtfs_entity)
-    entity = nil
-    new_entity = entity_map(gtfs_entity).from_gtfs(gtfs_entity)
-    found_entity = _find_by_gtfs_entity(gtfs_entity)
-    if found_entity
-      found_entity.merge(new_entity)
-      entity = found_entity
-    else
-      entity = new_entity
-    end
-  end
-
-  #######################
-
   def find_by_gtfs_entity(entity)
     find_by_onestop_id(@gtfs_to_onestop_id[entity])
   end
