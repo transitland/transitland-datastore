@@ -43,7 +43,7 @@ class Issue < ActiveRecord::Base
                  'feed_fetch_invalid_source',
                  'feed_version_maintenance_extend',
                  'feed_version_maintenance_import',
-                 'uncategorized']
+                 'other']
 
   def equivalent?(issue)
     self.issue_type == issue.issue_type &&
@@ -69,5 +69,17 @@ class Issue < ActiveRecord::Base
     issues = Issue.joins(:entities_with_issues).where(entities_with_issues: { entity: entity })
     issues = issues.where("entity_attribute IN (?)", entity_attributes) unless entity_attributes.empty?
     return issues
+  end
+
+  def self.issue_types_in_category(category)
+    # TODO: add more categories
+    case category
+    when 'route_geometry'
+      return ['stop_position_inaccurate', 'stop_rsp_distance_gap', 'rsp_line_inaccurate', 'distance_calculation_inaccurate']
+    when 'feed_fetch'
+      return ['feed_fetch_invalid_url', 'feed_fetch_invalid_source', 'feed_fetch_invalid_zip', 'feed_fetch_invalid_response']
+    else
+      return ['other']
+    end
   end
 end

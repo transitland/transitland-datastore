@@ -30,7 +30,7 @@ describe Api::V1::IssuesController do
       }})
     end
 
-    it 'returns issues of category route_geometry' do
+    it 'returns issues by category' do
       Issue.create!(issue_type: 'route_name', details: 'a fake issue')
       get :index, category: 'route_geometry'
       expect_json({ issues: -> (issues) {

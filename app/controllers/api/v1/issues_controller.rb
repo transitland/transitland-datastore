@@ -16,9 +16,7 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
     end
 
     if params[:category].present?
-      if params[:category] == 'route_geometry'
-        @issues = @issues.with_type('distance_calculation_inaccurate,stop_rsp_distance_gap,stop_position_inaccurate,rsp_line_inaccurate')
-      end
+      @issues = @issues.with_type(Issue.issue_types_in_category(params[:category]))
     end
 
     if params[:of_feed_entities].present?
