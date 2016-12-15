@@ -59,7 +59,7 @@ describe QualityCheck::GeometryQualityCheck do
           changeset = create(:changeset)
           changeset.create_change_payloads([stop1, stop2, stop3, stop4, route_stop_pattern])
           changeset.apply!
-          expect(Issue.where(issue_type: 'stop_position_inaccurate').size).to be >= 1
+          expect(Issue.where(issue_type: 'rsp_stops_too_close').size).to be >= 1
         end
       end
 
