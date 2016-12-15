@@ -110,6 +110,7 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
         issue.entities_with_issues.new(entity: stop, issue: issue, entity_attribute: 'geometry')
         self.issues << issue
       end
+      # self.distances_between_stops(stop)
       # other checks on stop-exclusive attributes go here
     end
 
