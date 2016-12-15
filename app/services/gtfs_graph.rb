@@ -489,39 +489,33 @@ class GTFSGraph
   end
 
   def find_and_update_entity(gtfs_entity, new_entity)
-    cached_entity = nil
-    if gtfs_entity
-      eiff = EntityImportedFromFeed.find_by(
-        feed_version: @feed.active_feed_version,
-        entity_type: entity_map(gtfs_entity),
-        gtfs_id: gtfs_entity.id
-      )
-      if eiff
-        puts "MATCHING EIFF: #{new_entity.onestop_id}: #{gtfs_entity.id}"
-        cached_entity = eiff.entity
-      else
-        puts "NO MATCHING EIFF: #{new_entity.onestop_id}: #{gtfs_entity.id}"
-      end
-    end
-    cached_entity ||= @onestop_id_to_entity[new_entity.onestop_id]
-    if cached_entity
-      new_entity = cached_entity
+    # Check local cache
+    found_entity = nil
+    found_entity ||= find_by_eiff(gtfs_entity)
+    found_entity ||= find_by_onestop_id(new_entity.onestop_id)
+    if found_entity
+      found_entity.merge(new_entity)
     else
-      found_entity = OnestopId.find(new_entity.onestop_id)
-      if found_entity
-        found_entity.merge(new_entity)
-        new_entity = found_entity
-      end
+      found_entity = new_entity
     end
-    @onestop_id_to_entity[new_entity.onestop_id] = new_entity
-    new_entity
+    @onestop_id_to_entity[found_entity.onestop_id] = found_entity
+    found_entity
   end
 
-  def find_by_entity(entity)
-    onestop_id = entity.onestop_id
-    entity = @onestop_id_to_entity[onestop_id] || OnestopId.find(onestop_id) || entity
-    @onestop_id_to_entity[onestop_id] = entity
-    entity
+  def find_by_eiff(gtfs_entity)
+    return unless gtfs_entity
+    eiff = EntityImportedFromFeed.find_by(
+      feed_version: @feed.active_feed_version,
+      entity_type: entity_map(gtfs_entity),
+      gtfs_id: gtfs_entity.id
+    )
+    if eiff
+      found_entity = eiff.entity
+      puts "MATCHING EIFF: #{gtfs_entity.id}: #{found_entity.onestop_id}"
+    else
+      puts "NO MATCHING EIFF: #{gtfs_entity.id}"
+    end
+    found_entity
   end
 
   def find_by_onestop_id(onestop_id)
