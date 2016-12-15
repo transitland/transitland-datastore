@@ -46,18 +46,6 @@ class QualityCheck::StationHierarchyQualityCheck < QualityCheck
     end
   end
 
-  def stop_platform_trips(stop_platform)
-    if (self.changeset.import? && [2,4].include?(self.changeset.imported_from_feed_version.import_level))
-      if (stop_platform.trips_in.size == 0 && stop_platform.trips_out.size == 0)
-        issue = Issue.new(created_by_changeset: self.changeset,
-                          issue_type: 'stop_platform_no_trips',
-                          details: "Stop Platform #{stop_platform.parent_stop_onestop_id} is not visited by any trips.")
-        issue.entities_with_issues.new(entity: stop_platform, issue: issue, entity_attribute: 'association')
-        self.issues << issue
-      end
-    end
-  end
-
   def distance_between_stop_platforms(stop_platform, other_stop_platform)
     if (stop_platform[:geometry].distance(other_stop_platform[:geometry]) <= MINIMUM_DIST_BETWEEN_PLATFORMS)
       issue = Issue.new(created_by_changeset: self.changeset,
