@@ -16,6 +16,7 @@ class QualityCheck::StationHierarchyQualityCheck < QualityCheck
   MINIMUM_DIST_BETWEEN_PLATFORMS = 0.0
 
   def check
+    # consider consolidating with GeometryQualityCheck if performance a concern
     self.changeset.stops_created_or_updated.each do |parent_stop|
       parent_stop.stop_platforms.each do |stop_platform|
         self.stop_platform_parent_distance_gap(parent_stop, stop_platform)
@@ -57,7 +58,6 @@ class QualityCheck::StationHierarchyQualityCheck < QualityCheck
   end
 end
 
-# TODO rename to RouteGeometry?
 class QualityCheck::GeometryQualityCheck < QualityCheck
 
   LAST_STOP_DISTANCE_LENIENCY = 5.0 #meters
