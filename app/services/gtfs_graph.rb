@@ -476,10 +476,6 @@ class GTFSGraph
     rsps
   end
 
-  def find_by_gtfs_entity(entity)
-    find_by_onestop_id(@gtfs_to_onestop_id[entity])
-  end
-
   def entity_map(gtfs_entity)
     entity_map = {
       GTFS::Stop => Stop,
@@ -524,6 +520,10 @@ class GTFSGraph
     entity = @onestop_id_to_entity[onestop_id] || OnestopId.find(onestop_id)
     @onestop_id_to_entity[onestop_id] = entity
     entity
+  end
+
+  def find_by_gtfs_entity(entity)
+    find_by_onestop_id(@gtfs_to_onestop_id[entity])
   end
 
   ##### Identifiers #####
