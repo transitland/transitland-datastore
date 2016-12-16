@@ -81,6 +81,8 @@ class Issue < ActiveRecord::Base
       return ['stop_position_inaccurate', 'stop_rsp_distance_gap', 'rsp_line_inaccurate', 'distance_calculation_inaccurate']
     when 'feed_fetch'
       return ['feed_fetch_invalid_url', 'feed_fetch_invalid_source', 'feed_fetch_invalid_zip', 'feed_fetch_invalid_response']
+    when 'station_hierarchy'
+      return ['stop_platform_parent_distance_gap', 'stop_platforms_too_close']
     else
       return ['other']
     end
