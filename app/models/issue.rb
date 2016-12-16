@@ -75,7 +75,6 @@ class Issue < ActiveRecord::Base
   end
 
   def self.issue_types_in_category(category)
-    # TODO: add more categories
     case category
     when 'route_geometry'
       return ['stop_position_inaccurate', 'stop_rsp_distance_gap', 'rsp_line_inaccurate', 'distance_calculation_inaccurate']
@@ -84,7 +83,7 @@ class Issue < ActiveRecord::Base
     when 'station_hierarchy'
       return ['stop_platform_parent_distance_gap', 'stop_platforms_too_close']
     else
-      return ['other']
+      raise ArgumentError.new("unknown category #{category}")
     end
   end
 end
