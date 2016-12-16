@@ -189,30 +189,23 @@ class GTFSGraph
 
     # Import
     graph_log "Create: SSPs"
-    total = 0
     ssps = []
     @gtfs.trip_stop_times(trips=gtfs_trips, filter_empty=true) do |gtfs_trip,gtfs_stop_times|
       # Process frequencies
       (gtfs_frequencies[gtfs_trip.trip_id] || [nil]).each do |gtfs_frequency|
         # Make SSPs for trip
         ssp_trip = self.make_ssp_trip(gtfs_trip, gtfs_stop_times, gtfs_frequency: gtfs_frequency)
-        # Interpolate stop_times
-        ScheduleStopPair.interpolate(ssp_trip)
-        # Add to chunk
         ssps += ssp_trip
       end
-
-      # If chunk is big enough, create change payloads.
+      # Bulk insert
       if ssps.size >= CHANGE_PAYLOAD_MAX_ENTITIES
         graph_log  "  ssps: #{ssps.size}"
-        fail GTFSGraph::Error.new('Validation error') unless ssps.map(&:valid?).all?
         ScheduleStopPair.import ssps, validate: false
         ssps = []
       end
     end
     if ssps.size > 0
       graph_log  "  ssps: #{ssps.size}"
-      fail GTFSGraph::Error.new('Validation error') unless ssps.map(&:valid?).all?
       ScheduleStopPair.import ssps, validate: false
       ssps = []
     end
@@ -307,7 +300,18 @@ class GTFSGraph
         frequency_headway_seconds: gtfs_frequency.try(:headway_secs),
       )
     end
-    ssp_trip
+
+    # Interpolate stop_times
+    ScheduleStopPair.interpolate(ssp_trip)
+
+    # Skip trip if validation errors
+    unless ssp_trip.map(&:valid?).all?
+      graph_log "Trip #{gtfs_trip.trip_id}: Invalid SSPs, skipping"
+      return []
+    end
+
+    # Return ssps
+    return ssp_trip
   end
 
   def import_log
