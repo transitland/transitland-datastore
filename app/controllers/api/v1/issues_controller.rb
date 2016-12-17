@@ -32,7 +32,6 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
 
     respond_to do |format|
       paginated_json_collection_response = paginated_json_collection(@issues)
-      paginated_json_collection_response[:meta][:categories] = Issue.categories
       format.json { render paginated_json_collection_response }
     end
   end
@@ -79,6 +78,10 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
       @issue.save!
       render json: @issue, status: :accepted
     end
+  end
+
+  def categories
+    render json: Issue.categories
   end
 
   private

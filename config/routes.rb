@@ -29,7 +29,12 @@ Rails.application.routes.draw do
       resources :feeds, only: [:index, :show]
       resources :feed_versions, only: [:index, :show, :update]
       resources :feed_version_imports, only: [:index, :show]
-      resources :issues, only: [:index, :show, :create, :update, :destroy]
+      resources :issues, only: [:index, :show, :create, :update, :destroy] do
+        collection do
+          get 'categories'
+        end
+      end
+      # get '/issues/categories', to: 'issues#categories'
       post '/feeds/fetch_info', to: 'feeds#fetch_info'
       post '/webhooks/feed_fetcher', to: 'webhooks#feed_fetcher'
       post '/webhooks/feed_eater', to: 'webhooks#feed_eater'
