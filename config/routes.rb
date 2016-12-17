@@ -34,7 +34,6 @@ Rails.application.routes.draw do
           get 'categories'
         end
       end
-      # get '/issues/categories', to: 'issues#categories'
       post '/feeds/fetch_info', to: 'feeds#fetch_info'
       post '/webhooks/feed_fetcher', to: 'webhooks#feed_fetcher'
       post '/webhooks/feed_eater', to: 'webhooks#feed_eater'
