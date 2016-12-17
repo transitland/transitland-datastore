@@ -31,7 +31,9 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
     @issues = @issues.includes([:entities_with_issues, created_by_changeset: [:imported_from_feed, :imported_from_feed_version]])
 
     respond_to do |format|
-      format.json { render paginated_json_collection(@issues) }
+      paginated_json_collection_response = paginated_json_collection(@issues)
+      paginated_json_collection_response[:meta][:categories] = Issue.categories
+      format.json { render paginated_json_collection_response }
     end
   end
 

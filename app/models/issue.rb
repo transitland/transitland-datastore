@@ -30,23 +30,41 @@ class Issue < ActiveRecord::Base
   extend Enumerize
   enumerize :issue_type,
             in: ['stop_position_inaccurate',
-                 'rsp_stops_too_close',
                  'stop_rsp_distance_gap',
-                 'missing_stop_conflation_result',
-                 'distance_calculation_inaccurate',
                  'rsp_line_inaccurate',
+                 'distance_calculation_inaccurate',
+                 'rsp_stops_too_close',
+                 'feed_fetch_invalid_url',
+                 'feed_fetch_invalid_source',
+                 'feed_fetch_invalid_zip',
+                 'feed_fetch_invalid_response',
+                 'stop_platform_parent_distance_gap',
+                 'stop_platforms_too_close',
                  'route_color',
                  'stop_name',
                  'route_name',
-                 'feed_fetch_invalid_url',
-                 'feed_fetch_invalid_zip',
-                 'feed_fetch_invalid_response',
-                 'feed_fetch_invalid_source',
+                 'other',
                  'feed_version_maintenance_extend',
                  'feed_version_maintenance_import',
-                 'other',
-                 'stop_platform_parent_distance_gap',
-                 'stop_platforms_too_close']
+                 'missing_stop_conflation_result']
+
+  def self.categories
+   {
+     :route_geometry => ['stop_position_inaccurate', 'stop_rsp_distance_gap', 'rsp_line_inaccurate', 'distance_calculation_inaccurate', 'rsp_stops_too_close'],
+     :feed_fetch => ['feed_fetch_invalid_url', 'feed_fetch_invalid_source', 'feed_fetch_invalid_zip', 'feed_fetch_invalid_response'],
+     :station_hierarchy => ['stop_platform_parent_distance_gap', 'stop_platforms_too_close'],
+     :uncategorized => ['route_color', 'stop_name', 'route_name', 'other', 'feed_version_maintenance_extend', 'feed_version_maintenance_import', 'missing_stop_conflation_result']
+   }
+  end
+
+  def self.issue_types_in_category(category)
+    category = category.to_sym
+    if self.categories.has_key?(category)
+      return self.categories[category]
+    else
+      raise ArgumentError.new("unknown category #{category}")
+    end
+  end
 
   def equivalent?(issue)
     self.issue_type == issue.issue_type &&
@@ -72,18 +90,5 @@ class Issue < ActiveRecord::Base
     issues = Issue.joins(:entities_with_issues).where(entities_with_issues: { entity: entity })
     issues = issues.where("entity_attribute IN (?)", entity_attributes) unless entity_attributes.empty?
     return issues
-  end
-
-  def self.issue_types_in_category(category)
-    case category
-    when 'route_geometry'
-      return ['stop_position_inaccurate', 'stop_rsp_distance_gap', 'rsp_line_inaccurate', 'distance_calculation_inaccurate']
-    when 'feed_fetch'
-      return ['feed_fetch_invalid_url', 'feed_fetch_invalid_source', 'feed_fetch_invalid_zip', 'feed_fetch_invalid_response']
-    when 'station_hierarchy'
-      return ['stop_platform_parent_distance_gap', 'stop_platforms_too_close']
-    else
-      raise ArgumentError.new("unknown category #{category}")
-    end
   end
 end
