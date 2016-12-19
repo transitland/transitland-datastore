@@ -30,10 +30,19 @@ describe Api::V1::IssuesController do
       }})
     end
 
+    it 'returns issues by category' do
+      Issue.create!(issue_type: 'route_name', details: 'a fake issue')
+      get :index, category: 'route_geometry'
+      expect_json({ issues: -> (issues) {
+        expect(issues.length).to be > 0
+        expect(Issue.count).to be > issues.length
+      }})
+    end
+
     it 'returns issues with feed' do
       changeset = create(:changeset)
       Issue.new(created_by_changeset: changeset, issue_type: 'stop_position_inaccurate').save!
-      get :index, feed_onestop_id: 'f-9qs-example'
+      get :index, of_feed_entities: 'f-9qs-example'
       expect_json({ issues: -> (issues) {
         expect(issues.length).to eq 8
       }})
