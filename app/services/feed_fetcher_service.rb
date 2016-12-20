@@ -85,14 +85,16 @@ class FeedFetcherService
     Tempfile.open(['feedvalidator', '.html']) do |tmpfile|
       outfile = tmpfile.path
     end
+
     # Run feedvalidator
-    feedvalidator_output = IO.popen([
-      FEEDVALIDATOR_PATH,
-      '-n',
-      '-o',
-      outfile,
-      filename
-    ]).read
+    feedvalidator_output = nil
+    IO.popen([FEEDVALIDATOR_PATH, '-n', '-o', outfile, filename], "w+") do |io|
+      io.write("\n")
+      io.close_write
+      feedvalidator_output = io.read
+    end
+    # feedvalidator_output
+
     return unless File.exists?(outfile)
     # Unlink temporary file
     file_feedvalidator = File.open(outfile)

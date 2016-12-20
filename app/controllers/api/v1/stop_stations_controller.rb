@@ -92,6 +92,13 @@ class Api::V1::StopStationsController < Api::V1::BaseApiController
     end
   end
 
+  def paginated_json_collection(collection)
+    result = super
+    result[:root] = :stop_stations
+    result[:each_serializer] = StopStationSerializer
+    result
+  end
+
   private
 
   def query_params

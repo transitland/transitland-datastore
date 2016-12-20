@@ -48,6 +48,9 @@ class Changeset < ActiveRecord::Base
   has_many :stops_created_or_updated, class_name: 'Stop', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :stops_destroyed, class_name: 'OldStop', foreign_key: 'destroyed_in_changeset_id'
 
+  has_many :stop_platforms_created_or_updated, class_name: 'StopPlatform', foreign_key: 'created_or_updated_in_changeset_id'
+  has_many :stop_platforms_destroyed, class_name: 'StopPlatform', foreign_key: 'destroyed_in_changeset_id'
+
   has_many :operators_created_or_updated, class_name: 'Operator', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :operators_destroyed, class_name: 'OldOperator', foreign_key: 'destroyed_in_changeset_id'
 
@@ -167,8 +170,10 @@ class Changeset < ActiveRecord::Base
 
   def check_quality
     gqc = QualityCheck::GeometryQualityCheck.new(changeset: self)
+    shqc = QualityCheck::StationHierarchyQualityCheck.new(changeset: self)
     issues = []
     issues += gqc.check
+    issues += shqc.check
     issues
   end
 
@@ -255,24 +260,8 @@ class Changeset < ActiveRecord::Base
         .each(&:deprecate)
     else
       message = unresolved_issues.map { |issue| "Issue #{issue.id} was not resolved." }.join(" ")
-      logger.error "Error applying Changeset #{self.id}: #{message}"
+      log "Error applying Changeset #{self.id}: #{message}", :error
       raise Changeset::Error.new(changeset: self, message: message)
-    end
-  end
-
-  def create_feed_entity_associations
-    if import?
-      eiff_batch = []
-      self.entities_created_or_updated do |entity|
-        eiff_batch << entity
-          .entities_imported_from_feed
-          .new(feed: self.imported_from_feed, feed_version: self.imported_from_feed_version)
-        if eiff_batch.size >= 1000
-          EntityImportedFromFeed.import eiff_batch
-          eiff_batch = []
-        end
-      end
-      EntityImportedFromFeed.import eiff_batch
     end
   end
 
@@ -292,8 +281,6 @@ class Changeset < ActiveRecord::Base
         end
         self.update(applied: true, applied_at: Time.now)
 
-        create_feed_entity_associations
-
         # Update attributes that derive from attributes between models
         # This needs to be done before quality checks. Only on import.
         unless import?
@@ -308,8 +295,8 @@ class Changeset < ActiveRecord::Base
         cycle_issues(issues_changeset_is_resolving, new_issues_created_by_changeset, old_issues_to_deprecate)
 
       rescue StandardError => error
-        logger.error "Error applying Changeset #{self.id}: #{error.message}"
-        logger.error error.backtrace
+        log "Error applying Changeset #{self.id}: #{error.message}", :error
+        log error.backtrace, :error
         raise Changeset::Error.new(changeset: self, message: error.message, backtrace: error.backtrace)
       end
     end

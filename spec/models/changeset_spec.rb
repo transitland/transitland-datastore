@@ -172,7 +172,7 @@ describe Changeset do
               onestopId: 'o-9q8y-SFMTA',
               name: 'SFMTA',
               serves: ['s-9q8yt4b-1AvHoS'],
-              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }              
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
             },
           }
         ]
@@ -493,9 +493,9 @@ describe Changeset do
 
       context 'entity attributes' do
         it 'only deprecates issues with entities_with_issues having attrs matching the changeset entity attrs' do
-          # using uncategorized for now, because there is no issue type yet for wrong stop name
+          # using other for now, because there is no issue type yet for wrong stop name
           stop = Stop.first
-          issue = Issue.create!(issue_type: 'uncategorized', details: 'this stop name is wrong')
+          issue = Issue.create!(issue_type: 'other', details: 'this stop name is wrong')
           issue.entities_with_issues.create!(entity: stop, entity_attribute: 'name')
           Timecop.freeze(3.minutes.from_now) do
             # changing the stop geometry - should not deprecate issues on the stop name
@@ -513,7 +513,7 @@ describe Changeset do
             })
             changeset.apply!
           end
-          expect(Issue.find(9).issue_type).to eq 'uncategorized'
+          expect(Issue.find(9).issue_type).to eq 'other'
           expect(Issue.find(9).entities_with_issues.map(&:entity)).to include(stop)
         end
 

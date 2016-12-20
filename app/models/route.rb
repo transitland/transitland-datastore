@@ -85,7 +85,9 @@ class Route < BaseRoute
       :does_not_serve,
       :operated_by,
       :identified_by,
-      :not_identified_by
+      :not_identified_by,
+      :add_imported_from_feeds,
+      :not_imported_from_feeds
     ],
     protected_attributes: [
       :identifiers
@@ -109,6 +111,7 @@ class Route < BaseRoute
     self.existing_before_create_making_history(new_model, changeset)
   end
   def after_create_making_history(changeset)
+    update_entity_imported_from_feeds(changeset)
     OperatorRouteStopRelationship.manage_multiple(
       route: {
         serves: self.serves || [],
@@ -119,6 +122,7 @@ class Route < BaseRoute
     )
   end
   def before_update_making_history(changeset)
+    update_entity_imported_from_feeds(changeset)
     if self.operated_by.present?
       operator = Operator.find_by_onestop_id!(self.operated_by)
       self.operator = operator
