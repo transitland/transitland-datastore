@@ -2,7 +2,7 @@ class FeedFetcherWorker
   include Sidekiq::Worker
 
   sidekiq_options unique: :until_and_while_executing,
-                  unique_job_expiration: 60 * 60 # 1 hour
+                  unique_job_expiration: 22 * 60 * 60 # 22 hours
 
   def perform(feed_onestop_id)
     begin
