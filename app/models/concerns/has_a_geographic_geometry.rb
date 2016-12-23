@@ -99,16 +99,22 @@ module HasAGeographicGeometry
 
   private
 
+  def self.geometry_from_geojson(value)
+    # RGeo::GeoJSON can take hashes directly but requires string keys...
+    value = value.is_a?(String) ? value : JSON.dump(value)
+    RGeo::GeoJSON.decode(value, json_parser: :json)
+  end
+
   def validate_geometry
 
   end
 
   def validate_geometry_point
-
+    self.geometry(as: :wkt).try(:geometry_type) == RGeo::Feature::Point
   end
 
   def validate_geometry_polygon
-
+    self.geometry(as: :wkt).try(:geometry_type) == RGeo::Feature::Polygon
   end
 
 end
