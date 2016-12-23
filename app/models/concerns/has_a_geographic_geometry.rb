@@ -96,4 +96,19 @@ module HasAGeographicGeometry
       lat: lat
     }
   end
+
+  private
+
+  def validate_geometry
+
+  end
+
+  def validate_geometry_point
+
+  end
+
+  def validate_geometry_polygon
+
+  end
+
 end
