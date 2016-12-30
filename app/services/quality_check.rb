@@ -22,9 +22,8 @@ class QualityCheck::StationHierarchyQualityCheck < QualityCheck
     parent_stops_with_changing_platforms = Set.new
 
     self.changeset.stop_platforms_created_or_updated.each do |stop_platform|
-      parent_stop = stop_platform.parent_stop
-      parent_stops_to_check << parent_stop.onestop_id
-      parent_stops_with_changing_platforms << parent_stop.onestop_id
+      parent_stops_to_check << stop_platform.parent_stop.onestop_id
+      parent_stops_with_changing_platforms << stop_platform.parent_stop.onestop_id
     end
 
     parent_stops_with_changing_platforms.each do |parent_stop_onestop_id|
