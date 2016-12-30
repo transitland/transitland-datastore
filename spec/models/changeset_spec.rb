@@ -226,6 +226,23 @@ describe Changeset do
       expect(OldStop.first.action).to eq 'change_onestop_id'
     end
 
+    it 'raises changeset error when onestopIdsToMerge not included' do
+      @changeset1.apply!
+      merge_stop_1 = create(:stop)
+      merge_stop_2 = create(:stop)
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'merge',
+            stop: {
+              onestopId: Stop.first.onestop_id
+            }
+          }
+        ]
+      })
+      expect { changeset.apply! }.to raise_error(Changeset::Error)
+    end
+
     it 'merges onestop id for an existing entity' do
       @changeset1.apply!
       merge_stop_1 = create(:stop)

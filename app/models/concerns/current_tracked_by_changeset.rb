@@ -26,9 +26,6 @@ module CurrentTrackedByChangeset
       when 'changeOnestopID'
         apply_changes_change_onestop_id(changeset: changeset, changes: changes, cache: cache)
       when 'merge'
-        if changes.size > 1
-          raise Changeset::Error.new(changeset: changeset, message: "Error: more than one merge target entity provided.")
-        end
         if onestop_ids_to_merge.nil?
           raise Changeset::Error.new(changeset: changeset, message: "Error: must provide an array of onestop ids to merge.")
         end
