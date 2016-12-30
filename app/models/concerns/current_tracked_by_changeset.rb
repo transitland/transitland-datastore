@@ -18,13 +18,21 @@ module CurrentTrackedByChangeset
       apply_changes(changeset: changeset, changes: [attrs], action: action, cache: cache)
     end
 
-    def apply_changes(changeset: nil, changes: nil, action: nil, cache: {})
+    def apply_changes(changeset: nil, changes: nil, action: nil, onestop_ids_to_merge: nil, cache: {})
       changes ||= []
       case action
       when 'createUpdate'
         apply_changes_create_update(changeset: changeset, changes: changes, cache: cache)
       when 'changeOnestopID'
         apply_changes_change_onestop_id(changeset: changeset, changes: changes, cache: cache)
+      when 'merge'
+        if changes.size > 1
+          raise Changeset::Error.new(changeset: changeset, message: "Error: more than one merge target entity provided.")
+        end
+        if onestop_ids_to_merge.nil?
+          raise Changeset::Error.new(changeset: changeset, message: "Error: must provide an array of onestop ids to merge.")
+        end
+        apply_changes_merge_onestop_ids(changeset: changeset, change: changes.first, onestop_ids_to_merge: onestop_ids_to_merge, cache: {})
       when 'destroy'
         apply_changes_destroy(changeset: changeset, changes: changes, cache: cache)
       else
@@ -65,6 +73,21 @@ module CurrentTrackedByChangeset
           raise Changeset::Error.new(changeset: changeset, message: "could not find a #{self.name} with Onestop ID of #{change[:onestop_id]} to change Onestop ID")
         end
       end
+    end
+
+    def apply_changes_merge_onestop_ids(changeset: nil, change: nil, onestop_ids_to_merge: nil, cache: {})
+      attrs_to_apply = apply_params(change, cache)
+      merge_into_model = find_by_onestop_id(change[:onestop_id])
+      if merge_into_model
+        merge_into_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply)
+      else
+        merge_into_model = self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
+        merge_into_model.after_create_making_history(changeset)
+      end
+      onestop_ids_to_merge.each { |onestop_id|
+        model_to_merge = self.find_by_onestop_id(onestop_id)
+        model_to_merge.destroy_making_history(changeset: changeset, action: 'merge', current: merge_into_model)
+      }
     end
 
     def apply_changes_destroy(changeset: nil, changes: nil, cache: {})
@@ -171,13 +194,14 @@ module CurrentTrackedByChangeset
     return true
   end
 
-  def destroy_making_history(changeset: nil, action: nil)
+  def destroy_making_history(changeset: nil, action: nil, current: nil)
     self.class.transaction do
       old_model = self.class.instantiate_an_old_model
       old_model.assign_attributes(changeable_attributes_as_a_cloned_hash)
       old_model.version = self.version
       old_model.destroyed_in_changeset = changeset
       old_model.action = action unless action.nil?
+      old_model.current = current if action.to_s.eql?('merge') && current
 
       self.marked_for_destroy_making_history = true
       self.old_model_left_after_destroy_making_history = old_model

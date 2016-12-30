@@ -65,17 +65,18 @@ class ChangePayload < ActiveRecord::Base
     changes = []
     (payload_as_ruby_hash[:changes] || []).each do |change|
       (ENTITY_TYPES.keys & change.keys).each do |entity_type|
-        changes << [entity_type, change[:action], change[entity_type]]
+        changes << [entity_type, change[:action], change[:onestop_ids_to_merge], change[entity_type]]
       end
     end
     changes
-      .chunk { |entity_type, action, change| [entity_type, action] }
+      .chunk { |entity_type, action, onestop_ids_to_merge, change| [entity_type, action, onestop_ids_to_merge] }
       .each { | chunk_key, chunked_changes |
-        entity_type, action = chunk_key
+        entity_type, action, onestop_ids_to_merge = chunk_key
         # puts "Applying... #{entity_type}, #{action}, #{chunked_changes.size}"
         ENTITY_TYPES[entity_type].apply_changes(
           changeset: changeset,
           action: action,
+          onestop_ids_to_merge: onestop_ids_to_merge,
           changes: chunked_changes.map(&:last)
         )
       }
