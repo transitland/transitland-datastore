@@ -71,7 +71,12 @@ module CurrentTrackedByChangeset
       changes.each do |change|
         existing_model = find_existing_model(change)
         if existing_model
-          existing_model.destroy_making_history(changeset: changeset)
+          case @kind_of_model_tracked
+          when :onestop_entity
+            existing_model.destroy_making_history(changeset: changeset, action: 'destroy')
+          when :relationship
+            existing_model.destroy_making_history(changeset: changeset)
+          end
         else
           raise Changeset::Error.new(changeset: changeset, message: "could not find a #{self.name} with Onestop ID of #{change[:onestop_id]} to destroy")
         end

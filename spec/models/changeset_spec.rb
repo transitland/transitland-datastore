@@ -223,6 +223,13 @@ describe Changeset do
       expect { Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS') }.to raise_error(ActiveRecord::RecordNotFound)
       expect(Stop.first).to eq Stop.find_by_onestop_id!('s-9q8yt4b-test')
       expect(OldStop.first).to eq OldStop.find_by_onestop_id!('s-9q8yt4b-1AvHoS')
+      expect(OldStop.first.action).to eq 'change_onestop_id'
+    end
+
+    it 'sets action to destroy after destroy' do
+      @changeset1.apply!
+      @changeset3.apply!
+      expect(OldStop.first.action).to eq 'destroy'
     end
   end
 
