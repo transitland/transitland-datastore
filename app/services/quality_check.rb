@@ -17,21 +17,47 @@ class QualityCheck::StationHierarchyQualityCheck < QualityCheck
 
   def check
     # consider consolidating with GeometryQualityCheck if performance a concern
-    self.changeset.stops_created_or_updated.each do |parent_stop|
+
+    parent_stops_to_check = Set.new(self.changeset.stops_created_or_updated.map(&:onestop_id))
+    parent_stops_with_changing_platforms = Set.new
+
+    self.changeset.stop_platforms_created_or_updated.each do |stop_platform|
+      parent_stop = stop_platform.parent_stop
+      parent_stops_to_check << parent_stop.onestop_id
+      parent_stops_with_changing_platforms << parent_stop.onestop_id
+    end
+
+    parent_stops_with_changing_platforms.each do |parent_stop_onestop_id|
+      parent_stop = Stop.find_by_onestop_id!(parent_stop_onestop_id)
+      # need to look at all platforms of parent stop, not just the ones in changeset
+      # and avoid creating duplicate issues
+      all_siblings = Set.new(parent_stop.stop_platforms.map(&:onestop_id))
+      all_changing = Set.new(self.changeset.stop_platforms_created_or_updated.map(&:onestop_id))
+      changing_siblings_to_check = all_siblings & all_changing
+      static_siblings_to_check = all_siblings - all_changing
+
+      changing_siblings_to_check.to_a.combination(2).each do |stop_platform_1_onestop_id, stop_platform_2_onestop_id|
+        stop_platform_1 = StopPlatform.find_by_onestop_id!(stop_platform_1_onestop_id)
+        stop_platform_2 = StopPlatform.find_by_onestop_id!(stop_platform_2_onestop_id)
+        self.distance_between_stop_platforms(stop_platform_1, stop_platform_2)
+      end
+
+      changing_siblings_to_check.each do |changing_stop_platform_onestop_id|
+        changing_stop_platform = StopPlatform.find_by_onestop_id!(changing_stop_platform_onestop_id)
+        static_siblings_to_check.each do |static_stop_platform_onestop_id|
+          static_stop_platform = StopPlatform.find_by_onestop_id!(static_stop_platform_onestop_id)
+          self.distance_between_stop_platforms(changing_stop_platform, static_stop_platform)
+        end
+      end
+    end
+
+    parent_stops_to_check.each do |parent_stop_onestop_id|
+      parent_stop = Stop.find_by_onestop_id!(parent_stop_onestop_id)
       parent_stop.stop_platforms.each do |stop_platform|
         self.stop_platform_parent_distance_gap(parent_stop, stop_platform)
       end
     end
 
-    self.changeset.stop_platforms_created_or_updated.each do |stop_platform|
-      parent_stop = stop_platform.parent_stop
-      self.stop_platform_parent_distance_gap(parent_stop, stop_platform)
-      # need to look at all platforms of parent stop, not just the ones in changeset
-      parent_stop.stop_platforms.each do |other_stop_platform|
-        next if stop_platform.onestop_id.eql?(other_stop_platform.onestop_id)
-        self.distance_between_stop_platforms(stop_platform, other_stop_platform)
-      end
-    end
     self.issues
   end
 
@@ -39,7 +65,7 @@ class QualityCheck::StationHierarchyQualityCheck < QualityCheck
     if (parent_stop[:geometry].distance(stop_platform[:geometry]) > STOP_PLATFORM_PARENT_DIST_GAP_THRESHOLD)
       issue = Issue.new(created_by_changeset: self.changeset,
                         issue_type: 'stop_platform_parent_distance_gap',
-                        details: "Stop Platform #{stop_platform.parent_stop_onestop_id} is too far from parent stop #{parent_stop.onestop_id}.")
+                        details: "Stop platform #{stop_platform.parent_stop_onestop_id} is too far from parent stop #{parent_stop.onestop_id}.")
       issue.entities_with_issues.new(entity: parent_stop, issue: issue, entity_attribute: 'geometry')
       issue.entities_with_issues.new(entity: stop_platform, issue: issue, entity_attribute: 'geometry')
       self.issues << issue
@@ -50,7 +76,7 @@ class QualityCheck::StationHierarchyQualityCheck < QualityCheck
     if (stop_platform[:geometry].distance(other_stop_platform[:geometry]) <= MINIMUM_DIST_BETWEEN_PLATFORMS)
       issue = Issue.new(created_by_changeset: self.changeset,
                         issue_type: 'stop_platforms_too_close',
-                        details: "Stop platform #{stop_platform.parent_stop_onestop_id} is too close to stop platform #{other_stop_platform.onestop_id}")
+                        details: "Stop platform #{stop_platform.onestop_id} is too close to stop platform #{other_stop_platform.onestop_id}")
       issue.entities_with_issues.new(entity: stop_platform, issue: issue, entity_attribute: 'geometry')
       issue.entities_with_issues.new(entity: other_stop_platform, issue: issue, entity_attribute: 'geometry')
       self.issues << issue
