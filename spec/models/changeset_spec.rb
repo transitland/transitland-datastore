@@ -247,6 +247,7 @@ describe Changeset do
       expect(Stop.first).to eq Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS')
       expect(OldStop.find(2)).to eq OldStop.find_by_onestop_id!(merge_stop_1.onestop_id)
       expect(OldStop.last).to eq OldStop.find_by_onestop_id!(merge_stop_2.onestop_id)
+      expect(OldStop.last.current).to eq Stop.first
       expect(OldStop.last.action).to eq 'merge'
     end
 
@@ -273,6 +274,7 @@ describe Changeset do
       expect(Stop.first).to eq Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS')
       expect(OldStop.first).to eq OldStop.find_by_onestop_id!(merge_stop_1.onestop_id)
       expect(OldStop.last).to eq OldStop.find_by_onestop_id!(merge_stop_2.onestop_id)
+      expect(OldStop.last.current).to eq Stop.first
       expect(OldStop.last.action).to eq 'merge'
     end
 
