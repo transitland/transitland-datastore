@@ -48,6 +48,7 @@
       }
     },
     "onestopId": {"type": "string"},
+    "newOnestopId": {"type": "string"},
     "traversedBy": {
       "type": "string",
       "format": "route-onestop-id"

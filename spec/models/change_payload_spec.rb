@@ -42,6 +42,21 @@ RSpec.describe ChangePayload, type: :model do
       expect(change_payload.valid?).to be true
     end
 
+    it 'can contain a stop change_onestop_id action' do
+      change_payload = build(:change_payload, payload: {
+        changes: [
+          {
+            action: "changeOnestopID",
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              newOnestopId: 's-9q8yt4b-test'
+            }
+          }
+        ]
+      })
+      expect(change_payload.valid?).to be true
+    end
+
     it 'must include valid Onestop IDs' do
       change_payload = build(:change_payload, payload: {
         changes: [
@@ -79,22 +94,6 @@ RSpec.describe ChangePayload, type: :model do
         ]
       })
       expect(change_payload.valid?).to be true
-    end
-
-    it 'updates edited_attributes during create and update' do
-      stop = create(:stop)
-      stop.wheelchair_boarding = true
-      change_payload = build(:change_payload, payload: {
-        changes: [
-          {
-            action: "createUpdate",
-            stop: stop.as_change
-          }
-        ]
-      })
-      change_payload.changeset = create(:changeset)
-      change_payload.apply!
-      expect(Stop.find_by_onestop_id!(stop.onestop_id).edited_attributes).to include("wheelchair_boarding")
     end
 
     it 'apply! returns set of issues to deprecate' do

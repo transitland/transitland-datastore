@@ -9,6 +9,10 @@
       "type": "string",
       "format": "operator-onestop-id"
     },
+    "newOnestopId": {
+      "type": "string",
+      "format": "operator-onestop-id"
+    },
     "name": { "type": "string" },
     "shortName": { "type": "string" },
     "country": { "type": "string" },

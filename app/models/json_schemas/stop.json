@@ -9,6 +9,10 @@
       "type": "string",
       "format": "stop-onestop-id"
     },
+    "newOnestopId": {
+      "type": "string",
+      "format": "stop-onestop-id"
+    },
     "geometry": { "type": "object" },
     "timezone": { "type": "string" },
     "tags": { "type": "object" },

@@ -205,17 +205,37 @@ describe Changeset do
     #   expect(@changeset2_bad.applied).to be false
     #   expect(@changeset2_bad.error).to be_truthy
     # end
+
+    it 'changes onestop id' do
+      @changeset1.apply!
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'changeOnestopID',
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              newOnestopId: 's-9q8yt4b-test'
+            }
+          }
+        ]
+      })
+      changeset.apply!
+      expect { Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS') }.to raise_error(ActiveRecord::RecordNotFound)
+      expect(Stop.first).to eq Stop.find_by_onestop_id!('s-9q8yt4b-test')
+      expect(OldStop.first).to eq OldStop.find_by_onestop_id!('s-9q8yt4b-1AvHoS')
+    end
   end
 
   context 'sticky and edited attributes' do
     # import-related changeset integration tests are in gtfs_graph_spec
     before(:each) {
+      @onestop_id = 's-9q8yt4b-1AvHoS'
       @changeset = create(:changeset, payload: {
         changes: [
           {
             action: 'createUpdate',
             stop: {
-              onestopId: 's-9q8yt4b-1AvHoS',
+              onestopId: @onestop_id,
               name: '1st Ave. & Holloway St.',
               timezone: 'America/Los_Angeles',
               geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
@@ -225,6 +245,24 @@ describe Changeset do
       })
       @changeset.apply!
     }
+
+    it 'updates edited_attributes during create and update' do
+      stop = Stop.find_by_onestop_id!(@onestop_id)
+      stop.wheelchair_boarding = true
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            stop: {
+              onestopId: @onestop_id,
+              wheelchairBoarding: true
+            }
+          }
+        ]
+      })
+      changeset.apply!
+      expect(Stop.find_by_onestop_id!(stop.onestop_id).edited_attributes).to include("wheelchair_boarding")
+    end
 
     it 'allows non-import changeset to preserve sticky and edited attributes' do
       edited_attrs = Set.new(Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS').edited_attributes.map(&:to_sym))

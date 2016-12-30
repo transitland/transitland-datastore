@@ -23,6 +23,8 @@ module CurrentTrackedByChangeset
       case action
       when 'createUpdate'
         apply_changes_create_update(changeset: changeset, changes: changes, cache: cache)
+      when 'changeOnestopID'
+        apply_changes_change_onestop_id(changeset: changeset, changes: changes, cache: cache)
       when 'destroy'
         apply_changes_destroy(changeset: changeset, changes: changes, cache: cache)
       else
@@ -31,17 +33,15 @@ module CurrentTrackedByChangeset
     end
 
     def apply_changes_create_update(changeset: nil, changes: nil, cache: {})
-      existing_models = []
       new_models = []
       changes.each do |change|
         existing_model = find_existing_model(change)
         attrs_to_apply = apply_params(change, cache)
-        unless !self.column_names.include?("edited_attributes") || changeset.nil? || changeset.import?
+        unless !self.column_names.include?('edited_attributes') || changeset.nil? || changeset.import?
           attrs_to_apply.update({ edited_attributes: attrs_to_apply.keys.select { |a| self.sticky_attributes.include?(a) } })
         end
         if existing_model
           existing_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply)
-          existing_models << existing_model
         else
           new_model = self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
           new_models << new_model if new_model
@@ -50,13 +50,30 @@ module CurrentTrackedByChangeset
       new_models.each { |model| model.after_create_making_history(changeset) }
     end
 
+    def apply_changes_change_onestop_id(changeset: nil, changes: nil, cache: {})
+      changes.each do |change|
+        unless change.has_key?(:new_onestop_id)
+          raise Changeset.Error.new(changeset, "could not find newOnestopId")
+        end
+        existing_model = find_existing_model(change.merge({ onestop_id: change[:onestop_id] }))
+        if existing_model
+          attrs_to_apply = apply_params(existing_model.as_change.merge({ onestop_id: change[:new_onestop_id] }), cache)
+          new_model = self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
+          new_model.after_create_making_history(changeset)
+          existing_model.destroy_making_history(changeset: changeset, action: 'change_onestop_id')
+        else
+          raise Changeset::Error.new(changeset: changeset, message: "could not find a #{self.name} with Onestop ID of #{change[:onestop_id]} to change Onestop ID")
+        end
+      end
+    end
+
     def apply_changes_destroy(changeset: nil, changes: nil, cache: {})
       changes.each do |change|
         existing_model = find_existing_model(change)
         if existing_model
           existing_model.destroy_making_history(changeset: changeset)
         else
-          raise Changeset::Error.new(changeset, "could not find a #{self.name} with Onestop ID of #{attrs[:onestop_id]} to destroy")
+          raise Changeset::Error.new(changeset: changeset, message: "could not find a #{self.name} with Onestop ID of #{change[:onestop_id]} to destroy")
         end
       end
     end
@@ -149,12 +166,13 @@ module CurrentTrackedByChangeset
     return true
   end
 
-  def destroy_making_history(changeset: nil)
+  def destroy_making_history(changeset: nil, action: nil)
     self.class.transaction do
       old_model = self.class.instantiate_an_old_model
       old_model.assign_attributes(changeable_attributes_as_a_cloned_hash)
       old_model.version = self.version
       old_model.destroyed_in_changeset = changeset
+      old_model.action = action unless action.nil?
 
       self.marked_for_destroy_making_history = true
       self.old_model_left_after_destroy_making_history = old_model

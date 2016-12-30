@@ -9,6 +9,10 @@
       "type": "string",
       "format": "route-onestop-id"
     },
+    "newOnestopId": {
+      "type": "string",
+      "format": "route-onestop-id"
+    },
     "operatedBy": {
       "type": "string",
       "format": "operator-onestop-id"
