@@ -171,6 +171,9 @@ class Stop < BaseStop
   has_many :stops_out, through: :trips_out, source: :destination
   has_many :stops_in, through: :trips_in, source: :origin
 
+  # issues
+  has_many :issues, through: :entities_with_issues
+
   def parent_stop
     # Dummy relation
   end

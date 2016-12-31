@@ -42,12 +42,12 @@ class Api::V1::StopStationsController < Api::V1::BaseApiController
     end
     # TODO: served_by_vehicle_types
 
-
     @stops = @stops.includes{[
       stop_transfers,
       stop_transfers.to_stop,
       stop_platforms,
       stop_egresses,
+      issues,
       # Self
       imported_from_feeds,
       imported_from_feed_versions,
@@ -66,6 +66,7 @@ class Api::V1::StopStationsController < Api::V1::BaseApiController
       stop_platforms.routes_serving_stop.route.operator,
       stop_platforms.stop_transfers,
       stop_platforms.stop_transfers.to_stop,
+      stop_platforms.issues.created_by_changeset,
       # stop_egresses
       stop_egresses.imported_from_feeds,
       stop_egresses.imported_from_feed_versions,
@@ -75,7 +76,7 @@ class Api::V1::StopStationsController < Api::V1::BaseApiController
       stop_egresses.routes_serving_stop.route,
       stop_egresses.routes_serving_stop.route.operator,
       stop_egresses.stop_transfers,
-      stop_egresses.stop_transfers.to_stop,
+      stop_egresses.stop_transfers.to_stop
     ]} # TODO: check performance against eager_load, joins, etc.
 
     respond_to do |format|
