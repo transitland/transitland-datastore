@@ -9,40 +9,43 @@ class FeedInfoWorker
     @cachekey = cachekey
     @progress_checkpoint = 0.0
     # Partials
-    progress_downloading = lambda { |count,total| progress_check('downloading', count, total) }
-    progress_parsing = lambda { |count,total,entity| progress_check('parsing', count, total) }
+    progress_download = lambda { |count,total| progress_check('downloading', count, total) }
+    progress_graph = lambda { |count,total,entity| progress_check('parsing', count, total) }
     # Download & parse feed
     feed, operators = nil, []
     errors = []
     warnings = []
     begin
-      feed_info = FeedInfo.new(url: @url)
-      progress_update('downloading', 0.0)
-      feed_info.download(progress: progress_downloading) do |feed_info|
-        progress_update('downloading', 1.0)
-        progress_update('parsing', 0.0)
-        feed_info.process(progress: progress_parsing) do |feed_info|
-          progress_update('parsing', 1.0)
-          progress_update('processing', 0.0)
-          feed, operators = feed_info.parse_feed_and_operators
-          progress_update('processing', 1.0)
-        end
-      end
+      # Pass in progress_download, progress_graph callbacks
+      gtfs = GTFS::Source.build(
+        @url,
+        progress_download: progress_download,
+        progress_graph: progress_graph,
+        strict: false,
+        tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
+      )
+      feed_info = FeedInfo.new(url: @url, gtfs: gtfs)
+      feed, operators = feed_info.parse_feed_and_operators
+    rescue GTFS::InvalidURLException => e
+      errors << {
+        exception: 'InvalidURLException',
+        message: 'There was a problem downloading the file. Check the address and try again, or contact the transit operator for more help.'
+      }
+    rescue GTFS::InvalidResponseException => e
+      errors << {
+        exception: 'InvalidResponseException',
+        message: "There was an error downloading the file. The transit operator server responded with: #{e.to_s}.",
+        response_code: e.response_code
+      }
+    rescue GTFS::InvalidZipException => e
+      errors << {
+        exception: 'InvalidZipException',
+        message: 'The zip file appears to be corrupt.'
+      }
     rescue GTFS::InvalidSourceException => e
       errors << {
         exception: 'InvalidSourceException',
         message: 'This file does not appear to be a valid GTFS feed. Contact Transitland for more help.'
-      }
-    rescue SocketError => e
-      errors << {
-        exception: 'SocketError',
-        message: 'There was a problem downloading the file. Check the address and try again, or contact the transit operator for more help.'
-      }
-    rescue Net::HTTPServerException => e
-      errors << {
-        exception: 'HTTPServerException',
-        message: "There was an error downloading the file. The transit operator server responded with: #{e.to_s}.",
-        response_code: e.response.code
       }
     rescue StandardError => e
       errors << {
@@ -67,8 +70,12 @@ class FeedInfoWorker
     end
 
     response = {}
-    response[:feed] = FeedSerializer.new(feed).as_json
-    response[:operators] = operators.map { |o| OperatorSerializer.new(o).as_json }
+    if feed
+      response[:feed] = FeedSerializer.new(feed).as_json
+    end
+    if operators
+      response[:operators] = operators.map { |o| OperatorSerializer.new(o).as_json }
+    end
     response[:status] = errors.size > 0 ? 'error' : 'complete'
     response[:errors] = errors
     response[:warnings] = warnings
@@ -99,11 +106,4 @@ class FeedInfoWorker
     }
     Rails.cache.write(@cachekey, cachedata, expires_in: FeedInfo::CACHE_EXPIRATION)
   end
-end
-
-if __FILE__ == $0
-  ActiveRecord::Base.logger = Logger.new(STDOUT)
-  url = ARGV[0] || "http://www.caltrain.com/Assets/GTFS/caltrain/GTFS-Caltrain-Devs.zip"
-  FeedInfoWorker.new.perform(url, 'test')
-  puts Rails.cache.read('test').to_json
 end

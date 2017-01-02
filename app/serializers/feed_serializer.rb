@@ -19,15 +19,16 @@
 #  updated_at                         :datetime
 #  created_or_updated_in_changeset_id :integer
 #  geometry                           :geography({:srid geometry, 4326
-#  latest_fetch_exception_log         :text
 #  license_attribution_text           :text
 #  active_feed_version_id             :integer
+#  edited_attributes                  :string           default([]), is an Array
 #
 # Indexes
 #
 #  index_current_feeds_on_active_feed_version_id              (active_feed_version_id)
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
 #  index_current_feeds_on_geometry                            (geometry)
+#  index_current_feeds_on_onestop_id                          (onestop_id) UNIQUE
 #
 
 class FeedSerializer < ApplicationSerializer
@@ -44,7 +45,6 @@ class FeedSerializer < ApplicationSerializer
              :license_attribution_text,
              :last_fetched_at,
              :last_imported_at,
-             :latest_fetch_exception_log,
              :import_status,
              :created_at,
              :updated_at,
@@ -57,6 +57,7 @@ class FeedSerializer < ApplicationSerializer
              :changesets_imported_from_this_feed
 
   has_many :operators_in_feed
+  has_many :issues, through: :entities_with_issues
 
   def feed_versions_count
     object.feed_versions.count

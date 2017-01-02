@@ -186,7 +186,8 @@ describe Api::V1::ChangesetsController do
         changes: [
           action: 'destroy',
           stop: {
-            onestopId: 's-5b2-Fake'
+            onestopId: 's-5b2-Fake',
+            timezone: 'America/Los_Angeles'
           }
         ]
       })
@@ -194,6 +195,98 @@ describe Api::V1::ChangesetsController do
       expect_json({ trialSucceeds: false })
       expect(changeset.applied).to eq false
     end
+
+    it 'should return issues when found' do
+      stop = create(:stop_richmond)
+      create(:stop_millbrae)
+      route_stop_pattern = create(:route_stop_pattern_bart)
+      coords = [stop.geometry[:coordinates][0] + 0.5, stop.geometry[:coordinates][1]]
+      changeset = create(:changeset, payload: {
+        changes: [
+          action: 'createUpdate',
+          stop: {
+            onestopId: stop.onestop_id,
+            timezone: 'America/Los_Angeles',
+            geometry: { type: "Point", coordinates: coords }
+          }
+        ]
+      })
+      post :check, id: changeset.id
+      expect_json({ trialSucceeds: true, issues: -> (issues){ expect(issues.size).to eq 1 } })
+    end
+  end
+
+  context 'POST apply_async' do
+    before(:each) do
+      @changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              name: '1st Ave. & Holloway Street',
+              timezone: 'America/Los_Angeles',
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
+            }
+          }
+        ]
+      })
+      @cachekey = "changesets/#{@changeset.id}/apply_async"
+      Rails.cache.delete(@cachekey)
+    end
+
+    after(:each) do
+      Rails.cache.delete(@cachekey)
+    end
+
+    it 'enqueues job' do
+      Sidekiq::Testing.fake! do
+        expect {
+          post :apply_async, id: @changeset.id
+        }.to change(ChangesetApplyWorker.jobs, :size).by(1)
+      end
+      expect(response.status).to eq 200
+    end
+
+    it 'returns enqueued job' do
+      Sidekiq::Testing.fake! do
+        expect(ChangesetApplyWorker.jobs.size).to eq(0)
+        post :apply_async, id: @changeset.id
+        expect(ChangesetApplyWorker.jobs.size).to eq(1)
+        post :apply_async, id: @changeset.id
+        expect(ChangesetApplyWorker.jobs.size).to eq(1)
+      end
+    end
+
+    it 'returns completed job' do
+      Sidekiq::Testing.inline! do
+        post :apply_async, id: @changeset.id
+      end
+      post :apply_async, id: @changeset.id
+      expect_json({ status: 'complete' })
+      expect(@changeset.reload.applied).to be true
+    end
+
+    it 'returns errors' do
+      # missing timezone
+      payload = {changes: [{action: 'createUpdate', stop: {onestopId: 's-9q9-test'}}]}
+      @changeset.change_payloads.first.update(payload: payload)
+      # Test
+      Sidekiq::Testing.inline! do
+        post :apply_async, id: @changeset.id
+      end
+      post :apply_async, id: @changeset.id
+      expect_json({
+        status: 'error',
+        errors: -> (errors) {
+          expect(errors.size).to eq(1)
+          expect(errors.first[:exception]).to eq('ChangesetError')
+        }
+      })
+      expect(@changeset.reload.applied).to be false
+      expect(response.status).to eq(500)
+    end
+
   end
 
   context 'POST apply' do
@@ -204,7 +297,9 @@ describe Api::V1::ChangesetsController do
             action: 'createUpdate',
             stop: {
               onestopId: 's-9q8yt4b-1AvHoS',
-              name: '1st Ave. & Holloway Street'
+              name: '1st Ave. & Holloway Street',
+              timezone: 'America/Los_Angeles',
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
             }
           }
         ]
@@ -212,7 +307,7 @@ describe Api::V1::ChangesetsController do
       expect(Stop.count).to eq 0
       post :apply, id: changeset
       expect(OnestopId.find!('s-9q8yt4b-1AvHoS').name).to eq '1st Ave. & Holloway Street'
-      expect_json({ applied: true })
+      expect_json({ applied: [true,[]] })
     end
 
     it 'should fail when API auth token is not provided' do
@@ -235,6 +330,35 @@ describe Api::V1::ChangesetsController do
       })
       post :apply, id: changeset.id
       expect(response.status).to eq 400
+    end
+  end
+
+  context 'issue resolution' do
+    before(:each) do
+      load_feed(feed_version_name: :feed_version_example_issues, import_level: 1)
+    end
+
+    it 'resolves issue with issues_resolved changeset' do
+      Timecop.freeze(3.minutes.from_now) do
+        # Moving this stop will create other stop_rsp_distance_gap issues, but we only care about this one issue
+        changeset = create(:changeset, payload: {
+          changes: [
+            action: 'createUpdate',
+            issuesResolved: [8],
+            stop: {
+              onestopId: 's-9qscwx8n60-nyecountyairportdemo',
+              timezone: 'America/Los_Angeles',
+              geometry: {
+                "type": "Point",
+                "coordinates": [-116.784582, 36.88845]
+              }
+            }
+          ]
+        })
+        expect(Sidekiq::Logging.logger).to receive(:info).with(/Calculating distances/)
+        expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>8.*"resolved_by_changeset_id"=>2.*"open"=>false/)
+        post :apply, id: changeset.id
+      end
     end
   end
 

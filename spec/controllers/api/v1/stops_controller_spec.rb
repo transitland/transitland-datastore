@@ -37,6 +37,39 @@ describe Api::V1::StopsController do
         }})
       end
 
+      it 'returns stops with wheelchair_boarding' do
+        stop_true = create(:stop, wheelchair_boarding: true)
+        stop_false = create(:stop, wheelchair_boarding: false)
+        get :index, wheelchair_boarding: 'true'
+        expect({ stops: -> (stops) {
+            expect(stops.first.onestop_id = stop_true.onestop_id)
+            expect(stops.count).to eq 1
+            expect(stops.first.wheelchair_boarding).to be true
+        }})
+      end
+
+      context 'served_by_vehicle_types' do
+        before(:each) do
+          @route1 = create(:route, vehicle_type: 'metro')
+          @route2 = create(:route, vehicle_type: 'bus')
+          @route3 = create(:route, vehicle_type: 'tram')
+          @stop1 = create(:stop)
+          @stop2 = create(:stop)
+          @stop3 = create(:stop)
+          RouteServingStop.create!(route: @route1, stop: @stop1)
+          RouteServingStop.create!(route: @route2, stop: @stop2)
+          RouteServingStop.create!(route: @route3, stop: @stop3)
+        end
+
+        it 'accepts a mix of strings and integers' do
+          get :index, served_by_vehicle_types: ['metro', 3]
+          expect_json({ stops: -> (stops) {
+            expect(stops.map { |stop| stop[:onestop_id] }).to match_array([@stop1.onestop_id, @stop2.onestop_id])
+          }})
+        end
+
+      end
+
       context 'returns stop by servedBy' do
         before(:each) do
           @bart = create(:operator, name: 'BART')

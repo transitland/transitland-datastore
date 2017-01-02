@@ -17,9 +17,33 @@
     "tags": { "type": "object" },
     "color": { "type": "string" },
     "geometry": { "type": "object" },
+    "wheelchairAccessible": {
+      "type": "string",
+      "enum": [ "unknown", "all_trips", "no_trips", "some_trips" ]
+    },
+    "bikesAllowed": {
+      "type": "string",
+      "enum": [ "unknown", "all_trips", "no_trips", "some_trips" ]
+    },
     "vehicleType": {
       "type": ["string", "integer"],
       "format": "vehicle-type"
+    },
+    "addImportedFromFeeds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "./imported_from_feed.json"
+      }
+    },
+    "notImportedFromFeeds": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "./imported_from_feed.json"
+      }
     },
     "identifiedBy": {
       "type": "array",

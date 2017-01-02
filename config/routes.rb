@@ -1,42 +1,40 @@
-# host, protocol, port for full URLs
-if Figaro.env.transitland_datastore_host.present?
-  default_url_options = {
-    host: Figaro.env.transitland_datastore_host.match(/:\/\/([^:]+)/)[1],
-    protocol: Figaro.env.transitland_datastore_host.split('://')[0]
-  }
-  if (port_match = Figaro.env.transitland_datastore_host.match(/:(\d+)/))
-    default_url_options[:port] = port_match[1]
-  end
-else
-  default_url_options = {
-    host: 'localhost',
-    protocol: 'http',
-    port: '3000'
-  }
-end
-Rails.application.routes.default_url_options = default_url_options
+Rails.application.routes.default_url_options = TransitlandDatastore::Application.base_url_options
 
 Rails.application.routes.draw do
   namespace :api do
+    get '/', to: 'api#index'
     namespace :v1 do
-      get '/', to: 'apidocs#index'
+      get '/', to: 'api_v1#index'
+      get '/swagger', to: 'apidocs#index'
       get '/onestop_id/:onestop_id', to: 'onestop_id#show'
+      get '/activity_updates', to: 'activity_updates#index'
       resources :changesets, only: [:index, :show, :create, :update, :destroy] do
         member do
           post 'check'
           post 'apply'
+          post 'apply_async'
           post 'revert'
         end
         resources :change_payloads, only: [:index, :show, :create, :update, :destroy]
       end
       resources :stops, only: [:index, :show]
-      resources :operators, only: [:index, :show]
+      resources :stop_stations, only: [:index, :show]
+      resources :operators, only: [:index, :show] do
+        collection do
+          get 'aggregate'
+        end
+      end
       resources :routes, only: [:index, :show]
       resources :route_stop_patterns, only: [:index, :show]
       resources :schedule_stop_pairs, only: [:index]
       resources :feeds, only: [:index, :show]
       resources :feed_versions, only: [:index, :show, :update]
       resources :feed_version_imports, only: [:index, :show]
+      resources :issues, only: [:index, :show, :create, :update, :destroy] do
+        collection do
+          get 'categories'
+        end
+      end
       post '/feeds/fetch_info', to: 'feeds#fetch_info'
       post '/webhooks/feed_fetcher', to: 'webhooks#feed_fetcher'
       post '/webhooks/feed_eater', to: 'webhooks#feed_eater'

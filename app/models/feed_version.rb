@@ -16,10 +16,17 @@
 #  created_at             :datetime
 #  updated_at             :datetime
 #  import_level           :integer          default(0)
+#  url                    :string
+#  file_raw               :string
+#  sha1_raw               :string
+#  md5_raw                :string
+#  file_feedvalidator     :string
 #
 # Indexes
 #
-#  index_feed_versions_on_feed_type_and_feed_id  (feed_type,feed_id)
+#  index_feed_versions_on_earliest_calendar_date  (earliest_calendar_date)
+#  index_feed_versions_on_feed_type_and_feed_id   (feed_type,feed_id)
+#  index_feed_versions_on_latest_calendar_date    (latest_calendar_date)
 #
 
 class FeedVersion < ActiveRecord::Base
@@ -28,20 +35,47 @@ class FeedVersion < ActiveRecord::Base
     # TODO
   end
 
+  include HasTags
+
   belongs_to :feed, polymorphic: true
   has_many :feed_version_imports, -> { order 'created_at DESC' }, dependent: :destroy
   has_many :changesets_imported_from_this_feed_version, class_name: 'Changeset'
+
   has_many :entities_imported_from_feed
-  has_many :imported_operators, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'
-  has_many :imported_stops, through: :entities_imported_from_feed, source: :entity, source_type: 'Stop'
-  has_many :imported_routes, through: :entities_imported_from_feed, source: :entity, source_type: 'Route'
+  has_many :imported_operators, -> { distinct }, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'
+  has_many :imported_stops, -> { distinct }, through: :entities_imported_from_feed, source: :entity, source_type: 'Stop'
+  has_many :imported_routes, -> { distinct }, through: :entities_imported_from_feed, source: :entity, source_type: 'Route'
+  has_many :imported_route_stop_patterns, -> { distinct }, through: :entities_imported_from_feed, source: :entity, source_type: 'RouteStopPattern'
   has_many :imported_schedule_stop_pairs, class_name: 'ScheduleStopPair', dependent: :delete_all
 
   mount_uploader :file, FeedVersionUploader
+  mount_uploader :file_raw, FeedVersionUploaderRaw
+  mount_uploader :file_feedvalidator, FeedVersionUploaderFeedvalidator
 
-  validates :sha1, uniqueness: true
+  validates :sha1, presence: true, uniqueness: true
+  validates :feed, presence: true
 
-  before_validation :compute_and_set_hashes, :read_gtfs_calendar_dates, :read_gtfs_feed_info
+  before_validation :compute_and_set_hashes
+
+  scope :where_active, -> {
+    joins('INNER JOIN current_feeds ON feed_versions.id = current_feeds.active_feed_version_id')
+  }
+
+  scope :where_calendar_coverage_begins_at_or_before, -> (date) {
+    date = date.is_a?(Date) ? date : Date.parse(date)
+    where('earliest_calendar_date <= ?', date)
+  }
+
+  scope :where_calendar_coverage_begins_at_or_after, -> (date) {
+    date = date.is_a?(Date) ? date : Date.parse(date)
+    where('earliest_calendar_date >= ?', date)
+  }
+
+  scope :where_calendar_coverage_includes, -> (date) {
+    date = date.is_a?(Date) ? date : Date.parse(date)
+    where('earliest_calendar_date <= ?', date)
+      .where('latest_calendar_date >= ?', date)
+  }
 
   def succeeded(timestamp)
     self.update(imported_at: timestamp)
@@ -53,19 +87,37 @@ class FeedVersion < ActiveRecord::Base
   end
 
   def delete_schedule_stop_pairs!
-    self.imported_schedule_stop_pairs.delete_all
+    # Delete SSPs in batches.
+    # http://stackoverflow.com/questions/8290900/
+    self.imported_schedule_stop_pairs.select(:id).find_in_batches do |ssp_batch|
+      ScheduleStopPair.delete(ssp_batch)
+    end
+  end
+
+  def extend_schedule_stop_pairs_service_end_date(extend_from_date, extend_to_date)
+    self.imported_schedule_stop_pairs.where('service_end_date >= ?', extend_from_date).select(:id).find_in_batches do |ssp_batch|
+      ScheduleStopPair.where(id: ssp_batch).update_all(service_end_date: extend_to_date)
+    end
+    self.tags ||= {}
+    self.tags["extend_from_date"] = extend_from_date
+    self.tags["extend_to_date"] = extend_to_date
+    self.update!(tags: self.tags)
   end
 
   def is_active_feed_version
     !!self.feed.active_feed_version && (self.feed.active_feed_version == self)
   end
 
-  def async_feed_eater(import_level=0)
-    FeedEaterWorker.perform_async(
-      self.feed.onestop_id,
-      self.sha1,
-      import_level
+  def open_gtfs
+    fail StandardError.new('No file') unless file.present?
+    filename = file.local_path_copying_locally_if_needed
+    gtfs = GTFS::Source.build(
+      filename,
+      strict: false,
+      tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
     )
+    file.remove_any_local_cached_copies
+    gtfs
   end
 
   def download_url
@@ -77,6 +129,13 @@ class FeedVersion < ActiveRecord::Base
     end
   end
 
+  def feedvalidator_url
+    if self.try(:file_feedvalidator).try(:url)
+      # we don't want to include any query parameters
+      self.file_feedvalidator.url.split('?').first
+    end
+  end
+
   private
 
   def compute_and_set_hashes
@@ -84,38 +143,10 @@ class FeedVersion < ActiveRecord::Base
       self.sha1 = Digest::SHA1.file(file.path).hexdigest
       self.md5  = Digest::MD5.file(file.path).hexdigest
     end
-  end
-
-  def read_gtfs_calendar_dates
-    if file.present? && file_changed?
-      gtfs_file = GTFS::Source.build(file.path, {strict: false})
-      start_date, end_date = gtfs_file.service_period_range
-      self.earliest_calendar_date ||= start_date
-      self.latest_calendar_date ||= end_date
+    if file_raw.present? && file_raw_changed?
+      self.sha1_raw = Digest::SHA1.file(file_raw.path).hexdigest
+      self.md5_raw  = Digest::MD5.file(file_raw.path).hexdigest
     end
   end
 
-  def read_gtfs_feed_info
-    if file.present? && file_changed?
-      gtfs_file = GTFS::Source.build(file.path, {strict: false})
-      begin
-        if gtfs_file.feed_infos.count > 0
-          feed_info = gtfs_file.feed_infos[0]
-          feed_version_tags = {
-            feed_publisher_name: feed_info.feed_publisher_name,
-            feed_publisher_url:  feed_info.feed_publisher_url,
-            feed_lang:           feed_info.feed_lang,
-            feed_start_date:     feed_info.feed_start_date,
-            feed_end_date:       feed_info.feed_end_date,
-            feed_version:        feed_info.feed_version,
-            feed_id:             feed_info.feed_id
-          }
-          feed_version_tags.delete_if { |k, v| v.blank? }
-          self.tags = feed_version_tags
-        end
-      rescue GTFS::InvalidSourceException
-        return
-      end
-    end
-  end
 end

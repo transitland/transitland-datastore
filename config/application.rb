@@ -13,6 +13,26 @@ Bundler.require(*Rails.groups)
 
 module TransitlandDatastore
   class Application < Rails::Application
+    def self.base_url_options
+      if Figaro.env.transitland_datastore_host.present?
+        base_url_options = {
+          host: Figaro.env.transitland_datastore_host.match(/:\/\/([^:]+)/)[1],
+          protocol: Figaro.env.transitland_datastore_host.split('://')[0],
+          port: nil
+        }
+        if (port_match = Figaro.env.transitland_datastore_host.match(/:(\d+)/))
+          base_url_options[:port] = port_match[1]
+        end
+      else
+        base_url_options = {
+          host: 'localhost',
+          protocol: 'http',
+          port: '3000'
+        }
+      end
+      base_url_options
+    end
+
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration should go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded.
@@ -37,8 +57,7 @@ module TransitlandDatastore
     config.active_record.raise_in_transactional_callbacks = true
 
     # e-mail
-    HOST = 'mapzen.com' # TODO: change to 'transit.land'
-    config.action_mailer.default_url_options = { host: HOST }
+    config.action_mailer.default_url_options = base_url_options
     if Rails.env.development?
       # Send mail to mailcatcher gem
       config.action_mailer.delivery_method = :smtp
@@ -65,7 +84,7 @@ module TransitlandDatastore
           user_name: Figaro.env.mandrill_user_name,
           password: Figaro.env.mandrill_password,
           authentication: :plain,
-          domain: HOST
+          domain: 'mapzen.com' # TODO: change to transit.land
         }
     end
   end

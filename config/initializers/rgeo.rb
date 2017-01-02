@@ -24,11 +24,13 @@ module RGeo
       end
 
       def before?(target)
-        return _segments[0].tproj(target) < 0.0 ? true : false
+        segs = _segments.find{ |seg| !seg.s.eql?(seg.e) }
+        return !segs.nil? && segs.tproj(target) < 0.0 ? true : false
       end
 
       def after?(target)
-        return _segments[-1].tproj(target) > 1.0 ? true : false
+        segs = _segments.reverse_each.detect { |seg| !seg.s.eql?(seg.e) }
+        return !segs.nil? && segs.tproj(target) > 1.0 ? true : false
       end
     end
 
@@ -50,6 +52,7 @@ module RGeo
       end
 
       def distance_on_segment
+        return 0 if segment.s.eql?(segment.e)
         segment.tproj(target) * segment.length
       end
 
@@ -70,6 +73,7 @@ module RGeo
       end
 
       def interpolate_point(factory)
+        return segment.e if segment.length == 0
         location = distance_on_segment / segment.length
         return segment.e if location >= 1
         return segment.s if location <= 0

@@ -1,6 +1,7 @@
 require 'sidekiq/web'
 
 if Rails.env.production? || Rails.env.staging?
+  Sidekiq::Web.set :session_secret, Rails.application.secrets[:secret_key_base]
   Sidekiq::Web.use Rack::Auth::Basic do |username, password|
     username == Figaro.env.admin_username && password == Figaro.env.admin_password
   end

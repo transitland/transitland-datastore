@@ -2,15 +2,6 @@ class Api::V1::StopsController < Api::V1::BaseApiController
   include JsonCollectionPagination
   include DownloadableCsv
   include AllowFiltering
-  include Geojson
-  GEOJSON_ENTITY_PROPERTIES = Proc.new { |properties, entity|
-    # title property to follow GeoJSON simple style spec
-    properties[:title] = entity.name
-
-    properties[:timezone] = entity.timezone
-    properties[:operators_serving_stop] = entity.operators.map(&:onestop_id).try(:uniq)
-    properties[:routes_serving_stop] = entity.routes.map(&:onestop_id).try(:uniq)
-  }
 
   before_action :set_stop, only: [:show]
 
@@ -69,6 +60,14 @@ class Api::V1::StopsController < Api::V1::BaseApiController
     @stops = AllowFiltering.by_identifer_and_identifier_starts_with(@stops, params)
     @stops = AllowFiltering.by_updated_since(@stops, params)
 
+    if params[:imported_from_feed].present?
+      @stops = @stops.where_imported_from_feed(Feed.find_by_onestop_id(params[:imported_from_feed]))
+    end
+
+    if params[:imported_from_feed_version].present?
+      @stops = @stops.where_imported_from_feed_version(FeedVersion.find_by!(sha1: params[:imported_from_feed_version]))
+    end
+
     if params[:served_by].present? || params[:servedBy].present?
       # we previously allowed `servedBy`, so we'll continue to honor that for the time being
       operator_onestop_ids = []
@@ -88,6 +87,12 @@ class Api::V1::StopsController < Api::V1::BaseApiController
     if params[:import_level].present?
       @stops = @stops.where_import_level(AllowFiltering.param_as_array(params, :import_level))
     end
+    if params[:served_by_vehicle_types].present?
+      @stops = @stops.served_by_vehicle_types(AllowFiltering.param_as_array(params, :served_by_vehicle_types))
+    end
+    if params[:wheelchair_boarding].present?
+      @stops = @stops.where(wheelchair_boarding: AllowFiltering.to_boolean(params[:wheelchair_boarding] ))
+    end
 
     @stops = @stops.includes{[
       operators_serving_stop,
@@ -100,37 +105,9 @@ class Api::V1::StopsController < Api::V1::BaseApiController
     ]} # TODO: check performance against eager_load, joins, etc.
 
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(
-          @stops,
-          Proc.new { |params| api_v1_stops_url(params) },
-          params[:sort_key],
-          params[:sort_order],
-          params[:offset],
-          params[:per_page],
-          params[:total],
-          params.slice(
-            :identifier,
-            :identifier_starts_with,
-            :served_by,
-            :servedBy,
-            :lat,
-            :lon,
-            :r,
-            :bbox,
-            :onestop_id,
-            :tag_key,
-            :tag_value,
-            :import_level
-          )
-        )
-      end
-      format.geojson do
-        render json: Geojson.from_entity_collection(@stops, &GEOJSON_ENTITY_PROPERTIES)
-      end
-      format.csv do
-        return_downloadable_csv(@stops, 'stops')
-      end
+      format.json { render paginated_json_collection(@stops) }
+      format.geojson { render paginated_geojson_collection(@stops) }
+      format.csv { return_downloadable_csv(@stops, 'stops') }
     end
   end
 
@@ -162,16 +139,38 @@ class Api::V1::StopsController < Api::V1::BaseApiController
   end
   def show
     respond_to do |format|
-      format.json do
-        render json: @stop
-      end
-      format.geojson do
-        render json: Geojson.from_entity(@stop, &GEOJSON_ENTITY_PROPERTIES)
-      end
+      format.json { render json: @stop, serializer: StopSerializer }
+      format.geojson { render json: @stop, serializer: GeoJSONSerializer }
     end
   end
 
+  def paginated_json_collection(collection)
+    result = super
+    result[:root] = :stops
+    result[:each_serializer] = StopSerializer
+    result
+  end
+
   private
+
+  def query_params
+    params.slice(
+      :identifier,
+      :identifier_starts_with,
+      :served_by,
+      :servedBy,
+      :lat,
+      :lon,
+      :r,
+      :bbox,
+      :onestop_id,
+      :tag_key,
+      :tag_value,
+      :import_level,
+      :imported_from_feed,
+      :imported_from_feed_version
+    )
+  end
 
   def set_stop
     @stop = Stop.find_by_onestop_id!(params[:id])

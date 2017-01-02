@@ -32,12 +32,13 @@ FactoryGirl.define do
           {
             action: "createUpdate",
             stop: {
-              onestopId: Faker::OnestopId.stop
+              onestopId: Faker::OnestopId.stop,
+              timezone: 'America/Los_Angeles',
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }              
             }
           }
         ]
       }
     }
   end
-
 end

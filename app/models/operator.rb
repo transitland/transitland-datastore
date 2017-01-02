@@ -18,6 +18,7 @@
 #  country                            :string
 #  state                              :string
 #  metro                              :string
+#  edited_attributes                  :string           default([]), is an Array
 #
 # Indexes
 #
@@ -44,6 +45,7 @@ class Operator < BaseOperator
   include HasTags
   include UpdatedSince
   include IsAnEntityImportedFromFeeds
+  include IsAnEntityWithIssues
 
   include CanBeSerializedToCsv
   def self.csv_column_names
@@ -68,23 +70,34 @@ class Operator < BaseOperator
       :serves,
       :does_not_serve,
       :identified_by,
-      :not_identified_by
+      :not_identified_by,
+      :add_imported_from_feeds,
+      :not_imported_from_feeds
     ],
     protected_attributes: [
       :identifiers
+    ],
+    sticky_attributes: [
+      :short_name,
+      :country,
+      :metro,
+      :state,
+      :website
     ]
   })
-  def self.after_create_making_history(created_model, changeset)
+  def after_create_making_history(changeset)
+    update_entity_imported_from_feeds(changeset)
     OperatorRouteStopRelationship.manage_multiple(
       operator: {
-        serves: created_model.serves || [],
-        does_not_serve: created_model.does_not_serve || [],
-        model: created_model
+        serves: self.serves || [],
+        does_not_serve: self.does_not_serve || [],
+        model: self
       },
       changeset: changeset
     )
   end
   def before_update_making_history(changeset)
+    update_entity_imported_from_feeds(changeset)
     OperatorRouteStopRelationship.manage_multiple(
       operator: {
         serves: self.serves || [],
@@ -102,6 +115,9 @@ class Operator < BaseOperator
     routes_serving_stop.each do |route_serving_stop|
       route_serving_stop.destroy_making_history(changeset: changeset)
     end
+    operators_in_feed.each do |operator_in_feed|
+      operator_in_feed.destroy_making_history(changeset: changeset)
+    end
     return true
   end
 
@@ -111,6 +127,7 @@ class Operator < BaseOperator
   end
 
   after_initialize :set_default_values
+  after_save :bust_aggregate_cache
 
   has_many :operators_in_feed
   has_many :feeds, through: :operators_in_feed
@@ -167,6 +184,10 @@ class Operator < BaseOperator
       self.tags ||= {}
       self.identifiers ||= []
     end
+  end
+
+  def bust_aggregate_cache
+    Rails.cache.delete(Api::V1::OperatorsController::AGGREGATE_CACHE_KEY)
   end
 
 end

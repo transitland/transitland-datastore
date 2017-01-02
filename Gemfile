@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.2.6'
+gem 'rails', '4.2.7.1'
 
 # Transitland Datastore components
 path 'components' do
@@ -21,14 +21,14 @@ gem 'redis-rails'
 
 # background processing
 gem 'sidekiq', '< 5'
-gem 'sidekiq-unique-jobs'
+gem 'sidekiq-unique-jobs', group: [:development, :staging, :production] # doesn't play well with test
 gem 'sidekiq-limit_fetch'
 gem 'whenever', require: false # to manage crontab
 
 # data model
 gem 'squeel'
 gem 'enumerize'
-gem 'gtfs', github: 'transitland/gtfs', tag: 'd4e155a65875352530ba41fbf7db1e11fe58de3a'
+gem 'gtfs', github: 'transitland/gtfs', tag: '2bddc81bdcad6cd6122bc7988dc4e1e11f515af9'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 gem 'json-schema', '2.5.2' # running into problems with 2.6.0
@@ -42,7 +42,7 @@ gem 'rack-cors', require: 'rack/cors'
 gem 'devise'
 
 # providing API
-gem 'active_model_serializers', '0.9.5'
+gem 'active_model_serializers', '0.10.2'
 gem 'oj'
 gem 'oj_mimic_json'
 gem 'swagger-blocks'
@@ -67,6 +67,7 @@ gem 'pry-rescue', group: [:development, :test]
 gem 'pry-stack_explorer', group: [:development, :test]
 gem 'rubocop', require: false, group: [:development, :test]
 gem 'rubocop-rspec', require: false, group: [:development, :test]
+gem 'active_record_doctor', group: :development
 
 # code coverage and documentation
 gem 'rails-erd', group: :development
@@ -82,7 +83,7 @@ gem 'rspec-sidekiq', group: :test
 gem 'vcr', group: :test
 gem 'webmock', group: :test
 gem 'airborne', group: :test
-gem 'mock_redis', group: :test # used by sidekiq-unique-jobs
+gem 'timecop', group: :test
 gem 'rspec_junit_formatter', '0.2.2', group: :test
 # ^ for CircleCI: https://circleci.com/docs/test-metadata#rspec
 
@@ -94,13 +95,16 @@ gem 'sentry-raven', group: [:staging, :production]
 
 # logging
 gem 'logstasher'
-gem 'sidekiq-logging-json', github: 'transitland/Sidekiq-Logging-JSON', tag: '7ea0db4'
+gem 'sidekiq-logging-json'
 gem 'ruby-progressbar'
 
 # database query performance monitoring/analysis
 gem 'bullet', group: :development
-gem 'pghero', group: [:development, :staging] # mounted at /admin/postgres
+gem 'pghero', group: [:development, :staging, :production] # mounted at /admin/postgres
 gem 'marginalia', group: [:development, :staging]
 
 # web server
 gem 'unicorn', group: [:staging, :production]
+
+# profiling
+gem 'memory_profiler', group: [:test, :development]

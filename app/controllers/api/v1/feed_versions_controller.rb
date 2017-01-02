@@ -95,27 +95,32 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
       @feed_versions = @feed_versions.where(sha1: sha1s)
     end
 
+    if params[:calendar_coverage_begins_at_or_before].present?
+      @feed_versions = @feed_versions.where_calendar_coverage_begins_at_or_before(
+        params[:calendar_coverage_begins_at_or_before]
+      )
+    end
+
+    if params[:calendar_coverage_begins_at_or_after].present?
+      @feed_versions = @feed_versions.where_calendar_coverage_begins_at_or_after(
+        params[:calendar_coverage_begins_at_or_after]
+      )
+    end
+
+    if params[:calendar_coverage_includes].present?
+      @feed_versions = @feed_versions.where_calendar_coverage_includes(
+        params[:calendar_coverage_includes]
+      )
+    end
+
     if params[:feed_onestop_id].present?
       feed_onestop_ids = params[:feed_onestop_id].split(',')
       @feed_versions = @feed_versions.where(feed: Feed.where(onestop_id: feed_onestop_ids))
     end
 
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(
-          @feed_versions,
-          Proc.new { |params| api_v1_feed_versions_url(params) },
-          params[:sort_key],
-          params[:sort_order],
-          params[:offset],
-          params[:per_page],
-          params[:total],
-          {}
-        )
-      end
-      format.csv do
-        return_downloadable_csv(@feed_versions, 'feed_versions')
-      end
+      format.json { render paginated_json_collection(@feed_versions) }
+      format.csv { return_downloadable_csv(@feed_versions, 'feed_versions') }
     end
   end
 

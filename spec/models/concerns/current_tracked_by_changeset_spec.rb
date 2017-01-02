@@ -37,14 +37,11 @@ describe CurrentTrackedByChangeset do
       expect(stop1.identifiers).to match_array(['foo'])
     end
 
-    it 'ignores nil values' do
+    it 'converts empty string to nil' do
       route1 = create(:route, color: 'FFFFFF')
-      route2 = create(:route, color: nil)
-      route3 = create(:route, color: '')
+      route2 = create(:route, color: '')
       route1.merge(route2)
-      expect(route1.color).to eq('FFFFFF')
-      route1.merge(route3)
-      expect(route1.color).to eq('FFFFFF')
+      expect(route1.color).to eq(nil)
     end
   end
 
@@ -65,5 +62,19 @@ describe CurrentTrackedByChangeset do
     it "does not include foreign keys" do
       expect(stop.as_change[:created_or_updated_in_changeset]).to be nil
     end
+
+    it "filters out edited attributes" do
+      stop.wheelchair_boarding = true
+      stop.edited_attributes << :wheelchair_boarding
+      expect(stop.as_change(sticky: true)[:wheelchairBoarding]).to be nil
+    end
+  end
+
+  it 'updates edited_attributes during create and update' do
+    stop.wheelchair_boarding = true
+    changeset = create(:changeset)
+    changeset.create_change_payloads([stop])
+    Stop.apply_changes_create_update(changeset: changeset, changes: [changeset.change_payloads.first.payload_as_ruby_hash[:changes][0][:stop]])
+    expect(Stop.find_by_onestop_id!(stop.onestop_id).edited_attributes).to include("wheelchair_boarding")
   end
 end

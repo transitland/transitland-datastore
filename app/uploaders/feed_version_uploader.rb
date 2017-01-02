@@ -22,15 +22,13 @@ class FeedVersionUploader < CarrierWave::Uploader::Base
   end
 
   def local_path_copying_locally_if_needed
-    if url.start_with?('http')
+    if url && url.start_with?('http')
       cache_stored_file! unless cached?
     end
     path
   end
 
   def remove_any_local_cached_copies
-    if cached?
-      FileUtils.rm_rf(File.dirname(path))
-    end
+    FileUtils.rm_rf(File.dirname(path)) if cached?
   end
 end

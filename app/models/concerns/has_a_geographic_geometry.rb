@@ -4,6 +4,8 @@ module HasAGeographicGeometry
   included do
     GEOFACTORY ||= RGeo::Geographic.spherical_factory(srid: 4326)
 
+    validates :geometry, presence: true
+
     scope :geometry_within_bbox, -> (bbox_coordinates) {
       if bbox_coordinates.is_a?(String)
         bbox_coordinates = bbox_coordinates.split(',').map(&:strip)
@@ -18,6 +20,12 @@ module HasAGeographicGeometry
       projected_geometries = entities.map { |e| e.geometry(as: :wkt, projected: true)}
       geometry_collection = RGeo::Geographic.simple_mercator_factory.projection_factory.collection(projected_geometries)
       convex_hull = geometry_collection.convex_hull
+      if (geometry_collection.size < 3)
+        # 100 is in units of degrees Lat/Lon
+        # Might be worthwhile to consider options
+        # to turn this off or change magnitude.
+        convex_hull = convex_hull.buffer(100)
+      end
 
       if projected == false
         convex_hull = RGeo::Feature.cast(convex_hull,

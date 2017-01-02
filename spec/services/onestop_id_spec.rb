@@ -53,11 +53,13 @@ describe OnestopId do
   end
 
   context '#name' do
-    it 'allows only letters, digits, ~, @ in name' do
+    it 'filters out characters: \s \b ; ? = " # % { } | \ ^ [ ] ` $ _ . + ! * \' ( ) ,' do
       expect(TestOnestopId.new(geohash: '9q9', name: 'foo bar').to_s).to eq('s-9q9-foobar')
-      expect(TestOnestopId.new(geohash: '9q9', name: 'foo bar!').to_s).to eq('s-9q9-foobar')
+      expect(TestOnestopId.new(geohash: '9q9', name: 'foo&bar').to_s).to eq('s-9q9-foo~bar')
       expect(TestOnestopId.new(geohash: '9q9', name: 'foo~bar').to_s).to eq('s-9q9-foo~bar')
       expect(TestOnestopId.new(geohash: '9q9', name: 'foo~bar0').to_s).to eq('s-9q9-foo~bar0')
+      expect(TestOnestopId.new(geohash: '9q9', name: 'foo~bar;?="#%{}|\\^[]`$_.+!*\'(),').to_s).to eq('s-9q9-foo~bar')
+      expect(TestOnestopId.new(geohash: '9q9', name: "長田").to_s).to eq('s-9q9-長田')
     end
   end
 
@@ -67,6 +69,17 @@ describe OnestopId do
     end
     it 'requires name' do
       expect(TestOnestopId.new(geohash: '9q9', name: '!').errors).to include 'invalid name'
+    end
+  end
+
+  context 'RouteOnestopId' do
+    it 'truncates beyond maximum length' do
+      expect(
+        OnestopId::RouteOnestopId.new(
+          geohash: '9q9',
+          name: 'pneumonoultramicroscopicsilicovolcanoconiosis'
+        ).to_s
+      ).to eq('r-9q9-pneumonoultramicroscopicsilicovolcanoconiosi')
     end
   end
 
@@ -105,7 +118,7 @@ describe OnestopId do
             route_onestop_id: 'r-9q9-the~route',
             stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2'],
             geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]).geometry_hash
-      ).to eq('48fed0')
+      ).to eq('e0b430')
     end
 
     it 'produces the first 6 hexadecimal characters of the stop MD5 hash' do
@@ -113,7 +126,17 @@ describe OnestopId do
             route_onestop_id: 'r-9q9-the~route',
             stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2'],
             geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]).stop_hash
-      ).to eq('fca1a5')
+      ).to eq('b5c0d1')
+    end
+
+    it 'truncates beyond maximum length' do
+      expect(
+        OnestopId::RouteStopPatternOnestopId.new(
+          route_onestop_id: 'r-9q9-pneumonoultramicroscopicsilicovolcanoconiosis',
+          stop_pattern: ['s-9q9-stop~1', 's-9q9-stop~2'],
+          geometry_coords: [[-122.0, 40.0], [-121.0, 41.0]]
+        ).to_s
+      ).to eq('r-9q9-pneumonoultramicroscopicsilicovolcanoconiosi-b5c0d1-e0b430')
     end
 
     context '#validate' do

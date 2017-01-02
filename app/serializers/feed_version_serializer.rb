@@ -16,10 +16,17 @@
 #  created_at             :datetime
 #  updated_at             :datetime
 #  import_level           :integer          default(0)
+#  url                    :string
+#  file_raw               :string
+#  sha1_raw               :string
+#  md5_raw                :string
+#  file_feedvalidator     :string
 #
 # Indexes
 #
-#  index_feed_versions_on_feed_type_and_feed_id  (feed_type,feed_id)
+#  index_feed_versions_on_earliest_calendar_date  (earliest_calendar_date)
+#  index_feed_versions_on_feed_type_and_feed_id   (feed_type,feed_id)
+#  index_feed_versions_on_latest_calendar_date    (latest_calendar_date)
 #
 
 class FeedVersionSerializer < ApplicationSerializer
@@ -38,7 +45,9 @@ class FeedVersionSerializer < ApplicationSerializer
              :import_level,
              :is_active_feed_version,
              :changesets_imported_from_this_feed_version,
-             :download_url
+             :url,
+             :download_url,
+             :feedvalidator_url
 
   def feed_version_imports
     object.feed_version_imports.map(&:id)

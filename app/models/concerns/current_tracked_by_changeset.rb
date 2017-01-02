@@ -11,7 +11,8 @@ module CurrentTrackedByChangeset
 
   module ClassMethods
     attr_reader :kind_of_model_tracked,
-                :virtual_attributes
+                :virtual_attributes,
+                :sticky_attributes
 
     def apply_change(changeset: nil, attrs: {}, action: nil, cache: {})
       apply_changes(changeset: changeset, changes: [attrs], action: action, cache: cache)
@@ -30,15 +31,23 @@ module CurrentTrackedByChangeset
     end
 
     def apply_changes_create_update(changeset: nil, changes: nil, cache: {})
+      existing_models = []
+      new_models = []
       changes.each do |change|
         existing_model = find_existing_model(change)
         attrs_to_apply = apply_params(change, cache)
+        unless !self.column_names.include?("edited_attributes") || changeset.nil? || changeset.import?
+          attrs_to_apply.update({ edited_attributes: attrs_to_apply.keys.select { |a| self.sticky_attributes.include?(a) } })
+        end
         if existing_model
           existing_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply)
+          existing_models << existing_model
         else
-          self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
+          new_model = self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
+          new_models << new_model if new_model
         end
       end
+      new_models.each { |model| model.after_create_making_history(changeset) }
     end
 
     def apply_changes_destroy(changeset: nil, changes: nil, cache: {})
@@ -71,16 +80,9 @@ module CurrentTrackedByChangeset
         proceed = self.before_create_making_history(new_model, changeset) # handle associations
         if proceed
           new_model.save!
-          self.after_create_making_history(new_model, changeset)
           new_model
         end
       end
-    end
-
-    def after_create_making_history(created_model, changeset)
-      # this is available for overriding in models
-      super(created_model, changeset) if defined?(super)
-      return true
     end
 
     def find_existing_model(attrs = {})
@@ -105,13 +107,13 @@ module CurrentTrackedByChangeset
         @virtual_attributes.map(&:to_sym) -
         @protected_attributes.map(&:to_sym) -
         reflections.values.map(&:foreign_key).map(&:to_sym) -
-        [:id, :created_at, :updated_at, :version]
+        [:id, :created_at, :updated_at, :version, :edited_attributes]
       )
     end
 
     private
 
-    def current_tracked_by_changeset(kind_of_model_tracked: nil, virtual_attributes: [], protected_attributes: [])
+    def current_tracked_by_changeset(kind_of_model_tracked: nil, virtual_attributes: [], protected_attributes: [], sticky_attributes: [])
       if [:onestop_entity, :relationship].include?(kind_of_model_tracked)
         @kind_of_model_tracked = kind_of_model_tracked
       else
@@ -119,14 +121,26 @@ module CurrentTrackedByChangeset
       end
       @virtual_attributes = virtual_attributes
       @protected_attributes = protected_attributes
+      @sticky_attributes = sticky_attributes
     end
   end
 
-  def as_change
+  def attribute_sticks?(attribute)
+    self.class.sticky_attributes.map(&:to_sym).include?(attribute) && self.edited_attributes.map(&:to_sym).include?(attribute)
+  end
+
+  def as_change(sticky: false)
     Hash[
-      slice(*self.class.changeable_attributes).
-      map { |k, v| [k.to_s.camelize(:lower).to_sym, v] }
+      slice(*self.class.changeable_attributes)
+      .reject { |k, v| attribute_sticks?(k.to_sym) && sticky }
+      .map { |k, v| [k.to_s.camelize(:lower).to_sym, v] }
     ]
+  end
+
+  def after_create_making_history(changeset)
+    # this is available for overriding in models
+    super(changeset) if defined?(super)
+    return true
   end
 
   def before_destroy_making_history(changeset, old_model)

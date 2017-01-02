@@ -16,7 +16,6 @@
 #  destination_departure_time         :string
 #  frequency_start_time               :string
 #  frequency_end_time                 :string
-#  frequency_headway_seconds          :string
 #  tags                               :hstore
 #  service_start_date                 :date
 #  service_end_date                   :date
@@ -44,22 +43,25 @@
 #  destination_dist_traveled          :float
 #  feed_id                            :integer
 #  feed_version_id                    :integer
+#  frequency_type                     :string
+#  frequency_headway_seconds          :integer
 #
 # Indexes
 #
-#  c_ssp_cu_in_changeset                                       (created_or_updated_in_changeset_id)
-#  c_ssp_destination                                           (destination_id)
-#  c_ssp_origin                                                (origin_id)
-#  c_ssp_route                                                 (route_id)
-#  c_ssp_service_end_date                                      (service_end_date)
-#  c_ssp_service_start_date                                    (service_start_date)
-#  c_ssp_trip                                                  (trip)
-#  index_current_schedule_stop_pairs_on_feed_id                (feed_id)
-#  index_current_schedule_stop_pairs_on_feed_version_id        (feed_version_id)
-#  index_current_schedule_stop_pairs_on_operator_id            (operator_id)
-#  index_current_schedule_stop_pairs_on_origin_departure_time  (origin_departure_time)
-#  index_current_schedule_stop_pairs_on_route_stop_pattern_id  (route_stop_pattern_id)
-#  index_current_schedule_stop_pairs_on_updated_at             (updated_at)
+#  c_ssp_cu_in_changeset                                        (created_or_updated_in_changeset_id)
+#  c_ssp_destination                                            (destination_id)
+#  c_ssp_origin                                                 (origin_id)
+#  c_ssp_route                                                  (route_id)
+#  c_ssp_service_end_date                                       (service_end_date)
+#  c_ssp_service_start_date                                     (service_start_date)
+#  c_ssp_trip                                                   (trip)
+#  index_current_schedule_stop_pairs_on_feed_id_and_id          (feed_id,id)
+#  index_current_schedule_stop_pairs_on_feed_version_id_and_id  (feed_version_id,id)
+#  index_current_schedule_stop_pairs_on_frequency_type          (frequency_type)
+#  index_current_schedule_stop_pairs_on_operator_id             (operator_id)
+#  index_current_schedule_stop_pairs_on_origin_departure_time   (origin_departure_time)
+#  index_current_schedule_stop_pairs_on_route_stop_pattern_id   (route_stop_pattern_id)
+#  index_current_schedule_stop_pairs_on_updated_at              (updated_at)
 #
 
 FactoryGirl.define do
@@ -68,6 +70,7 @@ FactoryGirl.define do
     association :destination, factory: :stop
     association :route, factory: :route
     association :operator
+    association :route_stop_pattern, factory: :route_stop_pattern
     association :created_or_updated_in_changeset, factory: :changeset
     version 1
     trip "1234"
@@ -77,11 +80,16 @@ FactoryGirl.define do
     origin_departure_time "10:00:10"
     destination_arrival_time "10:10:00"
     destination_departure_time "10:10:10"
+    window_start "10:00:00"
+    window_end "10:10:00"
+    origin_timepoint_source :gtfs_exact
+    destination_timepoint_source :gtfs_exact
+    origin_dist_traveled 0.0
+    destination_dist_traveled 1.0
     service_start_date "2000-01-01"
     service_end_date "2100-01-01"
     service_added_dates []
     service_except_dates []
     service_days_of_week [true, true, true, true, true, false, false] # M - F
   end
-
 end

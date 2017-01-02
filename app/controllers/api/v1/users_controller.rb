@@ -32,21 +32,8 @@ class Api::V1::UsersController < Api::V1::BaseApiController
     @users = AllowFiltering.by_primary_key_ids(@users, params)
 
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(
-          @users,
-          Proc.new { |params| api_v1_users_url(params) },
-          params[:sort_key],
-          params[:sort_order],
-          params[:offset],
-          params[:per_page],
-          params[:total],
-          {}
-        )
-      end
-      format.csv do
-        return_downloadable_csv(@users, 'users')
-      end
+      format.json { render paginated_json_collection(@users) }
+      format.csv { return_downloadable_csv(@users, 'users') }
     end
   end
 

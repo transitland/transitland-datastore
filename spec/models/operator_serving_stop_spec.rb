@@ -15,7 +15,6 @@
 #
 #  #c_operators_serving_stop_cu_in_changeset_id_index               (created_or_updated_in_changeset_id)
 #  index_current_operators_serving_stop_on_operator_id              (operator_id)
-#  index_current_operators_serving_stop_on_stop_id                  (stop_id)
 #  index_current_operators_serving_stop_on_stop_id_and_operator_id  (stop_id,operator_id) UNIQUE
 #
 
@@ -33,7 +32,9 @@ describe OperatorServingStop do
             action: 'createUpdate',
             stop: {
               onestopId: 's-9q8yt4b-19Hollway',
-              name: '19th Ave & Holloway St'
+              name: '19th Ave & Holloway St',
+              timezone: 'America/Los_Angeles',
+              geometry: { type: "Point", coordinates: [-122.475075, 37.721323] }
             }
           },
           {
@@ -41,7 +42,8 @@ describe OperatorServingStop do
             operator: {
               onestopId: 'o-9q8y-SFMTA',
               name: 'SFMTA',
-              serves: ['s-9q8yt4b-19Hollway']
+              serves: ['s-9q8yt4b-19Hollway'],
+              geometry: { type: "Polygon", coordinates:[[[-121.56649700000001,37.00360599999999],[-122.23195700000001,37.48541199999998],[-122.38653400000001,37.600005999999965],[-122.412018,37.63110599999998],[-122.39432299999996,37.77643899999997],[-121.65072100000002,37.12908099999998],[-121.61080899999999,37.085774999999984],[-121.56649700000001,37.00360599999999]]]}
             }
           }
         ]

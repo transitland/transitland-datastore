@@ -8,7 +8,9 @@ describe IsAnEntityWithIdentifiers do
             stop: {
               onestopId: 's-9q8yt4b-1AvHoS',
               name: '1st Ave. & Holloway Street',
-              identifiedBy: ['gtfs://sfmta/53532']
+              timezone: 'America/Los_Angeles',
+              identifiedBy: ['gtfs://sfmta/53532'],
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
             }
           }
         ]
@@ -21,7 +23,9 @@ describe IsAnEntityWithIdentifiers do
               onestopId: 's-9q8yt4b-1AvHoS',
               name: '1st Ave. & Holloway St.',
               identifiedBy: ['gtfs://sfmta/53531'],
-              notIdentifiedBy: ['SPURIOUS-ID-THAT-NEVER-EXISTED']
+              timezone: 'America/Los_Angeles',
+              notIdentifiedBy: ['SPURIOUS-ID-THAT-NEVER-EXISTED'],
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
             }
           }
         ]
@@ -33,7 +37,9 @@ describe IsAnEntityWithIdentifiers do
             stop: {
               onestopId: 's-9q8yt4b-1AvHoS',
               name: '1st Ave. & Holloway St.',
-              notIdentifiedBy: ['gtfs://sfmta/53532', 'SPURIOUS-ID-THAT-NEVER-EXISTED']
+              timezone: 'America/Los_Angeles',
+              notIdentifiedBy: ['gtfs://sfmta/53532', 'SPURIOUS-ID-THAT-NEVER-EXISTED'],
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }              
             }
           }
         ]

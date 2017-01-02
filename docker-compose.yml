@@ -1,0 +1,25 @@
+db:
+  env_file: env/default
+  image: mdillon/postgis
+  ports:
+    - "5432:5432"
+
+redis:
+  env_file: env/default
+  image: redis
+  ports:
+    - "6379"
+
+app:
+  env_file: env/default
+  build: .
+  command: bundle exec rails s -p 3000 -b '0.0.0.0'
+  volumes:
+    - ".:/app"
+  ports:
+    - "3000:3000"
+  links:
+    - db
+    - redis
+
+
