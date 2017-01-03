@@ -198,7 +198,7 @@ module CurrentTrackedByChangeset
       old_model.version = self.version
       old_model.destroyed_in_changeset = changeset
       old_model.action = action unless action.nil?
-      old_model.current = current if action.to_s.eql?('merge') && current
+      old_model.current = current if ['merge', 'change_onestop_id'].include?(action.to_s) && current
 
       self.marked_for_destroy_making_history = true
       self.old_model_left_after_destroy_making_history = old_model

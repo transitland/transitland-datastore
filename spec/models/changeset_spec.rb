@@ -259,8 +259,8 @@ describe Changeset do
         ]
       })
       changeset.apply!
-      expect { Stop.find_by_onestop_id!(merge_stop_1.onestop_id) }.to raise_error(ActiveRecord::RecordNotFound)
-      expect { Stop.find_by_onestop_id!(merge_stop_2.onestop_id) }.to raise_error(ActiveRecord::RecordNotFound)
+      expect(Stop.find_by_onestop_id!(merge_stop_1.onestop_id)).to eq Stop.first
+      expect(Stop.find_by_onestop_id!(merge_stop_2.onestop_id)).to eq Stop.first
       expect(Stop.first).to eq Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS')
       expect(OldStop.find(2)).to eq OldStop.find_by_onestop_id!(merge_stop_1.onestop_id)
       expect(OldStop.last).to eq OldStop.find_by_onestop_id!(merge_stop_2.onestop_id)
@@ -286,8 +286,8 @@ describe Changeset do
         ]
       })
       changeset.apply!
-      expect { Stop.find_by_onestop_id!(merge_stop_1.onestop_id) }.to raise_error(ActiveRecord::RecordNotFound)
-      expect { Stop.find_by_onestop_id!(merge_stop_2.onestop_id) }.to raise_error(ActiveRecord::RecordNotFound)
+      expect(Stop.find_by_onestop_id!(merge_stop_1.onestop_id)).to eq Stop.first
+      expect(Stop.find_by_onestop_id!(merge_stop_2.onestop_id)).to eq Stop.first
       expect(Stop.first).to eq Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS')
       expect(OldStop.first).to eq OldStop.find_by_onestop_id!(merge_stop_1.onestop_id)
       expect(OldStop.last).to eq OldStop.find_by_onestop_id!(merge_stop_2.onestop_id)
