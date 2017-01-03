@@ -47,7 +47,7 @@ class Api::V1::StopStationsController < Api::V1::BaseApiController
       stop_transfers.to_stop,
       stop_platforms,
       stop_egresses,
-      issues,
+      # issues,
       # Self
       imported_from_feeds,
       imported_from_feed_versions,
@@ -66,7 +66,7 @@ class Api::V1::StopStationsController < Api::V1::BaseApiController
       stop_platforms.routes_serving_stop.route.operator,
       stop_platforms.stop_transfers,
       stop_platforms.stop_transfers.to_stop,
-      stop_platforms.issues.created_by_changeset,
+      # stop_platforms.issues.created_by_changeset,
       # stop_egresses
       stop_egresses.imported_from_feeds,
       stop_egresses.imported_from_feed_versions,
@@ -80,7 +80,7 @@ class Api::V1::StopStationsController < Api::V1::BaseApiController
     ]} # TODO: check performance against eager_load, joins, etc.
 
     respond_to do |format|
-      format.json { render paginated_json_collection(@stops) }
+      format.json { render paginated_json_collection(@stops).merge({ scope: { embed_issues: params[:embed_issues] } }) }
       format.geojson { render paginated_geojson_collection(@stops) }
       format.csv { return_downloadable_csv(@stops, 'stops') }
     end
@@ -88,7 +88,7 @@ class Api::V1::StopStationsController < Api::V1::BaseApiController
 
   def show
     respond_to do |format|
-      format.json { render json: @stop, serializer: StopStationSerializer }
+      format.json { render json: @stop, serializer: StopStationSerializer, scope: { embed_issues: params[:embed_issues] } }
       format.geojson { render json: @stop, serializer: GeoJSONSerializer }
     end
   end

@@ -44,7 +44,7 @@ class StopStationSerializer < CurrentEntitySerializer
      has_many :operators_serving_stop
      has_many :routes_serving_stop
      has_many :stop_transfers
-     has_many :issues, through: :entities_with_issues
+    #  has_many :issues, through: :entities_with_issues
   end
   # Egress serializer
   class StopEgressSerializer < CurrentEntitySerializer
@@ -100,12 +100,16 @@ class StopStationSerializer < CurrentEntitySerializer
     result.uniq { |osr| osr.route }
   end
 
+  def has_issues
+    scope[:embed_issues]
+  end
+
   def issues
-    # issues loaded through .includes
-    object.stop_platforms.collect { |sp| sp.issues }.flatten.uniq.reject { |issue| Issue.categories[:station_hierarchy].exclude?(issue.issue_type) }
+    Issue.issues_of_entity(object).reject { |issue| Issue.categories[:station_hierarchy].exclude?(issue.issue_type) }
   end
 
   # Attributes
+  attribute :issues, if: :has_issues
   attributes :onestop_id,
              :geometry,
              :name,
@@ -113,7 +117,6 @@ class StopStationSerializer < CurrentEntitySerializer
              :timezone,
              :vehicle_types_serving_stop_and_platforms,
              :wheelchair_boarding,
-             :issues,
              :created_at,
              :updated_at
 
