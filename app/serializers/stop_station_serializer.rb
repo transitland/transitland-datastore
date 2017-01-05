@@ -104,14 +104,15 @@ class StopStationSerializer < CurrentEntitySerializer
   end
 
   def issues
-    if ['StopPlatform', 'StopEgress'].include?(object.class)
-      Issue.issues_of_entity(object).reject { |issue| Issue.categories[:station_hierarchy].exclude?(issue.issue_type) }
+    issues = []
+    if ['StopPlatform', 'StopEgress'].include?(object.class.name.to_s)
+      # Issue.issues_of_entity(object).reject { |issue| Issue.categories[:station_hierarchy].exclude?(issue.issue_type) }
+      issues = object.issues
     else
-      # object.class == 'Stop'
-      return if object.stop_platforms.empty?
-      Issue.joins(:entities_with_issues).where("entity_type='Stop' and entity_id in (#{object.stop_platforms.map(&:id).join(',')})")
-        .where(issue_type: Issue.categories[:station_hierarchy])
+      # object.class == Stop
+      issues = object.stop_platforms.collect { |sp| sp.issues }
     end
+    issues.reject { |issue| Issue.categories[:station_hierarchy].exclude?(issue.issue_type) }
   end
 
   # Attributes
