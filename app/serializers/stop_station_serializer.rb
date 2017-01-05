@@ -106,7 +106,6 @@ class StopStationSerializer < CurrentEntitySerializer
   def issues
     issues = []
     if ['StopPlatform', 'StopEgress'].include?(object.class.name.to_s)
-      # Issue.issues_of_entity(object).reject { |issue| Issue.categories[:station_hierarchy].exclude?(issue.issue_type) }
       issues = object.issues
     else
       # object.class == Stop
