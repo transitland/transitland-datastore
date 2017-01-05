@@ -152,7 +152,7 @@ describe StopPlatform do
         }
         changeset = Changeset.create(payload: @payload)
         changeset.apply!
-        expect(Issue.where(issue_type: 'stop_platforms_too_close').size).to be >= 1
+        expect(Issue.where(issue_type: 'stop_platforms_too_close').size).to eq 1
       end
 
       it 'identifies stop platforms too close when a sibling platform has not been modified in changeset' do
@@ -163,7 +163,7 @@ describe StopPlatform do
                                 geometry: Stop::GEOFACTORY.point(-122.475075, 37.721323).to_s)
         changeset = Changeset.create(payload: @payload)
         changeset.apply!
-        expect(Issue.where(issue_type: 'stop_platforms_too_close').size).to be >= 1
+        expect(Issue.where(issue_type: 'stop_platforms_too_close').size).to eq 1
       end
     end
   end
