@@ -110,7 +110,7 @@ class StopStationSerializer < CurrentEntitySerializer
       issues = object.issues
     else
       # object.class == Stop
-      issues = object.stop_platforms.collect { |sp| sp.issues }
+      issues = object.stop_platforms.collect { |sp| sp.issues }.flatten
     end
     issues.reject { |issue| Issue.categories[:station_hierarchy].exclude?(issue.issue_type) }
   end
