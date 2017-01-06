@@ -27,23 +27,26 @@ class Issue < ActiveRecord::Base
     Feed.find_by_onestop_id!(feed_onestop_id), Feed.find_by_onestop_id!(feed_onestop_id))
   }
 
+  def self.categories
+   {
+     :route_geometry => ['stop_position_inaccurate', 'stop_rsp_distance_gap', 'rsp_line_inaccurate', 'distance_calculation_inaccurate', 'rsp_stops_too_close'],
+     :feed_fetch => ['feed_fetch_invalid_url', 'feed_fetch_invalid_source', 'feed_fetch_invalid_zip', 'feed_fetch_invalid_response'],
+     :station_hierarchy => ['stop_platform_parent_distance_gap', 'stop_platforms_too_close'],
+     :uncategorized => ['route_color', 'stop_name', 'route_name', 'other', 'feed_version_maintenance_extend', 'feed_version_maintenance_import', 'missing_stop_conflation_result']
+   }
+  end
+
   extend Enumerize
-  enumerize :issue_type,
-            in: ['stop_position_inaccurate',
-                 'stop_rsp_distance_gap',
-                 'missing_stop_conflation_result',
-                 'distance_calculation_inaccurate',
-                 'rsp_line_inaccurate',
-                 'route_color',
-                 'stop_name',
-                 'route_name',
-                 'feed_fetch_invalid_url',
-                 'feed_fetch_invalid_zip',
-                 'feed_fetch_invalid_response',
-                 'feed_fetch_invalid_source',
-                 'feed_version_maintenance_extend',
-                 'feed_version_maintenance_import',
-                 'uncategorized']
+  enumerize :issue_type, in: Issue.categories.values.flatten
+
+  def self.issue_types_in_category(category)
+    category = category.to_sym
+    if self.categories.has_key?(category)
+      return self.categories[category]
+    else
+      raise ArgumentError.new("unknown category #{category}")
+    end
+  end
 
   def equivalent?(issue)
     self.issue_type == issue.issue_type &&

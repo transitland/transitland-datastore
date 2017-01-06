@@ -11,9 +11,82 @@ class QualityCheck
   end
 end
 
+class QualityCheck::StationHierarchyQualityCheck < QualityCheck
+  STOP_PLATFORM_PARENT_DIST_GAP_THRESHOLD = 500.0
+  MINIMUM_DIST_BETWEEN_PLATFORMS = 0.0
+
+  def check
+    # consider consolidating with GeometryQualityCheck if performance a concern
+
+    parent_stops_to_check = Set.new(self.changeset.stops_created_or_updated.map(&:onestop_id))
+    parent_stops_with_changing_platforms = Set.new
+
+    self.changeset.stop_platforms_created_or_updated.each do |stop_platform|
+      parent_stops_to_check << stop_platform.parent_stop.onestop_id
+      parent_stops_with_changing_platforms << stop_platform.parent_stop.onestop_id
+    end
+
+    parent_stops_with_changing_platforms.each do |parent_stop_onestop_id|
+      parent_stop = Stop.find_by_onestop_id!(parent_stop_onestop_id)
+      # need to look at all platforms of parent stop, not just the ones in changeset
+      # and avoid creating duplicate issues
+      all_siblings = Set.new(parent_stop.stop_platforms.map(&:onestop_id))
+      all_changing = Set.new(self.changeset.stop_platforms_created_or_updated.map(&:onestop_id))
+      changing_siblings_to_check = all_siblings & all_changing
+      static_siblings_to_check = all_siblings - all_changing
+
+      changing_siblings_to_check.to_a.combination(2).each do |stop_platform_1_onestop_id, stop_platform_2_onestop_id|
+        stop_platform_1 = StopPlatform.find_by_onestop_id!(stop_platform_1_onestop_id)
+        stop_platform_2 = StopPlatform.find_by_onestop_id!(stop_platform_2_onestop_id)
+        self.distance_between_stop_platforms(stop_platform_1, stop_platform_2)
+      end
+
+      changing_siblings_to_check.each do |changing_stop_platform_onestop_id|
+        changing_stop_platform = StopPlatform.find_by_onestop_id!(changing_stop_platform_onestop_id)
+        static_siblings_to_check.each do |static_stop_platform_onestop_id|
+          static_stop_platform = StopPlatform.find_by_onestop_id!(static_stop_platform_onestop_id)
+          self.distance_between_stop_platforms(changing_stop_platform, static_stop_platform)
+        end
+      end
+    end
+
+    parent_stops_to_check.each do |parent_stop_onestop_id|
+      parent_stop = Stop.find_by_onestop_id!(parent_stop_onestop_id)
+      parent_stop.stop_platforms.each do |stop_platform|
+        self.stop_platform_parent_distance_gap(parent_stop, stop_platform)
+      end
+    end
+
+    self.issues
+  end
+
+  def stop_platform_parent_distance_gap(parent_stop, stop_platform)
+    if (parent_stop[:geometry].distance(stop_platform[:geometry]) > STOP_PLATFORM_PARENT_DIST_GAP_THRESHOLD)
+      issue = Issue.new(created_by_changeset: self.changeset,
+                        issue_type: 'stop_platform_parent_distance_gap',
+                        details: "Stop platform #{stop_platform.parent_stop_onestop_id} is too far from parent stop #{parent_stop.onestop_id}.")
+      issue.entities_with_issues.new(entity: parent_stop, issue: issue, entity_attribute: 'geometry')
+      issue.entities_with_issues.new(entity: stop_platform, issue: issue, entity_attribute: 'geometry')
+      self.issues << issue
+    end
+  end
+
+  def distance_between_stop_platforms(stop_platform, other_stop_platform)
+    if (stop_platform[:geometry].distance(other_stop_platform[:geometry]) <= MINIMUM_DIST_BETWEEN_PLATFORMS)
+      issue = Issue.new(created_by_changeset: self.changeset,
+                        issue_type: 'stop_platforms_too_close',
+                        details: "Stop platform #{stop_platform.onestop_id} is too close to stop platform #{other_stop_platform.onestop_id}")
+      issue.entities_with_issues.new(entity: stop_platform, issue: issue, entity_attribute: 'geometry')
+      issue.entities_with_issues.new(entity: other_stop_platform, issue: issue, entity_attribute: 'geometry')
+      self.issues << issue
+    end
+  end
+end
+
 class QualityCheck::GeometryQualityCheck < QualityCheck
 
   LAST_STOP_DISTANCE_LENIENCY = 5.0 #meters
+  MINIMUM_DIST_BETWEEN_STOP_PARENTS = 10.0
 
   # some aggregate stats on rsp distance calculation
   attr_accessor :distance_issues, :distance_issue_tests
@@ -30,11 +103,11 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
     self.distance_issue_tests = 0
 
     import = !self.changeset.imported_from_feed.nil?
-    distance_rsps = Set.new
+    rsps_to_evaluate = Set.new
     stop_rsp_gap_pairs =  Set.new
 
     self.changeset.route_stop_patterns_created_or_updated.each do |rsp|
-      distance_rsps << rsp.onestop_id
+      rsps_to_evaluate << rsp.onestop_id
       Stop.where(onestop_id: rsp.stop_pattern).each do |stop|
         stop_rsp_gap_pairs << [rsp.onestop_id, stop.onestop_id]
       end
@@ -51,7 +124,7 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
     self.changeset.stops_created_or_updated.each do |stop|
       unless import
         RouteStopPattern.where{ stop_pattern.within(stop.onestop_id) }.each do |rsp|
-          distance_rsps << rsp.onestop_id
+          rsps_to_evaluate << rsp.onestop_id
           stop_rsp_gap_pairs << [rsp.onestop_id, stop.onestop_id]
         end
       end
@@ -62,15 +135,17 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
         issue.entities_with_issues.new(entity: stop, issue: issue, entity_attribute: 'geometry')
         self.issues << issue
       end
+      # self.distances_between_stops(stop)
       # other checks on stop-exclusive attributes go here
     end
 
-    distance_rsps.each do |onestop_id|
+    rsps_to_evaluate.each do |onestop_id|
       rsp = RouteStopPattern.find_by_onestop_id!(onestop_id)
       # handle the case of 1 stop trips
       next if rsp.geometry[:coordinates].uniq.size == 1
       rsp.stop_pattern.each_index do |i|
-        self.stop_distance(rsp, i)
+        self.distances_between_rsp_stops(rsp, i)
+        self.stop_distances_accuracy(rsp, i)
       end
     end
 
@@ -81,11 +156,15 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
       self.stop_rsp_distance_gap(stop, rsp) unless rsp.geometry[:coordinates].uniq.size == 1
     end
 
-    self.distance_issue_tests = distance_rsps.map {|onestop_id| RouteStopPattern.find_by_onestop_id!(onestop_id).stop_pattern.size }.reduce(:+)
+    self.distance_issue_tests = rsps_to_evaluate.map {|onestop_id| RouteStopPattern.find_by_onestop_id!(onestop_id).stop_pattern.size }.reduce(:+)
     self.distance_issues = Set.new(self.issues.select {|ewi| ['stop_rsp_distance_gap', 'distance_calculation_inaccurate'].include?(ewi.issue_type) }.each {|issue| issue.entities_with_issues.map(&:entity_id) }).size
     distance_score
 
     self.issues
+  end
+
+  def distances_between_stops(stop)
+    # check distance between stop and any other stop in datastore or belonging to operator
   end
 
   def stop_rsp_distance_gap(stop, rsp)
@@ -99,7 +178,22 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
     end
   end
 
-  def stop_distance(rsp, index)
+  def distances_between_rsp_stops(rsp, index)
+    if (index != 0)
+      stop1 = Stop.find_by_onestop_id!(rsp.stop_pattern[index])
+      stop2 = Stop.find_by_onestop_id!(rsp.stop_pattern[index-1])
+      if (stop1[:geometry].distance(stop2[:geometry]) < MINIMUM_DIST_BETWEEN_STOP_PARENTS)
+        issue = Issue.new(created_by_changeset: self.changeset,
+                          issue_type: 'rsp_stops_too_close',
+                          details: "RouteStopPattern #{rsp.onestop_id}. Stop #{stop1.onestop_id}, pos #{index-1}, has a geometry (#{stop1[:geometry].to_s}) too close to stop #{stop2.onestop_id}, pos #{index},  geometry (#{stop2[:geometry].to_s})")
+        issue.entities_with_issues.new(entity: stop1, issue: issue, entity_attribute: 'geometry')
+        issue.entities_with_issues.new(entity: stop2, issue: issue, entity_attribute: 'geometry')
+        self.issues << issue
+      end
+    end
+  end
+
+  def stop_distances_accuracy(rsp, index)
     geometry_length = rsp[:geometry].length
     if (index != 0)
       stop1 = rsp.stop_pattern[index-1]

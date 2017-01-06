@@ -81,7 +81,9 @@ class Stop < BaseStop
       :identified_by,
       :not_identified_by,
       :includes_stop_transfers,
-      :does_not_include_stop_transfers
+      :does_not_include_stop_transfers,
+      :add_imported_from_feeds,
+      :not_imported_from_feeds
     ],
     protected_attributes: [
       :identifiers,
@@ -97,12 +99,14 @@ class Stop < BaseStop
 
   def after_create_making_history(changeset)
     super(changeset)
+    update_entity_imported_from_feeds(changeset)
     update_served_by(changeset)
     update_includes_stop_transfers(changeset)
     update_does_not_include_stop_transfers(changeset)
   end
   def before_update_making_history(changeset)
     super(changeset)
+    update_entity_imported_from_feeds(changeset)
     update_served_by(changeset)
     update_includes_stop_transfers(changeset)
     update_does_not_include_stop_transfers(changeset)
@@ -166,6 +170,9 @@ class Stop < BaseStop
   has_many :trips_in, class_name: ScheduleStopPair, foreign_key: "destination_id"
   has_many :stops_out, through: :trips_out, source: :destination
   has_many :stops_in, through: :trips_in, source: :origin
+
+  # Issues
+  has_many :issues, through: :entities_with_issues
 
   def parent_stop
     # Dummy relation
