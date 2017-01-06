@@ -186,6 +186,7 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
         issue = Issue.new(created_by_changeset: self.changeset,
                           issue_type: 'rsp_stops_too_close',
                           details: "RouteStopPattern #{rsp.onestop_id}. Stop #{stop1.onestop_id}, pos #{index-1}, has a geometry (#{stop1[:geometry].to_s}) too close to stop #{stop2.onestop_id}, pos #{index},  geometry (#{stop2[:geometry].to_s})")
+        issue.entities_with_issues.new(entity: rsp, issue: issue, entity_attribute: 'geometry')
         issue.entities_with_issues.new(entity: stop1, issue: issue, entity_attribute: 'geometry')
         issue.entities_with_issues.new(entity: stop2, issue: issue, entity_attribute: 'geometry')
         self.issues << issue
