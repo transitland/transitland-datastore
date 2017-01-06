@@ -67,7 +67,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     ]}
 
     respond_to do |format|
-      format.json { render paginated_json_collection(@routes) }
+      format.json { render paginated_json_collection(@routes).merge({ scope: { exclude_geometry: AllowFiltering.to_boolean(params[:exclude_geometry]) } }) }
       format.geojson { render paginated_geojson_collection(@routes) }
       format.csv { return_downloadable_csv(@routes, 'routes') }
     end
@@ -75,7 +75,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
 
   def show
     respond_to do |format|
-      format.json { render json: @route }
+      format.json { render json: @route, scope: { exclude_geometry: AllowFiltering.to_boolean(params[:exclude_geometry]) } }
       format.geojson { render json: @route, serializer: GeoJSONSerializer }
     end
   end
