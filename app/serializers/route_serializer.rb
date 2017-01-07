@@ -50,7 +50,7 @@ class RouteSerializer < CurrentEntitySerializer
              :route_stop_patterns_by_onestop_id
 
   def include_geometry?
-    !(scope[:exclude_geometry].present? && scope[:exclude_geometry]) && !!object.try(:geometry)
+    !(scope.present? && scope[:exclude_geometry].present? && scope[:exclude_geometry]) && !!object.try(:geometry)
   end
 
   def operated_by_onestop_id
