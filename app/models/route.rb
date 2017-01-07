@@ -185,7 +185,7 @@ class Route < BaseRoute
       operators = Operator.find_by_onestop_ids!(models_or_onestop_ids)
       where(operator: operators)
     else
-      raise ArgumentError.new('must provide Operator models or a Onestop IDs')
+      raise ArgumentError.new('must provide Operator models or Onestop IDs')
     end
   }
 
