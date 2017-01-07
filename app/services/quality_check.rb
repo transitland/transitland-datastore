@@ -182,7 +182,7 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
     if (index != 0)
       stop1 = Stop.find_by_onestop_id!(rsp.stop_pattern[index])
       stop2 = Stop.find_by_onestop_id!(rsp.stop_pattern[index-1])
-      if (stop1[:geometry].distance(stop2[:geometry]) < MINIMUM_DIST_BETWEEN_STOP_PARENTS)
+      if (!stop1.onestop_id.eql?(stop2.onestop_id) && stop1[:geometry].distance(stop2[:geometry]) < MINIMUM_DIST_BETWEEN_STOP_PARENTS)
         issue = Issue.new(created_by_changeset: self.changeset,
                           issue_type: 'rsp_stops_too_close',
                           details: "RouteStopPattern #{rsp.onestop_id}. Stop #{stop1.onestop_id}, pos #{index-1}, has a geometry (#{stop1[:geometry].to_s}) too close to stop #{stop2.onestop_id}, pos #{index},  geometry (#{stop2[:geometry].to_s})")
