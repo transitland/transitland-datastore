@@ -93,6 +93,21 @@ describe Api::V1::RoutesController do
         }})
       end
 
+      it 'returns routes operated by multiple Operators' do
+        other_operator = create(:operator)
+        other_route = create(:route, operator: other_operator)
+
+        bart = create(:operator, name: 'BART', onestop_id: 'o-9q9-BART')
+        @richmond_millbrae_route.update(operator: bart)
+        sfmuni = create(:operator, name: 'San Francisco Municipal Transportation Agency', onestop_id: 'o-9q8y-sfmta')
+        muni_route = create(:route, operator: sfmuni)
+
+        get :index, operatedBy: 'o-9q9-BART,o-9q8y-sfmta'
+        expect_json({ routes: -> (routes) {
+          expect(routes.map { |route| route[:onestop_id] } ).to eq [@richmond_millbrae_route.onestop_id, muni_route.onestop_id]
+        }})
+      end
+
       it 'returns routes serving stops' do
         stop1, stop2, stop3 = create_list(:stop, 3)
         route1, route2 = create_list(:route, 2)
