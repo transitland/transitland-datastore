@@ -38,7 +38,7 @@ namespace :feed do
 
     task :destroy_feed, [:feed_onestop_id] => [:environment] do |t, args|
       feed = Feed.find_by_onestop_id!(args.feed_onestop_id)
-      FeedMaintenanceService.destroy_feed(feed.active_feed_version)
+      FeedMaintenanceService.destroy_feed(feed)
     end
   end
 end

@@ -93,8 +93,8 @@ class FeedMaintenanceService
         next unless eiff.entity
         next if entity.imported_from_feeds.where('feed_id != ?', feed.id).count > 0
         next if onestop_ids.include?(entity.onestop_id)
-        changes << to_change(entity, action: :destroy)
         onestop_ids << entity.onestop_id
+        changes << to_change(entity, action: :destroy)
       end
     end
     changes << to_change(feed, action: :destroy)
@@ -118,7 +118,7 @@ class FeedMaintenanceService
     issue.entities_with_issues.create!(entity: feed_version)
   end
 
-  def to_change(entity, action: :createUpdate, attrs: {})
+  def self.to_change(entity, action: :createUpdate, attrs: {})
     {
       :action => action,
       entity.class.name.camelize(:lower) => attrs.merge(onestopId: entity.onestop_id)
