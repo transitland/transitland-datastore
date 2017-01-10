@@ -2,15 +2,35 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.16...HEAD)
-
-**Fixed bugs:**
-
-- FeedFetchService: Handle feedvalidator.py exceptions [\#900](https://github.com/transitland/transitland-datastore/issues/900)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.17...HEAD)
 
 **Merged pull requests:**
 
+- Production release 4.9.17 [\#902](https://github.com/transitland/transitland-datastore/pull/902) ([irees](https://github.com/irees))
+
+## [4.9.17](https://github.com/transitland/transitland-datastore/tree/4.9.17) (2017-01-10)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.16...4.9.17)
+
+**Fixed bugs:**
+
+- Avoid Station Hierarchy issues duplication [\#908](https://github.com/transitland/transitland-datastore/issues/908)
+- FeedFetchService: Handle feedvalidator.py exceptions [\#900](https://github.com/transitland/transitland-datastore/issues/900)
+
+**Closed issues:**
+
+- Allow multiple operator ids in routes "operated\_by" query [\#914](https://github.com/transitland/transitland-datastore/issues/914)
+- Stop Station Issue serialization [\#911](https://github.com/transitland/transitland-datastore/issues/911)
+- Remove or reduce "false positive" issues [\#846](https://github.com/transitland/transitland-datastore/issues/846)
+
+**Merged pull requests:**
+
+- convert embed\_issues param value to boolean [\#921](https://github.com/transitland/transitland-datastore/pull/921) ([doublestranded](https://github.com/doublestranded))
+- Ignoring stops that are repeated [\#917](https://github.com/transitland/transitland-datastore/pull/917) ([doublestranded](https://github.com/doublestranded))
+- operated\_by query allows multiple operators [\#916](https://github.com/transitland/transitland-datastore/pull/916) ([doublestranded](https://github.com/doublestranded))
+- Issues with stop stations [\#912](https://github.com/transitland/transitland-datastore/pull/912) ([doublestranded](https://github.com/doublestranded))
+- fixed details bug and avoiding duplication [\#909](https://github.com/transitland/transitland-datastore/pull/909) ([doublestranded](https://github.com/doublestranded))
 - Production release 4.9.16 [\#889](https://github.com/transitland/transitland-datastore/pull/889) ([irees](https://github.com/irees))
+- Remove duplicate point same distance issues [\#847](https://github.com/transitland/transitland-datastore/pull/847) ([doublestranded](https://github.com/doublestranded))
 
 ## [4.9.16](https://github.com/transitland/transitland-datastore/tree/4.9.16) (2016-12-20)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.14...4.9.16)
