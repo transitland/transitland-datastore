@@ -177,14 +177,15 @@ class Route < BaseRoute
     joins{routes_serving_stop.route}.where{routes_serving_stop.stop_id.in(stops.map(&:id))}.uniq
   }
 
-  scope :operated_by, -> (model_or_onestop_id) {
-    if model_or_onestop_id.is_a?(Operator)
-      where(operator: model_or_onestop_id)
-    elsif model_or_onestop_id.is_a?(String)
-      operator = Operator.find_by_onestop_id!(model_or_onestop_id)
-      where(operator: operator)
+  scope :operated_by, -> (models_or_onestop_ids) {
+    models_or_onestop_ids = Array.wrap(models_or_onestop_ids)
+    if models_or_onestop_ids.all? { |model_or_onestop_id| model_or_onestop_id.is_a?(Operator) }
+      where(operator: models_or_onestop_ids)
+    elsif models_or_onestop_ids.all? { |model_or_onestop_id| model_or_onestop_id.is_a?(String) }
+      operators = Operator.find_by_onestop_ids!(models_or_onestop_ids)
+      where(operator: operators)
     else
-      raise ArgumentError.new('must provide an Operator model or a Onestop ID')
+      raise ArgumentError.new('must provide Operator models or Onestop IDs')
     end
   }
 
