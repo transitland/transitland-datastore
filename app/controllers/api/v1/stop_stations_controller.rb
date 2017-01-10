@@ -78,7 +78,7 @@ class Api::V1::StopStationsController < Api::V1::BaseApiController
     ]} # TODO: check performance against eager_load, joins, etc.
 
     respond_to do |format|
-      format.json { render paginated_json_collection(@stops).merge({ scope: { embed_issues: params[:embed_issues] } }) }
+      format.json { render paginated_json_collection(@stops).merge({ scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }) }
       format.geojson { render paginated_geojson_collection(@stops) }
       format.csv { return_downloadable_csv(@stops, 'stops') }
     end
@@ -86,7 +86,7 @@ class Api::V1::StopStationsController < Api::V1::BaseApiController
 
   def show
     respond_to do |format|
-      format.json { render json: @stop, serializer: StopStationSerializer, scope: { embed_issues: params[:embed_issues] } }
+      format.json { render json: @stop, serializer: StopStationSerializer, scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }
       format.geojson { render json: @stop, serializer: GeoJSONSerializer }
     end
   end
