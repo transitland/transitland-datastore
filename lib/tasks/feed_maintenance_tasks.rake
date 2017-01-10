@@ -35,5 +35,10 @@ namespace :feed do
         FeedMaintenanceService.enqueue_next_feed_versions(date, max_imports: max_imports)
       end
     end
+
+    task :destroy_feed, [:feed_onestop_id] => [:environment] do |t, args|
+      feed = Feed.find_by_onestop_id!(args.feed_onestop_id)
+      FeedMaintenanceService.destroy_feed(feed.active_feed_version)
+    end
   end
 end
