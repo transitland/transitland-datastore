@@ -42,7 +42,6 @@ class Api::V1::StopStationsController < Api::V1::BaseApiController
     end
     # TODO: served_by_vehicle_types
 
-
     @stops = @stops.includes{[
       stop_transfers,
       stop_transfers.to_stop,
@@ -75,11 +74,11 @@ class Api::V1::StopStationsController < Api::V1::BaseApiController
       stop_egresses.routes_serving_stop.route,
       stop_egresses.routes_serving_stop.route.operator,
       stop_egresses.stop_transfers,
-      stop_egresses.stop_transfers.to_stop,
+      stop_egresses.stop_transfers.to_stop
     ]} # TODO: check performance against eager_load, joins, etc.
 
     respond_to do |format|
-      format.json { render paginated_json_collection(@stops) }
+      format.json { render paginated_json_collection(@stops).merge({ scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }) }
       format.geojson { render paginated_geojson_collection(@stops) }
       format.csv { return_downloadable_csv(@stops, 'stops') }
     end
@@ -87,7 +86,7 @@ class Api::V1::StopStationsController < Api::V1::BaseApiController
 
   def show
     respond_to do |format|
-      format.json { render json: @stop, serializer: StopStationSerializer }
+      format.json { render json: @stop, serializer: StopStationSerializer, scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }
       format.geojson { render json: @stop, serializer: GeoJSONSerializer }
     end
   end

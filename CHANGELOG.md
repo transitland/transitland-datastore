@@ -2,11 +2,56 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.14...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.16...HEAD)
+
+**Fixed bugs:**
+
+- FeedFetchService: Handle feedvalidator.py exceptions [\#900](https://github.com/transitland/transitland-datastore/issues/900)
 
 **Merged pull requests:**
 
+- Production release 4.9.16 [\#889](https://github.com/transitland/transitland-datastore/pull/889) ([irees](https://github.com/irees))
+
+## [4.9.16](https://github.com/transitland/transitland-datastore/tree/4.9.16) (2016-12-20)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.14...4.9.16)
+
+**Implemented enhancements:**
+
+- Updates to Issues/EWIs serializers [\#878](https://github.com/transitland/transitland-datastore/issues/878)
+
+**Fixed bugs:**
+
+- Finnish feed "f-u6x-turunlinja~autoilijainosakeyhtiö~savonlinjaoy~sl~autolinja" won't import [\#881](https://github.com/transitland/transitland-datastore/issues/881)
+
+**Closed issues:**
+
+- Issue category endpoint [\#898](https://github.com/transitland/transitland-datastore/issues/898)
+- Sidekiq Monitoring authentication [\#897](https://github.com/transitland/transitland-datastore/issues/897)
+- Gentle failure on bad stop\_times.txt data [\#892](https://github.com/transitland/transitland-datastore/issues/892)
+- Use global log method [\#886](https://github.com/transitland/transitland-datastore/issues/886)
+- OIF: Allow null gtfs\_agency\_id [\#884](https://github.com/transitland/transitland-datastore/issues/884)
+- EntityWithIssues serialize id [\#876](https://github.com/transitland/transitland-datastore/issues/876)
+- Station Hierarchy Quality Checks [\#869](https://github.com/transitland/transitland-datastore/issues/869)
+- FeedEater: Lookup entities by identifier [\#669](https://github.com/transitland/transitland-datastore/issues/669)
+
+**Merged pull requests:**
+
+- Feedvalidator ops improvements [\#901](https://github.com/transitland/transitland-datastore/pull/901) ([irees](https://github.com/irees))
+- Issue categories controller [\#899](https://github.com/transitland/transitland-datastore/pull/899) ([doublestranded](https://github.com/doublestranded))
+- Fix Sidekiq Monitoring authentication [\#896](https://github.com/transitland/transitland-datastore/pull/896) ([irees](https://github.com/irees))
+- Station hierarchy issues [\#893](https://github.com/transitland/transitland-datastore/pull/893) ([doublestranded](https://github.com/doublestranded))
+- Gentle failure on bad stop\_times [\#891](https://github.com/transitland/transitland-datastore/pull/891) ([irees](https://github.com/irees))
+- StopStationsController serializer update [\#890](https://github.com/transitland/transitland-datastore/pull/890) ([irees](https://github.com/irees))
+- Update gtfs gem [\#887](https://github.com/transitland/transitland-datastore/pull/887) ([irees](https://github.com/irees))
+- Use global log method [\#885](https://github.com/transitland/transitland-datastore/pull/885) ([irees](https://github.com/irees))
+- OIF: Allow null gtfs\_agency\_id [\#883](https://github.com/transitland/transitland-datastore/pull/883) ([irees](https://github.com/irees))
+- handling case where all shape points equal [\#882](https://github.com/transitland/transitland-datastore/pull/882) ([doublestranded](https://github.com/doublestranded))
+- Roll back redis gems [\#880](https://github.com/transitland/transitland-datastore/pull/880) ([irees](https://github.com/irees))
+- Issue serialization update [\#879](https://github.com/transitland/transitland-datastore/pull/879) ([doublestranded](https://github.com/doublestranded))
+- Entity with issues serialize [\#877](https://github.com/transitland/transitland-datastore/pull/877) ([doublestranded](https://github.com/doublestranded))
+- Production release 4.9.15 [\#875](https://github.com/transitland/transitland-datastore/pull/875) ([irees](https://github.com/irees))
 - Production release 4.9.14 [\#863](https://github.com/transitland/transitland-datastore/pull/863) ([irees](https://github.com/irees))
+- EIFF: Include GTFS identifier [\#854](https://github.com/transitland/transitland-datastore/pull/854) ([irees](https://github.com/irees))
 
 ## [4.9.14](https://github.com/transitland/transitland-datastore/tree/4.9.14) (2016-12-07)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.13...4.9.14)

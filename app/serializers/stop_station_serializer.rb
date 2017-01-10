@@ -99,7 +99,23 @@ class StopStationSerializer < CurrentEntitySerializer
     result.uniq { |osr| osr.route }
   end
 
+  def has_issues
+    scope[:embed_issues]
+  end
+
+  def issues
+    issues = []
+    if ['StopPlatform', 'StopEgress'].include?(object.class.name.to_s)
+      issues = object.issues
+    else
+      # object.class == Stop
+      issues = object.stop_platforms.collect { |sp| sp.issues }.flatten
+    end
+    issues.reject { |issue| Issue.categories[:station_hierarchy].exclude?(issue.issue_type) }
+  end
+
   # Attributes
+  attribute :issues, if: :has_issues
   attributes :onestop_id,
              :geometry,
              :name,

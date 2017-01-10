@@ -27,8 +27,9 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
 
     if params[:operated_by].present? || params[:operatedBy].present?
       # we previously allowed `operatedBy`, so we'll continue to honor that for the time being
-      operator_onestop_id = params[:operated_by] || params[:operatedBy]
-      @routes = @routes.operated_by(operator_onestop_id)
+      param = params[:operated_by].present? ? :operated_by : :operatedBy
+      operator_onestop_ids = AllowFiltering.param_as_array(params, param)
+      @routes = @routes.operated_by(operator_onestop_ids)
     end
     if params[:traverses].present?
       @routes = @routes.traverses(params[:traverses].split(','))
