@@ -82,6 +82,31 @@ class FeedMaintenanceService
     feed_version.extend_schedule_stop_pairs_service_end_date(extend_from_date, extend_to_date)
   end
 
+  def self.destroy_feed(feed)
+    # Find entities, in order
+    entity_order = [:RouteStopPattern, :StopEgress, :StopPlatform, :Stop, :Route, :Operator]
+    onestop_ids = Set.new
+    changes = []
+    entity_order.each do |entity_type|
+      feed.entities_imported_from_feed.where(entity_type: entity_type).find_each do |eiff|
+        entity = eiff.entity
+        next unless eiff.entity
+        next if entity.imported_from_feeds.where('feed_id != ?', feed.id).count > 0
+        next if onestop_ids.include?(entity.onestop_id)
+        changes << to_change(entity, action: :destroy)
+        onestop_ids << entity.onestop_id
+      end
+    end
+    changes << to_change(feed, action: :destroy)
+    # Apply changeset
+    changeset = Changeset.new
+    changeset.change_payloads.new(payload: {changes: changes})
+    changeset.save!
+    changeset.apply!
+    # Delete SSPs
+    feed.imported_schedule_stop_pairs.delete_all
+  end
+
   private
 
   def self.create_feed_version_issue(feed_version, issue_type)
@@ -91,5 +116,12 @@ class FeedMaintenanceService
       issue_type: issue_type,
     )
     issue.entities_with_issues.create!(entity: feed_version)
+  end
+
+  def to_change(entity, action: :createUpdate, attrs: {})
+    {
+      :action => action,
+      entity.class.name.camelize(:lower) => attrs.merge(onestopId: entity.onestop_id)
+    }
   end
 end
