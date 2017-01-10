@@ -34,7 +34,7 @@ module HasAOnestopId
       result
     end
 
-    def self.find_by_onestop_ids!(onestop_ids)
+    def self.find_by_current_onestop_ids!(onestop_ids)
       # First query to check for missing id's
       # keep them in order
       missing = onestop_ids - self.where(onestop_id: onestop_ids).pluck(:onestop_id)
@@ -43,7 +43,7 @@ module HasAOnestopId
       self.where(onestop_id: onestop_ids)
     end
 
-    def self.find_by_onestop_ids(onestop_ids)
+    def self.find_by_current_onestop_ids(onestop_ids)
       self.where(onestop_id: onestop_ids)
     end
   end

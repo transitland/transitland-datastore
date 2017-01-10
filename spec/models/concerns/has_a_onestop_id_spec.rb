@@ -1,25 +1,25 @@
 describe HasAOnestopId do
-  context 'find_by_onestop_ids' do
+  context 'find_by_current_onestop_ids' do
     let(:stop1) { create(:stop) }
     let(:stop2) { create(:stop) }
     it 'returns all matches' do
-      expect(Stop.find_by_onestop_ids([stop1.onestop_id, stop2.onestop_id])).to match_array([stop1, stop2])
+      expect(Stop.find_by_current_onestop_ids([stop1.onestop_id, stop2.onestop_id])).to match_array([stop1, stop2])
     end
 
     it 'filters out missing' do
-      expect(Stop.find_by_onestop_ids([stop1.onestop_id, 's-9q9-missing'])).to match_array([stop1])
+      expect(Stop.find_by_current_onestop_ids([stop1.onestop_id, 's-9q9-missing'])).to match_array([stop1])
     end
   end
 
-  context 'find_by_onestop_ids!' do
+  context 'find_by_current_onestop_ids!' do
     let(:stop1) { create(:stop) }
     let(:stop2) { create(:stop) }
     it 'returns all matches' do
-      expect(Stop.find_by_onestop_ids!([stop1.onestop_id, stop2.onestop_id])).to match_array([stop1, stop2])
+      expect(Stop.find_by_current_onestop_ids!([stop1.onestop_id, stop2.onestop_id])).to match_array([stop1, stop2])
     end
 
     it 'raises exception on missing' do
-      expect { Stop.find_by_onestop_ids!(['s-9q9-missing']) }.to raise_error(ActiveRecord::RecordNotFound)
+      expect { Stop.find_by_current_onestop_ids!(['s-9q9-missing']) }.to raise_error(ActiveRecord::RecordNotFound)
     end
   end
 

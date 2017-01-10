@@ -173,7 +173,7 @@ class Route < BaseRoute
     # Accept one or more Stop models / onestop_ids.
     onestop_ids_and_models = Array.wrap(onestop_ids_and_models)
     stops, onestop_ids = onestop_ids_and_models.partition { |i| i.is_a?(Stop) }
-    stops += Stop.find_by_onestop_ids!(onestop_ids)
+    stops += Stop.find_by_current_onestop_ids!(onestop_ids)
     joins{routes_serving_stop.route}.where{routes_serving_stop.stop_id.in(stops.map(&:id))}.uniq
   }
 
@@ -182,7 +182,7 @@ class Route < BaseRoute
     if models_or_onestop_ids.all? { |model_or_onestop_id| model_or_onestop_id.is_a?(Operator) }
       where(operator: models_or_onestop_ids)
     elsif models_or_onestop_ids.all? { |model_or_onestop_id| model_or_onestop_id.is_a?(String) }
-      operators = Operator.find_by_onestop_ids!(models_or_onestop_ids)
+      operators = Operator.find_by_current_onestop_ids!(models_or_onestop_ids)
       where(operator: operators)
     else
       raise ArgumentError.new('must provide Operator models or Onestop IDs')
