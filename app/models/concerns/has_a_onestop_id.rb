@@ -16,8 +16,8 @@ module HasAOnestopId
         # TODO: make this case insensitive
         self.find_by!(onestop_id: onestop_id)
       rescue ActiveRecord::RecordNotFound
-        result = self.current_from_old_reference(Object.const_get("Old#{self.name.to_s}").find_by!(onestop_id: onestop_id), :find_by!)
-        fail ActiveRecord::RecordNotFound, "#{self.class}: #{onestop_id} has been destroyed." if result.nil?
+        result = self.current_from_old_reference(Object.const_get("Old#{self.name}").find_by!(onestop_id: onestop_id), :find_by!)
+        fail ActiveRecord::RecordNotFound, "#{self.name}: #{onestop_id} has been destroyed." if result.nil?
         result
       end
     end
@@ -26,7 +26,7 @@ module HasAOnestopId
       # TODO: make this case insensitive
       result = self.find_by(onestop_id: onestop_id)
       if result.nil?
-        result = Object.const_get("Old#{self.name.to_s}").find_by(onestop_id: onestop_id)
+        result = Object.const_get("Old#{self.name}").find_by(onestop_id: onestop_id)
         unless result.nil?
           result = self.current_from_old_reference(result, :find_by)
         end
