@@ -55,6 +55,8 @@ describe HasAOnestopId do
     end
 
     it 'raises error if not found' do
+      create(:stop)
+      create(:old_stop)
       expect(Stop.find_by_onestop_id('s-9q9-xyz')).to be_nil
     end
   end
