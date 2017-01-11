@@ -83,6 +83,7 @@ class FeedMaintenanceService
   end
 
   def self.destroy_feed(feed)
+    log "destroy_feed: #{feed.onestop_id}"
     # Find entities, in order
     entity_order = [:RouteStopPattern, :StopEgress, :StopPlatform, :Stop, :Route, :Operator]
     onestop_ids = Set.new
@@ -94,17 +95,23 @@ class FeedMaintenanceService
         next if entity.imported_from_feeds.where('feed_id != ?', feed.id).count > 0
         next if onestop_ids.include?(entity.onestop_id)
         onestop_ids << entity.onestop_id
+        log "  destroy: #{entity.onestop_id}"
         changes << to_change(entity, action: :destroy)
       end
     end
     changes << to_change(feed, action: :destroy)
     # Apply changeset
+    log "  changeset: create"
     changeset = Changeset.new
     changeset.change_payloads.new(payload: {changes: changes})
     changeset.save!
+    log "  changeset: id #{changeset.id}"
+    log "  changeset: apply"
     changeset.apply!
     # Delete SSPs
+    log "  deleting SSPs"
     feed.imported_schedule_stop_pairs.delete_all
+    log "  ... done"
   end
 
   private
