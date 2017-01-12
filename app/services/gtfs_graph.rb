@@ -467,6 +467,7 @@ class GTFSGraph
       stop_times_count += stop_times.length
       feed_shape_points = @gtfs.shape_line(trip.shape_id) || []
       tl_route = find_by_gtfs_entity(@gtfs.parents(trip).first)
+      next if tl_route.nil?
       # temporary RouteStopPattern
       trip_stop_points = tl_stops.map { |s| s.geometry[:coordinates] }
       # determine if RouteStopPattern exists
