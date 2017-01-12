@@ -97,10 +97,10 @@ class Stop < BaseStop
     ]
   })
 
-  def after_change_onestop_id(changeset)
+  def after_change_onestop_id(old_onestop_id, changeset)
     super(changeset)
     RouteStopPattern.with_stops(self.onestop_id).each do |rsp|
-      # TODO 
+      rsp.stop_pattern.map { |stop_onestop_id|  stop_onestop_id.eql?(old_onestop_id) ? self.onestop_id : stop_onestop_id }
     end
   end
   def after_create_making_history(changeset)
