@@ -157,7 +157,11 @@ class GTFSGraph
     rsps.each do |rsp|
       stops = rsp.stop_pattern.map { |onestop_id| find_by_onestop_id(onestop_id) }
       begin
-        rsp.calculate_distances(stops=stops)
+        if rsp.is_generated
+          rsp.fallback_distances(stops=stops)
+        else
+          rsp.calculate_distances(stops=stops)
+        end
       rescue StandardError
         graph_log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
         rsp.fallback_distances(stops=stops)
