@@ -64,12 +64,19 @@ module CurrentTrackedByChangeset
         if existing_model
           attrs_to_apply = apply_params(existing_model.as_change.merge({ onestop_id: change[:new_onestop_id] }), cache)
           new_model = self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
+          new_model.after_change_onestop_id(changeset)
           new_model.after_create_making_history(changeset)
           existing_model.destroy_making_history(changeset: changeset, action: 'change_onestop_id')
         else
           raise Changeset::Error.new(changeset: changeset, message: "could not find a #{self.name} with Onestop ID of #{change[:onestop_id]} to change Onestop ID")
         end
       end
+    end
+
+    def after_change_onestop_id(changeset)
+      # this is available for overriding in models
+      super(changeset) if defined?(super)
+      return true
     end
 
     def apply_changes_merge_onestop_ids(changeset: nil, change: nil, onestop_ids_to_merge: nil, cache: {})
@@ -79,12 +86,19 @@ module CurrentTrackedByChangeset
         merge_into_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply)
       else
         merge_into_model = self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
+        merge_into_model.after_merge_onestop_ids(changeset)
         merge_into_model.after_create_making_history(changeset)
       end
       onestop_ids_to_merge.each { |onestop_id|
         model_to_merge = self.find_by_onestop_id(onestop_id)
         model_to_merge.destroy_making_history(changeset: changeset, action: 'merge', current: merge_into_model)
       }
+    end
+
+    def after_merge_onestop_ids(changeset)
+      # this is available for overriding in models
+      super(changeset) if defined?(super)
+      return true
     end
 
     def apply_changes_destroy(changeset: nil, changes: nil, cache: {})
