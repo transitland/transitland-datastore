@@ -98,8 +98,9 @@ class ChangePayload < ActiveRecord::Base
   end
 
   def payload_validation_errors
+    filename = Rails.root.join('app', 'models', 'json_schemas', 'changeset.json').to_s
     JSON::Validator.fully_validate(
-      File.join(__dir__, 'json_schemas', 'changeset.json'),
+      filename,
       self.payload,
       errors_as_objects: true
     )

@@ -85,7 +85,9 @@ class Route < BaseRoute
       :does_not_serve,
       :operated_by,
       :identified_by,
-      :not_identified_by
+      :not_identified_by,
+      :add_imported_from_feeds,
+      :not_imported_from_feeds
     ],
     protected_attributes: [
       :identifiers
@@ -109,6 +111,7 @@ class Route < BaseRoute
     self.existing_before_create_making_history(new_model, changeset)
   end
   def after_create_making_history(changeset)
+    update_entity_imported_from_feeds(changeset)
     OperatorRouteStopRelationship.manage_multiple(
       route: {
         serves: self.serves || [],
@@ -119,6 +122,7 @@ class Route < BaseRoute
     )
   end
   def before_update_making_history(changeset)
+    update_entity_imported_from_feeds(changeset)
     if self.operated_by.present?
       operator = Operator.find_by_onestop_id!(self.operated_by)
       self.operator = operator
@@ -173,14 +177,15 @@ class Route < BaseRoute
     joins{routes_serving_stop.route}.where{routes_serving_stop.stop_id.in(stops.map(&:id))}.uniq
   }
 
-  scope :operated_by, -> (model_or_onestop_id) {
-    if model_or_onestop_id.is_a?(Operator)
-      where(operator: model_or_onestop_id)
-    elsif model_or_onestop_id.is_a?(String)
-      operator = Operator.find_by_onestop_id!(model_or_onestop_id)
-      where(operator: operator)
+  scope :operated_by, -> (models_or_onestop_ids) {
+    models_or_onestop_ids = Array.wrap(models_or_onestop_ids)
+    if models_or_onestop_ids.all? { |model_or_onestop_id| model_or_onestop_id.is_a?(Operator) }
+      where(operator: models_or_onestop_ids)
+    elsif models_or_onestop_ids.all? { |model_or_onestop_id| model_or_onestop_id.is_a?(String) }
+      operators = Operator.find_by_onestop_ids!(models_or_onestop_ids)
+      where(operator: operators)
     else
-      raise ArgumentError.new('must provide an Operator model or a Onestop ID')
+      raise ArgumentError.new('must provide Operator models or Onestop IDs')
     end
   }
 

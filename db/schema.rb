@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20160930225228) do
+ActiveRecord::Schema.define(version: 20161207070207) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -59,7 +59,6 @@ ActiveRecord::Schema.define(version: 20160930225228) do
     t.datetime  "updated_at"
     t.integer   "created_or_updated_in_changeset_id"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
-    t.text      "latest_fetch_exception_log"
     t.text      "license_attribution_text"
     t.integer   "active_feed_version_id"
     t.string    "edited_attributes",                                                                              default: [], array: true
@@ -206,7 +205,6 @@ ActiveRecord::Schema.define(version: 20160930225228) do
     t.string   "destination_departure_time"
     t.string   "frequency_start_time"
     t.string   "frequency_end_time"
-    t.string   "frequency_headway_seconds"
     t.hstore   "tags"
     t.date     "service_start_date"
     t.date     "service_end_date"
@@ -234,12 +232,15 @@ ActiveRecord::Schema.define(version: 20160930225228) do
     t.float    "destination_dist_traveled"
     t.integer  "feed_id"
     t.integer  "feed_version_id"
+    t.string   "frequency_type"
+    t.integer  "frequency_headway_seconds"
   end
 
   add_index "current_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "c_ssp_cu_in_changeset", using: :btree
   add_index "current_schedule_stop_pairs", ["destination_id"], name: "c_ssp_destination", using: :btree
   add_index "current_schedule_stop_pairs", ["feed_id", "id"], name: "index_current_schedule_stop_pairs_on_feed_id_and_id", using: :btree
   add_index "current_schedule_stop_pairs", ["feed_version_id", "id"], name: "index_current_schedule_stop_pairs_on_feed_version_id_and_id", using: :btree
+  add_index "current_schedule_stop_pairs", ["frequency_type"], name: "index_current_schedule_stop_pairs_on_frequency_type", using: :btree
   add_index "current_schedule_stop_pairs", ["operator_id"], name: "index_current_schedule_stop_pairs_on_operator_id", using: :btree
   add_index "current_schedule_stop_pairs", ["origin_departure_time"], name: "index_current_schedule_stop_pairs_on_origin_departure_time", using: :btree
   add_index "current_schedule_stop_pairs", ["origin_id"], name: "c_ssp_origin", using: :btree
@@ -303,6 +304,7 @@ ActiveRecord::Schema.define(version: 20160930225228) do
     t.datetime "created_at"
     t.datetime "updated_at"
     t.integer  "feed_version_id"
+    t.string   "gtfs_id"
   end
 
   add_index "entities_imported_from_feed", ["entity_type", "entity_id"], name: "index_entities_imported_from_feed_on_entity_type_and_entity_id", using: :btree
@@ -362,9 +364,12 @@ ActiveRecord::Schema.define(version: 20160930225228) do
     t.string   "file_raw"
     t.string   "sha1_raw"
     t.string   "md5_raw"
+    t.string   "file_feedvalidator"
   end
 
+  add_index "feed_versions", ["earliest_calendar_date"], name: "index_feed_versions_on_earliest_calendar_date", using: :btree
   add_index "feed_versions", ["feed_type", "feed_id"], name: "index_feed_versions_on_feed_type_and_feed_id", using: :btree
+  add_index "feed_versions", ["latest_calendar_date"], name: "index_feed_versions_on_latest_calendar_date", using: :btree
 
   create_table "issues", force: :cascade do |t|
     t.integer  "created_by_changeset_id"
@@ -395,7 +400,6 @@ ActiveRecord::Schema.define(version: 20160930225228) do
     t.integer   "created_or_updated_in_changeset_id"
     t.integer   "destroyed_in_changeset_id"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
-    t.text      "latest_fetch_exception_log"
     t.text      "license_attribution_text"
     t.integer   "active_feed_version_id"
     t.string    "edited_attributes",                                                                              default: [], array: true
@@ -573,7 +577,6 @@ ActiveRecord::Schema.define(version: 20160930225228) do
     t.string   "destination_departure_time"
     t.string   "frequency_start_time"
     t.string   "frequency_end_time"
-    t.string   "frequency_headway_seconds"
     t.hstore   "tags"
     t.date     "service_start_date"
     t.date     "service_end_date"
@@ -601,6 +604,8 @@ ActiveRecord::Schema.define(version: 20160930225228) do
     t.float    "destination_dist_traveled"
     t.integer  "feed_id"
     t.integer  "feed_version_id"
+    t.string   "frequency_type"
+    t.integer  "frequency_headway_seconds"
   end
 
   add_index "old_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "o_ssp_cu_in_changeset", using: :btree
@@ -609,6 +614,7 @@ ActiveRecord::Schema.define(version: 20160930225228) do
   add_index "old_schedule_stop_pairs", ["destroyed_in_changeset_id"], name: "o_ssp_d_in_changeset", using: :btree
   add_index "old_schedule_stop_pairs", ["feed_id"], name: "index_old_schedule_stop_pairs_on_feed_id", using: :btree
   add_index "old_schedule_stop_pairs", ["feed_version_id"], name: "index_old_schedule_stop_pairs_on_feed_version_id", using: :btree
+  add_index "old_schedule_stop_pairs", ["frequency_type"], name: "index_old_schedule_stop_pairs_on_frequency_type", using: :btree
   add_index "old_schedule_stop_pairs", ["operator_id"], name: "index_old_schedule_stop_pairs_on_operator_id", using: :btree
   add_index "old_schedule_stop_pairs", ["origin_type", "origin_id"], name: "o_ssp_origin", using: :btree
   add_index "old_schedule_stop_pairs", ["route_stop_pattern_id"], name: "index_old_schedule_stop_pairs_on_route_stop_pattern_id", using: :btree

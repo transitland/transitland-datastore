@@ -2,17 +2,8 @@ class Api::V1::StopStationsController < Api::V1::BaseApiController
   include JsonCollectionPagination
   include DownloadableCsv
   include AllowFiltering
-  include Geojson
-  GEOJSON_ENTITY_PROPERTIES = Proc.new { |properties, entity|
-    # title property to follow GeoJSON simple style spec
-    properties[:title] = entity.name
-    properties[:timezone] = entity.timezone
-    properties[:operators_serving_stop] = entity.operators.map(&:onestop_id).try(:uniq)
-    properties[:routes_serving_stop] = entity.routes.map(&:onestop_id).try(:uniq)
-  }
 
   before_action :set_stop, only: [:show]
-  SERIALIZER = StopStationSerializer
 
   def index
     @stops = Stop.where(type: nil)
@@ -51,7 +42,6 @@ class Api::V1::StopStationsController < Api::V1::BaseApiController
     end
     # TODO: served_by_vehicle_types
 
-
     @stops = @stops.includes{[
       stop_transfers,
       stop_transfers.to_stop,
@@ -84,35 +74,28 @@ class Api::V1::StopStationsController < Api::V1::BaseApiController
       stop_egresses.routes_serving_stop.route,
       stop_egresses.routes_serving_stop.route.operator,
       stop_egresses.stop_transfers,
-      stop_egresses.stop_transfers.to_stop,
+      stop_egresses.stop_transfers.to_stop
     ]} # TODO: check performance against eager_load, joins, etc.
 
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(@stops)
-      end
-      format.geojson do
-        render json: Geojson.from_entity_collection(@stops, &GEOJSON_ENTITY_PROPERTIES)
-      end
-      format.csv do
-        return_downloadable_csv(@stops, 'stops')
-      end
+      format.json { render paginated_json_collection(@stops).merge({ scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }) }
+      format.geojson { render paginated_geojson_collection(@stops) }
+      format.csv { return_downloadable_csv(@stops, 'stops') }
     end
   end
 
   def show
     respond_to do |format|
-      format.json do
-        if self.class::SERIALIZER
-          render json: @stop, serializer: self.class::SERIALIZER
-        else
-          render json: @stop
-        end
-      end
-      format.geojson do
-        render json: Geojson.from_entity(@stop, &GEOJSON_ENTITY_PROPERTIES)
-      end
+      format.json { render json: @stop, serializer: StopStationSerializer, scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }
+      format.geojson { render json: @stop, serializer: GeoJSONSerializer }
     end
+  end
+
+  def paginated_json_collection(collection)
+    result = super
+    result[:root] = :stop_stations
+    result[:each_serializer] = StopStationSerializer
+    result
   end
 
   private

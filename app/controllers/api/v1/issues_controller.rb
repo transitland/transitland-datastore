@@ -15,17 +15,23 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
       @issues = @issues.with_type(params[:issue_type])
     end
 
-    if params[:feed_onestop_id].present?
-      @issues = @issues.from_feed(params[:feed_onestop_id])
+    if params[:category].present?
+      @issues = @issues.with_type(Issue.issue_types_in_category(params[:category]))
+    end
+
+    if params[:of_feed_entities].present?
+      @issues = @issues.from_feed(params[:of_feed_entities])
+    end
+
+    if params[:of_entity].present?
+      @issues = @issues.issues_of_entity(OnestopId.find!(params[:of_entity]))
     end
 
     # entities_with_issues entity still loading with n+1 queries; not sure how to fix
     @issues = @issues.includes([:entities_with_issues, created_by_changeset: [:imported_from_feed, :imported_from_feed_version]])
 
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(@issues)
-      end
+      format.json { render paginated_json_collection(@issues) }
     end
   end
 
@@ -71,6 +77,10 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
       @issue.save!
       render json: @issue, status: :accepted
     end
+  end
+
+  def categories
+    render json: Issue.categories
   end
 
   private

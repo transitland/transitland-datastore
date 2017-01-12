@@ -1,0 +1,15 @@
+{
+	"$schema": "http://json-schema.org/draft-04/schema#",
+	"title": "Transitland: Imported From Feed",
+	"type": "object",
+	"required": ["feedVersion"],
+	"additionalProperties": false,
+	"properties": {
+		"feedVersion": {
+			"type": "string"
+		},
+		"gtfsId": {
+			"type": ["string", "null"]
+		}
+	}
+}

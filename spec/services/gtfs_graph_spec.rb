@@ -83,7 +83,6 @@ describe GTFSGraph do
         expect(o.name).to eq('Caltrain')
         expect(o.onestop_id).to eq('o-9q9-caltrain')
         expect(o.geometry).to be
-        expect(o.identifiers).to contain_exactly("gtfs://f-9q9-caltrain/o/caltrain-ca-us")
         expect(o.timezone).to eq('America/Los_Angeles')
         expect(o.website).to eq('http://www.caltrain.com')
       end
@@ -95,7 +94,6 @@ describe GTFSGraph do
         expect(r).to be_truthy
         expect(r.name).to eq('Bullet')
         expect(r.onestop_id).to eq('r-9q9j-bullet')
-        expect(r.identifiers).to match_array(["gtfs://f-9q9-caltrain/r/Bu-121"])
         expect(r.vehicle_type).to eq(:rail)
         expect(r.vehicle_type_value).to eq(2)
         expect(r.tags['route_long_name']).to eq('Bullet')
@@ -112,9 +110,6 @@ describe GTFSGraph do
         expect(s.onestop_id).to eq('s-9q9k659e3r-sanjosecaltrainstation')
         # expect(s.tags['']) # no tags
         expect(s.geometry).to be
-        expect(s.identifiers).to contain_exactly(
-          "gtfs://f-9q9-caltrain/s/ctsj"
-        )
         expect(s.timezone).to eq('America/Los_Angeles')
       end
 
@@ -204,6 +199,15 @@ describe GTFSGraph do
       # 'BFC2' is a 1 stop time trip; 'BFC1' has no stop times
       expect(@feed.imported_route_stop_patterns.size).to eq 8
     end
+
+    it 'allows multiple agency_ids to point to single Operator' do
+      # In this feed, Route "r-9qt1-50" is associated with agency_id "DTA2"
+      # where both "DTA" and "DTA2" point to "o-9qs-demotransitauthority"
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_multiple_agency_id_same_operator, import_level: 1)
+      operator = @feed.imported_operators.find_by_onestop_id!("o-9qs-demotransitauthority")
+      expect(operator.routes.find_by_onestop_id!("r-9qt1-50")).to be_truthy
+    end
+
   end
 
 
@@ -217,32 +221,31 @@ describe GTFSGraph do
         RouteStopPattern.find_by_onestop_id!('r-9qt1-50-5cba7c-25211f').delete
       }
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 2, block_before_level_2: block_before_level_2)
-      expect(@feed.imported_schedule_stop_pairs.count).to eq(13) # WAS 17
+      expect(@feed.imported_schedule_stop_pairs.count).to eq(45) # WAS 17
       expect(@feed.imported_schedule_stop_pairs.where(route: Route.find_by_onestop_id('r-9qt1-50')).count).to eq(2) # WAS 4
     end
 
     it 'created known ScheduleStopPairs' do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 2)
-      expect(@feed.imported_schedule_stop_pairs.count).to eq(17) # EXACTLY.
+      expect(@feed.imported_schedule_stop_pairs.count).to eq(49) # EXACTLY.
       expect(@feed_version.imported_schedule_stop_pairs.pluck(:id)).to match_array(@feed.imported_schedule_stop_pairs.pluck(:id))
       # Find a UNIQUE SSP, by origin, destination, route, trip.
       origin = @feed.imported_stops.find_by!(
-        onestop_id: "s-9qscv9zzb5-bullfrogdemo"
+        onestop_id: "s-9qsfp2212t-stagecoachhotel~casinodemo"
       )
       destination = @feed.imported_stops.find_by!(
-        onestop_id: "s-9qkxnx40xt-furnacecreekresortdemo"
+        onestop_id: "s-9qsfp00vhs-northave~naavedemo"
       )
-      route = @feed.imported_routes.find_by!(onestop_id: 'r-9qsb-20')
-      route_stop_pattern = @feed.imported_route_stop_patterns.find_by!(onestop_id: 'r-9qsb-20-8d5767-8c7aa5')
+      route = @feed.imported_routes.find_by!(onestop_id: 'r-9qsczp-40')
+      route_stop_pattern = @feed.imported_route_stop_patterns.find_by!(onestop_id: 'r-9qsczp-40-1f22a1-3d01d2')
       operator = @feed.operators.find_by(onestop_id: 'o-9qs-demotransitauthority')
-      trip = 'BFC1'
+      trip = 'CITY1'
       found = @feed.imported_schedule_stop_pairs.where(
         origin: origin,
         destination: destination,
         route: route,
-        trip: trip
-      )
-      expect(found.count).to eq(1)
+      ).order(id: :asc)
+      expect(found.count).to eq(5)
       s = found.first
       expect(s).to be_truthy
       expect(s.origin).to eq(origin)
@@ -251,22 +254,22 @@ describe GTFSGraph do
       expect(s.route_stop_pattern).to eq(route_stop_pattern)
       expect(s.operator).to eq(operator)
       expect(s.trip).to eq(trip)
-      expect(s.trip_headsign).to eq('to Furnace Creek Resort')
+      expect(s.trip_headsign).to eq("E Main St / S Irving St (Demo)")
       expect(s.trip_short_name).to be nil
       expect(s.origin_timezone).to eq('America/Los_Angeles')
       expect(s.destination_timezone).to eq('America/Los_Angeles')
       expect(s.shape_dist_traveled).to eq(0.0)
-      expect(s.block_id).to eq("1")
+      expect(s.block_id).to eq(nil)
       expect(s.wheelchair_accessible).to eq(nil)
       expect(s.bikes_allowed).to eq(nil)
       expect(s.pickup_type).to eq(nil)
       expect(s.drop_off_type).to eq(nil)
-      expect(s.origin_arrival_time).to eq('08:20:00')
-      expect(s.origin_departure_time).to eq('08:20:00')
-      expect(s.destination_arrival_time).to eq('09:20:00')
-      expect(s.destination_departure_time).to eq('09:20:00')
+      expect(s.origin_arrival_time).to eq('06:00:00')
+      expect(s.origin_departure_time).to eq('06:00:00')
+      expect(s.destination_arrival_time).to eq('06:05:00')
+      expect(s.destination_departure_time).to eq('06:07:00')
       expect(s.origin_dist_traveled).to eq 0.0
-      expect(s.destination_dist_traveled).to be_within(0.5).of(58023.5)
+      expect(s.destination_dist_traveled).to be_within(0.5).of(875.4)
       expect(s.service_days_of_week).to match_array(
         [true, true, true, true, true, true, true]
       )
@@ -276,8 +279,12 @@ describe GTFSGraph do
       expect(s.service_end_date.to_s).to eq('2010-12-31')
       expect(s.origin_timepoint_source).to eq('gtfs_exact')
       expect(s.destination_timepoint_source).to eq('gtfs_exact')
-      expect(s.window_start).to eq('08:20:00')
-      expect(s.window_end).to eq('09:20:00')
+      expect(s.window_start).to eq('06:00:00')
+      expect(s.window_end).to eq('06:05:00')
+      expect(s.frequency_start_time).to eq('06:00:00')
+      expect(s.frequency_end_time).to eq('07:59:59')
+      expect(s.frequency_headway_seconds).to eq(1800)
+      expect(s.frequency_type).to eq('not_exact')
     end
 
     it 'can process a trip with 1 unique stop but at least 2 stop times' do
@@ -327,23 +334,22 @@ describe GTFSGraph do
       expect(@feed.imported_routes.size).to eq 5
       expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-60')).to be_falsey
       load_feed(feed_version: @feed_version_update_add, import_level: 1)
-      expect(@feed.imported_routes.size).to eq 11
-      expect(@feed.imported_stops.size).to eq 19
-      expect(@feed.imported_routes.uniq.size).to eq 6
+      expect(@feed.imported_stops.size).to eq 10
+      expect(@feed.imported_routes.size).to eq 6
       expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-60')).to be_truthy
       expect(@feed.imported_stops.find_by_onestop_id('s-9qt1hbwder-newstop')).to be_truthy
     end
 
     it 'does not delete a previous feed version entity' do
-      expect(@feed.imported_routes.size).to eq 5
       expect(@feed.imported_stops.size).to eq 9
+      expect(@feed.imported_routes.size).to eq 5
       expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-10')).to be_truthy
       load_feed(feed_version: @feed_version_update_delete, import_level: 1)
       expect(@original_feed_version.imported_routes.find_by_onestop_id('r-9qscy-10')).to be_truthy
       expect(@feed_version_update_delete.imported_routes.find_by_onestop_id('r-9qscy-10')).to be_falsey
       expect(@feed_version_update_delete.imported_stops.find_by_onestop_id('s-9qsczn2rk0-emainst~sirvingstdemo')).to be_falsey
-      expect(@feed.imported_routes.size).to eq 10
-      expect(@feed.imported_stops.size).to eq 17
+      expect(@feed.imported_stops.size).to eq 9
+      expect(@feed.imported_routes.size).to eq 6
     end
 
     it 'updates previous matching feed version entities with new attribute values' do

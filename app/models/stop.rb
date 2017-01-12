@@ -81,7 +81,9 @@ class Stop < BaseStop
       :identified_by,
       :not_identified_by,
       :includes_stop_transfers,
-      :does_not_include_stop_transfers
+      :does_not_include_stop_transfers,
+      :add_imported_from_feeds,
+      :not_imported_from_feeds
     ],
     protected_attributes: [
       :identifiers,
@@ -97,12 +99,14 @@ class Stop < BaseStop
 
   def after_create_making_history(changeset)
     super(changeset)
+    update_entity_imported_from_feeds(changeset)
     update_served_by(changeset)
     update_includes_stop_transfers(changeset)
     update_does_not_include_stop_transfers(changeset)
   end
   def before_update_making_history(changeset)
     super(changeset)
+    update_entity_imported_from_feeds(changeset)
     update_served_by(changeset)
     update_includes_stop_transfers(changeset)
     update_does_not_include_stop_transfers(changeset)
@@ -166,6 +170,9 @@ class Stop < BaseStop
   has_many :trips_in, class_name: ScheduleStopPair, foreign_key: "destination_id"
   has_many :stops_out, through: :trips_out, source: :destination
   has_many :stops_in, through: :trips_in, source: :origin
+
+  # Issues
+  has_many :issues, through: :entities_with_issues
 
   def parent_stop
     # Dummy relation
@@ -290,10 +297,16 @@ class Stop < BaseStop
             log "Index #{index} for stop #{stop.onestop_id} not found in Tyr Response."
             next
           end
+
+          # Issues will disappear on their own when a way id is finally found (e.g. the stop location is fixed)
+          # An issue will be replaced when conflation occurs again and the missing way id persists
+          Issue.issues_of_entity(stop, entity_attributes: ["osm_way_id"]).each(&:deprecate)
           if tyr_locate_response[index][:edges].present?
             osm_way_id = tyr_locate_response[index][:edges][0][:way_id]
           else
             log "Tyr response for Stop #{stop.onestop_id} did not contain edges. Leaving osm_way_id."
+            Issue.create!(issue_type: 'missing_stop_conflation_result', details: 'Tyr response for Stop #{stop.onestop_id} did not contain edges. Leaving osm_way_id.')
+              .entities_with_issues.create!(entity: stop, entity_attribute: 'osm_way_id')
           end
 
           if stop.osm_way_id != osm_way_id

@@ -83,7 +83,9 @@ class RouteStopPattern < BaseRouteStopPattern
     virtual_attributes: [
       :identified_by,
       :not_identified_by,
-      :traversed_by
+      :traversed_by,
+      :add_imported_from_feeds,
+      :not_imported_from_feeds
     ],
     protected_attributes: [
       :identifiers
@@ -92,14 +94,24 @@ class RouteStopPattern < BaseRouteStopPattern
       :geometry
     ]
   })
+
   class << RouteStopPattern
     alias_method :existing_before_create_making_history, :before_create_making_history
   end
+
+  def after_create_making_history(changeset)
+    update_entity_imported_from_feeds(changeset)
+  end
+  def before_update_making_history(changeset)
+    update_entity_imported_from_feeds(changeset)
+  end
+
   def self.before_create_making_history(new_model, changeset)
     route = Route.find_by_onestop_id!(new_model.traversed_by)
     new_model.route = route
     self.existing_before_create_making_history(new_model, changeset)
   end
+
   # borrowed from schedule_stop_pair.rb
   def self.find_by_attributes(attrs = {})
     if attrs[:id].present?

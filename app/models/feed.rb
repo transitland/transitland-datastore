@@ -19,7 +19,6 @@
 #  updated_at                         :datetime
 #  created_or_updated_in_changeset_id :integer
 #  geometry                           :geography({:srid geometry, 4326
-#  latest_fetch_exception_log         :text
 #  license_attribution_text           :text
 #  active_feed_version_id             :integer
 #  edited_attributes                  :string           default([]), is an Array
@@ -55,20 +54,22 @@ class Feed < BaseFeed
   include HasTags
   include UpdatedSince
   include HasAGeographicGeometry
+  include IsAnEntityWithIssues
 
   has_many :feed_versions, -> { order 'created_at DESC' }, dependent: :destroy, as: :feed
   has_many :feed_version_imports, -> { order 'created_at DESC' }, through: :feed_versions
   belongs_to :active_feed_version, class_name: 'FeedVersion'
 
   has_many :operators_in_feed
-  has_many :operators, through: :operators_in_feed
+  has_many :operators, -> { distinct }, through: :operators_in_feed
+
+  has_many :issues, through: :entities_with_issues
 
   has_many :entities_imported_from_feed
-  has_many :imported_operators, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'
-  has_many :imported_stops, through: :entities_imported_from_feed, source: :entity, source_type: 'Stop'
-  has_many :imported_routes, through: :entities_imported_from_feed, source: :entity, source_type: 'Route'
-  has_many :imported_schedule_stop_pairs, through: :entities_imported_from_feed, source: :entity, source_type: 'ScheduleStopPair'
-  has_many :imported_route_stop_patterns, through: :entities_imported_from_feed, source: :entity, source_type: 'RouteStopPattern'
+  has_many :imported_operators, -> { distinct }, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'
+  has_many :imported_stops, -> { distinct }, through: :entities_imported_from_feed, source: :entity, source_type: 'Stop'
+  has_many :imported_routes, -> { distinct }, through: :entities_imported_from_feed, source: :entity, source_type: 'Route'
+  has_many :imported_route_stop_patterns, -> { distinct }, through: :entities_imported_from_feed, source: :entity, source_type: 'RouteStopPattern'
   has_many :imported_schedule_stop_pairs, class_name: 'ScheduleStopPair', dependent: :delete_all
 
   has_many :changesets_imported_from_this_feed, class_name: 'Changeset'
@@ -77,9 +78,9 @@ class Feed < BaseFeed
 
   scope :where_latest_fetch_exception, -> (flag) {
     if flag
-      where.not(latest_fetch_exception_log: nil)
+      where("current_feeds.id IN (SELECT entities_with_issues.entity_id FROM entities_with_issues INNER JOIN issues ON entities_with_issues.issue_id=issues.id WHERE issues.issue_type IN ('feed_fetch_invalid_zip', 'feed_fetch_invalid_url', 'feed_fetch_invalid_response', 'feed_fetch_invalid_source') AND entities_with_issues.entity_type='Feed')")
     else
-      where(latest_fetch_exception_log: nil)
+      where("current_feeds.id NOT IN (SELECT entities_with_issues.entity_id FROM entities_with_issues INNER JOIN issues ON entities_with_issues.issue_id=issues.id WHERE issues.issue_type IN ('feed_fetch_invalid_zip', 'feed_fetch_invalid_url', 'feed_fetch_invalid_response', 'feed_fetch_invalid_source') AND entities_with_issues.entity_type='Feed')")
     end
   }
 
@@ -177,7 +178,11 @@ class Feed < BaseFeed
   def before_update_making_history(changeset)
     (self.includes_operators || []).each do |included_operator|
       operator = Operator.find_by!(onestop_id: included_operator[:operator_onestop_id])
-      existing_relationship = OperatorInFeed.find_by(operator: operator, feed: self)
+      existing_relationship = OperatorInFeed.find_by(
+        operator: operator,
+        gtfs_agency_id: included_operator[:gtfs_agency_id],
+        feed: self
+      )
       if existing_relationship
           existing_relationship.update_making_history(
             changeset: changeset,
@@ -200,7 +205,11 @@ class Feed < BaseFeed
     end
     (self.does_not_include_operators || []).each do |not_included_operator|
       operator = Operator.find_by!(onestop_id: not_included_operator[:operator_onestop_id])
-      existing_relationship = OperatorInFeed.find_by(operator: operator, feed: self)
+      existing_relationship = OperatorInFeed.find_by(
+        operator: operator,
+        gtfs_agency_id: not_included_operator[:gtfs_agency_id],
+        feed: self
+      )
       if existing_relationship
         existing_relationship.destroy_making_history(changeset: changeset)
       end

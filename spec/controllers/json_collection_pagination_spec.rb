@@ -1,44 +1,9 @@
-class FakePaginationCollection
-  attr_accessor :items
-
-  def initialize(items)
-    @items = items
-    @offset = 0
-    @limit = @items.size
-  end
-  def column_names
-    ['id']
-  end
-  def reorder(**kwargs)
-    sort_key, sort_order = kwargs.first
-    @items = @items.sort
-    if sort_order.to_sym == :desc
-      @items = @items.reverse
-    end
-    self
-  end
-  def offset(i)
-    @offset = i
-    self
-  end
-  def limit(i)
-    @limit = i
-    @items[@offset, @limit]
-  end
-  def count
-    @items[@offset, @limit].size
-  end
-  def to_a
-    @items
-  end
-end
-
 describe ApplicationController do
 
   controller do
     include JsonCollectionPagination
     def index
-      collection = FakePaginationCollection.new((0...15).to_a)
+      collection = Changeset.where('')
       render paginated_json_collection(collection)
     end
     def url_for(params)
@@ -53,10 +18,16 @@ describe ApplicationController do
   }
 
   context 'paginated_json_collection' do
+    before(:each) do
+      @issues = create_list(:changeset, 10)
+    end
+
     it 'one page' do
       get :index
       expect_json({
-        anonymous: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+        changesets: -> (changesets) {
+          expect(changesets.map { |i| i[:id] }).to eq(1.upto(10).to_a)
+        },
         meta: {
           sort_key: 'id',
           sort_order: 'asc',
@@ -69,11 +40,13 @@ describe ApplicationController do
     it 'has an optional total' do
       get :index, total: true
       expect_json({
-        anonymous: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+        changesets: -> (changesets) {
+          expect(changesets.map { |i| i[:id] }).to eq(1.upto(10).to_a)
+        },
         meta: {
           sort_key: 'id',
           sort_order: 'asc',
-          total: 15,
+          total: 10,
           offset: 0,
           per_page: 50
         }
@@ -81,27 +54,31 @@ describe ApplicationController do
     end
 
     it 'sorts ascending' do
-      get :index, sort_order: :asc, per_page: 10
+      get :index, sort_order: :asc, per_page: 5
       expect_json({
-        anonymous: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+        changesets: -> (changesets) {
+          expect(changesets.map { |i| i[:id] }).to eq(1.upto(5).to_a)
+        },
         meta: {
           sort_key: 'id',
           sort_order: 'asc',
           offset: 0,
-          per_page: 10
+          per_page: 5
         }
       })
     end
 
     it 'sorts descending' do
-      get :index, sort_order: :desc, per_page: 10
+      get :index, sort_order: :desc, per_page: 5
       expect_json({
-        anonymous: [14, 13, 12, 11, 10, 9, 8, 7, 6, 5],
+        changesets: -> (changesets) {
+          expect(changesets.map { |i| i[:id] }).to eq(10.downto(6).to_a)
+        },
         meta: {
           sort_key: 'id',
           sort_order: 'desc',
           offset: 0,
-          per_page: 10
+          per_page: 5
         }
       })
     end
@@ -135,7 +112,9 @@ describe ApplicationController do
     it 'allows pagination to be disabled' do
       get :index, per_page: '∞'
       expect_json({
-        anonymous: -> (items) { expect(items.count).to eq(15) },
+        changesets: -> (changesets) {
+          expect(changesets.map { |i| i[:id] }).to eq(1.upto(10).to_a)
+        },
         meta: {
           per_page: '∞'
         }

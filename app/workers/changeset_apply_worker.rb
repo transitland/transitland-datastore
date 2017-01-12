@@ -6,7 +6,7 @@ class ChangesetApplyWorker
                   retry: false
 
   def perform(changeset_id, cachekey)
-    logger.info "ChangesetApplyWorker: #{changeset_id}"
+    log "ChangesetApplyWorker: #{changeset_id}"
     # Processing
     errors = []
     warnings = []

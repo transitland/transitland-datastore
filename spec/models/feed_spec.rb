@@ -19,7 +19,6 @@
 #  updated_at                         :datetime
 #  created_or_updated_in_changeset_id :integer
 #  geometry                           :geography({:srid geometry, 4326
-#  latest_fetch_exception_log         :text
 #  license_attribution_text           :text
 #  active_feed_version_id             :integer
 #  edited_attributes                  :string           default([]), is an Array
@@ -62,7 +61,8 @@ describe Feed do
                   operatorOnestopId: 'o-9q9-caltrain',
                   gtfsAgencyId: 'caltrain-ca-us'
                 }
-              ]
+              ],
+              geometry: { type: "Polygon", coordinates:[[[-121.56649700000001,37.00360599999999],[-122.23195700000001,37.48541199999998],[-122.38653400000001,37.600005999999965],[-122.412018,37.63110599999998],[-122.39432299999996,37.77643899999997],[-121.65072100000002,37.12908099999998],[-121.61080899999999,37.085774999999984],[-121.56649700000001,37.00360599999999]]]}              
             }
           }
         ]
@@ -93,30 +93,6 @@ describe Feed do
       changeset2.apply!
       expect(Feed.first.operators).to match_array([Operator.first])
       expect(Feed.first.license_redistribute).to eq 'no'
-      expect(changeset2.feeds_created_or_updated).to match_array([Feed.first])
-    end
-
-    it 'can modify a feed, modifying a GTFS agency ID' do
-      changeset2 = create(:changeset, payload: {
-        changes: [
-          {
-            action: 'createUpdate',
-            feed: {
-              onestopId: 'f-9q9-caltrain',
-              includesOperators: [
-                {
-                  operatorOnestopId: 'o-9q9-caltrain',
-                  gtfsAgencyId: 'new-id'
-                }
-              ]
-            }
-          }
-        ]
-      })
-      @changeset1.apply!
-      changeset2.apply!
-      expect(Feed.first.operators).to match_array([Operator.first])
-      expect(Feed.first.operators_in_feed.first.gtfs_agency_id).to eq 'new-id'
       expect(changeset2.feeds_created_or_updated).to match_array([Feed.first])
     end
 
@@ -160,7 +136,8 @@ describe Feed do
               onestopId: 'f-9q9-caltrain',
               doesNotIncludeOperators: [
                 {
-                  operatorOnestopId: 'o-9q9-caltrain'
+                  operatorOnestopId: 'o-9q9-caltrain',
+                  gtfsAgencyId: 'caltrain-ca-us'
                 }
               ]
             }
@@ -307,7 +284,10 @@ describe Feed do
 
   context '.where_latest_fetch_exception' do
     let(:feed_succeed) { create(:feed) }
-    let(:feed_failed) { create(:feed, latest_fetch_exception_log: 'test') }
+    let(:feed_failed) { create(:feed) }
+    before(:each) do
+      Issue.create!(issue_type: 'feed_fetch_invalid_source').entities_with_issues.create!(entity: feed_failed, entity_attribute: 'url')
+    end
 
     it 'finds feeds with latest_fetch_exception_log' do
         expect(Feed.where_latest_fetch_exception(true)).to match_array([feed_failed])
