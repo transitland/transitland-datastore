@@ -371,7 +371,7 @@ class GTFSGraph
       stop = find_by_gtfs_entity(@gtfs.stop(transfer.from_stop_id))
       to_stop = find_by_gtfs_entity(@gtfs.stop(transfer.to_stop_id))
       next unless stop && to_stop
-      stop.includes_stop_transfers ||= []
+      stop.includes_stop_transfers ||= Set.new
       stop.includes_stop_transfers << {
         toStopOnestopId: to_stop.onestop_id,
         transferType: StopTransfer::GTFS_TRANSFER_TYPE[transfer.transfer_type.presence || "0"],
