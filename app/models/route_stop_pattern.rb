@@ -41,7 +41,7 @@ class RouteStopPattern < BaseRouteStopPattern
   COORDINATE_PRECISION = 5
   DISTANCE_PRECISION = 1
   OUTLIER_THRESHOLD = 100
-  FIRST_MATCH_THRESHOLD = 50
+  FIRST_MATCH_THRESHOLD = 25
 
   belongs_to :route
   has_many :schedule_stop_pairs
@@ -136,14 +136,24 @@ class RouteStopPattern < BaseRouteStopPattern
 
   def nearest_segment_index_forward(locators, s, e, point)
     closest_points = locators[s..e].map{ |loc| loc.interpolate_point(Stop::GEOFACTORY) }
-    closest_points_and_dists = closest_points.map{ |closest_point|
+    closest_point_and_dist = closest_points.map{ |closest_point|
       dist = closest_point.distance(point);
-      [closest_point, dist] if dist < FIRST_MATCH_THRESHOLD
-    }.compact
+      [closest_point, dist]
+    }.detect { |closest_point_and_dist| closest_point_and_dist[1] < FIRST_MATCH_THRESHOLD }
 
-    unless closest_points_and_dists.empty?
-      closest_point = closest_points_and_dists.min_by { |a| a[1] }[0]
-      return s + closest_points.index(closest_point)
+    unless closest_point_and_dist.nil?
+      dist = closest_point_and_dist[1]
+      i = closest_points.index(closest_point_and_dist[0])
+      if i != locators[s..e].size - 1
+        next_seg_dist = locators[s..e][i+1].interpolate_point(Stop::GEOFACTORY).distance(point)
+        while next_seg_dist < dist
+          i += 1
+          dist = next_seg_dist
+          break if i == locators[s..e].size - 1
+          next_seg_dist = locators[s..e][i+1].interpolate_point(Stop::GEOFACTORY).distance(point)
+        end
+      end
+      return s + i
     end
     a = locators[s..e].map(&:distance_from_segment)
     s + a.index(a.min)

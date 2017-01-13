@@ -224,12 +224,13 @@ class Changeset < ActiveRecord::Base
     rsps_to_update_distances.each { |rsp|
       old_issues_to_deprecate.merge(Issue.issues_of_entity(rsp, entity_attributes: ["stop_distances"]))
 
-      begin
-        rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
-      rescue StandardError
-        log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
-        rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.fallback_distances })
-      end
+      rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
+      # begin
+      #   rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
+      # rescue StandardError
+      #   log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
+      #   rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.fallback_distances })
+      # end
 
       rsp.ordered_ssp_trip_chunks { |trip_chunk|
         trip_chunk.each_with_index do |ssp, i|

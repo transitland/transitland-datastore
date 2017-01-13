@@ -292,7 +292,7 @@ describe RouteStopPattern do
 
     it 'accurately calculates the distances of a route with stops along the line that traversed over itself in the opposite direction, but closest match was segment in opposite direction' do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta_1965654, import_level: 2)
-      expect(@feed.imported_route_stop_patterns[0].calculate_distances).to match_array([0.0,1490.8,1818.6,2478.0,2928.5,3167.2,3584.7,4079.4,4360.6,4784.1,4970.5,5168.1,5340.5,5599.0,6023.2,6483.9,6770.0,7469.3])
+      expect(@feed.imported_route_stop_patterns[0].calculate_distances).to match_array([0.0,1490.8,1818.6,2478.0,2928.5,3167.2,3583.3,4079.4,4360.6,4784.1,4970.5,5168.1,5340.5,5599.0,6023.2,6483.9,6770.0,7469.3])
     end
 
     it 'calculates the first stop distance correctly' do
