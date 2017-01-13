@@ -55,6 +55,12 @@ module CurrentTrackedByChangeset
       new_models.each { |model| model.after_create_making_history(changeset) }
     end
 
+    def after_change_onestop_id(changeset)
+      # this is available for overriding in models
+      super(changeset) if defined?(super)
+      return true
+    end
+
     def apply_changes_change_onestop_id(changeset: nil, changes: nil, cache: {})
       changes.each do |change|
         unless change.has_key?(:new_onestop_id)
@@ -73,7 +79,7 @@ module CurrentTrackedByChangeset
       end
     end
 
-    def after_change_onestop_id(changeset)
+    def after_merge_onestop_ids(changeset)
       # this is available for overriding in models
       super(changeset) if defined?(super)
       return true
@@ -86,19 +92,13 @@ module CurrentTrackedByChangeset
         merge_into_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply)
       else
         merge_into_model = self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
-        merge_into_model.after_merge_onestop_ids(changeset)
+        merge_into_model.after_merge_onestop_ids(onestop_ids_to_merge, changeset)
         merge_into_model.after_create_making_history(changeset)
       end
       onestop_ids_to_merge.each { |onestop_id|
         model_to_merge = self.find_by_onestop_id(onestop_id)
         model_to_merge.destroy_making_history(changeset: changeset, action: 'merge', current: merge_into_model)
       }
-    end
-
-    def after_merge_onestop_ids(changeset)
-      # this is available for overriding in models
-      super(changeset) if defined?(super)
-      return true
     end
 
     def apply_changes_destroy(changeset: nil, changes: nil, cache: {})

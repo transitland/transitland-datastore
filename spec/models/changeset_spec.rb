@@ -268,6 +268,46 @@ describe Changeset do
       expect(OldStop.last.action).to eq 'merge'
     end
 
+    it 'updates rsp stop pattern onestop ids on merge onestop ids' do
+      richmond = create(:stop_richmond_offset)
+      millbrae = create(:stop_millbrae)
+      rsp = create(:route_stop_pattern_bart)
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'merge',
+            onestopIdsToMerge: [richmond.onestop_id],
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              geometry: { type: 'Point', coordinates: [-122.35073, 37.95234] }, # tiny change to existing
+              timezone: 'America/Los_Angeles',
+            }
+          }
+        ]
+      })
+      changeset.apply!
+      expect(RouteStopPattern.find_by_onestop_id!(rsp.onestop_id).stop_pattern).to match_array(['s-9q8yt4b-1AvHoS', millbrae.onestop_id])
+    end
+
+    it 'updates rsp stop pattern onestop ids on change onestop ids' do
+      richmond = create(:stop_richmond_offset)
+      millbrae = create(:stop_millbrae)
+      rsp = create(:route_stop_pattern_bart)
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'changeOnestopID',
+            stop: {
+              onestopId: richmond.onestop_id,
+              newOnestopId: 's-9q8yt4b-1AvHoS'
+            }
+          }
+        ]
+      })
+      changeset.apply!
+      expect(RouteStopPattern.find_by_onestop_id!(rsp.onestop_id).stop_pattern).to match_array(['s-9q8yt4b-1AvHoS', millbrae.onestop_id])
+    end
+
     it 'merges onestop id for a new entity' do
       merge_stop_1 = create(:stop)
       merge_stop_2 = create(:stop)
