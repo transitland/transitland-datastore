@@ -1,9 +1,8 @@
 module JsonCollectionPagination
   extend ActiveSupport::Concern
   PER_PAGE ||= 50
-  SERIALIZER = nil
 
-  def paginated_json_collection(collection)
+  def paginated_collection(collection)
     # Meta
     per_page = sort_per_page
     offset = sort_offset
@@ -42,13 +41,23 @@ module JsonCollectionPagination
     if include_total
       meta[:total] = collection.count
     end
-
     # Return results + meta
-    if self.class::SERIALIZER
-      { json: data_on_page, meta: meta, each_serializer: self.class::SERIALIZER }
-    else
-      { json: data_on_page, meta: meta }
-    end
+    data_on_page = data_on_page.empty? ? collection.model.none : data_on_page
+    {json: data_on_page, meta: meta}
+  end
+
+  def paginated_json_collection(collection)
+    result = paginated_collection(collection)
+    result[:adapter] = :json
+    result
+  end
+
+  def paginated_geojson_collection(collection)
+    result = paginated_collection(collection)
+    result[:each_serializer] = GeoJSONSerializer
+    result[:root] = :features
+    result[:adapter] = :geo_json_adapter
+    result
   end
 
   private

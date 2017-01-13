@@ -2,19 +2,6 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
   include JsonCollectionPagination
   include DownloadableCsv
   include AllowFiltering
-  include Geojson
-  GEOJSON_ENTITY_PROPERTIES = Proc.new { |properties, entity|
-    # properties for GeoJSON simple style spec
-    properties[:title] = entity.name
-    properties[:stroke] = "##{entity.color}" if entity.color.present?
-
-    properties[:vehicle_type] = entity.vehicle_type
-    properties[:color] = entity.color
-    properties[:operated_by_onestop_id] = entity.operator.try(:onestop_id)
-    properties[:operated_by_name] = entity.operator.try(:name)
-    properties[:stops_served_by_route] = entity.stops.map { |stop| {onestop_id: stop.onestop_id, name: stop.name } }
-    properties[:route_stop_patterns_by_onestop_id] = entity.route_stop_patterns.map(&:onestop_id)
-  }
 
   before_action :set_route, only: [:show]
 
@@ -40,8 +27,9 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
 
     if params[:operated_by].present? || params[:operatedBy].present?
       # we previously allowed `operatedBy`, so we'll continue to honor that for the time being
-      operator_onestop_id = params[:operated_by] || params[:operatedBy]
-      @routes = @routes.operated_by(operator_onestop_id)
+      param = params[:operated_by].present? ? :operated_by : :operatedBy
+      operator_onestop_ids = AllowFiltering.param_as_array(params, param)
+      @routes = @routes.operated_by(operator_onestop_ids)
     end
     if params[:traverses].present?
       @routes = @routes.traverses(params[:traverses].split(','))
@@ -80,26 +68,16 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     ]}
 
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(@routes)
-      end
-      format.geojson do
-        render json: Geojson.from_entity_collection(@routes, &GEOJSON_ENTITY_PROPERTIES)
-      end
-      format.csv do
-        return_downloadable_csv(@routes, 'routes')
-      end
+      format.json { render paginated_json_collection(@routes) }
+      format.geojson { render paginated_geojson_collection(@routes) }
+      format.csv { return_downloadable_csv(@routes, 'routes') }
     end
   end
 
   def show
     respond_to do |format|
-      format.json do
-        render json: @route
-      end
-      format.geojson do
-        render json: Geojson.from_entity(@route, &GEOJSON_ENTITY_PROPERTIES)
-      end
+      format.json { render json: @route }
+      format.geojson { render json: @route, serializer: GeoJSONSerializer }
     end
   end
 

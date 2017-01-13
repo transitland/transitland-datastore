@@ -110,7 +110,7 @@ describe Issue do
       it '.issues_of_entity' do
         issue_1 = Issue.create!(issue_type: 'rsp_line_inaccurate', details: 'this is a fake geometry issue')
         issue_1.entities_with_issues.create!(entity: @rsp1, entity_attribute: 'geometry')
-        issue_2 = Issue.create!(issue_type: 'uncategorized', details: 'this is another fake issue without entities_with_issues entity_attribute')
+        issue_2 = Issue.create!(issue_type: 'other', details: 'this is another fake issue without entities_with_issues entity_attribute')
         issue_2.entities_with_issues.create!(entity: @rsp1)
         expect(Issue.issues_of_entity(@rsp1, entity_attributes: ["stop_distances"])).to match_array([Issue.find(@distance_calc_issue.id)])
         expect(Issue.issues_of_entity(@rsp1, entity_attributes: ["stop_distances", "dummy"])).to match_array([Issue.find(@distance_calc_issue.id)])
