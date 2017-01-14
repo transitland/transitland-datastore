@@ -2,6 +2,7 @@ module IsAnEntityWithIdentifiers
   extend ActiveSupport::Concern
 
   included do
+    attr_reader :identified_by, :not_identified_by
     scope :with_identifier, -> (search_string) { where{identifiers.within(search_string)} }
     scope :with_identifier_or_name, -> (search_string) { where{(identifiers.within(search_string)) | (name =~ search_string)} }
     scope :with_identifier_starting_with, -> (search_string) { where("'|' || array_to_string(identifiers, '|') LIKE ?", "%|#{search_string}%") }
