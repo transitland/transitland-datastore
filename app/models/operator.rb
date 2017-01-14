@@ -96,7 +96,7 @@ class Operator < BaseOperator
       changeset: changeset
     )
   end
-  def before_update_making_history(changeset)
+  def update_associations(changeset)
     update_entity_imported_from_feeds(changeset)
     OperatorRouteStopRelationship.manage_multiple(
       operator: {

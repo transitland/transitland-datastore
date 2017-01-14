@@ -171,7 +171,7 @@ module CurrentTrackedByChangeset
     end
   end
 
-  def before_update_making_history(changeset)
+  def update_associations(changeset)
     # this is available for overriding in models
     super(changeset) if defined?(super)
     return true
@@ -191,8 +191,8 @@ module CurrentTrackedByChangeset
 
       # handle any associations
       proceed = (
-        old_model.before_update_making_history(changeset) &&
-        self.before_update_making_history(changeset)
+        old_model.update_associations(changeset) &&
+        self.update_associations(changeset)
       )
       if proceed
         old_model.save!

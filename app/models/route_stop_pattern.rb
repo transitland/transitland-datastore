@@ -102,7 +102,7 @@ class RouteStopPattern < BaseRouteStopPattern
   def after_create_making_history(changeset)
     update_entity_imported_from_feeds(changeset)
   end
-  def before_update_making_history(changeset)
+  def update_associations(changeset)
     update_entity_imported_from_feeds(changeset)
   end
 

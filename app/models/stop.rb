@@ -104,7 +104,7 @@ class Stop < BaseStop
     update_includes_stop_transfers(changeset)
     update_does_not_include_stop_transfers(changeset)
   end
-  def before_update_making_history(changeset)
+  def update_associations(changeset)
     super(changeset)
     update_entity_imported_from_feeds(changeset)
     update_served_by(changeset)

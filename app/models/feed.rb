@@ -175,7 +175,7 @@ class Feed < BaseFeed
     # No need to iterate through self.does_not_include_operators
     # since this is a brand new feed model.
   end
-  def before_update_making_history(changeset)
+  def update_associations(changeset)
     (self.includes_operators || []).each do |included_operator|
       operator = Operator.find_by!(onestop_id: included_operator[:operator_onestop_id])
       existing_relationship = OperatorInFeed.find_by(

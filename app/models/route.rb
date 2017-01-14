@@ -121,7 +121,7 @@ class Route < BaseRoute
       changeset: changeset
     )
   end
-  def before_update_making_history(changeset)
+  def update_associations(changeset)
     update_entity_imported_from_feeds(changeset)
     if self.operated_by.present?
       operator = Operator.find_by_onestop_id!(self.operated_by)
