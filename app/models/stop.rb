@@ -97,13 +97,6 @@ class Stop < BaseStop
     ]
   })
 
-  def after_create_making_history(changeset)
-    super(changeset)
-    update_entity_imported_from_feeds(changeset)
-    update_served_by(changeset)
-    update_includes_stop_transfers(changeset)
-    update_does_not_include_stop_transfers(changeset)
-  end
   def update_associations(changeset)
     super(changeset)
     update_entity_imported_from_feeds(changeset)

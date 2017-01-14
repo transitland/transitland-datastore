@@ -110,17 +110,6 @@ class Route < BaseRoute
     new_model.operator = operator
     self.existing_before_create_making_history(new_model, changeset)
   end
-  def after_create_making_history(changeset)
-    update_entity_imported_from_feeds(changeset)
-    OperatorRouteStopRelationship.manage_multiple(
-      route: {
-        serves: self.serves || [],
-        does_not_serve: self.does_not_serve || [],
-        model: self
-      },
-      changeset: changeset
-    )
-  end
   def update_associations(changeset)
     update_entity_imported_from_feeds(changeset)
     if self.operated_by.present?

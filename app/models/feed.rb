@@ -160,21 +160,7 @@ class Feed < BaseFeed
       :identifiers
     ]
   })
-  def after_create_making_history(changeset)
-    (self.includes_operators || []).each do |included_operator|
-      operator = Operator.find_by!(onestop_id: included_operator[:operator_onestop_id])
-      OperatorInFeed.create_making_history(
-        changeset: changeset,
-        new_attrs: {
-          feed_id: self.id,
-          operator_id: operator.id,
-          gtfs_agency_id: included_operator[:gtfs_agency_id]
-        }
-      )
-    end
-    # No need to iterate through self.does_not_include_operators
-    # since this is a brand new feed model.
-  end
+
   def update_associations(changeset)
     (self.includes_operators || []).each do |included_operator|
       operator = Operator.find_by!(onestop_id: included_operator[:operator_onestop_id])

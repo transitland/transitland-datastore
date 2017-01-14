@@ -47,7 +47,7 @@ module CurrentTrackedByChangeset
           new_models << new_model if new_model
         end
       end
-      new_models.each { |model| model.after_create_making_history(changeset) }
+      new_models.each { |model| model.update_associations(changeset) }
     end
 
     def apply_changes_destroy(changeset: nil, changes: nil, cache: {})
@@ -135,12 +135,6 @@ module CurrentTrackedByChangeset
       .reject { |k, v| attribute_sticks?(k.to_sym) && sticky }
       .map { |k, v| [k.to_s.camelize(:lower).to_sym, v] }
     ]
-  end
-
-  def after_create_making_history(changeset)
-    # this is available for overriding in models
-    super(changeset) if defined?(super)
-    return true
   end
 
   def before_destroy_making_history(changeset, old_model)

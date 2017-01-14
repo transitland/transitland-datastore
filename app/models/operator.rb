@@ -85,17 +85,7 @@ class Operator < BaseOperator
       :website
     ]
   })
-  def after_create_making_history(changeset)
-    update_entity_imported_from_feeds(changeset)
-    OperatorRouteStopRelationship.manage_multiple(
-      operator: {
-        serves: self.serves || [],
-        does_not_serve: self.does_not_serve || [],
-        model: self
-      },
-      changeset: changeset
-    )
-  end
+
   def update_associations(changeset)
     update_entity_imported_from_feeds(changeset)
     OperatorRouteStopRelationship.manage_multiple(

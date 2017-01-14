@@ -99,9 +99,6 @@ class RouteStopPattern < BaseRouteStopPattern
     alias_method :existing_before_create_making_history, :before_create_making_history
   end
 
-  def after_create_making_history(changeset)
-    update_entity_imported_from_feeds(changeset)
-  end
   def update_associations(changeset)
     update_entity_imported_from_feeds(changeset)
   end
