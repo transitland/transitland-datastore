@@ -95,18 +95,9 @@ class RouteStopPattern < BaseRouteStopPattern
     ]
   })
 
-  class << RouteStopPattern
-    alias_method :existing_before_create_making_history, :before_create_making_history
-  end
-
   def update_associations(changeset)
+    self.route = Route.find_by_onestop_id!(self.traversed_by) if self.traversed_by
     update_entity_imported_from_feeds(changeset)
-  end
-
-  def self.before_create_making_history(new_model, changeset)
-    route = Route.find_by_onestop_id!(new_model.traversed_by)
-    new_model.route = route
-    self.existing_before_create_making_history(new_model, changeset)
   end
 
   # borrowed from schedule_stop_pair.rb
