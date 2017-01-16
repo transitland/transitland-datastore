@@ -47,7 +47,6 @@ module CurrentTrackedByChangeset
           new_models << new_model if new_model
         end
       end
-      new_models.each { |model| model.update_associations(changeset) }
     end
 
     def apply_changes_destroy(changeset: nil, changes: nil, cache: {})
@@ -82,6 +81,8 @@ module CurrentTrackedByChangeset
           new_model.save!
           new_model
         end
+        new_model.update_associations(changeset)
+        new_model.save!
       end
     end
 
