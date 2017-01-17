@@ -42,6 +42,14 @@ module CurrentTrackedByChangeset
       end
     end
 
+    def apply_associations(changeset: nil, change: {}, action: nil, cache: {})
+      existing_model = find_existing_model(change)
+      puts "apply_associations: #{existing_model.onestop_id}"
+      new_attrs = apply_params(change, cache)
+      existing_model.merge_in_attributes(new_attrs)
+      existing_model.update_associations(changeset)
+    end
+
     def apply_change_destroy(changeset: nil, change: nil, cache: {})
       existing_model = find_existing_model(change)
       if existing_model
@@ -75,8 +83,6 @@ module CurrentTrackedByChangeset
           new_model.save!
           new_model
         end
-        new_model.update_associations(changeset)
-        new_model.save!
       end
     end
 
@@ -195,8 +201,6 @@ module CurrentTrackedByChangeset
         old_model.save!
         self.save!
       end
-      self.update_associations(changeset)
-      self.save!
     end
   end
 
