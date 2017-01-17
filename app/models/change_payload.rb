@@ -60,15 +60,14 @@ class ChangePayload < ActiveRecord::Base
     !!sha1.match(/^[0-9a-f]{5,40}$/)
   })
 
-  def apply!
-    cache = {}
-    changes = []
+  def apply!(cache: {})
     (payload_as_ruby_hash[:changes] || []).each do |change|
       (ENTITY_TYPES.keys & change.keys).each do |entity_type|
         ENTITY_TYPES[entity_type].apply_change(
           changeset: changeset,
           action: change[:action],
-          change: change[entity_type]
+          change: change[entity_type],
+          cache: cache
         )
       end
     end
@@ -76,7 +75,7 @@ class ChangePayload < ActiveRecord::Base
   end
 
   def apply_associations
-    # apply associations
+
   end
 
   def revert!
