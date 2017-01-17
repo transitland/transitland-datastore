@@ -64,10 +64,13 @@ module CurrentTrackedByChangeset
 
     def create_making_history(changeset: nil, new_attrs: {})
       self.transaction do
+        # Create new model
         new_model = self.new(new_attrs)
         new_model.version = 1
         new_model.created_or_updated_in_changeset = changeset
+        # Before save
         proceed = self.before_create_making_history(new_model, changeset) # handle associations
+        # Save
         if proceed
           new_model.save!
           new_model
@@ -137,19 +140,20 @@ module CurrentTrackedByChangeset
 
   def destroy_making_history(changeset: nil)
     self.class.transaction do
+      # Create old model
       old_model = self.class.instantiate_an_old_model
       old_model.assign_attributes(changeable_attributes_as_a_cloned_hash)
       old_model.version = self.version
       old_model.destroyed_in_changeset = changeset
-
+      # Update current model
       self.marked_for_destroy_making_history = true
       self.old_model_left_after_destroy_making_history = old_model
-
-      # handle any associations
+      # Before destroy
       proceed = (
         old_model.before_destroy_making_history(changeset) &&
         self.before_destroy_making_history(changeset, old_model)
       )
+      # Save
       if proceed
         self.destroy!
         old_model.save!
@@ -163,27 +167,36 @@ module CurrentTrackedByChangeset
     return true
   end
 
+  def before_update_making_history(changeset)
+    # this is available for overriding in models
+    super(changeset) if defined?(super)
+    return true
+  end
+
   def update_making_history(changeset: nil, new_attrs: {})
     self.class.transaction do
+      # Create old model
       old_model = self.class.instantiate_an_old_model
       old_model.assign_attributes(changeable_attributes_as_a_cloned_hash)
       old_model.version = self.version
       old_model.current = self
-
+      # Update current model
       self.version ||= 1 # some entities had no version set
       self.version = self.version + 1
       self.merge_in_attributes(new_attrs)
       self.created_or_updated_in_changeset = changeset
-
-      # handle any associations
+      # Before update
       proceed = (
-        old_model.update_associations(changeset) &&
-        self.update_associations(changeset)
+        old_model.before_update_making_history(changeset) &&
+        self.before_update_making_history(changeset)
       )
+      # Save
       if proceed
         old_model.save!
         self.save!
       end
+      self.update_associations(changeset)
+      self.save!
     end
   end
 
