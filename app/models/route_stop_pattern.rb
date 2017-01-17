@@ -96,7 +96,10 @@ class RouteStopPattern < BaseRouteStopPattern
   })
 
   def update_associations(changeset)
-    self.route = Route.find_by_onestop_id!(self.traversed_by) if self.traversed_by
+    if self.traversed_by
+      route = Route.find_by_onestop_id!(self.traversed_by)
+      self.update_columns(route_id: route.id)
+    end
     update_entity_imported_from_feeds(changeset)
   end
 
