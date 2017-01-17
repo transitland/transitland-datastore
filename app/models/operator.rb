@@ -98,6 +98,7 @@ class Operator < BaseOperator
     )
     super(changeset)
   end
+
   def before_destroy_making_history(changeset, old_model)
     operators_serving_stop.each do |operator_serving_stop|
       operator_serving_stop.destroy_making_history(changeset: changeset)

@@ -202,6 +202,7 @@ class Feed < BaseFeed
     end
     super(changeset)
   end
+
   def before_destroy_making_history(changeset, old_model)
     operators_in_feed.each do |operator_in_feed|
       operator_in_feed.destroy_making_history(changeset: changeset)
