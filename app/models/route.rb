@@ -102,9 +102,9 @@ class Route < BaseRoute
 
   def update_associations(changeset)
     update_entity_imported_from_feeds(changeset)
-    if self.operated_by.present?
+    if self.operated_by
       operator = Operator.find_by_onestop_id!(self.operated_by)
-      self.operator = operator
+      self.update_columns(operator_id: operator.id)
     end
     OperatorRouteStopRelationship.manage_multiple(
       route: {
