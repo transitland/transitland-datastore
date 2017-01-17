@@ -279,6 +279,9 @@ class Changeset < ActiveRecord::Base
           issues_changeset_is_resolving += payload_issues_changeset_is_resolving
           old_issues_to_deprecate.merge(payload_old_issues_to_deprecate)
         end
+        change_payloads.each do |change_payload|
+          change_payload.apply_associations
+        end
         self.update(applied: true, applied_at: Time.now)
 
         # Update attributes that derive from attributes between models

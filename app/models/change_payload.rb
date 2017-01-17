@@ -75,6 +75,10 @@ class ChangePayload < ActiveRecord::Base
     resolving_and_deprecating_issues
   end
 
+  def apply_associations
+    # apply associations
+  end
+
   def revert!
     if applied
       # TODO: write it
