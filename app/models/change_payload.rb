@@ -60,22 +60,35 @@ class ChangePayload < ActiveRecord::Base
     !!sha1.match(/^[0-9a-f]{5,40}$/)
   })
 
-  def apply!(cache: {})
+  def each_change
     (payload_as_ruby_hash[:changes] || []).each do |change|
       (ENTITY_TYPES.keys & change.keys).each do |entity_type|
-        ENTITY_TYPES[entity_type].apply_change(
-          changeset: changeset,
-          action: change[:action],
-          change: change[entity_type],
-          cache: cache
-        )
+        yield ENTITY_TYPES[entity_type], change[:action], change[entity_type]
       end
+    end
+  end
+
+  def apply!(cache: {})
+    self.each_change do |entity_type, action, change|
+      entity_type.apply_change(
+        changeset: changeset,
+        action: action,
+        change: change,
+        cache: cache
+      )
     end
     resolving_and_deprecating_issues
   end
 
-  def apply_associations
-
+  def apply_associations(cache: {})
+    self.each_change do |entity_type, action, change|
+      entity_type.apply_associations(
+        changeset: changeset,
+        action: action,
+        change: change,
+        cache: cache
+      )
+    end
   end
 
   def revert!
