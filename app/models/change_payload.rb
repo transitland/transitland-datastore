@@ -65,10 +65,10 @@ class ChangePayload < ActiveRecord::Base
     changes = []
     (payload_as_ruby_hash[:changes] || []).each do |change|
       (ENTITY_TYPES.keys & change.keys).each do |entity_type|
-        ENTITY_TYPES[entity_type].apply_changes(
+        ENTITY_TYPES[entity_type].apply_change(
           changeset: changeset,
           action: change[:action],
-          changes: [change[entity_type]]
+          change: change[entity_type]
         )
       end
     end

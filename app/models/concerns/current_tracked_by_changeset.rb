@@ -14,49 +14,40 @@ module CurrentTrackedByChangeset
                 :virtual_attributes,
                 :sticky_attributes
 
-    def apply_change(changeset: nil, attrs: {}, action: nil, cache: {})
-      apply_changes(changeset: changeset, changes: [attrs], action: action, cache: cache)
-    end
-
-    def apply_changes(changeset: nil, changes: nil, action: nil, cache: {})
-      changes ||= []
+    def apply_change(changeset: nil, change: {}, action: nil, cache: {})
       case action
       when 'createUpdate'
-        apply_changes_create_update(changeset: changeset, changes: changes, cache: cache)
+        apply_change_create_update(changeset: changeset, change: change, cache: cache)
       when 'destroy'
-        apply_changes_destroy(changeset: changeset, changes: changes, cache: cache)
+        apply_change_destroy(changeset: changeset, change: change, cache: cache)
       else
         raise ArgumentError.new('an action must be supplied')
       end
     end
 
-    def apply_changes_create_update(changeset: nil, changes: nil, cache: {})
-      existing_models = []
-      new_models = []
-      changes.each do |change|
-        existing_model = find_existing_model(change)
-        attrs_to_apply = apply_params(change, cache)
-        unless !self.column_names.include?("edited_attributes") || changeset.nil? || changeset.import?
-          attrs_to_apply.update({ edited_attributes: attrs_to_apply.keys.select { |a| self.sticky_attributes.include?(a) } })
-        end
-        if existing_model
-          existing_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply)
-          existing_models << existing_model
-        else
-          new_model = self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
-          new_models << new_model if new_model
-        end
+    def apply_changes(changeset: nil, changes: nil, action: nil, cache: {})
+      changes.each { |change| apply_change(changeset: changeset, change: change, action: action, cache: cache) }
+    end
+
+    def apply_change_create_update(changeset: nil, change: nil, cache: {})
+      existing_model = find_existing_model(change)
+      attrs_to_apply = apply_params(change, cache)
+      unless !self.column_names.include?("edited_attributes") || changeset.nil? || changeset.import?
+        attrs_to_apply.update({ edited_attributes: attrs_to_apply.keys.select { |a| self.sticky_attributes.include?(a) } })
+      end
+      if existing_model
+        existing_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply)
+      else
+        new_model = self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
       end
     end
 
-    def apply_changes_destroy(changeset: nil, changes: nil, cache: {})
-      changes.each do |change|
-        existing_model = find_existing_model(change)
-        if existing_model
-          existing_model.destroy_making_history(changeset: changeset)
-        else
-          raise Changeset::Error.new(changeset, "could not find a #{self.name} with Onestop ID of #{attrs[:onestop_id]} to destroy")
-        end
+    def apply_change_destroy(changeset: nil, change: nil, cache: {})
+      existing_model = find_existing_model(change)
+      if existing_model
+        existing_model.destroy_making_history(changeset: changeset)
+      else
+        raise Changeset::Error.new(changeset, "could not find a #{self.name} with Onestop ID of #{attrs[:onestop_id]} to destroy")
       end
     end
 
