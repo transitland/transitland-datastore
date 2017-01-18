@@ -505,13 +505,9 @@ class GTFSGraph
       entity_type: entity_map(gtfs_entity),
       gtfs_id: gtfs_entity.id
     )
-    if eiff
-      found_entity = eiff.entity
-      puts "MATCHING EIFF: #{gtfs_entity.id}: #{found_entity.onestop_id}"
-    else
-      puts "NO MATCHING EIFF: #{gtfs_entity.id}"
-    end
-    found_entity
+    return unless eiff && eiff.entity
+    graph_log "    debug: found eiff: #{gtfs_entity.id}: #{eiff.entity.onestop_id}"
+    return eiff.entity
   end
 
   def find_by_onestop_id(onestop_id)
