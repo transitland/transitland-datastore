@@ -145,7 +145,8 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
       next if rsp.geometry[:coordinates].uniq.size == 1
       rsp.stop_pattern.each_index do |i|
         self.distances_between_rsp_stops(rsp, i)
-        self.stop_distances_accuracy(rsp, i)
+        rsp_distance_issues = self.stop_distances_accuracy(rsp, i)
+        rsp.stop_distances.map!{ |i| nil } if rsp_distance_issues.size > 0
       end
     end
 
@@ -196,6 +197,7 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
 
   def stop_distances_accuracy(rsp, index)
     geometry_length = rsp[:geometry].length
+    rsp_distance_issues = []
     if (index != 0)
       stop1 = rsp.stop_pattern[index-1]
       stop2 = rsp.stop_pattern[index]
@@ -209,7 +211,7 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
           issue.entities_with_issues.new(entity: OnestopId.find!(stop1), issue: issue, entity_attribute: 'geometry')
           issue.entities_with_issues.new(entity: OnestopId.find!(stop2), issue: issue, entity_attribute: 'geometry')
           issue.entities_with_issues.new(entity: OnestopId.find!(rsp.stop_pattern[index+1]), issue: issue, entity_attribute: 'geometry') if index < rsp.stop_pattern.size - 1
-          self.issues << issue
+          rsp_distance_issues << issue
         end
       elsif (rsp.stop_distances[index-1] > rsp.stop_distances[index])
         issue = Issue.new(created_by_changeset: self.changeset,
@@ -219,7 +221,7 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
         issue.entities_with_issues.new(entity: OnestopId.find!(rsp.stop_pattern[index-2]), issue: issue, entity_attribute: 'geometry') unless index < 2
         issue.entities_with_issues.new(entity: OnestopId.find!(stop1), issue: issue, entity_attribute: 'geometry')
         issue.entities_with_issues.new(entity: OnestopId.find!(stop2), issue: issue, entity_attribute: 'geometry')
-        self.issues << issue
+        rsp_distance_issues << issue
       end
     end
     if ((rsp.stop_distances[index] - geometry_length) > LAST_STOP_DISTANCE_LENIENCY)
@@ -230,7 +232,9 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
       issue.entities_with_issues.new(entity: OnestopId.find!(stop1), issue: issue, entity_attribute: 'geometry') unless index < 1
       issue.entities_with_issues.new(entity: OnestopId.find!(stop2), issue: issue, entity_attribute: 'geometry')
       issue.entities_with_issues.new(entity: OnestopId.find!(rsp.stop_pattern[index+1]), issue: issue, entity_attribute: 'geometry') if index < rsp.stop_pattern.size - 1
-      self.issues << issue
+      rsp_distance_issues << issue
     end
+    self.issues += rsp_distance_issues
+    rsp_distance_issues
   end
 end
