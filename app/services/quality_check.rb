@@ -147,6 +147,7 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
         self.distances_between_rsp_stops(rsp, i)
         rsp_distance_issues = self.stop_distances_accuracy(rsp, i)
         rsp.stop_distances.map!{ |i| nil } if rsp_distance_issues.size > 0
+        rsp.update_making_history(changeset: self.changeset)
       end
     end
 
