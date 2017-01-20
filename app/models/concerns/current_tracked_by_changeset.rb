@@ -44,6 +44,8 @@ module CurrentTrackedByChangeset
 
     def apply_associations(changeset: nil, change: {}, action: nil, cache: {})
       existing_model = find_existing_model(change)
+      puts "apply_associations: model not found: #{change}"
+      return unless existing_model
       puts "apply_associations: #{existing_model.onestop_id}"
       new_attrs = apply_params(change, cache)
       existing_model.merge_in_attributes(new_attrs)
