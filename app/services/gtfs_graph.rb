@@ -97,9 +97,9 @@ class GTFSGraph
     # Stops and Platforms
     stops = Set.new
     routes.each { |route| route.serves.each { |stop_onestop_id|
-      stop = find_by_onestop_id(stop_onestop_id)
+      stop = @onestop_id_to_entity[stop_onestop_id]
       stops << stop
-      stops << stop.parent_stop if stop.parent_stop
+      stops << @onestop_id_to_entity[stop.parent_stop.onestop_id] if stop.parent_stop
     }}
 
     # Update route geometries
@@ -412,9 +412,9 @@ class GTFSGraph
       # Find: (tl routes) to (serves tl stops)
       stops = Set.new
       routes.each { |route| route.serves.each { |stop_onestop_id|
-        stop = find_by_onestop_id(stop_onestop_id)
+        stop = @onestop_id_to_entity[stop_onestop_id]
         stops << stop
-        stops << stop.parent_stop if stop.parent_stop
+        stops << @onestop_id_to_entity[stop.parent_stop.onestop_id] if stop.parent_stop
       }}
       # Copy Operator timezone to fill missing Stop timezones
       stops.each { |stop| stop.timezone = stop.timezone.presence || operator.timezone }
