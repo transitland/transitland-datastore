@@ -232,6 +232,5 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
       issue.entities_with_issues.new(entity: OnestopId.find!(rsp.stop_pattern[index+1]), issue: issue, entity_attribute: 'geometry') if index < rsp.stop_pattern.size - 1
       self.issues << issue
     end
-    self.issues
   end
 end
