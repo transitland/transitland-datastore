@@ -160,6 +160,15 @@ class Feed < BaseFeed
       :identifiers
     ]
   })
+  def rename_feed_version_files
+    self.feed_versions.each{ |feed_version| feed_version.file.rename! }
+  end
+  def after_change_onestop_id(old_onestop_id, changeset)
+    rename_feed_version_files
+  end
+  def after_merge_onestop_ids(merging_onestop_ids, changeset)
+    rename_feed_version_files
+  end
   def after_create_making_history(changeset)
     (self.includes_operators || []).each do |included_operator|
       operator = Operator.find_by!(onestop_id: included_operator[:operator_onestop_id])

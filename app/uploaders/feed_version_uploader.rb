@@ -17,6 +17,10 @@ class FeedVersionUploader < CarrierWave::Uploader::Base
     "#{model.feed.onestop_id}-#{model.sha1}.#{file.extension}"
   end
 
+  def rename!
+    FileUtils.mv(path, File.join(File.dirname(path), filename))
+  end
+
   def extension_white_list
     %w(zip)
   end
