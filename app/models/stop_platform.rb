@@ -33,7 +33,6 @@
 #
 
 class StopPlatform < Stop
-  attr_accessor :parent_stop_onestop_id
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
     virtual_attributes: [
@@ -64,6 +63,7 @@ class StopPlatform < Stop
     update_parent_stop(changeset)
     super(changeset)
   end
+
   def before_update_making_history(changeset)
     update_parent_stop(changeset)
     super(changeset)

@@ -33,7 +33,6 @@
 #
 
 class StopEgress < Stop
-  attr_accessor :parent_stop_onestop_id
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
     virtual_attributes: [
