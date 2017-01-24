@@ -56,7 +56,10 @@ class StopPlatform < Stop
   # validates :parent_stop, presence: true
 
   def update_parent_stop(changeset)
-    (self.parent_stop = Stop.find_by_onestop_id!(self.parent_stop_onestop_id)) if self.parent_stop_onestop_id
+    if self.parent_stop_onestop_id
+      parent_stop = Stop.find_by_onestop_id!(self.parent_stop_onestop_id)
+      self.update!(parent_stop: parent_stop)
+    end
   end
 
   def after_create_making_history(changeset)
