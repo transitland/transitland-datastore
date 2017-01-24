@@ -53,7 +53,7 @@ class StopPlatform < Stop
     ]
   })
   belongs_to :parent_stop, class_name: 'Stop'
-  validates :parent_stop, presence: true
+  # validates :parent_stop, presence: true
 
   def update_parent_stop(changeset)
     (self.parent_stop = Stop.find_by_onestop_id!(self.parent_stop_onestop_id)) if self.parent_stop_onestop_id
