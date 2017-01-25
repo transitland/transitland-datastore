@@ -44,9 +44,7 @@ module CurrentTrackedByChangeset
 
     def apply_associations(changeset: nil, change: {}, action: nil, cache: {})
       existing_model = find_existing_model(change)
-      puts "apply_associations: model not found: #{change}"
       return unless existing_model
-      puts "apply_associations: #{existing_model.onestop_id}"
       new_attrs = apply_params(change, cache)
       existing_model.merge_in_attributes(new_attrs)
       existing_model.update_associations(changeset)
@@ -66,25 +64,15 @@ module CurrentTrackedByChangeset
       params.select { |key, value| self.changeable_attributes.include?(key) }
     end
 
-    def before_create_making_history(instantiated_model, changeset)
-      # this is available for overriding in models
-      super(instantiated_model, changeset) if defined?(super)
-      return true
-    end
-
     def create_making_history(changeset: nil, new_attrs: {})
       self.transaction do
         # Create new model
         new_model = self.new(new_attrs)
         new_model.version = 1
         new_model.created_or_updated_in_changeset = changeset
-        # Before save
-        proceed = self.before_create_making_history(new_model, changeset) # handle associations
         # Save
-        if proceed
-          new_model.save!
-          new_model
-        end
+        new_model.save!
+        new_model
       end
     end
 
@@ -175,12 +163,6 @@ module CurrentTrackedByChangeset
     return true
   end
 
-  def before_update_making_history(changeset)
-    # this is available for overriding in models
-    super(changeset) if defined?(super)
-    return true
-  end
-
   def update_making_history(changeset: nil, new_attrs: {})
     self.class.transaction do
       # Create old model
@@ -193,16 +175,9 @@ module CurrentTrackedByChangeset
       self.version = self.version + 1
       self.merge_in_attributes(new_attrs)
       self.created_or_updated_in_changeset = changeset
-      # Before update
-      proceed = (
-        old_model.before_update_making_history(changeset) &&
-        self.before_update_making_history(changeset)
-      )
       # Save
-      if proceed
-        old_model.save!
-        self.save!
-      end
+      old_model.save!
+      self.save!
     end
   end
 
