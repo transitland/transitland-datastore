@@ -42,14 +42,6 @@ module CurrentTrackedByChangeset
       end
     end
 
-    def apply_associations(changeset: nil, change: {}, action: nil, cache: {})
-      existing_model = find_existing_model(change)
-      return unless existing_model
-      new_attrs = apply_params(change, cache)
-      existing_model.merge_in_attributes(new_attrs)
-      existing_model.update_associations(changeset)
-    end
-
     def apply_change_destroy(changeset: nil, change: nil, cache: {})
       existing_model = find_existing_model(change)
       if existing_model
@@ -57,6 +49,14 @@ module CurrentTrackedByChangeset
       else
         raise Changeset::Error.new(changeset, "could not find a #{self.name} with Onestop ID of #{attrs[:onestop_id]} to destroy")
       end
+    end
+
+    def apply_associations(changeset: nil, change: {}, action: nil, cache: {})
+      existing_model = find_existing_model(change)
+      return unless existing_model
+      new_attrs = apply_params(change, cache)
+      existing_model.merge_in_attributes(new_attrs)
+      existing_model.update_associations(changeset)
     end
 
     def apply_params(params, cache={})
