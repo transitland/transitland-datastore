@@ -39,7 +39,7 @@ class OperatorRouteStopRelationship
     end
   end
 
-  def apply_change(in_changeset: nil)
+  def apply_relationship(in_changeset: nil)
     operator_serving_stop = OperatorServingStop.find_by(operator: @operator, stop: @stop)
     if !!operator_serving_stop && @does_service_exist
       # nothing to do
@@ -84,7 +84,7 @@ class OperatorRouteStopRelationship
     relationships_to_apply += relationships_to_apply_for_operator(operator) unless operator.blank?
     relationships_to_apply += relationships_to_apply_for_route(route) unless route.blank?
 
-    relationships_to_apply.each { |relationship| relationship.apply_change(in_changeset: changeset) }
+    relationships_to_apply.each { |relationship| relationship.apply_relationship(in_changeset: changeset) }
     return true
   end
 
