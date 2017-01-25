@@ -99,7 +99,7 @@ class GTFSGraph
     routes.each { |route| route.serves.each { |stop_onestop_id|
       stop = @onestop_id_to_entity[stop_onestop_id]
       stops << stop
-      stops << @onestop_id_to_entity[stop.parent_stop.onestop_id] if stop.parent_stop
+      stops << @onestop_id_to_entity[stop.parent_stop_onestop_id] if stop.parent_stop_onestop_id
     }}
 
     # Update route geometries
@@ -355,11 +355,10 @@ class GTFSGraph
         osid = OnestopId::StopOnestopId.new(string: parent_stop.onestop_id)
         # add gtfs_stop.stop_id as the platform suffix
         stop.onestop_id = OnestopId::StopOnestopId.new(geohash: osid.geohash, name: "#{osid.name}<#{gtfs_stop.id}")
-        # add parent_station osid
-        stop.parent_stop = parent_stop
       end
       # index
       stop = find_and_update_entity(gtfs_stop, stop)
+      stop.parent_stop_onestop_id = parent_stop.onestop_id if parent_stop
       add_identifier(stop, gtfs_stop, gtfs_stop.id)
       graph_log "    StopPlatform: #{stop.onestop_id}: #{stop.name}"
     end
@@ -414,7 +413,7 @@ class GTFSGraph
       routes.each { |route| route.serves.each { |stop_onestop_id|
         stop = @onestop_id_to_entity[stop_onestop_id]
         stops << stop
-        stops << @onestop_id_to_entity[stop.parent_stop.onestop_id] if stop.parent_stop
+        stops << @onestop_id_to_entity[stop.parent_stop_onestop_id] if stop.parent_stop_onestop_id
       }}
       # Copy Operator timezone to fill missing Stop timezones
       stops.each { |stop| stop.timezone = stop.timezone.presence || operator.timezone }
