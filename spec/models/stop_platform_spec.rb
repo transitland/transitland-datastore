@@ -159,7 +159,7 @@ describe StopPlatform do
         other_onestop_id = "#{@stop.onestop_id}<other"
         @stop_platform = create(:stop_platform,
                                 onestop_id: other_onestop_id,
-                                parent_stop_onestop_id: @stop.onestop_id,
+                                parent_stop: @stop,
                                 geometry: Stop::GEOFACTORY.point(-122.475075, 37.721323).to_s)
         changeset = Changeset.create(payload: @payload)
         changeset.apply!
