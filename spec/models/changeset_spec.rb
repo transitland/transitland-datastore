@@ -334,7 +334,7 @@ describe Changeset do
         ]
       })
       changeset.change_payloads.each do |change_payload|
-        change_payload.apply!
+        change_payload.apply_change
       end
       expect(changeset.update_computed_attributes[1]).to eq [1,0]
     end

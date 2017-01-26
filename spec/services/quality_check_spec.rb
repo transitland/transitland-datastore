@@ -15,7 +15,7 @@ describe QualityCheck::GeometryQualityCheck do
         changeset.create_change_payloads([stop1, stop2, route_stop_pattern])
         # we'll ignore the typical issue cycle within changeset.apply!
         changeset.change_payloads.each do |change_payload|
-          change_payload.apply!
+          change_payload.apply_change
         end
         changeset.update(applied: true, applied_at: Time.now)
         quality_check = QualityCheck::GeometryQualityCheck.new(changeset: changeset)
@@ -34,7 +34,7 @@ describe QualityCheck::GeometryQualityCheck do
           changeset.create_change_payloads([route_stop_pattern])
           # we'll ignore the typical issue cycle within changeset.apply! so we can directly test GeometryQualityCheck
           changeset.change_payloads.each do |change_payload|
-            change_payload.apply!
+            change_payload.apply_change
           end
 
           quality_check = QualityCheck::GeometryQualityCheck.new(changeset: changeset)
@@ -50,7 +50,7 @@ describe QualityCheck::GeometryQualityCheck do
           changeset.create_change_payloads([stop1, stop2, route_stop_pattern])
           # we'll ignore the typical issue cycle within changeset.apply!
           changeset.change_payloads.each do |change_payload|
-            change_payload.apply!
+            change_payload.apply_change
           end
           quality_check = QualityCheck::GeometryQualityCheck.new(changeset: changeset)
           expect(quality_check.check.map(&:issue_type)).to include('stop_rsp_distance_gap')
