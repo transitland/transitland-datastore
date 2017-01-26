@@ -274,7 +274,7 @@ class Changeset < ActiveRecord::Base
     end
   end
 
-  def apply_change
+  def apply!
     fail Changeset::Error.new(changeset: self, message: 'has already been applied.') if applied
     new_issues_created_by_changeset = []
     old_issues_to_deprecate = Set.new

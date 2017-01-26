@@ -68,7 +68,7 @@ class ChangePayload < ActiveRecord::Base
     end
   end
 
-  def apply!(cache: {})
+  def apply_change(cache: {})
     self.each_change do |entity_type, action, change|
       entity_type.apply_change(
         changeset: changeset,
