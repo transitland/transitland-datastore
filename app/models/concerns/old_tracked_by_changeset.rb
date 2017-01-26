@@ -8,7 +8,7 @@ module OldTrackedByChangeset
     belongs_to :current, class_name: self.to_s.gsub('Old', '')
   end
 
-  def before_update_making_history(changeset)
+  def update_associations(changeset)
     return true
   end
 

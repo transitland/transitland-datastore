@@ -281,13 +281,25 @@ class Changeset < ActiveRecord::Base
 
     Changeset.transaction do
       begin
-        # Apply ChangePayloads, collect issues
+        # Apply changes
+        change_payloads.each do |change_payload|
+          change_payload.apply_change
+        end
+
+        # Apply associations
+        change_payloads.each do |change_payload|
+          change_payload.apply_associations
+        end
+
+        # Collect issues
         issues_changeset_is_resolving = []
         change_payloads.each do |change_payload|
-          payload_issues_changeset_is_resolving, payload_old_issues_to_deprecate = change_payload.apply!
+          payload_issues_changeset_is_resolving, payload_old_issues_to_deprecate = change_payload.resolving_and_deprecating_issues
           issues_changeset_is_resolving += payload_issues_changeset_is_resolving
           old_issues_to_deprecate.merge(payload_old_issues_to_deprecate)
         end
+
+        # Mark as applied
         self.update(applied: true, applied_at: Time.now)
 
         # Update attributes that derive from attributes between models
