@@ -116,6 +116,7 @@ class Route < BaseRoute
     )
     super(changeset)
   end
+
   def before_destroy_making_history(changeset, old_model)
     routes_serving_stop.each do |route_serving_stop|
       route_serving_stop.destroy_making_history(changeset: changeset)

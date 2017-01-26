@@ -101,6 +101,7 @@ class RouteStopPattern < BaseRouteStopPattern
       self.update_columns(route_id: route.id)
     end
     update_entity_imported_from_feeds(changeset)
+    super(changeset)
   end
 
   # borrowed from schedule_stop_pair.rb

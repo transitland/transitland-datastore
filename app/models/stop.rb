@@ -99,11 +99,11 @@ class Stop < BaseStop
   })
 
   def update_associations(changeset)
-    super(changeset)
     update_entity_imported_from_feeds(changeset)
     update_served_by(changeset)
     update_includes_stop_transfers(changeset)
     update_does_not_include_stop_transfers(changeset)
+    super(changeset)
   end
 
   def before_destroy_making_history(changeset, old_model)
