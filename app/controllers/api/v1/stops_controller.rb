@@ -21,6 +21,10 @@ class Api::V1::StopsController < Api::V1::BaseApiController
       @stops = @stops.where_imported_from_feed_version(FeedVersion.find_by!(sha1: params[:imported_from_feed_version]))
     end
 
+    if params[:imported_from_active_feed_version].presence.eql?("true")
+      @stops = @stops.where_imported_from_active_feed_version
+    end
+
     if params[:gtfs_id].present?
       @stops = @stops.where_imported_with_gtfs_id(params[:gtfs_id])
     end
