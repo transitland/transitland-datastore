@@ -77,7 +77,6 @@ class ChangePayload < ActiveRecord::Base
         cache: cache
       )
     end
-    resolving_and_deprecating_issues
   end
 
   def apply_associations(cache: {})
@@ -120,8 +119,6 @@ class ChangePayload < ActiveRecord::Base
       errors.add(:payload, error[:message])
     end
   end
-
-  private
 
   def resolving_and_deprecating_issues
     issues_to_resolve = []
