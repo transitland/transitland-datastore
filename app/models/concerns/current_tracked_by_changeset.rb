@@ -25,10 +25,6 @@ module CurrentTrackedByChangeset
       end
     end
 
-    def apply_changes(changeset: nil, changes: nil, action: nil, cache: {})
-      changes.each { |change| apply_change(changeset: changeset, change: change, action: action, cache: cache) }
-    end
-
     def apply_change_create_update(changeset: nil, change: nil, cache: {})
       existing_model = find_existing_model(change)
       attrs_to_apply = apply_params(change, cache)
