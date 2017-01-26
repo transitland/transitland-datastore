@@ -21,6 +21,10 @@ class Api::V1::StopsController < Api::V1::BaseApiController
       @stops = @stops.where_imported_from_feed_version(FeedVersion.find_by!(sha1: params[:imported_from_feed_version]))
     end
 
+    if params[:gtfs_id].present?
+      @stops = @stops.where_imported_with_gtfs_id(params[:gtfs_id])
+    end
+
     if params[:served_by].present? || params[:servedBy].present?
       # we previously allowed `servedBy`, so we'll continue to honor that for the time being
       operator_onestop_ids = []
@@ -94,6 +98,7 @@ class Api::V1::StopsController < Api::V1::BaseApiController
       :tag_key,
       :tag_value,
       :import_level,
+      :gtfs_id,
       :imported_from_feed,
       :imported_from_feed_version
     )
