@@ -2,15 +2,43 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.18...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.20...HEAD)
+
+**Merged pull requests:**
+
+- Production release 4.9.20 [\#934](https://github.com/transitland/transitland-datastore/pull/934) ([irees](https://github.com/irees))
+
+## [4.9.20](https://github.com/transitland/transitland-datastore/tree/4.9.20) (2017-01-25)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.19...4.9.20)
+
+**Closed issues:**
+
+- Exclude Route Geometry in API [\#866](https://github.com/transitland/transitland-datastore/issues/866)
+
+**Merged pull requests:**
+
+- Fix missing Stations [\#936](https://github.com/transitland/transitland-datastore/pull/936) ([irees](https://github.com/irees))
+- Production release 4.9.19 [\#927](https://github.com/transitland/transitland-datastore/pull/927) ([doublestranded](https://github.com/doublestranded))
+
+## [4.9.19](https://github.com/transitland/transitland-datastore/tree/4.9.19) (2017-01-23)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.18...4.9.19)
 
 **Fixed bugs:**
 
 - Import failure on RSP onestop\_id [\#918](https://github.com/transitland/transitland-datastore/issues/918)
 
+**Closed issues:**
+
+- Stations missing EIFFs [\#931](https://github.com/transitland/transitland-datastore/issues/931)
+- Set RSP distances to null if errors [\#929](https://github.com/transitland/transitland-datastore/issues/929)
+
 **Merged pull requests:**
 
+- Stop distances nil fallback [\#933](https://github.com/transitland/transitland-datastore/pull/933) ([doublestranded](https://github.com/doublestranded))
+- Fix Stations missing EIFFs [\#932](https://github.com/transitland/transitland-datastore/pull/932) ([irees](https://github.com/irees))
 - \[WIP\] Production release 4.9.18 [\#922](https://github.com/transitland/transitland-datastore/pull/922) ([doublestranded](https://github.com/doublestranded))
+- Optional geometry [\#915](https://github.com/transitland/transitland-datastore/pull/915) ([doublestranded](https://github.com/doublestranded))
+- Identifier matching in GTFSGraph [\#894](https://github.com/transitland/transitland-datastore/pull/894) ([irees](https://github.com/irees))
 
 ## [4.9.18](https://github.com/transitland/transitland-datastore/tree/4.9.18) (2017-01-12)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.17...4.9.18)

@@ -265,6 +265,15 @@ class Changeset < ActiveRecord::Base
     end
   end
 
+  def post_quality_check_updates
+    self.route_stop_patterns_created_or_updated.each do |rsp|
+      if Issue.issues_of_entity(rsp).any?{ |issue| issue.issue_type.eql?('distance_calculation_inaccurate') }
+        rsp.stop_distances = Array.new(rsp.stop_pattern.size)
+        rsp.update_making_history(changeset: self)
+      end
+    end
+  end
+
   def apply_change
     fail Changeset::Error.new(changeset: self, message: 'has already been applied.') if applied
     new_issues_created_by_changeset = []
@@ -296,6 +305,8 @@ class Changeset < ActiveRecord::Base
 
         # save new issues; deprecate old issues; resolve changeset-specified issues
         cycle_issues(issues_changeset_is_resolving, new_issues_created_by_changeset, old_issues_to_deprecate)
+
+        post_quality_check_updates
 
       rescue StandardError => error
         log "Error applying Changeset #{self.id}: #{error.message}", :error
