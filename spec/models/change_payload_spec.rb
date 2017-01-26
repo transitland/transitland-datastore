@@ -96,7 +96,7 @@ RSpec.describe ChangePayload, type: :model do
           }
         ]
       })
-      expect(change_payload.apply!).to match_array([[], Set.new([issue])])
+      expect(change_payload.apply_change).to match_array([[], Set.new([issue])])
     end
   end
 end

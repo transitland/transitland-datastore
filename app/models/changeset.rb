@@ -265,7 +265,7 @@ class Changeset < ActiveRecord::Base
     end
   end
 
-  def apply!
+  def apply_change
     fail Changeset::Error.new(changeset: self, message: 'has already been applied.') if applied
     new_issues_created_by_changeset = []
     old_issues_to_deprecate = Set.new
@@ -275,7 +275,7 @@ class Changeset < ActiveRecord::Base
         # Apply ChangePayloads, collect issues
         issues_changeset_is_resolving = []
         change_payloads.each do |change_payload|
-          payload_issues_changeset_is_resolving, payload_old_issues_to_deprecate = change_payload.apply!
+          payload_issues_changeset_is_resolving, payload_old_issues_to_deprecate = change_payload.apply_change
           issues_changeset_is_resolving += payload_issues_changeset_is_resolving
           old_issues_to_deprecate.merge(payload_old_issues_to_deprecate)
         end
