@@ -69,8 +69,8 @@ class ChangePayload < ActiveRecord::Base
   end
 
   def apply_change(cache: {})
-    self.each_change do |entity_type, action, change|
-      entity_type.apply_change(
+    self.each_change do |entity_cls, action, change|
+      entity_cls.apply_change(
         changeset: changeset,
         action: action,
         change: change,
@@ -80,8 +80,8 @@ class ChangePayload < ActiveRecord::Base
   end
 
   def apply_associations(cache: {})
-    self.each_change do |entity_type, action, change|
-      entity_type.apply_associations(
+    self.each_change do |entity_cls, action, change|
+      entity_cls.apply_associations(
         changeset: changeset,
         action: action,
         change: change,
