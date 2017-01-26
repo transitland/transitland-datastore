@@ -62,12 +62,7 @@ class StopPlatform < Stop
     end
   end
 
-  def after_create_making_history(changeset)
-    update_parent_stop(changeset)
-    super(changeset)
-  end
-
-  def before_update_making_history(changeset)
+  def update_associations(changeset)
     update_parent_stop(changeset)
     super(changeset)
   end
