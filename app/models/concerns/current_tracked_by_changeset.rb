@@ -68,6 +68,7 @@ module CurrentTrackedByChangeset
         end
         existing_model = find_existing_model(change.merge({ onestop_id: change[:onestop_id] }))
         if existing_model
+          # TODO transfer feed versions and schedule stop pairs
           attrs_to_apply = apply_params(existing_model.as_change.merge({ onestop_id: change[:new_onestop_id] }), cache)
           new_model = self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
           new_model.after_change_onestop_id(change[:onestop_id], changeset)
