@@ -37,7 +37,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
       @routes = @routes.where{st_dwithin(geometry, point, r)}.order{st_distance(geometry, point)}
     end
     if params[:bbox].present?
-      @routes = @routes.geometry_within_bbox(params[:bbox])
+      @routes = @routes.stop_within_bbox(params[:bbox])
     end
 
     # Routes
