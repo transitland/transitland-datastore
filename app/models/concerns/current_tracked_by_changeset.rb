@@ -66,14 +66,10 @@ module CurrentTrackedByChangeset
         unless change.has_key?(:new_onestop_id)
           raise Changeset.Error.new(changeset, "could not find newOnestopId")
         end
-        existing_model = find_existing_model(change.merge({ onestop_id: change[:onestop_id] }))
+        existing_model = find_by_onestop_id(change[:onestop_id])
         if existing_model
-          # TODO transfer feed versions and schedule stop pairs
-          attrs_to_apply = apply_params(existing_model.as_change.merge({ onestop_id: change[:new_onestop_id] }), cache)
-          new_model = self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
-          new_model.after_change_onestop_id(change[:onestop_id], changeset)
-          new_model.after_create_making_history(changeset)
-          existing_model.destroy_making_history(changeset: changeset, action: 'change_onestop_id')
+          existing_model.update_making_history(changeset: changeset, new_attrs: { onestop_id: change[:new_onestop_id] }, old_attrs: { action: 'change_onestop_id' })
+          existing_model.after_change_onestop_id(change[:onestop_id], changeset)
         else
           raise Changeset::Error.new(changeset: changeset, message: "could not find a #{self.name} with Onestop ID of #{change[:onestop_id]} to change Onestop ID")
         end
@@ -213,7 +209,7 @@ module CurrentTrackedByChangeset
       old_model.version = self.version
       old_model.destroyed_in_changeset = changeset
       old_model.action = action unless action.nil?
-      old_model.current = current if ['merge', 'change_onestop_id'].include?(action.to_s) && current
+      old_model.current = current if action.eql?('merge') && current
 
       self.marked_for_destroy_making_history = true
       self.old_model_left_after_destroy_making_history = old_model
@@ -236,10 +232,10 @@ module CurrentTrackedByChangeset
     return true
   end
 
-  def update_making_history(changeset: nil, new_attrs: {})
+  def update_making_history(changeset: nil, new_attrs: {}, old_attrs: {})
     self.class.transaction do
       old_model = self.class.instantiate_an_old_model
-      old_model.assign_attributes(changeable_attributes_as_a_cloned_hash)
+      old_model.assign_attributes(changeable_attributes_as_a_cloned_hash.update(old_attrs))
       old_model.version = self.version
       old_model.current = self
 

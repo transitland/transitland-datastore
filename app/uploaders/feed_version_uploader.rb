@@ -18,6 +18,7 @@ class FeedVersionUploader < CarrierWave::Uploader::Base
   end
 
   def rename!
+    return if path.nil? || filename.nil?
     FileUtils.mv(path, File.join(File.dirname(path), filename))
   end
 
