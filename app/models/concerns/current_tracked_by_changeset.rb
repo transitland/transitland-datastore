@@ -78,7 +78,7 @@ module CurrentTrackedByChangeset
       else
         merge_into_model = self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
         merge_into_model.after_merge_onestop_ids(onestop_ids_to_merge, changeset)
-        merge_into_model.after_create_making_history(changeset)
+        merge_into_model.update_associations(changeset)
       end
       onestop_ids_to_merge.each { |onestop_id|
         model_to_merge = self.find_by_onestop_id(onestop_id)
@@ -89,7 +89,7 @@ module CurrentTrackedByChangeset
     def apply_change_destroy(changeset: nil, change: nil, cache: {})
       existing_model = find_existing_model(change)
       if existing_model
-        existing_model.destroy_making_history(changeset: changeset)
+        existing_model.destroy_making_history(changeset: changeset, action: 'destroy')
       else
         raise Changeset::Error.new(changeset, "could not find a #{self.name} with Onestop ID of #{attrs[:onestop_id]} to destroy")
       end
