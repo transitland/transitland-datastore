@@ -290,7 +290,7 @@ describe Changeset do
     end
 
     # it 'updates S3 link on change feed onestop id action' do
-    #   feed_version = create(:feed_version, url: 'https://transit.land')
+    #   feed_version = create(:feed_version)
     #   changeset = create(:changeset, payload: {
     #     changes: [
     #       {
