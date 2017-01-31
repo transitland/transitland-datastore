@@ -10,10 +10,10 @@ describe IsAnEntityImportedFromFeeds do
     @fv1 = create(:feed_version, feed: @feed)
     @fv2 = create(:feed_version, feed: @feed)
     # add EIFFs; stop0 in fv1; stop1 in fv1, fv2; stop2 in fv2
-    @fv1.entities_imported_from_feed.create!(entity: @stop0, feed: @feed)
-    @fv1.entities_imported_from_feed.create!(entity: @stop1, feed: @feed)
-    @fv2.entities_imported_from_feed.create!(entity: @stop1, feed: @feed)
-    @fv2.entities_imported_from_feed.create!(entity: @stop2, feed: @feed)
+    @fv1.entities_imported_from_feed.create!(entity: @stop0, feed: @feed, gtfs_id: "0")
+    @fv1.entities_imported_from_feed.create!(entity: @stop1, feed: @feed, gtfs_id: "1")
+    @fv2.entities_imported_from_feed.create!(entity: @stop1, feed: @feed, gtfs_id: "1")
+    @fv2.entities_imported_from_feed.create!(entity: @stop2, feed: @feed, gtfs_id: "2")
     # activate
     @feed.activate_feed_version(@fv1.sha1, 1)
     @feed.activate_feed_version(@fv2.sha1, 2)
@@ -118,6 +118,25 @@ describe IsAnEntityImportedFromFeeds do
     it 'finds entities not referenced by active feed_version' do
       # see notes in before(:each)
       expect(Stop.where_not_imported_from_active_feed_version).to match_array([@stop0, @stop3])
+    end
+  end
+
+  context '.where_imported_with_gtfs_id' do
+    it 'finds entities imported with a gtfs_id' do
+      expect(Stop.where_imported_with_gtfs_id('0')).to match_array([@stop0])
+      expect(Stop.where_imported_with_gtfs_id('1')).to match_array([@stop1])
+    end
+
+    it 'finds entities imported with a gtfs_id from a feed' do
+      feed2 = create(:feed)
+      expect(Stop.where_imported_with_gtfs_id('0').where_imported_from_feed(@feed)).to match_array([@stop0])
+      expect(Stop.where_imported_with_gtfs_id('0').where_imported_from_feed(feed2)).to match_array([])
+    end
+
+    it 'finds entities imported from an active feed version with gtfs_id' do
+      feed2 = create(:feed)
+      expect(Stop.where_imported_with_gtfs_id('0').where_imported_from_feed(@feed).where_imported_from_active_feed_version).to match_array([])
+      expect(Stop.where_imported_with_gtfs_id('1').where_imported_from_feed(@feed).where_imported_from_active_feed_version).to match_array([@stop1])
     end
   end
 

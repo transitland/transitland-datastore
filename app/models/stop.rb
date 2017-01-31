@@ -38,6 +38,7 @@ end
 
 class Stop < BaseStop
   self.table_name = 'current_stops'
+  attr_accessor :parent_stop_onestop_id
   attr_accessor :served_by, :not_served_by
   attr_accessor :includes_stop_transfers, :does_not_include_stop_transfers
   validates :timezone, presence: true
@@ -104,26 +105,23 @@ class Stop < BaseStop
       rsp.update_making_history(changeset: changeset)
     end
   end
+
   def after_change_onestop_id(old_onestop_id, changeset)
     self.update_stop_pattern_onestop_ids(old_onestop_id, changeset)
   end
+
   def after_merge_onestop_ids(merging_onestop_ids, changeset)
     self.update_stop_pattern_onestop_ids(merging_onestop_ids, changeset)
   end
-  def after_create_making_history(changeset)
-    super(changeset)
+
+  def update_associations(changeset)
     update_entity_imported_from_feeds(changeset)
     update_served_by(changeset)
     update_includes_stop_transfers(changeset)
     update_does_not_include_stop_transfers(changeset)
-  end
-  def before_update_making_history(changeset)
     super(changeset)
-    update_entity_imported_from_feeds(changeset)
-    update_served_by(changeset)
-    update_includes_stop_transfers(changeset)
-    update_does_not_include_stop_transfers(changeset)
   end
+
   def before_destroy_making_history(changeset, old_model)
     operators_serving_stop.each do |operator_serving_stop|
       operator_serving_stop.destroy_making_history(changeset: changeset)

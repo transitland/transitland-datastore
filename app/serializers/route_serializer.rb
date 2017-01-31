@@ -34,10 +34,10 @@
 #
 
 class RouteSerializer < CurrentEntitySerializer
+  attribute :geometry, if: :include_geometry?
   attributes :onestop_id,
              :name,
              :vehicle_type,
-             :geometry,
              :color,
              :tags,
              :stops_served_by_route,
@@ -48,6 +48,10 @@ class RouteSerializer < CurrentEntitySerializer
              :created_at,
              :updated_at,
              :route_stop_patterns_by_onestop_id
+
+  def include_geometry?
+    !(scope.present? && scope[:exclude_geometry].present? && scope[:exclude_geometry]) && !!object.try(:geometry)
+  end
 
   def operated_by_onestop_id
     object.operator.try(:onestop_id)

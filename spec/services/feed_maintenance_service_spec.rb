@@ -106,4 +106,30 @@ describe FeedMaintenanceService do
       expect(EntityWithIssues.where(entity: @fv2).first.issue.issue_type).to eq(:feed_version_maintenance_import)
     end
   end
+
+  context 'destroy_feed' do
+    before(:each) { @feed, @feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 2) }
+    it 'deletes a feed and associated entities' do
+      expect(@feed.imported_routes.count).to be > 0
+      expect(@feed.imported_stops.count).to be > 0
+      expect(@feed.imported_route_stop_patterns.count).to be > 0
+      expect(@feed.imported_operators.count).to be > 0
+      FeedMaintenanceService.destroy_feed(@feed)
+      expect(@feed.imported_routes.count).to eq(0)
+      expect(@feed.imported_stops.count).to eq(0)
+      expect(@feed.imported_route_stop_patterns.count).to eq(0)
+      expect(@feed.imported_operators.count).to eq(0)
+      expect(Feed.exists?(@feed.id)).to be_falsy
+    end
+
+    it 'does not delete entities also associated with a different feed' do
+      feed_version1 = create(:feed_version)
+      stop1 = @feed.imported_stops.first
+      stop2 = @feed.imported_stops.second
+      feed_version1.feed.entities_imported_from_feed.create!(entity: stop1, feed_version: feed_version1)
+      FeedMaintenanceService.destroy_feed(@feed)
+      expect(Stop.exists?(stop1.id)).to be_truthy
+      expect(Stop.exists?(stop2.id)).to be_falsy
+    end
+  end
 end

@@ -100,32 +100,11 @@ class Route < BaseRoute
     ]
   })
 
-  # FIXME: this is a temporary fix to run both the following `before_create_making_history` changeset
-  # callback as well as the callback of the same name that is included from IsAnEntityWithIdentifiers
-  class << Route
-    alias_method :existing_before_create_making_history, :before_create_making_history
-  end
-  def self.before_create_making_history(new_model, changeset)
-    operator = Operator.find_by_onestop_id!(new_model.operated_by)
-    new_model.operator = operator
-    self.existing_before_create_making_history(new_model, changeset)
-  end
-  def after_create_making_history(changeset)
+  def update_associations(changeset)
     update_entity_imported_from_feeds(changeset)
-    OperatorRouteStopRelationship.manage_multiple(
-      route: {
-        serves: self.serves || [],
-        does_not_serve: self.does_not_serve || [],
-        model: self
-      },
-      changeset: changeset
-    )
-  end
-  def before_update_making_history(changeset)
-    update_entity_imported_from_feeds(changeset)
-    if self.operated_by.present?
+    if self.operated_by
       operator = Operator.find_by_onestop_id!(self.operated_by)
-      self.operator = operator
+      self.update_columns(operator_id: operator.id)
     end
     OperatorRouteStopRelationship.manage_multiple(
       route: {
@@ -137,6 +116,7 @@ class Route < BaseRoute
     )
     super(changeset)
   end
+
   def before_destroy_making_history(changeset, old_model)
     routes_serving_stop.each do |route_serving_stop|
       route_serving_stop.destroy_making_history(changeset: changeset)

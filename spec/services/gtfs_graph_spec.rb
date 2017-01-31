@@ -55,6 +55,21 @@ describe GTFSGraph do
     end
   end
 
+  context 'example feed' do
+    before(:each) {
+      @feed, @original_feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 1)
+      @feed_version_update_add = create(:feed_version_example_update_add, feed: @feed)
+    }
+    it 'matches previous stop_id' do
+      osid = "s-9qscwx8n60-nyecountyairportdemo"
+      osid_new = 's-9qscwx8n60-test'
+      s = Stop.find_by_onestop_id!(osid)
+      s.update!(onestop_id: osid_new)
+      # Import again
+      load_feed(feed_version: @feed_version_update_add, import_level: 1)
+    end
+  end
+
   context 'can apply level 0 and 1 changesets' do
 
     context 'Caltrain' do
@@ -269,7 +284,7 @@ describe GTFSGraph do
       expect(s.destination_arrival_time).to eq('06:05:00')
       expect(s.destination_departure_time).to eq('06:07:00')
       expect(s.origin_dist_traveled).to eq 0.0
-      expect(s.destination_dist_traveled).to eq 875.4
+      expect(s.destination_dist_traveled).to be_within(0.5).of(875.4)
       expect(s.service_days_of_week).to match_array(
         [true, true, true, true, true, true, true]
       )

@@ -95,21 +95,13 @@ class RouteStopPattern < BaseRouteStopPattern
     ]
   })
 
-  class << RouteStopPattern
-    alias_method :existing_before_create_making_history, :before_create_making_history
-  end
-
-  def after_create_making_history(changeset)
+  def update_associations(changeset)
+    if self.traversed_by
+      route = Route.find_by_onestop_id!(self.traversed_by)
+      self.update_columns(route_id: route.id)
+    end
     update_entity_imported_from_feeds(changeset)
-  end
-  def before_update_making_history(changeset)
-    update_entity_imported_from_feeds(changeset)
-  end
-
-  def self.before_create_making_history(new_model, changeset)
-    route = Route.find_by_onestop_id!(new_model.traversed_by)
-    new_model.route = route
-    self.existing_before_create_making_history(new_model, changeset)
+    super(changeset)
   end
 
   # borrowed from schedule_stop_pair.rb
@@ -232,8 +224,15 @@ class RouteStopPattern < BaseRouteStopPattern
       b = nearest_segment_index(locators, this_stop, a, c)
       nearest_point = nearest_point(locators, b)
       distance = distance_along_line_to_nearest(route, nearest_point, b)
-      if (i!=0 && distance <= self.stop_distances[i-1] && !stops[i].onestop_id.eql?(stops[i-1].onestop_id))
-        b = nearest_segment_index(locators, this_stop, a, num_segments - 1)
+      # check to make sure the distance is increasing, other than the edge cases.
+      # if not, we can do a retry with some segment-matching adjustments
+      equivalent_stop = stops[i].onestop_id.eql?(stops[i-1].onestop_id) || stops[i][:geometry].eql?(stops[i-1][:geometry])
+      if (i!=0 && distance <= self.stop_distances[i-1] && distance!=0.0 && !equivalent_stop)
+        if a == num_segments-1
+          b = nearest_segment_index(locators, this_stop, a, num_segments - 1)
+        else
+          b = nearest_segment_index(locators, this_stop, a + 1, num_segments - 1)
+        end
         nearest_point = nearest_point(locators, b)
         distance = distance_along_line_to_nearest(route, nearest_point, b)
       end
