@@ -53,14 +53,18 @@ class StopEgress < Stop
     ]
   })
   belongs_to :parent_stop, class_name: 'Stop'
-  validates :parent_stop, presence: true
-  def parent_stop_onestop_id
-    if self.parent_stop
-      self.parent_stop.onestop_id
+  # validates :parent_stop, presence: true
+
+  def update_parent_stop(changeset)
+    if self.parent_stop_onestop_id
+      parent_stop = Stop.find_by_onestop_id!(self.parent_stop_onestop_id)
+      self.update!(parent_stop: parent_stop)
     end
   end
-  def parent_stop_onestop_id=(value)
-    self.parent_stop = Stop.find_by_onestop_id!(value)
+
+  def update_associations(changeset)
+    update_parent_stop(changeset)
+    super(changeset)
   end
 end
 

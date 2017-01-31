@@ -334,7 +334,7 @@ describe Changeset do
         ]
       })
       changeset.change_payloads.each do |change_payload|
-        change_payload.apply!
+        change_payload.apply_change
       end
       expect(changeset.update_computed_attributes[1]).to eq [1,0]
     end
@@ -392,6 +392,14 @@ describe Changeset do
       # 1 - 6: rsp_line_inaccurate
       # 7: distance_calculation_inaccurate (s-9qkxnx40xt-furnacecreekresortdemo & r-9qsb-20-8d5767-6bb5fc)
       # 8: stop_rsp_distance_gap (s-9qscwx8n60-nyecountyairportdemo & r-9qscy-30-a41e99-fcca25)
+    end
+
+    it 'creates geometry issues during import' do
+      expect(Issue.issue_types_in_category('route_geometry').size).to be > 1
+    end
+
+    it 'sets nil values for stop distances when distance calculation issues' do
+      expect(RouteStopPattern.find_by_onestop_id!('r-9qsb-20-8d5767-6bb5fc').stop_distances).to match_array([nil, nil])
     end
 
     context 'resolution' do
