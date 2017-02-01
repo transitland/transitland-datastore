@@ -178,11 +178,11 @@ module CurrentTrackedByChangeset
     return true
   end
 
-  def destroy_making_history(changeset: nil, action: nil, current: nil)
+  def destroy_making_history(changeset: nil, old_attrs: {}, action: nil, current: nil)
     self.class.transaction do
       # Create old model
       old_model = self.class.instantiate_an_old_model
-      old_model.assign_attributes(changeable_attributes_as_a_cloned_hash)
+      old_model.assign_attributes(changeable_attributes_as_a_cloned_hash.update(old_attrs))
       old_model.version = self.version
       old_model.destroyed_in_changeset = changeset
       old_model.action = action unless action.nil?
