@@ -162,7 +162,7 @@ class Feed < BaseFeed
   })
 
   def rename_feed_version_files
-    self.feed_versions.each{ |feed_version| feed_version.file.rename! }
+    self.feed_versions.each{ |feed_version| feed_version.file.rename!; feed_version.save! }
   end
 
   def after_change_onestop_id(old_onestop_id, changeset)
