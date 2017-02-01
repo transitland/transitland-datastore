@@ -115,7 +115,8 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
       :import_level,
       :imported_from_feed,
       :imported_from_feed_version,
-      :exclude_geometry
+      :exclude_geometry,
+      :include_geometry
     )
   end
 
