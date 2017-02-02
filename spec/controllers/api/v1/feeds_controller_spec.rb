@@ -120,4 +120,34 @@ describe Api::V1::FeedsController do
   context 'GET fetch_info' do
     pending 'a spec in the future'
   end
+
+  context 'GET download_latest_feed_version' do
+    before(:each) do
+      @feed_that_allows_download = create(:feed, license_redistribute: 'unknown')
+      @feed_that_disallows_download = create(:feed, license_redistribute: 'no')
+
+      [@feed_that_allows_download, @feed_that_disallows_download].each do |feed|
+        [2, 1].each do |i|
+          fv = create(
+            :feed_version,
+            feed: feed,
+            fetched_at: (DateTime.now - i.months)
+          )
+        end
+      end
+
+      allow_any_instance_of(FeedVersion).to receive_message_chain(:file, :url) { 'https://s3.aws.whatever/file.zip' }
+    end
+
+    it 'should redirect to latest file on S3 when license allows' do
+      get :download_latest_feed_version, id: @feed_that_allows_download.onestop_id
+      expect(response).to redirect_to('https://s3.aws.whatever/file.zip')
+    end
+
+    it 'should return a 404 when license disallows download' do
+      get :download_latest_feed_version, id: @feed_that_disallows_download.onestop_id
+      expect(response.status).to eq(404)
+    end
+
+  end
 end
