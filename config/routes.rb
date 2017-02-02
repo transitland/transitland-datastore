@@ -26,7 +26,11 @@ Rails.application.routes.draw do
       resources :routes, only: [:index, :show]
       resources :route_stop_patterns, only: [:index, :show]
       resources :schedule_stop_pairs, only: [:index]
-      resources :feeds, only: [:index, :show]
+      resources :feeds, only: [:index, :show] do
+        member do
+          get 'download_latest_feed_version'
+        end
+      end
       resources :feed_versions, only: [:index, :show, :update]
       resources :feed_version_imports, only: [:index, :show]
       resources :issues, only: [:index, :show, :create, :update, :destroy] do
