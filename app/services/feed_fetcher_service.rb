@@ -161,7 +161,9 @@ class FeedFetcherService
         feed_start_date:     feed_info.feed_start_date,
         feed_end_date:       feed_info.feed_end_date,
         feed_version:        feed_info.feed_version,
-        feed_id:             feed_info.feed_id
+        feed_id:             feed_info.feed_id,
+        feed_contact_email:  feed_info.feed_contact_email,
+        feed_contact_url:    feed_info.feed_contact_url
       })
     end
     return {

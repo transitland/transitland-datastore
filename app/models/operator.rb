@@ -158,6 +158,7 @@ class Operator < BaseOperator
     operator.tags[:agency_lang] = entity.agency_lang
     operator.tags[:agency_fare_url] = entity.agency_fare_url
     operator.tags[:agency_id] = entity.id
+    operator.tags[:agency_email] = entity.agency_email
     operator.timezone = entity.agency_timezone
     operator.website = entity.agency_url
     operator
