@@ -18,6 +18,12 @@ gem 'pg'
 gem 'activerecord-postgis-adapter'
 gem 'activerecord-import'
 gem 'redis-rails'
+# NOTE: pegging version of Redis gems
+# because of past operations issues: https://github.com/transitland/transitland-datastore/pull/880
+# hopefully will be fixed in future versions
+gem 'redis', '3.3.1'
+gem 'redis-actionpack', '5.0.0'
+gem 'redis-rack', '2.0.0.pre'
 
 # background processing
 gem 'sidekiq', '< 5'
