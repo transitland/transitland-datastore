@@ -86,7 +86,7 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
   end
 
   def download_latest_feed_version
-    feed_version = @feed.feed_versions.order('fetched_at DESC').first!
+    feed_version = @feed.feed_versions.order(fetched_at: :desc).first!
     if feed_version.download_url.present?
       redirect_to feed_version.download_url, status: 302
     else
