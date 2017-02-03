@@ -241,6 +241,8 @@ class GTFSGraph
 
     # Create SSPs for all gtfs_stop_time edges
     ssp_trip = []
+    # Trip start time
+    trip_start_time = GTFS::WideTime.parse(gtfs_stop_times.first.arrival_time || gtfs_stop_times.first.departure_time)
     gtfs_stop_times[0..-2].each_index do |i|
       gtfs_origin_stop_time = gtfs_stop_times[i]
       gtfs_destination_stop_time = gtfs_stop_times[i+1]
@@ -258,6 +260,20 @@ class GTFSGraph
         next
       end
 
+      # Origin / departure times
+      origin_arrival_time = GTFS::WideTime.parse(gtfs_origin_stop_time.arrival_time)
+      origin_departure_time = GTFS::WideTime.parse(gtfs_origin_stop_time.departure_time)
+      destination_arrival_time = GTFS::WideTime.parse(gtfs_destination_stop_time.arrival_time)
+      destination_departure_time = GTFS::WideTime.parse(gtfs_destination_stop_time.departure_time)
+      frequency_start_time = GTFS::WideTime.parse(gtfs_frequency.try(:start_time))
+      # Adjust frequency schedules to be relative to trip_start_time
+      if frequency_start_time
+        origin_arrival_time = (origin_arrival_time - trip_start_time) + frequency_start_time
+        origin_departure_time = (origin_departure_time - trip_start_time) + frequency_start_time
+        destination_arrival_time = (destination_arrival_time - trip_start_time) + frequency_start_time
+        destination_departure_time = (destination_departure_time - trip_start_time) + frequency_start_time
+      end
+
       # Create SSP
       ssp_trip << ScheduleStopPair.new(
         # Feed
@@ -266,14 +282,14 @@ class GTFSGraph
         # Origin
         origin: tl_origin_stop,
         origin_timezone: tl_origin_stop.timezone,
-        origin_arrival_time: gtfs_origin_stop_time.arrival_time.presence,
-        origin_departure_time: gtfs_origin_stop_time.departure_time.presence,
+        origin_arrival_time: origin_arrival_time,
+        origin_departure_time: origin_departure_time,
         origin_dist_traveled: tl_rsp.stop_distances[i],
         # Destination
         destination: tl_destination_stop,
         destination_timezone: tl_destination_stop.timezone,
-        destination_arrival_time: gtfs_destination_stop_time.arrival_time.presence,
-        destination_departure_time: gtfs_destination_stop_time.departure_time.presence,
+        destination_arrival_time: destination_arrival_time,
+        destination_departure_time: destination_departure_time,
         destination_dist_traveled: tl_rsp.stop_distances[i+1],
         # Route
         route: tl_route,
