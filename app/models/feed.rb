@@ -163,10 +163,21 @@ class Feed < BaseFeed
 
   def rename_feed_version_files
     self.feed_versions.each{ |feed_version|
-      feed_version.file.rename!
-      feed_version.file_raw.rename!
-      feed_version.file_feedvalidator.rename!
-      feed_version.save!
+      #from https://github.com/carrierwaveuploader/carrierwave/issues/790
+      storage = model.file_uploader.send(:storage)
+      if storage.is_a? CarrierWave::Storage::Fog
+        local_file = File.new("#{Dir.tmpdir}/#{feed_version.sha1}", 'w')
+        local_file.binmode
+        uri = URI.parse URI.encode(feed_version.file.url)
+        open(uri) { |data| local_file.write data.read }
+
+        feed_version.remove_file!
+
+        feed_version.file = AssetFileUploader.new feed_version, :file_uploader
+        feed_version.file.store! local_file
+        feed_version.save!
+        File.delete local_file
+      end
     }
   end
 
