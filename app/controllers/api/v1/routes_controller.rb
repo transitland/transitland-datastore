@@ -81,7 +81,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     ]}
 
     respond_to do |format|
-      # keeping 'exclude_geometry' for backwards compatibility
+      # consider removing exclude_geometry
       format.json { render paginated_json_collection(@routes).merge({ scope: { exclude_geometry: AllowFiltering.to_boolean(params[:exclude_geometry]),
                                                                                include_geometry: AllowFiltering.to_boolean(params[:include_geometry])} }) }
       format.geojson { render paginated_geojson_collection(@routes) }
@@ -91,7 +91,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
 
   def show
     respond_to do |format|
-      # keeping 'exclude_geometry' for backwards compatibility
+      # consider removing exclude_geometry
       format.json { render json: @route, scope: { exclude_geometry: AllowFiltering.to_boolean(params[:exclude_geometry]),
                                                   include_geometry: AllowFiltering.to_boolean(params[:include_geometry])} }
       format.geojson { render json: @route, serializer: GeoJSONSerializer }
