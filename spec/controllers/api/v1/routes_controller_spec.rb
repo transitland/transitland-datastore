@@ -190,18 +190,32 @@ describe Api::V1::RoutesController do
         end
       end
 
-      context 'exclude_geometry' do
-        it 'include' do
+      context 'include and exclude geometry' do
+        it 'exclude_geometry=false' do
           get :index, exclude_geometry: "false"
           expect_json({ routes: -> (routes) {
             expect(routes.first.has_key?(:geometry)).to be true
           }})
         end
 
-        it 'exclude' do
+        it 'exclude_geometry=true' do
           get :index, exclude_geometry: "true"
           expect_json({ routes: -> (routes) {
             expect(routes.first.has_key?(:geometry)).to be false
+          }})
+        end
+
+        it 'include_geometry=false' do
+          get :index, include_geometry: "false"
+          expect_json({ routes: -> (routes) {
+            expect(routes.first.has_key?(:geometry)).to be false
+          }})
+        end
+
+        it 'include_geometry=true' do
+          get :index, include_geometry: "true"
+          expect_json({ routes: -> (routes) {
+            expect(routes.first.has_key?(:geometry)).to be true
           }})
         end
       end
