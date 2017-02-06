@@ -12,6 +12,7 @@ module IsAnEntityImportedFromFeeds
         })
         .distinct
     }
+
     scope :where_imported_from_feed, -> (feed) {
       joins(:entities_imported_from_feed)
         .where(entities_imported_from_feed: {
@@ -19,6 +20,7 @@ module IsAnEntityImportedFromFeeds
         })
         .distinct
     }
+
     scope :where_imported_from_feed_version, -> (feed_version) {
       joins(:entities_imported_from_feed)
         .where(entities_imported_from_feed: {
@@ -36,6 +38,14 @@ module IsAnEntityImportedFromFeeds
     scope :where_not_imported_from_active_feed_version, -> {
       # This may be possible with a complex outer join, but this will do.
       where(id: self.all.select(:id).pluck(:id) - self.where_imported_from_active_feed_version.select(:id).pluck(:id))
+    }
+
+    scope :where_imported_with_gtfs_id, -> (gtfs_id) {
+      joins(:entities_imported_from_feed)
+        .where(entities_imported_from_feed: {
+          gtfs_id: gtfs_id
+        })
+        .distinct
     }
 
     attr_accessor :add_imported_from_feeds, :not_imported_from_feeds

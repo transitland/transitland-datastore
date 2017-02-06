@@ -85,18 +85,8 @@ class Operator < BaseOperator
       :website
     ]
   })
-  def after_create_making_history(changeset)
-    update_entity_imported_from_feeds(changeset)
-    OperatorRouteStopRelationship.manage_multiple(
-      operator: {
-        serves: self.serves || [],
-        does_not_serve: self.does_not_serve || [],
-        model: self
-      },
-      changeset: changeset
-    )
-  end
-  def before_update_making_history(changeset)
+
+  def update_associations(changeset)
     update_entity_imported_from_feeds(changeset)
     OperatorRouteStopRelationship.manage_multiple(
       operator: {
@@ -108,6 +98,7 @@ class Operator < BaseOperator
     )
     super(changeset)
   end
+
   def before_destroy_making_history(changeset, old_model)
     operators_serving_stop.each do |operator_serving_stop|
       operator_serving_stop.destroy_making_history(changeset: changeset)
@@ -167,6 +158,7 @@ class Operator < BaseOperator
     operator.tags[:agency_lang] = entity.agency_lang
     operator.tags[:agency_fare_url] = entity.agency_fare_url
     operator.tags[:agency_id] = entity.id
+    operator.tags[:agency_email] = entity.agency_email
     operator.timezone = entity.agency_timezone
     operator.website = entity.agency_url
     operator

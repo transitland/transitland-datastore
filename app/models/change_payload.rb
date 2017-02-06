@@ -60,26 +60,34 @@ class ChangePayload < ActiveRecord::Base
     !!sha1.match(/^[0-9a-f]{5,40}$/)
   })
 
-  def apply!
-    cache = {}
-    changes = []
+  def each_change
     (payload_as_ruby_hash[:changes] || []).each do |change|
       (ENTITY_TYPES.keys & change.keys).each do |entity_type|
-        changes << [entity_type, change[:action], change[entity_type]]
+        yield ENTITY_TYPES[entity_type], change[:action], change[entity_type]
       end
     end
-    changes
-      .chunk { |entity_type, action, change| [entity_type, action] }
-      .each { | chunk_key, chunked_changes |
-        entity_type, action = chunk_key
-        # puts "Applying... #{entity_type}, #{action}, #{chunked_changes.size}"
-        ENTITY_TYPES[entity_type].apply_changes(
-          changeset: changeset,
-          action: action,
-          changes: chunked_changes.map(&:last)
-        )
-      }
-    resolving_and_deprecating_issues
+  end
+
+  def apply_change(cache: {})
+    self.each_change do |entity_cls, action, change|
+      entity_cls.apply_change(
+        changeset: changeset,
+        action: action,
+        change: change,
+        cache: cache
+      )
+    end
+  end
+
+  def apply_associations(cache: {})
+    self.each_change do |entity_cls, action, change|
+      entity_cls.apply_associations(
+        changeset: changeset,
+        action: action,
+        change: change,
+        cache: cache
+      )
+    end
   end
 
   def revert!
@@ -111,8 +119,6 @@ class ChangePayload < ActiveRecord::Base
       errors.add(:payload, error[:message])
     end
   end
-
-  private
 
   def resolving_and_deprecating_issues
     issues_to_resolve = []

@@ -67,7 +67,6 @@ describe Api::V1::StopsController do
             expect(stops.map { |stop| stop[:onestop_id] }).to match_array([@stop1.onestop_id, @stop2.onestop_id])
           }})
         end
-
       end
 
       context 'returns stop by servedBy' do

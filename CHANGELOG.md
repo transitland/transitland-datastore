@@ -2,7 +2,14 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.19...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.20...HEAD)
+
+**Merged pull requests:**
+
+- Production release 4.9.20 [\#934](https://github.com/transitland/transitland-datastore/pull/934) ([irees](https://github.com/irees))
+
+## [4.9.20](https://github.com/transitland/transitland-datastore/tree/4.9.20) (2017-01-25)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.19...4.9.20)
 
 **Closed issues:**
 
@@ -10,6 +17,7 @@
 
 **Merged pull requests:**
 
+- Fix missing Stations [\#936](https://github.com/transitland/transitland-datastore/pull/936) ([irees](https://github.com/irees))
 - Production release 4.9.19 [\#927](https://github.com/transitland/transitland-datastore/pull/927) ([doublestranded](https://github.com/doublestranded))
 
 ## [4.9.19](https://github.com/transitland/transitland-datastore/tree/4.9.19) (2017-01-23)
