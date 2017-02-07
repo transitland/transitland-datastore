@@ -161,38 +161,27 @@ class Feed < BaseFeed
     ]
   })
 
-  def move_feed_version_file(feed_version, file_type)
-    storage = model.file_uploader.send(:storage)
-    if storage.is_a? CarrierWave::Storage::Fog
-      file_type = file_type.to_s
-      file = feed_version.send file_type
-      local_file = File.new("#{Figaro.env.gtfs_tmpdir_basepath.presence}/mv-#{file.url}", 'w')
-      local_file.binmode
-      uri = URI.parse URI.encode(file.url)
-      open(uri) { |data| local_file.write data.read }
-
-      feed_version.send "remove_#{file_type}!"
-
-      feed_version.send "#{file_type}=" = AssetFileUploader.new feed_version, :file_uploader
-      (feed_version.send "#{file_type}").send "store!", local_file
-      local_file
-    end
-  end
-
   def rename_feed_version_files
     self.feed_versions.each{ |feed_version|
-      #from https://github.com/carrierwaveuploader/carrierwave/issues/790
-      storage = model.file_uploader.send(:storage)
-      if storage.is_a? CarrierWave::Storage::Fog
-        local_file = move_feed_version_file(feed_version, "file")
-        local_file_raw = move_feed_version_file(feed_version, "file_raw")
-        local_file_feedvalidator = move_feed_version_file(feed_version, "file_feedvalidator")
+      storage = feed_version.file.send(:storage)
+      if storage.class.name.eql?("CarrierWave::Storage::Fog")
+        local_file = feed_version.file.local_path_copying_locally_if_needed
+        feed_version.file.remove!
+        feed_version.file = File.open(local_file)
+
+        local_file_raw = feed_version.file_raw.local_path_copying_locally_if_needed
+        feed_version.file_raw.remove!
+        feed_version.file_raw = File.open(local_file_raw)
+
+        local_file_feedvalidator = feed_version.file_feedvalidator.local_path_copying_locally_if_needed
+        feed_version.file_feedvalidator.remove!
+        feed_version.file_feedvalidator = File.open(local_file_feedvalidator)
 
         feed_version.save!
 
-        File.delete local_file unless local_file.nil?
-        File.delete local_file_raw unless local_file_raw.nil?
-        File.delete local_file_feedvalidator unless local_file_feedvalidator.nil?
+        File.delete local_file
+        File.delete local_file_raw
+        File.delete local_file_feedvalidator
       end
     }
   end
