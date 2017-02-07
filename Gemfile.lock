@@ -11,8 +11,8 @@ GIT
 
 GIT
   remote: git://github.com/transitland/gtfs.git
-  revision: dab8bdecccc466cccadd6f2ddfff78e95d8375c7
-  tag: dab8bdecccc466cccadd6f2ddfff78e95d8375c7
+  revision: f2d55ba1e84e557f91ae4376cf63a8ac955cd203
+  tag: f2d55ba1e84e557f91ae4376cf63a8ac955cd203
   specs:
     gtfs (1.0.1)
       multi_json
@@ -111,6 +111,10 @@ GEM
     c_geohash (1.1.2)
     choice (0.2.0)
     chronic (0.10.2)
+    codecov (0.1.5)
+      json
+      simplecov
+      url
     coderay (1.1.1)
     concurrent-ruby (1.0.2)
     connection_pool (2.2.1)
@@ -270,17 +274,17 @@ GEM
     raindrops (0.17.0)
     rake (11.3.0)
     rcsv (0.3.1)
-    redis (3.3.2)
-    redis-actionpack (5.0.1)
-      actionpack (>= 4.0, < 6)
-      redis-rack (>= 1, < 3)
-      redis-store (>= 1.1.0, < 1.4.0)
+    redis (3.3.1)
+    redis-actionpack (5.0.0)
+      actionpack (>= 4.0.0, < 6)
+      redis-rack (~> 2.0.0.pre)
+      redis-store (~> 1.2.0.pre)
     redis-activesupport (5.0.1)
       activesupport (>= 3, < 6)
       redis-store (~> 1.2.0)
-    redis-rack (1.6.0)
-      rack (~> 1.5)
-      redis-store (~> 1.2.0)
+    redis-rack (2.0.0.pre)
+      rack (> 1.5, < 3)
+      redis-store (~> 1.2.0.pre)
     redis-rails (5.0.1)
       redis-actionpack (~> 5.0.0)
       redis-activesupport (~> 5.0.0)
@@ -389,10 +393,11 @@ GEM
       kgio (~> 2.6)
       raindrops (~> 0.7)
     uniform_notifier (1.10.0)
+    url (0.3.2)
     vcr (3.0.3)
     warden (1.2.6)
       rack (>= 1.0)
-    webmock (2.3.0)
+    webmock (2.3.1)
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
       hashdiff
@@ -416,6 +421,7 @@ DEPENDENCIES
   byebug
   c_geohash
   carrierwave!
+  codecov
   database_cleaner
   datastore_admin!
   devise

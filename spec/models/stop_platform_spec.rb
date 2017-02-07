@@ -117,5 +117,54 @@ describe StopPlatform do
       changeset.change_payloads.create!(payload: payload)
       expect{changeset.apply!}.to raise_error(Changeset::Error)
     end
+
+    context 'issues' do
+      before(:each) do
+        @stop = create(:stop, geometry: Stop::GEOFACTORY.point(-122.401811, 37.706675).to_s)
+        onestop_id = "#{@stop.onestop_id}<test"
+        @payload = {changes: [{
+          action: 'createUpdate',
+          stopPlatform: {
+            onestopId: onestop_id,
+            timezone: 'America/Los_Angeles',
+            parentStopOnestopId: @stop.onestop_id,
+            geometry: { type: "Point", coordinates: [-122.475075, 37.721323] }
+          }
+        }]}
+      end
+
+      it 'creates stop platform, parent stop distance gap issues' do
+        changeset = Changeset.create(payload: @payload)
+        changeset.apply!
+        expect(Issue.where(issue_type: 'stop_platform_parent_distance_gap').size).to be >= 1
+      end
+
+      it 'creates stop platforms too close issues' do
+        other_onestop_id = "#{@stop.onestop_id}<other"
+        @payload[:changes] << {
+          action: 'createUpdate',
+          stopPlatform: {
+            onestopId: other_onestop_id,
+            timezone: 'America/Los_Angeles',
+            parentStopOnestopId: @stop.onestop_id,
+            geometry: { type: "Point", coordinates: [-122.475075, 37.721323] }
+          }
+        }
+        changeset = Changeset.create(payload: @payload)
+        changeset.apply!
+        expect(Issue.where(issue_type: 'stop_platforms_too_close').size).to eq 1
+      end
+
+      it 'identifies stop platforms too close when a sibling platform has not been modified in changeset' do
+        other_onestop_id = "#{@stop.onestop_id}<other"
+        @stop_platform = create(:stop_platform,
+                                onestop_id: other_onestop_id,
+                                parent_stop: @stop,
+                                geometry: Stop::GEOFACTORY.point(-122.475075, 37.721323).to_s)
+        changeset = Changeset.create(payload: @payload)
+        changeset.apply!
+        expect(Issue.where(issue_type: 'stop_platforms_too_close').size).to eq 1
+      end
+    end
   end
 end

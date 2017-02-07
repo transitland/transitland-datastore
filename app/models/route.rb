@@ -85,7 +85,9 @@ class Route < BaseRoute
       :does_not_serve,
       :operated_by,
       :identified_by,
-      :not_identified_by
+      :not_identified_by,
+      :add_imported_from_feeds,
+      :not_imported_from_feeds
     ],
     protected_attributes: [
       :identifiers
@@ -98,30 +100,11 @@ class Route < BaseRoute
     ]
   })
 
-  # FIXME: this is a temporary fix to run both the following `before_create_making_history` changeset
-  # callback as well as the callback of the same name that is included from IsAnEntityWithIdentifiers
-  class << Route
-    alias_method :existing_before_create_making_history, :before_create_making_history
-  end
-  def self.before_create_making_history(new_model, changeset)
-    operator = Operator.find_by_onestop_id!(new_model.operated_by)
-    new_model.operator = operator
-    self.existing_before_create_making_history(new_model, changeset)
-  end
-  def after_create_making_history(changeset)
-    OperatorRouteStopRelationship.manage_multiple(
-      route: {
-        serves: self.serves || [],
-        does_not_serve: self.does_not_serve || [],
-        model: self
-      },
-      changeset: changeset
-    )
-  end
-  def before_update_making_history(changeset)
-    if self.operated_by.present?
+  def update_associations(changeset)
+    update_entity_imported_from_feeds(changeset)
+    if self.operated_by
       operator = Operator.find_by_onestop_id!(self.operated_by)
-      self.operator = operator
+      self.update_columns(operator_id: operator.id)
     end
     OperatorRouteStopRelationship.manage_multiple(
       route: {
@@ -133,6 +116,7 @@ class Route < BaseRoute
     )
     super(changeset)
   end
+
   def before_destroy_making_history(changeset, old_model)
     routes_serving_stop.each do |route_serving_stop|
       route_serving_stop.destroy_making_history(changeset: changeset)
@@ -173,14 +157,15 @@ class Route < BaseRoute
     joins{routes_serving_stop.route}.where{routes_serving_stop.stop_id.in(stops.map(&:id))}.uniq
   }
 
-  scope :operated_by, -> (model_or_onestop_id) {
-    if model_or_onestop_id.is_a?(Operator)
-      where(operator: model_or_onestop_id)
-    elsif model_or_onestop_id.is_a?(String)
-      operator = Operator.find_by_onestop_id!(model_or_onestop_id)
-      where(operator: operator)
+  scope :operated_by, -> (models_or_onestop_ids) {
+    models_or_onestop_ids = Array.wrap(models_or_onestop_ids)
+    if models_or_onestop_ids.all? { |model_or_onestop_id| model_or_onestop_id.is_a?(Operator) }
+      where(operator: models_or_onestop_ids)
+    elsif models_or_onestop_ids.all? { |model_or_onestop_id| model_or_onestop_id.is_a?(String) }
+      operators = Operator.find_by_onestop_ids!(models_or_onestop_ids)
+      where(operator: operators)
     else
-      raise ArgumentError.new('must provide an Operator model or a Onestop ID')
+      raise ArgumentError.new('must provide Operator models or Onestop IDs')
     end
   }
 

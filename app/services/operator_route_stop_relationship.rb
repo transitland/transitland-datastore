@@ -39,14 +39,14 @@ class OperatorRouteStopRelationship
     end
   end
 
-  def apply_change(in_changeset: nil)
+  def apply_relationship(changeset: nil)
     operator_serving_stop = OperatorServingStop.find_by(operator: @operator, stop: @stop)
     if !!operator_serving_stop && @does_service_exist
       # nothing to do
     elsif !!operator_serving_stop && !@does_service_exist
-      operator_serving_stop.destroy_making_history(changeset: in_changeset)
+      operator_serving_stop.destroy_making_history(changeset: changeset)
     elsif !operator_serving_stop && @does_service_exist
-      OperatorServingStop.create_making_history(changeset: in_changeset, new_attrs: {
+      OperatorServingStop.create_making_history(changeset: changeset, new_attrs: {
         operator_id: @operator.id,
         stop_id: @stop.id
       })
@@ -61,9 +61,9 @@ class OperatorRouteStopRelationship
       if !!route_serving_stop && @does_service_exist
         # nothing to do
       elsif !!route_serving_stop && !@does_service_exist
-        route_serving_stop.destroy_making_history(changeset: in_changeset)
+        route_serving_stop.destroy_making_history(changeset: changeset)
       elsif !route_serving_stop && @does_service_exist
-        RouteServingStop.create_making_history(changeset: in_changeset, new_attrs: {
+        RouteServingStop.create_making_history(changeset: changeset, new_attrs: {
           route_id: @route.id,
           stop_id: @stop.id
         })
@@ -84,7 +84,7 @@ class OperatorRouteStopRelationship
     relationships_to_apply += relationships_to_apply_for_operator(operator) unless operator.blank?
     relationships_to_apply += relationships_to_apply_for_route(route) unless route.blank?
 
-    relationships_to_apply.each { |relationship| relationship.apply_change(in_changeset: changeset) }
+    relationships_to_apply.each { |relationship| relationship.apply_relationship(changeset: changeset) }
     return true
   end
 

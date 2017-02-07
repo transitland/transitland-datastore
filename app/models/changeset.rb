@@ -48,6 +48,9 @@ class Changeset < ActiveRecord::Base
   has_many :stops_created_or_updated, class_name: 'Stop', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :stops_destroyed, class_name: 'OldStop', foreign_key: 'destroyed_in_changeset_id'
 
+  has_many :stop_platforms_created_or_updated, class_name: 'StopPlatform', foreign_key: 'created_or_updated_in_changeset_id'
+  has_many :stop_platforms_destroyed, class_name: 'StopPlatform', foreign_key: 'destroyed_in_changeset_id'
+
   has_many :operators_created_or_updated, class_name: 'Operator', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :operators_destroyed, class_name: 'OldOperator', foreign_key: 'destroyed_in_changeset_id'
 
@@ -162,13 +165,26 @@ class Changeset < ActiveRecord::Base
   end
 
   def issues_unresolved(resolving_issues, changeset_issues)
-    changeset_issues.map { |c| resolving_issues.map { |r| r if c.equivalent?(r) } }.flatten.compact
+    # changeset does not contain entities matching any resolving issue entities
+    unresolved_issues = Set.new(resolving_issues.select { |issue|
+      unless issue.entities_with_issues.empty?
+        issue.entities_with_issues.map(&:entity).none? { |issue_entity|
+          eqls = []
+          entities_created_or_updated { |entity| eqls << issue_entity.eql?(entity) }
+          eqls.any?
+        }
+      end
+    })
+    # changeset does not resolve issue (creates the same issue in quality checks)
+    unresolved_issues.merge(changeset_issues.map { |c| resolving_issues.map { |r| r if c.equivalent?(r) } }.flatten.compact)
   end
 
   def check_quality
     gqc = QualityCheck::GeometryQualityCheck.new(changeset: self)
+    shqc = QualityCheck::StationHierarchyQualityCheck.new(changeset: self)
     issues = []
     issues += gqc.check
+    issues += shqc.check
     issues
   end
 
@@ -255,24 +271,17 @@ class Changeset < ActiveRecord::Base
         .each(&:deprecate)
     else
       message = unresolved_issues.map { |issue| "Issue #{issue.id} was not resolved." }.join(" ")
-      logger.error "Error applying Changeset #{self.id}: #{message}"
+      log "Error applying Changeset #{self.id}: #{message}", :error
       raise Changeset::Error.new(changeset: self, message: message)
     end
   end
 
-  def create_feed_entity_associations
-    if import?
-      eiff_batch = []
-      self.entities_created_or_updated do |entity|
-        eiff_batch << entity
-          .entities_imported_from_feed
-          .new(feed: self.imported_from_feed, feed_version: self.imported_from_feed_version)
-        if eiff_batch.size >= 1000
-          EntityImportedFromFeed.import eiff_batch
-          eiff_batch = []
-        end
+  def post_quality_check_updates
+    self.route_stop_patterns_created_or_updated.each do |rsp|
+      if Issue.issues_of_entity(rsp).any?{ |issue| issue.issue_type.eql?('distance_calculation_inaccurate') }
+        rsp.stop_distances = Array.new(rsp.stop_pattern.size)
+        rsp.update_making_history(changeset: self)
       end
-      EntityImportedFromFeed.import eiff_batch
     end
   end
 
@@ -283,16 +292,26 @@ class Changeset < ActiveRecord::Base
 
     Changeset.transaction do
       begin
-        # Apply ChangePayloads, collect issues
+        # Apply changes
+        change_payloads.each do |change_payload|
+          change_payload.apply_change
+        end
+
+        # Apply associations
+        change_payloads.each do |change_payload|
+          change_payload.apply_associations
+        end
+
+        # Collect issues
         issues_changeset_is_resolving = []
         change_payloads.each do |change_payload|
-          payload_issues_changeset_is_resolving, payload_old_issues_to_deprecate = change_payload.apply!
+          payload_issues_changeset_is_resolving, payload_old_issues_to_deprecate = change_payload.resolving_and_deprecating_issues
           issues_changeset_is_resolving += payload_issues_changeset_is_resolving
           old_issues_to_deprecate.merge(payload_old_issues_to_deprecate)
         end
-        self.update(applied: true, applied_at: Time.now)
 
-        create_feed_entity_associations
+        # Mark as applied
+        self.update(applied: true, applied_at: Time.now)
 
         # Update attributes that derive from attributes between models
         # This needs to be done before quality checks. Only on import.
@@ -307,9 +326,11 @@ class Changeset < ActiveRecord::Base
         # save new issues; deprecate old issues; resolve changeset-specified issues
         cycle_issues(issues_changeset_is_resolving, new_issues_created_by_changeset, old_issues_to_deprecate)
 
+        post_quality_check_updates
+
       rescue StandardError => error
-        logger.error "Error applying Changeset #{self.id}: #{error.message}"
-        logger.error error.backtrace
+        log "Error applying Changeset #{self.id}: #{error.message}", :error
+        log error.backtrace, :error
         raise Changeset::Error.new(changeset: self, message: error.message, backtrace: error.backtrace)
       end
     end

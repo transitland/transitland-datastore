@@ -130,6 +130,7 @@ describe FeedFetcherService do
       expect(feed_version.earliest_calendar_date).to eq Date.parse('2007-01-01')
       expect(feed_version.latest_calendar_date).to eq Date.parse('2010-12-31')
     end
+    
     it 'reads feed_info.txt and puts into tags' do
       feed = create(:feed, url: example_url)
       feed_version = nil
@@ -204,15 +205,7 @@ describe FeedFetcherService do
       end
       fv1, fv2 = feed_versions
       expect(fv1.sha1).to eq fv2.sha1
-      expect(fv1.fetched_at).not_to eq(fv2.fetched_at)
     end
-
-    # it 'fails if files already exist' do
-    #   feed_version = create(:feed_version_bart)
-    #   VCR.use_cassette('feed_fetch_bart') do
-    #     expect { feed_version.fetch_and_normalize }.to raise_error(StandardError)
-    #   end
-    # end
   end
 
 end

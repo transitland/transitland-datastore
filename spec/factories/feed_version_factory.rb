@@ -20,6 +20,7 @@
 #  file_raw               :string
 #  sha1_raw               :string
 #  md5_raw                :string
+#  file_feedvalidator     :string
 #
 # Indexes
 #
@@ -67,6 +68,11 @@ FactoryGirl.define do
 
     factory :feed_version_sfmta_6720619 do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/sfmta-trip-6720619.zip')) }
+      association :feed, factory: :feed_sfmta
+    end
+
+    factory :feed_version_sfmta_7310245 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/sfmta-trip-7310245.zip')) }
       association :feed, factory: :feed_sfmta
     end
 

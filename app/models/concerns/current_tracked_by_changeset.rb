@@ -14,51 +14,45 @@ module CurrentTrackedByChangeset
                 :virtual_attributes,
                 :sticky_attributes
 
-    def apply_change(changeset: nil, attrs: {}, action: nil, cache: {})
-      apply_changes(changeset: changeset, changes: [attrs], action: action, cache: cache)
-    end
-
-    def apply_changes(changeset: nil, changes: nil, action: nil, cache: {})
-      changes ||= []
+    def apply_change(changeset: nil, change: {}, action: nil, cache: {})
       case action
       when 'createUpdate'
-        apply_changes_create_update(changeset: changeset, changes: changes, cache: cache)
+        apply_change_create_update(changeset: changeset, change: change, cache: cache)
       when 'destroy'
-        apply_changes_destroy(changeset: changeset, changes: changes, cache: cache)
+        apply_change_destroy(changeset: changeset, change: change, cache: cache)
       else
         raise ArgumentError.new('an action must be supplied')
       end
     end
 
-    def apply_changes_create_update(changeset: nil, changes: nil, cache: {})
-      existing_models = []
-      new_models = []
-      changes.each do |change|
-        existing_model = find_existing_model(change)
-        attrs_to_apply = apply_params(change, cache)
-        unless !self.column_names.include?("edited_attributes") || changeset.nil? || changeset.import?
-          attrs_to_apply.update({ edited_attributes: attrs_to_apply.keys.select { |a| self.sticky_attributes.include?(a) } })
-        end
-        if existing_model
-          existing_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply)
-          existing_models << existing_model
-        else
-          new_model = self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
-          new_models << new_model if new_model
-        end
+    def apply_change_create_update(changeset: nil, change: nil, cache: {})
+      existing_model = find_existing_model(change)
+      attrs_to_apply = apply_params(change, cache)
+      unless !self.column_names.include?("edited_attributes") || changeset.nil? || changeset.import?
+        attrs_to_apply.update({ edited_attributes: attrs_to_apply.keys.select { |a| self.sticky_attributes.include?(a) } })
       end
-      new_models.each { |model| model.after_create_making_history(changeset) }
+      if existing_model
+        existing_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply)
+      else
+        new_model = self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
+      end
     end
 
-    def apply_changes_destroy(changeset: nil, changes: nil, cache: {})
-      changes.each do |change|
-        existing_model = find_existing_model(change)
-        if existing_model
-          existing_model.destroy_making_history(changeset: changeset)
-        else
-          raise Changeset::Error.new(changeset, "could not find a #{self.name} with Onestop ID of #{attrs[:onestop_id]} to destroy")
-        end
+    def apply_change_destroy(changeset: nil, change: nil, cache: {})
+      existing_model = find_existing_model(change)
+      if existing_model
+        existing_model.destroy_making_history(changeset: changeset)
+      else
+        raise Changeset::Error.new(changeset, "could not find a #{self.name} with Onestop ID of #{attrs[:onestop_id]} to destroy")
       end
+    end
+
+    def apply_associations(changeset: nil, change: {}, action: nil, cache: {})
+      existing_model = find_existing_model(change)
+      return unless existing_model
+      new_attrs = apply_params(change, cache)
+      existing_model.merge_in_attributes(new_attrs)
+      existing_model.update_associations(changeset)
     end
 
     def apply_params(params, cache={})
@@ -66,22 +60,15 @@ module CurrentTrackedByChangeset
       params.select { |key, value| self.changeable_attributes.include?(key) }
     end
 
-    def before_create_making_history(instantiated_model, changeset)
-      # this is available for overriding in models
-      super(instantiated_model, changeset) if defined?(super)
-      return true
-    end
-
     def create_making_history(changeset: nil, new_attrs: {})
       self.transaction do
+        # Create new model
         new_model = self.new(new_attrs)
         new_model.version = 1
         new_model.created_or_updated_in_changeset = changeset
-        proceed = self.before_create_making_history(new_model, changeset) # handle associations
-        if proceed
-          new_model.save!
-          new_model
-        end
+        # Save
+        new_model.save!
+        new_model
       end
     end
 
@@ -137,12 +124,6 @@ module CurrentTrackedByChangeset
     ]
   end
 
-  def after_create_making_history(changeset)
-    # this is available for overriding in models
-    super(changeset) if defined?(super)
-    return true
-  end
-
   def before_destroy_making_history(changeset, old_model)
     # this is available for overriding in models
     super(changeset, old_model) if defined?(super)
@@ -151,19 +132,20 @@ module CurrentTrackedByChangeset
 
   def destroy_making_history(changeset: nil)
     self.class.transaction do
+      # Create old model
       old_model = self.class.instantiate_an_old_model
       old_model.assign_attributes(changeable_attributes_as_a_cloned_hash)
       old_model.version = self.version
       old_model.destroyed_in_changeset = changeset
-
+      # Update current model
       self.marked_for_destroy_making_history = true
       self.old_model_left_after_destroy_making_history = old_model
-
-      # handle any associations
+      # Before destroy
       proceed = (
         old_model.before_destroy_making_history(changeset) &&
         self.before_destroy_making_history(changeset, old_model)
       )
+      # Save
       if proceed
         self.destroy!
         old_model.save!
@@ -171,7 +153,7 @@ module CurrentTrackedByChangeset
     end
   end
 
-  def before_update_making_history(changeset)
+  def update_associations(changeset)
     # this is available for overriding in models
     super(changeset) if defined?(super)
     return true
@@ -179,25 +161,19 @@ module CurrentTrackedByChangeset
 
   def update_making_history(changeset: nil, new_attrs: {})
     self.class.transaction do
+      # Create old model
       old_model = self.class.instantiate_an_old_model
       old_model.assign_attributes(changeable_attributes_as_a_cloned_hash)
       old_model.version = self.version
       old_model.current = self
-
+      # Update current model
       self.version ||= 1 # some entities had no version set
       self.version = self.version + 1
       self.merge_in_attributes(new_attrs)
       self.created_or_updated_in_changeset = changeset
-
-      # handle any associations
-      proceed = (
-        old_model.before_update_making_history(changeset) &&
-        self.before_update_making_history(changeset)
-      )
-      if proceed
-        old_model.save!
-        self.save!
-      end
+      # Save
+      old_model.save!
+      self.save!
     end
   end
 
