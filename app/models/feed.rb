@@ -161,22 +161,38 @@ class Feed < BaseFeed
     ]
   })
 
+  def move_feed_version_file(feed_version, file_type)
+    storage = model.file_uploader.send(:storage)
+    if storage.is_a? CarrierWave::Storage::Fog
+      file_type = file_type.to_s
+      file = feed_version.send file_type
+      local_file = File.new("#{Figaro.env.gtfs_tmpdir_basepath.presence}/mv-#{file.url}", 'w')
+      local_file.binmode
+      uri = URI.parse URI.encode(file.url)
+      open(uri) { |data| local_file.write data.read }
+
+      feed_version.send "remove_#{file_type}!"
+
+      feed_version.send "#{file_type}=" = AssetFileUploader.new feed_version, :file_uploader
+      (feed_version.send "#{file_type}").send "store!", local_file
+      local_file
+    end
+  end
+
   def rename_feed_version_files
     self.feed_versions.each{ |feed_version|
       #from https://github.com/carrierwaveuploader/carrierwave/issues/790
       storage = model.file_uploader.send(:storage)
       if storage.is_a? CarrierWave::Storage::Fog
-        local_file = File.new("#{Dir.tmpdir}/#{feed_version.sha1}", 'w')
-        local_file.binmode
-        uri = URI.parse URI.encode(feed_version.file.url)
-        open(uri) { |data| local_file.write data.read }
+        local_file = move_feed_version_file(feed_version, "file")
+        local_file_raw = move_feed_version_file(feed_version, "file_raw")
+        local_file_feedvalidator = move_feed_version_file(feed_version, "file_feedvalidator")
 
-        feed_version.remove_file!
-
-        feed_version.file = AssetFileUploader.new feed_version, :file_uploader
-        feed_version.file.store! local_file
         feed_version.save!
-        File.delete local_file
+
+        File.delete local_file unless local_file.nil?
+        File.delete local_file_raw unless local_file_raw.nil?
+        File.delete local_file_feedvalidator unless local_file_feedvalidator.nil?
       end
     }
   end
