@@ -167,6 +167,7 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
         self.issues << issue
       end
     end
+  end
 
   def distances_between_stops(stop)
     # check distance between stop and any other stop in datastore or belonging to operator

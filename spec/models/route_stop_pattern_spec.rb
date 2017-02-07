@@ -9,7 +9,6 @@
 #  stop_pattern                       :string           default([]), is an Array
 #  version                            :integer
 #  is_generated                       :boolean          default(FALSE)
-#  is_modified                        :boolean          default(FALSE)
 #  trips                              :string           default([]), is an Array
 #  identifiers                        :string           default([]), is an Array
 #  created_at                         :datetime         not null
@@ -529,7 +528,6 @@ describe RouteStopPattern do
       @empty_rsp.tl_geometry(stop_points, issues)
       expect(@empty_rsp.geometry[:coordinates]).to eq(RouteStopPattern.set_precision(stop_points))
       expect(@empty_rsp.is_generated).to be true
-      expect(@empty_rsp.is_modified).to be true
     end
 
     it 'does not remove points if generating geometry from stops' do
@@ -538,7 +536,6 @@ describe RouteStopPattern do
       @empty_rsp.tl_geometry(stop_points, issues)
       expect(@empty_rsp.geometry[:coordinates]).to eq(RouteStopPattern.set_precision(stop_points))
       expect(@empty_rsp.is_generated).to be true
-      expect(@empty_rsp.is_modified).to be true
     end
   end
 end

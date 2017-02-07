@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161207070207) do
+ActiveRecord::Schema.define(version: 20170207173441) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -130,7 +130,6 @@ ActiveRecord::Schema.define(version: 20161207070207) do
     t.string    "stop_pattern",                                                                                   default: [],                 array: true
     t.integer   "version"
     t.boolean   "is_generated",                                                                                   default: false
-    t.boolean   "is_modified",                                                                                    default: false
     t.string    "trips",                                                                                          default: [],                 array: true
     t.string    "identifiers",                                                                                    default: [],                 array: true
     t.datetime  "created_at",                                                                                                     null: false
@@ -403,6 +402,7 @@ ActiveRecord::Schema.define(version: 20161207070207) do
     t.text      "license_attribution_text"
     t.integer   "active_feed_version_id"
     t.string    "edited_attributes",                                                                              default: [], array: true
+    t.string    "action"
   end
 
   add_index "old_feeds", ["active_feed_version_id"], name: "index_old_feeds_on_active_feed_version_id", using: :btree
@@ -430,6 +430,7 @@ ActiveRecord::Schema.define(version: 20161207070207) do
     t.string    "state"
     t.string    "metro"
     t.string    "edited_attributes",                                                                              default: [], array: true
+    t.string    "action"
   end
 
   add_index "old_operators", ["created_or_updated_in_changeset_id"], name: "o_operators_cu_in_changeset_id_index", using: :btree
@@ -485,7 +486,6 @@ ActiveRecord::Schema.define(version: 20161207070207) do
     t.string    "stop_pattern",                                                                                   default: [],                 array: true
     t.integer   "version"
     t.boolean   "is_generated",                                                                                   default: false
-    t.boolean   "is_modified",                                                                                    default: false
     t.string    "trips",                                                                                          default: [],                 array: true
     t.string    "identifiers",                                                                                    default: [],                 array: true
     t.datetime  "created_at",                                                                                                     null: false
@@ -497,6 +497,7 @@ ActiveRecord::Schema.define(version: 20161207070207) do
     t.integer   "current_id"
     t.float     "stop_distances",                                                                                 default: [],                 array: true
     t.string    "edited_attributes",                                                                              default: [],                 array: true
+    t.string    "action"
   end
 
   add_index "old_route_stop_patterns", ["created_or_updated_in_changeset_id"], name: "o_rsp_cu_in_changeset", using: :btree
@@ -526,6 +527,7 @@ ActiveRecord::Schema.define(version: 20161207070207) do
     t.string    "edited_attributes",                                                                              default: [],        array: true
     t.string    "wheelchair_accessible",                                                                          default: "unknown"
     t.string    "bikes_allowed",                                                                                  default: "unknown"
+    t.string    "action"
   end
 
   add_index "old_routes", ["bikes_allowed"], name: "index_old_routes_on_bikes_allowed", using: :btree
@@ -664,6 +666,7 @@ ActiveRecord::Schema.define(version: 20161207070207) do
     t.integer   "osm_way_id"
     t.string    "edited_attributes",                                                                              default: [], array: true
     t.boolean   "wheelchair_boarding"
+    t.string    "action"
   end
 
   add_index "old_stops", ["created_or_updated_in_changeset_id"], name: "o_stops_cu_in_changeset_id_index", using: :btree
