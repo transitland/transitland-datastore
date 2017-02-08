@@ -166,22 +166,18 @@ describe GTFSGraph do
       expect(s.frequency_headway_seconds).to eq(1800)
       expect(s.frequency_type).to eq('not_exact')
     end
-  end
 
-  context 'schedule_stop_pairs' do
-    context 'frequency' do
-      it 'uses times relative to frequency_start_time' do
-        @feed, @feed_version = load_feed(feed_version_name: :feed_version_recursosdatabuenosairesgobar, import_level: 2)
-        ssps = ScheduleStopPair.where(
-          route: Route.find_by_onestop_id!('r-69y7n-a'),
-          trip: 'A01',
-          frequency_start_time: '05:00:00'
-        ).order(origin_arrival_time: :asc)
-        expect(ssps.first.origin_arrival_time).to eq('05:00:00')
-        expect(ssps.first.origin_departure_time).to eq('05:00:24')
-        expect(ssps.second.origin_arrival_time).to eq('05:00:58')
-        expect(ssps.second.origin_departure_time).to eq('05:01:22')
-      end
+    it 'uses times relative to frequency_start_time' do
+      ssps = ScheduleStopPair.where(
+        route: Route.find_by_onestop_id!('r-9qsczp-40'),
+        trip: 'CITY1',
+        frequency_start_time: '08:00:00',
+        frequency_end_time: '09:59:59'
+      ).order(origin_arrival_time: :asc)
+      expect(ssps.first.origin_arrival_time).to eq('08:00:00')
+      expect(ssps.first.origin_departure_time).to eq('08:00:00')
+      expect(ssps.second.origin_arrival_time).to eq('08:05:00')
+      expect(ssps.second.origin_departure_time).to eq('08:07:00')
     end
   end
 
