@@ -59,7 +59,7 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
     ]}
 
     respond_to do |format|
-      format.json { render paginated_json_collection(@rsps) }
+      format.json { render paginated_json_collection(@rsps).merge({ scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }) }
       format.geojson { render paginated_geojson_collection(@rsps) }
     end
   end
@@ -67,7 +67,7 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
   def show
     respond_to do |format|
       format.json { render json: @route_stop_pattern }
-      format.geojson { render json: @route_stop_pattern, serializer: GeoJSONSerializer }
+      format.geojson { render json: @route_stop_pattern, serializer: GeoJSONSerializer, scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }
     end
   end
 

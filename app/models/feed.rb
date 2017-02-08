@@ -63,8 +63,6 @@ class Feed < BaseFeed
   has_many :operators_in_feed
   has_many :operators, -> { distinct }, through: :operators_in_feed
 
-  has_many :issues, through: :entities_with_issues
-
   has_many :entities_imported_from_feed
   has_many :imported_operators, -> { distinct }, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'
   has_many :imported_stops, -> { distinct }, through: :entities_imported_from_feed, source: :entity, source_type: 'Stop'

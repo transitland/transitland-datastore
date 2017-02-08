@@ -44,7 +44,6 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
       @feeds = @feeds.where_latest_feed_version_import_status(AllowFiltering.to_boolean(params[:latest_feed_version_import_status]))
     end
 
-    # Includes
     @feeds = @feeds.includes{[
       operators_in_feed,
       operators_in_feed.operator,
@@ -54,7 +53,7 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
     ]}
 
     respond_to do |format|
-      format.json { render paginated_json_collection(@feeds) }
+      format.json { render paginated_json_collection(@feeds).merge({ scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }) }
       format.geojson { render paginated_geojson_collection(@feeds) }
       format.csv { return_downloadable_csv(@feeds, 'feeds') }
     end
@@ -62,7 +61,7 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
 
   def show
     respond_to do |format|
-      format.json { render json: @feed }
+      format.json { render json: @feed, scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }
       format.geojson { render json: @feed, serializer: GeoJSONSerializer }
     end
   end
