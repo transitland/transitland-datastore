@@ -57,6 +57,10 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
       feeds
     ]}
 
+    if params[:embed_issues].present?
+      @operators = @operators.includes(:issues) if AllowFiltering.to_boolean(params[:embed_issues])
+    end
+
     respond_to do |format|
       format.json { render paginated_json_collection(@operators).merge({ scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }) }
       format.geojson { render paginated_geojson_collection(@operators) }

@@ -93,6 +93,10 @@ class Api::V1::StopStationsController < Api::V1::BaseApiController
       stop_egresses.stop_transfers.to_stop
     ]} # TODO: check performance against eager_load, joins, etc.
 
+    if params[:embed_issues].present?
+      @stops = @stops.includes(:issues) if AllowFiltering.to_boolean(params[:embed_issues])
+    end
+
     respond_to do |format|
       format.json { render paginated_json_collection(@stops).merge({ scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }) }
       format.geojson { render paginated_geojson_collection(@stops) }
