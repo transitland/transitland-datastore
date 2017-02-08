@@ -289,7 +289,7 @@ describe Changeset do
       expect(RouteStopPattern.find_by_onestop_id!(rsp.onestop_id).stop_pattern).to match_array(['s-9q8yt4b-1AvHoS', millbrae.onestop_id])
     end
 
-    it 'updates S3 link on change feed onestop id action' do
+    it 'updates S3 link on change feed onestop id action', :optional => true do
       feed_version = create(:feed_version_bart)
       changeset = create(:changeset, payload: {
         changes: [

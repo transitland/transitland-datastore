@@ -169,19 +169,23 @@ class Feed < BaseFeed
         feed_version.file.remove!
         feed_version.file = File.open(local_file)
 
-        local_file_raw = feed_version.file_raw.local_path_copying_locally_if_needed
-        feed_version.file_raw.remove!
-        feed_version.file_raw = File.open(local_file_raw)
+        unless feed_version.file_raw.nil?
+          local_file_raw = feed_version.file_raw.local_path_copying_locally_if_needed
+          feed_version.file_raw.remove!
+          feed_version.file_raw = File.open(local_file_raw)
+        end
 
-        local_file_feedvalidator = feed_version.file_feedvalidator.local_path_copying_locally_if_needed
-        feed_version.file_feedvalidator.remove!
-        feed_version.file_feedvalidator = File.open(local_file_feedvalidator)
+        unless feed_version.file_feedvalidator.nil?
+          local_file_feedvalidator = feed_version.file_feedvalidator.local_path_copying_locally_if_needed
+          feed_version.file_feedvalidator.remove!
+          feed_version.file_feedvalidator = File.open(local_file_feedvalidator)
+        end
 
         feed_version.save!
 
         File.delete local_file
-        File.delete local_file_raw
-        File.delete local_file_feedvalidator
+        File.delete local_file_raw unless local_file_raw.nil?
+        File.delete local_file_feedvalidator unless local_file_feedvalidator.nil?
       end
     }
   end
