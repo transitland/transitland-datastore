@@ -1,17 +1,17 @@
 describe GTFSGraph do
-  context 'caltrain', clean_as_group: true do
+  context 'example feed', clean_as_group: true do
     before(:all) {
-      @feed, @feed_version = load_feed(feed_version_name: :feed_version_caltrain, import_level: 1)
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 2)
     }
 
     it 'updated feed geometry' do
       expect_coords = [[
-        [-122.412076, 37.003485],
-        [-121.566088, 37.003485],
-        [-121.566088, 37.77639],
-        [-122.412076, 37.77639],
-        [-122.412076, 37.003485]
-      ]]
+        [-117.133162, 36.425288],
+        [-116.40094, 36.425288],
+        [-116.40094, 36.915682],
+        [-117.133162, 36.915682],
+        [-117.133162, 36.425288]]
+      ]
       feed_coords = @feed.geometry(as: :geojson)[:coordinates]
       expect_coords.first.zip(feed_coords.first).each { |a,b|
         expect(a[0]).to be_within(0.001).of(b[0])
@@ -22,127 +22,89 @@ describe GTFSGraph do
     it 'created a known Operator' do
       expect(@feed.imported_operators.count).to eq(1)
       expect(@feed_version.imported_operators).to eq(@feed.imported_operators)
-      o = @feed.operators.find_by(onestop_id: 'o-9q9-caltrain')
+      o = @feed.operators.find_by_onestop_id('o-9qs-demotransitauthority')
       expect(o).to be_truthy
-      expect(o.name).to eq('Caltrain')
-      expect(o.onestop_id).to eq('o-9q9-caltrain')
+      expect(o.name).to eq('Demo Transit Authority')
+      expect(o.onestop_id).to eq('o-9qs-demotransitauthority')
       expect(o.geometry).to be
       expect(o.timezone).to eq('America/Los_Angeles')
-      expect(o.website).to eq('http://www.caltrain.com')
+      expect(o.website).to eq('http://www.google.com')
     end
 
     it 'created known Routes' do
       expect(@feed.imported_routes.count).to eq(5)
       expect(@feed_version.imported_routes).to eq(@feed.imported_routes)
-      r = @feed.imported_routes.find_by(onestop_id: 'r-9q9j-bullet')
+      r = @feed.imported_routes.find_by_onestop_id!('r-9qscy-10')
       expect(r).to be_truthy
-      expect(r.name).to eq('Bullet')
-      expect(r.onestop_id).to eq('r-9q9j-bullet')
-      expect(r.vehicle_type).to eq(:rail)
-      expect(r.vehicle_type_value).to eq(2)
-      expect(r.tags['route_long_name']).to eq('Bullet')
+      expect(r.name).to eq('10')
+      expect(r.onestop_id).to eq('r-9qscy-10')
+      expect(r.vehicle_type).to eq(:bus)
+      expect(r.vehicle_type_value).to eq(3)
+      expect(r.tags['route_long_name']).to eq('Airport - Bullfrog')
       expect(r.geometry).to be
       expect(r.wheelchair_accessible).to eq('unknown')
     end
 
     it 'created known Stops' do
-      expect(@feed.imported_stops.count).to eq(95)
+      expect(@feed.imported_stops.count).to eq(9)
       expect(@feed_version.imported_stops).to eq(@feed.imported_stops)
-      s = @feed.imported_stops.find_by(onestop_id: 's-9q9k659e3r-sanjosecaltrainstation')
+      s = @feed.imported_stops.find_by_onestop_id!('s-9qscwx8n60-nyecountyairportdemo')
       expect(s).to be_truthy
-      expect(s.name).to eq('San Jose Caltrain Station')
-      expect(s.onestop_id).to eq('s-9q9k659e3r-sanjosecaltrainstation')
-      # expect(s.tags['']) # no tags
+      expect(s.name).to eq('Nye County Airport (Demo)')
+      expect(s.onestop_id).to eq('s-9qscwx8n60-nyecountyairportdemo')
       expect(s.geometry).to be
       expect(s.timezone).to eq('America/Los_Angeles')
     end
 
     it 'created known RouteStopPatterns' do
-      expect(@feed.imported_route_stop_patterns.count).to eq(51)
+      expect(@feed.imported_route_stop_patterns.count).to eq(9)
     end
 
     it 'created known Route that traverses known Route Stop Patterns' do
-      r = @feed.imported_routes.find_by(onestop_id: 'r-9q9j-bullet')
-      expect(r.route_stop_patterns.size).to eq(12)
+      r = @feed.imported_routes.find_by_onestop_id!('r-9qscy-10')
+      expect(r.route_stop_patterns.size).to eq(2)
       expect(r.route_stop_patterns.map(&:onestop_id)).to contain_exactly(
-          "r-9q9j-bullet-ed69fc-5f96a1",
-          "r-9q9j-bullet-1de4fb-725db6",
-          "r-9q9j-bullet-cfa925-5f96a1",
-          "r-9q9j-bullet-2e5135-725db6",
-          "r-9q9j-bullet-4fea71-725db6",
-          "r-9q9j-bullet-804eb5-5f96a1",
-          "r-9q9j-bullet-b18930-5f96a1",
-          "r-9q9j-bullet-bed20a-5f96a1",
-          "r-9q9j-bullet-8f1c16-6724bf",
-          "r-9q9j-bullet-3fbb97-725db6",
-          "r-9q9j-bullet-d2a2b0-725db6",
-          "r-9q9j-bullet-899813-f23867"
+          "r-9qscy-10-5dca2b-ae2f1e",
+          "r-9qscy-10-1b7e7d-bc0214"
       )
     end
 
     it 'calculated and stored distances for Route Stop Patterns' do
-      expect(@feed.imported_route_stop_patterns[0].stop_distances).to match_array([46.1, 2565.9, 8002.4, 14688.5,
-        17656.6, 21810.1, 24362.9, 26122.0, 28428.0, 30576.9, 32583.5, 35274.7, 37262.8, 40756.8, 44607.6, 46357.8,
-        48369.9, 50918.5, 54858.4, 57964.7, 62275.7, 65457.2, 71336.4, 75359.4].map{|value| be_within(2.0).of(value)})
+      rsp = @feed.imported_route_stop_patterns.find_by_onestop_id!('r-9qsczp-40-0830a7-0da42c')
+      expect(rsp.stop_distances).to match_array(
+        [0.0, 685.1, 1286.7, 1886.4, 2762.0].map{ |value| be_within(2.0).of(value) }
+      )
     end
 
     it 'created known Operator that serves known Routes' do
-      o = @feed.imported_operators.find_by(onestop_id: 'o-9q9-caltrain')
+      o = @feed.imported_operators.find_by_onestop_id!('o-9qs-demotransitauthority')
       expect(o.routes.size).to eq(5)
       expect(o.routes.map(&:onestop_id)).to contain_exactly(
-        "r-9q9j-bullet",
-        "r-9q9-limited",
-        "r-9q9-local",
-        "r-9q9k6-tamien~sanjosediridoncaltrainshuttle",
-        "r-9q8yw-sx"
+        "r-9qsb-20",
+        "r-9qscy-10",
+        "r-9qscy-30",
+        "r-9qsczp-40",
+        "r-9qt1-50"
       )
     end
 
     it 'created known Operator that serves known Stops' do
-      o = @feed.imported_operators.find_by(onestop_id: 'o-9q9-caltrain')
+      o = @feed.imported_operators.find_by_onestop_id!('o-9qs-demotransitauthority')
       # Just check the number of stops here...
-      expect(o.stops.size).to eq(64)
+      expect(o.stops.count).to eq(9)
     end
 
     it 'created known Routes that serve known Stops' do
-      r = @feed.imported_routes.find_by(onestop_id: 'r-9q9j-bullet')
-      expect(r.stops.size).to eq(26)
+      r = @feed.imported_routes.find_by_onestop_id!('r-9qsczp-40')
+      expect(r.stops.size).to eq(5)
       expect(r.stops.map(&:onestop_id)).to match_array([
-        "s-9q8vzhbggj-millbraecaltrainstation<70061",
-        "s-9q8vzhbggj-millbraecaltrainstation<70062",
-        "s-9q8yw8y448-bayshorecaltrainstation<70031",
-        "s-9q8yw8y448-bayshorecaltrainstation<70032",
-        "s-9q8yycs6ku-22ndstreetcaltrainstation<70021",
-        "s-9q8yycs6ku-22ndstreetcaltrainstation<70022",
-        "s-9q8yyugptw-sanfranciscocaltrainstation<70011",
-        "s-9q8yyugptw-sanfranciscocaltrainstation<70012",
-        "s-9q9hwp6epk-mountainviewcaltrainstation<70211",
-        "s-9q9hwp6epk-mountainviewcaltrainstation<70212",
-        "s-9q9hxhecje-sunnyvalecaltrainstation<70221",
-        "s-9q9hxhecje-sunnyvalecaltrainstation<70222",
-        "s-9q9j5dmkuu-menloparkcaltrainstation<70161",
-        "s-9q9j5dmkuu-menloparkcaltrainstation<70162",
-        "s-9q9j6812kg-redwoodcitycaltrainstation<70141",
-        "s-9q9j6812kg-redwoodcitycaltrainstation<70142",
-        "s-9q9j8rn6tv-sanmateocaltrainstation<70091",
-        "s-9q9j8rn6tv-sanmateocaltrainstation<70092",
-        "s-9q9j913rf1-hillsdalecaltrainstation<70111",
-        "s-9q9j913rf1-hillsdalecaltrainstation<70112",
-        "s-9q9jh061xw-paloaltocaltrainstation<70171",
-        "s-9q9jh061xw-paloaltocaltrainstation<70172",
-        "s-9q9k62qu53-tamiencaltrainstation<70271",
-        "s-9q9k62qu53-tamiencaltrainstation<70272",
-        "s-9q9k659e3r-sanjosecaltrainstation<70261",
-        "s-9q9k659e3r-sanjosecaltrainstation<70262"
+        "s-9qsfp2212t-stagecoachhotel~casinodemo",
+        "s-9qsfp00vhs-northave~naavedemo",
+        "s-9qsfnb5uz6-northave~davendemo",
+        "s-9qscyz5vqg-doingave~davendemo",
+        "s-9qsczn2rk0-emainst~sirvingstdemo"
       ])
     end
-  end
-
-
-  context 'example feed', clean_as_group: true do
-    before(:all) {
-      @feed, @feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 2)
-    }
 
     it 'created known ScheduleStopPairs' do
       expect(@feed.imported_schedule_stop_pairs.count).to eq(49) # EXACTLY.
@@ -259,10 +221,20 @@ describe GTFSGraph do
       expect(@feed.imported_routes.find_by_onestop_id('r-9qscy-10').vehicle_type).to eq 'rail'
     end
 
-    it 'does not modify previous matching feed version entitie\'s unchangeable attributes' do
+    it 'does not modify previous matching feed version entities unchangeable attributes' do
       original_creation_time = @feed.imported_stops.find_by_onestop_id('s-9qscv9zzb5-bullfrogdemo').created_at
       load_feed(feed_version: @feed_version_update_add, import_level: 1)
       expect(@feed_version_update_add.imported_stops.find_by_onestop_id('s-9qscv9zzb5-bullfrogdemo').created_at).to eq original_creation_time
+    end
+
+    it 'matches previous stop_id' do
+      osid = "s-9qscwx8n60-nyecountyairportdemo"
+      osid_new = 's-9qscwx8n60-test'
+      s = Stop.find_by_onestop_id!(osid)
+      s.update!(onestop_id: osid_new)
+      # Import again
+      load_feed(feed_version: @feed_version_update_add, import_level: 1)
+      expect(s.reload.entities_imported_from_feed.count).to eq(2)
     end
   end
 
@@ -279,7 +251,7 @@ describe GTFSGraph do
     end
 
     it 'fails if no matching operator_in_feed' do
-      feed_version = create(:feed_version_caltrain)
+      feed_version = create(:feed_version_example)
       feed = feed_version.feed
       oif = feed.operators_in_feed.first
       oif.update!({gtfs_agency_id:'not-found'})
@@ -372,17 +344,6 @@ describe GTFSGraph do
       expect(
         feed_version.imported_schedule_stop_pairs.where(trip: 'CITY1').pluck(:trip_headsign).uniq
       ).to match_array(["E Main St / S Irving St (Demo)"])
-    end
-
-    it 'matches previous stop_id' do
-      feed, original_feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 1)
-      feed_version_update_add = create(:feed_version_example_update_add, feed: feed)
-      osid = "s-9qscwx8n60-nyecountyairportdemo"
-      osid_new = 's-9qscwx8n60-test'
-      s = Stop.find_by_onestop_id!(osid)
-      s.update!(onestop_id: osid_new)
-      # Import again
-      load_feed(feed_version: feed_version_update_add, import_level: 1)
     end
 
     it 'can process a trip with 1 unique stop but at least 2 stop times' do
