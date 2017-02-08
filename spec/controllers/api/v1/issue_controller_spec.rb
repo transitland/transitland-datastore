@@ -145,15 +145,15 @@ describe Api::V1::IssuesController do
 
   context 'POST destroy' do
     it 'should delete issue' do
-      issue = Issue.first
+      issue = Issue.create!(details: "This is a test issue", created_by_changeset_id: 1, issue_type: "stop_rsp_distance_gap")
+      issue.entities_with_issues.create(entity: Stop.find_by_onestop_id!('s-9qscwx8n60-nyecountyairportdemo'), entity_attribute: "geometry")
       post :destroy, id: issue.id
       expect(Issue.exists?(issue.id)).to eq(false)
     end
 
     it 'should require auth token to delete issue' do
       @request.env['HTTP_AUTHORIZATION'] = nil
-      issue = Issue.new(details: "This is a test issue", created_by_changeset_id: 1, issue_type: "stop_rsp_distance_gap")
-      issue.save!
+      issue = Issue.create!(details: "This is a test issue", created_by_changeset_id: 1, issue_type: "stop_rsp_distance_gap")
       issue.entities_with_issues.create(entity: Stop.find_by_onestop_id!('s-9qscwx8n60-nyecountyairportdemo'), entity_attribute: "geometry")
       post :destroy, id: issue.id
       expect(response.status).to eq(401)
