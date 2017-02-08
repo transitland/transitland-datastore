@@ -5,14 +5,14 @@ describe CurrentTrackedByChangeset do
     it 'merges changeable attributes' do
       stop1 = create(:stop)
       stop2 = create(:stop, name: 'Test')
-      stop1.merge(stop2)
+      stop1.merge_in_entity(stop2)
       expect(stop1.name).to eq(stop2.name)
     end
 
     it 'does not merge non-changeable attributes' do
       stop1 = create(:stop, version: 1)
       stop2 = create(:stop, version: 2)
-      stop1.merge(stop2)
+      stop1.merge_in_entity(stop2)
       expect(stop1.version).to eq(1)
       expect(stop2.version).to eq(2)
     end
@@ -24,7 +24,7 @@ describe CurrentTrackedByChangeset do
       stop1.tags[:test] = '123'
       stop2.tags = {}
       stop2.tags[:foo] = 'bar'
-      stop1.merge(stop2)
+      stop1.merge_in_entity(stop2)
       expect(stop1.tags).to eq({"test"=>"123", "foo"=>"bar"})
     end
 
@@ -33,14 +33,14 @@ describe CurrentTrackedByChangeset do
       stop2 = create(:stop)
       stop1.identifiers = ['foo']
       stop2.identifiers = ['bar']
-      stop1.merge(stop2)
+      stop1.merge_in_entity(stop2)
       expect(stop1.identifiers).to match_array(['foo'])
     end
 
     it 'converts empty string to nil' do
       route1 = create(:route, color: 'FFFFFF')
       route2 = create(:route, color: '')
-      route1.merge(route2)
+      route1.merge_in_entity(route2)
       expect(route1.color).to eq(nil)
     end
   end
