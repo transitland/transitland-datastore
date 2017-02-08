@@ -48,6 +48,21 @@ describe Api::V1::StopsController do
         }})
       end
 
+      it 'returns stops with issues' do
+        stop_with_issue = create_list(:stop, 3)
+        Issue.create!(issue_type: 'stop_name').entities_with_issues.create!(entity: stop_with_issue.first, entity_attribute: 'name')
+
+        get :index, embed_issues: 'true'
+        expect({ stops: -> (stops) {
+            expect(stops.first[:issues].size).to eq 1
+        }})
+
+        get :index, embed_issues: 'false'
+        expect({ stops: -> (stops) {
+            expect(stops.first[:issues]).to be_nil
+        }})
+      end
+
       context 'served_by_vehicle_types' do
         before(:each) do
           @route1 = create(:route, vehicle_type: 'metro')
