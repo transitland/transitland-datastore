@@ -194,10 +194,6 @@ class Feed < BaseFeed
     rename_feed_version_files
   end
 
-  def after_merge_onestop_ids(merging_onestop_ids, changeset)
-    rename_feed_version_files
-  end
-
   def update_associations(changeset)
     (self.includes_operators || []).each do |included_operator|
       operator = Operator.find_by!(onestop_id: included_operator[:operator_onestop_id])

@@ -290,6 +290,7 @@ describe Changeset do
     end
 
     it 'updates S3 link on change feed onestop id action', :optional => true do
+      # this won't work locally unless the right environment is set up
       feed_version = create(:feed_version_bart)
       changeset = create(:changeset, payload: {
         changes: [
