@@ -4,7 +4,7 @@ class EntitySerializer < ApplicationSerializer
   attribute :issues, if: :has_issues
 
   def has_issues
-    scope[:embed_issues]
+    !!scope && !!scope[:embed_issues]
   end
 
   def issues

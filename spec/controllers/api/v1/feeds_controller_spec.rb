@@ -89,6 +89,22 @@ describe Api::V1::FeedsController do
           expect(feeds.first[:onestop_id]).to eq(fvs[2].feed.onestop_id)
         }})
       end
+
+      it 'query: embed_issues' do
+        feeds = create_list(:feed, 3)
+        feed = feeds.first
+        Issue.create!(issue_type: 'feed_fetch_invalid_source').entities_with_issues.create!(entity: feed, entity_attribute: 'url')
+
+        get :index, embed_issues: 'true'
+        expect_json({feeds: -> (feeds) {
+          expect(feeds.first[:issues].size).to eq 1
+        }})
+
+        get :index, embed_issues: 'false'
+        expect_json({feeds: -> (feeds) {
+          expect(feeds.first[:issues]).to be_nil
+        }})
+      end
     end
 
     context 'as GeoJSON' do

@@ -99,10 +99,6 @@ class StopStationSerializer < CurrentEntitySerializer
     result.uniq { |osr| osr.route }
   end
 
-  def has_issues
-    scope[:embed_issues]
-  end
-
   def issues
     issues = []
     if ['StopPlatform', 'StopEgress'].include?(object.class.name.to_s)
