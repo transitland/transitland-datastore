@@ -58,8 +58,12 @@ RSpec.configure do |config|
     Sidekiq::Worker.clear_all
   end
 
+  config.before(:all) do
+    DatabaseCleaner.clean unless self.class.metadata[:clean_as_group]
+  end
+
   config.before(:each) do
-    DatabaseCleaner.clean_with :truncation, { except: ['spatial_ref_sys'] }
+    DatabaseCleaner.clean_with :truncation, { except: ['spatial_ref_sys'] } unless self.class.metadata[:clean_as_group]
     Sidekiq::Worker.clear_all
   end
 
