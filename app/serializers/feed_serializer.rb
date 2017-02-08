@@ -58,7 +58,7 @@ class FeedSerializer < ApplicationSerializer
   attribute :issues, if: :has_issues
 
   def has_issues
-   #supported default of including issues
+   #supporting default of including issues
    !scope[:embed_issues].present? || scope[:embed_issues]
   end
 
