@@ -341,10 +341,11 @@ describe Api::V1::ChangesetsController do
     it 'resolves issue with issues_resolved changeset' do
       Timecop.freeze(3.minutes.from_now) do
         # Moving this stop will create other stop_rsp_distance_gap issues, but we only care about this one issue
+        issue = Issue.last
         changeset = create(:changeset, payload: {
           changes: [
             action: 'createUpdate',
-            issuesResolved: [8],
+            issuesResolved: [issue.id],
             stop: {
               onestopId: 's-9qscwx8n60-nyecountyairportdemo',
               timezone: 'America/Los_Angeles',
@@ -356,7 +357,7 @@ describe Api::V1::ChangesetsController do
           ]
         })
         expect(Sidekiq::Logging.logger).to receive(:info).with(/Calculating distances/)
-        expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>8.*"resolved_by_changeset_id"=>2.*"open"=>false/)
+        expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>#{issue.id}.*"resolved_by_changeset_id"=>#{changeset.id}.*"open"=>false/)
         post :apply, id: changeset.id
       end
     end
