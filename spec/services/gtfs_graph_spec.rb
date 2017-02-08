@@ -1,7 +1,10 @@
 describe GTFSGraph do
-  context 'example feed', clean_as_group: true do
+  context 'example feed' do
     before(:all) {
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 2)
+    }
+    after(:all) {
+      DatabaseCleaner.clean_with :truncation, { except: ['spatial_ref_sys'] }
     }
 
     it 'updated feed geometry' do
