@@ -522,7 +522,7 @@ class GTFSGraph
     found_entity ||= find_by_eiff(gtfs_entity)
     found_entity ||= find_by_onestop_id(new_entity.onestop_id)
     if found_entity
-      found_entity.merge(new_entity)
+      new_entity.onestop_id = found_entity.onestop_id
       found_entity.merge_in_entity(new_entity)
     else
       found_entity = new_entity
