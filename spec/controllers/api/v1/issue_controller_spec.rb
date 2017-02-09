@@ -56,7 +56,7 @@ describe Api::V1::IssuesController do
 
   context 'GET show' do
     it 'returns a 404 when not found' do
-      get :show, id: 33
+      get :show, id: 0
       expect(response.status).to eq 404
     end
   end
@@ -89,7 +89,7 @@ describe Api::V1::IssuesController do
     it 'does not create issue when an equivalent one exists' do
       issue2 = {
         "details": "This is a test issue",
-        "created_by_changeset_id": 1,
+        "created_by_changeset_id": Changeset.last.id,
         "issue_type": 'stop_rsp_distance_gap',
         "entities_with_issues": [
           {
@@ -137,9 +137,9 @@ describe Api::V1::IssuesController do
           "onestop_id": 's-9qscwx8n60-nyecountyairportdemo',
           "entity_attribute": 'geometry'
       }]
-      post :update, id: 1, issue: {details: details, entities_with_issues: entities_with_issues}
+      post :update, id: issue.id, issue: {details: details, entities_with_issues: entities_with_issues}
       expect(issue.reload.entities_with_issues.size).to eq 1
-      expect(issue.reload.entities_with_issues[0].entity.onestop_id).to eq 's-9qscwx8n60-nyecountyairportdemo'
+      expect(issue.reload.entities_with_issues.first.entity.onestop_id).to eq 's-9qscwx8n60-nyecountyairportdemo'
     end
   end
 
