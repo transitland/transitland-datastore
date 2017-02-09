@@ -386,8 +386,9 @@ describe Changeset do
   end
 
   context 'issues' do
-    before(:each) do
+    before(:all) do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_issues, import_level: 1)
+    end
     before(:each) do
       # Issues:
       # 1 - 6: rsp_line_inaccurate
@@ -397,6 +398,9 @@ describe Changeset do
       @rsp2 = RouteStopPattern.find_by_onestop_id!('r-9qscy-30-a41e99-fcca25')
       @stop = Stop.find_by_onestop_id!('s-9qscwx8n60-nyecountyairportdemo')
     end
+    after(:all) {
+      DatabaseCleaner.clean_with :truncation, { except: ['spatial_ref_sys'] }
+    }
 
     it 'creates geometry issues during import' do
       expect(Issue.issue_types_in_category('route_geometry').size).to be > 1
