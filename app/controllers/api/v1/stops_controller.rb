@@ -66,10 +66,7 @@ class Api::V1::StopsController < Api::V1::BaseApiController
       imported_from_feeds,
       imported_from_feed_versions
     ]} # TODO: check performance against eager_load, joins, etc.
-
-    if params[:embed_issues].present?
-      @stops = @stops.includes(:issues) if AllowFiltering.to_boolean(params[:embed_issues])
-    end
+    @stops = @stops.includes(:issues) if AllowFiltering.to_boolean(params[:embed_issues])
 
     respond_to do |format|
       format.json { render paginated_json_collection(@stops).merge({ scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } })  }

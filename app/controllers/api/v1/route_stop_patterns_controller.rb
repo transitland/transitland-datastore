@@ -57,10 +57,7 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
       imported_from_feeds,
       imported_from_feed_versions
     ]}
-
-    if params[:embed_issues].present?
-      @rsps = @rsps.includes(:issues) if AllowFiltering.to_boolean(params[:embed_issues])
-    end
+    @rsps = @rsps.includes(:issues) if AllowFiltering.to_boolean(params[:embed_issues])
 
     respond_to do |format|
       format.json { render paginated_json_collection(@rsps).merge({ scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }) }

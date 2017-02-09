@@ -52,10 +52,7 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
       active_feed_version,
       feed_versions
     ]}
-
-    if params[:embed_issues].present?
-      @feeds = @feeds.includes(:issues) if AllowFiltering.to_boolean(params[:embed_issues])
-    end
+    @feeds = @feeds.includes(:issues) if AllowFiltering.to_boolean(params[:embed_issues])
 
     respond_to do |format|
       format.json { render paginated_json_collection(@feeds).merge({ scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }) }

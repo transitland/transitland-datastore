@@ -79,10 +79,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
       imported_from_feeds,
       imported_from_feed_versions
     ]}
-
-    if params[:embed_issues].present?
-      @routes = @routes.includes(:issues) if AllowFiltering.to_boolean(params[:embed_issues])
-    end
+    @routes = @routes.includes(:issues) if AllowFiltering.to_boolean(params[:embed_issues])
 
     respond_to do |format|
       # consider removing exclude_geometry
