@@ -388,10 +388,14 @@ describe Changeset do
   context 'issues' do
     before(:each) do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_issues, import_level: 1)
+    before(:each) do
       # Issues:
       # 1 - 6: rsp_line_inaccurate
       # 7: distance_calculation_inaccurate (s-9qkxnx40xt-furnacecreekresortdemo & r-9qsb-20-8d5767-6bb5fc)
       # 8: stop_rsp_distance_gap (s-9qscwx8n60-nyecountyairportdemo & r-9qscy-30-a41e99-fcca25)
+      @rsp1 = RouteStopPattern.find_by_onestop_id!('r-9qsb-20-8d5767-6bb5fc')
+      @rsp2 = RouteStopPattern.find_by_onestop_id!('r-9qscy-30-a41e99-fcca25')
+      @stop = Stop.find_by_onestop_id!('s-9qscwx8n60-nyecountyairportdemo')
     end
 
     it 'creates geometry issues during import' do
@@ -404,11 +408,12 @@ describe Changeset do
 
     context 'resolution' do
       it 'can be resolved' do
+        issue = @stop.issues.first
         Timecop.freeze(3.minutes.from_now) do
           changeset = create(:changeset, payload: {
             changes: [
               action: 'createUpdate',
-              issuesResolved: [8],
+              issuesResolved: [issue.id],
               stop: {
                 onestopId: 's-9qscwx8n60-nyecountyairportdemo',
                 timezone: 'America/Los_Angeles',
@@ -420,17 +425,18 @@ describe Changeset do
             ]
           })
           expect(Sidekiq::Logging.logger).to receive(:info).with(/Calculating distances/)
-          expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>8.*"resolved_by_changeset_id"=>2.*"open"=>false/)
+          expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>#{issue.id}.*"resolved_by_changeset_id"=>.*"open"=>false/)
           changeset.apply!
         end
       end
 
       it 'does not apply changeset that does not resolve payload issues_resolved' do
+        issue = @stop.issues.first
         Timecop.freeze(3.minutes.from_now) do
           changeset = create(:changeset, payload: {
             changes: [
               action: 'createUpdate',
-              issuesResolved: [8],
+              issuesResolved: [issue.id],
               stop: {
                 onestopId: 's-9qscwx8n60-nyecountyairportdemo',
                 timezone: 'America/Los_Angeles',
@@ -448,11 +454,12 @@ describe Changeset do
       end
 
       it 'does not falsely resolve issues' do
+        issue = @stop.issues.first
         Timecop.freeze(3.minutes.from_now) do
           changeset = create(:changeset, payload: {
             changes: [
               action: 'createUpdate',
-              issuesResolved: [8],
+              issuesResolved: [issue.id],
               stop: {
                 onestopId: 's-9qsczn2rk0-emainst~sirvingstdemo',
                 timezone: 'America/Los_Angeles',
@@ -472,15 +479,17 @@ describe Changeset do
 
     context 'deprecation' do
       it 'deprecates issues of old feed version imports with the same entities' do
+        issue = @rsp1.issues.first
         Timecop.freeze(3.minutes.from_now) do
           load_feed(feed_version: @feed_version, import_level: 1)
         end
         expect(Issue.count).to eq 8
-        expect{Issue.find(1)}.to raise_error(ActiveRecord::RecordNotFound)
-        expect(Issue.find(9).created_by_changeset_id).to eq 2
+        expect{Issue.find(issue.id)}.to raise_error(ActiveRecord::RecordNotFound)
+        expect(@rsp1.reload.issues.first.created_by_changeset_id).to eq Changeset.last.id
       end
 
       it 'deprecates issues created by older changesets of associated entities' do
+        issue = @stop.issues.first
         changeset = nil
         Timecop.freeze(3.minutes.from_now) do
           # NOTE: although this changeset would resolve an issue,
@@ -502,12 +511,12 @@ describe Changeset do
           })
           expect(Sidekiq::Logging.logger).to receive(:info).with(/Calculating distances/)
           # making sure open=true because we are not resolving the issue here
-          expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>8.*"open"=>true/)
+          expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>#{issue.id}.*"open"=>true/)
           changeset.apply!
         end
-        expect{Issue.find(8)}.to raise_error(ActiveRecord::RecordNotFound)
+        expect{Issue.find(issue.id)}.to raise_error(ActiveRecord::RecordNotFound)
         # similar to issue 8, but involves a different rsp
-        expect(Issue.find(9).created_by_changeset_id).to eq changeset.id
+        expect(@stop.reload.issues.first.created_by_changeset_id).to eq changeset.id
       end
 
       it 'ignores FeedVersion issues during deprecation' do
@@ -543,15 +552,14 @@ describe Changeset do
             })
             changeset.apply!
           end
-          expect(Issue.find(9).issue_type).to eq 'other'
-          expect(Issue.find(9).entities_with_issues.map(&:entity)).to include(stop)
+          expect(Issue.find(issue.id).issue_type).to eq 'other'
+          expect(Issue.find(issue.id).entities_with_issues.map(&:entity)).to include(stop)
         end
 
         it 'deprecates issues of entities whose attrs are affected by updating computed attrs' do
-          rsp = RouteStopPattern.find_by_onestop_id!('r-9qsb-20-8d5767-6bb5fc')
-          # Issue 9
           issue = Issue.create!(issue_type: 'rsp_line_inaccurate', details: 'this is a fake geometry issue')
-          issue.entities_with_issues.create!(entity: rsp, entity_attribute: 'geometry')
+          issue.entities_with_issues.create!(entity: @rsp1, entity_attribute: 'geometry')
+          issues = @rsp1.reload.issues.to_a
           # here we are modifying this rsp's geometry, which should deprecate the existing rsp_line_inaccurate issue
           # even without technically resolving it, because the entity attribute geometry has been modified.
           # The distance calculation issue (7) on this rsp should also be deprecated, because its stop distances
@@ -561,7 +569,7 @@ describe Changeset do
               changes: [
                 action: 'createUpdate',
                 routeStopPattern: {
-                  onestopId: rsp.onestop_id,
+                  onestopId: @rsp1.onestop_id,
                   geometry: {
                     "type": "LineString",
                     "coordinates": [[-117.13316, 36.42529], [-117.05, 36.65], [-116.81797, 36.88108]]
@@ -570,8 +578,8 @@ describe Changeset do
               ]
             })
             expect(Sidekiq::Logging.logger).to receive(:info).with(/Calculating distances/)
-            expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>7.*"resolved_by_changeset_id"=>nil.*"open"=>true/)
-            expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>9.*"resolved_by_changeset_id"=>nil.*"open"=>true/)
+            expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>#{issues.first.id}.*"resolved_by_changeset_id"=>nil.*"open"=>true/)
+            expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>#{issues.second.id}.*"resolved_by_changeset_id"=>nil.*"open"=>true/)
             changeset.apply!
           end
         end
@@ -644,12 +652,13 @@ describe Changeset do
 
   it 'will conflate stops with OSM after the DB transaction is complete' do
     allow(Figaro.env).to receive(:auto_conflate_stops_with_osm) { 'true' }
+    stop = create(:stop)
     changeset = create(:changeset, payload: {
       changes: [
         {
           action: 'createUpdate',
           stop: {
-            onestopId: 's-9q8yt4b-1AvHoS',
+            onestopId: stop.onestop_id,
             name: '1st Ave. & Holloway Street',
             timezone: 'America/Los_Angeles',
             geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
@@ -660,7 +669,7 @@ describe Changeset do
     allow(ConflateStopsWithOsmWorker).to receive(:perform_async) { true }
     # WARNING: we're expecting certain a ID in the database. This might
     # not be the case if the test suite is run in parallel.
-    expect(ConflateStopsWithOsmWorker).to receive(:perform_async).with([1])
+    expect(ConflateStopsWithOsmWorker).to receive(:perform_async).with([stop.id])
     changeset.apply!
   end
 end
