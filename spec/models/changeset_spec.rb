@@ -268,6 +268,33 @@ describe Changeset do
       expect(OldStop.last.action).to eq 'merge'
     end
 
+    it 'merges onestop id for a new entity' do
+      merge_stop_1 = create(:stop)
+      merge_stop_2 = create(:stop)
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'merge',
+            onestopIdsToMerge: [merge_stop_1.onestop_id, merge_stop_2.onestop_id],
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              name: '1st Ave. & Holloway Street',
+              timezone: 'America/Los_Angeles',
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
+            }
+          }
+        ]
+      })
+      changeset.apply!
+      expect(Stop.find_by_current_and_old_onestop_id!(merge_stop_1.onestop_id)).to eq Stop.first
+      expect(Stop.find_by_current_and_old_onestop_id!(merge_stop_2.onestop_id)).to eq Stop.first
+      expect(Stop.first).to eq Stop.find_by_current_and_old_onestop_id!('s-9q8yt4b-1AvHoS')
+      expect(OldStop.first).to eq OldStop.find_by_onestop_id!(merge_stop_1.onestop_id)
+      expect(OldStop.last).to eq OldStop.find_by_onestop_id!(merge_stop_2.onestop_id)
+      expect(OldStop.last.current).to eq Stop.first
+      expect(OldStop.last.action).to eq 'merge'
+    end
+
     it 'updates rsp stop pattern stop onestop ids on merge onestop ids' do
       richmond = create(:stop_richmond_offset)
       millbrae = create(:stop_millbrae)
@@ -306,33 +333,6 @@ describe Changeset do
       })
       changeset.apply!
       expect(RouteStopPattern.find_by_onestop_id!(rsp.onestop_id).stop_pattern).to match_array(['s-9q8yt4b-1AvHoS', millbrae.onestop_id])
-    end
-
-    it 'merges onestop id for a new entity' do
-      merge_stop_1 = create(:stop)
-      merge_stop_2 = create(:stop)
-      changeset = create(:changeset, payload: {
-        changes: [
-          {
-            action: 'merge',
-            onestopIdsToMerge: [merge_stop_1.onestop_id, merge_stop_2.onestop_id],
-            stop: {
-              onestopId: 's-9q8yt4b-1AvHoS',
-              name: '1st Ave. & Holloway Street',
-              timezone: 'America/Los_Angeles',
-              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
-            }
-          }
-        ]
-      })
-      changeset.apply!
-      expect(Stop.find_by_current_and_old_onestop_id!(merge_stop_1.onestop_id)).to eq Stop.first
-      expect(Stop.find_by_current_and_old_onestop_id!(merge_stop_2.onestop_id)).to eq Stop.first
-      expect(Stop.first).to eq Stop.find_by_current_and_old_onestop_id!('s-9q8yt4b-1AvHoS')
-      expect(OldStop.first).to eq OldStop.find_by_onestop_id!(merge_stop_1.onestop_id)
-      expect(OldStop.last).to eq OldStop.find_by_onestop_id!(merge_stop_2.onestop_id)
-      expect(OldStop.last.current).to eq Stop.first
-      expect(OldStop.last.action).to eq 'merge'
     end
 
     it 'sets action to destroy after destroy' do
