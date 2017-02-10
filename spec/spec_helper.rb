@@ -52,23 +52,24 @@ RSpec.configure do |config|
   config.include FactoryGirl::Syntax::Methods
 
   config.before(:suite) do
-    DatabaseCleaner.strategy = :truncation, { except: ['spatial_ref_sys'] }
-    DatabaseCleaner.start
+    DatabaseCleaner.clean_with :truncation, { except: ['spatial_ref_sys'] }
+    DatabaseCleaner.strategy = :transaction
     clear_carrierwave_attachments
     Sidekiq::Worker.clear_all
   end
 
-  config.before(:all) do
-    DatabaseCleaner.clean unless self.class.metadata[:clean_as_group]
+  config.after(:suite) do
+    clear_carrierwave_attachments
   end
 
   config.before(:each) do
-    DatabaseCleaner.clean_with :truncation, { except: ['spatial_ref_sys'] } unless self.class.metadata[:clean_as_group]
     Sidekiq::Worker.clear_all
+    DatabaseCleaner.start
   end
 
   config.after(:each) do
-    clear_carrierwave_attachments
+    Sidekiq::Worker.clear_all
+    DatabaseCleaner.clean
   end
 end
 
