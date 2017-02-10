@@ -55,9 +55,8 @@ describe HasAOnestopId do
     end
 
     it 'return nil if match has been is destroyed' do
-      changeset = create(:changeset)
       stop = create(:stop)
-      stop.destro
+      stop.destroy
       expect(Stop.find_by_current_and_old_onestop_id(stop.onestop_id)).to be_nil
     end
   end

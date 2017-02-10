@@ -220,8 +220,8 @@ describe Changeset do
         ]
       })
       changeset.apply!
-      expect(Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS')).to eq Stop.find_by_onestop_id!('s-9q8yt4b-test')
-      expect(Stop.all).to match_array([Stop.find_by_onestop_id!('s-9q8yt4b-test')])
+      expect(Stop.find_by_current_and_old_onestop_id!('s-9q8yt4b-1AvHoS')).to eq Stop.find_by_current_and_old_onestop_id!('s-9q8yt4b-test')
+      expect(Stop.all).to match_array([Stop.find_by_current_and_old_onestop_id!('s-9q8yt4b-test')])
       expect(OldStop.first).to eq OldStop.find_by_onestop_id!('s-9q8yt4b-1AvHoS')
       expect(OldStop.first.action).to eq 'change_onestop_id'
     end
@@ -259,10 +259,10 @@ describe Changeset do
         ]
       })
       changeset.apply!
-      expect(Stop.find_by_onestop_id!(merge_stop_1.onestop_id)).to eq Stop.first
-      expect(Stop.find_by_onestop_id!(merge_stop_2.onestop_id)).to eq Stop.first
-      expect(Stop.all).to match_array([Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS')])
-      expect(OldStop.find(2)).to eq OldStop.find_by_onestop_id!(merge_stop_1.onestop_id)
+      expect(Stop.find_by_current_and_old_onestop_id!(merge_stop_1.onestop_id)).to eq Stop.first
+      expect(Stop.find_by_current_and_old_onestop_id!(merge_stop_2.onestop_id)).to eq Stop.first
+      expect(Stop.all).to match_array([Stop.find_by_current_and_old_onestop_id!('s-9q8yt4b-1AvHoS')])
+      expect(OldStop.find_by_onestop_id!(merge_stop_1.onestop_id)).to be
       expect(OldStop.last).to eq OldStop.find_by_onestop_id!(merge_stop_2.onestop_id)
       expect(OldStop.last.current).to eq Stop.first
       expect(OldStop.last.action).to eq 'merge'
@@ -326,9 +326,9 @@ describe Changeset do
         ]
       })
       changeset.apply!
-      expect(Stop.find_by_onestop_id!(merge_stop_1.onestop_id)).to eq Stop.first
-      expect(Stop.find_by_onestop_id!(merge_stop_2.onestop_id)).to eq Stop.first
-      expect(Stop.first).to eq Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS')
+      expect(Stop.find_by_current_and_old_onestop_id!(merge_stop_1.onestop_id)).to eq Stop.first
+      expect(Stop.find_by_current_and_old_onestop_id!(merge_stop_2.onestop_id)).to eq Stop.first
+      expect(Stop.first).to eq Stop.find_by_current_and_old_onestop_id!('s-9q8yt4b-1AvHoS')
       expect(OldStop.first).to eq OldStop.find_by_onestop_id!(merge_stop_1.onestop_id)
       expect(OldStop.last).to eq OldStop.find_by_onestop_id!(merge_stop_2.onestop_id)
       expect(OldStop.last.current).to eq Stop.first
@@ -587,28 +587,6 @@ describe Changeset do
               issuesResolved: [8],
               stop: {
                 onestopId: 's-9qscwx8n60-nyecountyairportdemo',
-                timezone: 'America/Los_Angeles',
-                geometry: {
-                  "type": "Point",
-                  "coordinates": [-100.0, 50.0]
-                }
-              }
-            ]
-          })
-          expect {
-            changeset.apply!
-          }.to raise_error(Changeset::Error)
-        end
-      end
-
-      it 'does not falsely resolve issues' do
-        Timecop.freeze(3.minutes.from_now) do
-          changeset = create(:changeset, payload: {
-            changes: [
-              action: 'createUpdate',
-              issuesResolved: [8],
-              stop: {
-                onestopId: 's-9qsczn2rk0-emainst~sirvingstdemo',
                 timezone: 'America/Los_Angeles',
                 geometry: {
                   "type": "Point",
