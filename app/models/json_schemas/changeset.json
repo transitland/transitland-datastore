@@ -78,7 +78,7 @@
         "properties": {
           "action": {
             "type": "string",
-            "enum": ["createUpdate", "destroy"]
+            "enum": ["createUpdate", "destroy", "changeOnestopID", "merge"]
           },
           "issuesResolved": {
             "type": "array",
