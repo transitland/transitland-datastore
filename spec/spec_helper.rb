@@ -1,11 +1,5 @@
 require 'simplecov'
 
-if ENV['CIRCLE_ARTIFACTS']
-  # if running on CircleCI, upload coverage report to codecov.io
-  require 'codecov'
-  SimpleCov.formatter = SimpleCov::Formatter::Codecov
-end
-
 SimpleCov.start do
   load_profile 'rails'
 
