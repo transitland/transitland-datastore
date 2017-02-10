@@ -205,17 +205,187 @@ describe Changeset do
     #   expect(@changeset2_bad.applied).to be false
     #   expect(@changeset2_bad.error).to be_truthy
     # end
+
+    it 'changes onestop id' do
+      @changeset1.apply!
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'changeOnestopID',
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              newOnestopId: 's-9q8yt4b-test'
+            }
+          }
+        ]
+      })
+      changeset.apply!
+      expect(Stop.find_by_current_and_old_onestop_id!('s-9q8yt4b-1AvHoS')).to eq Stop.find_by_current_and_old_onestop_id!('s-9q8yt4b-test')
+      expect(Stop.all).to match_array([Stop.find_by_current_and_old_onestop_id!('s-9q8yt4b-test')])
+      expect(OldStop.first).to eq OldStop.find_by_onestop_id!('s-9q8yt4b-1AvHoS')
+      expect(OldStop.first.action).to eq 'change_onestop_id'
+    end
+
+    it 'raises changeset error when changing onestop id is equal to the target' do
+      @changeset1.apply!
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'changeOnestopID',
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              newOnestopId: Stop.first.onestop_id
+            }
+          }
+        ]
+      })
+      expect { changeset.apply! }.to raise_error(Changeset::Error)
+    end
+
+    it 'raises changeset error when onestopIdsToMerge not included' do
+      @changeset1.apply!
+      merge_stop_1 = create(:stop)
+      merge_stop_2 = create(:stop)
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'merge',
+            stop: {
+              onestopId: Stop.first.onestop_id
+            }
+          }
+        ]
+      })
+      expect { changeset.apply! }.to raise_error(Changeset::Error)
+    end
+
+    it 'raises changeset error when onestopIdsToMerge includes target onestop id' do
+      @changeset1.apply!
+      merge_stop_1 = create(:stop)
+      merge_stop_2 = create(:stop)
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'merge',
+            onestopIdsToMerge: [merge_stop_1.onestop_id, merge_stop_2.onestop_id],
+            stop: {
+              onestopId: merge_stop_1.onestop_id
+            }
+          }
+        ]
+      })
+      expect { changeset.apply! }.to raise_error(Changeset::Error)
+    end
+
+    it 'merges onestop id for an existing entity' do
+      @changeset1.apply!
+      merge_stop_1 = create(:stop)
+      merge_stop_2 = create(:stop)
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'merge',
+            onestopIdsToMerge: [merge_stop_1.onestop_id, merge_stop_2.onestop_id],
+            stop: {
+              onestopId: Stop.first.onestop_id
+            }
+          }
+        ]
+      })
+      changeset.apply!
+      expect(Stop.find_by_current_and_old_onestop_id!(merge_stop_1.onestop_id)).to eq Stop.first
+      expect(Stop.find_by_current_and_old_onestop_id!(merge_stop_2.onestop_id)).to eq Stop.first
+      expect(Stop.all).to match_array([Stop.find_by_current_and_old_onestop_id!('s-9q8yt4b-1AvHoS')])
+      expect(OldStop.find_by_onestop_id!(merge_stop_1.onestop_id)).to be
+      expect(OldStop.last).to eq OldStop.find_by_onestop_id!(merge_stop_2.onestop_id)
+      expect(OldStop.last.current).to eq Stop.first
+      expect(OldStop.last.action).to eq 'merge'
+    end
+
+    it 'merges onestop id for a new entity' do
+      merge_stop_1 = create(:stop)
+      merge_stop_2 = create(:stop)
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'merge',
+            onestopIdsToMerge: [merge_stop_1.onestop_id, merge_stop_2.onestop_id],
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              name: '1st Ave. & Holloway Street',
+              timezone: 'America/Los_Angeles',
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
+            }
+          }
+        ]
+      })
+      changeset.apply!
+      expect(Stop.find_by_current_and_old_onestop_id!(merge_stop_1.onestop_id)).to eq Stop.first
+      expect(Stop.find_by_current_and_old_onestop_id!(merge_stop_2.onestop_id)).to eq Stop.first
+      expect(Stop.first).to eq Stop.find_by_current_and_old_onestop_id!('s-9q8yt4b-1AvHoS')
+      expect(OldStop.first).to eq OldStop.find_by_onestop_id!(merge_stop_1.onestop_id)
+      expect(OldStop.last).to eq OldStop.find_by_onestop_id!(merge_stop_2.onestop_id)
+      expect(OldStop.last.current).to eq Stop.first
+      expect(OldStop.last.action).to eq 'merge'
+    end
+
+    it 'updates rsp stop pattern stop onestop ids on merge onestop ids' do
+      richmond = create(:stop_richmond_offset)
+      millbrae = create(:stop_millbrae)
+      rsp = create(:route_stop_pattern_bart)
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'merge',
+            onestopIdsToMerge: [richmond.onestop_id],
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              geometry: { type: 'Point', coordinates: [-122.35073, 37.95234] }, # tiny change to existing
+              timezone: 'America/Los_Angeles',
+            }
+          }
+        ]
+      })
+      changeset.apply!
+      expect(RouteStopPattern.find_by_onestop_id!(rsp.onestop_id).stop_pattern).to match_array(['s-9q8yt4b-1AvHoS', millbrae.onestop_id])
+    end
+
+    it 'updates rsp stop pattern onestop ids on change onestop id action' do
+      richmond = create(:stop_richmond_offset)
+      millbrae = create(:stop_millbrae)
+      rsp = create(:route_stop_pattern_bart)
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'changeOnestopID',
+            stop: {
+              onestopId: richmond.onestop_id,
+              newOnestopId: 's-9q8yt4b-1AvHoS'
+            }
+          }
+        ]
+      })
+      changeset.apply!
+      expect(RouteStopPattern.find_by_onestop_id!(rsp.onestop_id).stop_pattern).to match_array(['s-9q8yt4b-1AvHoS', millbrae.onestop_id])
+    end
+
+    it 'sets action to destroy after destroy' do
+      @changeset1.apply!
+      @changeset3.apply!
+      expect(OldStop.first.action).to eq 'destroy'
+    end
   end
 
   context 'sticky and edited attributes' do
     # import-related changeset integration tests are in gtfs_graph_spec
     before(:each) {
+      @onestop_id = 's-9q8yt4b-1AvHoS'
       @changeset = create(:changeset, payload: {
         changes: [
           {
             action: 'createUpdate',
             stop: {
-              onestopId: 's-9q8yt4b-1AvHoS',
+              onestopId: @onestop_id,
               name: '1st Ave. & Holloway St.',
               timezone: 'America/Los_Angeles',
               geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
@@ -225,6 +395,24 @@ describe Changeset do
       })
       @changeset.apply!
     }
+
+    it 'updates edited_attributes during create and update' do
+      stop = Stop.find_by_onestop_id!(@onestop_id)
+      stop.wheelchair_boarding = true
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            stop: {
+              onestopId: @onestop_id,
+              wheelchairBoarding: true
+            }
+          }
+        ]
+      })
+      changeset.apply!
+      expect(Stop.find_by_onestop_id!(stop.onestop_id).edited_attributes).to include("wheelchair_boarding")
+    end
 
     it 'allows non-import changeset to preserve sticky and edited attributes' do
       edited_attrs = Set.new(Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS').edited_attributes.map(&:to_sym))

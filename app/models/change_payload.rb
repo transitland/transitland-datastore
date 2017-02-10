@@ -63,24 +63,25 @@ class ChangePayload < ActiveRecord::Base
   def each_change
     (payload_as_ruby_hash[:changes] || []).each do |change|
       (ENTITY_TYPES.keys & change.keys).each do |entity_type|
-        yield ENTITY_TYPES[entity_type], change[:action], change[entity_type]
+        yield ENTITY_TYPES[entity_type], change[:action], change[entity_type], change[:onestop_ids_to_merge]
       end
     end
   end
 
   def apply_change(cache: {})
-    self.each_change do |entity_cls, action, change|
+    self.each_change do |entity_cls, action, change, onestop_ids_to_merge|
       entity_cls.apply_change(
         changeset: changeset,
         action: action,
         change: change,
+        onestop_ids_to_merge: onestop_ids_to_merge,
         cache: cache
       )
     end
   end
 
   def apply_associations(cache: {})
-    self.each_change do |entity_cls, action, change|
+    self.each_change do |entity_cls, action, change, onestop_ids_to_merge|
       entity_cls.apply_associations(
         changeset: changeset,
         action: action,

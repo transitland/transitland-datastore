@@ -14,12 +14,19 @@ module CurrentTrackedByChangeset
                 :virtual_attributes,
                 :sticky_attributes
 
-    def apply_change(changeset: nil, change: {}, action: nil, cache: {})
+    def apply_change(changeset: nil, change: {}, action: nil, onestop_ids_to_merge: nil, cache: {})
       case action
       when 'createUpdate'
         apply_change_create_update(changeset: changeset, change: change, cache: cache)
       when 'destroy'
         apply_change_destroy(changeset: changeset, change: change, cache: cache)
+      when 'changeOnestopID'
+        apply_change_change_onestop_id(changeset: changeset, change: change, cache: cache)
+      when 'merge'
+        if onestop_ids_to_merge.nil?
+          raise Changeset::Error.new(changeset: changeset, message: "Error: must provide an array of onestop ids to merge.")
+        end
+        apply_change_merge_onestop_ids(changeset: changeset, change: change, onestop_ids_to_merge: onestop_ids_to_merge, cache: {})
       else
         raise ArgumentError.new('an action must be supplied')
       end
@@ -38,10 +45,56 @@ module CurrentTrackedByChangeset
       end
     end
 
+    def after_change_onestop_id(changeset)
+      # this is available for overriding in models
+      super(changeset) if defined?(super)
+      return true
+    end
+
+    def apply_change_change_onestop_id(changeset: nil, change: nil, cache: {})
+      unless change.has_key?(:new_onestop_id)
+        raise Changeset.Error.new(changeset, "could not find newOnestopId")
+      end
+      if change[:new_onestop_id].eql?(change[:onestop_id])
+        raise Changeset::Error.new(changeset: changeset, message: "attempting to change onestop id #{change[:onestop_id]} into itself.")
+      end
+      existing_model = find_by_onestop_id(change[:onestop_id])
+      if existing_model
+        existing_model.update_making_history(changeset: changeset, new_attrs: { onestop_id: change[:new_onestop_id] }, old_attrs: { action: 'change_onestop_id' })
+        existing_model.after_change_onestop_id(change[:onestop_id], changeset)
+      else
+        raise Changeset::Error.new(changeset: changeset, message: "could not find a #{self.name} with Onestop ID of #{change[:onestop_id]} to change Onestop ID")
+      end
+    end
+
+    def after_merge_onestop_ids(changeset)
+      # this is available for overriding in models
+      super(changeset) if defined?(super)
+      return true
+    end
+
+    def apply_change_merge_onestop_ids(changeset: nil, change: nil, onestop_ids_to_merge: nil, cache: {})
+      if onestop_ids_to_merge.include?(change[:onestop_id])
+        raise Changeset::Error.new(changeset: changeset, message: "attempting to merge entity with onestop id #{change[:onestop_id]} into itself.")
+      end
+      attrs_to_apply = apply_params(change, cache)
+      merge_into_model = find_by_onestop_id(change[:onestop_id])
+      if merge_into_model
+        merge_into_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply)
+      else
+        merge_into_model = self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
+      end
+      merge_into_model.after_merge_onestop_ids(onestop_ids_to_merge, changeset)
+      onestop_ids_to_merge.each { |onestop_id|
+        model_to_merge = self.find_by_onestop_id(onestop_id)
+        model_to_merge.destroy_making_history(changeset: changeset, action: 'merge', current: merge_into_model)
+      }
+    end
+
     def apply_change_destroy(changeset: nil, change: nil, cache: {})
       existing_model = find_existing_model(change)
       if existing_model
-        existing_model.destroy_making_history(changeset: changeset)
+        existing_model.destroy_making_history(changeset: changeset, action: 'destroy')
       else
         raise Changeset::Error.new(changeset, "could not find a #{self.name} with Onestop ID of #{attrs[:onestop_id]} to destroy")
       end
@@ -130,13 +183,15 @@ module CurrentTrackedByChangeset
     return true
   end
 
-  def destroy_making_history(changeset: nil)
+  def destroy_making_history(changeset: nil, old_attrs: {}, action: nil, current: nil)
     self.class.transaction do
       # Create old model
       old_model = self.class.instantiate_an_old_model
-      old_model.assign_attributes(changeable_attributes_as_a_cloned_hash)
+      old_model.assign_attributes(changeable_attributes_as_a_cloned_hash.update(old_attrs))
       old_model.version = self.version
       old_model.destroyed_in_changeset = changeset
+      old_model.action = action unless action.nil?
+      old_model.current = current if action.eql?('merge') && current
       # Update current model
       self.marked_for_destroy_making_history = true
       self.old_model_left_after_destroy_making_history = old_model
@@ -159,11 +214,11 @@ module CurrentTrackedByChangeset
     return true
   end
 
-  def update_making_history(changeset: nil, new_attrs: {})
+  def update_making_history(changeset: nil, new_attrs: {}, old_attrs: {})
     self.class.transaction do
       # Create old model
       old_model = self.class.instantiate_an_old_model
-      old_model.assign_attributes(changeable_attributes_as_a_cloned_hash)
+      old_model.assign_attributes(changeable_attributes_as_a_cloned_hash.update(old_attrs))
       old_model.version = self.version
       old_model.current = self
       # Update current model

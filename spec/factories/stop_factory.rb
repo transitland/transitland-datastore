@@ -46,6 +46,10 @@ FactoryGirl.define do
     association :created_or_updated_in_changeset, factory: :changeset
   end
 
+  factory :old_stop, parent: :stop, class: OldStop do
+    action 'destroy'
+  end
+
   factory :stop_richmond, parent: :stop, class: Stop do
     onestop_id 's-9q8zzf1nks-richmond'
     geometry { "POINT(-122.353165 37.936887)" }

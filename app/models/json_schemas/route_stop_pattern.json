@@ -48,6 +48,15 @@
       }
     },
     "onestopId": {"type": "string"},
+    "newOnestopId": {"type": "string"},
+    "onestopIdsToMerge": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string"
+      }
+    },
     "traversedBy": {
       "type": "string",
       "format": "route-onestop-id"
