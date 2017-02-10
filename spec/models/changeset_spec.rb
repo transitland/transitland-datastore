@@ -226,6 +226,22 @@ describe Changeset do
       expect(OldStop.first.action).to eq 'change_onestop_id'
     end
 
+    it 'raises changeset error when changing onestop id is equal to the target' do
+      @changeset1.apply!
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'changeOnestopID',
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              newOnestopId: Stop.first.onestop_id
+            }
+          }
+        ]
+      })
+      expect { changeset.apply! }.to raise_error(Changeset::Error)
+    end
+
     it 'raises changeset error when onestopIdsToMerge not included' do
       @changeset1.apply!
       merge_stop_1 = create(:stop)
@@ -236,6 +252,24 @@ describe Changeset do
             action: 'merge',
             stop: {
               onestopId: Stop.first.onestop_id
+            }
+          }
+        ]
+      })
+      expect { changeset.apply! }.to raise_error(Changeset::Error)
+    end
+
+    it 'raises changeset error when onestopIdsToMerge includes target onestop id' do
+      @changeset1.apply!
+      merge_stop_1 = create(:stop)
+      merge_stop_2 = create(:stop)
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'merge',
+            onestopIdsToMerge: [merge_stop_1.onestop_id, merge_stop_2.onestop_id],
+            stop: {
+              onestopId: merge_stop_1.onestop_id
             }
           }
         ]
