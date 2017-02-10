@@ -3,7 +3,7 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
   include DownloadableCsv
   include AllowFiltering
 
-  before_action :set_feed, only: [:show]
+  before_action :set_feed, only: [:show, :download_latest_feed_version]
 
   def index
     # Entity
@@ -82,6 +82,15 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
       render json: cachedata, status: 500
     else
       render json: cachedata
+    end
+  end
+
+  def download_latest_feed_version
+    feed_version = @feed.feed_versions.order(fetched_at: :desc).first!
+    if feed_version.download_url.present?
+      redirect_to feed_version.download_url, status: 302
+    else
+      fail ActiveRecord::RecordNotFound, "Either no feed versions are available for this feed or their license prevents redistribution"
     end
   end
 

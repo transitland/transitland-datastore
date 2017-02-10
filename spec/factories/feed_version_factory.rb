@@ -20,6 +20,7 @@
 #  file_raw               :string
 #  sha1_raw               :string
 #  md5_raw                :string
+#  file_feedvalidator     :string
 #
 # Indexes
 #
@@ -34,6 +35,11 @@ FactoryGirl.define do
     earliest_calendar_date '2016-01-01'
     latest_calendar_date '2017-01-01'
     feed
+
+    factory :feed_version_recursosdatabuenosairesgobar do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/f-69y7-recursosdatabuenosairesgobar.zip'))}
+      association :feed, factory: :feed_recursosdatabuenosairesgobar
+    end
 
     factory :feed_version_caltrain do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/f-9q9-caltrain.zip')) }
