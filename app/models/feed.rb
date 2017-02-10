@@ -161,39 +161,6 @@ class Feed < BaseFeed
     ]
   })
 
-  def rename_feed_version_files
-    self.feed_versions.each{ |feed_version|
-      storage = feed_version.file.send(:storage)
-      if storage.class.name.eql?("CarrierWave::Storage::Fog")
-        local_file = feed_version.file.local_path_copying_locally_if_needed
-        feed_version.file.remove!
-        feed_version.file = File.open(local_file)
-
-        unless feed_version.file_raw.nil?
-          local_file_raw = feed_version.file_raw.local_path_copying_locally_if_needed
-          feed_version.file_raw.remove!
-          feed_version.file_raw = File.open(local_file_raw)
-        end
-
-        unless feed_version.file_feedvalidator.nil?
-          local_file_feedvalidator = feed_version.file_feedvalidator.local_path_copying_locally_if_needed
-          feed_version.file_feedvalidator.remove!
-          feed_version.file_feedvalidator = File.open(local_file_feedvalidator)
-        end
-
-        feed_version.save!
-
-        File.delete local_file
-        File.delete local_file_raw unless local_file_raw.nil?
-        File.delete local_file_feedvalidator unless local_file_feedvalidator.nil?
-      end
-    }
-  end
-
-  def after_change_onestop_id(old_onestop_id, changeset)
-    rename_feed_version_files
-  end
-
   def update_associations(changeset)
     (self.includes_operators || []).each do |included_operator|
       operator = Operator.find_by!(onestop_id: included_operator[:operator_onestop_id])

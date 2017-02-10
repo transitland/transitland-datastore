@@ -131,11 +131,11 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     end
     # Service between stops
     if params[:origin_onestop_id].present?
-      origin_stops = Stop.find_by_current_onestop_ids!(AllowFiltering.param_as_array(params, :origin_onestop_id))
+      origin_stops = Stop.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :origin_onestop_id))
       @ssps = @ssps.where(origin: origin_stops)
     end
     if params[:destination_onestop_id].present?
-      destination_stops = Stop.find_by_current_onestop_ids!(AllowFiltering.param_as_array(params, :destination_onestop_id))
+      destination_stops = Stop.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :destination_onestop_id))
       @ssps = @ssps.where(destination: destination_stops)
     end
     # Departing between...
@@ -149,15 +149,15 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     end
     # Service on a route
     if params[:route_onestop_id].present?
-      routes = Route.find_by_current_onestop_ids!(AllowFiltering.param_as_array(params, :route_onestop_id))
+      routes = Route.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :route_onestop_id))
       @ssps = @ssps.where(route: routes)
     end
     if params[:route_stop_pattern_onestop_id].present?
-      rsps = RouteStopPattern.find_by_current_onestop_ids!(AllowFiltering.param_as_array(params, :route_stop_pattern_onestop_id))
+      rsps = RouteStopPattern.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :route_stop_pattern_onestop_id))
       @ssps = @ssps.where(route_stop_pattern: rsps)
     end
     if params[:operator_onestop_id].present?
-      operators = Operator.find_by_current_onestop_ids!(AllowFiltering.param_as_array(params, :operator_onestop_id))
+      operators = Operator.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :operator_onestop_id))
       @ssps = @ssps.where(operator: operators)
     end
     # Stops in a bounding box

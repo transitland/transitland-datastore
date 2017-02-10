@@ -1,87 +1,88 @@
 describe HasAOnestopId do
-  context 'find_by_onestop_id!' do
+  context 'find_by_current_and_old_onestop_id!' do
     it 'finds current match' do
       current_stop = create(:stop)
-      expect(Stop.find_by_onestop_id!(current_stop.onestop_id)).to eq current_stop
+      expect(Stop.find_by_current_and_old_onestop_id!(current_stop.onestop_id)).to eq current_stop
+    end
+
+    it 'raises error if not found' do
+      expect{ Stop.find_by_current_and_old_onestop_id!('s-9q9-xyz') }.to raise_error(ActiveRecord::RecordNotFound)
     end
 
     it 'finds and returns merged match' do
       current_stop = create(:stop)
       old_stop1 = create(:old_stop, current: current_stop, action: 'merge')
       old_stop2 = create(:old_stop, current: current_stop, action: 'merge')
-      expect(Stop.find_by_onestop_id!(old_stop1.onestop_id)).to eq current_stop
-      expect(Stop.find_by_onestop_id!(old_stop2.onestop_id)).to eq current_stop
+      expect(Stop.find_by_current_and_old_onestop_id!(old_stop1.onestop_id)).to eq current_stop
+      expect(Stop.find_by_current_and_old_onestop_id!(old_stop2.onestop_id)).to eq current_stop
     end
 
     it 'finds and returns changed onestop id match' do
       current_stop = create(:stop)
       old_stop = create(:old_stop, current: current_stop, action: 'change_onestop_id')
-      expect(Stop.find_by_onestop_id!(old_stop.onestop_id)).to eq current_stop
+      expect(Stop.find_by_current_and_old_onestop_id!(old_stop.onestop_id)).to eq current_stop
     end
 
     it 'raises error with destroy message if match is destroyed' do
       stop = create(:old_stop)
-      expect{ Stop.find_by_onestop_id!(stop.onestop_id) }.to raise_error(ActiveRecord::RecordNotFound, "Stop: #{stop.onestop_id} has been destroyed.")
-    end
-
-    it 'raises error if not found' do
-      expect{ Stop.find_by_onestop_id!('s-9q9-xyz') }.to raise_error(ActiveRecord::RecordNotFound)
+      expect{ Stop.find_by_current_and_old_onestop_id!(stop.onestop_id) }.to raise_error(ActiveRecord::RecordNotFound, "Stop: #{stop.onestop_id} has been destroyed.")
     end
   end
 
-  context 'find_by_onestop_id' do
+  context 'find_by_current_and_old_onestop_id' do
     it 'finds current match' do
       current_stop = create(:stop)
-      expect(Stop.find_by_onestop_id(current_stop.onestop_id)).to eq current_stop
+      expect(Stop.find_by_current_and_old_onestop_id(current_stop.onestop_id)).to eq current_stop
+    end
+
+    it 'returns nil if not found' do
+      old_stop = create(:old_stop)
+      expect(Stop.find_by_current_and_old_onestop_id(old_stop.onestop_id)).to be_nil
     end
 
     it 'finds and returns merged match' do
       current_stop = create(:stop)
       old_stop1 = create(:old_stop, current: current_stop, action: 'merge')
       old_stop2 = create(:old_stop, current: current_stop, action: 'merge')
-      expect(Stop.find_by_onestop_id(old_stop1.onestop_id)).to eq current_stop
-      expect(Stop.find_by_onestop_id(old_stop2.onestop_id)).to eq current_stop
+      expect(Stop.find_by_current_and_old_onestop_id(old_stop1.onestop_id)).to eq current_stop
+      expect(Stop.find_by_current_and_old_onestop_id(old_stop2.onestop_id)).to eq current_stop
     end
 
     it 'finds and returns changed onestop id match' do
       current_stop = create(:stop)
       old_stop = create(:old_stop, current: current_stop, action: 'change_onestop_id')
-      expect(Stop.find_by_onestop_id(old_stop.onestop_id)).to eq current_stop
+      expect(Stop.find_by_current_and_old_onestop_id(old_stop.onestop_id)).to eq current_stop
     end
 
-    it 'raises error with destroy message if match is destroyed' do
-      stop = create(:old_stop)
-      expect(Stop.find_by_onestop_id(stop.onestop_id)).to be_nil
-    end
-
-    it 'raises error if not found' do
-      create(:stop)
-      create(:old_stop)
-      expect(Stop.find_by_onestop_id('s-9q9-xyz')).to be_nil
+    it 'return nil if match has been is destroyed' do
+      changeset = create(:changeset)
+      stop = create(:stop)
+      stop.destro
+      expect(Stop.find_by_current_and_old_onestop_id(stop.onestop_id)).to be_nil
     end
   end
 
-  context 'find_by_current_onestop_ids' do
+  context 'find_by_onestop_ids' do
     let(:stop1) { create(:stop) }
     let(:stop2) { create(:stop) }
     it 'returns all matches' do
-      expect(Stop.find_by_current_onestop_ids([stop1.onestop_id, stop2.onestop_id])).to match_array([stop1, stop2])
+      expect(Stop.find_by_onestop_ids([stop1.onestop_id, stop2.onestop_id])).to match_array([stop1, stop2])
     end
 
     it 'filters out missing' do
-      expect(Stop.find_by_current_onestop_ids([stop1.onestop_id, 's-9q9-missing'])).to match_array([stop1])
+      expect(Stop.find_by_onestop_ids([stop1.onestop_id, 's-9q9-missing'])).to match_array([stop1])
     end
   end
 
-  context 'find_by_current_onestop_ids!' do
+  context 'find_by_onestop_ids!' do
     let(:stop1) { create(:stop) }
     let(:stop2) { create(:stop) }
     it 'returns all matches' do
-      expect(Stop.find_by_current_onestop_ids!([stop1.onestop_id, stop2.onestop_id])).to match_array([stop1, stop2])
+      expect(Stop.find_by_onestop_ids!([stop1.onestop_id, stop2.onestop_id])).to match_array([stop1, stop2])
     end
 
     it 'raises exception on missing' do
-      expect { Stop.find_by_current_onestop_ids!(['s-9q9-missing']) }.to raise_error(ActiveRecord::RecordNotFound)
+      expect { Stop.find_by_onestop_ids!(['s-9q9-missing']) }.to raise_error(ActiveRecord::RecordNotFound)
     end
   end
 

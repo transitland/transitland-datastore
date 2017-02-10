@@ -77,9 +77,8 @@ module CurrentTrackedByChangeset
         merge_into_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply)
       else
         merge_into_model = self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
-        merge_into_model.after_merge_onestop_ids(onestop_ids_to_merge, changeset)
-        merge_into_model.update_associations(changeset)
       end
+      merge_into_model.after_merge_onestop_ids(onestop_ids_to_merge, changeset)
       onestop_ids_to_merge.each { |onestop_id|
         model_to_merge = self.find_by_onestop_id(onestop_id)
         model_to_merge.destroy_making_history(changeset: changeset, action: 'merge', current: merge_into_model)

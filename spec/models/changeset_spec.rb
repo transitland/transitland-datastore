@@ -268,7 +268,7 @@ describe Changeset do
       expect(OldStop.last.action).to eq 'merge'
     end
 
-    it 'updates rsp stop pattern onestop ids on merge onestop ids' do
+    it 'updates rsp stop pattern stop onestop ids on merge onestop ids' do
       richmond = create(:stop_richmond_offset)
       millbrae = create(:stop_millbrae)
       rsp = create(:route_stop_pattern_bart)
@@ -287,24 +287,6 @@ describe Changeset do
       })
       changeset.apply!
       expect(RouteStopPattern.find_by_onestop_id!(rsp.onestop_id).stop_pattern).to match_array(['s-9q8yt4b-1AvHoS', millbrae.onestop_id])
-    end
-
-    it 'updates S3 link on change feed onestop id action', :optional => true do
-      # this won't work locally unless the right environment is set up
-      feed_version = create(:feed_version_bart)
-      changeset = create(:changeset, payload: {
-        changes: [
-          {
-            action: 'changeOnestopID',
-            feed: {
-              onestopId: feed_version.feed.onestop_id,
-              newOnestopId: 'f-py-changedId'
-            }
-          }
-        ]
-      })
-      changeset.apply!
-      expect(FeedVersion.first.file.url).to eq '/uploads/test/feed_version/f-py-changedId-2d340d595ec566ba54b0a6a25359f71d94268b5c.zip'
     end
 
     it 'updates rsp stop pattern onestop ids on change onestop id action' do

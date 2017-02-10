@@ -18,7 +18,7 @@ module AllowFiltering
           onestop_ids += params[:ids].split(',')
         end
       end
-      collection = collection.find_by_current_onestop_ids!(onestop_ids)
+      collection = collection.find_by_onestop_ids!(onestop_ids)
     end
     collection
   end

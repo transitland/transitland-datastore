@@ -176,7 +176,7 @@ class RouteStopPattern < BaseRouteStopPattern
 
   def calculate_distances(stops=nil)
     if stops.nil?
-      stop_hash = Hash[Stop.find_by_current_onestop_ids!(self.stop_pattern).map { |s| [s.onestop_id, s] }]
+      stop_hash = Hash[Stop.find_by_onestop_ids!(self.stop_pattern).map { |s| [s.onestop_id, s] }]
       stops = self.stop_pattern.map{|s| stop_hash.fetch(s) }
     end
     if stops.map(&:onestop_id).uniq.size == 1
