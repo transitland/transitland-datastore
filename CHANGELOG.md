@@ -2,11 +2,55 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.20...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.21...HEAD)
+
+**Closed issues:**
+
+- Change exclude\_geometry false default to include\_geometry true [\#939](https://github.com/transitland/transitland-datastore/issues/939)
 
 **Merged pull requests:**
 
+- Production release 4.9.21 [\#938](https://github.com/transitland/transitland-datastore/pull/938) ([irees](https://github.com/irees))
+
+## [4.9.21](https://github.com/transitland/transitland-datastore/tree/4.9.21) (2017-02-06)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.20...4.9.21)
+
+**Implemented enhancements:**
+
+- Add "stale" enum attribute to Issue model [\#747](https://github.com/transitland/transitland-datastore/issues/747)
+- Automatic issue resolution on manual changeset [\#746](https://github.com/transitland/transitland-datastore/issues/746)
+- Incorporate shape\_dist\_traveled if available [\#585](https://github.com/transitland/transitland-datastore/issues/585)
+- Integrate RSP distance interpolation with SSP interpolation methods [\#565](https://github.com/transitland/transitland-datastore/issues/565)
+
+**Fixed bugs:**
+
+- Couldn't find stops in quality checks [\#941](https://github.com/transitland/transitland-datastore/issues/941)
+- Route without RSPS [\#842](https://github.com/transitland/transitland-datastore/issues/842)
+
+**Closed issues:**
+
+- Endpoint that redirects to download the latest version of a feed [\#947](https://github.com/transitland/transitland-datastore/issues/947)
+- Harmonize common query parameters across onestop\_id entity controllers [\#943](https://github.com/transitland/transitland-datastore/issues/943)
+- Find entities based on GTFS ID [\#942](https://github.com/transitland/transitland-datastore/issues/942)
+- Quality issue for RSP wrong trip [\#937](https://github.com/transitland/transitland-datastore/issues/937)
+- Manually close "false positive issues" [\#935](https://github.com/transitland/transitland-datastore/issues/935)
+- Enable StopTransfers [\#903](https://github.com/transitland/transitland-datastore/issues/903)
+- Add Representative Route method to docs [\#848](https://github.com/transitland/transitland-datastore/issues/848)
+- try CodeCov.io for test coverage reports [\#676](https://github.com/transitland/transitland-datastore/issues/676)
+- Changeset references across multiple ChangePayloads [\#667](https://github.com/transitland/transitland-datastore/issues/667)
+- Animation for distance calc algorithm in docs [\#633](https://github.com/transitland/transitland-datastore/issues/633)
+
+**Merged pull requests:**
+
+- Update gtfs gem [\#949](https://github.com/transitland/transitland-datastore/pull/949) ([irees](https://github.com/irees))
+- endpoint that redirects to download the latest version of a feed [\#948](https://github.com/transitland/transitland-datastore/pull/948) ([drewda](https://github.com/drewda))
+- gtfs gem update: support ftp & additional feed/agency contact details. [\#946](https://github.com/transitland/transitland-datastore/pull/946) ([irees](https://github.com/irees))
+- Include geometry [\#944](https://github.com/transitland/transitland-datastore/pull/944) ([doublestranded](https://github.com/doublestranded))
+- Find by gtfs\_id [\#940](https://github.com/transitland/transitland-datastore/pull/940) ([irees](https://github.com/irees))
 - Production release 4.9.20 [\#934](https://github.com/transitland/transitland-datastore/pull/934) ([irees](https://github.com/irees))
+- Improved handling of Changeset associations [\#928](https://github.com/transitland/transitland-datastore/pull/928) ([irees](https://github.com/irees))
+- Enable StopTransfers [\#924](https://github.com/transitland/transitland-datastore/pull/924) ([irees](https://github.com/irees))
+- try CodeCov.io for test coverage reports [\#677](https://github.com/transitland/transitland-datastore/pull/677) ([drewda](https://github.com/drewda))
 
 ## [4.9.20](https://github.com/transitland/transitland-datastore/tree/4.9.20) (2017-01-25)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.19...4.9.20)

@@ -28,7 +28,7 @@ gem 'whenever', require: false # to manage crontab
 # data model
 gem 'squeel'
 gem 'enumerize'
-gem 'gtfs', github: 'transitland/gtfs', tag: '2bddc81bdcad6cd6122bc7988dc4e1e11f515af9'
+gem 'gtfs', github: 'transitland/gtfs', tag: 'f2d55ba1e84e557f91ae4376cf63a8ac955cd203'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 gem 'json-schema', '2.5.2' # running into problems with 2.6.0
@@ -64,8 +64,6 @@ gem 'pry-byebug', group: [:development, :test]
 gem 'pry-rails', group: [:development, :test]
 gem 'pry-rescue', group: [:development, :test]
 gem 'pry-stack_explorer', group: [:development, :test]
-gem 'rubocop', require: false, group: [:development, :test]
-gem 'rubocop-rspec', require: false, group: [:development, :test]
 gem 'active_record_doctor', group: :development
 
 # code coverage and documentation
@@ -83,6 +81,7 @@ gem 'vcr', group: :test
 gem 'webmock', group: :test
 gem 'airborne', group: :test
 gem 'timecop', group: :test
+gem 'codecov', require: false, group: :test
 gem 'rspec_junit_formatter', '0.2.2', group: :test
 # ^ for CircleCI: https://circleci.com/docs/test-metadata#rspec
 

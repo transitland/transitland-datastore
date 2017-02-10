@@ -600,6 +600,28 @@ describe Changeset do
           }.to raise_error(Changeset::Error)
         end
       end
+
+      it 'does not falsely resolve issues' do
+        Timecop.freeze(3.minutes.from_now) do
+          changeset = create(:changeset, payload: {
+            changes: [
+              action: 'createUpdate',
+              issuesResolved: [8],
+              stop: {
+                onestopId: 's-9qsczn2rk0-emainst~sirvingstdemo',
+                timezone: 'America/Los_Angeles',
+                geometry: {
+                  "type": "Point",
+                  "coordinates": [-100.0, 50.0]
+                }
+              }
+            ]
+          })
+          expect {
+            changeset.apply!
+          }.to raise_error(Changeset::Error)
+        end
+      end
     end
 
     context 'deprecation' do

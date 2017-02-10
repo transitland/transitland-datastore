@@ -81,7 +81,9 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     ]}
 
     respond_to do |format|
-      format.json { render paginated_json_collection(@routes).merge({ scope: { exclude_geometry: AllowFiltering.to_boolean(params[:exclude_geometry]) } }) }
+      # consider removing exclude_geometry
+      format.json { render paginated_json_collection(@routes).merge({ scope: { exclude_geometry: AllowFiltering.to_boolean(params[:exclude_geometry]),
+                                                                               include_geometry: AllowFiltering.to_boolean(params[:include_geometry])} }) }
       format.geojson { render paginated_geojson_collection(@routes) }
       format.csv { return_downloadable_csv(@routes, 'routes') }
     end
@@ -89,7 +91,9 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
 
   def show
     respond_to do |format|
-      format.json { render json: @route, scope: { exclude_geometry: AllowFiltering.to_boolean(params[:exclude_geometry]) } }
+      # consider removing exclude_geometry
+      format.json { render json: @route, scope: { exclude_geometry: AllowFiltering.to_boolean(params[:exclude_geometry]),
+                                                  include_geometry: AllowFiltering.to_boolean(params[:include_geometry])} }
       format.geojson { render json: @route, serializer: GeoJSONSerializer }
     end
   end
@@ -111,7 +115,8 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
       :import_level,
       :imported_from_feed,
       :imported_from_feed_version,
-      :exclude_geometry
+      :exclude_geometry,
+      :include_geometry
     )
   end
 
