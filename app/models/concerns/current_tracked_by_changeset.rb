@@ -55,6 +55,9 @@ module CurrentTrackedByChangeset
       unless change.has_key?(:new_onestop_id)
         raise Changeset.Error.new(changeset, "could not find newOnestopId")
       end
+      if change[:new_onestop_id].eql?(change[:onestop_id])
+        raise Changeset::Error.new(changeset: changeset, message: "attempting to change onestop id #{change[:onestop_id]} into itself.")
+      end
       existing_model = find_by_onestop_id(change[:onestop_id])
       if existing_model
         existing_model.update_making_history(changeset: changeset, new_attrs: { onestop_id: change[:new_onestop_id] }, old_attrs: { action: 'change_onestop_id' })
@@ -71,6 +74,9 @@ module CurrentTrackedByChangeset
     end
 
     def apply_change_merge_onestop_ids(changeset: nil, change: nil, onestop_ids_to_merge: nil, cache: {})
+      if onestop_ids_to_merge.include?(change[:onestop_id])
+        raise Changeset::Error.new(changeset: changeset, message: "attempting to merge entity with onestop id #{change[:onestop_id]} into itself.")
+      end
       attrs_to_apply = apply_params(change, cache)
       merge_into_model = find_by_onestop_id(change[:onestop_id])
       if merge_into_model
