@@ -58,6 +58,10 @@ RSpec.configure do |config|
     Sidekiq::Worker.clear_all
   end
 
+  config.after(:suite) do
+    clear_carrierwave_attachments
+  end
+
   config.before(:each) do
     Sidekiq::Worker.clear_all
     DatabaseCleaner.start
@@ -65,7 +69,6 @@ RSpec.configure do |config|
 
   config.after(:each) do
     Sidekiq::Worker.clear_all
-    # clear_carrierwave_attachments
     DatabaseCleaner.clean
   end
 end
