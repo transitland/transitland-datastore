@@ -22,7 +22,7 @@ class EntityWithIssues < ActiveRecord::Base
   validate :entity_attribute_exists?
 
   def entity_attribute_exists?
-    unless entity.attributes.include?(entity_attribute) || entity_attribute.empty?
+    unless entity.attributes.include?(entity_attribute) || entity_attribute.nil?
       errors.add(:entity_attribute, "#{entity_attribute} does not exist")
     end
   end
