@@ -177,7 +177,7 @@ module CurrentTrackedByChangeset
     end
   end
 
-  def merge(other)
+  def merge_in_entity(other)
     # Merge another instance into self
     self.merge_in_attributes(other.changeable_attributes_as_a_cloned_hash)
   end
