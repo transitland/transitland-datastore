@@ -39,7 +39,7 @@ module CurrentTrackedByChangeset
         attrs_to_apply.update({ edited_attributes: attrs_to_apply.keys.select { |a| self.sticky_attributes.include?(a) } })
       end
       if existing_model
-        existing_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply)
+        existing_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply.update({ 'onestop_id': existing_model.onestop_id }))
       else
         new_model = self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
       end
@@ -86,7 +86,7 @@ module CurrentTrackedByChangeset
       end
       merge_into_model.after_merge_onestop_ids(onestop_ids_to_merge, changeset)
       onestop_ids_to_merge.each { |onestop_id|
-        model_to_merge = self.find_by_onestop_id(onestop_id)
+        model_to_merge = self.find_by_onestop_id!(onestop_id)
         model_to_merge.destroy_making_history(changeset: changeset, action: 'merge', current: merge_into_model)
       }
     end
@@ -128,7 +128,7 @@ module CurrentTrackedByChangeset
     def find_existing_model(attrs = {})
       case @kind_of_model_tracked
       when :onestop_entity
-        self.find_by_onestop_id(attrs[:onestop_id])
+        self.find_by_current_and_old_onestop_id(attrs[:onestop_id])
       when :relationship
         self.find_by_attributes(attrs)
       end

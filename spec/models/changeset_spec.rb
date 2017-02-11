@@ -242,6 +242,38 @@ describe Changeset do
       expect { changeset.apply! }.to raise_error(Changeset::Error)
     end
 
+    it 'preserves change onestop id action result after changeset (like import) using old onestop id' do
+      stop = create(:stop)
+      old_onestop_id = stop.onestop_id
+      change_id_changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'changeOnestopID',
+            stop: {
+              onestopId: old_onestop_id,
+              newOnestopId: 's-9q8yt4b-new'
+            }
+          }
+        ]
+      })
+      change_id_changeset.apply!
+
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            stop: {
+              onestopId: old_onestop_id,
+              name: 'A new name'
+            }
+          }
+        ]
+      })
+      changeset.apply!
+      expect{Stop.find_by_onestop_id!(old_onestop_id)}.to raise_error(ActiveRecord::RecordNotFound)
+      expect(Stop.first.name).to eq 'A new name'
+    end
+
     it 'raises changeset error when onestopIdsToMerge not included' do
       @changeset1.apply!
       merge_stop_1 = create(:stop)
@@ -327,6 +359,41 @@ describe Changeset do
       expect(OldStop.last).to eq OldStop.find_by_onestop_id!(merge_stop_2.onestop_id)
       expect(OldStop.last.current).to eq Stop.first
       expect(OldStop.last.action).to eq 'merge'
+    end
+
+    it 'preserves merge action result after changeset (like import) using old onestop id' do
+      merge_stop_1 = create(:stop)
+      merge_stop_2 = create(:stop)
+      merge_changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'merge',
+            onestopIdsToMerge: [merge_stop_1.onestop_id, merge_stop_2.onestop_id],
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              name: '1st Ave. & Holloway Street',
+              timezone: 'America/Los_Angeles',
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
+            }
+          }
+        ]
+      })
+      merge_changeset.apply!
+
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            stop: {
+              onestopId: merge_stop_1.onestop_id,
+              name: 'A new name'
+            }
+          }
+        ]
+      })
+      changeset.apply!
+      expect{Stop.find_by_onestop_id!(merge_stop_1.onestop_id)}.to raise_error(ActiveRecord::RecordNotFound)
+      expect(Stop.first.name).to eq 'A new name'
     end
 
     it 'updates rsp stop pattern stop onestop ids on merge onestop ids' do

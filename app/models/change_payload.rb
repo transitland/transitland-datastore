@@ -131,7 +131,7 @@ class ChangePayload < ActiveRecord::Base
           action = change[:action]
           change = change[entity_type]
           if action.to_s.eql?("createUpdate")
-            entity = ENTITY_TYPES[entity_type].find_by_onestop_id!(change[:onestop_id])
+            entity = ENTITY_TYPES[entity_type].find_by_current_and_old_onestop_id!(change[:onestop_id])
             old_issues_to_deprecate.merge(Issue.issues_of_entity(entity, entity_attributes: change.keys))
           end
         end
