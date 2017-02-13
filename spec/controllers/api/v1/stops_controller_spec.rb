@@ -62,6 +62,20 @@ describe Api::V1::StopsController do
         }})
       end
 
+      it 'does not return stop station_hierarchy issues' do
+        platform_stop_with_issue = create(:stop_platform)
+        station_hierarchy_issue = Issue.create!(issue_type: 'stop_platform_parent_distance_gap')
+        station_hierarchy_issue.entities_with_issues.create!(entity: platform_stop_with_issue, entity_attribute: 'geometry')
+        station_hierarchy_issue.entities_with_issues.create!(entity: platform_stop_with_issue.parent_stop, entity_attribute: 'geometry')
+
+        issue = Issue.create!(issue_type: 'stop_name').entities_with_issues.create!(entity: platform_stop_with_issue.parent_stop, entity_attribute: 'name')
+
+        get :index, embed_issues: 'true'
+        expect_json({ stops: -> (stops) {
+            expect(stops.detect { |stop| stop[:onestop_id].eql?(platform_stop_with_issue.parent_stop.onestop_id) }[:issues].size).to eq 1
+        }})
+      end
+
       context 'served_by_vehicle_types' do
         before(:each) do
           @route1 = create(:route, vehicle_type: 'metro')

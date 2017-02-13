@@ -44,6 +44,10 @@ class StopStationSerializer < CurrentEntitySerializer
      has_many :operators_serving_stop
      has_many :routes_serving_stop
      has_many :stop_transfers
+
+     def issues
+       issues = object.issues
+     end
   end
   # Egress serializer
   class StopEgressSerializer < CurrentEntitySerializer
@@ -57,6 +61,9 @@ class StopStationSerializer < CurrentEntitySerializer
                :created_at,
                :updated_at
                :last_conflated_at
+    def issues
+      issues = object.issues
+    end
   end
 
   # Create phantom platforms / egresses
@@ -100,14 +107,7 @@ class StopStationSerializer < CurrentEntitySerializer
   end
 
   def issues
-    issues = []
-    if ['StopPlatform', 'StopEgress'].include?(object.class.name.to_s)
-      issues = object.issues
-    else
-      # object.class == Stop
-      issues = object.stop_platforms.collect { |sp| sp.issues }.flatten
-    end
-    issues.reject { |issue| Issue.categories[:station_hierarchy].exclude?(issue.issue_type) }
+    object.stop_platforms.collect { |sp| sp.issues }.flatten.reject { |issue| Issue.categories[:station_hierarchy].exclude?(issue.issue_type) }
   end
 
   # Attributes

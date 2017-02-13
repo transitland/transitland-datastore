@@ -46,6 +46,10 @@ class StopSerializer < CurrentEntitySerializer
 
   has_many :operators_serving_stop
   has_many :routes_serving_stop
+
+  def issues
+    object.issues.reject { |issue| Issue.categories[:station_hierarchy].include?(issue.issue_type) }
+  end
 end
 
 class StopPlatformSerializer < StopSerializer
