@@ -304,6 +304,7 @@ class RouteStopPattern < BaseRouteStopPattern
 
   scope :with_trips, -> (search_string) { where{trips.within(search_string)} }
   scope :with_stops, -> (search_string) { where{stop_pattern.within(search_string)} }
+  scope :with_any_stops, -> (stop_onestop_ids) { where( "stop_pattern && ARRAY[?]::varchar[]", stop_onestop_ids ) }
 
   def ordered_ssp_trip_chunks(&block)
     if block
