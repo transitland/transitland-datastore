@@ -242,7 +242,7 @@ describe Changeset do
       expect { changeset.apply! }.to raise_error(Changeset::Error)
     end
 
-    it 'preserves change onestop id action result after changeset (like import) using old onestop id' do
+    it 'preserves change onestop id action result after changeset using old onestop id' do
       stop = create(:stop)
       old_onestop_id = stop.onestop_id
       change_id_changeset = create(:changeset, payload: {
@@ -361,7 +361,7 @@ describe Changeset do
       expect(OldStop.last.action).to eq 'merge'
     end
 
-    it 'preserves merge action result after changeset (like import) using old onestop id' do
+    it 'preserves merge action result after changeset using old onestop id' do
       merge_stop_1 = create(:stop)
       merge_stop_2 = create(:stop)
       merge_changeset = create(:changeset, payload: {
@@ -394,6 +394,25 @@ describe Changeset do
       changeset.apply!
       expect{Stop.find_by_onestop_id!(merge_stop_1.onestop_id)}.to raise_error(ActiveRecord::RecordNotFound)
       expect(Stop.first.name).to eq 'A new name'
+    end
+
+    it 'preserves merge action result after subsequent import' do
+      feed, feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 1)
+      stop1, stop2, merge_into_stop = Stop.take(3)
+
+      merge_changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'merge',
+            onestopIdsToMerge: [stop1.onestop_id, stop2.onestop_id],
+            stop: {
+              onestopId: merge_into_stop.onestop_id,
+              name: 'Merged stop.'
+            }
+          }
+        ]
+      })
+      merge_changeset.apply!
     end
 
     it 'updates rsp stop pattern stop onestop ids on merge onestop ids' do
