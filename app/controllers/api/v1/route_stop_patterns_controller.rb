@@ -48,7 +48,7 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
       @rsps = @rsps.with_trips(params[:trips])
     end
     if params[:stops_visited].present?
-      @rsps = @rsps.with_stops(params[:stops_visited])
+      @rsps = @rsps.with_all_stops(params[:stops_visited])
     end
 
     # Includes

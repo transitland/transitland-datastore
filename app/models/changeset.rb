@@ -207,7 +207,7 @@ class Changeset < ActiveRecord::Base
       self.stops_created_or_updated.each do |stop|
         operators_to_update_convex_hull.merge(OperatorServingStop.where(stop: stop).map(&:operator))
       end
-      rsps_to_update_distances.merge(RouteStopPattern.with_stops(self.stops_created_or_updated.map(&:onestop_id).join(',')))
+      rsps_to_update_distances.merge(RouteStopPattern.with_any_stops(self.stops_created_or_updated.map(&:onestop_id).join(',')))
 
       operators_to_update_convex_hull.each { |operator|
         operator.geometry = operator.recompute_convex_hull_around_stops
