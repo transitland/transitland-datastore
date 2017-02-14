@@ -428,7 +428,8 @@ class GTFSGraph
       # ... or check if Operator exists, or another local Operator, or new.
       operator = find_by_onestop_id(operator.onestop_id)
       # Merge convex hulls
-      operator[:geometry] = Operator.convex_hull([operator, operator_original], as: :wkt, projected: false)
+      convex_hull = Operator.convex_hull([operator, operator_original], as: :wkt, projected: false)
+      operator[:geometry] = convex_hull if convex_hull
 
       # Operator routes & stops
       routes = entity.routes.map { |route| find_by_gtfs_entity(route) }.compact.to_set
