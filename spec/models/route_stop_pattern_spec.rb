@@ -159,6 +159,7 @@ describe RouteStopPattern do
     expect(RouteStopPattern.with_any_stops(['s-9q9k659e3r-sanjosecaltrainstation'])).to match_array([])
     # Stop 's-9q9k659e3r-sanjosecaltrainstation' does not exist yet
     expect(RouteStopPattern.with_any_stops(['s-9q8yw8y448-bayshorecaltrainstation','s-9q9k659e3r-sanjosecaltrainstation'])).to match_array([rsp])
+    # create Stop 's-9q9k659e3r-sanjosecaltrainstation'
     stop = create(:stop, onestop_id: 's-9q9k659e3r-sanjosecaltrainstation')
     rsp2 = create(:route_stop_pattern, stop_pattern: [@sp[0],stop.onestop_id], geometry: @geom)
     expect(RouteStopPattern.with_any_stops(['s-9q8yw8y448-bayshorecaltrainstation','s-9q9k659e3r-sanjosecaltrainstation'])).to match_array([rsp, rsp2])
