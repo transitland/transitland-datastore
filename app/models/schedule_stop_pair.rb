@@ -258,7 +258,7 @@ class ScheduleStopPair < BaseScheduleStopPair
       find(attrs[:id])
     end
   end
-  def self.apply_params(params, cache={})
+  def self.apply_params(params, cache={}, changeset: nil)
     params = super(params, cache)
     {
       origin_onestop_id: :origin,
