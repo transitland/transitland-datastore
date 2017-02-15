@@ -100,7 +100,7 @@ class Stop < BaseStop
 
   def update_stop_pattern_onestop_ids(old_onestop_ids, changeset)
     old_onestop_ids = Array.wrap(old_onestop_ids)
-    RouteStopPattern.with_any_stops(old_onestop_ids.join(',')).each do |rsp|
+    RouteStopPattern.with_any_stops(old_onestop_ids).each do |rsp|
       rsp.stop_pattern.map! { |stop_onestop_id| old_onestop_ids.include?(stop_onestop_id) ? self.onestop_id : stop_onestop_id }
       rsp.update_making_history(changeset: changeset)
     end
@@ -200,7 +200,7 @@ class Stop < BaseStop
       when Route
         routes << onestop_id_or_model
       when String
-        model = OnestopId.find!(onestop_id_or_model)
+        model = OnestopId.find_current_and_old!(onestop_id_or_model)
         case model
         when Route then routes << model
         when Operator then operators << model

@@ -398,6 +398,9 @@ describe Changeset do
 
     it 'preserves merge action result after subsequent import' do
       feed, feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 1)
+      feed_version.feed_version_imports.create(
+        import_level: 1
+      )
       stop1, stop2, merge_into_stop = Stop.take(3)
 
       merge_changeset = create(:changeset, payload: {
@@ -413,6 +416,10 @@ describe Changeset do
         ]
       })
       merge_changeset.apply!
+      # the changeset imported_from_feed needs to have >1 feed_version_imports for attributes to stick
+      FeedEaterWorker.new.perform(feed.onestop_id, feed_version.sha1=nil, import_level=1)
+      expect(Stop.find_by_onestop_id!(merge_into_stop.onestop_id).name).to eq 'Merged stop.'
+      expect(Stop.find_by_current_and_old_onestop_id!(stop1.onestop_id)).to eq Stop.find_by_onestop_id!(merge_into_stop.onestop_id)
     end
 
     it 'updates rsp stop pattern stop onestop ids on merge onestop ids' do

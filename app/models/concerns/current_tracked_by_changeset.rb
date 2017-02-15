@@ -34,10 +34,7 @@ module CurrentTrackedByChangeset
 
     def apply_change_create_update(changeset: nil, change: nil, cache: {})
       existing_model = find_existing_model(change)
-      attrs_to_apply = apply_params(change, cache)
-      unless !self.column_names.include?("edited_attributes") || changeset.nil? || changeset.import?
-        attrs_to_apply.update({ edited_attributes: attrs_to_apply.keys.select { |a| self.sticky_attributes.include?(a) } })
-      end
+      attrs_to_apply = apply_params(change, cache, changeset: changeset)
       if existing_model
         existing_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply.update({ 'onestop_id': existing_model.onestop_id }))
       else
@@ -77,7 +74,7 @@ module CurrentTrackedByChangeset
       if onestop_ids_to_merge.include?(change[:onestop_id])
         raise Changeset::Error.new(changeset: changeset, message: "attempting to merge entity with onestop id #{change[:onestop_id]} into itself.")
       end
-      attrs_to_apply = apply_params(change, cache)
+      attrs_to_apply = apply_params(change, cache, changeset: changeset)
       merge_into_model = find_by_onestop_id(change[:onestop_id])
       if merge_into_model
         merge_into_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply)
@@ -108,9 +105,13 @@ module CurrentTrackedByChangeset
       existing_model.update_associations(changeset)
     end
 
-    def apply_params(params, cache={})
+    def apply_params(params, cache={}, changeset: nil)
       # Filter changeset params
-      params.select { |key, value| self.changeable_attributes.include?(key) }
+      attrs_to_apply = params.select { |key, value| self.changeable_attributes.include?(key) }
+      unless !self.column_names.include?("edited_attributes") || changeset.nil? || changeset.import?
+        attrs_to_apply.update({ edited_attributes: attrs_to_apply.keys.select { |a| self.sticky_attributes.include?(a) } })
+      end
+      attrs_to_apply
     end
 
     def create_making_history(changeset: nil, new_attrs: {})

@@ -547,7 +547,7 @@ class GTFSGraph
   def find_by_onestop_id(onestop_id)
     # Find and cache a Transitland Entity by Onestop ID
     return nil unless onestop_id
-    entity = @onestop_id_to_entity[onestop_id] || OnestopId.find(onestop_id)
+    entity = @onestop_id_to_entity[onestop_id] || OnestopId.find_current_and_old(onestop_id)
     @onestop_id_to_entity[onestop_id] = entity
     entity
   end
