@@ -36,7 +36,11 @@ module CurrentTrackedByChangeset
       existing_model = find_existing_model(change)
       attrs_to_apply = apply_params(change, cache, changeset: changeset)
       if existing_model
-        existing_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply.update({ 'onestop_id': existing_model.onestop_id }))
+        if existing_model.onestop_id.eql?(change[:onestop_id])
+          existing_model.update_making_history(changeset: changeset, new_attrs: attrs_to_apply.update({ 'onestop_id': existing_model.onestop_id }))
+        else
+          binding.pry
+        end
       else
         new_model = self.create_making_history(changeset: changeset, new_attrs: attrs_to_apply)
       end
