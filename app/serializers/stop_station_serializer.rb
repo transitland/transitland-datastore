@@ -61,9 +61,10 @@ class StopStationSerializer < CurrentEntitySerializer
                :created_at,
                :updated_at
                :last_conflated_at
-    def issues
-      issues = object.issues
-    end
+
+     def issues
+       issues = object.issues
+     end
   end
 
   # Create phantom platforms / egresses
@@ -104,10 +105,6 @@ class StopStationSerializer < CurrentEntitySerializer
     result = object.routes_serving_stop
     object.stop_platforms.each { |sp| result |= sp.routes_serving_stop }
     result.uniq { |osr| osr.route }
-  end
-
-  def issues
-    object.stop_platforms.collect { |sp| sp.issues }.flatten.reject { |issue| Issue.categories[:station_hierarchy].exclude?(issue.issue_type) }
   end
 
   # Attributes
