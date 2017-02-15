@@ -100,6 +100,7 @@ class GTFSGraph
       stop = @onestop_id_to_entity[stop_onestop_id]
       stops << stop
       stops << @onestop_id_to_entity[stop.parent_stop_onestop_id] if stop.parent_stop_onestop_id
+      stop.includes_stop_transfers.each { |ist| puts "STOP TRANSFER: #{ist[:toStopOnestopId]}"; stops << @onestop_id_to_entity[ist[:toStopOnestopId]] }
     }}
 
     # Update route geometries
