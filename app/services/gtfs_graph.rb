@@ -100,6 +100,7 @@ class GTFSGraph
       stop = @onestop_id_to_entity[stop_onestop_id]
       stops << stop
       stops << @onestop_id_to_entity[stop.parent_stop_onestop_id] if stop.parent_stop_onestop_id
+      (stop.includes_stop_transfers || []).each { |ist| stops << @onestop_id_to_entity[ist[:toStopOnestopId]]}
     }}
 
     # Update route geometries
@@ -439,6 +440,7 @@ class GTFSGraph
         stop = @onestop_id_to_entity[stop_onestop_id]
         stops << stop
         stops << @onestop_id_to_entity[stop.parent_stop_onestop_id] if stop.parent_stop_onestop_id
+        (stop.includes_stop_transfers || []).each { |ist| stops << @onestop_id_to_entity[ist[:toStopOnestopId]]}
       }}
       # Copy Operator timezone to fill missing Stop timezones
       stops.each { |stop| stop.timezone = stop.timezone.presence || operator.timezone }
