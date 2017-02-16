@@ -239,6 +239,7 @@ describe Changeset do
           }
         ]
       })
+      binding.pry
       expect { changeset.apply! }.to raise_error(Changeset::Error)
     end
 
@@ -528,6 +529,23 @@ describe Changeset do
       })
       changeset2.apply!
       expect(Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS').name).to eq 'Second Edit'
+    end
+
+    it 'allows change onestop id changeset action to preserve sticky and edited attributes' do
+      changeset2 = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'changeOnestopID',
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              newOnestopId: 's-9q8yt4b-changedId',
+              name: 'A new name.'
+            }
+          }
+        ]
+      })
+      changeset2.apply!
+      expect(Stop.find_by_onestop_id!('s-9q8yt4b-changedId').edited_attributes).to include("name")
     end
   end
 
