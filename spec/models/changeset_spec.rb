@@ -239,7 +239,6 @@ describe Changeset do
           }
         ]
       })
-      binding.pry
       expect { changeset.apply! }.to raise_error(Changeset::Error)
     end
 
