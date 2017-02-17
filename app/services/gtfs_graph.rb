@@ -116,7 +116,7 @@ class GTFSGraph
     end
 
     # RSPs to remove
-    feed_rsps = Set.new(@feed.imported_route_stop_patterns.pluck(:onestop_id))
+    feed_rsps = Set.new(@feed.imported_route_stop_patterns.where("edited_attributes='{}'").pluck(:onestop_id))
     rsps_to_remove = feed_rsps - Set.new(rsps.map(&:onestop_id))
 
     ####
