@@ -169,6 +169,84 @@ describe OnestopId do
       @sfmta = create(:operator, onestop_id: 'o-9q8y-SFMTA', geometry: 'POINT(-122.395644 37.722413)', name: 'SFMTA')
     end
 
+    context 'find_current_and_old' do
+      it 'Stops' do
+        expect(OnestopId.find_current_and_old(@bosworth_diamond.onestop_id)).to eq @bosworth_diamond
+      end
+
+      it 'Stops after merge or change' do
+        changeset = create(:changeset, payload: {
+          changes: [
+            {
+              action: 'merge',
+              onestopIdsToMerge: [@bosworth_diamond.onestop_id, @metro_embarcadero.onestop_id],
+              stop: {
+                onestopId: @glen_park.onestop_id
+              }
+            }
+          ]
+        })
+        changeset.apply!
+        expect(OnestopId.find_current_and_old(@bosworth_diamond.onestop_id)).to eq @glen_park
+        expect(OnestopId.find_current_and_old(@glen_park.onestop_id)).to eq @glen_park
+      end
+
+      it 'returns nil when no current or old found' do
+        changeset = create(:changeset, payload: {
+          changes: [
+            {
+              action: 'destroy',
+              stop: {
+                onestopId: @glen_park.onestop_id
+              }
+            }
+          ]
+        })
+        changeset.apply!
+        expect(OnestopId.find_current_and_old(@glen_park.onestop_id)).to be_nil
+        expect(OnestopId.find_current_and_old('s-b3-FakeSt')).to be_nil
+      end
+    end
+
+    context 'find_current_and_old!' do
+      it 'Stops' do
+        expect(OnestopId.find_current_and_old!(@bosworth_diamond.onestop_id)).to eq @bosworth_diamond
+      end
+
+      it 'Stops after merge or change' do
+        changeset = create(:changeset, payload: {
+          changes: [
+            {
+              action: 'merge',
+              onestopIdsToMerge: [@bosworth_diamond.onestop_id, @metro_embarcadero.onestop_id],
+              stop: {
+                onestopId: @glen_park.onestop_id
+              }
+            }
+          ]
+        })
+        changeset.apply!
+        expect(OnestopId.find_current_and_old!(@bosworth_diamond.onestop_id)).to eq @glen_park
+        expect(OnestopId.find_current_and_old!(@glen_park.onestop_id)).to eq @glen_park
+      end
+
+      it 'raises exception no current or old found' do
+        changeset = create(:changeset, payload: {
+          changes: [
+            {
+              action: 'destroy',
+              stop: {
+                onestopId: @glen_park.onestop_id
+              }
+            }
+          ]
+        })
+        changeset.apply!
+        expect{ OnestopId.find_current_and_old!(@glen_park.onestop_id) }.to raise_error(ActiveRecord::RecordNotFound, "Stop: #{@glen_park.onestop_id} has been destroyed.")
+        expect{ OnestopId.find_current_and_old!('s-b3-FakeSt') }.to raise_error ActiveRecord::RecordNotFound
+      end
+    end
+
     context 'find!' do
       it 'a Stop' do
         found_bosworth_diamond = OnestopId.find!(@bosworth_diamond.onestop_id)

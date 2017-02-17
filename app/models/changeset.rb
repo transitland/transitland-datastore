@@ -165,7 +165,18 @@ class Changeset < ActiveRecord::Base
   end
 
   def issues_unresolved(resolving_issues, changeset_issues)
-    changeset_issues.map { |c| resolving_issues.map { |r| r if c.equivalent?(r) } }.flatten.compact
+    # changeset does not contain entities matching any resolving issue entities
+    unresolved_issues = Set.new(resolving_issues.select { |issue|
+      unless issue.entities_with_issues.empty?
+        issue.entities_with_issues.map(&:entity).none? { |issue_entity|
+          eqls = []
+          entities_created_or_updated { |entity| eqls << issue_entity.eql?(entity) }
+          eqls.any?
+        }
+      end
+    })
+    # changeset does not resolve issue (creates the same issue in quality checks)
+    unresolved_issues.merge(changeset_issues.map { |c| resolving_issues.map { |r| r if c.equivalent?(r) } }.flatten.compact)
   end
 
   def check_quality
@@ -196,7 +207,7 @@ class Changeset < ActiveRecord::Base
       self.stops_created_or_updated.each do |stop|
         operators_to_update_convex_hull.merge(OperatorServingStop.where(stop: stop).map(&:operator))
       end
-      rsps_to_update_distances.merge(RouteStopPattern.with_stops(self.stops_created_or_updated.map(&:onestop_id).join(',')))
+      rsps_to_update_distances.merge(RouteStopPattern.with_any_stops(self.stops_created_or_updated.map(&:onestop_id)))
 
       operators_to_update_convex_hull.each { |operator|
         operator.geometry = operator.recompute_convex_hull_around_stops

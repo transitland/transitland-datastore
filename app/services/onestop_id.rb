@@ -233,6 +233,27 @@ module OnestopId
     klass.new(string: onestop_id).validate
   end
 
+  def self.find_current_and_old(onestop_id)
+    model = handler_by_string(string: onestop_id)::MODEL
+    entity = model.find_by(onestop_id: onestop_id)
+    if entity.nil?
+      old_entity = Object.const_get("Old#{model.name}").find_by(onestop_id: onestop_id)
+      entity = old_entity.current unless old_entity.nil?
+    end
+    entity
+  end
+
+  def self.find_current_and_old!(onestop_id)
+    model = handler_by_string(string: onestop_id)::MODEL
+    begin
+      model.find_by!(onestop_id: onestop_id)
+    rescue ActiveRecord::RecordNotFound
+      entity = Object.const_get("Old#{model.name}").find_by!(onestop_id: onestop_id)
+      fail ActiveRecord::RecordNotFound, "#{model.name}: #{onestop_id} has been destroyed." if entity.current.nil?
+      entity.current
+    end
+  end
+
   def self.find(onestop_id)
     handler_by_string(string: onestop_id)::MODEL.find_by(onestop_id: onestop_id)
   end
