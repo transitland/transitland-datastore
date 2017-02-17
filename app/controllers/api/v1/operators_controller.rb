@@ -56,9 +56,10 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
       imported_from_feed_versions,
       feeds
     ]}
+    @operators = @operators.includes(:issues) if AllowFiltering.to_boolean(params[:embed_issues])
 
     respond_to do |format|
-      format.json { render paginated_json_collection(@operators) }
+      format.json { render paginated_json_collection(@operators).merge({ scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }) }
       format.geojson { render paginated_geojson_collection(@operators) }
       format.csv { return_downloadable_csv(@operators, 'operators') }
     end
@@ -66,7 +67,7 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
 
   def show
     respond_to do |format|
-      format.json { render json: @operator }
+      format.json { render json: @operator, scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) }  }
       format.geojson { render json: @operator, serializer: GeoJSONSerializer }
     end
   end

@@ -57,16 +57,17 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
       imported_from_feeds,
       imported_from_feed_versions
     ]}
+    @rsps = @rsps.includes(:issues) if AllowFiltering.to_boolean(params[:embed_issues])
 
     respond_to do |format|
-      format.json { render paginated_json_collection(@rsps) }
+      format.json { render paginated_json_collection(@rsps).merge({ scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }) }
       format.geojson { render paginated_geojson_collection(@rsps) }
     end
   end
 
   def show
     respond_to do |format|
-      format.json { render json: @route_stop_pattern }
+      format.json { render json: @route_stop_pattern, scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }
       format.geojson { render json: @route_stop_pattern, serializer: GeoJSONSerializer }
     end
   end

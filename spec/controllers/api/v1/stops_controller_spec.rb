@@ -41,10 +41,24 @@ describe Api::V1::StopsController do
         stop_true = create(:stop, wheelchair_boarding: true)
         stop_false = create(:stop, wheelchair_boarding: false)
         get :index, wheelchair_boarding: 'true'
-        expect({ stops: -> (stops) {
-            expect(stops.first.onestop_id = stop_true.onestop_id)
+        expect_json({ stops: -> (stops) {
+            expect(stops.first[:onestop_id]).to eq stop_true.onestop_id
             expect(stops.count).to eq 1
-            expect(stops.first.wheelchair_boarding).to be true
+            expect(stops.first[:wheelchair_boarding]).to be true
+        }})
+      end
+
+      it 'returns stops with issues' do
+        Issue.create!(issue_type: 'stop_name').entities_with_issues.create!(entity: @glen_park, entity_attribute: 'name')
+
+        get :index, embed_issues: 'true'
+        expect_json({ stops: -> (stops) {
+            expect(stops.first[:issues].size).to eq 1
+        }})
+
+        get :index, embed_issues: 'false'
+        expect_json({ stops: -> (stops) {
+            expect(stops.first[:issues]).to be_nil
         }})
       end
 
