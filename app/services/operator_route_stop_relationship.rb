@@ -98,7 +98,7 @@ class OperatorRouteStopRelationship
     stop[:not_served_by].each { |onestop_id| raw_relationships[onestop_id] = false }
 
     raw_relationships.each do |onestop_id, will_be_served|
-      served_by_entity = OnestopId.find!(onestop_id)
+      served_by_entity = OnestopId.find_current_and_old!(onestop_id)
       case served_by_entity
       when Operator
         relationships_to_apply << OperatorRouteStopRelationship.new(
@@ -120,7 +120,7 @@ class OperatorRouteStopRelationship
     operator[:does_not_serve].each { |onestop_id| raw_relationships[onestop_id] = false }
 
     raw_relationships.each do |onestop_id, will_serve|
-      serves_entity = OnestopId.find!(onestop_id)
+      serves_entity = OnestopId.find_current_and_old!(onestop_id)
       case serves_entity
       when Stop
         relationships_to_apply << OperatorRouteStopRelationship.new(
@@ -142,7 +142,7 @@ class OperatorRouteStopRelationship
     route[:does_not_serve].each { |onestop_id| raw_relationships[onestop_id] = false }
 
     raw_relationships.each do |onestop_id, will_serve|
-      serves_entity = OnestopId.find!(onestop_id)
+      serves_entity = OnestopId.find_current_and_old!(onestop_id)
       case serves_entity
       when Stop
         relationships_to_apply << OperatorRouteStopRelationship.new(

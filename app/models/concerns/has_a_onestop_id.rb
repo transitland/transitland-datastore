@@ -5,20 +5,14 @@ module HasAOnestopId
     validates :onestop_id, presence: true, uniqueness: true
     validate :onestop_id, :validate_onestop_id
 
-    def self.current_from_old_reference(old_entity, find_method)
-      unless ['merge', 'change_onestop_id'].exclude?(old_entity.action) || old_entity.current.nil?
-        self.send(find_method, { onestop_id: old_entity.current.onestop_id })
-      end
-    end
-
     def self.find_by_current_and_old_onestop_id!(onestop_id)
       begin
         # TODO: make this case insensitive
         self.find_by!(onestop_id: onestop_id)
       rescue ActiveRecord::RecordNotFound
-        result = self.current_from_old_reference(Object.const_get("Old#{self.name}").find_by!(onestop_id: onestop_id), :find_by!)
-        fail ActiveRecord::RecordNotFound, "#{self.name}: #{onestop_id} has been destroyed." if result.nil?
-        result
+        result = Object.const_get("Old#{self.name}").find_by!(onestop_id: onestop_id)
+        fail ActiveRecord::RecordNotFound, "#{self.name}: #{onestop_id} has been destroyed." if result.current.nil?
+        result.current
       end
     end
 
@@ -26,9 +20,9 @@ module HasAOnestopId
       # TODO: make this case insensitive
       result = self.find_by(onestop_id: onestop_id)
       if result.nil?
-        result = Object.const_get("Old#{self.name}").find_by(onestop_id: onestop_id)
-        unless result.nil?
-          result = self.current_from_old_reference(result, :find_by)
+        old_entity = Object.const_get("Old#{self.name}").find_by(onestop_id: onestop_id)
+        unless old_entity.nil?
+          result = old_entity.current
         end
       end
       result

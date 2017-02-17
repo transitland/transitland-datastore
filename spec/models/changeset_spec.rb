@@ -329,6 +329,97 @@ describe Changeset do
       expect(OldStop.last.action).to eq 'merge'
     end
 
+    it 'allows createUpdate changes to current entity target of a changeOnestopID action, using the old onestop id' do
+      stop = create(:stop)
+      old_onestop_id = stop.onestop_id
+      change_id_changeset = create(:changeset, payload: {
+       changes: [
+         {
+           action: 'changeOnestopID',
+           stop: {
+             onestopId: old_onestop_id,
+             newOnestopId: 's-9q8yt4b-new'
+           }
+         }
+       ]
+      })
+      change_id_changeset.apply!
+      changeset = create(:changeset, payload: {
+       changes: [
+         {
+           action: 'createUpdate',
+           stop: {
+             onestopId: old_onestop_id,
+             name: 'A new name'
+           }
+         }
+       ]
+      })
+      changeset.apply!
+      expect{Stop.find_by_onestop_id!(old_onestop_id)}.to raise_error(ActiveRecord::RecordNotFound)
+      expect(Stop.first.name).to eq 'A new name'
+    end
+
+    it 'allows createUpdate changes to current entity target of merge action, using the old onestop id' do
+      merge_stop_1 = create(:stop)
+      merge_stop_2 = create(:stop)
+      merge_changeset = create(:changeset, payload: {
+       changes: [
+         {
+           action: 'merge',
+           onestopIdsToMerge: [merge_stop_1.onestop_id, merge_stop_2.onestop_id],
+           stop: {
+             onestopId: 's-9q8yt4b-1AvHoS',
+             name: '1st Ave. & Holloway Street',
+             timezone: 'America/Los_Angeles',
+             geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
+           }
+         }
+       ]
+      })
+      merge_changeset.apply!
+      changeset = create(:changeset, payload: {
+       changes: [
+         {
+           action: 'createUpdate',
+           stop: {
+             onestopId: merge_stop_1.onestop_id,
+             name: 'A new name'
+           }
+         }
+       ]
+      })
+      changeset.apply!
+      expect{Stop.find_by_onestop_id!(merge_stop_1.onestop_id)}.to raise_error(ActiveRecord::RecordNotFound)
+      expect(Stop.first.name).to eq 'A new name'
+    end
+
+    it 'preserves merge action result after subsequent import' do
+      feed, feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 1)
+      feed_version.feed_version_imports.create(
+        import_level: 1
+      )
+      stop1, stop2, merge_into_stop = Stop.take(3)
+
+      merge_changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'merge',
+            onestopIdsToMerge: [stop1.onestop_id, stop2.onestop_id],
+            stop: {
+              onestopId: merge_into_stop.onestop_id,
+              name: 'Merged stop.'
+            }
+          }
+        ]
+      })
+      merge_changeset.apply!
+      # the changeset imported_from_feed needs to have >1 feed_version_imports for attributes to stick
+      FeedEaterWorker.new.perform(feed.onestop_id, feed_version.sha1=nil, import_level=1)
+      expect(Stop.find_by_onestop_id!(merge_into_stop.onestop_id).name).to eq 'Merged stop.'
+      expect(Stop.find_by_current_and_old_onestop_id!(stop1.onestop_id)).to eq Stop.find_by_onestop_id!(merge_into_stop.onestop_id)
+    end
+
     it 'updates rsp stop pattern stop onestop ids on merge onestop ids' do
       richmond = create(:stop_richmond_offset)
       millbrae = create(:stop_millbrae)
@@ -435,6 +526,23 @@ describe Changeset do
       })
       changeset2.apply!
       expect(Stop.find_by_onestop_id!('s-9q8yt4b-1AvHoS').name).to eq 'Second Edit'
+    end
+
+    it 'allows change onestop id changeset action to preserve sticky and edited attributes' do
+      changeset2 = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'changeOnestopID',
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              newOnestopId: 's-9q8yt4b-changedId',
+              name: 'A new name.'
+            }
+          }
+        ]
+      })
+      changeset2.apply!
+      expect(Stop.find_by_onestop_id!('s-9q8yt4b-changedId').edited_attributes).to include("name")
     end
   end
 

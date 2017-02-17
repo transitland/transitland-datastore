@@ -68,25 +68,23 @@ class ChangePayload < ActiveRecord::Base
     end
   end
 
-  def apply_change(cache: {})
+  def apply_change
     self.each_change do |entity_cls, action, change, onestop_ids_to_merge|
       entity_cls.apply_change(
         changeset: changeset,
         action: action,
         change: change,
-        onestop_ids_to_merge: onestop_ids_to_merge,
-        cache: cache
+        onestop_ids_to_merge: onestop_ids_to_merge
       )
     end
   end
 
-  def apply_associations(cache: {})
+  def apply_associations
     self.each_change do |entity_cls, action, change, onestop_ids_to_merge|
       entity_cls.apply_associations(
         changeset: changeset,
         action: action,
-        change: change,
-        cache: cache
+        change: change
       )
     end
   end
@@ -131,7 +129,7 @@ class ChangePayload < ActiveRecord::Base
           action = change[:action]
           change = change[entity_type]
           if action.to_s.eql?("createUpdate")
-            entity = ENTITY_TYPES[entity_type].find_by_onestop_id!(change[:onestop_id])
+            entity = ENTITY_TYPES[entity_type].find_by_current_and_old_onestop_id!(change[:onestop_id])
             old_issues_to_deprecate.merge(Issue.issues_of_entity(entity, entity_attributes: change.keys))
           end
         end

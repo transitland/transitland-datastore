@@ -363,6 +363,23 @@ describe Api::V1::ChangesetsController do
     end
   end
 
+  context 'changing and merging onestop ids' do
+    it 'should be able to changeOnestopID' do
+      stop = create(:stop)
+      changeset = create(:changeset, payload: {
+        changes: [
+          action: 'changeOnestopID',
+          stop: {
+              onestopId: stop.onestop_id,
+              newOnestopId: 's-dnrugf3mck-test'
+          }
+        ]
+      })
+      post :check, id: changeset.id
+      expect_json({ trialSucceeds: true })
+    end
+  end
+
   context 'POST revert' do
     pending 'write the revert functionality'
   end
