@@ -235,6 +235,13 @@ describe GTFSGraph do
       load_feed(feed_version: @feed_version_update_add, import_level: 1)
       expect(s.reload.entities_imported_from_feed.count).to eq(2)
     end
+
+    it 'destroys old RSPs' do
+      rsp = create(:route_stop_pattern)
+      @original_feed_version.entities_imported_from_feed.create!(feed: @feed, entity: rsp)
+      load_feed(feed_version: @original_feed_version, import_level: 1)
+      expect(RouteStopPattern.exists?(rsp.id)).to be_falsey
+    end
   end
 
   context 'errors' do

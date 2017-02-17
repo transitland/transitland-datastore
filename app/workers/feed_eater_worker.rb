@@ -26,8 +26,8 @@ class FeedEaterWorker
     begin
       log "FeedEaterWorker #{feed_onestop_id}: Importing feed at import level #{import_level}"
       graph = GTFSGraph.new(feed, feed_version)
-      graph.cleanup
       graph.create_change_osr
+      graph.cleanup
       if import_level >= 2
         schedule_jobs = []
         graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map, rsp_map|
