@@ -277,10 +277,18 @@ class GTFSGraph
       destination_departure_time = GTFS::WideTime.parse(gtfs_destination_stop_time.departure_time)
       # Adjust frequency schedules to be relative to trip_start_time
       if frequency_start_time
-        origin_arrival_time = (origin_arrival_time - trip_start_time) + frequency_start_time
-        origin_departure_time = (origin_departure_time - trip_start_time) + frequency_start_time
-        destination_arrival_time = (destination_arrival_time - trip_start_time) + frequency_start_time
-        destination_departure_time = (destination_departure_time - trip_start_time) + frequency_start_time
+        if origin_arrival_time
+          origin_arrival_time = (origin_arrival_time - trip_start_time) + frequency_start_time
+        end
+        if origin_departure_time
+          origin_departure_time = (origin_departure_time - trip_start_time) + frequency_start_time
+        end
+        if destination_arrival_time
+          destination_arrival_time = (destination_arrival_time - trip_start_time) + frequency_start_time
+        end
+        if destination_departure_time
+          destination_departure_time = (destination_departure_time - trip_start_time) + frequency_start_time
+        end
       end
 
       # Create SSP
