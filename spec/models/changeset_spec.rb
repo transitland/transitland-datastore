@@ -329,7 +329,7 @@ describe Changeset do
       expect(OldStop.last.action).to eq 'merge'
     end
 
-    it 'allows createUpdate changes to current entity target changeOnestopID action and using the old onestop id' do
+    it 'allows createUpdate changes to current entity target of a changeOnestopID action, using the old onestop id' do
       stop = create(:stop)
       old_onestop_id = stop.onestop_id
       change_id_changeset = create(:changeset, payload: {
@@ -360,7 +360,7 @@ describe Changeset do
       expect(Stop.first.name).to eq 'A new name'
     end
 
-    it 'allows createUpdate changes to current entity target after merge action and using the old onestop id' do
+    it 'allows createUpdate changes to current entity target of merge action, using the old onestop id' do
       merge_stop_1 = create(:stop)
       merge_stop_2 = create(:stop)
       merge_changeset = create(:changeset, payload: {
