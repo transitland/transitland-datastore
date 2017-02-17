@@ -68,25 +68,23 @@ class ChangePayload < ActiveRecord::Base
     end
   end
 
-  def apply_change(cache: {})
+  def apply_change
     self.each_change do |entity_cls, action, change, onestop_ids_to_merge|
       entity_cls.apply_change(
         changeset: changeset,
         action: action,
         change: change,
-        onestop_ids_to_merge: onestop_ids_to_merge,
-        cache: cache
+        onestop_ids_to_merge: onestop_ids_to_merge
       )
     end
   end
 
-  def apply_associations(cache: {})
+  def apply_associations
     self.each_change do |entity_cls, action, change, onestop_ids_to_merge|
       entity_cls.apply_associations(
         changeset: changeset,
         action: action,
-        change: change,
-        cache: cache
+        change: change
       )
     end
   end

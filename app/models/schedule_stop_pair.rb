@@ -258,8 +258,8 @@ class ScheduleStopPair < BaseScheduleStopPair
       find(attrs[:id])
     end
   end
-  def self.apply_params(params, cache={}, changeset: nil)
-    params = super(params, cache)
+  def self.apply_params(params, changeset: nil)
+    params = super(params)
     {
       origin_onestop_id: :origin,
       destination_onestop_id: :destination,
@@ -267,10 +267,9 @@ class ScheduleStopPair < BaseScheduleStopPair
       route_stop_pattern_onestop_id: :route_stop_pattern
     }.each do |k,v|
       next if params[k].nil?
-      cache[params[k]] ||= OnestopId.find_current_and_old!(params[k])
-      params[v] = cache[params.delete(k)]
+      params[v] = OnestopId.find_current_and_old!(params[k])
     end
-    params[:operator] = params[:route].operator
+    params[:operator] = params[:route].operator if params[:route]
     params
   end
 
