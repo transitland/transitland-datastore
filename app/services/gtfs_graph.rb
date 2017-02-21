@@ -114,6 +114,11 @@ class GTFSGraph
       representative_rsps = Route.representative_geometry(route, route_rsps[route] || [])
       Route.geometry_from_rsps(route, representative_rsps)
     end
+
+    # RSPs to remove
+    feed_rsps = Set.new(@feed.imported_route_stop_patterns.where("edited_attributes='{}'").pluck(:onestop_id))
+    rsps_to_remove = feed_rsps - Set.new(rsps.map(&:onestop_id))
+
     ####
     graph_log "Create changeset"
     changeset = Changeset.create(
@@ -136,6 +141,10 @@ class GTFSGraph
       changeset.create_change_payloads(stops.partition { |i| i.type != 'StopPlatform' }.flatten)
       graph_log "  routes: #{routes.size}"
       changeset.create_change_payloads(routes)
+      if rsps_to_remove.size > 0
+        graph_log "  rsps to remove: #{rsps_to_remove.size}"
+        changeset.change_payloads.create!(payload: {changes: rsps_to_remove.map {|i| {action: "destroy", routeStopPattern: {onestopId: i}}}})
+      end
       graph_log "  route geometries: #{rsps.size}"
       changeset.create_change_payloads(rsps)
     rescue Changeset::Error => e
