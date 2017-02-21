@@ -18,6 +18,12 @@ gem 'pg'
 gem 'activerecord-postgis-adapter'
 gem 'activerecord-import'
 gem 'redis-rails'
+# NOTE: pegging version of Redis gems
+# because of past operations issues: https://github.com/transitland/transitland-datastore/pull/880
+# hopefully will be fixed in future versions
+gem 'redis', '3.3.1'
+gem 'redis-actionpack', '5.0.0'
+gem 'redis-rack', '2.0.0.pre'
 
 # background processing
 gem 'sidekiq', '< 5'
@@ -64,8 +70,6 @@ gem 'pry-byebug', group: [:development, :test]
 gem 'pry-rails', group: [:development, :test]
 gem 'pry-rescue', group: [:development, :test]
 gem 'pry-stack_explorer', group: [:development, :test]
-gem 'rubocop', require: false, group: [:development, :test]
-gem 'rubocop-rspec', require: false, group: [:development, :test]
 gem 'active_record_doctor', group: :development
 
 # code coverage and documentation
@@ -83,7 +87,6 @@ gem 'vcr', group: :test
 gem 'webmock', group: :test
 gem 'airborne', group: :test
 gem 'timecop', group: :test
-gem 'codecov', require: false, group: :test
 gem 'rspec_junit_formatter', '0.2.2', group: :test
 # ^ for CircleCI: https://circleci.com/docs/test-metadata#rspec
 

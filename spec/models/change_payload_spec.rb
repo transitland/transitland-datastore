@@ -42,6 +42,21 @@ RSpec.describe ChangePayload, type: :model do
       expect(change_payload.valid?).to be true
     end
 
+    it 'can contain a stop change_onestop_id action' do
+      change_payload = build(:change_payload, payload: {
+        changes: [
+          {
+            action: "changeOnestopID",
+            stop: {
+              onestopId: 's-9q8yt4b-1AvHoS',
+              newOnestopId: 's-9q8yt4b-test'
+            }
+          }
+        ]
+      })
+      expect(change_payload.valid?).to be true
+    end
+
     it 'must include valid Onestop IDs' do
       change_payload = build(:change_payload, payload: {
         changes: [

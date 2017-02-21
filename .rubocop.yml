@@ -1,8 +1,0 @@
-inherit_from: https://raw.githubusercontent.com/bbatsov/rubocop/master/config/default.yml
-require:
-  - rubocop-rspec
-AllCops:
-  Exclude:
-    - "db/schema.rb"
-Metrics/LineLength:
-  Max: 120

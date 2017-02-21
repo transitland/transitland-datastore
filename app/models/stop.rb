@@ -98,6 +98,22 @@ class Stop < BaseStop
     ]
   })
 
+  def update_stop_pattern_onestop_ids(old_onestop_ids, changeset)
+    old_onestop_ids = Array.wrap(old_onestop_ids)
+    RouteStopPattern.with_any_stops(old_onestop_ids).each do |rsp|
+      rsp.stop_pattern.map! { |stop_onestop_id| old_onestop_ids.include?(stop_onestop_id) ? self.onestop_id : stop_onestop_id }
+      rsp.update_making_history(changeset: changeset)
+    end
+  end
+
+  def after_change_onestop_id(old_onestop_id, changeset)
+    self.update_stop_pattern_onestop_ids(old_onestop_id, changeset)
+  end
+
+  def after_merge_onestop_ids(merging_onestop_ids, changeset)
+    self.update_stop_pattern_onestop_ids(merging_onestop_ids, changeset)
+  end
+
   def update_associations(changeset)
     update_entity_imported_from_feeds(changeset)
     update_served_by(changeset)
@@ -184,7 +200,7 @@ class Stop < BaseStop
       when Route
         routes << onestop_id_or_model
       when String
-        model = OnestopId.find!(onestop_id_or_model)
+        model = OnestopId.find_current_and_old!(onestop_id_or_model)
         case model
         when Route then routes << model
         when Operator then operators << model
@@ -300,7 +316,7 @@ class Stop < BaseStop
             osm_way_id = tyr_locate_response[index][:edges][0][:way_id]
           else
             log "Tyr response for Stop #{stop.onestop_id} did not contain edges. Leaving osm_way_id."
-            Issue.create!(issue_type: 'missing_stop_conflation_result', details: 'Tyr response for Stop #{stop.onestop_id} did not contain edges. Leaving osm_way_id.')
+            Issue.create!(issue_type: 'missing_stop_conflation_result', details: "Tyr response for Stop #{stop.onestop_id} did not contain edges. Leaving osm_way_id.")
               .entities_with_issues.create!(entity: stop, entity_attribute: 'osm_way_id')
           end
 
