@@ -22,9 +22,9 @@ describe Issue do
   it '.with_type' do
     changeset = create(:changeset)
     Issue.new(created_by_changeset: changeset, issue_type: 'stop_position_inaccurate').save!
-    Issue.new(created_by_changeset: changeset, issue_type: 'rsp_line_inaccurate').save!
+    Issue.new(created_by_changeset: changeset, issue_type: 'rsp_line_only_stop_points').save!
     expect(Issue.with_type('stop_position_inaccurate,fake').size).to eq 1
-    expect(Issue.with_type('stop_position_inaccurate,rsp_line_inaccurate').size).to eq 2
+    expect(Issue.with_type('stop_position_inaccurate,rsp_line_only_stop_points').size).to eq 2
     expect(Issue.with_type('fake1,fake2').size).to eq 0
   end
 
@@ -63,8 +63,8 @@ describe Issue do
     changeset1 = create(:changeset, imported_from_feed: feed1)
     changeset2 = create(:changeset, imported_from_feed: feed2)
     Issue.new(created_by_changeset: changeset1, issue_type: 'stop_position_inaccurate').save!
-    Issue.new(created_by_changeset: changeset1, issue_type: 'rsp_line_inaccurate').save!
-    Issue.new(created_by_changeset: changeset2, issue_type: 'rsp_line_inaccurate').save!
+    Issue.new(created_by_changeset: changeset1, issue_type: 'rsp_line_only_stop_points').save!
+    Issue.new(created_by_changeset: changeset2, issue_type: 'rsp_line_only_stop_points').save!
     expect(Issue.from_feed('f-9q8y-sfmta').size).to eq 2
     expect(Issue.from_feed('f-9q9-bart').size).to eq 1
   end
@@ -95,8 +95,8 @@ describe Issue do
                     geometry: RouteStopPattern.line_string([[-116.75168, 36.91568], [-116.77458, 36.90645], [-116.78458, 36.88845]]),
                     stop_distances: [0.0, 4475.2],
                     created_or_updated_in_changeset_id: @changeset1.id)
-      @rsp_line_inaccurate_issue = Issue.create!(issue_type: 'rsp_line_inaccurate', details: 'rsp line wrong.', created_by_changeset: @changeset1)
-      @rsp_line_inaccurate_issue.entities_with_issues.create!(entity: interpolated_rsp, entity_attribute: 'geometry')
+      @rsp_line_only_stop_points_issue = Issue.create!(issue_type: 'rsp_line_only_stop_points', details: 'rsp line wrong.', created_by_changeset: @changeset1)
+      @rsp_line_only_stop_points_issue.entities_with_issues.create!(entity: interpolated_rsp, entity_attribute: 'geometry')
       @distance_calc_issue = Issue.create!(issue_type: 'distance_calculation_inaccurate', details: 'the stop distances are wrong.', created_by_changeset: @changeset1)
       @distance_calc_issue.entities_with_issues.create!(entity: @rsp1, entity_attribute: 'stop_distances')
       @distance_calc_issue.entities_with_issues.create!(entity: @stop1, entity_attribute: 'geometry')
@@ -108,7 +108,7 @@ describe Issue do
 
     context 'entity attributes' do
       it '.issues_of_entity' do
-        issue_1 = Issue.create!(issue_type: 'rsp_line_inaccurate', details: 'this is a fake geometry issue')
+        issue_1 = Issue.create!(issue_type: 'rsp_line_only_stop_points', details: 'this is a fake geometry issue')
         issue_1.entities_with_issues.create!(entity: @rsp1, entity_attribute: 'geometry')
         issue_2 = Issue.create!(issue_type: 'other', details: 'this is another fake issue without entities_with_issues entity_attribute')
         issue_2.entities_with_issues.create!(entity: @rsp1)

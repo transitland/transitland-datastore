@@ -7,7 +7,7 @@ describe IsAnEntityImportedFromFeeds do
     issue1 = Issue.new(created_by_changeset: changeset, issue_type: 'distance_calculation_inaccurate')
     issue1.entities_with_issues << EntityWithIssues.new(entity: @route_stop_pattern, issue: issue1, entity_attribute: 'stop_distances')
     issue1.entities_with_issues << EntityWithIssues.new(entity: @stop, issue: issue1, entity_attribute: 'geometry')
-    issue2 = Issue.new(created_by_changeset: changeset, issue_type: 'rsp_line_inaccurate')
+    issue2 = Issue.new(created_by_changeset: changeset, issue_type: 'rsp_line_only_stop_points')
     issue2.entities_with_issues << EntityWithIssues.new(entity: @route_stop_pattern, issue: issue2, entity_attribute: 'geometry')
     issue1.save!
     issue2.save!
