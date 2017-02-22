@@ -316,6 +316,7 @@ class RouteStopPattern < BaseRouteStopPattern
     else
       rsp.geometry = self.line_string(self.set_precision(trip_stop_points))
       rsp.is_generated = true
+      rsp.is_modified = true
     end
     onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(
      route_onestop_id: route_onestop_id,

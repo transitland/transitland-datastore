@@ -523,8 +523,6 @@ class GTFSGraph
       rsp = find_and_update_entity(nil, test_rsp)
       if test_rsp.equal?(rsp)
         graph_log "   #{rsp.onestop_id}"
-        has_issues, issues = rsp.evaluate_geometry(trip, trip_stop_points)
-        rsp.tl_geometry(trip_stop_points, issues) if has_issues
         rsp.traversed_by = tl_route.onestop_id
         rsp.route = tl_route
       end
