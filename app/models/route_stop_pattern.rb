@@ -31,7 +31,7 @@
 class BaseRouteStopPattern < ActiveRecord::Base
   self.abstract_class = true
 
-  attr_accessor :traversed_by, :first_stop_before_geom, :last_stop_after_geom
+  attr_accessor :traversed_by
 end
 
 class RouteStopPattern < BaseRouteStopPattern
@@ -188,21 +188,22 @@ class RouteStopPattern < BaseRouteStopPattern
     a = 0
     b = 0
     c = 0
+    last_stop_after_geom = route.after?(stops[-1][:geometry]) || outlier_stop(stops[-1][:geometry])
     stops.each_index do |i|
       stop_spherical = stops[i]
       this_stop = cartesian_cast(stop_spherical[:geometry])
-      if i == 0 && self.first_stop_before_geom
+      if i == 0 && (route.before?(stops[i][:geometry]) || outlier_stop(this_stop))
         self.stop_distances << 0.0
         next
       elsif i == stops.size - 1
-        if self.last_stop_after_geom
+        if last_stop_after_geom
           self.stop_distances << self[:geometry].length
           break
         else
           c = num_segments - 1
         end
       else
-        if (i + 1 == stops.size - 1) && self.last_stop_after_geom
+        if (i + 1 == stops.size - 1) && last_stop_after_geom
           c = num_segments - 1
         else
           next_stop_spherical = stops[i+1]
@@ -271,16 +272,6 @@ class RouteStopPattern < BaseRouteStopPattern
     issues = []
     if trip.shape_id.nil? || self.geometry.nil? || self.geometry[:coordinates].empty?
       issues << :empty
-    else
-      cartesian_line = cartesian_cast(self[:geometry])
-      first_stop = RouteStopPattern::GEOFACTORY.point(stop_points[0][0],stop_points[0][1])
-      if cartesian_line.before?(first_stop) || outlier_stop(first_stop)
-        issues << :has_before_stop
-      end
-      last_stop = RouteStopPattern::GEOFACTORY.point(stop_points[-1][0],stop_points[-1][1])
-      if cartesian_line.after?(last_stop) || outlier_stop(last_stop)
-        issues << :has_after_stop
-      end
     end
     # more evaluations can go here
     return (issues.size > 0), issues
@@ -288,15 +279,11 @@ class RouteStopPattern < BaseRouteStopPattern
 
   def tl_geometry(stop_points, issues)
     # modify rsp geometry based on issues array from evaluate_geometry
-    self.first_stop_before_geom = false
-    self.last_stop_after_geom = false
     if issues.include?(:empty)
       # create a new geometry from the trip stop points
       self.geometry = RouteStopPattern.line_string(RouteStopPattern.set_precision(stop_points))
       self.is_generated = true
     end
-    self.first_stop_before_geom = true if issues.include?(:has_before_stop)
-    self.last_stop_after_geom = true if issues.include?(:has_after_stop)
     # more geometry modification can go here
   end
 

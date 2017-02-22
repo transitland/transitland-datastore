@@ -424,6 +424,74 @@ describe RouteStopPattern do
       # expect all distances to be increasing
       expect(distances[1..-1].each_with_index.map { |v, i| v > distances[i] }.all?).to be true
     end
+
+    it 'accurately calculates distances if the last stop is an after? stop' do
+      geom = RouteStopPattern.line_string([[-122.41, 37.65],[-122.401811, 37.706675],[-122.394935, 37.776348]])
+      @rsp.geometry = geom
+      stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.65))
+      stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.401811, 37.706675))
+      stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.38, 37.78))
+      expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
+                                                              a_value_within(0.1).of(6350.2),
+                                                              a_value_within(0.1).of(14129.7)])
+    end
+
+    it 'accurately calculates distances if the last stop is close to the line and is not an after? stop' do
+      geom = RouteStopPattern.line_string([[-122.41, 37.65],[-122.401811, 37.706675],[-122.394935, 37.776348]])
+      @rsp.geometry = geom
+      stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.65))
+      stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.401811, 37.706675))
+      stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.3975, 37.741))
+      expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
+                                                              a_value_within(0.1).of(6350.2),
+                                                              a_value_within(0.1).of(10192.9)])
+    end
+
+    it 'accurately calculates distances if the last stop is not an after? stop, but not close enough to the line' do
+      # last stop distance should be the length of the line, ~ 14129.7
+      geom = RouteStopPattern.line_string([[-122.41, 37.65],[-122.401811, 37.706675],[-122.394935, 37.776348]])
+      @rsp.geometry = geom
+      stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.65))
+      stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.401811, 37.706675))
+      stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.39, 37.77))
+      expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
+                                                              a_value_within(0.1).of(6350.2),
+                                                              a_value_within(0.1).of(14129.7)])
+    end
+
+    it 'accurately calculates distances if the first stop is a before? stop' do
+      geom = RouteStopPattern.line_string([[-122.401811, 37.706675],[-122.394935, 37.776348],[-122.39, 37.84]])
+      @rsp.geometry = geom
+      stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.69))
+      stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.394935, 37.776348))
+      stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.39, 37.84))
+      expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
+                                                              a_value_within(0.1).of(7779.5),
+                                                              a_value_within(0.1).of(14878.5)])
+    end
+
+    it 'accurately calculates distances if the first stop is close to the line and not a before? stop' do
+      geom = RouteStopPattern.line_string([[-122.401811, 37.706675],[-122.394935, 37.776348],[-122.39, 37.84]])
+      @rsp.geometry = geom
+      stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.40182, 37.7067))
+      stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.394935, 37.776348))
+      stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.39, 37.84))
+      expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(2.7),
+                                                              a_value_within(0.1).of(7779.5),
+                                                              a_value_within(0.1).of(14878.5)])
+    end
+
+    it 'accurately calculates distances if the first stop is not a before? stop, but not close enough to the line' do
+      # consequently the first stop distance should be 0.0
+      geom = RouteStopPattern.line_string([[-122.401811, 37.706675],[-122.394935, 37.776348],[-122.39, 37.84]])
+      @rsp.geometry = geom
+      stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.40182, 37.72))
+      stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.394935, 37.776348))
+      stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.39, 37.84))
+      expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
+                                                              a_value_within(0.1).of(7779.5),
+                                                              a_value_within(0.1).of(14878.5)])
+    end
   end
 
   context 'determining outlier stops' do
@@ -445,60 +513,6 @@ describe RouteStopPattern do
       )
       @rsp.stop_pattern = [@sp[0],test_stop.onestop_id,@sp[1]]
       expect(@rsp.outlier_stop(test_stop[:geometry])).to be true
-    end
-  end
-
-  context 'before and after stops' do
-    before(:each) do
-      @trip = GTFS::Trip.new(trip_id: 'test')
-    end
-
-    it 'is marked correctly as having an after stop after evaluation' do
-      stop_points = @geom_points << [-122.38, 37.8]
-      @trip.shape_id = 'test_shape'
-      has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
-      expect(has_issues).to be true
-      expect(issues).to match_array([:has_after_stop])
-    end
-
-    it 'does not have an after stop if the last stop is close to the line and below the last stop perpendicular' do
-      stop_points = @geom_points << [-122.3975, 37.741]
-      @trip.shape_id = 'test_shape'
-      has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
-      expect(has_issues).to be false
-      expect(issues).to match_array([])
-    end
-
-    it 'has an after stop if the last stop is below the last stop perpendicular but not close enough to the line' do
-      stop_points = @geom_points << [-122.39, 37.77]
-      @trip.shape_id = 'test_shape'
-      has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
-      expect(has_issues).to be true
-      expect(issues).to match_array([:has_after_stop])
-    end
-
-    it 'is marked correctly as having a before stop after evaluation' do
-      stop_points = @geom_points.unshift([-122.405, 37.63])
-      @trip.shape_id = 'test_shape'
-      has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
-      expect(has_issues).to be true
-      expect(issues).to match_array([:has_before_stop])
-    end
-
-    it 'does not have a before stop if the first stop is close to the line and above the first stop perpendicular' do
-      stop_points = @geom_points.unshift([-122.40182, 37.7067])
-      @trip.shape_id = 'test_shape'
-      has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
-      expect(has_issues).to be false
-      expect(issues).to match_array([])
-    end
-
-    it 'has a before stop if the first stop is above the first stop perpendicular but not close enough to the line' do
-      stop_points = @geom_points.unshift([-122.40182, 37.72])
-      @trip.shape_id = 'test_shape'
-      has_issues, issues = @rsp.evaluate_geometry(@trip, stop_points)
-      expect(has_issues).to be true
-      expect(issues).to match_array([:has_before_stop])
     end
   end
 
