@@ -86,7 +86,11 @@ class GTFSGraph
     load_tl_stops
     load_tl_transfers
     load_tl_routes
+
+    t = Time.now
     rsps = load_tl_route_stop_patterns
+    puts "===== RSP TIME: #{Time.now - t} ====="
+
     calculate_rsp_distances(rsps)
     operators = load_tl_operators
     fail GTFSGraph::Error.new('No agencies found that match operators_in_feed') unless operators.size > 0
@@ -504,6 +508,7 @@ class GTFSGraph
     stop_times_with_shape_dist_traveled = 0
     stop_times_count = 0
     @gtfs.trip_stop_times(trips=nil, filter_empty=true) do |trip,stop_times|
+      puts "======= TRIP #{trip.trip_id} ======="
       tl_stops = stop_times.map { |stop_time| find_by_gtfs_entity(@gtfs.stop(stop_time.stop_id)) }
       stop_pattern = tl_stops.map(&:onestop_id)
       stop_times_with_shape_dist_traveled += stop_times.count { |st| !st.shape_dist_traveled.to_s.empty? }
