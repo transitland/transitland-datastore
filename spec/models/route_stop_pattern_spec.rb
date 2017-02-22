@@ -426,7 +426,7 @@ describe RouteStopPattern do
       expect(distances[1..-1].each_with_index.map { |v, i| v > distances[i] }.all?).to be true
     end
 
-    it 'accurately calculates distances if the last stop is close to the line and below the last stop perpendicular' do
+    it 'accurately calculates distances if the last stop is close to the line and is not an after? stop' do
       geom = RouteStopPattern.line_string([[-122.41, 37.65],[-122.401811, 37.706675],[-122.394935, 37.776348]])
       @rsp.geometry = geom
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.65))
@@ -437,7 +437,7 @@ describe RouteStopPattern do
                                                               a_value_within(0.1).of(10192.9)])
     end
 
-    it 'accurately calculates distances if the last stop is below the last stop perpendicular but not close enough to the line' do
+    it 'accurately calculates distances if the last stop is not an after? stop, but not close enough to the line' do
       # last stop distance should be the length of the line, ~ 14129.7
       geom = RouteStopPattern.line_string([[-122.41, 37.65],[-122.401811, 37.706675],[-122.394935, 37.776348]])
       @rsp.geometry = geom
@@ -449,7 +449,7 @@ describe RouteStopPattern do
                                                               a_value_within(0.1).of(14129.7)])
     end
 
-    it 'accurately calculates distances if the first stop is close to the line and above the first stop perpendicular' do
+    it 'accurately calculates distances if the first stop is close to the line and not a before? stop' do
       geom = RouteStopPattern.line_string([[-122.401811, 37.706675],[-122.394935, 37.776348],[-122.39, 37.84]])
       @rsp.geometry = geom
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.40182, 37.7067))
@@ -460,7 +460,7 @@ describe RouteStopPattern do
                                                               a_value_within(0.1).of(14878.5)])
     end
 
-    it 'accurately calculates distances if the first stop is above the first stop perpendicular but not close enough to the line' do
+    it 'accurately calculates distances if the first stop is not a before? stop, but not close enough to the line' do
       # consequently the first stop distance should be 0.0
       geom = RouteStopPattern.line_string([[-122.401811, 37.706675],[-122.394935, 37.776348],[-122.39, 37.84]])
       @rsp.geometry = geom
