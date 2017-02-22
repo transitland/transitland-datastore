@@ -291,12 +291,12 @@ class RouteStopPattern < BaseRouteStopPattern
     # modify rsp geometry based on issues array from evaluate_geometry
     self.first_stop_before_geom = false
     self.last_stop_after_geom = false
-    if issues.include?(:empty)
-      # create a new geometry from the trip stop points
-      self.geometry = RouteStopPattern.line_string(RouteStopPattern.set_precision(stop_points))
-      self.is_generated = true
-      self.is_modified = true
-    end
+    # if issues.include?(:empty)
+    #   # create a new geometry from the trip stop points
+    #   self.geometry = RouteStopPattern.line_string(RouteStopPattern.set_precision(stop_points))
+    #   self.is_generated = true
+    #   self.is_modified = true
+    # end
     self.first_stop_before_geom = true if issues.include?(:has_before_stop)
     self.last_stop_after_geom = true if issues.include?(:has_after_stop)
     # more geometry modification can go here
@@ -323,14 +323,17 @@ class RouteStopPattern < BaseRouteStopPattern
     # Rgeo produces nil if there is only one coordinate in the array
     rsp = RouteStopPattern.new(
       stop_pattern: stop_pattern,
-      geometry: self.line_string(self.set_precision(shape_points))
     )
-    has_issues, issues = rsp.evaluate_geometry(trip, trip_stop_points)
-    rsp.tl_geometry(trip_stop_points, issues) if has_issues
+    if shape_points.present?
+      rsp.geometry = self.line_string(self.set_precision(shape_points))
+    else
+      rsp.geometry = self.line_string(self.set_precision(trip_stop_points))
+      rsp.is_generated = true
+    end
     onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(
-      route_onestop_id: route_onestop_id,
-      stop_pattern: rsp.stop_pattern,
-      geometry_coords: rsp.geometry[:coordinates]
+     route_onestop_id: route_onestop_id,
+     stop_pattern: rsp.stop_pattern,
+     geometry_coords: rsp.geometry[:coordinates]
     )
     rsp.onestop_id = onestop_id.to_s
     rsp.tags ||= {}
