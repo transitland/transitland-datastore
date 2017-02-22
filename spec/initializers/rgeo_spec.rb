@@ -7,14 +7,24 @@ describe RGeo::Cartesian do
         @line = @factory.line_string(@line_points.map {|p| @factory.point(p[0],p[1])})
       end
 
-      it 'checks after?' do
+      it 'checks after? true' do
         point = @factory.point(-122.38, 37.8)
         expect(@line.after?(point)).to be true
       end
 
-      it 'checks before?' do
+      it 'checks after? false' do
+        point = @factory.point(-122.3975, 37.73)
+        expect(@line.after?(point)).to be false
+      end
+
+      it 'checks before? true' do
         point = @factory.point(-122.405, 37.63)
         expect(@line.before?(point)).to be true
+      end
+
+      it 'checks before? false' do
+        point = @factory.point(-122.3975, 37.73)
+        expect(@line.before?(point)).to be false
       end
     end
   end
