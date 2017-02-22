@@ -516,12 +516,16 @@ class GTFSGraph
       # determine if RouteStopPattern exists
       test_rsp = RouteStopPattern.create_from_gtfs(trip, tl_route.onestop_id, stop_pattern, trip_stop_points, feed_shape_points)
       rsp = find_and_update_entity(nil, test_rsp)
-      rsp.traversed_by = tl_route.onestop_id
+      if test_rsp.equal?(rsp)
+        graph_log "   #{rsp.onestop_id}"
+        has_issues, issues = rsp.evaluate_geometry(trip, trip_stop_points)
+        rsp.tl_geometry(trip_stop_points, issues) if has_issues
+        rsp.traversed_by = tl_route.onestop_id
+        rsp.route = tl_route
+      end
       add_identifier(rsp, nil, trip.shape_id)
-      graph_log "   #{rsp.onestop_id}"  if test_rsp.equal?(rsp)
       @gtfs_to_onestop_id[trip] = rsp.onestop_id
       rsp.trips << trip.trip_id unless rsp.trips.include?(trip.trip_id)
-      rsp.route = tl_route
       rsps << rsp
     end
     graph_log "#{stop_times_with_shape_dist_traveled} stop times with shape_dist_traveled found out of #{stop_times_count} total stop times" if stop_times_with_shape_dist_traveled > 0
