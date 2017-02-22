@@ -291,12 +291,12 @@ class RouteStopPattern < BaseRouteStopPattern
     # modify rsp geometry based on issues array from evaluate_geometry
     self.first_stop_before_geom = false
     self.last_stop_after_geom = false
-    # if issues.include?(:empty)
-    #   # create a new geometry from the trip stop points
-    #   self.geometry = RouteStopPattern.line_string(RouteStopPattern.set_precision(stop_points))
-    #   self.is_generated = true
-    #   self.is_modified = true
-    # end
+    if issues.include?(:empty)
+      # create a new geometry from the trip stop points
+      self.geometry = RouteStopPattern.line_string(RouteStopPattern.set_precision(stop_points))
+      self.is_generated = true
+      self.is_modified = true
+    end
     self.first_stop_before_geom = true if issues.include?(:has_before_stop)
     self.last_stop_after_geom = true if issues.include?(:has_after_stop)
     # more geometry modification can go here
