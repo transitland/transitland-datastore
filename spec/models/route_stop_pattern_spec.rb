@@ -426,6 +426,17 @@ describe RouteStopPattern do
       expect(distances[1..-1].each_with_index.map { |v, i| v > distances[i] }.all?).to be true
     end
 
+    it 'accurately calculates distances if the last stop is an after? stop' do
+      geom = RouteStopPattern.line_string([[-122.41, 37.65],[-122.401811, 37.706675],[-122.394935, 37.776348]])
+      @rsp.geometry = geom
+      stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.65))
+      stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.401811, 37.706675))
+      stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.38, 37.78))
+      expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
+                                                              a_value_within(0.1).of(6350.2),
+                                                              a_value_within(0.1).of(14129.7)])
+    end
+
     it 'accurately calculates distances if the last stop is close to the line and is not an after? stop' do
       geom = RouteStopPattern.line_string([[-122.41, 37.65],[-122.401811, 37.706675],[-122.394935, 37.776348]])
       @rsp.geometry = geom
@@ -447,6 +458,17 @@ describe RouteStopPattern do
       expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(6350.2),
                                                               a_value_within(0.1).of(14129.7)])
+    end
+
+    it 'accurately calculates distances if the first stop is a before? stop' do
+      geom = RouteStopPattern.line_string([[-122.401811, 37.706675],[-122.394935, 37.776348],[-122.39, 37.84]])
+      @rsp.geometry = geom
+      stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.69))
+      stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.394935, 37.776348))
+      stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.39, 37.84))
+      expect(@rsp.calculate_distances).to match_array([a_value_within(0.1).of(0.0),
+                                                              a_value_within(0.1).of(7779.5),
+                                                              a_value_within(0.1).of(14878.5)])
     end
 
     it 'accurately calculates distances if the first stop is close to the line and not a before? stop' do
