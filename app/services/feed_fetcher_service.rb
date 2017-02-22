@@ -103,12 +103,13 @@ class FeedFetcherService
   end
 
   def self.fetch_and_normalize_feed_version(feed)
+    # Fetch GTFS
     gtfs = GTFS::Source.build(
       feed.url,
       strict: false,
       tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
     )
-    # Normalize
+    # Normalize & create sha1
     gtfs_file = nil
     gtfs_file_raw = nil
     sha1 = nil
@@ -126,24 +127,28 @@ class FeedFetcherService
       gtfs_file = File.open(gtfs.archive)
       sha1 = Digest::SHA1.file(gtfs_file).hexdigest
     end
-
     # Create a new FeedVersion
-    feed_version = FeedVersion.find_by(sha1: sha1)
-    if !feed_version
+    # (upload attachments later to avoid race conditions)
+    feed_version = FeedVersion.find_or_create_by!(
+      feed: feed,
+      sha1: sha1
+    )
+    # Is this a new feed_version?
+    if feed_version.file.url.nil?
       # Validate the new data
       file_feedvalidator = run_google_feedvalidator(gtfs_file.path)
-      # New FeedVersion
+      # Save the file attachments
       data = {
-        feed: feed,
         url: feed.url,
+        fetched_at: DateTime.now,
         file: gtfs_file,
         file_raw: gtfs_file_raw,
         file_feedvalidator: file_feedvalidator,
-        fetched_at: DateTime.now
       }
       data = data.merge!(read_gtfs_info(gtfs))
-      feed_version = FeedVersion.create!(data)
+      feed_version.update!(data)
     end
+    # Return the found or created feed_version
     feed_version
   end
 
