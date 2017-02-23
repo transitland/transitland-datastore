@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161229175433) do
+ActiveRecord::Schema.define(version: 20170207173441) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -130,7 +130,6 @@ ActiveRecord::Schema.define(version: 20161229175433) do
     t.string    "stop_pattern",                                                                                   default: [],                 array: true
     t.integer   "version"
     t.boolean   "is_generated",                                                                                   default: false
-    t.boolean   "is_modified",                                                                                    default: false
     t.string    "trips",                                                                                          default: [],                 array: true
     t.string    "identifiers",                                                                                    default: [],                 array: true
     t.datetime  "created_at",                                                                                                     null: false
@@ -487,7 +486,6 @@ ActiveRecord::Schema.define(version: 20161229175433) do
     t.string    "stop_pattern",                                                                                   default: [],                 array: true
     t.integer   "version"
     t.boolean   "is_generated",                                                                                   default: false
-    t.boolean   "is_modified",                                                                                    default: false
     t.string    "trips",                                                                                          default: [],                 array: true
     t.string    "identifiers",                                                                                    default: [],                 array: true
     t.datetime  "created_at",                                                                                                     null: false

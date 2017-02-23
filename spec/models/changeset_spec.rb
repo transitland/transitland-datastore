@@ -687,7 +687,7 @@ describe Changeset do
     end
     before(:each) do
       # Issues:
-      # 1 - 6: rsp_line_inaccurate
+      # 1 - 6: rsp_line_only_stop_points
       # 7: distance_calculation_inaccurate (s-9qkxnx40xt-furnacecreekresortdemo & r-9qsb-20-8d5767-6bb5fc)
       # 8: stop_rsp_distance_gap (s-9qscwx8n60-nyecountyairportdemo & r-9qscy-30-a41e99-fcca25)
       @rsp1 = RouteStopPattern.find_by_onestop_id!('r-9qsb-20-8d5767-6bb5fc')
@@ -857,10 +857,10 @@ describe Changeset do
         end
 
         it 'deprecates issues of entities whose attrs are affected by updating computed attrs' do
-          issue = Issue.create!(issue_type: 'rsp_line_inaccurate', details: 'this is a fake geometry issue')
+          issue = Issue.create!(issue_type: 'rsp_line_only_stop_points', details: 'this is a fake geometry issue')
           issue.entities_with_issues.create!(entity: @rsp1, entity_attribute: 'geometry')
           issues = @rsp1.reload.issues.to_a
-          # here we are modifying this rsp's geometry, which should deprecate the existing rsp_line_inaccurate issue
+          # here we are modifying this rsp's geometry, which should deprecate the existing rsp_line_only_stop_points issue
           # even without technically resolving it, because the entity attribute geometry has been modified.
           # The distance calculation issue (7) on this rsp should also be deprecated, because its stop distances
           # will be re-calculated in the update of computed attributes, which should also find obsolete stop distance issues.

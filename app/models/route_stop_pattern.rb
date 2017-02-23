@@ -9,7 +9,6 @@
 #  stop_pattern                       :string           default([]), is an Array
 #  version                            :integer
 #  is_generated                       :boolean          default(FALSE)
-#  is_modified                        :boolean          default(FALSE)
 #  trips                              :string           default([]), is an Array
 #  identifiers                        :string           default([]), is an Array
 #  created_at                         :datetime         not null
@@ -268,27 +267,6 @@ class RouteStopPattern < BaseRouteStopPattern
     spherical_stop.distance(spherical_closest) > OUTLIER_THRESHOLD
   end
 
-  def evaluate_geometry(trip, stop_points)
-    # makes judgements on geometry so modifications can be made by tl_geometry
-    issues = []
-    if trip.shape_id.nil? || self.geometry.nil? || self.geometry[:coordinates].empty?
-      issues << :empty
-    end
-    # more evaluations can go here
-    return (issues.size > 0), issues
-  end
-
-  def tl_geometry(stop_points, issues)
-    # modify rsp geometry based on issues array from evaluate_geometry
-    if issues.include?(:empty)
-      # create a new geometry from the trip stop points
-      self.geometry = RouteStopPattern.line_string(RouteStopPattern.set_precision(stop_points))
-      self.is_generated = true
-      self.is_modified = true
-    end
-    # more geometry modification can go here
-  end
-
   scope :with_trips, -> (search_string) { where{trips.within(search_string)} }
   scope :with_all_stops, -> (search_string) { where{stop_pattern.within(search_string)} }
   scope :with_any_stops, -> (stop_onestop_ids) { where( "stop_pattern && ARRAY[?]::varchar[]", stop_onestop_ids ) }
@@ -316,7 +294,6 @@ class RouteStopPattern < BaseRouteStopPattern
     else
       rsp.geometry = self.line_string(self.set_precision(trip_stop_points))
       rsp.is_generated = true
-      rsp.is_modified = true
     end
     onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(
      route_onestop_id: route_onestop_id,

@@ -111,13 +111,7 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
       Stop.where(onestop_id: rsp.stop_pattern).each do |stop|
         stop_rsp_gap_pairs << [rsp.onestop_id, stop.onestop_id]
       end
-      if rsp.is_generated
-        issue = Issue.new(created_by_changeset: self.changeset,
-                          issue_type: 'rsp_line_inaccurate',
-                          details: "RouteStopPattern #{rsp.onestop_id} has a line geometry generated from stops.")
-        issue.entities_with_issues.new(entity: rsp, issue: issue, entity_attribute: 'geometry')
-        self.issues << issue
-      end
+      self.rsp_line_only_stop_points(rsp)
       # other checks on rsp-exclusive attributes go here
     end
 
@@ -161,6 +155,19 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
     distance_score
 
     self.issues
+  end
+
+  def rsp_line_only_stop_points(rsp)
+    if rsp.stop_pattern.size == rsp.geometry[:coordinates].size
+      # RouteStopPattern geometry coordinates and Stop geometry coordinates can have different decimal precision.
+      if rsp.stop_pattern.map{ |onestop_id| Stop.find_by_onestop_id!(onestop_id).geometry[:coordinates].map{ |coord| coord.round(RouteStopPattern::COORDINATE_PRECISION) } }.eql?(rsp.geometry[:coordinates])
+        issue = Issue.new(created_by_changeset: self.changeset,
+                          issue_type: 'rsp_line_only_stop_points',
+                          details: "RouteStopPattern #{rsp.onestop_id} has a line geometry generated from stops.")
+        issue.entities_with_issues.new(entity: rsp, issue: issue, entity_attribute: 'geometry')
+        self.issues << issue
+      end
+    end
   end
 
   def distances_between_stops(stop)
