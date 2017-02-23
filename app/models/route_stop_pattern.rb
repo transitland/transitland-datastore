@@ -308,14 +308,18 @@ class RouteStopPattern < BaseRouteStopPattern
     # Rgeo produces nil if there is only one coordinate in the array
     rsp = RouteStopPattern.new(
       stop_pattern: stop_pattern,
-      geometry: self.line_string(self.set_precision(shape_points))
     )
-    has_issues, issues = rsp.evaluate_geometry(trip, trip_stop_points)
-    rsp.tl_geometry(trip_stop_points, issues) if has_issues
+    if shape_points.present?
+      rsp.geometry = self.line_string(self.set_precision(shape_points))
+    else
+      rsp.geometry = self.line_string(self.set_precision(trip_stop_points))
+      rsp.is_generated = true
+      rsp.is_modified = true
+    end
     onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(
-      route_onestop_id: route_onestop_id,
-      stop_pattern: rsp.stop_pattern,
-      geometry_coords: rsp.geometry[:coordinates]
+     route_onestop_id: route_onestop_id,
+     stop_pattern: rsp.stop_pattern,
+     geometry_coords: rsp.geometry[:coordinates]
     )
     rsp.onestop_id = onestop_id.to_s
     rsp.tags ||= {}
