@@ -97,12 +97,17 @@ class GTFSGraph
 
     # Stops and Platforms
     stops = Set.new
-    routes.each { |route| route.serves.each { |stop_onestop_id|
-      stop = @onestop_id_to_entity[stop_onestop_id]
+    tovisit = Set.new
+    routes.each { |route| route.serves.each { |stop_onestop_id| tovisit << @onestop_id_to_entity[stop_onestop_id] }}
+    while !tovisit.empty?
+      stop = tovisit.first
+      tovisit.delete(stop) # Set.pop
+      next if stop.nil?
       stops << stop
-      stops << @onestop_id_to_entity[stop.parent_stop_onestop_id] if stop.parent_stop_onestop_id
-      (stop.includes_stop_transfers || []).each { |ist| stops << @onestop_id_to_entity[ist[:toStopOnestopId]]}
-    }}
+      tovisit << @onestop_id_to_entity[stop.parent_stop_onestop_id]
+      tovisit += (stop.includes_stop_transfers || []).map { |ist| @onestop_id_to_entity[ist[:toStopOnestopId]] }
+      tovisit.delete(nil)
+    end
 
     # Update route geometries
     rsps = rsps.select { |rsp| routes.include?(rsp.route) }
@@ -452,14 +457,20 @@ class GTFSGraph
 
       # Operator routes & stops
       routes = entity.routes.map { |route| find_by_gtfs_entity(route) }.compact.to_set
-      # Find: (tl routes) to (serves tl stops)
+      # Stops and Platforms
       stops = Set.new
-      routes.each { |route| route.serves.each { |stop_onestop_id|
-        stop = @onestop_id_to_entity[stop_onestop_id]
+      tovisit = Set.new
+      routes.each { |route| route.serves.each { |stop_onestop_id| tovisit << @onestop_id_to_entity[stop_onestop_id] }}
+      while !tovisit.empty?
+        stop = tovisit.first
+        tovisit.delete(stop) # Set.pop
+        next if stop.nil?
         stops << stop
-        stops << @onestop_id_to_entity[stop.parent_stop_onestop_id] if stop.parent_stop_onestop_id
-        (stop.includes_stop_transfers || []).each { |ist| stops << @onestop_id_to_entity[ist[:toStopOnestopId]]}
-      }}
+        tovisit << @onestop_id_to_entity[stop.parent_stop_onestop_id]
+        tovisit += (stop.includes_stop_transfers || []).map { |ist| @onestop_id_to_entity[ist[:toStopOnestopId]] }
+        tovisit.delete(nil)
+      end
+
       # Copy Operator timezone to fill missing Stop timezones
       stops.each { |stop| stop.timezone = stop.timezone.presence || operator.timezone }
       # Add references and identifiers
