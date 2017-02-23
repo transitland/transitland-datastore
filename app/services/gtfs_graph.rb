@@ -512,10 +512,10 @@ class GTFSGraph
       feed_shape_points = @gtfs.shape_line(trip.shape_id) || []
       tl_route = find_by_gtfs_entity(@gtfs.parents(trip).first)
       next if tl_route.nil?
-      # temporary RouteStopPattern
       trip_stop_points = tl_stops.map { |s| s.geometry[:coordinates] }
-      # determine if RouteStopPattern exists
+      # temporary RouteStopPattern
       test_rsp = RouteStopPattern.create_from_gtfs(trip, tl_route.onestop_id, stop_pattern, trip_stop_points, feed_shape_points)
+      # determine if RouteStopPattern exists
       rsp = find_and_update_entity(nil, test_rsp)
       if test_rsp.equal?(rsp)
         graph_log "   #{rsp.onestop_id}"
