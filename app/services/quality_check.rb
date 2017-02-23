@@ -159,6 +159,7 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
 
   def rsp_line_only_stop_points(rsp)
     if rsp.stop_pattern.size == rsp.geometry[:coordinates].size
+      # RouteStopPattern geometry coordinates and Stop geometry coordinates can have different decimal precision.
       if rsp.stop_pattern.map{ |onestop_id| Stop.find_by_onestop_id!(onestop_id).geometry[:coordinates].map{ |coord| coord.round(RouteStopPattern::COORDINATE_PRECISION) } }.eql?(rsp.geometry[:coordinates])
         issue = Issue.new(created_by_changeset: self.changeset,
                           issue_type: 'rsp_line_only_stop_points',
