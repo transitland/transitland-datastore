@@ -527,7 +527,7 @@ class GTFSGraph
       rsp.trips << trip.trip_id unless rsp.trips.include?(trip.trip_id)
       rsps << rsp
     end
-    graph_log "#{stop_times_with_shape_dist_traveled} stop times with shape_dist_traveled found out of #{stop_times_count} total stop times" if stop_times_with_shape_dist_traveled > 0
+    graph_log "#{stop_times_with_shape_dist_traveled} stop times with shape_dist_traveled found out of #{stop_times_count} total stop times for feed #{@feed.onestop_id}" if stop_times_with_shape_dist_traveled > 0
     rsps
   end
 
