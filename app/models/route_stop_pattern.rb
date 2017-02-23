@@ -173,6 +173,17 @@ class RouteStopPattern < BaseRouteStopPattern
     self.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
   end
 
+  def gtfs_shape_dist_traveled(stop_times, shape_points_with_shape_distances_traveled)
+    # assumes stop times and shapes BOTH have shape_dist_traveled
+    self.stop_distances = []
+    stop_times.zip(self.stop_pattern).each do |st, stop_onestop_id|
+      # Find matching segment
+      shape_pt_with_dist = shape_points_with_shape_distances_traveled.detect do |pt, dist|
+        
+      end
+    end
+  end
+
   def calculate_distances(stops=nil)
     if stops.nil?
       stop_hash = Hash[Stop.find_by_onestop_ids!(self.stop_pattern).map { |s| [s.onestop_id, s] }]

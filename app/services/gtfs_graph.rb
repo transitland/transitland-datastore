@@ -168,7 +168,8 @@ class GTFSGraph
     rsps.each do |rsp|
       stops = rsp.stop_pattern.map { |onestop_id| find_by_onestop_id(onestop_id) }
       begin
-        if rsp.is_generated
+        # TODO make sure edited rsps have proper distance calc
+        if rsp.is_generated && rsp.edited_attributes.empty?
           rsp.fallback_distances(stops=stops)
         else
           rsp.calculate_distances(stops=stops)
@@ -507,8 +508,8 @@ class GTFSGraph
     @gtfs.trip_stop_times(trips=nil, filter_empty=true) do |trip,stop_times|
       tl_stops = stop_times.map { |stop_time| find_by_gtfs_entity(@gtfs.stop(stop_time.stop_id)) }
       stop_pattern = tl_stops.map(&:onestop_id)
-      stop_times_with_shape_dist_traveled += stop_times.count { |st| !st.shape_dist_traveled.to_s.empty? }
-      stop_times_count += stop_times.length
+      # stop_times_with_shape_dist_traveled += stop_times.count { |st| !st.shape_dist_traveled.to_s.empty? }
+      # stop_times_count += stop_times.length
       feed_shape_points = @gtfs.shape_line(trip.shape_id) || []
       tl_route = find_by_gtfs_entity(@gtfs.parents(trip).first)
       next if tl_route.nil?
@@ -527,7 +528,7 @@ class GTFSGraph
       rsp.trips << trip.trip_id unless rsp.trips.include?(trip.trip_id)
       rsps << rsp
     end
-    graph_log "#{stop_times_with_shape_dist_traveled} stop times with shape_dist_traveled found out of #{stop_times_count} total stop times for feed #{@feed.onestop_id}" if stop_times_with_shape_dist_traveled > 0
+    # graph_log "#{stop_times_with_shape_dist_traveled} stop times with shape_dist_traveled found out of #{stop_times_count} total stop times for feed #{@feed.onestop_id}" if stop_times_with_shape_dist_traveled > 0
     rsps
   end
 
