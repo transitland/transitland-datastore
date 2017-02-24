@@ -103,6 +103,7 @@ class GTFSGraph
       stop = tovisit.first
       tovisit.delete(stop) # Set.pop
       next if stop.nil?
+      next if stops.include?(stop)
       stops << stop
       tovisit << @onestop_id_to_entity[stop.parent_stop_onestop_id]
       tovisit += (stop.includes_stop_transfers || []).map { |ist| @onestop_id_to_entity[ist[:toStopOnestopId]] }
@@ -465,6 +466,7 @@ class GTFSGraph
         stop = tovisit.first
         tovisit.delete(stop) # Set.pop
         next if stop.nil?
+        next if stops.include?(stop)
         stops << stop
         tovisit << @onestop_id_to_entity[stop.parent_stop_onestop_id]
         tovisit += (stop.includes_stop_transfers || []).map { |ist| @onestop_id_to_entity[ist[:toStopOnestopId]] }
