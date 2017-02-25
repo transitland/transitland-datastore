@@ -120,7 +120,14 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
       @ssps = @ssps.where_import_level(AllowFiltering.param_as_array(params, :import_level))
     end
     # Service on a date
-    if params[:date].present?
+    if params[:date].presence == "today"
+      tz_onestop_id = params[:origin_onestop_id].presence || params[:destination_onestop_id].presence || params[:operator_onestop_id].presence
+      fail Exception.new('Must provide an origin_onestop_id, destination_onestop_id, or operator_onestop_id for date=today') unless tz_onestop_id
+      tz_entity = OnestopId.find!(tz_onestop_id)
+      today = TZInfo::Timezone.get(tz_entity.timezone).utc_to_local(Time.now).to_date
+      # puts "TIMEZONE: #{tz_entity.timezone} TODAY: #{today}"
+      @ssps = @ssps.where_service_on_date(today)
+    elsif params[:date].present?
       @ssps = @ssps.where_service_on_date(params[:date])
     end
     if params[:service_from_date].present?
