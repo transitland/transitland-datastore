@@ -50,6 +50,9 @@ describe Api::V1::ScheduleStopPairsController do
     end
 
     context 'date' do
+      it 'accepts date=today' do
+
+      end
     end
 
     context 'service_from_date' do
