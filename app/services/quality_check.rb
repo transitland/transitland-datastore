@@ -207,16 +207,17 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
       stop1 = rsp.stop_pattern[index-1]
       stop2 = rsp.stop_pattern[index]
       if (rsp.stop_distances[index-1] == rsp.stop_distances[index])
-        # TODO: stop_position_inaccurate if two consecutive stops have equal geometry?
-        unless stop2.eql? stop1 || Stop.find_by_onestop_id!(stop1)[:geometry].eql?(Stop.find_by_onestop_id!(stop2)[:geometry])
-          issue = Issue.new(created_by_changeset: self.changeset,
-                            issue_type: 'distance_calculation_inaccurate',
-                            details: "Distance calculation inaccuracy. Stop #{stop2}, number #{index+1}/#{rsp.stop_pattern.size}, of route stop pattern #{rsp.onestop_id} has the same distance as #{stop1}.")
-          issue.entities_with_issues.new(entity: rsp, issue: issue, entity_attribute: 'stop_distances')
-          issue.entities_with_issues.new(entity: OnestopId.find_current_and_old!(stop1), issue: issue, entity_attribute: 'geometry')
-          issue.entities_with_issues.new(entity: OnestopId.find_current_and_old!(stop2), issue: issue, entity_attribute: 'geometry')
-          issue.entities_with_issues.new(entity: OnestopId.find_current_and_old!(rsp.stop_pattern[index+1]), issue: issue, entity_attribute: 'geometry') if index < rsp.stop_pattern.size - 1
-          self.issues << issue
+        unless stop2.eql? stop1
+          unless (Stop.find_by_onestop_id!(stop1)[:geometry].distance(Stop.find_by_onestop_id!(stop2)[:geometry]) < 1.0)
+            issue = Issue.new(created_by_changeset: self.changeset,
+                              issue_type: 'distance_calculation_inaccurate',
+                              details: "Distance calculation inaccuracy. Stop #{stop2}, number #{index+1}/#{rsp.stop_pattern.size}, of route stop pattern #{rsp.onestop_id} has the same distance as #{stop1}.")
+            issue.entities_with_issues.new(entity: rsp, issue: issue, entity_attribute: 'stop_distances')
+            issue.entities_with_issues.new(entity: OnestopId.find_current_and_old!(stop1), issue: issue, entity_attribute: 'geometry')
+            issue.entities_with_issues.new(entity: OnestopId.find_current_and_old!(stop2), issue: issue, entity_attribute: 'geometry')
+            issue.entities_with_issues.new(entity: OnestopId.find_current_and_old!(rsp.stop_pattern[index+1]), issue: issue, entity_attribute: 'geometry') if index < rsp.stop_pattern.size - 1
+            self.issues << issue
+          end
         end
       elsif (rsp.stop_distances[index-1] > rsp.stop_distances[index])
         issue = Issue.new(created_by_changeset: self.changeset,
