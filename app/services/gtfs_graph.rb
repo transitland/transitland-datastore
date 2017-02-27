@@ -90,7 +90,17 @@ class GTFSGraph
     rsps = load_tl_route_stop_patterns
     calculate_rsp_distances(rsps)
     operators = load_tl_operators
-    fail GTFSGraph::Error.new('No agencies found that match operators_in_feed') unless operators.size > 0
+
+    # Create FeedVersion issue and fail if no matching operators found.
+    if operators.size == 0
+      known_agency_ids = @feed.operators_in_feed.map(&:gtfs_agency_id).map{ |s| "\"#{s}\"" }.join(', ')
+      feed_agency_ids = @gtfs.agencies.map(&:agency_id).map{ |s| "\"#{s}\"" }.join(', ')
+      details = "No agencies found.\noperators_in_feed agency_ids: #{known_agency_ids}\nfeed agency_ids: #{feed_agency_ids}"
+      issue = Issue.new(issue_type: 'feed_no_operators_found', details: details)
+      issue.entities_with_issues.new(entity: @feed_version)
+      issue.save!
+      fail GTFSGraph::Error.new('No agencies found that match operators_in_feed')
+    end
 
     # Routes
     routes = operators.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
