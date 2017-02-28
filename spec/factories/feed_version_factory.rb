@@ -96,6 +96,11 @@ FactoryGirl.define do
       association :feed, factory: :feed_rome
     end
 
+    factory :feed_version_nj_path do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/path-nj-us.zip')) }
+      association :feed, factory: :feed_nj_path
+    end
+
     factory :feed_version_example do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example.zip')) }
       association :feed, factory: :feed_example

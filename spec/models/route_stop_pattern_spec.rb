@@ -190,7 +190,7 @@ describe RouteStopPattern do
     end
 
     it '#shape_dist_traveled' do
-      feed, feed_version =
+      feed, feed_version = load_feed(feed_version_name: :feed_version_nj_path, import_level: 1)
     end
 
     it '#fallback_distances' do

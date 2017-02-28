@@ -521,7 +521,7 @@ class GTFSGraph
         graph_log "   #{rsp.onestop_id}"
       end
       # TODO check if both stop_times and shapes have shape_dist_traveled
-      rsp.gtfs_shape_dist_traveled(stop_times, shape_line.shape_dist_traveled)
+      rsp.gtfs_shape_dist_traveled(stop_times, tl_stops, shape_line.shape_dist_traveled)
       rsp.traversed_by = tl_route.onestop_id
       rsp.route = tl_route
       add_identifier(rsp, nil, trip.shape_id)

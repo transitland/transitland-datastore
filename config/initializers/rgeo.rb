@@ -11,6 +11,10 @@ module RGeo
         nearest_locator(target).interpolate_point(factory)
       end
 
+      def closest_point_on_segment(target, seg_index)
+        _segments[seg_index].locator(target).interpolate_point(factory)
+      end
+
       def line_subset(start_index, stop_index)
         factory.line_string([_segments[start_index].s] + _segments[start_index..stop_index].map {|s| s.e})
       end
