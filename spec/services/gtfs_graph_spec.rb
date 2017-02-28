@@ -265,6 +265,9 @@ describe GTFSGraph do
       oif.update!({gtfs_agency_id:'not-found'})
       graph = GTFSGraph.new(feed, feed_version)
       expect { graph.create_change_osr }.to raise_error(GTFSGraph::Error)
+      issue = Issue.last
+      expect(issue.issue_type).to eq(:feed_import_no_operators_found)
+      expect(issue.entities_with_issues.map(&:entity)).to match_array([feed_version])
     end
   end
 

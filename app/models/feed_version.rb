@@ -31,6 +31,7 @@
 
 class FeedVersion < ActiveRecord::Base
   include HasTags
+  include IsAnEntityWithIssues
 
   belongs_to :feed, polymorphic: true
   has_many :feed_version_imports, -> { order 'created_at DESC' }, dependent: :destroy

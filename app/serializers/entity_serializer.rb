@@ -1,14 +1,11 @@
 class EntitySerializer < ApplicationSerializer
   attributes :identifiers,
              :imported_from_feeds
-  attribute :issues, if: :has_issues
+
+  has_many :issues, if: :has_issues
 
   def has_issues
     !!scope && !!scope[:embed_issues]
-  end
-
-  def issues
-    object.issues
   end
 
   def imported_from_feeds
