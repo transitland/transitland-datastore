@@ -191,6 +191,13 @@ describe RouteStopPattern do
 
     it '#shape_dist_traveled' do
       feed, feed_version = load_feed(feed_version_name: :feed_version_nj_path, import_level: 1)
+      gtfs = GTFS::Source.build(feed_version.file.file.file)
+      rsp = feed.imported_route_stop_patterns.first
+      tl_stops = rsp.stop_pattern.map{ |stop_onestop_id| Stop.find_by_onestop_id!(stop_onestop_id) }
+      trip = gtfs.trips.detect{|trip| trip.id == rsp.trips.first}
+      trip_stop_times = []
+      gtfs.trip_stop_times(trips=[trip]){ |trip, stop_times| trip_stop_times = stop_times }
+      expect(rsp.gtfs_shape_dist_traveled(trip_stop_times, tl_stops, gtfs.shape_line(trip.shape_id).shape_dist_traveled)).to match_array([0.0, 2465.0, 4148.0, 5323.0, 7598.5, 8291.2, 8685.5, 9392.5, 10181.4])
     end
 
     it '#fallback_distances' do
