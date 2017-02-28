@@ -189,6 +189,10 @@ describe RouteStopPattern do
       @trip = GTFS::Trip.new(trip_id: 'test', shape_id: 'test')
     end
 
+    it '#shape_dist_traveled' do
+      feed, feed_version =
+    end
+
     it '#fallback_distances' do
       expect(@rsp.stop_distances).to match_array([])
       @rsp.fallback_distances
