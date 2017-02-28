@@ -96,7 +96,7 @@ class GTFSGraph
       known_agency_ids = @feed.operators_in_feed.map(&:gtfs_agency_id).map{ |s| "\"#{s}\"" }.join(', ')
       feed_agency_ids = @gtfs.agencies.map(&:agency_id).map{ |s| "\"#{s}\"" }.join(', ')
       details = "No agencies found.\noperators_in_feed agency_ids: #{known_agency_ids}\nfeed agency_ids: #{feed_agency_ids}"
-      issue = Issue.new(issue_type: 'feed_no_operators_found', details: details)
+      issue = Issue.new(issue_type: 'feed_import_no_operators_found', details: details)
       issue.entities_with_issues.new(entity: @feed_version)
       issue.save!
       fail GTFSGraph::Error.new('No agencies found that match operators_in_feed')
