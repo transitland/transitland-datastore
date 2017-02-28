@@ -49,7 +49,7 @@ class FeedVersionSerializer < ApplicationSerializer
              :download_url,
              :feedvalidator_url
 
-  attribute :issues, if: :has_issues
+  has_many :issues, if: :has_issues
 
   def feed_version_imports
     object.feed_version_imports.map(&:id)
@@ -72,9 +72,5 @@ class FeedVersionSerializer < ApplicationSerializer
 
   def has_issues
     !!scope && !!scope[:embed_issues]
-  end
-
-  def issues
-    object.issues
   end
 end
