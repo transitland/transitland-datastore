@@ -234,6 +234,7 @@ class Changeset < ActiveRecord::Base
     log "Calculating distances" unless rsps_to_update_distances.empty?
     rsps_to_update_distances.each { |rsp|
       old_issues_to_deprecate.merge(Issue.issues_of_entity(rsp, entity_attributes: ["stop_distances"]))
+      old_distances = rsp.stop_distances
 
       begin
         rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
@@ -242,12 +243,12 @@ class Changeset < ActiveRecord::Base
         rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.fallback_distances })
       end
 
-      rsp.ordered_ssp_trip_chunks { |trip_chunk|
-        trip_chunk.each_with_index do |ssp, i|
-          ssp.update_column(:origin_dist_traveled, rsp.stop_distances[i])
-          ssp.update_column(:destination_dist_traveled, rsp.stop_distances[i+1])
-        end
-      }
+      rsp.stop_distances.zip(old_distances).each_with_index.select {|v,i| v[0]!=v[1] }.each do |v, i|
+        dist = rsp.stop_distances[i]
+        stop_onestop_id = rsp.stop_pattern[i]
+        ScheduleStopPair.where(route_stop_pattern: rsp, origin: Stop.find_by_onestop_id!(stop_onestop_id)).update_all(origin_dist_traveled: dist)
+        ScheduleStopPair.where(route_stop_pattern: rsp, destination: Stop.find_by_onestop_id!(stop_onestop_id)).update_all(destination_dist_traveled: dist)
+      end
     }
     #second item mainly for testing
     [old_issues_to_deprecate, [rsps_to_update_distances.size, operators_to_update_convex_hull.size]]

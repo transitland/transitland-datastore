@@ -271,14 +271,6 @@ class RouteStopPattern < BaseRouteStopPattern
   scope :with_all_stops, -> (search_string) { where{stop_pattern.within(search_string)} }
   scope :with_any_stops, -> (stop_onestop_ids) { where( "stop_pattern && ARRAY[?]::varchar[]", stop_onestop_ids ) }
 
-  def ordered_ssp_trip_chunks(&block)
-    if block
-      ScheduleStopPair.where(route_stop_pattern: self).order(:trip, :origin_departure_time).slice_when { |s1, s2|
-        !s1.trip.eql?(s2.trip)
-      }.each {|trip_chunk| yield trip_chunk }
-    end
-  end
-
   ##### FromGTFS ####
   def self.create_from_gtfs(trip, route_onestop_id, stop_pattern, trip_stop_points, shape_points)
     # both trip_stop_points and stop_pattern correspond to stop_times.
