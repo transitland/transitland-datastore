@@ -47,7 +47,7 @@ class UpdateComputedAttributes::GeometryUpdateComputedAttributes < UpdateCompute
     [@old_issues_to_deprecate, [@rsps_to_update_distances.size, @operators_to_update_convex_hull.size]]
   end
 
-  #private ?
+  private
 
   def update_operators_convex_hull
     @operators_to_update_convex_hull.each { |operator|
