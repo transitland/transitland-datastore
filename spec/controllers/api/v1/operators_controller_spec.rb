@@ -40,6 +40,15 @@ describe Api::V1::OperatorsController do
         }})
       end
 
+      it 'filters by name in UTF-8' do
+        operator = create(:operator, name: 'Østfold kollektivtrafikk')
+        get :index, name: 'Østfold kollektivtrafikk'
+        expect_json({ operators: -> (operators) {
+          expect(operators.first[:onestop_id]).to eq operator.onestop_id
+          expect(operators.count).to eq 1
+        }})
+      end
+
       it 'filters by name, case insensitive' do
         operator = create(:operator, name: 'TEST')
         get :index, name: operator.name.downcase
