@@ -87,7 +87,10 @@ module AllowFiltering
     if case_sensitive
       t = collection.arel_table[attribute_name].in(values)
     else
-      t = collection.arel_table[attribute_name].lower.in(values.map(&:downcase))
+      lowercase_utf8_values = values.map do |value|
+        value.mb_chars.downcase.to_s
+      end
+      t = collection.arel_table[attribute_name].lower.in(lowercase_utf8_values)
     end
     if values.present?
       collection = collection.where(t)
