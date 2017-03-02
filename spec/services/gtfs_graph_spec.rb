@@ -235,6 +235,15 @@ describe GTFSGraph do
       load_feed(feed_version: @feed_version_update_add, import_level: 1)
       expect(s.reload.entities_imported_from_feed.count).to eq(2)
     end
+
+    it 'destroys old RSPs, but not edited ones' do
+      rsp = create(:route_stop_pattern)
+      edited_rsp = create(:route_stop_pattern, edited_attributes: ["geometry"])
+      @original_feed_version.entities_imported_from_feed.create!(feed: @feed, entity: rsp)
+      load_feed(feed_version: @original_feed_version, import_level: 1)
+      expect(RouteStopPattern.exists?(rsp.id)).to be_falsey
+      expect(RouteStopPattern.exists?(edited_rsp.id)).to be_truthy
+    end
   end
 
   context 'errors' do
@@ -256,6 +265,9 @@ describe GTFSGraph do
       oif.update!({gtfs_agency_id:'not-found'})
       graph = GTFSGraph.new(feed, feed_version)
       expect { graph.create_change_osr }.to raise_error(GTFSGraph::Error)
+      issue = Issue.last
+      expect(issue.issue_type).to eq(:feed_import_no_operators_found)
+      expect(issue.entities_with_issues.map(&:entity)).to match_array([feed_version])
     end
   end
 

@@ -18,4 +18,12 @@
 class EntityWithIssues < ActiveRecord::Base
   belongs_to :issue, dependent: :destroy
   belongs_to :entity, polymorphic: true
+
+  validate :entity_attribute_exists?
+
+  def entity_attribute_exists?
+    unless entity.attributes.include?(entity_attribute) || entity_attribute.nil?
+      errors.add(:entity_attribute, "#{entity_attribute} does not exist")
+    end
+  end
 end

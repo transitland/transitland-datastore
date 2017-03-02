@@ -108,7 +108,6 @@ class StopStationSerializer < CurrentEntitySerializer
   end
 
   # Attributes
-  attribute :issues, if: :has_issues
   attributes :onestop_id,
              :geometry,
              :name,

@@ -316,7 +316,7 @@ class Stop < BaseStop
             osm_way_id = tyr_locate_response[index][:edges][0][:way_id]
           else
             log "Tyr response for Stop #{stop.onestop_id} did not contain edges. Leaving osm_way_id."
-            Issue.create!(issue_type: 'missing_stop_conflation_result', details: 'Tyr response for Stop #{stop.onestop_id} did not contain edges. Leaving osm_way_id.')
+            Issue.create!(issue_type: 'missing_stop_conflation_result', details: "Tyr response for Stop #{stop.onestop_id} did not contain edges. Leaving osm_way_id.")
               .entities_with_issues.create!(entity: stop, entity_attribute: 'osm_way_id')
           end
 

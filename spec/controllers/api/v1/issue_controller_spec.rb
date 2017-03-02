@@ -65,7 +65,7 @@ describe Api::V1::IssuesController do
     before(:each) do
       @issue1 = {
         "details": "This is a test issue",
-        "issue_type": 'rsp_line_inaccurate',
+        "issue_type": 'rsp_line_only_stop_points',
         "entities_with_issues": [
           {
             "onestop_id": "s-9qt0rnrkjt-amargosavalleydemo",

@@ -86,22 +86,42 @@ class GTFSGraph
     load_tl_stops
     load_tl_transfers
     load_tl_routes
+
     rsps = load_tl_route_stop_patterns
     calculate_rsp_distances(rsps)
     operators = load_tl_operators
-    fail GTFSGraph::Error.new('No agencies found that match operators_in_feed') unless operators.size > 0
+
+    # Create FeedVersion issue and fail if no matching operators found.
+    # ... clear out old issues
+    Issue.where(issue_type: 'feed_import_no_operators_found').issues_of_entity(feed_version).each(&:deprecate)
+    # ... create new issue
+    if operators.size == 0
+      known_agency_ids = @feed.operators_in_feed.map(&:gtfs_agency_id).map{ |s| "\"#{s}\"" }.join(', ')
+      feed_agency_ids = @gtfs.agencies.map(&:agency_id).map{ |s| "\"#{s}\"" }.join(', ')
+      details = "No agencies found.\noperators_in_feed agency_ids: #{known_agency_ids}\nfeed agency_ids: #{feed_agency_ids}"
+      issue = Issue.new(issue_type: 'feed_import_no_operators_found', details: details)
+      issue.entities_with_issues.new(entity: @feed_version)
+      issue.save!
+      fail GTFSGraph::Error.new('No agencies found that match operators_in_feed')
+    end
 
     # Routes
     routes = operators.map(&:serves).reduce(Set.new, :+).map { |i| find_by_onestop_id(i) }
 
     # Stops and Platforms
     stops = Set.new
-    routes.each { |route| route.serves.each { |stop_onestop_id|
-      stop = @onestop_id_to_entity[stop_onestop_id]
+    tovisit = Set.new
+    routes.each { |route| route.serves.each { |stop_onestop_id| tovisit << @onestop_id_to_entity[stop_onestop_id] }}
+    while !tovisit.empty?
+      stop = tovisit.first
+      tovisit.delete(stop) # Set.pop
+      next if stop.nil?
+      next if stops.include?(stop)
       stops << stop
-      stops << @onestop_id_to_entity[stop.parent_stop_onestop_id] if stop.parent_stop_onestop_id
-      (stop.includes_stop_transfers || []).each { |ist| stops << @onestop_id_to_entity[ist[:toStopOnestopId]]}
-    }}
+      tovisit << @onestop_id_to_entity[stop.parent_stop_onestop_id]
+      tovisit += (stop.includes_stop_transfers || []).map { |ist| @onestop_id_to_entity[ist[:toStopOnestopId]] }
+      tovisit.delete(nil)
+    end
 
     # Update route geometries
     rsps = rsps.select { |rsp| routes.include?(rsp.route) }
@@ -114,6 +134,11 @@ class GTFSGraph
       representative_rsps = Route.representative_geometry(route, route_rsps[route] || [])
       Route.geometry_from_rsps(route, representative_rsps)
     end
+
+    # RSPs to remove
+    feed_rsps = Set.new(@feed.imported_route_stop_patterns.where("edited_attributes='{}'").pluck(:onestop_id))
+    rsps_to_remove = feed_rsps - Set.new(rsps.map(&:onestop_id))
+
     ####
     graph_log "Create changeset"
     changeset = Changeset.create(
@@ -136,6 +161,10 @@ class GTFSGraph
       changeset.create_change_payloads(stops.partition { |i| i.type != 'StopPlatform' }.flatten)
       graph_log "  routes: #{routes.size}"
       changeset.create_change_payloads(routes)
+      if rsps_to_remove.size > 0
+        graph_log "  rsps to remove: #{rsps_to_remove.size}"
+        changeset.change_payloads.create!(payload: {changes: rsps_to_remove.map {|i| {action: "destroy", routeStopPattern: {onestopId: i}}}})
+      end
       graph_log "  route geometries: #{rsps.size}"
       changeset.create_change_payloads(rsps)
     rescue Changeset::Error => e
@@ -442,14 +471,21 @@ class GTFSGraph
 
       # Operator routes & stops
       routes = entity.routes.map { |route| find_by_gtfs_entity(route) }.compact.to_set
-      # Find: (tl routes) to (serves tl stops)
+      # Stops and Platforms
       stops = Set.new
-      routes.each { |route| route.serves.each { |stop_onestop_id|
-        stop = @onestop_id_to_entity[stop_onestop_id]
+      tovisit = Set.new
+      routes.each { |route| route.serves.each { |stop_onestop_id| tovisit << @onestop_id_to_entity[stop_onestop_id] }}
+      while !tovisit.empty?
+        stop = tovisit.first
+        tovisit.delete(stop) # Set.pop
+        next if stop.nil?
+        next if stops.include?(stop)
         stops << stop
-        stops << @onestop_id_to_entity[stop.parent_stop_onestop_id] if stop.parent_stop_onestop_id
-        (stop.includes_stop_transfers || []).each { |ist| stops << @onestop_id_to_entity[ist[:toStopOnestopId]]}
-      }}
+        tovisit << @onestop_id_to_entity[stop.parent_stop_onestop_id]
+        tovisit += (stop.includes_stop_transfers || []).map { |ist| @onestop_id_to_entity[ist[:toStopOnestopId]] }
+        tovisit.delete(nil)
+      end
+
       # Copy Operator timezone to fill missing Stop timezones
       stops.each { |stop| stop.timezone = stop.timezone.presence || operator.timezone }
       # Add references and identifiers
@@ -502,20 +538,22 @@ class GTFSGraph
       feed_shape_points = @gtfs.shape_line(trip.shape_id) || []
       tl_route = find_by_gtfs_entity(@gtfs.parents(trip).first)
       next if tl_route.nil?
-      # temporary RouteStopPattern
       trip_stop_points = tl_stops.map { |s| s.geometry[:coordinates] }
-      # determine if RouteStopPattern exists
+      # temporary RouteStopPattern
       test_rsp = RouteStopPattern.create_from_gtfs(trip, tl_route.onestop_id, stop_pattern, trip_stop_points, feed_shape_points)
+      # determine if RouteStopPattern exists
       rsp = find_and_update_entity(nil, test_rsp)
+      if test_rsp.equal?(rsp)
+        graph_log "   #{rsp.onestop_id}"
+      end
       rsp.traversed_by = tl_route.onestop_id
+      rsp.route = tl_route
       add_identifier(rsp, nil, trip.shape_id)
-      graph_log "   #{rsp.onestop_id}"  if test_rsp.equal?(rsp)
       @gtfs_to_onestop_id[trip] = rsp.onestop_id
       rsp.trips << trip.trip_id unless rsp.trips.include?(trip.trip_id)
-      rsp.route = tl_route
       rsps << rsp
     end
-    graph_log "#{stop_times_with_shape_dist_traveled} stop times with shape_dist_traveled found out of #{stop_times_count} total stop times" if stop_times_with_shape_dist_traveled > 0
+    graph_log "#{stop_times_with_shape_dist_traveled} stop times with shape_dist_traveled found out of #{stop_times_count} total stop times for feed #{@feed.onestop_id}" if stop_times_with_shape_dist_traveled > 0
     rsps
   end
 
