@@ -2,14 +2,54 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.22...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.23...HEAD)
 
-**Fixed bugs:**
+**Closed issues:**
 
-- createUpdate looks back at old merged and changed records [\#963](https://github.com/transitland/transitland-datastore/issues/963)
+- Optimize SSP distances in update computed attributes [\#1000](https://github.com/transitland/transitland-datastore/issues/1000)
+- Validate entity attribute on EntityWithIssues model [\#998](https://github.com/transitland/transitland-datastore/issues/998)
 
 **Merged pull requests:**
 
+- Production release 4.9.23 [\#976](https://github.com/transitland/transitland-datastore/pull/976) ([irees](https://github.com/irees))
+
+## [4.9.23](https://github.com/transitland/transitland-datastore/tree/4.9.23) (2017-03-01)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.22...4.9.23)
+
+**Implemented enhancements:**
+
+- rsp\_line\_inaccurate quality check fix [\#771](https://github.com/transitland/transitland-datastore/issues/771)
+- RSP Optimization 2 [\#748](https://github.com/transitland/transitland-datastore/issues/748)
+
+**Fixed bugs:**
+
+- Bounds not including rsp\_line\_inaccurate RSPs [\#991](https://github.com/transitland/transitland-datastore/issues/991)
+- FeedVersion: Duplicate sha1 [\#981](https://github.com/transitland/transitland-datastore/issues/981)
+- createUpdate looks back at old merged and changed records [\#963](https://github.com/transitland/transitland-datastore/issues/963)
+- rsp\\_line\\_inaccurate quality check fix [\#771](https://github.com/transitland/transitland-datastore/issues/771)
+
+**Closed issues:**
+
+- Create Issue when a Feed import has no matching Operators [\#997](https://github.com/transitland/transitland-datastore/issues/997)
+- StopTransfer: Transfers between stations [\#985](https://github.com/transitland/transitland-datastore/issues/985)
+- Still more "false positive" issues with dist calc [\#945](https://github.com/transitland/transitland-datastore/issues/945)
+- Remove rake task for deleting unreferenced entities [\#926](https://github.com/transitland/transitland-datastore/issues/926)
+- Hide or delete 'inactive' RouteStopPatterns [\#907](https://github.com/transitland/transitland-datastore/issues/907)
+
+**Merged pull requests:**
+
+- Entity attribute validate [\#999](https://github.com/transitland/transitland-datastore/pull/999) ([doublestranded](https://github.com/doublestranded))
+- Issue: Feed import with no matching operators [\#993](https://github.com/transitland/transitland-datastore/pull/993) ([irees](https://github.com/irees))
+- False positive stops close issues [\#990](https://github.com/transitland/transitland-datastore/pull/990) ([doublestranded](https://github.com/doublestranded))
+- Guard against cycles [\#988](https://github.com/transitland/transitland-datastore/pull/988) ([irees](https://github.com/irees))
+- Import: better traverse stops, stations, transfers [\#986](https://github.com/transitland/transitland-datastore/pull/986) ([irees](https://github.com/irees))
+- RSP: Improved create\_from\_gtfs [\#984](https://github.com/transitland/transitland-datastore/pull/984) ([irees](https://github.com/irees))
+- Optimize memory before after stops [\#983](https://github.com/transitland/transitland-datastore/pull/983) ([doublestranded](https://github.com/doublestranded))
+- Create FeedVersion before uploading attachments [\#982](https://github.com/transitland/transitland-datastore/pull/982) ([irees](https://github.com/irees))
+- Rsp line inaccurate fix [\#980](https://github.com/transitland/transitland-datastore/pull/980) ([doublestranded](https://github.com/doublestranded))
+- Remove rake task for unreferenced entities [\#979](https://github.com/transitland/transitland-datastore/pull/979) ([doublestranded](https://github.com/doublestranded))
+- double-quoted string [\#978](https://github.com/transitland/transitland-datastore/pull/978) ([doublestranded](https://github.com/doublestranded))
+- Remove old rsps [\#977](https://github.com/transitland/transitland-datastore/pull/977) ([doublestranded](https://github.com/doublestranded))
 - Production release 4.9.22 [\#953](https://github.com/transitland/transitland-datastore/pull/953) ([irees](https://github.com/irees))
 
 ## [4.9.22](https://github.com/transitland/transitland-datastore/tree/4.9.22) (2017-02-17)
