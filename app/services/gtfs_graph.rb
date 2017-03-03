@@ -168,10 +168,12 @@ class GTFSGraph
     rsps.each do |rsp|
       stops = rsp.stop_pattern.map { |onestop_id| find_by_onestop_id(onestop_id) }
       begin
-        # TODO make sure edited rsps have proper distance calc
+        # edited rsps will probably have a shape
         if rsp.is_generated && rsp.edited_attributes.empty?
           rsp.fallback_distances(stops=stops)
-        else
+        elsif (rsp.stop_distances.compact.empty? || rsp.issues.map(&:issue_type).include?(:distance_calculation_inaccurate))
+          # avoid writing over stop distances computed with shape_dist_traveled, or already computed somehow -
+          # unless if rsps have inaccurate stop distances, we'll allow a recomputation if there's a fix in place.
           rsp.calculate_distances(stops=stops)
         end
       rescue StandardError
@@ -521,7 +523,7 @@ class GTFSGraph
         graph_log "   #{rsp.onestop_id}"
       end
       shape_distances_traveled = shape_line.try(:shape_dist_traveled)
-      # assume stop_times' and shapes' shape_dist_traveled are in the same units
+      # assume stop_times' and shapes' shape_dist_traveled are in the same units (a condition required by GTFS). TODO: validate that.
       if shape_distances_traveled
         if stop_times.all?{ |st| st.shape_dist_traveled.present? } && shape_distances_traveled.all?(&:present?)
           rsp.gtfs_shape_dist_traveled(stop_times, tl_stops, shape_distances_traveled)
