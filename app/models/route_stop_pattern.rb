@@ -310,9 +310,10 @@ class RouteStopPattern < BaseRouteStopPattern
     )
     if shape_points.present?
       rsp.geometry = self.line_string(self.set_precision(shape_points))
+      rsp.geometry_source = :shapes_txt
     else
       rsp.geometry = self.line_string(self.set_precision(trip_stop_points))
-      rsp.is_generated = true
+      rsp.geometry_source = :trip_stop_points
     end
     onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(
      route_onestop_id: route_onestop_id,
