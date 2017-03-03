@@ -197,7 +197,7 @@ describe RouteStopPattern do
       trip = gtfs.trips.detect{|trip| trip.id == rsp.trips.first}
       trip_stop_times = []
       gtfs.trip_stop_times(trips=[trip]){ |trip, stop_times| trip_stop_times = stop_times }
-      expect(rsp.gtfs_shape_dist_traveled(trip_stop_times, tl_stops, gtfs.shape_line(trip.shape_id).shape_dist_traveled)).to match_array([0.0, 2465.0, 4148.0, 5323.0, 7598.5, 8291.2, 8685.5, 9392.5, 10181.4])
+      expect(rsp.gtfs_shape_dist_traveled(trip_stop_times, tl_stops, gtfs.shape_line(trip.shape_id).shape_dist_traveled)).to match_array([0.0, 1166.3, 2507.7, 4313.8])
     end
 
     it '#fallback_distances' do
