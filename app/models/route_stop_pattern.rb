@@ -49,6 +49,9 @@ class RouteStopPattern < BaseRouteStopPattern
     :geometry_has_at_least_two_coords,
     :correct_stop_distances_length
 
+  extend Enumerize
+  enumerize :geometry_source, in: [:trip_stop_points, :shapes_txt, :user_edited]
+
   def has_at_least_two_stops
     if stop_pattern.length < 2
       errors.add(:stop_pattern, 'RouteStopPattern needs at least 2 stops')
