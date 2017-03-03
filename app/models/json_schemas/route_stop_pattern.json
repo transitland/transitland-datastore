@@ -20,11 +20,8 @@
         "type": ["number", "null"]
       }
     },
-    "isModified": {
-      "type": "boolean"
-    },
-    "isGenerated": {
-      "type": "boolean"
+    "geometrySource": {
+      "type": "string"
     },
     "addImportedFromFeeds": {
       "type": "array",
