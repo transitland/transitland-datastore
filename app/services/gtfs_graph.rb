@@ -164,6 +164,7 @@ class GTFSGraph
   end
 
   def calculate_rsp_distances(rsps)
+    # TODO: move this into UpdateComputedAttributes Service
     graph_log "Calculating distances"
     rsps.each do |rsp|
       stops = rsp.stop_pattern.map { |onestop_id| find_by_onestop_id(onestop_id) }
