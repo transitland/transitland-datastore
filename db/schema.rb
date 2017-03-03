@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170207173441) do
+ActiveRecord::Schema.define(version: 20170303213823) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -127,17 +127,17 @@ ActiveRecord::Schema.define(version: 20170207173441) do
     t.string    "onestop_id"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.hstore    "tags"
-    t.string    "stop_pattern",                                                                                   default: [],                 array: true
+    t.string    "stop_pattern",                                                                                   default: [],              array: true
     t.integer   "version"
-    t.boolean   "is_generated",                                                                                   default: false
-    t.string    "trips",                                                                                          default: [],                 array: true
-    t.string    "identifiers",                                                                                    default: [],                 array: true
-    t.datetime  "created_at",                                                                                                     null: false
-    t.datetime  "updated_at",                                                                                                     null: false
+    t.string    "trips",                                                                                          default: [],              array: true
+    t.string    "identifiers",                                                                                    default: [],              array: true
+    t.datetime  "created_at",                                                                                                  null: false
+    t.datetime  "updated_at",                                                                                                  null: false
     t.integer   "created_or_updated_in_changeset_id"
     t.integer   "route_id"
-    t.float     "stop_distances",                                                                                 default: [],                 array: true
-    t.string    "edited_attributes",                                                                              default: [],                 array: true
+    t.float     "stop_distances",                                                                                 default: [],              array: true
+    t.string    "edited_attributes",                                                                              default: [],              array: true
+    t.string    "geometry_source"
   end
 
   add_index "current_route_stop_patterns", ["created_or_updated_in_changeset_id"], name: "c_rsp_cu_in_changeset", using: :btree
@@ -483,21 +483,21 @@ ActiveRecord::Schema.define(version: 20170207173441) do
     t.string    "onestop_id"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.hstore    "tags"
-    t.string    "stop_pattern",                                                                                   default: [],                 array: true
+    t.string    "stop_pattern",                                                                                   default: [],              array: true
     t.integer   "version"
-    t.boolean   "is_generated",                                                                                   default: false
-    t.string    "trips",                                                                                          default: [],                 array: true
-    t.string    "identifiers",                                                                                    default: [],                 array: true
-    t.datetime  "created_at",                                                                                                     null: false
-    t.datetime  "updated_at",                                                                                                     null: false
+    t.string    "trips",                                                                                          default: [],              array: true
+    t.string    "identifiers",                                                                                    default: [],              array: true
+    t.datetime  "created_at",                                                                                                  null: false
+    t.datetime  "updated_at",                                                                                                  null: false
     t.integer   "created_or_updated_in_changeset_id"
     t.integer   "destroyed_in_changeset_id"
     t.integer   "route_id"
     t.string    "route_type"
     t.integer   "current_id"
-    t.float     "stop_distances",                                                                                 default: [],                 array: true
-    t.string    "edited_attributes",                                                                              default: [],                 array: true
+    t.float     "stop_distances",                                                                                 default: [],              array: true
+    t.string    "edited_attributes",                                                                              default: [],              array: true
     t.string    "action"
+    t.string    "geometry_source"
   end
 
   add_index "old_route_stop_patterns", ["created_or_updated_in_changeset_id"], name: "o_rsp_cu_in_changeset", using: :btree
