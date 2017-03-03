@@ -397,6 +397,9 @@ describe GTFSGraph do
       before(:all) {
         @feed, @feed_version = load_feed(feed_version_name: :feed_version_nj_path, import_level: 1)
       }
+      after(:all) {
+        DatabaseCleaner.clean_with :truncation, { except: ['spatial_ref_sys'] }
+      }
 
       it 'utilizes shape_dist_traveled when available' do
         rsp = @feed.imported_route_stop_patterns.first
@@ -410,6 +413,9 @@ describe GTFSGraph do
     context 'with nycdotsiferry and no shape_dist_traveled populated' do
       before(:all) {
         @feed, @feed_version = load_feed(feed_version_name: :feed_version_nycdotsiferry, import_level: 1)
+      }
+      after(:all) {
+        DatabaseCleaner.clean_with :truncation, { except: ['spatial_ref_sys'] }
       }
 
       it 'recomputes distances of rsps with distance calculation issues' do
