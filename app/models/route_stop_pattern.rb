@@ -50,7 +50,7 @@ class RouteStopPattern < BaseRouteStopPattern
     :correct_stop_distances_length
 
   extend Enumerize
-  enumerize :geometry_source, in: [:trip_stop_points, :shapes_txt, :user_edited]
+  enumerize :geometry_source, in: [:trip_stop_points, :shapes_txt, :shapes_txt_with_dist_traveled, :user_edited]
 
   def has_at_least_two_stops
     if stop_pattern.length < 2
@@ -313,7 +313,7 @@ class RouteStopPattern < BaseRouteStopPattern
     )
     if shape_points.present?
       rsp.geometry = self.line_string(self.set_precision(shape_points))
-      rsp.geometry_source = :shapes_txt
+      rsp.geometry_source = shape_points.shape_dist_traveled.all? ? :shapes_txt_with_dist_traveled : :shapes_txt
     else
       rsp.geometry = self.line_string(self.set_precision(trip_stop_points))
       rsp.geometry_source = :trip_stop_points
