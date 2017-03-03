@@ -8,7 +8,6 @@
 #  tags                               :hstore
 #  stop_pattern                       :string           default([]), is an Array
 #  version                            :integer
-#  is_generated                       :boolean          default(FALSE)
 #  trips                              :string           default([]), is an Array
 #  identifiers                        :string           default([]), is an Array
 #  created_at                         :datetime         not null
@@ -17,6 +16,7 @@
 #  route_id                           :integer
 #  stop_distances                     :float            default([]), is an Array
 #  edited_attributes                  :string           default([]), is an Array
+#  geometry_source                    :string
 #
 # Indexes
 #
