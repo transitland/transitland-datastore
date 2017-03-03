@@ -598,43 +598,6 @@ describe Changeset do
       expect(RouteStopPattern.find_by_onestop_id!('r-9q8y-richmond~dalycity~millbrae-e8fb80-61d4dc').stop_distances).to eq [0.0, 37641.4]
     end
 
-    it 'avoids duplication of rsp distance calculation' do
-      create(:stop_richmond_offset)
-      create(:stop_millbrae)
-      create(:route_stop_pattern_bart)
-      changeset = create(:changeset, payload: {
-        changes: [
-          {
-            action: 'createUpdate',
-            stop: {
-              onestopId: 's-9q8zzf1nks-richmond',
-              timezone: 'America/Los_Angeles',
-              name: 'Richmond',
-              geometry: { type: "Point", coordinates: [-122.353165, 37.936887] }
-            },
-            stop: {
-              onestopId: 's-9q8vzhbf8h-millbrae',
-              timezone: 'America/Los_Angeles',
-              name: 'Millbrae',
-              geometry: { type: "Point", coordinates: [-122.38266, 37.599487] }
-            }
-          },
-          {
-            action: 'createUpdate',
-            routeStopPattern: {
-              onestopId: 'r-9q8y-richmond~dalycity~millbrae-e8fb80-61d4dc',
-              stopPattern: ['s-9q8zzf1nks-richmond', 's-9q8vzhbf8h-millbrae'],
-              geometry: { type: "LineString", coordinates: [[-122.351529, 37.937750], [-122.38666, 37.599787]] }
-            }
-          }
-        ]
-      })
-      changeset.change_payloads.each do |change_payload|
-        change_payload.apply_change
-      end
-      expect(changeset.update_computed_attributes[1]).to eq [1,0]
-    end
-
     it 'recomputes operator convex hull on stop update changeset' do
       stop = create(:stop_richmond)
       operator = create(:operator, geometry: { type: "Point", coordinates: stop.geometry[:coordinates] } )
