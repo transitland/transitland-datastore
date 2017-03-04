@@ -217,6 +217,25 @@ FactoryGirl.define do
     end
   end
 
+  factory :feed_nj_path, parent: :feed, class: Feed do
+    onestop_id 'f-dr5r-panynjpath'
+    url 'http://data.trilliumtransit.com/gtfs/path-nj-us/path-nj-us.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Port Authority Trans-Hudson',
+        onestop_id: 'o-dr5r-path',
+        timezone: 'America/New_York',
+        website: 'http://www.panynj.gov/',
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: '151'
+      )
+    end
+  end
+
   factory :feed_example, parent: :feed, class: Feed do
     onestop_id 'f-9qs-example'
     url 'http://www.bart.gov/dev/schedules/google_transit.zip'
