@@ -1,15 +1,4 @@
 GIT
-  remote: git://github.com/carrierwaveuploader/carrierwave.git
-  revision: 49fdad1ec6ca9bb0883b6e193ea64e036e7b48a0
-  ref: 49fdad1
-  specs:
-    carrierwave (0.10.0)
-      activemodel (>= 3.2.0)
-      activesupport (>= 3.2.0)
-      json (>= 1.7)
-      mime-types (>= 1.16)
-
-GIT
   remote: git://github.com/transitland/gtfs.git
   revision: c83e414378ef7fab246334b2dd1e60383986c1ba
   tag: c83e414378ef7fab246334b2dd1e60383986c1ba
@@ -108,6 +97,10 @@ GEM
       uniform_notifier (~> 1.10.0)
     byebug (9.0.6)
     c_geohash (1.1.2)
+    carrierwave (1.0.0)
+      activemodel (>= 4.0.0)
+      activesupport (>= 4.0.0)
+      mime-types (>= 1.16)
     choice (0.2.0)
     chronic (0.10.2)
     coderay (1.1.1)
@@ -400,7 +393,7 @@ DEPENDENCIES
   bullet
   byebug
   c_geohash
-  carrierwave!
+  carrierwave (~> 1.0.0)
   database_cleaner
   datastore_admin!
   devise

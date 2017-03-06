@@ -57,10 +57,7 @@ gem 'faraday'
 
 # file attachments
 gem 'fog-aws', group: [:staging, :production]
-gem 'carrierwave', github: 'carrierwaveuploader/carrierwave', ref: '49fdad1'
-# using a development version of carrierwave in order to only
-# load fog-aws, rather than the entire fog library
-# https://github.com/carrierwaveuploader/carrierwave/issues/1698
+gem 'carrierwave', '~>1.0.0'
 
 # development tools
 gem 'better_errors', group: :development
