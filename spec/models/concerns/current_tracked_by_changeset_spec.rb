@@ -31,10 +31,11 @@ describe CurrentTrackedByChangeset do
     it 'does not merge protected attributes' do
       stop1 = create(:stop)
       stop2 = create(:stop)
-      stop1.identifiers = ['foo']
-      stop2.identifiers = ['bar']
+      now = Datetime.now
+      stop1.last_conflated_at = now - 1.day
+      stop2.last_conflated_at = now - 2.days
       stop1.merge_in_entity(stop2)
-      expect(stop1.identifiers).to match_array(['foo'])
+      expect(stop1.last_conflated_at).to eq(now - 1.day)
     end
 
     it 'converts empty string to nil' do

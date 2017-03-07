@@ -12,7 +12,9 @@
           "operator": {
             "onestopId": "o-9q9-caltrain",
             "name": "Caltrain",
-            "identifiedBy": ["usntd://9134"],
+            "tags": {
+              "us_ntd_id": "9134"
+            },
             "country": "US",
             "state": "US-CA",
             "metro": "San Francisco Bay Area",

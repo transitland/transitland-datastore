@@ -58,20 +58,6 @@
         "$ref": "./imported_from_feed.json"
       }
     },
-    "identifiedBy": {
-      "type": "array",
-      "uniqueItems": true,
-      "items": {
-        "type": "string"
-      }
-    },
-    "notIdentifiedBy": {
-      "type": "array",
-      "uniqueItems": true,
-      "items": {
-        "type": "string"
-      }
-    },
     "serves": {
       "type": "array",
       "uniqueItems": true,

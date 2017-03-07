@@ -1,6 +1,5 @@
 class EntitySerializer < ApplicationSerializer
-  attributes :identifiers,
-             :imported_from_feeds
+  attributes :imported_from_feeds
 
   has_many :issues, if: :has_issues
 

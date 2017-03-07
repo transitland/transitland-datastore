@@ -410,7 +410,7 @@ class GTFSGraph
     # Create parent stops first
     gtfs_stops.each do |gtfs_stop|
       stop = find_and_update_entity(gtfs_stop, Stop.from_gtfs(gtfs_stop))
-      add_identifier(stop, gtfs_stop, gtfs_stop.id)
+      add_entity_imported_from_feed(stop, gtfs_stop, gtfs_stop.id)
       graph_log "    Stop: #{stop.onestop_id}: #{stop.name}"
     end
     # Create child stops
@@ -427,7 +427,7 @@ class GTFSGraph
       # index
       stop = find_and_update_entity(gtfs_stop, stop)
       stop.parent_stop_onestop_id = parent_stop.onestop_id if parent_stop
-      add_identifier(stop, gtfs_stop, gtfs_stop.id)
+      add_entity_imported_from_feed(stop, gtfs_stop, gtfs_stop.id)
       graph_log "    StopPlatform: #{stop.onestop_id}: #{stop.name}"
     end
   end
@@ -498,7 +498,7 @@ class GTFSGraph
       routes.each { |route| route.operated_by = operator.onestop_id }
       operator.serves ||= Set.new
       operator.serves |= routes.map(&:onestop_id)
-      add_identifier(operator, entity, entity.id)
+      add_entity_imported_from_feed(operator, entity, entity.id)
 
       # Add to found operators
       operators << operator
@@ -525,7 +525,7 @@ class GTFSGraph
       # Add references and identifiers
       route.serves ||= Set.new
       route.serves |= stops.map(&:onestop_id)
-      add_identifier(route, entity, entity.id)
+      add_entity_imported_from_feed(route, entity, entity.id)
       graph_log "    #{route.onestop_id}: #{route.name}"
     end
   end
@@ -560,7 +560,7 @@ class GTFSGraph
       end
       rsp.traversed_by = tl_route.onestop_id
       rsp.route = tl_route
-      add_identifier(rsp, nil, trip.shape_id)
+      add_entity_imported_from_feed(rsp, nil, trip.shape_id)
       @gtfs_to_onestop_id[trip] = rsp.onestop_id
       rsp.trips << trip.trip_id unless rsp.trips.include?(trip.trip_id)
       rsps << rsp
@@ -617,7 +617,7 @@ class GTFSGraph
 
   ##### Identifiers #####
 
-  def add_identifier(tl_entity, gtfs_entity, gtfs_id)
+  def add_entity_imported_from_feed(tl_entity, gtfs_entity, gtfs_id)
     tl_entity.add_imported_from_feeds ||= []
     tl_entity.add_imported_from_feeds << {feedVersion: @feed_version.sha1, gtfsId: gtfs_id}
     @gtfs_to_onestop_id[gtfs_entity] = tl_entity.onestop_id if gtfs_entity
