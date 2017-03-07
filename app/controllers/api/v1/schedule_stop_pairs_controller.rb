@@ -110,27 +110,32 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     if params[:active].presence == 'true'
       @ssps = @ssps.where_imported_from_active_feed_version
     end
+
     # Feed
     feed_onestop_id = params[:feed_onestop_id].presence || params[:imported_from_feed].presence
     if feed_onestop_id
       @ssps = @ssps.where(feed: Feed.find_by_onestop_id!(feed_onestop_id))
     end
+
     # FeedVersion Import level
     if params[:import_level].present?
       @ssps = @ssps.where_import_level(AllowFiltering.param_as_array(params, :import_level))
     end
+
     # Service on a date
     if params[:date].presence == "today"
       @ssps = @ssps.where_service_on_date(tz_now.to_date)
     elsif params[:date].present?
       @ssps = @ssps.where_service_on_date(params[:date])
     end
+
     if params[:service_from_date].present?
       @ssps = @ssps.where_service_from_date(params[:service_from_date])
     end
     if params[:service_before_date].present?
       @ssps = @ssps.where_service_before_date(params[:service_before_date])
     end
+
     # Service between stops
     if params[:origin_onestop_id].present?
       origin_stops = Stop.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :origin_onestop_id))
@@ -140,15 +145,18 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
       destination_stops = Stop.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :destination_onestop_id))
       @ssps = @ssps.where(destination: destination_stops)
     end
+
     # Departing between...
     if params[:origin_departure_between].present?
       t1, t2 = AllowFiltering.param_as_array(params, :origin_departure_between)
       @ssps = @ssps.where_origin_departure_between(t1, t2)
     end
+
     # Service by trip id
     if params[:trip].present?
       @ssps = @ssps.where(trip: params[:trip])
     end
+
     # Service on a route
     if params[:route_onestop_id].present?
       routes = Route.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :route_onestop_id))
@@ -162,6 +170,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
       operators = Operator.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :operator_onestop_id))
       @ssps = @ssps.where(operator: operators)
     end
+
     # Stops in a bounding box
     if params[:bbox].present?
       @ssps = @ssps.where_origin_bbox(params[:bbox])
