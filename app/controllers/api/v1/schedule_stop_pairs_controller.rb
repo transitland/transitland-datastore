@@ -181,4 +181,14 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
       feed_version
     ]}
   end
+
+  private
+
+  def tz_now
+    tz_onestop_id = params[:origin_onestop_id].presence || params[:destination_onestop_id].presence || params[:operator_onestop_id].presence
+    fail Exception.new('Must provide an origin_onestop_id, destination_onestop_id, or operator_onestop_id to use "now" or "today" relative times') unless tz_onestop_id
+    tz_entity = OnestopId.find!(tz_onestop_id)
+    TZInfo::Timezone.get(tz_entity.timezone).utc_to_local(DateTime.now)
+  end
+
 end
