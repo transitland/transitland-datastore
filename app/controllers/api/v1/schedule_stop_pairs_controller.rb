@@ -148,7 +148,14 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
 
     # Departing between...
     if params[:origin_departure_between].present?
-      t1, t2 = AllowFiltering.param_as_array(params, :origin_departure_between)
+      r = /^(now)([-+ ]\d+)?$/
+      t1, t2 = AllowFiltering.param_as_array(params, :origin_departure_between).map do |t|
+        if r.match(t)
+          GTFS::WideTime.new(tz_now.seconds_since_midnight + r.match(t)[2].to_i).to_s
+        else
+          GTFS::WideTime.parse(t)
+        end
+      end
       @ssps = @ssps.where_origin_departure_between(t1, t2)
     end
 
