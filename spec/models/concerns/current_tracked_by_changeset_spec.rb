@@ -31,7 +31,7 @@ describe CurrentTrackedByChangeset do
     it 'does not merge protected attributes' do
       stop1 = create(:stop)
       stop2 = create(:stop)
-      now = Datetime.now
+      now = DateTime.now
       stop1.last_conflated_at = now - 1.day
       stop2.last_conflated_at = now - 2.days
       stop1.merge_in_entity(stop2)
