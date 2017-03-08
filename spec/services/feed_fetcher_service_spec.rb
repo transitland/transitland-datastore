@@ -107,6 +107,18 @@ describe FeedFetcherService do
       end
       expect(Issue.issues_of_entity(feed).count).to eq 0
     end
+
+    it 'creates FeedValidationWorker job' do
+      allow(Figaro.env).to receive(:run_google_feedvalidator) { 'true' }
+      feed = create(:feed_caltrain)
+      Sidekiq::Testing.fake! do
+        expect {
+          VCR.use_cassette('feed_fetch_caltrain') do
+            FeedFetcherService.fetch_and_return_feed_version(feed)
+          end
+        }.to change(FeedValidationWorker.jobs, :size).by(1)
+      end
+    end
   end
 
   context '#url_fragment' do
@@ -130,7 +142,7 @@ describe FeedFetcherService do
       expect(feed_version.earliest_calendar_date).to eq Date.parse('2007-01-01')
       expect(feed_version.latest_calendar_date).to eq Date.parse('2010-12-31')
     end
-    
+
     it 'reads feed_info.txt and puts into tags' do
       feed = create(:feed, url: example_url)
       feed_version = nil
