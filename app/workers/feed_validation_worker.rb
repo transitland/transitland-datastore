@@ -5,6 +5,7 @@ class FeedValidationWorker
                   unique_job_expiration: 22 * 60 * 60 # 22 hours
 
   def perform(feed_version_sha1)
-    # do stuff
+    feed_version = FeedVersion.find_by!(sha1: feed_version_sha1)
+    FeedValidationService.run_validators(feed_version)
   end
 end
