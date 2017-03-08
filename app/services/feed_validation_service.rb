@@ -30,9 +30,9 @@ class FeedValidationService
 
   def self.run_validators(feed_version)
     # Validate the new data
-    gtfs_filename = file.local_path_copying_locally_if_needed
+    gtfs_filename = feed_version.file.local_path_copying_locally_if_needed
     file_feedvalidator = run_google_feedvalidator(gtfs_filename)
-    file.remove_any_local_cached_copies
+    feed_version.file.remove_any_local_cached_copies
     # Save
     feed_version.update!(
       file_feedvalidator: file_feedvalidator,
