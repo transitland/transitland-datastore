@@ -10,7 +10,6 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
     @rsps = RouteStopPattern.where('')
     @rsps = AllowFiltering.by_onestop_id(@rsps, params)
     @rsps = AllowFiltering.by_tag_keys_and_values(@rsps, params)
-    @rsps = AllowFiltering.by_identifer_and_identifier_starts_with(@rsps, params)
     @rsps = AllowFiltering.by_updated_since(@rsps, params)
 
     # Imported From Feed

@@ -9,7 +9,6 @@
 #  stop_pattern                       :string           default([]), is an Array
 #  version                            :integer
 #  trips                              :string           default([]), is an Array
-#  identifiers                        :string           default([]), is an Array
 #  created_at                         :datetime         not null
 #  updated_at                         :datetime         not null
 #  created_or_updated_in_changeset_id :integer
@@ -21,7 +20,6 @@
 # Indexes
 #
 #  c_rsp_cu_in_changeset                              (created_or_updated_in_changeset_id)
-#  index_current_route_stop_patterns_on_identifiers   (identifiers)
 #  index_current_route_stop_patterns_on_onestop_id    (onestop_id) UNIQUE
 #  index_current_route_stop_patterns_on_route_id      (route_id)
 #  index_current_route_stop_patterns_on_stop_pattern  (stop_pattern)
@@ -71,7 +69,6 @@ class RouteStopPattern < BaseRouteStopPattern
   end
 
   include HasAOnestopId
-  include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
   include HasTags
   include UpdatedSince
@@ -83,15 +80,11 @@ class RouteStopPattern < BaseRouteStopPattern
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
     virtual_attributes: [
-      :identified_by,
-      :not_identified_by,
       :traversed_by,
       :add_imported_from_feeds,
       :not_imported_from_feeds
     ],
-    protected_attributes: [
-      :identifiers
-    ],
+    protected_attributes: [],
     sticky_attributes: [
       :geometry
     ]

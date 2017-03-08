@@ -13,7 +13,9 @@
             "onestopId": "o-dr5r7-nycdot",
             "name": "New York City Department of Transportation",
             "shortName": "NYC DOT",
-            "identifiedBy": ["usntd://2082"],
+            "tags": {
+              "us_ntd_id": "2082"
+            },
             "country": "US",
             "state": "US-NY",
             "metro": "New York City",

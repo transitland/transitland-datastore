@@ -13,9 +13,9 @@
             "onestopId": "o-9q9-bart",
             "name": "Bay Area Rapid Transit",
             "shortName": "BART",
-            "identifiedBy": [
-              "usntd://9003"
-            ],
+            "tags": {
+              "us_ntd_id": "9003"
+            },
             "country": "US",
             "state": "US-CA",
             "metro": "San Francisco Bay Area",

@@ -10,7 +10,6 @@ class Api::V1::StopsController < Api::V1::BaseApiController
     @stops = Stop.where('')
     @stops = AllowFiltering.by_onestop_id(@stops, params)
     @stops = AllowFiltering.by_tag_keys_and_values(@stops, params)
-    @stops = AllowFiltering.by_identifer_and_identifier_starts_with(@stops, params)
     @stops = AllowFiltering.by_updated_since(@stops, params)
 
     # Imported From Feed
@@ -93,8 +92,6 @@ class Api::V1::StopsController < Api::V1::BaseApiController
 
   def query_params
     params.slice(
-      :identifier,
-      :identifier_starts_with,
       :served_by,
       :servedBy,
       :lat,
