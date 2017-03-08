@@ -40,6 +40,15 @@ describe Api::V1::OperatorsController do
         }})
       end
 
+      it 'filters by name in UTF-8' do
+        operator = create(:operator, name: 'Østfold kollektivtrafikk')
+        get :index, name: 'Østfold kollektivtrafikk'
+        expect_json({ operators: -> (operators) {
+          expect(operators.first[:onestop_id]).to eq operator.onestop_id
+          expect(operators.count).to eq 1
+        }})
+      end
+
       it 'filters by name, case insensitive' do
         operator = create(:operator, name: 'TEST')
         get :index, name: operator.name.downcase
@@ -145,19 +154,19 @@ describe Api::V1::OperatorsController do
   describe 'GET aggregate' do
     before(:each) do
       Rails.cache.clear
-      create(:operator, country: 'United States', state: 'California', metro: 'San Francisco Bay Area', timezone: 'America/Los_Angeles')
-      create(:operator, country: 'United States', state: 'California', metro: 'San Francisco Bay Area', timezone: 'America/Los_Angeles')
-      create(:operator, country: 'United States', state: 'California', metro: 'Los Angeles', timezone: 'America/Los_Angeles')
+      create(:operator, country: 'US', state: 'US-CA', metro: 'San Francisco Bay Area', timezone: 'America/Los_Angeles')
+      create(:operator, country: 'US', state: 'US-CA', metro: 'San Francisco Bay Area', timezone: 'America/Los_Angeles')
+      create(:operator, country: 'US', state: 'US-CA', metro: 'Los Angeles', timezone: 'America/Los_Angeles')
     end
 
     it 'returns a list of all countries with counts for each' do
       get :aggregate
-      expect_json('country.United States.count', 3)
+      expect_json('country.US.count', 3)
     end
 
     it 'returns a list of all states with counts for each' do
       get :aggregate
-      expect_json('state.California.count', 3)
+      expect_json('state.US-CA.count', 3)
     end
 
     it 'returns a list of all metros with counts for each' do

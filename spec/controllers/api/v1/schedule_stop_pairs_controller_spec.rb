@@ -49,7 +49,56 @@ describe Api::V1::ScheduleStopPairsController do
       end
     end
 
-    context 'date' do
+    context 'date=today, time=now' do
+      before(:each) {
+        @origin = @ssps[0].origin
+        @origin.update!(timezone: 'America/Los_Angeles')
+        @ssps[0].update(
+          origin: @origin,
+          origin_departure_time: '10:00:00',
+          service_start_date: '1999-01-01',
+          service_end_date: '1999-01-01',
+          service_days_of_week: [false, false, false, false, true, false, false]
+        )
+        @ssps[1].update(
+          origin: @origin,
+          origin_departure_time: '12:00:00',
+          service_start_date: '1999-01-01',
+          service_end_date: '1999-01-01',
+          service_days_of_week: [false, false, false, false, true, false, false]
+        )
+        @ssps[2].update(
+          origin: @origin,
+          origin_departure_time: '14:00:00',
+          service_start_date: '1999-02-01',
+          service_end_date: '1999-02-01',
+          service_days_of_week: [false, false, false, false, true, false, false]
+        )
+        @now = DateTime.parse('1999-01-01T18:00:00+00:00')
+      }
+
+      it 'accepts date=today' do
+        Timecop.freeze(@now) do
+          get :index, origin_onestop_id: @origin.onestop_id, date: 'today'
+          expect_json_sizes(schedule_stop_pairs: 2)
+        end
+      end
+
+      it 'accepts origin_departure_between=now' do
+        Timecop.freeze(@now) do
+          # now is 10am America/Los_Angeles
+          get :index, origin_onestop_id: @origin.onestop_id, origin_departure_between: '11:00:00'
+          expect_json_sizes(schedule_stop_pairs: 2)
+          get :index, origin_onestop_id: @origin.onestop_id, origin_departure_between: 'now-600'
+          expect_json_sizes(schedule_stop_pairs: 3)
+          get :index, origin_onestop_id: @origin.onestop_id, origin_departure_between: 'now+600'
+          expect_json_sizes(schedule_stop_pairs: 2)
+          get :index, origin_onestop_id: @origin.onestop_id, origin_departure_between: '00:00:00,now+600'
+          expect_json_sizes(schedule_stop_pairs: 1)
+          get :index, origin_onestop_id: @origin.onestop_id, origin_departure_between: 'now-600,now+600'
+          expect_json_sizes(schedule_stop_pairs: 1)
+        end
+      end
     end
 
     context 'service_from_date' do

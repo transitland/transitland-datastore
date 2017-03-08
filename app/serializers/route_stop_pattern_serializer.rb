@@ -8,7 +8,6 @@
 #  tags                               :hstore
 #  stop_pattern                       :string           default([]), is an Array
 #  version                            :integer
-#  is_generated                       :boolean          default(FALSE)
 #  trips                              :string           default([]), is an Array
 #  identifiers                        :string           default([]), is an Array
 #  created_at                         :datetime         not null
@@ -17,6 +16,7 @@
 #  route_id                           :integer
 #  stop_distances                     :float            default([]), is an Array
 #  edited_attributes                  :string           default([]), is an Array
+#  geometry_source                    :string
 #
 # Indexes
 #
@@ -34,12 +34,13 @@ class RouteStopPatternSerializer < CurrentEntitySerializer
              :stop_pattern,
              :stop_distances,
              :geometry,
+             :geometry_source,
              :color,
-             :is_generated,
              :created_at,
              :updated_at,
              :trips,
              :tags
+
    def route_onestop_id
      object.route.onestop_id
    end

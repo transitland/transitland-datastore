@@ -393,4 +393,55 @@ describe GTFSGraph do
       expect(GTFSGraph.to_trips_accessible(trips([0,1,2]), :wheelchair_accessible)).to eq(:some_trips)
     end
   end
+
+  context 'shape_dist_traveled' do
+
+    context 'with nj path feed having shape_dist_traveled populated' do
+      before(:all) {
+        @feed, @feed_version = load_feed(feed_version_name: :feed_version_nj_path, import_level: 1)
+      }
+      after(:all) {
+        DatabaseCleaner.clean_with :truncation, { except: ['spatial_ref_sys'] }
+      }
+
+      it 'utilizes shape_dist_traveled when available' do
+        rsp = @feed.imported_route_stop_patterns.first
+        # here we take advantage of the fact that there can be slight, allowable discrepancies between shape_dist_traveled and our algorithm.
+        # It's possible the shape_dist_traveled given for the stop doesn't match the distance computed for the closest point
+        # just want to make sure we're using the shape_dist_traveled ultimately
+        expect(RouteStopPattern.find_by_onestop_id!(rsp.onestop_id).stop_distances).not_to match_array(rsp.calculate_distances)
+      end
+    end
+
+    context 'with nycdotsiferry and no shape_dist_traveled populated' do
+      before(:all) {
+        @feed, @feed_version = load_feed(feed_version_name: :feed_version_nycdotsiferry, import_level: 1)
+      }
+      after(:all) {
+        DatabaseCleaner.clean_with :truncation, { except: ['spatial_ref_sys'] }
+      }
+
+      it 'recomputes distances of rsps with distance calculation issues' do
+        # create a distance calc issue
+        rsp = @feed.imported_route_stop_patterns.first
+        rsp.update_column(:stop_distances, [100.0, 0.0])
+        issue = Issue.create!(issue_type: 'distance_calculation_inaccurate', details: 'distance issue')
+        issue.entities_with_issues.create!(entity: rsp, entity_attribute: 'geometry')
+        issue.entities_with_issues.create!(entity: Stop.find_by_onestop_id!(rsp.stop_pattern[0]), entity_attribute: 'geometry')
+        issue.entities_with_issues.create!(entity: Stop.find_by_onestop_id!(rsp.stop_pattern[1]), entity_attribute: 'geometry')
+        # try the import again
+        graph = GTFSGraph.new(@feed, @feed_version)
+        graph.create_change_osr
+        expect(RouteStopPattern.find_by_onestop_id!(rsp.onestop_id).stop_distances).to match_array([0.0, 8138.0])
+      end
+
+      it 'recomputes distances when rsp stop distances are nil' do
+        rsp = @feed.imported_route_stop_patterns.first
+        rsp.update_column(:stop_distances, Array.new(rsp.stop_distances.size))
+        graph = GTFSGraph.new(@feed, @feed_version)
+        graph.create_change_osr
+        expect(RouteStopPattern.find_by_onestop_id!(rsp.onestop_id).stop_distances).to match_array([0.0, 8138.0])
+      end
+    end
+  end
 end

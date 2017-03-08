@@ -183,13 +183,19 @@ class GTFSGraph
   end
 
   def calculate_rsp_distances(rsps)
+    # TODO: move this into UpdateComputedAttributes Service
     graph_log "Calculating distances"
     rsps.each do |rsp|
       stops = rsp.stop_pattern.map { |onestop_id| find_by_onestop_id(onestop_id) }
       begin
-        if rsp.is_generated
+        # edited rsps will probably have a shape
+        if (rsp.geometry_source.eql?(:shapes_txt_with_dist_traveled))
+          # do nothing
+        elsif (rsp.geometry_source.eql?(:trip_stop_points) && rsp.edited_attributes.empty?)
           rsp.fallback_distances(stops=stops)
-        else
+        elsif (rsp.stop_distances.compact.empty? || rsp.issues.map(&:issue_type).include?(:distance_calculation_inaccurate))
+          # avoid writing over stop distances computed with shape_dist_traveled, or already computed somehow -
+          # unless if rsps have inaccurate stop distances, we'll allow a recomputation if there's a fix in place.
           rsp.calculate_distances(stops=stops)
         end
       rescue StandardError
@@ -533,9 +539,8 @@ class GTFSGraph
     @gtfs.trip_stop_times(trips=nil, filter_empty=true) do |trip,stop_times|
       tl_stops = stop_times.map { |stop_time| find_by_gtfs_entity(@gtfs.stop(stop_time.stop_id)) }
       stop_pattern = tl_stops.map(&:onestop_id)
-      stop_times_with_shape_dist_traveled += stop_times.count { |st| !st.shape_dist_traveled.to_s.empty? }
-      stop_times_count += stop_times.length
-      feed_shape_points = @gtfs.shape_line(trip.shape_id) || []
+      shape_line = @gtfs.shape_line(trip.shape_id)
+      feed_shape_points = shape_line || []
       tl_route = find_by_gtfs_entity(@gtfs.parents(trip).first)
       next if tl_route.nil?
       trip_stop_points = tl_stops.map { |s| s.geometry[:coordinates] }
@@ -546,6 +551,13 @@ class GTFSGraph
       if test_rsp.equal?(rsp)
         graph_log "   #{rsp.onestop_id}"
       end
+      shape_distances_traveled = shape_line.try(:shape_dist_traveled)
+      # assume stop_times' and shapes' shape_dist_traveled are in the same units (a condition required by GTFS). TODO: validate that.
+      if shape_distances_traveled
+        if stop_times.all?{ |st| st.shape_dist_traveled.present? } && shape_distances_traveled.all?(&:present?)
+          rsp.gtfs_shape_dist_traveled(stop_times, tl_stops, shape_distances_traveled)
+        end
+      end
       rsp.traversed_by = tl_route.onestop_id
       rsp.route = tl_route
       add_identifier(rsp, nil, trip.shape_id)
@@ -553,7 +565,6 @@ class GTFSGraph
       rsp.trips << trip.trip_id unless rsp.trips.include?(trip.trip_id)
       rsps << rsp
     end
-    graph_log "#{stop_times_with_shape_dist_traveled} stop times with shape_dist_traveled found out of #{stop_times_count} total stop times for feed #{@feed.onestop_id}" if stop_times_with_shape_dist_traveled > 0
     rsps
   end
 
