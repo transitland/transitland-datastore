@@ -4,8 +4,6 @@ class FeedValidationService
   FEEDVALIDATOR_PATH = './virtualenv/bin/feedvalidator.py'
 
   def self.run_google_feedvalidator(filename)
-    # Validate
-    return unless Figaro.env.run_google_feedvalidator.presence == 'true'
     # Create a tempfile to use the filename.
     outfile = nil
     Tempfile.open(['feedvalidator', '.html']) do |tmpfile|
@@ -29,14 +27,21 @@ class FeedValidationService
   end
 
   def self.run_validators(feed_version)
-    # Validate the new data
+    # Copy file
     gtfs_filename = feed_version.file.local_path_copying_locally_if_needed
+    fail Exception.new('FeedVersion has no file attachment') unless gtfs_filename
+
+    # Run validators
     file_feedvalidator = run_google_feedvalidator(gtfs_filename)
+
+    # Cleanup
     feed_version.file.remove_any_local_cached_copies
+
     # Save
     feed_version.update!(
       file_feedvalidator: file_feedvalidator,
     )
+
     # Return
     feed_version
   end
