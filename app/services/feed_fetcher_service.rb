@@ -119,7 +119,9 @@ class FeedFetcherService
       data = data.merge!(read_gtfs_info(gtfs))
       feed_version.update!(data)
       # Enqueue validators
-      FeedValidationWorker.perform_async(feed_version.sha1)
+      if Figaro.env.run_google_feedvalidator.presence == 'true'
+        FeedValidationWorker.perform_async(feed_version.sha1)
+      end
     end
     # Return the found or created feed_version
     feed_version
