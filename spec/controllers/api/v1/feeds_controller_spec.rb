@@ -105,6 +105,25 @@ describe Api::V1::FeedsController do
           expect(feeds.first[:issues]).to be_nil
         }})
       end
+
+      it 'query: by one source URL' do
+        feeds = create_list(:feed, 3)
+        feed_to_find = feeds.second
+        get :index, url: feed_to_find.url
+        expect_json({feeds: -> (feeds) {
+          expect(feeds.size).to eq 1
+          expect(feeds.first[:onestop_id]).to eq feed_to_find.onestop_id
+        }})
+      end
+
+      it 'query: by two source URLs' do
+        feeds = create_list(:feed, 3)
+        feeds_to_find = [feeds.second, feeds.third]
+        get :index, url: [feeds_to_find.first.url, feeds_to_find.second.url]
+        expect_json({feeds: -> (feeds) {
+          expect(feeds.size).to eq 2
+        }})
+      end
     end
 
     context 'as GeoJSON' do
