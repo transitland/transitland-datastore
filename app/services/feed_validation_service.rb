@@ -28,6 +28,7 @@ class FeedValidationService
   end
 
   def self.run_conveyal_validator(filename)
+    outfile = nil
     Tempfile.open(['feedvalidator', '.json']) do |tmpfile|
       outfile = tmpfile.path
     end
