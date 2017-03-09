@@ -1,5 +1,6 @@
 describe FeedValidationWorker do
   before(:each) {
+    allow(Figaro.env).to receive(:run_google_validator) { 'true' }
     allow(FeedValidationService).to receive(:run_google_validator) { Tempfile.new(['test','.html']) }
   }
 
