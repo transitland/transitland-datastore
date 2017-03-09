@@ -1,9 +1,9 @@
 class FeedValidationService
   include Singleton
 
-  FEEDVALIDATOR_PATH = './virtualenv/bin/feedvalidator.py'
+  GOOGLE_FEEDVALIDATOR_PATH = './virtualenv/bin/feedvalidator.py'
 
-  def self.run_google_feedvalidator(filename)
+  def self.run_google_validator(filename)
     # Create a tempfile to use the filename.
     outfile = nil
     Tempfile.open(['feedvalidator', '.html']) do |tmpfile|
@@ -12,7 +12,7 @@ class FeedValidationService
 
     # Run feedvalidator
     feedvalidator_output = nil
-    IO.popen([FEEDVALIDATOR_PATH, '-n', '-o', outfile, filename], "w+") do |io|
+    IO.popen([GOOGLE_FEEDVALIDATOR_PATH, '-n', '-o', outfile, filename], "w+") do |io|
       io.write("\n")
       io.close_write
       feedvalidator_output = io.read
@@ -32,7 +32,9 @@ class FeedValidationService
     fail Exception.new('FeedVersion has no file attachment') unless gtfs_filename
 
     # Run validators
-    file_feedvalidator = run_google_feedvalidator(gtfs_filename)
+    if Figaro.env.run_google_validator.presence == 'true'
+      file_google_feedvalidator = run_google_validator(gtfs_filename)
+    end
 
     # Cleanup
     feed_version.file.remove_any_local_cached_copies

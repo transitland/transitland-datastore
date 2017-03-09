@@ -1,6 +1,6 @@
 describe FeedValidationWorker do
   before(:each) {
-    allow(FeedValidationService).to receive(:run_google_feedvalidator) { Tempfile.new(['test','.html']) }
+    allow(FeedValidationService).to receive(:run_google_validator) { Tempfile.new(['test','.html']) }
   }
 
   context 'runs FeedValidationService' do

@@ -109,7 +109,7 @@ describe FeedFetcherService do
     end
 
     it 'creates FeedValidationWorker job' do
-      allow(Figaro.env).to receive(:run_google_feedvalidator) { 'true' }
+      allow(Figaro.env).to receive(:run_google_validator) { 'true' }
       feed = create(:feed_caltrain)
       Sidekiq::Testing.fake! do
         expect {
