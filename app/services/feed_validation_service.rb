@@ -1,8 +1,8 @@
 class FeedValidationService
   include Singleton
 
-  GOOGLE_FEEDVALIDATOR_PATH = './virtualenv/bin/feedvalidator.py'
-  CONVEYAL_VALIDATOR_JSON_PATH = './gtfs-validator-json.jar'
+  GOOGLE_VALIDATOR_PATH = './virtualenv/bin/feedvalidator.py'
+  CONVEYAL_VALIDATOR_PATH = './gtfs-validator-json.jar'
 
   def self.run_google_validator(filename)
     # Create a tempfile to use the filename.
@@ -13,7 +13,7 @@ class FeedValidationService
 
     # Run feedvalidator
     feedvalidator_output = nil
-    IO.popen([GOOGLE_FEEDVALIDATOR_PATH, '-n', '-o', outfile, filename], "w+") do |io|
+    IO.popen([GOOGLE_VALIDATOR_PATH, '-n', '-o', outfile, filename], "w+") do |io|
       io.write("\n")
       io.close_write
       feedvalidator_output = io.read
@@ -34,7 +34,7 @@ class FeedValidationService
 
     # Run feedvalidator
     output = nil
-    IO.popen(['java', '-Xmx6G', '-jar', CONVEYAL_VALIDATOR_JSON_PATH, filename, outfile], "w+") do |io|
+    IO.popen(['java', '-Xmx6G', '-jar', CONVEYAL_VALIDATOR_PATH, filename, outfile], "w+") do |io|
       io.write("\n")
       io.close_write
       output = io.read
@@ -54,20 +54,21 @@ class FeedValidationService
 
     # Run validators
     if Figaro.env.run_google_validator.presence == 'true'
-      file_google_feedvalidator = run_google_validator(gtfs_filename)
+      file_google = run_google_validator(gtfs_filename)
     end
     if Figaro.env.run_conveyal_validator.presence == 'true'
-      file_conveyal_feedvalidator = run_conveyal_validator(gtfs_filename)
+      file_conveyal = run_conveyal_validator(gtfs_filename)
     end
 
     # Cleanup
     feed_version.file.remove_any_local_cached_copies
 
     # Save
-    feed_version.update!(
-      file_feedvalidator: file_feedvalidator,
-    )
-
+    data = {
+      file_feedvalidator: file_google
+      # file_conveyal: file_conveyal
+    }.compact
+    feed_version.update!(data)
     # Return
     feed_version
   end
