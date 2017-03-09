@@ -12,7 +12,6 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
     @operators = Operator.where('')
     @operators = AllowFiltering.by_onestop_id(@operators, params)
     @operators = AllowFiltering.by_tag_keys_and_values(@operators, params)
-    @operators = AllowFiltering.by_identifer_and_identifier_starts_with(@operators, params)
     @operators = AllowFiltering.by_updated_since(@operators, params)
 
     # Imported From Feed
@@ -100,8 +99,6 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
 
   def query_params
     params.slice(
-      :identifier,
-      :identifier_starts_with,
       :lat,
       :lon,
       :r,

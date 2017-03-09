@@ -15,8 +15,6 @@ if LogStasher.enabled?
       :feed_onestop_id,
       :feed_version_id,
       :feed_version_sha1,
-      :identifier,
-      :identifier_starts_with,
       :import_level,
       :lat,
       :lon,

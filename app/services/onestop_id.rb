@@ -6,7 +6,6 @@ module OnestopId
   GEOHASH_FILTER = /[^0123456789bcdefghjkmnpqrstuvwxyz]/
   NAME_TILDE = /[\-\:\&\@\/]/
   NAME_FILTER = /[^[:alnum:]\~\>\<]/
-  IDENTIFIER_TEMPLATE = Addressable::Template.new("gtfs://{feed_onestop_id}/{entity_prefix}/{entity_id}")
 
   class OnestopIdException < StandardError
   end
@@ -216,14 +215,6 @@ module OnestopId
 
   def self.handler_by_model(model)
     LOOKUP_MODEL[model]
-  end
-
-  def self.create_identifier(feed_onestop_id, entity_prefix, entity_id)
-    IDENTIFIER_TEMPLATE.expand(
-      feed_onestop_id: feed_onestop_id,
-      entity_prefix: entity_prefix,
-      entity_id: entity_id
-    ).to_s
   end
 
   def self.validate_onestop_id_string(onestop_id, expected_entity_type: nil)

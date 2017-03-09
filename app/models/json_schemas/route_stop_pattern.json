@@ -37,13 +37,6 @@
         "$ref": "./imported_from_feed.json"
       }
     },
-    "identifiedBy": {
-      "type": "array",
-      "uniqueItems": true,
-      "items": {
-        "type": "string"
-      }
-    },
     "onestopId": {"type": "string"},
     "newOnestopId": {"type": "string"},
     "onestopIdsToMerge": {

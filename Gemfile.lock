@@ -439,6 +439,7 @@ DEPENDENCIES
   squeel
   text
   timecop
+  tzinfo
   unicorn
   vcr
   webmock

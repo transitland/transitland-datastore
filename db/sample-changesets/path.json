@@ -13,7 +13,9 @@
             "onestopId": "o-dr5r-path",
             "name": "Port Authority Trans-Hudson",
             "shortName": "PATH",
-            "identifiedBy": ["usntd://2075"],
+            "tags": {
+              "us_ntd_id": "2075"
+            },
             "country": "US",
             "state": "US-NY",
             "metro": "New York City",

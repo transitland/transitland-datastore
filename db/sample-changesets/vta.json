@@ -13,7 +13,9 @@
             "onestopId": "o-9q9-vta",
             "name": "Santa Clara Valley Transportation Authority",
             "shortName": "VTA",
-            "identifiedBy": ["usntd://9013"],
+            "tags": {
+              "us_ntd_id": "9013"
+            },
             "country": "US",
             "state": "US-CA",
             "metro": "San Francisco Bay Area",
