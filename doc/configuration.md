@@ -10,7 +10,6 @@ Environment variables take precendence over values in the YML file.
 key | possible values | default | description
 --- | --------------- | ------- | -----------
 `RUN_GOOGLE_VALIDATOR` | `true`, `false` | `true` | By default, FeedEaterWorker will validate feeds using the [Google transitfeed Python library](https://github.com/google/transitfeed). Set to `false` in order to skip this step.
-`RUN_CONVEYAL_VALIDATOR` | `true`, `false` | `true` | Run Conveyal GTFS Validator.
 `ATTACHMENTS_S3_REGION` | [any AWS S3 region](http://docs.aws.amazon.com/general/latest/gr/rande.html#s3_region) | `us-east-1` | used for uploading FeedEater artifacts
 `ATTACHMENTS_S3_BUCKET` | name of an AWS S3 bucket | none | used for uploading FeedEater artifacts
 `MAX_HOURS_SINCE_LAST_CONFLATE` | Any real number >= 0 | 84 hours | Stops that were last conflated before this number of hours before the re-conflation check time will be re-conflated.
