@@ -1,7 +1,8 @@
 describe FeedValidationService do
   context 'validators' do
     before(:each) {
-      allow(FeedValidationService).to receive(:run_google_feedvalidator) { Tempfile.new(['test','.html']) }
+      allow(Figaro.env).to receive(:run_google_validator) { 'true' }
+      allow(FeedValidationService).to receive(:run_google_validator) { Tempfile.new(['test','.html']) }
     }
 
     it '.run_validators' do
