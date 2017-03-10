@@ -33,7 +33,7 @@
 
 FactoryGirl.define do
   factory :feed do
-    url 'http://www.ridemetro.org/News/Downloads/DataFiles/google_transit.zip'
+    sequence (:url) { |n| "http://www.ridemetro.org/News/Downloads/DataFiles/google_transit#{n}.zip" }
     onestop_id { Faker::OnestopId.feed }
     geometry { {
         "type": "Polygon",
