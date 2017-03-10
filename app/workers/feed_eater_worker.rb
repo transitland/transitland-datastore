@@ -48,7 +48,14 @@ class FeedEaterWorker
       log exception_log, :error
       log "FeedEaterWorker #{feed_onestop_id}: Saving failed feed import"
       feed_version_import.failed(exception_log: exception_log)
-      Raven.capture_exception(e) if defined?(Raven)
+      if defined?(Raven)
+        Raven.capture_exception(e, {
+          tags: {
+            'feed_onestop_id' => feed_onestop_id,
+            'feed_version_sha1' => feed_version.try(:sha1)
+          }
+        })
+      end
     else
       # Enqueue FeedEaterScheduleWorker jobs, or save successful import.
       if import_level < 2
