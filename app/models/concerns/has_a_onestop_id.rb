@@ -52,6 +52,10 @@ module HasAOnestopId
     end
   end
 
+  def generate_onestop_id
+    OnestopId.handler_by_model(self.class).new(name: (self.try(:name) || "test"), geohash: "9q9").to_s
+  end
+
   private
 
   def validate_onestop_id
