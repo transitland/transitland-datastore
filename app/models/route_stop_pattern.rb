@@ -294,6 +294,12 @@ class RouteStopPattern < BaseRouteStopPattern
     end
   end
 
+  def generate_onestop_id
+    return 'r-9q9-asd-12345-abcdef'
+    # OnestopId.handler_by_model(self.class).new(name: (self.try(:name) || "test"), geohash: "9q9").to_s
+  end
+
+
   ##### FromGTFS ####
   def self.create_from_gtfs(trip, route_onestop_id, stop_pattern, trip_stop_points, shape_points)
     # both trip_stop_points and stop_pattern correspond to stop_times.
