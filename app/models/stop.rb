@@ -233,6 +233,11 @@ class Stop < BaseStop
     where('last_conflated_at <= ?', last_conflated_at)
   }
 
+  def coordinates
+    g = geometry(as: :wkt)
+    [g.lat, g.lon]
+  end
+
   # Similarity search
   def self.find_by_similarity(point, name, radius=100, threshold=0.75)
     # Similarity search. Returns a score,stop tuple or nil.
