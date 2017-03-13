@@ -30,6 +30,7 @@ class BaseRouteStopPattern < ActiveRecord::Base
   self.abstract_class = true
 
   attr_accessor :traversed_by
+  attr_accessor :serves
 end
 
 class RouteStopPattern < BaseRouteStopPattern
@@ -295,7 +296,7 @@ class RouteStopPattern < BaseRouteStopPattern
   end
 
   def generate_onestop_id
-    return 'r-9q9-asd-12345-abcdef'
+    return 'r-9q9-asd-123456-abcdef'
     # OnestopId.handler_by_model(self.class).new(name: (self.try(:name) || "test"), geohash: "9q9").to_s
   end
 
