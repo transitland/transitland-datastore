@@ -35,17 +35,37 @@ end
 class FeedStatisticsService
   include Singleton
 
-  def self.generate_statistics(feed_version)
-    # Copy file
-    gtfs_filename = feed_version.file.local_path_copying_locally_if_needed
-    fail Exception.new('FeedVersion has no file attachment') unless gtfs_filename
+  def self.stats_for_model_collection(gtfs, model_cls)
+    columns = nil
+    model_stats = []
+    gtfs.send("each_#{model_cls}") do |entity|
+      if columns.nil?
+        columns = entity.instance_variables - [:@feed]
+        model_stats = columns.map { |i| ColumnStatistics.new(i) }
+      end
+      model_stats.each do |model_stat|
+        model_stat.add(entity)
+      end
+    end
+    model_stats
+  end
 
+  def self.generate_statistics(gtfs)
+    stats = {}
+    GTFS::Source::SOURCE_FILES.each do |model_filename, model_cls|
+      next unless gtfs.file_present?(model_filename)
+      model_filename = model_cls.filename
+      model_cls_name = model_cls.singular_name
+      model_stats = stats_for_model_collection(gtfs, model_cls_name)
+      stats[model_filename] = Hash[model_stats.map { |i| [i.name, i.output] }]
+    end
+    stats["filenames"] = Dir.entries(gtfs.path) - ['.','..']
+    stats
+  end
+
+  def self.run_statistics(feed_version)
     # Generate statistics
-
-    # Cleanup
-    feed_version.file.remove_any_local_cached_copies
-
-    # Return
-    feed_version
+    gtfs = feed_version.open_gtfs
+    generate_statistics(gtfs)
   end
 end
