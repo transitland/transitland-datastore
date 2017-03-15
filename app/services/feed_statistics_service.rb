@@ -22,7 +22,7 @@ class ColumnStatistics
     self.add_value(entity.instance_variable_get(self.instance_variable))
   end
 
-  def as_json
+  def as_json(options={})
     sorted_values = self.unique.sort
     {
       total: self.total,
