@@ -21,11 +21,13 @@
 #  sha1_raw               :string
 #  md5_raw                :string
 #  file_feedvalidator     :string
+#  feed_version_info_id   :integer
 #
 # Indexes
 #
 #  index_feed_versions_on_earliest_calendar_date  (earliest_calendar_date)
 #  index_feed_versions_on_feed_type_and_feed_id   (feed_type,feed_id)
+#  index_feed_versions_on_feed_version_info_id    (feed_version_info_id)
 #  index_feed_versions_on_latest_calendar_date    (latest_calendar_date)
 #
 
