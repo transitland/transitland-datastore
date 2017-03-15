@@ -21,7 +21,7 @@ class ColumnStatistics
     self.add_value(entity.instance_variable_get(self.instance_variable))
   end
 
-  def output
+  def as_json
     sorted_values = self.unique.sort
     {
       total: self.total,
