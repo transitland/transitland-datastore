@@ -6,6 +6,6 @@ class FeedStatisticsWorker
 
   def perform(feed_version_sha1)
     feed_version = FeedVersion.find_by!(sha1: feed_version_sha1)
-    FeedStatisticsService.run_statistics(feed_version)
+    FeedStatisticsService.create_feed_version_info(feed_version)
   end
 end

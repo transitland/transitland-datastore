@@ -136,7 +136,7 @@ class FeedStatisticsService
     stats
   end
 
-  def self.run_statistics(feed_version)
+  def self.create_feed_version_info(feed_version)
     # Generate statistics
     gtfs = feed_version.open_gtfs
     generate_statistics(gtfs)
