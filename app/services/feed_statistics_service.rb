@@ -86,6 +86,36 @@ class FeedStatisticsService
     model_stats
   end
 
+  def self.stats_for_service_hours(gtfs, arrival_time_stats)
+    # Get service periods and start/end dates
+    gtfs.load_service_periods
+    service_start, service_end = gtfs.service_period_range
+    service_periods = gtfs.instance_variable_get('@service_periods').values # ugly
+    # Calculate trip durations
+    trip_durations = arrival_time_stats.trip_durations
+    # Group trips by service_id
+    trip_service_ids = {}
+    gtfs.each_trip do |trip|
+      trip_service_ids[trip.service_id] ||= []
+      trip_service_ids[trip.service_id] << trip.id
+    end
+    # Calculate service time for each day
+    results = {}
+    now = service_start
+    until now >= service_end
+      sps = service_periods.select { |i| i.service_on_date?(now) }
+      sps_trips = sps.map { |i| trip_service_ids[i.id] }.flatten
+      sps_trip_times = sps_trips.map { |i| trip_durations[i] }
+      sps_service_time = sps_trip_times.flatten.sum
+      puts "DATE: #{now} SERVICE PERIODS: #{sps.map(&:id)} TRIPS: #{sps_trips.size} TRIP TIMES: #{sps_trip_times.size} SERVICE TIME: #{sps_service_time}"
+      key = now.strftime('%Y-%m-%d')
+      results[key] ||= 0
+      results[key] += sps_service_time
+      now += 1.day
+    end
+    results
+  end
+
   def self.generate_statistics(gtfs)
     stats = {}
     GTFS::Source::SOURCE_FILES.each do |model_filename, model_cls|
@@ -95,7 +125,14 @@ class FeedStatisticsService
       model_stats = stats_for_model_collection(gtfs, model_cls)
       stats[model_filename] = Hash[model_stats.map { |i| [i.name, i] }]
     end
+
+    # Filenames
     stats["filenames"] = Dir.entries(gtfs.path) - ['.','..']
+
+    # Service hours -- use already parsed trip durations
+    stats["service_hours"] = self.stats_for_service_hours(gtfs, stats['stop_times.txt'][:arrival_time])
+
+    # Return
     stats
   end
 
