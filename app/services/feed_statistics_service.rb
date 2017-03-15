@@ -15,6 +15,7 @@ class ColumnStatistics
     return if value.nil?
     self.total += 1
     self.unique << value
+    value
   end
 
   def add(entity)
@@ -29,6 +30,31 @@ class ColumnStatistics
       min: sorted_values.first,
       max: sorted_values.last
     }
+  end
+end
+
+class StopTimeArrivalTimeStatistics < ColumnStatistics
+  attr_accessor :trip_times
+
+  def initialize(name)
+    super
+    self.trip_times = {}
+  end
+
+  def add(entity)
+    value = super
+    return if value.nil?
+    self.trip_times[entity.trip_id] ||= Set.new
+    self.trip_times[entity.trip_id] << value.to_sym
+  end
+
+  def trip_durations
+    trip_durations = {}
+    self.trip_times.each do |trip,times|
+      times = times.map { |t| GTFS::WideTime.parse(t.to_s).to_seconds }.sort
+      trip_durations[trip] = times.last - times.first
+    end
+    trip_durations
   end
 end
 
