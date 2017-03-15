@@ -107,7 +107,7 @@ class FeedStatisticsService
       sps_trips = sps.map { |i| trip_service_ids[i.id] }.flatten
       sps_trip_times = sps_trips.map { |i| trip_durations[i] }
       sps_service_time = sps_trip_times.flatten.sum
-      puts "DATE: #{now} SERVICE PERIODS: #{sps.map(&:id)} TRIPS: #{sps_trips.size} TRIP TIMES: #{sps_trip_times.size} SERVICE TIME: #{sps_service_time}"
+      # puts "DATE: #{now} SERVICE PERIODS: #{sps.map(&:id)} TRIPS: #{sps_trips.size} TRIP TIMES: #{sps_trip_times.size} SERVICE TIME: #{sps_service_time}"
       key = now.strftime('%Y-%m-%d')
       results[key] ||= 0
       results[key] += sps_service_time
@@ -117,23 +117,27 @@ class FeedStatisticsService
   end
 
   def self.generate_statistics(gtfs)
-    stats = {}
+    statistics = {}
     GTFS::Source::SOURCE_FILES.each do |model_filename, model_cls|
       next unless gtfs.file_present?(model_filename)
       model_filename = model_cls.filename
       model_cls_name = model_cls.singular_name
       model_stats = stats_for_model_collection(gtfs, model_cls)
-      stats[model_filename] = Hash[model_stats.map { |i| [i.name, i] }]
+      statistics[model_filename] = Hash[model_stats.map { |i| [i.name, i] }]
     end
 
     # Filenames
-    stats["filenames"] = Dir.entries(gtfs.path) - ['.','..']
+    filenames = Dir.entries(gtfs.path) - ['.','..']
 
     # Service hours -- use already parsed trip durations
-    stats["service_hours"] = self.stats_for_service_hours(gtfs, stats['stop_times.txt'][:arrival_time])
+    scheduled_service = self.stats_for_service_hours(gtfs, statistics['stop_times.txt'][:arrival_time])
 
     # Return
-    stats
+    {
+      statistics: statistics,
+      filenames: filenames,
+      scheduled_service: scheduled_service
+    }
   end
 
   def self.create_feed_version_info(feed_version)
