@@ -83,16 +83,17 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
     end
 
     @feed_versions = @feed_versions.includes(:issues) if AllowFiltering.to_boolean(params[:embed_issues])
+    @feed_versions = @feed_versions.includes(:feed_version_info) if AllowFiltering.to_boolean(params[:embed_feed_version_info])
 
     respond_to do |format|
-      format.json { render paginated_json_collection(@feed_versions).merge({ scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }) }
+      format.json { render paginated_json_collection(@feed_versions).merge({ scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]), embed_feed_version_info: AllowFiltering.to_boolean(params[:embed_feed_version_info]) } }) }
       format.csv { return_downloadable_csv(@feed_versions, 'feed_versions') }
     end
   end
 
   def show
     respond_to do |format|
-      format.json { render json: @feed_version, scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }
+      format.json { render json: @feed_version, scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]), embed_feed_version_info: AllowFiltering.to_boolean(params[:embed_feed_version_info]) } }
     end
 
   end
