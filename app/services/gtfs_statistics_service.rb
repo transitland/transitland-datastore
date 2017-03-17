@@ -58,7 +58,7 @@ class StopTimeArrivalTimeStatistics < ColumnStatistics
   end
 end
 
-class FeedStatisticsService
+class GTFSStatisticsService
   include Singleton
 
   def self.stats_for_filename_column(model_cls, column)
