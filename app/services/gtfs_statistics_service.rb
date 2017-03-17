@@ -93,6 +93,17 @@ class GTFSStatisticsService
     service_periods = gtfs.instance_variable_get('@service_periods').values # ugly
     # Calculate trip durations
     trip_durations = arrival_time_stats.trip_durations
+    # Frequency
+    frequency_multiplier = {}
+    if gtfs.file_present?('frequencies.txt')
+      gtfs.each_frequency do |f|
+        t1 = GTFS::WideTime.parse(f.start_time).to_seconds
+        t2 = GTFS::WideTime.parse(f.end_time).to_seconds
+        h = f.headway_secs.to_i
+        frequency_multiplier[f.trip_id] ||= 0
+        frequency_multiplier[f.trip_id] += (t2-t1)/h
+      end
+    end
     # Group trips by service_id
     trip_service_ids = {}
     gtfs.each_trip do |trip|
@@ -105,7 +116,7 @@ class GTFSStatisticsService
     until now >= service_end
       sps = service_periods.select { |i| i.service_on_date?(now) }
       sps_trips = sps.map { |i| trip_service_ids[i.id] }.flatten
-      sps_trip_times = sps_trips.map { |i| trip_durations[i] }
+      sps_trip_times = sps_trips.map { |i| trip_durations[i] * frequency_multiplier.fetch(i, 1) }
       sps_service_time = sps_trip_times.flatten.sum
       # puts "DATE: #{now} SERVICE PERIODS: #{sps.map(&:id)} TRIPS: #{sps_trips.size} TRIP TIMES: #{sps_trip_times.size} SERVICE TIME: #{sps_service_time}"
       key = now.strftime('%Y-%m-%d')
