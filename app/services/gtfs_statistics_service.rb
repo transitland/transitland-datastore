@@ -146,5 +146,6 @@ class GTFSStatisticsService
     s = generate_statistics(gtfs)
     fvi = FeedVersionInfo.create!(s)
     feed_version.update!(feed_version_info: fvi)
+    fvi
   end
 end
