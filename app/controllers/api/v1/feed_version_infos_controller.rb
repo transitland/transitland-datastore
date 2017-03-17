@@ -11,21 +11,18 @@ class Api::V1::FeedVersionInfosController < Api::V1::BaseApiController
   before_action :set_feed_version_info, only: [:show, :update]
 
   def index
-    @feed_version_infos = FeedVersionInfo.where('').includes{[
-      feed,
-      feed_version
-    ]}
+    @feed_version_infos = FeedVersionInfo.where('')
     @feed_version_infos = AllowFiltering.by_primary_key_ids(@feed_version_infos, params)
-
-    if params[:feed_onestop_id].present?
-      feed_onestop_ids = params[:feed_onestop_id].split(',')
-      # @feed_version_infos = @feed_version_infos.where(feed: Feed.where(onestop_id: feed_onestop_ids))
-    end
 
     if params[:feed_version_sha1].present?
       feed_version_sha1s = params[:feed_version_sha1].split(',')
-      # @feed_version_infos = @feed_version_infos.where(feed_version: FeedVersion.where(sha1: feed_version_sha1s))
+      @feed_version_infos = @feed_version_infos.joins(:feed_version).where(feed_version: {sha1: feed_version_sha1s})
     end
+
+    @feed_version_infos = @feed_version_infos.includes{[
+      # feed,
+      feed_version
+    ]}
 
     respond_to do |format|
       format.json { render paginated_json_collection(@feed_version_infos) }

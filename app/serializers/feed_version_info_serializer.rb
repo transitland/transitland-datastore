@@ -15,7 +15,7 @@ class FeedVersionInfoSerializer < ApplicationSerializer
              :statistics,
              :scheduled_service,
              :filenames,
-             :feed_onestop_id,
+             # :feed_onestop_id,
              :feed_version_sha1,
              :created_at,
              :updated_at
