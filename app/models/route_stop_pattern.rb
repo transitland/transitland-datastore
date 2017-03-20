@@ -176,15 +176,28 @@ class RouteStopPattern < BaseRouteStopPattern
     stop_times.each_with_index do |st, i|
       stop_onestop_id = self.stop_pattern[i]
       # Find segment along shape points where stop shape_dist_traveled is between the two shape points' shape_dist_traveled
-      dist1, dist2 = shape_distances_traveled.zip(shape_distances_traveled[1..-1]).detect do |d1, d2|
+      dist1, dist2 = shape_distances_traveled.each_cons(2).detect do |d1, d2|
         st.shape_dist_traveled.to_f >= d1 && st.shape_dist_traveled.to_f <= d2
       end
-      seg_index = shape_distances_traveled.index(dist1) # distances should always be increasing
-      cartesian_line = cartesian_cast(self[:geometry])
-      stop = tl_stops[i]
-      nearest_point_on_line = cartesian_line.closest_point_on_segment(cartesian_cast(stop[:geometry]), seg_index)
-      self.stop_distances << distance_along_line_to_nearest(cartesian_line, nearest_point_on_line, seg_index)
+
+      if dist1.nil? || dist2.nil?
+        # TODO consider warnings or issues here
+        if st.shape_dist_traveled.to_f < shape_distances_traveled[0]
+          self.stop_distances << 0.0
+        elsif st.shape_dist_traveled.to_f > shape_distances_traveled[-1]
+          self.stop_distances << self[:geometry].length
+        else
+          raise StandardError.new("Problem finding stop distance for #{stop_onestop_id} using shape_dist_traveled")
+        end
+      else
+        seg_index = shape_distances_traveled.index(dist1) # distances should always be increasing
+        cartesian_line = cartesian_cast(self[:geometry])
+        stop = tl_stops[i]
+        nearest_point_on_line = cartesian_line.closest_point_on_segment(cartesian_cast(stop[:geometry]), seg_index)
+        self.stop_distances << distance_along_line_to_nearest(cartesian_line, nearest_point_on_line, seg_index)
+      end
     end
+    binding.pry
     self.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
   end
 

@@ -203,15 +203,28 @@ describe RouteStopPattern do
       @trip = GTFS::Trip.new(trip_id: 'test', shape_id: 'test')
     end
 
-    it '#shape_dist_traveled' do
-      feed, feed_version = load_feed(feed_version_name: :feed_version_nj_path, import_level: 1)
-      gtfs = GTFS::Source.build(feed_version.file.file.file)
-      rsp = feed.imported_route_stop_patterns.first
-      tl_stops = rsp.stop_pattern.map{ |stop_onestop_id| Stop.find_by_onestop_id!(stop_onestop_id) }
-      trip = gtfs.trips.detect{|trip| trip.id == rsp.trips.first}
-      trip_stop_times = []
-      gtfs.trip_stop_times(trips=[trip]){ |trip, stop_times| trip_stop_times = stop_times }
-      expect(rsp.gtfs_shape_dist_traveled(trip_stop_times, tl_stops, gtfs.shape_line(trip.shape_id).shape_dist_traveled)).to match_array([0.0, 1166.3, 2507.7, 4313.8])
+    context '#shape_dist_traveled' do
+      it '#shape_dist_traveled' do
+        feed, feed_version = load_feed(feed_version_name: :feed_version_nj_path, import_level: 1)
+        gtfs = GTFS::Source.build(feed_version.file.file.file)
+        rsp = feed.imported_route_stop_patterns.first
+        tl_stops = rsp.stop_pattern.map{ |stop_onestop_id| Stop.find_by_onestop_id!(stop_onestop_id) }
+        trip = gtfs.trips.detect{|trip| trip.id == rsp.trips.first}
+        trip_stop_times = []
+        gtfs.trip_stop_times(trips=[trip]){ |trip, stop_times| trip_stop_times = stop_times }
+        expect(rsp.gtfs_shape_dist_traveled(trip_stop_times, tl_stops, gtfs.shape_line(trip.shape_id).shape_dist_traveled)).to match_array([0.0, 1166.3, 2507.7, 4313.8])
+        binding.pry
+      end
+
+      it 'sets stop distance to the geometry length when stop_time\'s shape_dist_traveled is greater than the last shape point' do
+        feed, feed_version = load_feed(feed_version_name: :feed_version_nj_path_last_stop_past_edge, import_level: 1)
+        gtfs = GTFS::Source.build(feed_version.file.file.file)
+      end
+
+      it 'sets stop distance to 0.0 when stop_time\'s shape_dist_traveled is less than the first shape point' do
+        # feed, feed_version = load_feed(feed_version_name: :feed_version_nj_path, import_level: 1)
+        # gtfs = GTFS::Source.build(feed_version.file.file.file)
+      end
     end
 
     it '#fallback_distances' do
