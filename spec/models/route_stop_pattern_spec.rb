@@ -223,17 +223,24 @@ describe RouteStopPattern do
         trip_stop_times = []
         gtfs.trip_stop_times(trips=[trip]){ |trip, stop_times| trip_stop_times = stop_times }
         expect(rsp.gtfs_shape_dist_traveled(trip_stop_times, tl_stops, gtfs.shape_line(trip.shape_id).shape_dist_traveled)).to match_array([0.0, 1166.3, 2507.7, 4313.8])
-        binding.pry
       end
 
       it 'sets stop distance to the geometry length when stop_time\'s shape_dist_traveled is greater than the last shape point' do
+        # the last stop time of trip 636342A5394B6507 is set to "3.0" in the GTFS, greater than "2.677" in shapes.txt
         feed, feed_version = load_feed(feed_version_name: :feed_version_nj_path_last_stop_past_edge, import_level: 1)
         gtfs = GTFS::Source.build(feed_version.file.file.file)
+        expect(RouteStopPattern.first.stop_distances).to match_array([0.0, 1166.3, 2507.7, 4313.8])
+        expect(RouteStopPattern.first[:geometry].length).to be_within(0.1).of(4313.8)
+        expect(RouteStopPattern.last.stop_distances).to match_array([0.0, 1805.2, 3145.8, 4320.6])
+        expect(RouteStopPattern.last[:geometry].length).to be_within(0.1).of(4320.6)
       end
 
       it 'sets stop distance to 0.0 when stop_time\'s shape_dist_traveled is less than the first shape point' do
-        # feed, feed_version = load_feed(feed_version_name: :feed_version_nj_path, import_level: 1)
-        # gtfs = GTFS::Source.build(feed_version.file.file.file)
+        # the first shape point of trip 636342A5394B6507 is set to "0.10" while the first stop time dist is 0.0
+        feed, feed_version = load_feed(feed_version_name: :feed_version_nj_path_first_stop_before_edge, import_level: 1)
+        gtfs = GTFS::Source.build(feed_version.file.file.file)
+        expect(RouteStopPattern.first.stop_distances).to match_array([0.0, 1166.3, 2507.7, 4313.8])
+        expect(RouteStopPattern.last.stop_distances).to match_array([0.0, 1805.2, 3145.8, 4320.6])
       end
     end
 

@@ -106,6 +106,11 @@ FactoryGirl.define do
       association :feed, factory: :feed_nj_path
     end
 
+    factory :feed_version_nj_path_first_stop_before_edge do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/path-nj-us-first-stop-before-edge.zip')) }
+      association :feed, factory: :feed_nj_path
+    end
+
     factory :feed_version_example do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example.zip')) }
       association :feed, factory: :feed_example

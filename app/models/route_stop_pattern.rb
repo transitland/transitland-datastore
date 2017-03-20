@@ -187,7 +187,7 @@ class RouteStopPattern < BaseRouteStopPattern
         elsif st.shape_dist_traveled.to_f > shape_distances_traveled[-1]
           self.stop_distances << self[:geometry].length
         else
-          raise StandardError.new("Problem finding stop distance for #{stop_onestop_id} using shape_dist_traveled")
+          raise StandardError.new("Problem finding stop distance for Stop #{stop_onestop_id}, number #{i} of RSP #{self.onestop_id} using shape_dist_traveled")
         end
       else
         seg_index = shape_distances_traveled.index(dist1) # distances should always be increasing
@@ -197,7 +197,6 @@ class RouteStopPattern < BaseRouteStopPattern
         self.stop_distances << distance_along_line_to_nearest(cartesian_line, nearest_point_on_line, seg_index)
       end
     end
-    binding.pry
     self.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
   end
 
