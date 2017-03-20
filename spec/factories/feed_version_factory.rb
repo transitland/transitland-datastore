@@ -146,6 +146,5 @@ FactoryGirl.define do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/seattle-childrens.zip')) }
       association :feed, factory: :feed_seattle_childrens
     end
-
   end
 end
