@@ -214,6 +214,12 @@ describe RouteStopPattern do
       expect(rsp.gtfs_shape_dist_traveled(trip_stop_times, tl_stops, gtfs.shape_line(trip.shape_id).shape_dist_traveled)).to match_array([0.0, 1166.3, 2507.7, 4313.8])
     end
 
+    it 'no distance issues with RSPs generated from trip stop points' do
+      feed, feed_version = load_feed(feed_version_name: :feed_version_seattle_childrens, import_level: 1)
+      expect(RouteStopPattern.find_by_onestop_id!('r-c23p1-sch~gold-10c68e-2ef1dd').stop_distances).to match_array([a_value_within(0.1).of(0.0), a_value_within(0.1).of(2070.3), a_value_within(0.1).of(4140.7)])
+      expect(Issue.where(issue_type: 'distance_calculation_inaccurate').size).to eq 0
+    end
+
     it '#fallback_distances' do
       expect(@rsp.stop_distances).to match_array([])
       @rsp.fallback_distances
