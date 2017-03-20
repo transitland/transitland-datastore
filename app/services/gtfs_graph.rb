@@ -189,9 +189,9 @@ class GTFSGraph
       stops = rsp.stop_pattern.map { |onestop_id| find_by_onestop_id(onestop_id) }
       begin
         # edited rsps will probably have a shape
-        if (rsp.geometry_source.eql?(:shapes_txt_with_dist_traveled))
+        if (rsp.geometry_source.to_sym.eql?(:shapes_txt_with_dist_traveled))
           # do nothing
-        elsif (rsp.geometry_source.eql?(:trip_stop_points) && rsp.edited_attributes.empty?)
+        elsif (rsp.geometry_source.to_sym.eql?(:trip_stop_points) && rsp.edited_attributes.empty?)
           rsp.fallback_distances(stops=stops)
         elsif (rsp.stop_distances.compact.empty? || rsp.issues.map(&:issue_type).include?(:distance_calculation_inaccurate))
           # avoid writing over stop distances computed with shape_dist_traveled, or already computed somehow -
@@ -545,7 +545,7 @@ class GTFSGraph
       next if tl_route.nil?
       trip_stop_points = tl_stops.map { |s| s.geometry[:coordinates] }
       # temporary RouteStopPattern
-      test_rsp = RouteStopPattern.create_from_gtfs(trip, tl_route.onestop_id, stop_pattern, trip_stop_points, feed_shape_points)
+      test_rsp = RouteStopPattern.create_from_gtfs(trip, tl_route.onestop_id, stop_pattern, stop_times, trip_stop_points, feed_shape_points)
       # determine if RouteStopPattern exists
       rsp = find_and_update_entity(nil, test_rsp)
       if test_rsp.equal?(rsp)
@@ -554,7 +554,7 @@ class GTFSGraph
       shape_distances_traveled = shape_line.try(:shape_dist_traveled)
       # assume stop_times' and shapes' shape_dist_traveled are in the same units (a condition required by GTFS). TODO: validate that.
       if shape_distances_traveled
-        if stop_times.all?{ |st| st.shape_dist_traveled.present? } && shape_distances_traveled.all?(&:present?)
+        if rsp.geometry_source.to_sym.eql?(:shapes_txt_with_dist_traveled)
           rsp.gtfs_shape_dist_traveled(stop_times, tl_stops, shape_distances_traveled)
         end
       end

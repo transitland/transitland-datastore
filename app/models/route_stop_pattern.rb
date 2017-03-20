@@ -308,7 +308,7 @@ class RouteStopPattern < BaseRouteStopPattern
   end
 
   ##### FromGTFS ####
-  def self.create_from_gtfs(trip, route_onestop_id, stop_pattern, trip_stop_points, shape_points)
+  def self.create_from_gtfs(trip, route_onestop_id, stop_pattern, stop_times, trip_stop_points, shape_points)
     # both trip_stop_points and stop_pattern correspond to stop_times.
     # GTFSGraph should already filter out stop_times of size 0 or 1 (using filter_empty).
     # We can still have one unique stop, but must have at least 2 stop times.
@@ -319,7 +319,7 @@ class RouteStopPattern < BaseRouteStopPattern
     )
     if shape_points.present?
       rsp.geometry = self.line_string(self.set_precision(shape_points))
-      rsp.geometry_source = shape_points.shape_dist_traveled.all? ? :shapes_txt_with_dist_traveled : :shapes_txt
+      rsp.geometry_source = (stop_times.all?{ |st| st.shape_dist_traveled.present? } && shape_points.shape_dist_traveled.all?(&:present?)) ? :shapes_txt_with_dist_traveled : :shapes_txt
     else
       rsp.geometry = self.line_string(self.set_precision(trip_stop_points))
       rsp.geometry_source = :trip_stop_points
