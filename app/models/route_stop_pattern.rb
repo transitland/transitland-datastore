@@ -172,6 +172,7 @@ class RouteStopPattern < BaseRouteStopPattern
   def gtfs_shape_dist_traveled(stop_times, tl_stops, shape_distances_traveled)
     # assumes stop times and shapes BOTH have shape_dist_traveled, and they're in the same units
     # assumes the line geometry is not generated, and shape_points equals the rsp geometry.
+    # TODO consider using a more efficient search method?
     self.stop_distances = []
     stop_times.each_with_index do |st, i|
       stop_onestop_id = self.stop_pattern[i]
@@ -181,13 +182,12 @@ class RouteStopPattern < BaseRouteStopPattern
       end
 
       if dist1.nil? || dist2.nil?
-        # TODO consider warnings or issues here
         if st.shape_dist_traveled.to_f < shape_distances_traveled[0]
           self.stop_distances << 0.0
         elsif st.shape_dist_traveled.to_f > shape_distances_traveled[-1]
           self.stop_distances << self[:geometry].length
         else
-          raise StandardError.new("Problem finding stop distance for Stop #{stop_onestop_id}, number #{i} of RSP #{self.onestop_id} using shape_dist_traveled")
+          raise StandardError.new("Problem finding stop distance for Stop #{stop_onestop_id}, number #{i + 1} of RSP #{self.onestop_id} using shape_dist_traveled")
         end
       else
         seg_index = shape_distances_traveled.index(dist1) # distances should always be increasing
