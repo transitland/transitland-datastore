@@ -177,7 +177,9 @@ class RouteStopPattern < BaseRouteStopPattern
     stop_times.each_with_index do |st, i|
       stop_onestop_id = self.stop_pattern[i]
       # Find segment along shape points where stop shape_dist_traveled is between the two shape points' shape_dist_traveled
+      seg_index = -1
       dist1, dist2 = shape_distances_traveled.each_cons(2).detect do |d1, d2|
+        seg_index += 1
         st.shape_dist_traveled.to_f >= d1 && st.shape_dist_traveled.to_f <= d2
       end
 
@@ -190,7 +192,6 @@ class RouteStopPattern < BaseRouteStopPattern
           raise StandardError.new("Problem finding stop distance for Stop #{stop_onestop_id}, number #{i + 1} of RSP #{self.onestop_id} using shape_dist_traveled")
         end
       else
-        seg_index = shape_distances_traveled.index(dist1) # distances should always be increasing
         cartesian_line = cartesian_cast(self[:geometry])
         stop = tl_stops[i]
         nearest_point_on_line = cartesian_line.closest_point_on_segment(cartesian_cast(stop[:geometry]), seg_index)
