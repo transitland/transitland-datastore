@@ -257,7 +257,7 @@ FactoryGirl.define do
 
   factory :feed_seattle_childrens, parent: :feed, class: Feed do
     onestop_id 'f-c23p1-seattlechildrenshospitalshuttle'
-    url 'http://transitfeeds.com/link?u=http://developer.onebusaway.org/tmp/sound/gtfs/modified/98_gtfs.zip'
+    url 'http://example.com/gtfs.zip'
     version 1
     after :create do |feed, evaluator|
       operator = create(
