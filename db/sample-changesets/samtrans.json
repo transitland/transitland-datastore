@@ -13,9 +13,11 @@
             "onestopId": "o-9q8-samtrans",
             "name": "San Mateo County Transit District",
             "shortName": "Samtrans",
-            "identifiedBy": ["usntd://9009"],
-            "country": "United States",
-            "state": "California",
+            "tags": {
+              "us_ntd_id": "9009"
+            },
+            "country": "US",
+            "state": "US-CA",
             "metro": "San Francisco Bay Area",
             "timezone": "America/Los_Angeles",
             "website": "http://www.samtrans.com/",

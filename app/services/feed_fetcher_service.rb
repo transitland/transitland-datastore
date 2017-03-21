@@ -3,7 +3,6 @@ class FeedFetcherService
 
   REFETCH_WAIT = 24.hours
   SPLIT_REFETCH_INTO_GROUPS = 48 # and only refetch the first group
-  FEEDVALIDATOR_PATH = './virtualenv/bin/feedvalidator.py'
 
   def self.fetch_this_feed_now(feed)
     sync_fetch_and_return_feed_versions([feed])
@@ -77,38 +76,14 @@ class FeedFetcherService
     (url || "").partition("#").last.presence
   end
 
-  def self.run_google_feedvalidator(filename)
-    # Validate
-    return unless Figaro.env.run_google_feedvalidator.presence == 'true'
-    # Create a tempfile to use the filename.
-    outfile = nil
-    Tempfile.open(['feedvalidator', '.html']) do |tmpfile|
-      outfile = tmpfile.path
-    end
-
-    # Run feedvalidator
-    feedvalidator_output = nil
-    IO.popen([FEEDVALIDATOR_PATH, '-n', '-o', outfile, filename], "w+") do |io|
-      io.write("\n")
-      io.close_write
-      feedvalidator_output = io.read
-    end
-    # feedvalidator_output
-
-    return unless File.exists?(outfile)
-    # Unlink temporary file
-    file_feedvalidator = File.open(outfile)
-    File.unlink(outfile)
-    file_feedvalidator
-  end
-
   def self.fetch_and_normalize_feed_version(feed)
+    # Fetch GTFS
     gtfs = GTFS::Source.build(
       feed.url,
       strict: false,
       tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
     )
-    # Normalize
+    # Normalize & create sha1
     gtfs_file = nil
     gtfs_file_raw = nil
     sha1 = nil
@@ -126,24 +101,27 @@ class FeedFetcherService
       gtfs_file = File.open(gtfs.archive)
       sha1 = Digest::SHA1.file(gtfs_file).hexdigest
     end
-
     # Create a new FeedVersion
-    feed_version = FeedVersion.find_by(sha1: sha1)
-    if !feed_version
-      # Validate the new data
-      file_feedvalidator = run_google_feedvalidator(gtfs_file.path)
-      # New FeedVersion
+    # (upload attachments later to avoid race conditions)
+    feed_version = FeedVersion.find_or_create_by!(
+      feed: feed,
+      sha1: sha1
+    )
+    # Is this a new feed_version?
+    if feed_version.file.url.nil?
+      # Save the file attachments
       data = {
-        feed: feed,
         url: feed.url,
+        fetched_at: DateTime.now,
         file: gtfs_file,
         file_raw: gtfs_file_raw,
-        file_feedvalidator: file_feedvalidator,
-        fetched_at: DateTime.now
       }
       data = data.merge!(read_gtfs_info(gtfs))
-      feed_version = FeedVersion.create!(data)
+      feed_version.update!(data)
+      # Enqueue validators
+      FeedValidationWorker.perform_async(feed_version.sha1)
     end
+    # Return the found or created feed_version
     feed_version
   end
 
@@ -161,7 +139,9 @@ class FeedFetcherService
         feed_start_date:     feed_info.feed_start_date,
         feed_end_date:       feed_info.feed_end_date,
         feed_version:        feed_info.feed_version,
-        feed_id:             feed_info.feed_id
+        feed_id:             feed_info.feed_id,
+        feed_contact_email:  feed_info.feed_contact_email,
+        feed_contact_url:    feed_info.feed_contact_url
       })
     end
     return {

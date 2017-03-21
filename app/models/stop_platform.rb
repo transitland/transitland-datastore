@@ -11,7 +11,6 @@
 #  name                               :string
 #  created_or_updated_in_changeset_id :integer
 #  version                            :integer
-#  identifiers                        :string           default([]), is an Array
 #  timezone                           :string
 #  last_conflated_at                  :datetime
 #  type                               :string
@@ -24,7 +23,6 @@
 #
 #  #c_stops_cu_in_changeset_id_index           (created_or_updated_in_changeset_id)
 #  index_current_stops_on_geometry             (geometry)
-#  index_current_stops_on_identifiers          (identifiers)
 #  index_current_stops_on_onestop_id           (onestop_id) UNIQUE
 #  index_current_stops_on_parent_stop_id       (parent_stop_id)
 #  index_current_stops_on_tags                 (tags)
@@ -38,8 +36,6 @@ class StopPlatform < Stop
     virtual_attributes: [
       :served_by,
       :not_served_by,
-      :identified_by,
-      :not_identified_by,
       :parent_stop_onestop_id,
       :includes_stop_transfers,
       :does_not_include_stop_transfers,
@@ -47,20 +43,23 @@ class StopPlatform < Stop
       :not_imported_from_feeds
     ],
     protected_attributes: [
-      :identifiers,
       :last_conflated_at,
       :type
     ]
   })
   belongs_to :parent_stop, class_name: 'Stop'
-  validates :parent_stop, presence: true
-  def parent_stop_onestop_id
-    if self.parent_stop
-      self.parent_stop.onestop_id
+  # validates :parent_stop, presence: true
+
+  def update_parent_stop(changeset)
+    if self.parent_stop_onestop_id
+      parent_stop = Stop.find_by_onestop_id!(self.parent_stop_onestop_id)
+      self.update!(parent_stop: parent_stop)
     end
   end
-  def parent_stop_onestop_id=(value)
-    self.parent_stop = Stop.find_by_onestop_id!(value)
+
+  def update_associations(changeset)
+    update_parent_stop(changeset)
+    super(changeset)
   end
 end
 

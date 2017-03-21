@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161207070207) do
+ActiveRecord::Schema.define(version: 20170307003733) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -78,7 +78,6 @@ ActiveRecord::Schema.define(version: 20161207070207) do
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.integer   "created_or_updated_in_changeset_id"
     t.integer   "version"
-    t.string    "identifiers",                                                                                    default: [], array: true
     t.string    "timezone"
     t.string    "short_name"
     t.string    "website"
@@ -90,7 +89,6 @@ ActiveRecord::Schema.define(version: 20161207070207) do
 
   add_index "current_operators", ["created_or_updated_in_changeset_id"], name: "#c_operators_cu_in_changeset_id_index", using: :btree
   add_index "current_operators", ["geometry"], name: "index_current_operators_on_geometry", using: :gist
-  add_index "current_operators", ["identifiers"], name: "index_current_operators_on_identifiers", using: :gin
   add_index "current_operators", ["onestop_id"], name: "index_current_operators_on_onestop_id", unique: true, using: :btree
   add_index "current_operators", ["tags"], name: "index_current_operators_on_tags", using: :btree
   add_index "current_operators", ["updated_at"], name: "index_current_operators_on_updated_at", using: :btree
@@ -127,22 +125,19 @@ ActiveRecord::Schema.define(version: 20161207070207) do
     t.string    "onestop_id"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.hstore    "tags"
-    t.string    "stop_pattern",                                                                                   default: [],                 array: true
+    t.string    "stop_pattern",                                                                                   default: [],              array: true
     t.integer   "version"
-    t.boolean   "is_generated",                                                                                   default: false
-    t.boolean   "is_modified",                                                                                    default: false
-    t.string    "trips",                                                                                          default: [],                 array: true
-    t.string    "identifiers",                                                                                    default: [],                 array: true
-    t.datetime  "created_at",                                                                                                     null: false
-    t.datetime  "updated_at",                                                                                                     null: false
+    t.string    "trips",                                                                                          default: [],              array: true
+    t.datetime  "created_at",                                                                                                  null: false
+    t.datetime  "updated_at",                                                                                                  null: false
     t.integer   "created_or_updated_in_changeset_id"
     t.integer   "route_id"
-    t.float     "stop_distances",                                                                                 default: [],                 array: true
-    t.string    "edited_attributes",                                                                              default: [],                 array: true
+    t.float     "stop_distances",                                                                                 default: [],              array: true
+    t.string    "edited_attributes",                                                                              default: [],              array: true
+    t.string    "geometry_source"
   end
 
   add_index "current_route_stop_patterns", ["created_or_updated_in_changeset_id"], name: "c_rsp_cu_in_changeset", using: :btree
-  add_index "current_route_stop_patterns", ["identifiers"], name: "index_current_route_stop_patterns_on_identifiers", using: :gin
   add_index "current_route_stop_patterns", ["onestop_id"], name: "index_current_route_stop_patterns_on_onestop_id", unique: true, using: :btree
   add_index "current_route_stop_patterns", ["route_id"], name: "index_current_route_stop_patterns_on_route_id", using: :btree
   add_index "current_route_stop_patterns", ["stop_pattern"], name: "index_current_route_stop_patterns_on_stop_pattern", using: :gin
@@ -158,7 +153,6 @@ ActiveRecord::Schema.define(version: 20161207070207) do
     t.datetime  "created_at"
     t.datetime  "updated_at"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
-    t.string    "identifiers",                                                                                    default: [],        array: true
     t.integer   "vehicle_type"
     t.string    "color"
     t.string    "edited_attributes",                                                                              default: [],        array: true
@@ -169,7 +163,6 @@ ActiveRecord::Schema.define(version: 20161207070207) do
   add_index "current_routes", ["bikes_allowed"], name: "index_current_routes_on_bikes_allowed", using: :btree
   add_index "current_routes", ["created_or_updated_in_changeset_id"], name: "c_route_cu_in_changeset", using: :btree
   add_index "current_routes", ["geometry"], name: "index_current_routes_on_geometry", using: :gist
-  add_index "current_routes", ["identifiers"], name: "index_current_routes_on_identifiers", using: :gin
   add_index "current_routes", ["onestop_id"], name: "index_current_routes_on_onestop_id", unique: true, using: :btree
   add_index "current_routes", ["operator_id"], name: "index_current_routes_on_operator_id", using: :btree
   add_index "current_routes", ["tags"], name: "index_current_routes_on_tags", using: :btree
@@ -278,7 +271,6 @@ ActiveRecord::Schema.define(version: 20161207070207) do
     t.string    "name"
     t.integer   "created_or_updated_in_changeset_id"
     t.integer   "version"
-    t.string    "identifiers",                                                                                    default: [], array: true
     t.string    "timezone"
     t.datetime  "last_conflated_at"
     t.string    "type"
@@ -290,7 +282,6 @@ ActiveRecord::Schema.define(version: 20161207070207) do
 
   add_index "current_stops", ["created_or_updated_in_changeset_id"], name: "#c_stops_cu_in_changeset_id_index", using: :btree
   add_index "current_stops", ["geometry"], name: "index_current_stops_on_geometry", using: :gist
-  add_index "current_stops", ["identifiers"], name: "index_current_stops_on_identifiers", using: :gin
   add_index "current_stops", ["onestop_id"], name: "index_current_stops_on_onestop_id", unique: true, using: :btree
   add_index "current_stops", ["parent_stop_id"], name: "index_current_stops_on_parent_stop_id", using: :btree
   add_index "current_stops", ["tags"], name: "index_current_stops_on_tags", using: :btree
@@ -403,6 +394,7 @@ ActiveRecord::Schema.define(version: 20161207070207) do
     t.text      "license_attribution_text"
     t.integer   "active_feed_version_id"
     t.string    "edited_attributes",                                                                              default: [], array: true
+    t.string    "action"
   end
 
   add_index "old_feeds", ["active_feed_version_id"], name: "index_old_feeds_on_active_feed_version_id", using: :btree
@@ -422,7 +414,6 @@ ActiveRecord::Schema.define(version: 20161207070207) do
     t.integer   "destroyed_in_changeset_id"
     t.integer   "current_id"
     t.integer   "version"
-    t.string    "identifiers",                                                                                    default: [], array: true
     t.string    "timezone"
     t.string    "short_name"
     t.string    "website"
@@ -430,13 +421,13 @@ ActiveRecord::Schema.define(version: 20161207070207) do
     t.string    "state"
     t.string    "metro"
     t.string    "edited_attributes",                                                                              default: [], array: true
+    t.string    "action"
   end
 
   add_index "old_operators", ["created_or_updated_in_changeset_id"], name: "o_operators_cu_in_changeset_id_index", using: :btree
   add_index "old_operators", ["current_id"], name: "index_old_operators_on_current_id", using: :btree
   add_index "old_operators", ["destroyed_in_changeset_id"], name: "operators_d_in_changeset_id_index", using: :btree
   add_index "old_operators", ["geometry"], name: "index_old_operators_on_geometry", using: :gist
-  add_index "old_operators", ["identifiers"], name: "index_old_operators_on_identifiers", using: :gin
 
   create_table "old_operators_in_feed", force: :cascade do |t|
     t.string   "gtfs_agency_id"
@@ -482,26 +473,24 @@ ActiveRecord::Schema.define(version: 20161207070207) do
     t.string    "onestop_id"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.hstore    "tags"
-    t.string    "stop_pattern",                                                                                   default: [],                 array: true
+    t.string    "stop_pattern",                                                                                   default: [],              array: true
     t.integer   "version"
-    t.boolean   "is_generated",                                                                                   default: false
-    t.boolean   "is_modified",                                                                                    default: false
-    t.string    "trips",                                                                                          default: [],                 array: true
-    t.string    "identifiers",                                                                                    default: [],                 array: true
-    t.datetime  "created_at",                                                                                                     null: false
-    t.datetime  "updated_at",                                                                                                     null: false
+    t.string    "trips",                                                                                          default: [],              array: true
+    t.datetime  "created_at",                                                                                                  null: false
+    t.datetime  "updated_at",                                                                                                  null: false
     t.integer   "created_or_updated_in_changeset_id"
     t.integer   "destroyed_in_changeset_id"
     t.integer   "route_id"
     t.string    "route_type"
     t.integer   "current_id"
-    t.float     "stop_distances",                                                                                 default: [],                 array: true
-    t.string    "edited_attributes",                                                                              default: [],                 array: true
+    t.float     "stop_distances",                                                                                 default: [],              array: true
+    t.string    "edited_attributes",                                                                              default: [],              array: true
+    t.string    "action"
+    t.string    "geometry_source"
   end
 
   add_index "old_route_stop_patterns", ["created_or_updated_in_changeset_id"], name: "o_rsp_cu_in_changeset", using: :btree
   add_index "old_route_stop_patterns", ["current_id"], name: "index_old_route_stop_patterns_on_current_id", using: :btree
-  add_index "old_route_stop_patterns", ["identifiers"], name: "index_old_route_stop_patterns_on_identifiers", using: :gin
   add_index "old_route_stop_patterns", ["onestop_id"], name: "index_old_route_stop_patterns_on_onestop_id", using: :btree
   add_index "old_route_stop_patterns", ["route_type", "route_id"], name: "index_old_route_stop_patterns_on_route_type_and_route_id", using: :btree
   add_index "old_route_stop_patterns", ["stop_pattern"], name: "index_old_route_stop_patterns_on_stop_pattern", using: :gin
@@ -520,12 +509,12 @@ ActiveRecord::Schema.define(version: 20161207070207) do
     t.datetime  "created_at"
     t.datetime  "updated_at"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
-    t.string    "identifiers",                                                                                    default: [],        array: true
     t.integer   "vehicle_type"
     t.string    "color"
     t.string    "edited_attributes",                                                                              default: [],        array: true
     t.string    "wheelchair_accessible",                                                                          default: "unknown"
     t.string    "bikes_allowed",                                                                                  default: "unknown"
+    t.string    "action"
   end
 
   add_index "old_routes", ["bikes_allowed"], name: "index_old_routes_on_bikes_allowed", using: :btree
@@ -533,7 +522,6 @@ ActiveRecord::Schema.define(version: 20161207070207) do
   add_index "old_routes", ["current_id"], name: "index_old_routes_on_current_id", using: :btree
   add_index "old_routes", ["destroyed_in_changeset_id"], name: "o_route_d_in_changeset", using: :btree
   add_index "old_routes", ["geometry"], name: "index_old_routes_on_geometry", using: :gist
-  add_index "old_routes", ["identifiers"], name: "index_old_routes_on_identifiers", using: :gin
   add_index "old_routes", ["operator_type", "operator_id"], name: "index_old_routes_on_operator_type_and_operator_id", using: :btree
   add_index "old_routes", ["vehicle_type"], name: "index_old_routes_on_vehicle_type", using: :btree
   add_index "old_routes", ["wheelchair_accessible"], name: "index_old_routes_on_wheelchair_accessible", using: :btree
@@ -656,7 +644,6 @@ ActiveRecord::Schema.define(version: 20161207070207) do
     t.integer   "destroyed_in_changeset_id"
     t.integer   "current_id"
     t.integer   "version"
-    t.string    "identifiers",                                                                                    default: [], array: true
     t.string    "timezone"
     t.datetime  "last_conflated_at"
     t.string    "type"
@@ -664,13 +651,13 @@ ActiveRecord::Schema.define(version: 20161207070207) do
     t.integer   "osm_way_id"
     t.string    "edited_attributes",                                                                              default: [], array: true
     t.boolean   "wheelchair_boarding"
+    t.string    "action"
   end
 
   add_index "old_stops", ["created_or_updated_in_changeset_id"], name: "o_stops_cu_in_changeset_id_index", using: :btree
   add_index "old_stops", ["current_id"], name: "index_old_stops_on_current_id", using: :btree
   add_index "old_stops", ["destroyed_in_changeset_id"], name: "stops_d_in_changeset_id_index", using: :btree
   add_index "old_stops", ["geometry"], name: "index_old_stops_on_geometry", using: :gist
-  add_index "old_stops", ["identifiers"], name: "index_old_stops_on_identifiers", using: :gin
   add_index "old_stops", ["parent_stop_id"], name: "index_old_stops_on_parent_stop_id", using: :btree
   add_index "old_stops", ["wheelchair_boarding"], name: "index_old_stops_on_wheelchair_boarding", using: :btree
 

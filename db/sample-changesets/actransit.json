@@ -13,9 +13,11 @@
             "onestopId": "o-9q9-actransit",
             "name": "Alameda-Contra Costa Transit District",
             "shortName": "AC Transit",
-            "identifiedBy": ["usntd://9014"],
-            "country": "United States",
-            "state": "California",
+            "tags": {
+              "us_ntd_id": "9014"
+            },
+            "country": "US",
+            "state": "US-CA",
             "metro": "San Francisco Bay Area",
             "timezone": "America/Los_Angeles",
             "website": "http://www.actransit.org/",

@@ -34,22 +34,6 @@ describe Api::V1::RoutesController do
         }})
       end
 
-      context 'returns routes by identifier' do
-        it 'when not found' do
-          get :index, identifier: '19X'
-          expect_json({ routes: -> (routes) {
-            expect(routes.length).to eq 0
-          }})
-        end
-
-        it 'when found' do
-          get :index, identifier: 'Richmond - Daly City/Millbrae'
-          expect_json({ routes: -> (routes) {
-            expect(routes.length).to eq 1
-          }})
-        end
-      end
-
       it 'returns route within a bounding box' do
         get :index, bbox: '-122.4228858947754,37.59043119366754,-122.34460830688478,37.62374937200642'
         expect_json({ routes: -> (routes) {
@@ -186,6 +170,36 @@ describe Api::V1::RoutesController do
           get :index, bikes_allowed: "unknown"
           expect_json({ routes: -> (routes) {
             expect(routes.length).to eq 0
+          }})
+        end
+      end
+
+      context 'include and exclude geometry' do
+        it 'exclude_geometry=false' do
+          get :index, exclude_geometry: "false"
+          expect_json({ routes: -> (routes) {
+            expect(routes.first.has_key?(:geometry)).to be true
+          }})
+        end
+
+        it 'exclude_geometry=true' do
+          get :index, exclude_geometry: "true"
+          expect_json({ routes: -> (routes) {
+            expect(routes.first.has_key?(:geometry)).to be false
+          }})
+        end
+
+        it 'include_geometry=false' do
+          get :index, include_geometry: "false"
+          expect_json({ routes: -> (routes) {
+            expect(routes.first.has_key?(:geometry)).to be false
+          }})
+        end
+
+        it 'include_geometry=true' do
+          get :index, include_geometry: "true"
+          expect_json({ routes: -> (routes) {
+            expect(routes.first.has_key?(:geometry)).to be true
           }})
         end
       end

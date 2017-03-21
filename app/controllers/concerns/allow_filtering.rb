@@ -52,15 +52,6 @@ module AllowFiltering
     collection
   end
 
-  def self.by_identifer_and_identifier_starts_with(collection, params)
-    if params[:identifier].present?
-      collection = collection.with_identifier_or_name(params[:identifier])
-    elsif params[:identifier_starts_with].present?
-      collection = collection.with_identifier_starting_with(params[:identifier_starts_with])
-    end
-    collection
-  end
-
   def self.by_boolean_attribute(collection, params, boolean_attribute_name)
     unless params[boolean_attribute_name].nil?
       conditions = {}
@@ -87,7 +78,10 @@ module AllowFiltering
     if case_sensitive
       t = collection.arel_table[attribute_name].in(values)
     else
-      t = collection.arel_table[attribute_name].lower.in(values.map(&:downcase))
+      lowercase_utf8_values = values.map do |value|
+        value.mb_chars.downcase.to_s
+      end
+      t = collection.arel_table[attribute_name].lower.in(lowercase_utf8_values)
     end
     if values.present?
       collection = collection.where(t)

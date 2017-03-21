@@ -57,7 +57,11 @@ class FeedSerializer < ApplicationSerializer
              :changesets_imported_from_this_feed
 
   has_many :operators_in_feed
-  has_many :issues, through: :entities_with_issues
+  has_many :issues, if: :has_issues
+
+  def has_issues
+    !!scope && !!scope[:embed_issues]
+  end
 
   def feed_versions_count
     object.feed_versions.count

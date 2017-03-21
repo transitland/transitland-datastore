@@ -33,7 +33,7 @@
 
 FactoryGirl.define do
   factory :feed do
-    url 'http://www.ridemetro.org/News/Downloads/DataFiles/google_transit.zip'
+    sequence (:url) { |n| "http://www.ridemetro.org/News/Downloads/DataFiles/google_transit#{n}.zip" }
     onestop_id { Faker::OnestopId.feed }
     geometry { {
         "type": "Polygon",
@@ -195,6 +195,43 @@ FactoryGirl.define do
       feed.operators_in_feed.create(
         operator: operator,
         gtfs_agency_id: 'MTA NYCT'
+      )
+    end
+  end
+
+  factory :feed_recursosdatabuenosairesgobar, parent: :feed, class: Feed do
+    onestop_id 'f-69y7-recursosdatabuenosairesgobar'
+    url 'http://recursos-data.buenosaires.gob.ar/ckan2/subte-gtfs/subte-gtfs.zip'
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Subterráneos de Buenos Aires',
+        onestop_id: 'o-69y7-sbase',
+        timezone: 'America/Argentina/Buenos_Aires',
+        website: 'http://www.buenosaires.gob.ar/subte',
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: '3'
+      )
+    end
+  end
+
+  factory :feed_nj_path, parent: :feed, class: Feed do
+    onestop_id 'f-dr5r-panynjpath'
+    url 'http://data.trilliumtransit.com/gtfs/path-nj-us/path-nj-us.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Port Authority Trans-Hudson',
+        onestop_id: 'o-dr5r-path',
+        timezone: 'America/New_York',
+        website: 'http://www.panynj.gov/',
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: '151'
       )
     end
   end

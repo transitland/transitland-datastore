@@ -12,9 +12,11 @@
           "operator": {
             "onestopId": "o-9q9-caltrain",
             "name": "Caltrain",
-            "identifiedBy": ["usntd://9134"],
-            "country": "United States",
-            "state": "California",
+            "tags": {
+              "us_ntd_id": "9134"
+            },
+            "country": "US",
+            "state": "US-CA",
             "metro": "San Francisco Bay Area",
             "timezone": "America/Los_Angeles",
             "website": "http://www.caltrain.com/",

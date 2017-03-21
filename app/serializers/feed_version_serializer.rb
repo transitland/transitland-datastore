@@ -49,6 +49,8 @@ class FeedVersionSerializer < ApplicationSerializer
              :download_url,
              :feedvalidator_url
 
+  has_many :issues, if: :has_issues
+
   def feed_version_imports
     object.feed_version_imports.map(&:id)
   end
@@ -66,5 +68,9 @@ class FeedVersionSerializer < ApplicationSerializer
 
   def changesets_imported_from_this_feed_version
     object.changesets_imported_from_this_feed_version.map(&:id)
+  end
+
+  def has_issues
+    !!scope && !!scope[:embed_issues]
   end
 end

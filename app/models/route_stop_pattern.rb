@@ -8,21 +8,18 @@
 #  tags                               :hstore
 #  stop_pattern                       :string           default([]), is an Array
 #  version                            :integer
-#  is_generated                       :boolean          default(FALSE)
-#  is_modified                        :boolean          default(FALSE)
 #  trips                              :string           default([]), is an Array
-#  identifiers                        :string           default([]), is an Array
 #  created_at                         :datetime         not null
 #  updated_at                         :datetime         not null
 #  created_or_updated_in_changeset_id :integer
 #  route_id                           :integer
 #  stop_distances                     :float            default([]), is an Array
 #  edited_attributes                  :string           default([]), is an Array
+#  geometry_source                    :string
 #
 # Indexes
 #
 #  c_rsp_cu_in_changeset                              (created_or_updated_in_changeset_id)
-#  index_current_route_stop_patterns_on_identifiers   (identifiers)
 #  index_current_route_stop_patterns_on_onestop_id    (onestop_id) UNIQUE
 #  index_current_route_stop_patterns_on_route_id      (route_id)
 #  index_current_route_stop_patterns_on_stop_pattern  (stop_pattern)
@@ -32,7 +29,7 @@
 class BaseRouteStopPattern < ActiveRecord::Base
   self.abstract_class = true
 
-  attr_accessor :traversed_by, :first_stop_before_geom, :last_stop_after_geom
+  attr_accessor :traversed_by
 end
 
 class RouteStopPattern < BaseRouteStopPattern
@@ -50,6 +47,9 @@ class RouteStopPattern < BaseRouteStopPattern
   validate :has_at_least_two_stops,
     :geometry_has_at_least_two_coords,
     :correct_stop_distances_length
+
+  extend Enumerize
+  enumerize :geometry_source, in: [:trip_stop_points, :shapes_txt, :shapes_txt_with_dist_traveled, :user_edited]
 
   def has_at_least_two_stops
     if stop_pattern.length < 2
@@ -70,7 +70,6 @@ class RouteStopPattern < BaseRouteStopPattern
   end
 
   include HasAOnestopId
-  include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
   include HasTags
   include UpdatedSince
@@ -82,35 +81,23 @@ class RouteStopPattern < BaseRouteStopPattern
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
     virtual_attributes: [
-      :identified_by,
-      :not_identified_by,
       :traversed_by,
       :add_imported_from_feeds,
       :not_imported_from_feeds
     ],
-    protected_attributes: [
-      :identifiers
-    ],
+    protected_attributes: [],
     sticky_attributes: [
       :geometry
     ]
   })
 
-  class << RouteStopPattern
-    alias_method :existing_before_create_making_history, :before_create_making_history
-  end
-
-  def after_create_making_history(changeset)
+  def update_associations(changeset)
+    if self.traversed_by
+      route = Route.find_by_onestop_id!(self.traversed_by)
+      self.update_columns(route_id: route.id)
+    end
     update_entity_imported_from_feeds(changeset)
-  end
-  def before_update_making_history(changeset)
-    update_entity_imported_from_feeds(changeset)
-  end
-
-  def self.before_create_making_history(new_model, changeset)
-    route = Route.find_by_onestop_id!(new_model.traversed_by)
-    new_model.route = route
-    self.existing_before_create_making_history(new_model, changeset)
+    super(changeset)
   end
 
   # borrowed from schedule_stop_pair.rb
@@ -187,6 +174,25 @@ class RouteStopPattern < BaseRouteStopPattern
     self.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
   end
 
+  def gtfs_shape_dist_traveled(stop_times, tl_stops, shape_distances_traveled)
+    # assumes stop times and shapes BOTH have shape_dist_traveled, and they're in the same units
+    # assumes the line geometry is not generated, and shape_points equals the rsp geometry.
+    self.stop_distances = []
+    stop_times.each_with_index do |st, i|
+      stop_onestop_id = self.stop_pattern[i]
+      # Find segment along shape points where stop shape_dist_traveled is between the two shape points' shape_dist_traveled
+      dist1, dist2 = shape_distances_traveled.zip(shape_distances_traveled[1..-1]).detect do |d1, d2|
+        st.shape_dist_traveled.to_f >= d1 && st.shape_dist_traveled.to_f <= d2
+      end
+      seg_index = shape_distances_traveled.index(dist1) # distances should always be increasing
+      cartesian_line = cartesian_cast(self[:geometry])
+      stop = tl_stops[i]
+      nearest_point_on_line = cartesian_line.closest_point_on_segment(cartesian_cast(stop[:geometry]), seg_index)
+      self.stop_distances << distance_along_line_to_nearest(cartesian_line, nearest_point_on_line, seg_index)
+    end
+    self.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
+  end
+
   def calculate_distances(stops=nil)
     if stops.nil?
       stop_hash = Hash[Stop.find_by_onestop_ids!(self.stop_pattern).map { |s| [s.onestop_id, s] }]
@@ -202,10 +208,11 @@ class RouteStopPattern < BaseRouteStopPattern
     a = 0
     b = 0
     c = num_segments - 1
+    last_stop_after_geom = route.after?(stops[-1][:geometry]) || outlier_stop(stops[-1][:geometry])
     stops.each_index do |i|
       stop_spherical = stops[i]
       this_stop = cartesian_cast(stop_spherical[:geometry])
-      if i == 0 && self.first_stop_before_geom
+      if i == 0 && (route.before?(stops[i][:geometry]) || outlier_stop(this_stop))
         self.stop_distances << 0.0
       elsif i == stops.size - 1 && self.last_stop_after_geom
         self.stop_distances << self[:geometry].length
@@ -261,43 +268,9 @@ class RouteStopPattern < BaseRouteStopPattern
     spherical_stop.distance(spherical_closest) > OUTLIER_THRESHOLD
   end
 
-  def evaluate_geometry(trip, stop_points)
-    # makes judgements on geometry so modifications can be made by tl_geometry
-    issues = []
-    if trip.shape_id.nil? || self.geometry.nil? || self.geometry[:coordinates].empty?
-      issues << :empty
-    else
-      cartesian_line = cartesian_cast(self[:geometry])
-      first_stop = RouteStopPattern::GEOFACTORY.point(stop_points[0][0],stop_points[0][1])
-      if cartesian_line.before?(first_stop) || outlier_stop(first_stop)
-        issues << :has_before_stop
-      end
-      last_stop = RouteStopPattern::GEOFACTORY.point(stop_points[-1][0],stop_points[-1][1])
-      if cartesian_line.after?(last_stop) || outlier_stop(last_stop)
-        issues << :has_after_stop
-      end
-    end
-    # more evaluations can go here
-    return (issues.size > 0), issues
-  end
-
-  def tl_geometry(stop_points, issues)
-    # modify rsp geometry based on issues array from evaluate_geometry
-    self.first_stop_before_geom = false
-    self.last_stop_after_geom = false
-    if issues.include?(:empty)
-      # create a new geometry from the trip stop points
-      self.geometry = RouteStopPattern.line_string(RouteStopPattern.set_precision(stop_points))
-      self.is_generated = true
-      self.is_modified = true
-    end
-    self.first_stop_before_geom = true if issues.include?(:has_before_stop)
-    self.last_stop_after_geom = true if issues.include?(:has_after_stop)
-    # more geometry modification can go here
-  end
-
   scope :with_trips, -> (search_string) { where{trips.within(search_string)} }
-  scope :with_stops, -> (search_string) { where{stop_pattern.within(search_string)} }
+  scope :with_all_stops, -> (search_string) { where{stop_pattern.within(search_string)} }
+  scope :with_any_stops, -> (stop_onestop_ids) { where( "stop_pattern && ARRAY[?]::varchar[]", stop_onestop_ids ) }
 
   def ordered_ssp_trip_chunks(&block)
     if block
@@ -316,14 +289,18 @@ class RouteStopPattern < BaseRouteStopPattern
     # Rgeo produces nil if there is only one coordinate in the array
     rsp = RouteStopPattern.new(
       stop_pattern: stop_pattern,
-      geometry: self.line_string(self.set_precision(shape_points))
     )
-    has_issues, issues = rsp.evaluate_geometry(trip, trip_stop_points)
-    rsp.tl_geometry(trip_stop_points, issues) if has_issues
+    if shape_points.present?
+      rsp.geometry = self.line_string(self.set_precision(shape_points))
+      rsp.geometry_source = shape_points.shape_dist_traveled.all? ? :shapes_txt_with_dist_traveled : :shapes_txt
+    else
+      rsp.geometry = self.line_string(self.set_precision(trip_stop_points))
+      rsp.geometry_source = :trip_stop_points
+    end
     onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(
-      route_onestop_id: route_onestop_id,
-      stop_pattern: rsp.stop_pattern,
-      geometry_coords: rsp.geometry[:coordinates]
+     route_onestop_id: route_onestop_id,
+     stop_pattern: rsp.stop_pattern,
+     geometry_coords: rsp.geometry[:coordinates]
     )
     rsp.onestop_id = onestop_id.to_s
     rsp.tags ||= {}

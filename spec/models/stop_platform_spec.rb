@@ -11,7 +11,6 @@
 #  name                               :string
 #  created_or_updated_in_changeset_id :integer
 #  version                            :integer
-#  identifiers                        :string           default([]), is an Array
 #  timezone                           :string
 #  last_conflated_at                  :datetime
 #  type                               :string
@@ -24,7 +23,6 @@
 #
 #  #c_stops_cu_in_changeset_id_index           (created_or_updated_in_changeset_id)
 #  index_current_stops_on_geometry             (geometry)
-#  index_current_stops_on_identifiers          (identifiers)
 #  index_current_stops_on_onestop_id           (onestop_id) UNIQUE
 #  index_current_stops_on_parent_stop_id       (parent_stop_id)
 #  index_current_stops_on_tags                 (tags)
@@ -159,7 +157,7 @@ describe StopPlatform do
         other_onestop_id = "#{@stop.onestop_id}<other"
         @stop_platform = create(:stop_platform,
                                 onestop_id: other_onestop_id,
-                                parent_stop_onestop_id: @stop.onestop_id,
+                                parent_stop: @stop,
                                 geometry: Stop::GEOFACTORY.point(-122.475075, 37.721323).to_s)
         changeset = Changeset.create(payload: @payload)
         changeset.apply!
