@@ -215,6 +215,7 @@ describe RouteStopPattern do
 
     context '#shape_dist_traveled' do
       it '#shape_dist_traveled' do
+        # this feed also contains duplicated shape points to test seg_index incrementing
         feed, feed_version = load_feed(feed_version_name: :feed_version_nj_path, import_level: 1)
         gtfs = GTFS::Source.build(feed_version.file.file.file)
         rsp = feed.imported_route_stop_patterns.first
