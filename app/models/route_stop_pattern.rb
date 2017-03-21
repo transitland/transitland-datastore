@@ -317,7 +317,7 @@ class RouteStopPattern < BaseRouteStopPattern
     rsp = RouteStopPattern.new(
       stop_pattern: stop_pattern,
     )
-    if shape_points.present?
+    if shape_points.present? && shape_points.size > 1
       rsp.geometry = self.line_string(self.set_precision(shape_points))
       rsp.geometry_source = (stop_times.all?{ |st| st.shape_dist_traveled.present? } && shape_points.shape_dist_traveled.all?(&:present?)) ? :shapes_txt_with_dist_traveled : :shapes_txt
     else
