@@ -295,20 +295,16 @@ class RouteStopPattern < BaseRouteStopPattern
     end
   end
 
-  def generate_onestop_id
-    return 'r-9q9-asd-123456-abcdef'
-    # OnestopId.handler_by_model(self.class).new(name: (self.try(:name) || "test"), geohash: "9q9").to_s
-  end
-
-
   ##### FromGTFS ####
   def generate_onestop_id
-    fail Exception.new('route required') unless self.route
-    fail Exception.new('stop_pattern required') unless self.stop_pattern.presence
+    route = self.traversed_by.present? ? self.traversed_by : self.route
+    stop_pattern = self.serves.present? ? self.serves.map(&:onestop_id) : self.stop_pattern
+    fail Exception.new('route required') unless route
+    fail Exception.new('stop_pattern required') unless stop_pattern
     fail Exception.new('geometry required') unless self.geometry
     onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(
-     route_onestop_id: self.route.onestop_id,
-     stop_pattern: self.stop_pattern,
+     route_onestop_id: route.onestop_id,
+     stop_pattern: stop_pattern,
      geometry_coords: self.geometry[:coordinates]
     )
     onestop_id.to_s
