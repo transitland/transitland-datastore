@@ -19,8 +19,9 @@ class GTFSGraph2
     @gtfs = nil
     # Log
     @log = []
-    # GTFS entity to Onestop ID
+    # Lookup
     @entity_tl = {}
+    @onestop_tl = {}
   end
 
   def load_graph
@@ -37,39 +38,44 @@ class GTFSGraph2
       log "GTFS_AGENCY: #{gtfs_agency.agency_id}"
       tl_operator = oifs[gtfs_agency.agency_id]
       next unless tl_operator
-      tl_operator.serves = Set.new
 
       # Routes
       gtfs_agency.routes.each do |gtfs_route|
         log "\tGTFS_ROUTE: #{gtfs_route.route_id}"
-        tl_route = find_or_initialize_route(gtfs_route)
-        tl_route.serves = Set.new
-        tl_operator.serves << tl_route
 
-        # Trips
+        # Trips: Pass 1: Create Stops
+        tl_route_stops = Set.new
+        tl_trip_stops = {}
         gtfs_route.trips.each do |gtfs_trip|
           log "\t\tGTFS_TRIP: #{gtfs_trip.trip_id}"
-
-          # Stops (map; needed to generate RSP)
-          tl_stops = gtfs_trip.stops.map do |gtfs_stop|
+          tl_trip_stops[gtfs_trip] = Set.new
+          # Stops
+          gtfs_trip.stops.each do |gtfs_stop|
             log "\t\t\tGTFS_STOP: #{gtfs_stop.stop_id}"
-            find_or_initialize_stop(gtfs_stop, operator_timezone: tl_operator.timezone)
+            tl_stop = find_or_initialize_stop(gtfs_stop, operator_timezone: tl_operator.timezone)
+            tl_route_stops << tl_stop
+            tl_trip_stops[gtfs_trip] << tl_stop
           end
-          tl_route.serves |= tl_stops
-
-          # Create RSP
-          tl_rsp = find_or_initialize_rsp(gtfs_trip, tl_stops: tl_stops)
-          tl_rsp.traversed_by = tl_route
         end
+
+        # Create Route
+        tl_route = find_or_initialize_route(gtfs_route, tl_stops: tl_route_stops)
+        tl_route.serves = tl_route_stops
+        # tl_route.served_by = tl_operator
+
+        # Trips: Pass 2: Create RSPs
+        tl_route_rsps = Set.new
+        gtfs_route.trips.each do |gtfs_trip|
+          tl_rsp = find_or_initialize_rsp(gtfs_trip, tl_stops: tl_trip_stops[gtfs_trip])
+          tl_rsp.traversed_by = tl_route
+          tl_route_rsps << tl_rsp
+        end
+
       end
     end
   end
 
   def post_process
-    # Update OnestopIDs
-    @entity_tl.each do |gtfs_entity,tl_entity|
-      tl_entity.onestop_id = tl_entity.generate_onestop_id
-    end
     # Convert associations
     @entity_tl.each do |gtfs_entity,tl_entity|
       if tl_entity.instance_of?(Route)
@@ -117,6 +123,23 @@ class GTFSGraph2
     tl_entity.add_imported_from_feeds << {feedVersion: @feed_version.sha1, gtfsId: gtfs_entity.id}
   end
 
+  # def check_cache(gtfs_entity)
+  #   # Check cache
+  #   tl_entity = @entity_tl[gtfs_entity]
+  #   if tl_entity
+  #     # log "FOUND: #{tl_entity}"
+  #     return tl_entity
+  #   end
+  # end
+
+  # def update_cache(tl_entity, gtfs_entity)
+  #   tl_entity.onestop_id = tl_entity.generate_onestop_id
+  #   tl_entity = @onestop_tl[tl_entity.onestop_id] || tl_entity
+  #   @onestop_tl[tl_entity.onestop_id] = tl_entity
+  #   @entity_tl[gtfs_entity] = tl_entity
+  #   tl_entity
+  # end
+
   def find_or_initialize_stop(gtfs_entity, operator_timezone: nil)
     # Check cache
     tl_entity = @entity_tl[gtfs_entity]
@@ -139,7 +162,6 @@ class GTFSGraph2
     end
 
     # Update
-    add_eiff(tl_entity, gtfs_entity)
     tl_entity.geometry = Stop::GEOFACTORY.point(*gtfs_entity.coordinates)
     tl_entity.name = gtfs_entity.stop_name
     tl_entity.wheelchair_boarding = nil
@@ -150,12 +172,20 @@ class GTFSGraph2
       zone_id: gtfs_entity.zone_id
     }
 
-    # Cache
+    # Update cache
+    tl_entity.onestop_id = tl_entity.generate_onestop_id
+    tl_entity = @onestop_tl[tl_entity.onestop_id] || tl_entity
+    @onestop_tl[tl_entity.onestop_id] = tl_entity
     @entity_tl[gtfs_entity] = tl_entity
+
+    # Update eiff
+    add_eiff(tl_entity, gtfs_entity)
+
+    # Return entity
     tl_entity
   end
 
-  def find_or_initialize_route(gtfs_entity)
+  def find_or_initialize_route(gtfs_entity, tl_stops: [])
     # Check cache
     tl_entity = @entity_tl[gtfs_entity]
     if tl_entity
@@ -173,8 +203,6 @@ class GTFSGraph2
     end
 
     # Update
-    add_eiff(tl_entity, gtfs_entity)
-
     geojson = {
       type: 'MultiLineString',
       coordinates: [
@@ -182,7 +210,7 @@ class GTFSGraph2
         [[-74.1851806640625,40.81588791441588],[-74.00665283203124,40.83251504043271],[-73.948974609375,40.7909394098518],[-73.8006591796875,40.751418432997426],[-73.4326171875,40.79301881008675]]
       ]
     }
-
+    tl_entity.serves = tl_stops
     tl_entity.geometry = geojson
     tl_entity.name = [gtfs_entity.route_short_name, gtfs_entity.route_long_name, gtfs_entity.id, "unknown"].select(&:present?).first
     tl_entity.vehicle_type = gtfs_entity.route_type.to_i
@@ -199,8 +227,16 @@ class GTFSGraph2
     tl_entity.wheelchair_accessible = :unknown
     tl_entity.bikes_allowed = :unknown
 
-    # Cache
+    # Update cache
+    tl_entity.onestop_id = tl_entity.generate_onestop_id
+    tl_entity = @onestop_tl[tl_entity.onestop_id] || tl_entity
+    @onestop_tl[tl_entity.onestop_id] = tl_entity
     @entity_tl[gtfs_entity] = tl_entity
+
+    # Update eiff
+    add_eiff(tl_entity, gtfs_entity)
+
+    # Return entity
     tl_entity
   end
 
@@ -228,15 +264,22 @@ class GTFSGraph2
     end
 
     # Update
-    add_eiff(tl_entity, gtfs_entity)
     tl_entity.serves = tl_stops
     tl_entity.stop_distances = [nil]*tl_stops.size
     tl_entity.geometry = geometry
     tl_entity.geometry_source = shape_line.shape_dist_traveled.all? ? :shapes_txt_with_dist_traveled : :shapes_txt
     tl_entity.tags = {}
 
-    # Cache
-    @entity_tl[rsp_key] = tl_entity
+    # Update cache
+    tl_entity.onestop_id = tl_entity.generate_onestop_id
+    tl_entity = @onestop_tl[tl_entity.onestop_id] || tl_entity
+    @onestop_tl[tl_entity.onestop_id] = tl_entity
+    @entity_tl[gtfs_entity] = tl_entity
+
+    # Update eiff
+    add_eiff(tl_entity, gtfs_entity)
+
+    # Return entity
     tl_entity
   end
 end
