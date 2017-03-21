@@ -122,15 +122,14 @@ class RouteStopPattern < BaseRouteStopPattern
   end
 
   def nearest_segment_index_forward(locators, s, e, point)
-    closest_points = locators[s..e].map{ |loc| loc.interpolate_point(Stop::GEOFACTORY) }
-    closest_point_and_dist = closest_points.map{ |closest_point|
-      dist = closest_point.distance(point);
-      [closest_point, dist]
+    closest_point_candidates = locators[s..e].map{ |loc| loc.interpolate_point(Stop::GEOFACTORY) }
+    closest_point_and_dist = closest_point_candidates.map{ |closest_point|
+      [closest_point, closest_point.distance(point)]
     }.detect { |closest_point_and_dist| closest_point_and_dist[1] < FIRST_MATCH_THRESHOLD }
 
     unless closest_point_and_dist.nil?
       dist = closest_point_and_dist[1]
-      i = closest_points.index(closest_point_and_dist[0])
+      i = closest_point_candidates.index(closest_point_and_dist[0])
       if i != locators[s..e].size - 1
         next_seg_dist = locators[s..e][i+1].interpolate_point(Stop::GEOFACTORY).distance(point)
         while next_seg_dist < dist
@@ -209,10 +208,12 @@ class RouteStopPattern < BaseRouteStopPattern
     b = 0
     c = num_segments - 1
     last_stop_after_geom = route.after?(stops[-1][:geometry]) || outlier_stop(stops[-1][:geometry])
+    previous_stop_before_geom = false
     stops.each_index do |i|
       stop_spherical = stops[i]
       this_stop = cartesian_cast(stop_spherical[:geometry])
       if i == 0 && (route.before?(stops[i][:geometry]) || outlier_stop(this_stop))
+        previous_stop_before_geom = true
         self.stop_distances << 0.0
       elsif i == stops.size - 1 && last_stop_after_geom
         self.stop_distances << self[:geometry].length
@@ -221,19 +222,24 @@ class RouteStopPattern < BaseRouteStopPattern
         b = nearest_segment_index_forward(locators, a, c, this_stop)
         nearest_point = nearest_point(locators, b)
         distance = distance_along_line_to_nearest(route, nearest_point, b)
-        if (i!=0 && distance!=0.0)
-          equivalent_stop = stops[i].onestop_id.eql?(stops[i-1].onestop_id) || stops[i][:geometry].eql?(stops[i-1][:geometry])
-          if !(route.before?(stops[i][:geometry]) || outlier_stop(this_stop)) && !equivalent_stop
-            while (distance <= self.stop_distances[i-1])
-              if (a == num_segments - 1)
-                distance = self[:geometry].length
-                break
+        if (i!=0)
+          if (route.before?(stops[i][:geometry]) || outlier_stop(this_stop)) && previous_stop_before_geom
+            previous_stop_before_geom = true
+          else
+            equivalent_stop = stops[i].onestop_id.eql?(stops[i-1].onestop_id) || stops[i][:geometry].eql?(stops[i-1][:geometry])
+            if !equivalent_stop && !previous_stop_before_geom
+              while (distance <= self.stop_distances[i-1])
+                if (a == num_segments - 1)
+                  distance = self[:geometry].length
+                  break
+                end
+                a += 1
+                b = nearest_segment_index_forward(locators, a, c, this_stop)
+                nearest_point = nearest_point(locators, b)
+                distance = distance_along_line_to_nearest(route, nearest_point, b)
               end
-              a += 1
-              b = nearest_segment_index_forward(locators, a, c, this_stop)
-              nearest_point = nearest_point(locators, b)
-              distance = distance_along_line_to_nearest(route, nearest_point, b)
             end
+            previous_stop_before_geom = false
           end
         end
 
