@@ -337,6 +337,29 @@ class Stop < BaseStop
   end
 
   ##### FromGTFS ####
+  def generate_onestop_id
+    fail Exception.new('geometry required') if geometry.nil?
+    fail Exception.new('name required') if name.nil?
+    geohash = GeohashHelpers.encode(self[:geometry])
+    name = self.name.gsub(/[\>\<]/, '')
+    if parent_stop
+      parent_onestop_id = OnestopId::StopOnestopId.new(
+        string: parent_stop.onestop_id || parent_stop.generate_onestop_id
+      )
+      onestop_id = OnestopId::StopOnestopId.new(
+        geohash: parent_onestop_id.geohash,
+        name: "#{parent_onestop_id.name}<#{name}"
+      )
+    else
+      onestop_id = OnestopId.handler_by_model(self.class).new(
+        geohash: geohash,
+        name: name
+      )
+    end
+    onestop_id.validate!
+    onestop_id.to_s
+  end
+
   include FromGTFS
   def self.from_gtfs(entity, attrs={})
     # GTFS Constructor

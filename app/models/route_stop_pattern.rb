@@ -302,6 +302,18 @@ class RouteStopPattern < BaseRouteStopPattern
 
 
   ##### FromGTFS ####
+  def generate_onestop_id
+    fail Exception.new('route required') unless self.route
+    fail Exception.new('stop_pattern required') unless self.stop_pattern.presence
+    fail Exception.new('geometry required') unless self.geometry
+    onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(
+     route_onestop_id: self.route.onestop_id,
+     stop_pattern: self.stop_pattern,
+     geometry_coords: self.geometry[:coordinates]
+    )
+    onestop_id.to_s
+  end
+
   def self.create_from_gtfs(trip, route_onestop_id, stop_pattern, trip_stop_points, shape_points)
     # both trip_stop_points and stop_pattern correspond to stop_times.
     # GTFSGraph should already filter out stop_times of size 0 or 1 (using filter_empty).
