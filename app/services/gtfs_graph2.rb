@@ -44,11 +44,11 @@ class GTFSGraph2
         log "\tGTFS_ROUTE: #{gtfs_route.route_id}"
 
         # Trips: Pass 1: Create Stops
-        tl_route_stops = Set.new
+        tl_route_stops = []
         tl_trip_stops = {}
         gtfs_route.trips.each do |gtfs_trip|
           log "\t\tGTFS_TRIP: #{gtfs_trip.trip_id}"
-          tl_trip_stops[gtfs_trip] = Set.new
+          tl_trip_stops[gtfs_trip] = []
           # Stops
           gtfs_trip.stops.each do |gtfs_stop|
             log "\t\t\tGTFS_STOP: #{gtfs_stop.stop_id}"
@@ -59,16 +59,11 @@ class GTFSGraph2
         end
 
         # Create Route
-        tl_route = find_or_initialize_route(gtfs_route, tl_stops: tl_route_stops)
-        tl_route.serves = tl_route_stops
-        # tl_route.served_by = tl_operator
+        tl_route = find_or_initialize_route(gtfs_route, serves: tl_route_stops.uniq, operated_by: tl_operator)
 
         # Trips: Pass 2: Create RSPs
-        tl_route_rsps = Set.new
         gtfs_route.trips.each do |gtfs_trip|
-          tl_rsp = find_or_initialize_rsp(gtfs_trip, tl_stops: tl_trip_stops[gtfs_trip])
-          tl_rsp.traversed_by = tl_route
-          tl_route_rsps << tl_rsp
+          tl_rsp = find_or_initialize_rsp(gtfs_trip, serves: tl_trip_stops[gtfs_trip], traversed_by: tl_route)
         end
 
       end
@@ -77,17 +72,18 @@ class GTFSGraph2
 
   def post_process
     # Convert associations
-    @entity_tl.each do |gtfs_entity,tl_entity|
-      if tl_entity.instance_of?(Route)
-        tl_entity.serves = tl_entity.serves.map(&:onestop_id).uniq
-      elsif tl_entity.instance_of?(Operator)
-        tl_entity.serves = tl_entity.serves.map(&:onestop_id).uniq
-      elsif tl_entity.instance_of?(RouteStopPattern)
-        tl_entity.traversed_by = tl_entity.traversed_by.onestop_id
-        tl_entity.stop_pattern = tl_entity.serves.map(&:onestop_id)
-      end
-      binding.pry unless tl_entity.valid?
-    end
+    # @entity_tl.values.to_set.each do |tl_entity|
+    #   if tl_entity.instance_of?(StopPlatform)
+    #     # tl_entity.parent_stop_onestop_id = tl_entity.parent_stop.onestop_id
+    #   elsif tl_entity.instance_of?(Route)
+    #     tl_entity.serves = tl_entity.serves.map(&:onestop_id).uniq
+    #     tl_entity.operated_by = tl_entity.operated_by.onestop_id
+    #   elsif tl_entity.instance_of?(Operator)
+    #     tl_entity.serves = tl_entity.serves.map(&:onestop_id).uniq
+    #   elsif tl_entity.instance_of?(RouteStopPattern)
+    #     tl_entity.traversed_by = tl_entity.traversed_by.onestop_id
+    #   end
+    # end
   end
 
   def create_changeset
@@ -96,8 +92,7 @@ class GTFSGraph2
       imported_from_feed: @feed,
       imported_from_feed_version: @feed_version
     )
-    # changeset.create_change_payloads(@entity_tl.values)
-    @entity_tl.values.each { |i| puts i.onestop_id; changeset.create_change_payloads([i]) }
+    changeset.create_change_payloads(@entity_tl.values.to_set)
     changeset
   end
 
@@ -123,23 +118,6 @@ class GTFSGraph2
     tl_entity.add_imported_from_feeds << {feedVersion: @feed_version.sha1, gtfsId: gtfs_entity.id}
   end
 
-  # def check_cache(gtfs_entity)
-  #   # Check cache
-  #   tl_entity = @entity_tl[gtfs_entity]
-  #   if tl_entity
-  #     # log "FOUND: #{tl_entity}"
-  #     return tl_entity
-  #   end
-  # end
-
-  # def update_cache(tl_entity, gtfs_entity)
-  #   tl_entity.onestop_id = tl_entity.generate_onestop_id
-  #   tl_entity = @onestop_tl[tl_entity.onestop_id] || tl_entity
-  #   @onestop_tl[tl_entity.onestop_id] = tl_entity
-  #   @entity_tl[gtfs_entity] = tl_entity
-  #   tl_entity
-  # end
-
   def find_or_initialize_stop(gtfs_entity, operator_timezone: nil)
     # Check cache
     tl_entity = @entity_tl[gtfs_entity]
@@ -154,7 +132,8 @@ class GTFSGraph2
       # log "FOUND EIFF: #{tl_entity}"
     elsif gtfs_entity.parent_station.present?
       tl_entity = StopPlatform.new
-      tl_entity.parent_stop = find_or_initialize_stop(@gtfs.stop(gtfs_entity.parent_station), operator_timezone: operator_timezone)
+      parent_stop = find_or_initialize_stop(@gtfs.stop(gtfs_entity.parent_station), operator_timezone: operator_timezone)
+      tl_entity.parent_stop_onestop_id = parent_stop
       log "NEW: #{tl_entity}"
     else
       tl_entity = Stop.new
@@ -185,7 +164,7 @@ class GTFSGraph2
     tl_entity
   end
 
-  def find_or_initialize_route(gtfs_entity, tl_stops: [])
+  def find_or_initialize_route(gtfs_entity, serves: [], operated_by: nil)
     # Check cache
     tl_entity = @entity_tl[gtfs_entity]
     if tl_entity
@@ -210,7 +189,6 @@ class GTFSGraph2
         [[-74.1851806640625,40.81588791441588],[-74.00665283203124,40.83251504043271],[-73.948974609375,40.7909394098518],[-73.8006591796875,40.751418432997426],[-73.4326171875,40.79301881008675]]
       ]
     }
-    tl_entity.serves = tl_stops
     tl_entity.geometry = geojson
     tl_entity.name = [gtfs_entity.route_short_name, gtfs_entity.route_long_name, gtfs_entity.id, "unknown"].select(&:present?).first
     tl_entity.vehicle_type = gtfs_entity.route_type.to_i
@@ -227,6 +205,10 @@ class GTFSGraph2
     tl_entity.wheelchair_accessible = :unknown
     tl_entity.bikes_allowed = :unknown
 
+    # Relations
+    tl_entity.operated_by = operated_by.onestop_id
+    tl_entity.serves = serves.uniq.map(&:onestop_id)
+
     # Update cache
     tl_entity.onestop_id = tl_entity.generate_onestop_id
     tl_entity = @onestop_tl[tl_entity.onestop_id] || tl_entity
@@ -240,14 +222,13 @@ class GTFSGraph2
     tl_entity
   end
 
-  def find_or_initialize_rsp(gtfs_entity, tl_stops: [])
+  def find_or_initialize_rsp(gtfs_entity, serves: [], traversed_by: nil)
     # Check cache
-    stop_pattern = tl_stops
     stop_distances = []
     shape_line = @gtfs.shape_line(gtfs_entity.shape_id)
-    shape_points = tl_stops.map(&:coordinates)
+    shape_points = serves.map(&:coordinates)
     geometry = RouteStopPattern.line_string(shape_line || shape_points)
-    rsp_key = [geometry, stop_pattern]
+    rsp_key = [geometry, serves]
     tl_entity = @entity_tl[rsp_key]
     if tl_entity
       # log "FOUND: #{tl_entity}"
@@ -264,11 +245,15 @@ class GTFSGraph2
     end
 
     # Update
-    tl_entity.serves = tl_stops
-    tl_entity.stop_distances = [nil]*tl_stops.size
+    tl_entity.stop_distances = [0.0]*serves.size
     tl_entity.geometry = geometry
     tl_entity.geometry_source = shape_line.shape_dist_traveled.all? ? :shapes_txt_with_dist_traveled : :shapes_txt
     tl_entity.tags = {}
+
+    # Relations
+    tl_entity.serves = serves.uniq.map(&:onestop_id)
+    tl_entity.stop_pattern = serves.map(&:onestop_id)
+    tl_entity.traversed_by = traversed_by.onestop_id
 
     # Update cache
     tl_entity.onestop_id = tl_entity.generate_onestop_id
