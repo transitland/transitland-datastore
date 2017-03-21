@@ -172,18 +172,31 @@ class RouteStopPattern < BaseRouteStopPattern
   def gtfs_shape_dist_traveled(stop_times, tl_stops, shape_distances_traveled)
     # assumes stop times and shapes BOTH have shape_dist_traveled, and they're in the same units
     # assumes the line geometry is not generated, and shape_points equals the rsp geometry.
+    # TODO consider using a more efficient search method?
     self.stop_distances = []
     stop_times.each_with_index do |st, i|
       stop_onestop_id = self.stop_pattern[i]
       # Find segment along shape points where stop shape_dist_traveled is between the two shape points' shape_dist_traveled
-      dist1, dist2 = shape_distances_traveled.zip(shape_distances_traveled[1..-1]).detect do |d1, d2|
+      seg_index = -1
+      dist1, dist2 = shape_distances_traveled.each_cons(2).detect do |d1, d2|
+        seg_index += 1
         st.shape_dist_traveled.to_f >= d1 && st.shape_dist_traveled.to_f <= d2
       end
-      seg_index = shape_distances_traveled.index(dist1) # distances should always be increasing
-      cartesian_line = cartesian_cast(self[:geometry])
-      stop = tl_stops[i]
-      nearest_point_on_line = cartesian_line.closest_point_on_segment(cartesian_cast(stop[:geometry]), seg_index)
-      self.stop_distances << distance_along_line_to_nearest(cartesian_line, nearest_point_on_line, seg_index)
+
+      if dist1.nil? || dist2.nil?
+        if st.shape_dist_traveled.to_f < shape_distances_traveled[0]
+          self.stop_distances << 0.0
+        elsif st.shape_dist_traveled.to_f > shape_distances_traveled[-1]
+          self.stop_distances << self[:geometry].length
+        else
+          raise StandardError.new("Problem finding stop distance for Stop #{stop_onestop_id}, number #{i + 1} of RSP #{self.onestop_id} using shape_dist_traveled")
+        end
+      else
+        cartesian_line = cartesian_cast(self[:geometry])
+        stop = tl_stops[i]
+        nearest_point_on_line = cartesian_line.closest_point_on_segment(cartesian_cast(stop[:geometry]), seg_index)
+        self.stop_distances << distance_along_line_to_nearest(cartesian_line, nearest_point_on_line, seg_index)
+      end
     end
     self.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
   end
@@ -304,7 +317,7 @@ class RouteStopPattern < BaseRouteStopPattern
     rsp = RouteStopPattern.new(
       stop_pattern: stop_pattern,
     )
-    if shape_points.present?
+    if shape_points.present? && shape_points.size > 1
       rsp.geometry = self.line_string(self.set_precision(shape_points))
       rsp.geometry_source = (stop_times.all?{ |st| st.shape_dist_traveled.present? } && shape_points.shape_dist_traveled.all?(&:present?)) ? :shapes_txt_with_dist_traveled : :shapes_txt
     else
