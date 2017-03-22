@@ -236,25 +236,6 @@ FactoryGirl.define do
     end
   end
 
-  factory :feed_alleghany, parent: :feed, class: Feed do
-    onestop_id 'f-dppc-alleganycountytransit'
-    url 'http://mdtrip.org/googletransit/Allegany/google_transit.zip'
-    version 1
-    after :create do |feed, evaluator|
-      operator = create(
-        :operator,
-        name: 'Allegany County Transit',
-        onestop_id: 'o-dppc-alleganycountytransit',
-        timezone: 'America/New_York',
-        website: 'http://gov.allconet.org/act',
-      )
-      feed.operators_in_feed.create(
-        operator: operator,
-        gtfs_agency_id: 'ACT'
-      )
-    end
-  end
-
   factory :feed_example, parent: :feed, class: Feed do
     onestop_id 'f-9qs-example'
     url 'http://www.bart.gov/dev/schedules/google_transit.zip'
