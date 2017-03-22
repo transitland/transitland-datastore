@@ -255,6 +255,25 @@ FactoryGirl.define do
     end
   end
 
+  factory :feed_marta, parent: :feed, class: Feed do
+    onestop_id 'f-dnh-marta'
+    url 'http://www.itsmarta.com/google_transit_feed/google_transit.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Metropolitan Atlanta Rapid Transit Authority',
+        onestop_id: 'o-dnh-metropolitanatlantarapidtransitauthority',
+        timezone: 'America/New_York',
+        website: 'http://www.google.com',
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: 'MARTA'
+      )
+    end
+  end
+
   factory :feed_seattle_childrens, parent: :feed, class: Feed do
     onestop_id 'f-c23p1-seattlechildrenshospitalshuttle'
     url 'http://example.com/gtfs.zip'
