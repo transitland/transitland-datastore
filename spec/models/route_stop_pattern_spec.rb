@@ -83,9 +83,12 @@ describe RouteStopPattern do
     it 'can be created when trip has two stop times and only one unique stop' do
       trip = GTFS::Trip.new(trip_id: 'test', shape_id: 'test')
       sp = [stop_1.onestop_id, stop_1.onestop_id]
+      stop_time1 = GTFS::StopTime.new(trip_id: trip.trip_id, arrival_time: "01:00:00", departure_time: "01:00:00", stop_id: 'A', stop_sequence: "1")
+      stop_time2 = GTFS::StopTime.new(trip_id: trip.trip_id, arrival_time: "02:00:00", departure_time: "02:00:00", stop_id: 'B', stop_sequence: "2")
+      stop_times = [stop_time1, stop_time2]
       trip_stop_points = [[-122.401811, 37.706675],[-122.401811, 37.706675]]
       shape_points = []
-      rsp = RouteStopPattern.create_from_gtfs(trip, 'r-9q9j-bullet', sp, trip_stop_points, shape_points)
+      rsp = RouteStopPattern.create_from_gtfs(trip, 'r-9q9j-bullet', sp, stop_times, trip_stop_points, shape_points)
       expect(rsp.geometry[:coordinates]).to eq [[-122.40181, 37.70667],[-122.40181, 37.70667]]
       expect(rsp.calculate_distances).to eq [0.0,0.0]
     end
@@ -96,13 +99,20 @@ describe RouteStopPattern do
       shape_line1 = GTFS::ShapeLine.from_shapes(stops.each_with_index.map { |stop, i| GTFS::Shape.new(shape_id: '123', shape_pt_sequence: i, shape_pt_lon: stop.geometry(as: :wkt).lon, shape_pt_lat: stop.geometry(as: :wkt).lat) })
       shape_line2 = GTFS::ShapeLine.from_shapes(stops.each_with_index.map { |stop, i| GTFS::Shape.new(shape_id: '123', shape_pt_sequence: i, shape_pt_lon: stop.geometry(as: :wkt).lon, shape_pt_lat: stop.geometry(as: :wkt).lat, shape_dist_traveled: i) })
       stop_pattern = stops.map(&:onestop_id)
+      stop_time1 = GTFS::StopTime.new(trip_id: trip.trip_id, arrival_time: "01:00:00", departure_time: "01:00:00", stop_id: 'A', stop_sequence: "1")
+      stop_time2 = GTFS::StopTime.new(trip_id: trip.trip_id, arrival_time: "02:00:00", departure_time: "02:00:00", stop_id: 'B', stop_sequence: "2")
+      stop_times = [stop_time1, stop_time2]
       trip_stop_points = [[-122.401811, 37.706675],[-122.401811, 37.706675]]
       # Check
-      rsp = RouteStopPattern.create_from_gtfs(trip, 'r-9q9j-bullet', stop_pattern, trip_stop_points, [])
+      rsp = RouteStopPattern.create_from_gtfs(trip, 'r-9q9j-bullet', stop_pattern, stop_times, trip_stop_points, [])
       expect(rsp.geometry_source).to eq :trip_stop_points
-      rsp = RouteStopPattern.create_from_gtfs(trip, 'r-9q9j-bullet', stop_pattern, trip_stop_points, shape_line1)
+      rsp = RouteStopPattern.create_from_gtfs(trip, 'r-9q9j-bullet', stop_pattern, stop_times, trip_stop_points, shape_line1)
       expect(rsp.geometry_source).to eq :shapes_txt
-      rsp = RouteStopPattern.create_from_gtfs(trip, 'r-9q9j-bullet', stop_pattern, trip_stop_points, shape_line2)
+
+      # Both shapes and stop_times must have shape_dist_traveled to be effective
+      stop_time1.shape_dist_traveled = "0.0"
+      stop_time2.shape_dist_traveled = "1.0" # using a fake distance
+      rsp = RouteStopPattern.create_from_gtfs(trip, 'r-9q9j-bullet', stop_pattern, stop_times, trip_stop_points, shape_line2)
       expect(rsp.geometry_source).to eq :shapes_txt_with_dist_traveled
     end
 
@@ -203,15 +213,42 @@ describe RouteStopPattern do
       @trip = GTFS::Trip.new(trip_id: 'test', shape_id: 'test')
     end
 
-    it '#shape_dist_traveled' do
-      feed, feed_version = load_feed(feed_version_name: :feed_version_nj_path, import_level: 1)
-      gtfs = GTFS::Source.build(feed_version.file.file.file)
-      rsp = feed.imported_route_stop_patterns.first
-      tl_stops = rsp.stop_pattern.map{ |stop_onestop_id| Stop.find_by_onestop_id!(stop_onestop_id) }
-      trip = gtfs.trips.detect{|trip| trip.id == rsp.trips.first}
-      trip_stop_times = []
-      gtfs.trip_stop_times(trips=[trip]){ |trip, stop_times| trip_stop_times = stop_times }
-      expect(rsp.gtfs_shape_dist_traveled(trip_stop_times, tl_stops, gtfs.shape_line(trip.shape_id).shape_dist_traveled)).to match_array([0.0, 1166.3, 2507.7, 4313.8])
+    context '#shape_dist_traveled' do
+      it '#shape_dist_traveled' do
+        # this feed also contains duplicated shape points to test seg_index incrementing
+        feed, feed_version = load_feed(feed_version_name: :feed_version_nj_path, import_level: 1)
+        gtfs = GTFS::Source.build(feed_version.file.file.file)
+        rsp = feed.imported_route_stop_patterns.first
+        tl_stops = rsp.stop_pattern.map{ |stop_onestop_id| Stop.find_by_onestop_id!(stop_onestop_id) }
+        trip = gtfs.trips.detect{|trip| trip.id == rsp.trips.first}
+        trip_stop_times = []
+        gtfs.trip_stop_times(trips=[trip]){ |trip, stop_times| trip_stop_times = stop_times }
+        expect(rsp.gtfs_shape_dist_traveled(trip_stop_times, tl_stops, gtfs.shape_line(trip.shape_id).shape_dist_traveled)).to match_array([0.0, 1166.3, 2507.7, 4313.8])
+      end
+
+      it 'sets stop distance to the geometry length when stop_time\'s shape_dist_traveled is greater than the last shape point' do
+        # the last stop time of trip 636342A5394B6507 is set to "3.0" in the GTFS, greater than "2.677" in shapes.txt
+        feed, feed_version = load_feed(feed_version_name: :feed_version_nj_path_last_stop_past_edge, import_level: 1)
+        gtfs = GTFS::Source.build(feed_version.file.file.file)
+        expect(RouteStopPattern.first.stop_distances).to match_array([0.0, 1166.3, 2507.7, 4313.8])
+        expect(RouteStopPattern.first[:geometry].length).to be_within(0.1).of(4313.8)
+        expect(RouteStopPattern.last.stop_distances).to match_array([0.0, 1805.2, 3145.8, 4320.6])
+        expect(RouteStopPattern.last[:geometry].length).to be_within(0.1).of(4320.6)
+      end
+
+      it 'sets stop distance to 0.0 when stop_time\'s shape_dist_traveled is less than the first shape point' do
+        # the first shape point of trip 636342A5394B6507 is set to "0.10" while the first stop time dist is 0.0
+        feed, feed_version = load_feed(feed_version_name: :feed_version_nj_path_first_stop_before_edge, import_level: 1)
+        gtfs = GTFS::Source.build(feed_version.file.file.file)
+        expect(RouteStopPattern.first.stop_distances).to match_array([0.0, 1166.3, 2507.7, 4313.8])
+        expect(RouteStopPattern.last.stop_distances).to match_array([0.0, 1805.2, 3145.8, 4320.6])
+      end
+    end
+
+    it 'no distance issues with RSPs generated from trip stop points' do
+      feed, feed_version = load_feed(feed_version_name: :feed_version_seattle_childrens, import_level: 1)
+      expect(RouteStopPattern.find_by_onestop_id!('r-c23p1-sch~gold-10c68e-2ef1dd').stop_distances).to match_array([a_value_within(0.1).of(0.0), a_value_within(0.1).of(2070.3), a_value_within(0.1).of(4140.7)])
+      expect(Issue.where(issue_type: 'distance_calculation_inaccurate').size).to eq 0
     end
 
     it '#fallback_distances' do
