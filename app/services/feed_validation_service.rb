@@ -2,7 +2,7 @@ class FeedValidationService
   include Singleton
 
   GOOGLE_VALIDATOR_PATH = './virtualenv/bin/feedvalidator.py'
-  CONVEYAL_VALIDATOR_PATH = './bin/gtfs-lib.jar'
+  CONVEYAL_VALIDATOR_PATH = './lib/conveyal-gtfs-lib/gtfs-lib.jar'
 
   def self.run_conveyal_validator(filename)
     outfile = nil
