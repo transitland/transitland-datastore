@@ -72,18 +72,18 @@ class GTFSGraph2
 
   def post_process
     # Convert associations
-    # @entity_tl.values.to_set.each do |tl_entity|
-    #   if tl_entity.instance_of?(StopPlatform)
-    #     # tl_entity.parent_stop_onestop_id = tl_entity.parent_stop.onestop_id
-    #   elsif tl_entity.instance_of?(Route)
-    #     tl_entity.serves = tl_entity.serves.map(&:onestop_id).uniq
-    #     tl_entity.operated_by = tl_entity.operated_by.onestop_id
-    #   elsif tl_entity.instance_of?(Operator)
-    #     tl_entity.serves = tl_entity.serves.map(&:onestop_id).uniq
-    #   elsif tl_entity.instance_of?(RouteStopPattern)
-    #     tl_entity.traversed_by = tl_entity.traversed_by.onestop_id
-    #   end
-    # end
+    @entity_tl.values.to_set.each do |tl_entity|
+      if tl_entity.instance_of?(StopPlatform)
+        tl_entity.parent_stop_onestop_id = tl_entity.parent_stop.onestop_id
+      elsif tl_entity.instance_of?(Route)
+        tl_entity.serves = tl_entity.serves.map(&:onestop_id).uniq
+        tl_entity.operated_by = tl_entity.operated_by.onestop_id
+      elsif tl_entity.instance_of?(Operator)
+        tl_entity.serves = tl_entity.serves.map(&:onestop_id).uniq
+      elsif tl_entity.instance_of?(RouteStopPattern)
+        tl_entity.traversed_by = tl_entity.traversed_by.onestop_id
+      end
+    end
   end
 
   def create_changeset
@@ -132,8 +132,7 @@ class GTFSGraph2
       # log "FOUND EIFF: #{tl_entity}"
     elsif gtfs_entity.parent_station.present?
       tl_entity = StopPlatform.new
-      parent_stop = find_or_initialize_stop(@gtfs.stop(gtfs_entity.parent_station), operator_timezone: operator_timezone)
-      tl_entity.parent_stop_onestop_id = parent_stop
+      tl_entity.parent_stop = find_or_initialize_stop(@gtfs.stop(gtfs_entity.parent_station), operator_timezone: operator_timezone)
       log "NEW: #{tl_entity}"
     else
       tl_entity = Stop.new
@@ -206,8 +205,8 @@ class GTFSGraph2
     tl_entity.bikes_allowed = :unknown
 
     # Relations
-    tl_entity.operated_by = operated_by.onestop_id
-    tl_entity.serves = serves.uniq.map(&:onestop_id)
+    tl_entity.operated_by = operated_by
+    tl_entity.serves = serves
 
     # Update cache
     tl_entity.onestop_id = tl_entity.generate_onestop_id
@@ -251,16 +250,16 @@ class GTFSGraph2
     tl_entity.tags = {}
 
     # Relations
-    tl_entity.serves = serves.uniq.map(&:onestop_id)
+    tl_entity.serves = serves
     tl_entity.stop_pattern = serves.map(&:onestop_id)
-    tl_entity.traversed_by = traversed_by.onestop_id
+    tl_entity.traversed_by = traversed_by
 
     # Update cache
     tl_entity.onestop_id = tl_entity.generate_onestop_id
     tl_entity = @onestop_tl[tl_entity.onestop_id] || tl_entity
     @onestop_tl[tl_entity.onestop_id] = tl_entity
     @entity_tl[gtfs_entity] = tl_entity
-
+    @entity_tl[rsp_key] = tl_entity
     # Update eiff
     add_eiff(tl_entity, gtfs_entity)
 
