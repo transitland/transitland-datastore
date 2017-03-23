@@ -247,7 +247,15 @@ class RouteStopPattern < BaseRouteStopPattern
 
         # The next stop's match may be too early and restrictive, so allow more segment possibilities
         if distance_to_nearest_point(stop_spherical, nearest_point) > FIRST_MATCH_THRESHOLD
-          c = num_segments - 1
+          if (i + 2 < stops.size - 1)
+            next_stop_spherical = stops[i+2]
+            next_stop = cartesian_cast(next_stop_spherical[:geometry])
+            next_stop_locators = route.locators(next_stop)
+            next_candidates = next_stop_locators[a..num_segments-1].map(&:distance_from_segment)
+            c = a + next_candidates.index(next_candidates.min)
+          else
+            c = num_segments - 1
+          end
           b = nearest_segment_index_forward(locators, a, c, this_stop)
           nearest_point = nearest_point(locators, b)
         end
