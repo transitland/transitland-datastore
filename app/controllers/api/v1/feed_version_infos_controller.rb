@@ -15,12 +15,11 @@ class Api::V1::FeedVersionInfosController < Api::V1::BaseApiController
     @feed_version_infos = AllowFiltering.by_primary_key_ids(@feed_version_infos, params)
 
     if params[:feed_version_sha1].present?
-      feed_version_sha1s = params[:feed_version_sha1].split(',')
-      @feed_version_infos = @feed_version_infos.joins(:feed_version).where(feed_version: {sha1: feed_version_sha1s})
+      feed_versions = FeedVersion.where(sha1: params[:feed_version_sha1].split(','))
+      @feed_version_infos = @feed_version_infos.where(feed_version: feed_versions)
     end
 
     @feed_version_infos = @feed_version_infos.includes{[
-      # feed,
       feed_version
     ]}
 
