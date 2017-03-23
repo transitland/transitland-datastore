@@ -4,11 +4,8 @@ class CreateFeedVersionInfos < ActiveRecord::Migration
       t.json :statistics
       t.json :scheduled_service
       t.string :filenames, array: true
+      t.references :feed_version, index: true
       t.timestamps
-    end
-
-    change_table :feed_versions do |t|
-      t.references :feed_version_info, index: true
     end
   end
 end

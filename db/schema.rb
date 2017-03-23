@@ -341,9 +341,12 @@ ActiveRecord::Schema.define(version: 20170315205738) do
     t.json     "statistics"
     t.json     "scheduled_service"
     t.string   "filenames",         array: true
+    t.integer  "feed_version_id"
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  add_index "feed_version_infos", ["feed_version_id"], name: "index_feed_version_infos_on_feed_version_id", using: :btree
 
   create_table "feed_versions", force: :cascade do |t|
     t.integer  "feed_id"
@@ -364,12 +367,10 @@ ActiveRecord::Schema.define(version: 20170315205738) do
     t.string   "sha1_raw"
     t.string   "md5_raw"
     t.string   "file_feedvalidator"
-    t.integer  "feed_version_info_id"
   end
 
   add_index "feed_versions", ["earliest_calendar_date"], name: "index_feed_versions_on_earliest_calendar_date", using: :btree
   add_index "feed_versions", ["feed_type", "feed_id"], name: "index_feed_versions_on_feed_type_and_feed_id", using: :btree
-  add_index "feed_versions", ["feed_version_info_id"], name: "index_feed_versions_on_feed_version_info_id", using: :btree
   add_index "feed_versions", ["latest_calendar_date"], name: "index_feed_versions_on_latest_calendar_date", using: :btree
 
   create_table "issues", force: :cascade do |t|

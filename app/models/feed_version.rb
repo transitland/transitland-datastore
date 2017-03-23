@@ -21,13 +21,11 @@
 #  sha1_raw               :string
 #  md5_raw                :string
 #  file_feedvalidator     :string
-#  feed_version_info_id   :integer
 #
 # Indexes
 #
 #  index_feed_versions_on_earliest_calendar_date  (earliest_calendar_date)
 #  index_feed_versions_on_feed_type_and_feed_id   (feed_type,feed_id)
-#  index_feed_versions_on_feed_version_info_id    (feed_version_info_id)
 #  index_feed_versions_on_latest_calendar_date    (latest_calendar_date)
 #
 
@@ -36,7 +34,7 @@ class FeedVersion < ActiveRecord::Base
   include IsAnEntityWithIssues
 
   belongs_to :feed, polymorphic: true
-  belongs_to :feed_version_info, dependent: :destroy
+  has_many :feed_version_infos, dependent: :destroy
   has_many :feed_version_imports, -> { order 'created_at DESC' }, dependent: :destroy
   has_many :changesets_imported_from_this_feed_version, class_name: 'Changeset'
 
