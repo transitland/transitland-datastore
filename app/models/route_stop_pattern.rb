@@ -231,9 +231,28 @@ class RouteStopPattern < BaseRouteStopPattern
       elsif i == stops.size - 1 && last_stop_after_geom
         self.stop_distances << self[:geometry].length
       else
+        if (i + 1 < stops.size - 1)
+          next_stop_spherical = stops[i+1]
+          next_stop = cartesian_cast(next_stop_spherical[:geometry])
+          next_stop_locators = route.locators(next_stop)
+          next_candidates = next_stop_locators[a..num_segments-1].map(&:distance_from_segment)
+          c = a + next_candidates.index(next_candidates.min)
+          # nearest_segment_index_forward(next_stop_locators, a, num_segments - 1, next_stop)
+        else
+          c = num_segments - 1
+        end
+
         locators = route.locators(this_stop)
         b = nearest_segment_index_forward(locators, a, c, this_stop)
         nearest_point = nearest_point(locators, b)
+
+        # The next stop's match may be too early and restrictive, so allow more segment possibilities
+        if distance_to_nearest_point(stop_spherical, nearest_point) > FIRST_MATCH_THRESHOLD
+          c = num_segments - 1
+          b = nearest_segment_index_forward(locators, a, c, this_stop)
+          nearest_point = nearest_point(locators, b)
+        end
+
         distance = distance_along_line_to_nearest(route, nearest_point, b)
         if (i!=0)
           if (route.before?(stops[i][:geometry]) || outlier_stop(this_stop)) && previous_stop_before_geom
@@ -241,6 +260,7 @@ class RouteStopPattern < BaseRouteStopPattern
           else
             equivalent_stop = stops[i].onestop_id.eql?(stops[i-1].onestop_id) || stops[i][:geometry].eql?(stops[i-1][:geometry])
             if !equivalent_stop && !previous_stop_before_geom
+              # this can happen if this stop matches to the same segment as the previous
               while (distance <= self.stop_distances[i-1])
                 if (a == num_segments - 1)
                   distance = self[:geometry].length

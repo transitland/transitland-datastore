@@ -332,7 +332,7 @@ describe RouteStopPattern do
     end
 
     it 'accurately calculates the distances of nyc staten island ferry 2-stop routes with before/after stops' do
-      @feed, @feed_version = load_feed(feed_version_name: :feed_version_nycdotsiferry, import_level: 2)
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_nycdotsiferry, import_level: 1)
       expect(@feed.imported_route_stop_patterns[0].calculate_distances).to match_array([0.0, 8138.0])
       expect(@feed.imported_route_stop_patterns[1].calculate_distances).to match_array([3.2, 8141.2])
     end
@@ -340,26 +340,26 @@ describe RouteStopPattern do
     it 'accurately calculates the distances of a route with stops along the line that traversed over itself in the opposite direction' do
       # see https://transit.land/documentation/datastore/rome_01_part_1.png
       # and https://transit.land/documentation/datastore/rome_01_part_2.png
-      @feed, @feed_version = load_feed(feed_version_name: :feed_version_rome, import_level: 2)
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_rome, import_level: 1)
       expect(@feed.imported_route_stop_patterns[0].calculate_distances).to match_array([0.6,639.6,817.5,1034.9,1250.2,1424.2,1793.5,1929.2,2162.2,2429.9,2579.6,2735.3,3022.6,3217.8,3407.3,3646.6,3804.4,3969.1,4128.3,4302.6,4482.1,4586.9,4869.5,5242.7,5510.4,5695.6,5871.4,6112.9,6269.6,6334.1,6528.8,6715.4,6863.0,7140.2,7689.8])
     end
 
     it 'accurately calculates the distances of a route with stops along the line that traversed over itself in the opposite direction, but closest match was segment in opposite direction' do
-      @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta_1965654, import_level: 2)
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta_1965654, import_level: 1)
       expect(@feed.imported_route_stop_patterns[0].calculate_distances).to match_array([0.0,1490.8,1818.6,2478.0,2928.5,3167.2,3583.3,4079.4,4360.6,4784.1,4970.5,5168.1,5340.5,5599.0,6023.2,6483.9,6770.0,7469.3])
     end
 
     it 'calculates the first stop distance correctly' do
       # from sfmta route 54 and for regression. case where first stop is not a 'before' stop
       # see https://transit.land/documentation/datastore/first_stop_correct_distance.png
-      @feed, @feed_version = load_feed(feed_version_name: :feed_version_sfmta_6720619, import_level: 2)
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_sfmta_6720619, import_level: 1)
       expect(@feed.imported_route_stop_patterns[0].calculate_distances[0]).to be_within(0.1).of(201.1)
     end
 
     it 'can accurately calculate distances when a stop is repeated.' do
       # from f-9q9-vta, r-9q9k-66.
       # see https://transit.land/documentation/datastore/repeated_stop_vta_66.png
-      @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta_1930705, import_level: 2)
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta_1930705, import_level: 1)
       distances = @feed.imported_route_stop_patterns[0].calculate_distances
       expect(distances[77]).to be > distances[75]
     end
