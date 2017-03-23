@@ -272,6 +272,10 @@ class RouteStopPattern < BaseRouteStopPattern
                 if (a == num_segments - 1)
                   distance = self[:geometry].length
                   break
+                elsif (a == c)
+                  # we should leave the faulty distance here (unless the interpolation tries to correct it)
+                  # because something might be wrong with the RouteStopPattern.
+                  break
                 end
                 a += 1
                 b = nearest_segment_index_forward(locators, a, c, this_stop)
