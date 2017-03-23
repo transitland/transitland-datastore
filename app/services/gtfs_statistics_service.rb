@@ -154,8 +154,9 @@ class GTFSStatisticsService
   def self.create_feed_version_info(feed_version)
     # Generate statistics
     gtfs = feed_version.open_gtfs
-    s = generate_statistics(gtfs)
-    feed_version_info = feed_version.feed_version_infos.create!(s)
+    data = generate_statistics(gtfs)
+    FeedVersionInfo.connection
+    feed_version_info = FeedVersionInfoStatistics.create!(feed_version: feed_version, data: data)
     feed_version_info
   end
 end

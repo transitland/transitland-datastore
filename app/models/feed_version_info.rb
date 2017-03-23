@@ -17,5 +17,12 @@
 
 class FeedVersionInfo < ActiveRecord::Base
   belongs_to :feed_version
-  # belongs_to :feed, through: :feed_version, source_type: 'Feed'
 end
+
+class FeedVersionInfoStatistics < FeedVersionInfo
+end
+
+class FeedVersionInfoConveyalValidation < FeedVersionInfo
+end
+
+FeedVersionInfo.connection
