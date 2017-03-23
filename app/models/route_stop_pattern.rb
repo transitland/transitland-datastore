@@ -237,7 +237,6 @@ class RouteStopPattern < BaseRouteStopPattern
           next_stop_locators = route.locators(next_stop)
           next_candidates = next_stop_locators[a..num_segments-1].map(&:distance_from_segment)
           c = a + next_candidates.index(next_candidates.min)
-          # nearest_segment_index_forward(next_stop_locators, a, num_segments - 1, next_stop)
         else
           c = num_segments - 1
         end

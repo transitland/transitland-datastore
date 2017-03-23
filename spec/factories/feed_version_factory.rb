@@ -86,6 +86,11 @@ FactoryGirl.define do
       association :feed, factory: :feed_sfmta
     end
 
+    factory :feed_version_grand_river_1426033 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/grand-river-trip-1426033.zip')) }
+      association :feed, factory: :feed_grand_river
+    end
+
     factory :feed_version_nycdotsiferry do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/siferry-gtfs.zip')) }
       association :feed, factory: :feed_nycdotsiferry
