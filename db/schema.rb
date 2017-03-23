@@ -338,9 +338,8 @@ ActiveRecord::Schema.define(version: 20170315205738) do
   add_index "feed_version_imports", ["feed_version_id"], name: "index_feed_version_imports_on_feed_version_id", using: :btree
 
   create_table "feed_version_infos", force: :cascade do |t|
-    t.json     "statistics"
-    t.json     "scheduled_service"
-    t.string   "filenames",         array: true
+    t.string   "type"
+    t.json     "data"
     t.integer  "feed_version_id"
     t.datetime "created_at"
     t.datetime "updated_at"
