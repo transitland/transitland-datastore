@@ -293,6 +293,25 @@ FactoryGirl.define do
     end
   end
 
+  factory :feed_hdpt, parent: :feed, class: Feed do
+    onestop_id 'f-dnzft-harrisonburgdepartmentofpublictransportation'
+    url 'https://www.harrisonburgva.gov/sites/default/files/Transit/google_transit.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Harrisonburg Department of Public Transportation',
+        onestop_id: 'o-dnzft-harrisonburgdepartmentofpublictransportation',
+        timezone: 'America/New_York',
+        website: 'http://www.hdpt.com',
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: 'HDPT'
+      )
+    end
+  end
+
   factory :feed_seattle_childrens, parent: :feed, class: Feed do
     onestop_id 'f-c23p1-seattlechildrenshospitalshuttle'
     url 'http://example.com/gtfs.zip'
