@@ -6,5 +6,6 @@ class CreateFeedVersionInfos < ActiveRecord::Migration
       t.references :feed_version, index: true
       t.timestamps
     end
+    add_index :feed_version_infos, [:feed_version_id, :type], unique: true
   end
 end

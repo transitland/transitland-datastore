@@ -345,6 +345,7 @@ ActiveRecord::Schema.define(version: 20170315205738) do
     t.datetime "updated_at"
   end
 
+  add_index "feed_version_infos", ["feed_version_id", "type"], name: "index_feed_version_infos_on_feed_version_id_and_type", unique: true, using: :btree
   add_index "feed_version_infos", ["feed_version_id"], name: "index_feed_version_infos_on_feed_version_id", using: :btree
 
   create_table "feed_versions", force: :cascade do |t|
