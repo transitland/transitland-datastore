@@ -156,7 +156,8 @@ class GTFSStatisticsService
     gtfs = feed_version.open_gtfs
     data = generate_statistics(gtfs)
     FeedVersionInfo.connection
-    feed_version_info = FeedVersionInfoStatistics.create!(feed_version: feed_version, data: data)
-    feed_version_info
+    # Remove previous
+    feed_version.feed_version_infos.where(type: 'FeedVersionInfoStatistics').delete_all
+    feed_version.feed_version_infos.create!(type: 'FeedVersionInfoStatistics', data: data)
   end
 end
