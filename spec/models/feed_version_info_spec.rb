@@ -20,6 +20,7 @@ describe FeedVersionInfo do
   it 'one type per FeedVersion' do
     fv = create(:feed_version)
     create(:feed_version_info, feed_version: fv, type: 'FeedVersionInfoStatistics')
+    create(:feed_version_info, feed_version: fv, type: 'FeedVersionInfoConveyalValidation')
     expect {
       create(:feed_version_info, feed_version: fv, type: 'FeedVersionInfoStatistics')
     }.to raise_error(ActiveRecord::RecordInvalid)
