@@ -122,25 +122,30 @@ class RouteStopPattern < BaseRouteStopPattern
   end
 
   def nearest_segment_index_forward(locators, s, e, point)
+    # the method is 'forward' since it's going along the line's direction to find the closest match.
+
     closest_point_candidates = locators[s..e].map{ |loc| loc.interpolate_point(Stop::GEOFACTORY) }
     closest_point_and_dist = closest_point_candidates.map{ |closest_point|
       [closest_point, closest_point.distance(point)]
     }.detect { |closest_point_and_dist| closest_point_and_dist[1] < FIRST_MATCH_THRESHOLD }
 
+    # Since the first match is within FIRST_MATCH_THRESHOLD, it might not be the best (closest)
+    # within the search range s through e.
+    # So here we're walking up the line until we can't find a closer match - the next local minimum.
     unless closest_point_and_dist.nil?
       dist = closest_point_and_dist[1]
       i = closest_point_candidates.index(closest_point_and_dist[0])
-      if i != locators[s..e].size - 1
-        next_seg_dist = locators[s..e][i+1].interpolate_point(Stop::GEOFACTORY).distance(point)
-        while next_seg_dist < dist
-          i += 1
-          dist = next_seg_dist
-          break if i == locators[s..e].size - 1
-          next_seg_dist = locators[s..e][i+1].interpolate_point(Stop::GEOFACTORY).distance(point)
-        end
+      next_seg_dist = -1
+      while next_seg_dist < dist
+        break if i == locators[s..e].size - 1
+        i += 1
+        next if locators[s..e][i].segment.single_point?
+        next_seg_dist = locators[s..e][i].interpolate_point(Stop::GEOFACTORY).distance(point)
+        dist = next_seg_dist
       end
       return s + i
     end
+    # If no match is found within the threshold, just take closest match wthin the search range.
     a = locators[s..e].map(&:distance_from_segment)
     s + a.index(a.min)
   end

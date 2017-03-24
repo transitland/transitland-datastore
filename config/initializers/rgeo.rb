@@ -42,6 +42,10 @@ module RGeo
       def locator(target)
         PointLocator.new target, self
       end
+
+      def single_point?
+        return self.s.eql?(self.e) ? true : false
+      end
     end
 
     class PointLocator
