@@ -117,7 +117,7 @@ class RouteStopPattern < BaseRouteStopPattern
     points.map { |c| c.map { |n| n.round(COORDINATE_PRECISION) } }
   end
 
-  def nearest_point(locators, nearest_seg_index)
+  def find_nearest_point(locators, nearest_seg_index)
     locators[nearest_seg_index].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326))
   end
 
@@ -248,7 +248,7 @@ class RouteStopPattern < BaseRouteStopPattern
 
         locators = route.locators(this_stop)
         b = nearest_segment_index_forward(locators, a, c, this_stop)
-        nearest_point = nearest_point(locators, b)
+        nearest_point = find_nearest_point(locators, b)
 
         # The next stop's match may be too early and restrictive, so allow more segment possibilities
         if distance_to_nearest_point(stop_spherical, nearest_point) > FIRST_MATCH_THRESHOLD
@@ -262,7 +262,7 @@ class RouteStopPattern < BaseRouteStopPattern
             c = num_segments - 1
           end
           b = nearest_segment_index_forward(locators, a, c, this_stop)
-          nearest_point = nearest_point(locators, b)
+          nearest_point = find_nearest_point(locators, b)
         end
 
         distance = distance_along_line_to_nearest(route, nearest_point, b)
@@ -284,7 +284,7 @@ class RouteStopPattern < BaseRouteStopPattern
                 end
                 a += 1
                 b = nearest_segment_index_forward(locators, a, c, this_stop)
-                nearest_point = nearest_point(locators, b)
+                nearest_point = find_nearest_point(locators, b)
                 distance = distance_along_line_to_nearest(route, nearest_point, b)
               end
             end

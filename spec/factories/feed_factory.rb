@@ -312,6 +312,25 @@ FactoryGirl.define do
     end
   end
 
+  factory :feed_pvta, parent: :feed, class: Feed do
+    onestop_id 'f-drk-pvta'
+    url 'http://www.pvta.com/g_trans/google_transit.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Pioneer Valley Transit Authority',
+        onestop_id: 'o-drk-pvta',
+        timezone: 'America/New_York',
+        website: 'http://www.pvta.com',
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: 'SATCo'
+      )
+    end
+  end
+
   factory :feed_seattle_childrens, parent: :feed, class: Feed do
     onestop_id 'f-c23p1-seattlechildrenshospitalshuttle'
     url 'http://example.com/gtfs.zip'
