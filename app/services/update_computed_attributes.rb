@@ -80,10 +80,10 @@ class UpdateComputedAttributes::GeometryUpdateComputedAttributes < UpdateCompute
       @old_issues_to_deprecate.merge(Issue.issues_of_entity(rsp, entity_attributes: ["stop_distances"]))
 
       begin
-        rsp.update_making_history(changeset: @changeset, new_attrs: { stop_distances: rsp.calculate_distances })
+        rsp.update_making_history(changeset: @changeset, new_attrs: { stop_distances: DistanceCalculation::calculate_distances(rsp) })
       rescue StandardError
         log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
-        rsp.update_making_history(changeset: @changeset, new_attrs: { stop_distances: rsp.fallback_distances })
+        rsp.update_making_history(changeset: @changeset, new_attrs: { stop_distances: DistanceCalculation::fallback_distances(rsp) })
       end
 
       rsp.ordered_ssp_trip_chunks { |trip_chunk|
