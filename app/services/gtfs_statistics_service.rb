@@ -115,8 +115,8 @@ class GTFSStatisticsService
     now = service_start
     until now >= service_end
       sps = service_periods.select { |i| i.service_on_date?(now) }
-      sps_trips = sps.map { |i| trip_service_ids[i.id] }.flatten
-      sps_trip_times = sps_trips.map { |i| trip_durations[i] * frequency_multiplier.fetch(i, 1) }
+      sps_trips = sps.map { |i| trip_service_ids.fetch(i.id, []) }.flatten
+      sps_trip_times = sps_trips.map { |i| trip_durations.fetch(i, 0) * frequency_multiplier.fetch(i, 1) }
       sps_service_time = sps_trip_times.flatten.sum
       # puts "DATE: #{now} SERVICE PERIODS: #{sps.map(&:id)} TRIPS: #{sps_trips.size} TRIP TIMES: #{sps_trip_times.size} SERVICE TIME: #{sps_service_time}"
       key = now.strftime('%Y-%m-%d')
