@@ -35,6 +35,7 @@ Rails.application.routes.draw do
         end
       end
       resources :feed_versions, only: [:index, :show, :update]
+      resources :feed_version_infos, only: [:index, :show]
       resources :feed_version_imports, only: [:index, :show]
       resources :issues, only: [:index, :show, :create, :update, :destroy] do
         collection do

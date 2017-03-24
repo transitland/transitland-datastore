@@ -120,6 +120,7 @@ class FeedFetcherService
       feed_version.update!(data)
       # Enqueue validators
       FeedValidationWorker.perform_async(feed_version.sha1)
+      GTFSStatisticsWorker.perform_async(feed_version.sha1)
     end
     # Return the found or created feed_version
     feed_version
