@@ -193,7 +193,7 @@ describe RouteStopPattern do
     }
     expect(chunks).to match_array([[ssp_1a, ssp_1b],[ssp_2a, ssp_2b]])
   end
-
+  
   context 'without shape or shape points' do
     it 'generated RSP geometries from stop points when no shapes' do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_no_shapes, import_level: 1)
