@@ -315,7 +315,7 @@ describe RouteStopPattern do
       target_point = @rsp.cartesian_cast(Stop::GEOFACTORY.point(-121.9664615, 37.36))
       locators = cartesian_line.locators(target_point)
       i = @rsp.nearest_segment_index_forward(locators, 0, locators.size-1, target_point)
-      nearest_point = @rsp.nearest_point(locators, i)
+      nearest_point = @rsp.find_nearest_point(locators, i)
       expect(@rsp.distance_along_line_to_nearest(cartesian_line, nearest_point, i)).to be_within(0.1).of(6508.84)
     end
 
@@ -523,7 +523,7 @@ describe RouteStopPattern do
 
     it 'can calculate distances for a closed loop shape where first and last stops are near each other' do
       feed, feed_version = load_feed(feed_version_name: :feed_version_grand_river_1426033, import_level: 1)
-      expect(RouteStopPattern.first.stop_distances).to match_array([0.8,616.9,939.8,1381.0,1720.0,2001.1,2245.9,2512.0,2893.3,3387.2,3696.1,4020.1,4158.2,4534.9,5060.1,5354.3,5975.7,6496.3,7200.5,7361.4,7676.4,8228.6,8821.3,9169.3,9922.9,10116.2,10278.6,10650.2,11044.9,11170.4,11642.8,12021.2,12465.0,12796.4,13324.0,13557.6,13852.8,14470.1,14719.8,15156.2,15615.4,15754.6,16002.9,16451.2,16989.7,17266.0,17507.5,17783.1,18193.5,18394.9,18809.7,19063.5,19319.6,19500.8,19920.9,20517.5])
+      expect(RouteStopPattern.first.stop_distances).to match_array([0.8,616.9,939.8,1381.0,1720.0,2001.1,2245.9,2512.0,2893.3,3387.2,3696.1,4020.1,4158.2,4534.9,5060.1,5354.3,5975.7,6496.3,7200.5,7361.4,7676.4,8228.6,8821.3,9169.3,9922.9,10116.2,10278.6,10650.2,11044.9,11170.4,11642.8,12021.2,12465.0,12796.4,13324.0,13557.6,13852.8,14470.1,14719.8,15156.2,15615.4,15754.6,16002.9,16451.2,16992.8,17266.0,17507.5,17783.6,18193.5,18394.9,18812.1,19063.5,19319.6,19500.8,19920.9,20517.5])
       expect(Issue.where(issue_type: 'distance_calculation_inaccurate').count).to eq 0
     end
 

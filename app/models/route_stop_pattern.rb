@@ -135,13 +135,19 @@ class RouteStopPattern < BaseRouteStopPattern
     unless closest_point_and_dist.nil?
       dist = closest_point_and_dist[1]
       i = closest_point_candidates.index(closest_point_and_dist[0])
-      next_seg_dist = -1
-      while next_seg_dist < dist
-        break if i == locators[s..e].size - 1
-        i += 1
-        next if locators[s..e][i].segment.single_point?
-        next_seg_dist = locators[s..e][i].interpolate_point(Stop::GEOFACTORY).distance(point)
-        dist = next_seg_dist
+      unless i == locators[s..e].size - 1
+        next_locators = locators[s..e][i+1..-1].reject{|loc| loc.segment.single_point? }
+        closer_match = nil
+        next_locators.each_with_index do |loc, j|
+          next_seg_dist = loc.interpolate_point(Stop::GEOFACTORY).distance(point)
+          if next_seg_dist <= dist
+            closer_match = j
+            dist = next_seg_dist
+          else
+            break
+          end
+        end
+        i = locators[s..e].index(next_locators[closer_match]) unless closer_match.nil?
       end
       return s + i
     end
