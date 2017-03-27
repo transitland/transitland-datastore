@@ -46,7 +46,7 @@ FactoryGirl.define do
   end
 
   factory :route_stop_pattern_bart, parent: :route_stop_pattern, class: RouteStopPattern do
-    geometry { RouteStopPattern.line_string([
+    geometry { Geometry::Lib.line_string([
       [-122.353165, 37.936887],
       [-122.38666, 37.599787]
     ])}

@@ -139,12 +139,12 @@ describe RouteStopPattern do
   end
 
   it 'can create new geometry' do
-    expect(RouteStopPattern.line_string([[1,2],[2,2]]).is_a?(RGeo::Geographic::SphericalLineStringImpl)).to be true
+    expect(Geometry::Lib.line_string([[1,2],[2,2]]).is_a?(RGeo::Geographic::SphericalLineStringImpl)).to be true
   end
 
   it '#set_precision' do
-    expect(RouteStopPattern.set_precision([[-122.0123456,45.01234567],
-                                           [-122.9123478,45.91234589]])).to match_array([[-122.01235,45.01235],[-122.91235,45.91235]])
+    expect(Geometry::Lib.set_precision([[-122.0123456,45.01234567],
+                                           [-122.9123478,45.91234589]],RouteStopPattern::COORDINATE_PRECISION)).to match_array([[-122.01235,45.01235],[-122.91235,45.91235]])
   end
 
   it '.with_all_stops' do
@@ -193,7 +193,7 @@ describe RouteStopPattern do
     }
     expect(chunks).to match_array([[ssp_1a, ssp_1b],[ssp_2a, ssp_2b]])
   end
-  
+
   context 'without shape or shape points' do
     it 'generated RSP geometries from stop points when no shapes' do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_no_shapes, import_level: 1)

@@ -104,16 +104,6 @@ class RouteStopPattern < BaseRouteStopPattern
     end
   end
 
-  def self.line_string(points)
-    RouteStopPattern::GEOFACTORY.line_string(
-      points.map {|lon, lat| RouteStopPattern::GEOFACTORY.point(lon, lat)}
-    )
-  end
-
-  def self.set_precision(points)
-    points.map { |c| c.map { |n| n.round(COORDINATE_PRECISION) } }
-  end
-
   scope :with_trips, -> (search_string) { where{trips.within(search_string)} }
   scope :with_all_stops, -> (search_string) { where{stop_pattern.within(search_string)} }
   scope :with_any_stops, -> (stop_onestop_ids) { where( "stop_pattern && ARRAY[?]::varchar[]", stop_onestop_ids ) }
@@ -137,10 +127,10 @@ class RouteStopPattern < BaseRouteStopPattern
       stop_pattern: stop_pattern,
     )
     if shape_points.present? && shape_points.size > 1
-      rsp.geometry = self.line_string(self.set_precision(shape_points))
+      rsp.geometry = Geometry::Lib.line_string(Geometry::Lib.set_precision(shape_points, COORDINATE_PRECISION))
       rsp.geometry_source = (stop_times.all?{ |st| st.shape_dist_traveled.present? } && shape_points.shape_dist_traveled.all?(&:present?)) ? :shapes_txt_with_dist_traveled : :shapes_txt
     else
-      rsp.geometry = self.line_string(self.set_precision(trip_stop_points))
+      rsp.geometry = Geometry::Lib.line_string(Geometry::Lib.set_precision(trip_stop_points, COORDINATE_PRECISION))
       rsp.geometry_source = :trip_stop_points
     end
     onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(

@@ -4,6 +4,16 @@ module Geometry
       cartesian_factory = RGeo::Cartesian::Factory.new(srid: 4326)
       RGeo::Feature.cast(geometry, cartesian_factory)
     end
+
+    def self.line_string(points)
+      RouteStopPattern::GEOFACTORY.line_string(
+        points.map {|lon, lat| RouteStopPattern::GEOFACTORY.point(lon, lat)}
+      )
+    end
+
+    def self.set_precision(points, precision)
+      points.map { |c| c.map { |n| n.round(precision) } }
+    end
   end
 
   class OutlierStop
@@ -95,7 +105,7 @@ module Geometry
       else
         points = route_line_as_cartesian.line_subset(0, nearest_seg_index-1).coordinates << [nearest_point.x, nearest_point.y]
       end
-      RouteStopPattern.line_string(points).length
+      Geometry::Lib.line_string(points).length
     end
 
     def self.distance_to_nearest_point_on_line(stop_point_spherical, nearest_point)
