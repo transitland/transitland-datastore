@@ -58,7 +58,7 @@ module Geometry
       locators[nearest_seg_index].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326))
     end
 
-    def self.index_of_line_segment_with_nearest_point(locators, s, e, point)
+    def self.index_of_closest_match_line_segment(locators, s, e, point)
       # the method is going forward along the line's direction to find the closest match.
 
       closest_point_candidates = locators[s..e].map{ |loc| loc.interpolate_point(Stop::GEOFACTORY) }
@@ -90,11 +90,11 @@ module Geometry
       end
 
       # If no match is found within the threshold, just take closest match wthin the search range.
-      self.index_of_line_segment_with_nearest_point_global(locators, s, e)
+      self.index_of_line_segment_with_nearest_point(locators, s, e)
     end
 
-    def self.index_of_line_segment_with_nearest_point_global(locators, start, stop)
-      # 'global' meaning within the start and stop range
+    def self.index_of_line_segment_with_nearest_point(locators, start, stop)
+      # finding the global closest within the start and stop range
       distances_from_segs = locators[start..stop].map(&:distance_from_segment)
       start + distances_from_segs.index(distances_from_segs.min)
     end
@@ -186,14 +186,13 @@ module Geometry
             next_stop = stops[i+1]
             next_stop_as_cartesian = self.cartesian_cast(next_stop[:geometry])
             next_stop_locators = route_line_as_cartesian.locators(next_stop_as_cartesian)
-            next_candidates = next_stop_locators[a..num_segments-1].map(&:distance_from_segment)
-            c = a + next_candidates.index(next_candidates.min)
+            c = self.index_of_line_segment_with_nearest_point(next_stop_locators, a, num_segments-1)
           else
             c = num_segments - 1
           end
 
           locators = route_line_as_cartesian.locators(current_stop_as_cartesian)
-          b = index_of_line_segment_with_nearest_point(locators, a, c, current_stop_as_cartesian)
+          b = index_of_closest_match_line_segment(locators, a, c, current_stop_as_cartesian)
           nearest_point = nearest_point_on_line(locators, b)
 
           # The next stop's match may be too early and restrictive, so allow more segment possibilities
@@ -202,12 +201,11 @@ module Geometry
               next_stop = stops[i+2]
               next_stop_as_cartesian = self.cartesian_cast(next_stop[:geometry])
               next_stop_locators = route_line_as_cartesian.locators(next_stop_as_cartesian)
-              next_candidates = next_stop_locators[a..num_segments-1].map(&:distance_from_segment)
-              c = a + next_candidates.index(next_candidates.min)
+              c = self.index_of_line_segment_with_nearest_point(next_stop_locators, a, num_segments-1)
             else
               c = num_segments - 1
             end
-            b = index_of_line_segment_with_nearest_point(locators, a, c, current_stop_as_cartesian)
+            b = index_of_closest_match_line_segment(locators, a, c, current_stop_as_cartesian)
             nearest_point = nearest_point_on_line(locators, b)
           end
 
@@ -229,7 +227,7 @@ module Geometry
                     break
                   end
                   a += 1
-                  b = index_of_line_segment_with_nearest_point(locators, a, c, current_stop_as_cartesian)
+                  b = index_of_closest_match_line_segment(locators, a, c, current_stop_as_cartesian)
                   nearest_point = nearest_point_on_line(locators, b)
                   distance = distance_along_line_to_nearest_point(route_line_as_cartesian, nearest_point, b)
                 end

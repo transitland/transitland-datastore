@@ -192,15 +192,15 @@ class GTFSGraph
         if (rsp.geometry_source.to_sym.eql?(:shapes_txt_with_dist_traveled))
           # do nothing
         elsif (rsp.geometry_source.to_sym.eql?(:trip_stop_points) && rsp.edited_attributes.empty?)
-          Geometry::DistanceCalculation::fallback_distances(rsp, stops=stops)
+          Geometry::DistanceCalculation.fallback_distances(rsp, stops=stops)
         elsif (rsp.stop_distances.compact.empty? || rsp.issues.map(&:issue_type).include?(:distance_calculation_inaccurate))
           # avoid writing over stop distances computed with shape_dist_traveled, or already computed somehow -
           # unless if rsps have inaccurate stop distances, we'll allow a recomputation if there's a fix in place.
-          Geometry::DistanceCalculation::calculate_distances(rsp, stops=stops)
+          Geometry::DistanceCalculation.calculate_distances(rsp, stops=stops)
         end
       rescue StandardError
         graph_log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
-        Geometry::DistanceCalculation::fallback_distances(rsp, stops=stops)
+        Geometry::DistanceCalculation.fallback_distances(rsp, stops=stops)
       end
     end
   end
