@@ -1,4 +1,4 @@
-describe DistanceCalculation do
+describe Geometry do
 
   let(:stop_1) { create(:stop,
     onestop_id: "s-9q8yw8y448-bayshorecaltrainstation",
@@ -42,24 +42,24 @@ describe DistanceCalculation do
     end
 
     it '#distance_along_line_to_nearest_point' do
-      cartesian_line = DistanceCalculation::cartesian_cast(@rsp[:geometry])
+      cartesian_line = Geometry::DistanceCalculation.cartesian_cast(@rsp[:geometry])
       # this is the midpoint between stop_a and stop_b, with a little offset
-      target_point = DistanceCalculation::cartesian_cast(Stop::GEOFACTORY.point(-121.9664615, 37.36))
+      target_point = Geometry::DistanceCalculation.cartesian_cast(Stop::GEOFACTORY.point(-121.9664615, 37.36))
       locators = cartesian_line.locators(target_point)
-      i = DistanceCalculation::index_of_line_segment_with_nearest_point(locators, 0, locators.size-1, target_point)
-      nearest_point = DistanceCalculation::nearest_point_on_line(locators, i)
-      expect(DistanceCalculation::distance_along_line_to_nearest_point(cartesian_line, nearest_point, i)).to be_within(0.1).of(6508.84)
+      i = Geometry::DistanceCalculation.index_of_line_segment_with_nearest_point(locators, 0, locators.size-1, target_point)
+      nearest_point = Geometry::DistanceCalculation.nearest_point_on_line(locators, i)
+      expect(Geometry::DistanceCalculation.distance_along_line_to_nearest_point(cartesian_line, nearest_point, i)).to be_within(0.1).of(6508.84)
     end
 
     it '#index_of_line_segment_with_nearest_point' do
       coords = @rsp.geometry[:coordinates].concat [stop_b.geometry[:coordinates],stop_a.geometry[:coordinates]]
       @rsp.geometry = RouteStopPattern.line_string(coords)
-      cartesian_line = DistanceCalculation::cartesian_cast(@rsp[:geometry])
+      cartesian_line = Geometry::DistanceCalculation.cartesian_cast(@rsp[:geometry])
       # this is the midpoint between stop_a and stop_b, with a little offset
       mid = Stop::GEOFACTORY.point(-121.9664615, 37.36)
-      target_point = DistanceCalculation::cartesian_cast(mid)
+      target_point = Geometry::DistanceCalculation.cartesian_cast(mid)
       locators = cartesian_line.locators(target_point)
-      i = DistanceCalculation::index_of_line_segment_with_nearest_point(locators, 0, locators.size - 1, target_point)
+      i = Geometry::DistanceCalculation.index_of_line_segment_with_nearest_point(locators, 0, locators.size - 1, target_point)
       expect(i).to eq 0
     end
 
@@ -73,7 +73,7 @@ describe DistanceCalculation do
         trip = gtfs.trips.detect{|trip| trip.id == rsp.trips.first}
         trip_stop_times = []
         gtfs.trip_stop_times(trips=[trip]){ |trip, stop_times| trip_stop_times = stop_times }
-        expect(DistanceCalculation::gtfs_shape_dist_traveled(rsp, trip_stop_times, tl_stops, gtfs.shape_line(trip.shape_id).shape_dist_traveled)).to match_array([0.0, 1166.3, 2507.7, 4313.8])
+        expect(Geometry::DistanceCalculation.gtfs_shape_dist_traveled(rsp, trip_stop_times, tl_stops, gtfs.shape_line(trip.shape_id).shape_dist_traveled)).to match_array([0.0, 1166.3, 2507.7, 4313.8])
       end
 
       it 'sets stop distance to the geometry length when stop_time\'s shape_dist_traveled is greater than the last shape point' do
@@ -103,26 +103,26 @@ describe DistanceCalculation do
 
     it '#fallback_distances' do
       expect(@rsp.stop_distances).to match_array([])
-      DistanceCalculation::fallback_distances(@rsp)
+      Geometry::DistanceCalculation.fallback_distances(@rsp)
       expect(@rsp.stop_distances).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(12617.9),
                                                               a_value_within(0.1).of(17001.5)])
     end
 
     it 'stores distances in stop_distances attribute' do
-      DistanceCalculation::calculate_distances(@rsp)
+      Geometry::DistanceCalculation.calculate_distances(@rsp)
       expect(@rsp.stop_distances.count).to eq 3
     end
 
     it 'can calculate distances when the geometry and stop coordinates are equal' do
-      expect(DistanceCalculation::calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
+      expect(Geometry::DistanceCalculation.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(12617.9271),
                                                               a_value_within(0.1).of(17001.5107)])
     end
 
     it 'can calculate distances when coordinates are repeated' do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_mtanyctbusstatenisland_trip_YU_S6_Weekday_030000_MISC_112, import_level: 1)
-      distances = DistanceCalculation::calculate_distances(@feed.imported_route_stop_patterns[0])
+      distances = Geometry::DistanceCalculation.calculate_distances(@feed.imported_route_stop_patterns[0])
       # expect all distances to be increasing
       expect(distances[1..-1].each_with_index.map { |v, i| v > distances[i] }.all?).to be true
     end
@@ -138,7 +138,7 @@ describe DistanceCalculation do
                            stop_b.onestop_id,
                            midpoint.onestop_id,
                            stop_c.onestop_id]
-      expect(DistanceCalculation::calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
+      expect(Geometry::DistanceCalculation.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(12617.9271),
                                                               a_value_within(0.1).of(14809.7189),
                                                               a_value_within(0.1).of(17001.5107)])
@@ -153,7 +153,7 @@ describe DistanceCalculation do
                            stop_b.onestop_id,
                            p_offset.onestop_id,
                            stop_c.onestop_id]
-      expect(DistanceCalculation::calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
+      expect(Geometry::DistanceCalculation.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(12617.9271),
                                                               a_value_within(0.5).of(14809.7189),
                                                               a_value_within(0.1).of(17001.5107)])
@@ -161,27 +161,27 @@ describe DistanceCalculation do
 
     it 'accurately calculates the distances of nyc staten island ferry 2-stop routes with before/after stops' do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_nycdotsiferry, import_level: 1)
-      expect(DistanceCalculation::calculate_distances(@feed.imported_route_stop_patterns[0])).to match_array([0.0, 8138.0])
-      expect(DistanceCalculation::calculate_distances(@feed.imported_route_stop_patterns[1])).to match_array([3.2, 8141.2])
+      expect(Geometry::DistanceCalculation.calculate_distances(@feed.imported_route_stop_patterns[0])).to match_array([0.0, 8138.0])
+      expect(Geometry::DistanceCalculation.calculate_distances(@feed.imported_route_stop_patterns[1])).to match_array([3.2, 8141.2])
     end
 
     it 'accurately calculates the distances of a route with stops along the line that traversed over itself in the opposite direction' do
       # see https://transit.land/documentation/datastore/rome_01_part_1.png
       # and https://transit.land/documentation/datastore/rome_01_part_2.png
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_rome, import_level: 1)
-      expect(DistanceCalculation::calculate_distances(@feed.imported_route_stop_patterns[0])).to match_array([0.6,639.6,817.5,1034.9,1250.2,1424.2,1793.5,1929.2,2162.2,2429.9,2579.6,2735.3,3022.6,3217.8,3407.3,3646.6,3804.4,3969.1,4128.3,4302.6,4482.1,4586.9,4869.5,5242.7,5510.4,5695.6,5871.4,6112.9,6269.6,6334.1,6528.8,6715.4,6863.0,7140.2,7689.8])
+      expect(Geometry::DistanceCalculation.calculate_distances(@feed.imported_route_stop_patterns[0])).to match_array([0.6,639.6,817.5,1034.9,1250.2,1424.2,1793.5,1929.2,2162.2,2429.9,2579.6,2735.3,3022.6,3217.8,3407.3,3646.6,3804.4,3969.1,4128.3,4302.6,4482.1,4586.9,4869.5,5242.7,5510.4,5695.6,5871.4,6112.9,6269.6,6334.1,6528.8,6715.4,6863.0,7140.2,7689.8])
     end
 
     it 'accurately calculates the distances of a route with stops along the line that traversed over itself in the opposite direction, but closest match was segment in opposite direction' do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta_1965654, import_level: 1)
-      expect(DistanceCalculation::calculate_distances(@feed.imported_route_stop_patterns[0])).to match_array([0.0,1490.8,1818.6,2478.0,2928.5,3167.2,3583.3,4079.4,4360.6,4784.1,4970.5,5168.1,5340.5,5599.0,6023.2,6483.9,6770.0,7469.3])
+      expect(Geometry::DistanceCalculation.calculate_distances(@feed.imported_route_stop_patterns[0])).to match_array([0.0,1490.8,1818.6,2478.0,2928.5,3167.2,3583.3,4079.4,4360.6,4784.1,4970.5,5168.1,5340.5,5599.0,6023.2,6483.9,6770.0,7469.3])
     end
 
     it 'calculates the first stop distance correctly' do
       # from sfmta route 54 and for regression. case where first stop is not a 'before' stop
       # see https://transit.land/documentation/datastore/first_stop_correct_distance.png
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_sfmta_6720619, import_level: 1)
-      distances = DistanceCalculation::calculate_distances(@feed.imported_route_stop_patterns[0])
+      distances = Geometry::DistanceCalculation.calculate_distances(@feed.imported_route_stop_patterns[0])
       expect(distances[0]).to be_within(0.1).of(201.1)
     end
 
@@ -189,7 +189,7 @@ describe DistanceCalculation do
       # from f-9q9-vta, r-9q9k-66.
       # see https://transit.land/documentation/datastore/repeated_stop_vta_66.png
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta_1930705, import_level: 1)
-      distances = DistanceCalculation::calculate_distances(@feed.imported_route_stop_patterns[0])
+      distances = Geometry::DistanceCalculation.calculate_distances(@feed.imported_route_stop_patterns[0])
       expect(distances[77]).to be > distances[75]
     end
 
@@ -199,7 +199,7 @@ describe DistanceCalculation do
       # and https://transit.land/documentation/datastore/previous_segment_2_sfmta_n~owl.png
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_sfmta_6731593, import_level: 1)
       tricky_rsp = @feed.imported_route_stop_patterns[0]
-      distances = DistanceCalculation::calculate_distances(tricky_rsp)
+      distances = Geometry::DistanceCalculation.calculate_distances(tricky_rsp)
       expect(distances[-1]).to be > distances[-2]
     end
 
@@ -208,7 +208,7 @@ describe DistanceCalculation do
         onestop_id: "s-9q9hwp6epk-before~geometry",
         geometry: Stop::GEOFACTORY.point(-121.5, 37.30).to_s
       ).onestop_id)
-      expect(DistanceCalculation::calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
+      expect(Geometry::DistanceCalculation.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
                                                        a_value_within(0.1).of(0.0),
                                                        a_value_within(0.1).of(12617.9),
                                                        a_value_within(0.1).of(17001.5)])
@@ -220,7 +220,7 @@ describe DistanceCalculation do
        geometry: Stop::GEOFACTORY.point(-122.1, 37.41).to_s
       ).onestop_id
       @rsp.geometry = RouteStopPattern.line_string(@rsp.geometry[:coordinates] << [-122.09, 37.401])
-      distances = DistanceCalculation::calculate_distances(@rsp)
+      distances = Geometry::DistanceCalculation.calculate_distances(@rsp)
       expect(distances[3]).to be_within(0.1).of(@rsp[:geometry].length)
       expect(distances).to match_array([a_value_within(0.1).of(0.0),
                                                        a_value_within(0.1).of(12617.9),
@@ -237,7 +237,7 @@ describe DistanceCalculation do
                            stop_b.onestop_id,
                            outlier.onestop_id,
                            stop_c.onestop_id]
-      expect(DistanceCalculation::calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
+      expect(Geometry::DistanceCalculation.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(12617.9271),
                                                               a_value_within(0.1).of(14809.7),
                                                               a_value_within(0.1).of(17001.5107)])
@@ -249,7 +249,7 @@ describe DistanceCalculation do
         geometry: Stop::GEOFACTORY.point(-121.5, 37.3).to_s
       )
       @rsp.stop_pattern << last_stop_outlier.onestop_id
-      expect(DistanceCalculation::calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
+      expect(Geometry::DistanceCalculation.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(12617.9271),
                                                               a_value_within(0.1).of(17001.5107),
                                                               a_value_within(0.1).of(17001.5107)])
@@ -264,7 +264,7 @@ describe DistanceCalculation do
                            stop_b.onestop_id,
                            identical.onestop_id,
                            stop_c.onestop_id]
-      expect(DistanceCalculation::calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
+      expect(Geometry::DistanceCalculation.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(12617.9271),
                                                               a_value_within(0.1).of(12617.9271),
                                                               a_value_within(0.1).of(17001.5107)])
@@ -272,7 +272,7 @@ describe DistanceCalculation do
 
     it 'can readjust distances when stops match to the same segment out of order' do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_sfmta_7310245, import_level: 1)
-      distances = DistanceCalculation::calculate_distances(@feed.imported_route_stop_patterns[0])
+      distances = Geometry::DistanceCalculation.calculate_distances(@feed.imported_route_stop_patterns[0])
       # expect all distances to be increasing
       expect(distances[1..-1].each_with_index.map { |v, i| v > distances[i] }.all?).to be true
     end
@@ -283,7 +283,7 @@ describe DistanceCalculation do
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.65))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.401811, 37.706675))
       stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.38, 37.78))
-      expect(DistanceCalculation::calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
+      expect(Geometry::DistanceCalculation.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(6350.2),
                                                               a_value_within(0.1).of(14129.7)])
     end
@@ -294,7 +294,7 @@ describe DistanceCalculation do
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.65))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.401811, 37.706675))
       stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.3975, 37.741))
-      expect(DistanceCalculation::calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
+      expect(Geometry::DistanceCalculation.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(6350.2),
                                                               a_value_within(0.1).of(10192.9)])
     end
@@ -306,7 +306,7 @@ describe DistanceCalculation do
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.65))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.401811, 37.706675))
       stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.39, 37.77))
-      expect(DistanceCalculation::calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
+      expect(Geometry::DistanceCalculation.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(6350.2),
                                                               a_value_within(0.1).of(14129.7)])
     end
@@ -317,7 +317,7 @@ describe DistanceCalculation do
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.69))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.394935, 37.776348))
       stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.39, 37.84))
-      expect(DistanceCalculation::calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
+      expect(Geometry::DistanceCalculation.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(7779.5),
                                                               a_value_within(0.1).of(14878.5)])
     end
@@ -328,7 +328,7 @@ describe DistanceCalculation do
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.40182, 37.7067))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.394935, 37.776348))
       stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.39, 37.84))
-      expect(DistanceCalculation::calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(2.7),
+      expect(Geometry::DistanceCalculation.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(2.7),
                                                               a_value_within(0.1).of(7779.5),
                                                               a_value_within(0.1).of(14878.5)])
     end
@@ -340,7 +340,7 @@ describe DistanceCalculation do
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.40182, 37.72))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.394935, 37.776348))
       stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.39, 37.84))
-      expect(DistanceCalculation::calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
+      expect(Geometry::DistanceCalculation.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(7779.5),
                                                               a_value_within(0.1).of(14878.5)])
     end
@@ -396,7 +396,7 @@ describe DistanceCalculation do
         geometry: Stop::GEOFACTORY.point(-122.3975, 37.741).to_s
       )
       @rsp.stop_pattern = [@sp[0],test_stop.onestop_id,@sp[1]]
-      expect(DistanceCalculation::outlier_stop(test_stop, @rsp)).to be false
+      expect(Geometry::OutlierStop.outlier_stop(test_stop, @rsp)).to be false
     end
 
     it 'returns true when the stop is greater than 100 meters of the closest point on the line' do
@@ -406,7 +406,7 @@ describe DistanceCalculation do
         geometry: Stop::GEOFACTORY.point(-122.3968, 37.7405).to_s
       )
       @rsp.stop_pattern = [@sp[0],test_stop.onestop_id,@sp[1]]
-      expect(DistanceCalculation::outlier_stop(test_stop, @rsp)).to be true
+      expect(Geometry::OutlierStop.outlier_stop(test_stop, @rsp)).to be true
     end
   end
 end
