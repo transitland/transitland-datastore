@@ -2,15 +2,46 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.24...HEAD)
-
-**Closed issues:**
-
-- schedule\_stop\_pairs: time=now [\#1008](https://github.com/transitland/transitland-datastore/issues/1008)
-- schedule\_stop\_pairs: date=today query param [\#965](https://github.com/transitland/transitland-datastore/issues/965)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.25...HEAD)
 
 **Merged pull requests:**
 
+- Production release 4.9.25 [\#1013](https://github.com/transitland/transitland-datastore/pull/1013) ([irees](https://github.com/irees))
+
+## [4.9.25](https://github.com/transitland/transitland-datastore/tree/4.9.25) (2017-03-24)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.24...4.9.25)
+
+**Fixed bugs:**
+
+- RSP geometry source string-sym comparison mismatch [\#1024](https://github.com/transitland/transitland-datastore/issues/1024)
+- Feeds: urlencode nested-zip URI fragments [\#1022](https://github.com/transitland/transitland-datastore/issues/1022)
+- RouteStopPattern gtfs\_shape\_dist\_traveled: seg\_index is nil [\#1020](https://github.com/transitland/transitland-datastore/issues/1020)
+
+**Closed issues:**
+
+- when logging exceptions to Sentry, include context [\#1018](https://github.com/transitland/transitland-datastore/issues/1018)
+- feeds API endpoint: allow filtering by URL [\#1010](https://github.com/transitland/transitland-datastore/issues/1010)
+- Feed Validation Worker [\#1009](https://github.com/transitland/transitland-datastore/issues/1009)
+- schedule\_stop\_pairs: time=now [\#1008](https://github.com/transitland/transitland-datastore/issues/1008)
+- schedule\_stop\_pairs: date=today query param [\#965](https://github.com/transitland/transitland-datastore/issues/965)
+- FeedVersion descriptive stats [\#646](https://github.com/transitland/transitland-datastore/issues/646)
+- upgrade Carrierwave gem now that it has been released [\#639](https://github.com/transitland/transitland-datastore/issues/639)
+- Frequency-based trips [\#408](https://github.com/transitland/transitland-datastore/issues/408)
+
+**Merged pull requests:**
+
+- Fix bug when a calendar entry has no trips associated [\#1031](https://github.com/transitland/transitland-datastore/pull/1031) ([irees](https://github.com/irees))
+- Shape dist traveled nil fix [\#1027](https://github.com/transitland/transitland-datastore/pull/1027) ([doublestranded](https://github.com/doublestranded))
+- Update GTFS to fix urlencoding issue [\#1026](https://github.com/transitland/transitland-datastore/pull/1026) ([irees](https://github.com/irees))
+- Geometry source comparison fix [\#1025](https://github.com/transitland/transitland-datastore/pull/1025) ([doublestranded](https://github.com/doublestranded))
+- Feed Statistics [\#1021](https://github.com/transitland/transitland-datastore/pull/1021) ([irees](https://github.com/irees))
+- when logging exceptions to Sentry, include context [\#1019](https://github.com/transitland/transitland-datastore/pull/1019) ([drewda](https://github.com/drewda))
+- Upgrade to Rails 4.2.8 and update gems [\#1016](https://github.com/transitland/transitland-datastore/pull/1016) ([drewda](https://github.com/drewda))
+- feeds API endpoint: allow filtering by URL [\#1015](https://github.com/transitland/transitland-datastore/pull/1015) ([drewda](https://github.com/drewda))
+- Minor FeedValidationService updates [\#1014](https://github.com/transitland/transitland-datastore/pull/1014) ([irees](https://github.com/irees))
+- FeedValidationWorker [\#1012](https://github.com/transitland/transitland-datastore/pull/1012) ([irees](https://github.com/irees))
+- removing identifiers [\#1011](https://github.com/transitland/transitland-datastore/pull/1011) ([drewda](https://github.com/drewda))
+- Update gems [\#1007](https://github.com/transitland/transitland-datastore/pull/1007) ([drewda](https://github.com/drewda))
 - Production release 4.9.24 [\#1005](https://github.com/transitland/transitland-datastore/pull/1005) ([irees](https://github.com/irees))
 
 ## [4.9.24](https://github.com/transitland/transitland-datastore/tree/4.9.24) (2017-03-07)
