@@ -27,7 +27,7 @@ describe Geometry do
       @sp = [stop_a.onestop_id,
              stop_b.onestop_id,
              stop_c.onestop_id]
-      @geom = Geometry::Lib.line_string([stop_a.geometry[:coordinates],
+      @geom = Geometry::LineString.line_string([stop_a.geometry[:coordinates],
                                             stop_b.geometry[:coordinates],
                                             stop_c.geometry[:coordinates]])
       @rsp = RouteStopPattern.new(
@@ -47,13 +47,13 @@ describe Geometry do
       target_point = Geometry::DistanceCalculation.cartesian_cast(Stop::GEOFACTORY.point(-121.9664615, 37.36))
       locators = cartesian_line.locators(target_point)
       i = Geometry::DistanceCalculation.index_of_closest_match_line_segment(locators, 0, locators.size-1, target_point)
-      nearest_point = Geometry::DistanceCalculation.nearest_point_on_line(locators, i)
-      expect(Geometry::DistanceCalculation.distance_along_line_to_nearest_point(cartesian_line, nearest_point, i)).to be_within(0.1).of(6508.84)
+      nearest_point = Geometry::LineString.nearest_point_on_line(locators, i)
+      expect(Geometry::LineString.distance_along_line_to_nearest_point(cartesian_line, nearest_point, i)).to be_within(0.1).of(6508.84)
     end
 
     it '#index_of_closest_match_line_segment' do
       coords = @rsp.geometry[:coordinates].concat [stop_b.geometry[:coordinates],stop_a.geometry[:coordinates]]
-      @rsp.geometry = Geometry::Lib.line_string(coords)
+      @rsp.geometry = Geometry::LineString.line_string(coords)
       cartesian_line = Geometry::DistanceCalculation.cartesian_cast(@rsp[:geometry])
       # this is the midpoint between stop_a and stop_b, with a little offset
       mid = Stop::GEOFACTORY.point(-121.9664615, 37.36)
@@ -219,7 +219,7 @@ describe Geometry do
        onestop_id: "s-9q9hwp6epk-after~geometry",
        geometry: Stop::GEOFACTORY.point(-122.1, 37.41).to_s
       ).onestop_id
-      @rsp.geometry = Geometry::Lib.line_string(@rsp.geometry[:coordinates] << [-122.09, 37.401])
+      @rsp.geometry = Geometry::LineString.line_string(@rsp.geometry[:coordinates] << [-122.09, 37.401])
       distances = Geometry::DistanceCalculation.calculate_distances(@rsp)
       expect(distances[3]).to be_within(0.1).of(@rsp[:geometry].length)
       expect(distances).to match_array([a_value_within(0.1).of(0.0),
@@ -278,7 +278,7 @@ describe Geometry do
     end
 
     it 'accurately calculates distances if the last stop is an after? stop' do
-      geom = Geometry::Lib.line_string([[-122.41, 37.65],[-122.401811, 37.706675],[-122.394935, 37.776348]])
+      geom = Geometry::LineString.line_string([[-122.41, 37.65],[-122.401811, 37.706675],[-122.394935, 37.776348]])
       @rsp.geometry = geom
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.65))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.401811, 37.706675))
@@ -289,7 +289,7 @@ describe Geometry do
     end
 
     it 'accurately calculates distances if the last stop is close to the line and is not an after? stop' do
-      geom = Geometry::Lib.line_string([[-122.41, 37.65],[-122.401811, 37.706675],[-122.394935, 37.776348]])
+      geom = Geometry::LineString.line_string([[-122.41, 37.65],[-122.401811, 37.706675],[-122.394935, 37.776348]])
       @rsp.geometry = geom
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.65))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.401811, 37.706675))
@@ -301,7 +301,7 @@ describe Geometry do
 
     it 'accurately calculates distances if the last stop is not an after? stop, but not close enough to the line' do
       # last stop distance should be the length of the line, ~ 14129.7
-      geom = Geometry::Lib.line_string([[-122.41, 37.65],[-122.401811, 37.706675],[-122.394935, 37.776348]])
+      geom = Geometry::LineString.line_string([[-122.41, 37.65],[-122.401811, 37.706675],[-122.394935, 37.776348]])
       @rsp.geometry = geom
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.65))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.401811, 37.706675))
@@ -312,7 +312,7 @@ describe Geometry do
     end
 
     it 'accurately calculates distances if the first stop is a before? stop' do
-      geom = Geometry::Lib.line_string([[-122.401811, 37.706675],[-122.394935, 37.776348],[-122.39, 37.84]])
+      geom = Geometry::LineString.line_string([[-122.401811, 37.706675],[-122.394935, 37.776348],[-122.39, 37.84]])
       @rsp.geometry = geom
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.69))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.394935, 37.776348))
@@ -323,7 +323,7 @@ describe Geometry do
     end
 
     it 'accurately calculates distances if the first stop is close to the line and not a before? stop' do
-      geom = Geometry::Lib.line_string([[-122.401811, 37.706675],[-122.394935, 37.776348],[-122.39, 37.84]])
+      geom = Geometry::LineString.line_string([[-122.401811, 37.706675],[-122.394935, 37.776348],[-122.39, 37.84]])
       @rsp.geometry = geom
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.40182, 37.7067))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.394935, 37.776348))
@@ -335,7 +335,7 @@ describe Geometry do
 
     it 'accurately calculates distances if the first stop is not a before? stop, but not close enough to the line' do
       # consequently the first stop distance should be 0.0
-      geom = Geometry::Lib.line_string([[-122.401811, 37.706675],[-122.394935, 37.776348],[-122.39, 37.84]])
+      geom = Geometry::LineString.line_string([[-122.401811, 37.706675],[-122.394935, 37.776348],[-122.39, 37.84]])
       @rsp.geometry = geom
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.40182, 37.72))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.394935, 37.776348))

@@ -127,10 +127,10 @@ class RouteStopPattern < BaseRouteStopPattern
       stop_pattern: stop_pattern,
     )
     if shape_points.present? && shape_points.size > 1
-      rsp.geometry = Geometry::Lib.line_string(Geometry::Lib.set_precision(shape_points, COORDINATE_PRECISION))
+      rsp.geometry = Geometry::LineString.line_string(Geometry::Lib.set_precision(shape_points, COORDINATE_PRECISION))
       rsp.geometry_source = (stop_times.all?{ |st| st.shape_dist_traveled.present? } && shape_points.shape_dist_traveled.all?(&:present?)) ? :shapes_txt_with_dist_traveled : :shapes_txt
     else
-      rsp.geometry = Geometry::Lib.line_string(Geometry::Lib.set_precision(trip_stop_points, COORDINATE_PRECISION))
+      rsp.geometry = Geometry::LineString.line_string(Geometry::Lib.set_precision(trip_stop_points, COORDINATE_PRECISION))
       rsp.geometry_source = :trip_stop_points
     end
     onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(

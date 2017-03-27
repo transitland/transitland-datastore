@@ -139,7 +139,7 @@ describe RouteStopPattern do
   end
 
   it 'can create new geometry' do
-    expect(Geometry::Lib.line_string([[1,2],[2,2]]).is_a?(RGeo::Geographic::SphericalLineStringImpl)).to be true
+    expect(Geometry::LineString.line_string([[1,2],[2,2]]).is_a?(RGeo::Geographic::SphericalLineStringImpl)).to be true
   end
 
   it '#set_precision' do
