@@ -19,7 +19,13 @@ class FeedFetcherWorker
       #   SignalException, and SyntaxError
       log e.message, :error
       log e.backtrace, :error
-      Raven.capture_exception(e) if defined?(Raven)
+      if defined?(Raven)
+        Raven.capture_exception(e, {
+          tags: {
+            'feed_onestop_id' => feed_onestop_id
+          }
+        })
+      end
     end
   end
 end

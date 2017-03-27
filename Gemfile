@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.2.7.1'
+gem 'rails', '4.2.8'
 
 # Transitland Datastore components
 path 'components' do
@@ -34,7 +34,7 @@ gem 'whenever', require: false # to manage crontab
 # data model
 gem 'squeel'
 gem 'enumerize'
-gem 'gtfs', github: 'transitland/gtfs', tag: 'c83e414378ef7fab246334b2dd1e60383986c1ba'
+gem 'gtfs', github: 'transitland/gtfs', tag: '82b564898cd08f0b50e56b45348a027af135fbb5'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 gem 'json-schema', '2.5.2' # running into problems with 2.6.0
@@ -58,10 +58,7 @@ gem 'faraday'
 
 # file attachments
 gem 'fog-aws', group: [:staging, :production]
-gem 'carrierwave', github: 'carrierwaveuploader/carrierwave', ref: '49fdad1'
-# using a development version of carrierwave in order to only
-# load fog-aws, rather than the entire fog library
-# https://github.com/carrierwaveuploader/carrierwave/issues/1698
+gem 'carrierwave', '~>1.0.0'
 
 # development tools
 gem 'better_errors', group: :development

@@ -10,7 +10,6 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     @routes = Route.where('')
     @routes = AllowFiltering.by_onestop_id(@routes, params)
     @routes = AllowFiltering.by_tag_keys_and_values(@routes, params)
-    @routes = AllowFiltering.by_identifer_and_identifier_starts_with(@routes, params)
     @routes = AllowFiltering.by_updated_since(@routes, params)
 
     # Imported From Feed
@@ -106,8 +105,6 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
 
   def query_params
     params.slice(
-      :identifier,
-      :identifier_starts_with,
       :operated_by,
       :operatedBy,
       :color,

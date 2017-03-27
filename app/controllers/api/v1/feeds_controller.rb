@@ -10,8 +10,8 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
     @feeds = Feed.where('')
     @feeds = AllowFiltering.by_onestop_id(@feeds, params)
     @feeds = AllowFiltering.by_tag_keys_and_values(@feeds, params)
-    @feeds = AllowFiltering.by_identifer_and_identifier_starts_with(@feeds, params)
     @feeds = AllowFiltering.by_updated_since(@feeds, params)
+    @feeds = AllowFiltering.by_attribute_array(@feeds, params, :url, case_sensitive: true)
 
     # Geometry
     if [params[:lat], params[:lon]].map(&:present?).all?

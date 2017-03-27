@@ -52,15 +52,6 @@ module AllowFiltering
     collection
   end
 
-  def self.by_identifer_and_identifier_starts_with(collection, params)
-    if params[:identifier].present?
-      collection = collection.with_identifier_or_name(params[:identifier])
-    elsif params[:identifier_starts_with].present?
-      collection = collection.with_identifier_starting_with(params[:identifier_starts_with])
-    end
-    collection
-  end
-
   def self.by_boolean_attribute(collection, params, boolean_attribute_name)
     unless params[boolean_attribute_name].nil?
       conditions = {}

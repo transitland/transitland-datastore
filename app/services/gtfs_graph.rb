@@ -189,9 +189,9 @@ class GTFSGraph
       stops = rsp.stop_pattern.map { |onestop_id| find_by_onestop_id(onestop_id) }
       begin
         # edited rsps will probably have a shape
-        if (rsp.geometry_source.eql?(:shapes_txt_with_dist_traveled))
+        if (rsp.geometry_source.to_sym.eql?(:shapes_txt_with_dist_traveled))
           # do nothing
-        elsif (rsp.geometry_source.eql?(:trip_stop_points) && rsp.edited_attributes.empty?)
+        elsif (rsp.geometry_source.to_sym.eql?(:trip_stop_points) && rsp.edited_attributes.empty?)
           rsp.fallback_distances(stops=stops)
         elsif (rsp.stop_distances.compact.empty? || rsp.issues.map(&:issue_type).include?(:distance_calculation_inaccurate))
           # avoid writing over stop distances computed with shape_dist_traveled, or already computed somehow -
@@ -410,7 +410,7 @@ class GTFSGraph
     # Create parent stops first
     gtfs_stops.each do |gtfs_stop|
       stop = find_and_update_entity(gtfs_stop, Stop.from_gtfs(gtfs_stop))
-      add_identifier(stop, gtfs_stop, gtfs_stop.id)
+      add_entity_imported_from_feed(stop, gtfs_stop, gtfs_stop.id)
       graph_log "    Stop: #{stop.onestop_id}: #{stop.name}"
     end
     # Create child stops
@@ -427,7 +427,7 @@ class GTFSGraph
       # index
       stop = find_and_update_entity(gtfs_stop, stop)
       stop.parent_stop_onestop_id = parent_stop.onestop_id if parent_stop
-      add_identifier(stop, gtfs_stop, gtfs_stop.id)
+      add_entity_imported_from_feed(stop, gtfs_stop, gtfs_stop.id)
       graph_log "    StopPlatform: #{stop.onestop_id}: #{stop.name}"
     end
   end
@@ -498,7 +498,7 @@ class GTFSGraph
       routes.each { |route| route.operated_by = operator.onestop_id }
       operator.serves ||= Set.new
       operator.serves |= routes.map(&:onestop_id)
-      add_identifier(operator, entity, entity.id)
+      add_entity_imported_from_feed(operator, entity, entity.id)
 
       # Add to found operators
       operators << operator
@@ -525,7 +525,7 @@ class GTFSGraph
       # Add references and identifiers
       route.serves ||= Set.new
       route.serves |= stops.map(&:onestop_id)
-      add_identifier(route, entity, entity.id)
+      add_entity_imported_from_feed(route, entity, entity.id)
       graph_log "    #{route.onestop_id}: #{route.name}"
     end
   end
@@ -545,7 +545,7 @@ class GTFSGraph
       next if tl_route.nil?
       trip_stop_points = tl_stops.map { |s| s.geometry[:coordinates] }
       # temporary RouteStopPattern
-      test_rsp = RouteStopPattern.create_from_gtfs(trip, tl_route.onestop_id, stop_pattern, trip_stop_points, feed_shape_points)
+      test_rsp = RouteStopPattern.create_from_gtfs(trip, tl_route.onestop_id, stop_pattern, stop_times, trip_stop_points, feed_shape_points)
       # determine if RouteStopPattern exists
       rsp = find_and_update_entity(nil, test_rsp)
       if test_rsp.equal?(rsp)
@@ -554,13 +554,13 @@ class GTFSGraph
       shape_distances_traveled = shape_line.try(:shape_dist_traveled)
       # assume stop_times' and shapes' shape_dist_traveled are in the same units (a condition required by GTFS). TODO: validate that.
       if shape_distances_traveled
-        if stop_times.all?{ |st| st.shape_dist_traveled.present? } && shape_distances_traveled.all?(&:present?)
+        if rsp.geometry_source.to_sym.eql?(:shapes_txt_with_dist_traveled)
           rsp.gtfs_shape_dist_traveled(stop_times, tl_stops, shape_distances_traveled)
         end
       end
       rsp.traversed_by = tl_route.onestop_id
       rsp.route = tl_route
-      add_identifier(rsp, nil, trip.shape_id)
+      add_entity_imported_from_feed(rsp, nil, trip.shape_id)
       @gtfs_to_onestop_id[trip] = rsp.onestop_id
       rsp.trips << trip.trip_id unless rsp.trips.include?(trip.trip_id)
       rsps << rsp
@@ -617,7 +617,7 @@ class GTFSGraph
 
   ##### Identifiers #####
 
-  def add_identifier(tl_entity, gtfs_entity, gtfs_id)
+  def add_entity_imported_from_feed(tl_entity, gtfs_entity, gtfs_id)
     tl_entity.add_imported_from_feeds ||= []
     tl_entity.add_imported_from_feeds << {feedVersion: @feed_version.sha1, gtfsId: gtfs_id}
     @gtfs_to_onestop_id[gtfs_entity] = tl_entity.onestop_id if gtfs_entity

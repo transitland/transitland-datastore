@@ -11,7 +11,6 @@
 #  name                               :string
 #  created_or_updated_in_changeset_id :integer
 #  version                            :integer
-#  identifiers                        :string           default([]), is an Array
 #  timezone                           :string
 #  last_conflated_at                  :datetime
 #  type                               :string
@@ -24,7 +23,6 @@
 #
 #  #c_stops_cu_in_changeset_id_index           (created_or_updated_in_changeset_id)
 #  index_current_stops_on_geometry             (geometry)
-#  index_current_stops_on_identifiers          (identifiers)
 #  index_current_stops_on_onestop_id           (onestop_id) UNIQUE
 #  index_current_stops_on_parent_stop_id       (parent_stop_id)
 #  index_current_stops_on_tags                 (tags)
@@ -44,7 +42,6 @@ class Stop < BaseStop
   validates :timezone, presence: true
 
   include HasAOnestopId
-  include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
   include HasTags
   include UpdatedSince
@@ -79,15 +76,12 @@ class Stop < BaseStop
     virtual_attributes: [
       :served_by,
       :not_served_by,
-      :identified_by,
-      :not_identified_by,
       :includes_stop_transfers,
       :does_not_include_stop_transfers,
       :add_imported_from_feeds,
       :not_imported_from_feeds
     ],
     protected_attributes: [
-      :identifiers,
       :last_conflated_at,
       :type
     ],

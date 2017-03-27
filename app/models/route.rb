@@ -12,7 +12,6 @@
 #  created_at                         :datetime
 #  updated_at                         :datetime
 #  geometry                           :geography({:srid geometry, 4326
-#  identifiers                        :string           default([]), is an Array
 #  vehicle_type                       :integer
 #  color                              :string
 #  edited_attributes                  :string           default([]), is an Array
@@ -24,7 +23,6 @@
 #  c_route_cu_in_changeset                        (created_or_updated_in_changeset_id)
 #  index_current_routes_on_bikes_allowed          (bikes_allowed)
 #  index_current_routes_on_geometry               (geometry)
-#  index_current_routes_on_identifiers            (identifiers)
 #  index_current_routes_on_onestop_id             (onestop_id) UNIQUE
 #  index_current_routes_on_operator_id            (operator_id)
 #  index_current_routes_on_tags                   (tags)
@@ -51,7 +49,6 @@ class Route < BaseRoute
   self.table_name_prefix = 'current_'
 
   include HasAOnestopId
-  include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
   include HasTags
   include UpdatedSince
@@ -84,14 +81,10 @@ class Route < BaseRoute
       :serves,
       :does_not_serve,
       :operated_by,
-      :identified_by,
-      :not_identified_by,
       :add_imported_from_feeds,
       :not_imported_from_feeds
     ],
-    protected_attributes: [
-      :identifiers
-    ],
+    protected_attributes: [],
     sticky_attributes: [
       :name,
       :geometry,

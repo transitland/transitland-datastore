@@ -154,9 +154,7 @@ class Feed < BaseFeed
       :includes_operators,
       :does_not_include_operators
     ],
-    protected_attributes: [
-      :identifiers
-    ]
+    protected_attributes: []
   })
 
   def update_associations(changeset)

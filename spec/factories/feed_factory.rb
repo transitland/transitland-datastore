@@ -33,7 +33,7 @@
 
 FactoryGirl.define do
   factory :feed do
-    url 'http://www.ridemetro.org/News/Downloads/DataFiles/google_transit.zip'
+    sequence (:url) { |n| "http://www.ridemetro.org/News/Downloads/DataFiles/google_transit#{n}.zip" }
     onestop_id { Faker::OnestopId.feed }
     geometry { {
         "type": "Polygon",
@@ -251,6 +251,25 @@ FactoryGirl.define do
       feed.operators_in_feed.create(
         operator: operator,
         gtfs_agency_id: 'DTA'
+      )
+    end
+  end
+
+  factory :feed_seattle_childrens, parent: :feed, class: Feed do
+    onestop_id 'f-c23p1-seattlechildrenshospitalshuttle'
+    url 'http://example.com/gtfs.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Seattle Children\'s Hospital Shuttle',
+        onestop_id: 'o-c23p1-seattlechildrenshospitalshuttle',
+        timezone: 'America/Los_Angeles',
+        website: 'http://www.google.com',
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: '98'
       )
     end
   end

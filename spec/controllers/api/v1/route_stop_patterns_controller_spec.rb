@@ -96,7 +96,6 @@ describe Api::V1::RouteStopPatternsController do
         geometry: :object,
         stop_pattern: :array,
         trips: :array,
-        identifiers: :array,
         created_at: :date,
         updated_at: :date
       })

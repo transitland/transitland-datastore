@@ -9,7 +9,6 @@
 #  stop_pattern                       :string           default([]), is an Array
 #  version                            :integer
 #  trips                              :string           default([]), is an Array
-#  identifiers                        :string           default([]), is an Array
 #  created_at                         :datetime         not null
 #  updated_at                         :datetime         not null
 #  created_or_updated_in_changeset_id :integer
@@ -21,7 +20,6 @@
 # Indexes
 #
 #  c_rsp_cu_in_changeset                              (created_or_updated_in_changeset_id)
-#  index_current_route_stop_patterns_on_identifiers   (identifiers)
 #  index_current_route_stop_patterns_on_onestop_id    (onestop_id) UNIQUE
 #  index_current_route_stop_patterns_on_route_id      (route_id)
 #  index_current_route_stop_patterns_on_stop_pattern  (stop_pattern)
@@ -71,7 +69,6 @@ class RouteStopPattern < BaseRouteStopPattern
   end
 
   include HasAOnestopId
-  include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
   include HasTags
   include UpdatedSince
@@ -83,15 +80,11 @@ class RouteStopPattern < BaseRouteStopPattern
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
     virtual_attributes: [
-      :identified_by,
-      :not_identified_by,
       :traversed_by,
       :add_imported_from_feeds,
       :not_imported_from_feeds
     ],
-    protected_attributes: [
-      :identifiers
-    ],
+    protected_attributes: [],
     sticky_attributes: [
       :geometry
     ]
@@ -179,18 +172,31 @@ class RouteStopPattern < BaseRouteStopPattern
   def gtfs_shape_dist_traveled(stop_times, tl_stops, shape_distances_traveled)
     # assumes stop times and shapes BOTH have shape_dist_traveled, and they're in the same units
     # assumes the line geometry is not generated, and shape_points equals the rsp geometry.
+    # TODO consider using a more efficient search method?
     self.stop_distances = []
     stop_times.each_with_index do |st, i|
       stop_onestop_id = self.stop_pattern[i]
       # Find segment along shape points where stop shape_dist_traveled is between the two shape points' shape_dist_traveled
-      dist1, dist2 = shape_distances_traveled.zip(shape_distances_traveled[1..-1]).detect do |d1, d2|
+      seg_index = -1
+      dist1, dist2 = shape_distances_traveled.each_cons(2).detect do |d1, d2|
+        seg_index += 1
         st.shape_dist_traveled.to_f >= d1 && st.shape_dist_traveled.to_f <= d2
       end
-      seg_index = shape_distances_traveled.index(dist1) # distances should always be increasing
-      cartesian_line = cartesian_cast(self[:geometry])
-      stop = tl_stops[i]
-      nearest_point_on_line = cartesian_line.closest_point_on_segment(cartesian_cast(stop[:geometry]), seg_index)
-      self.stop_distances << distance_along_line_to_nearest(cartesian_line, nearest_point_on_line, seg_index)
+
+      if dist1.nil? || dist2.nil?
+        if st.shape_dist_traveled.to_f < shape_distances_traveled[0]
+          self.stop_distances << 0.0
+        elsif st.shape_dist_traveled.to_f > shape_distances_traveled[-1]
+          self.stop_distances << self[:geometry].length
+        else
+          raise StandardError.new("Problem finding stop distance for Stop #{stop_onestop_id}, number #{i + 1} of RSP #{self.onestop_id} using shape_dist_traveled")
+        end
+      else
+        cartesian_line = cartesian_cast(self[:geometry])
+        stop = tl_stops[i]
+        nearest_point_on_line = cartesian_line.closest_point_on_segment(cartesian_cast(stop[:geometry]), seg_index)
+        self.stop_distances << distance_along_line_to_nearest(cartesian_line, nearest_point_on_line, seg_index)
+      end
     end
     self.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
   end
@@ -302,7 +308,7 @@ class RouteStopPattern < BaseRouteStopPattern
   end
 
   ##### FromGTFS ####
-  def self.create_from_gtfs(trip, route_onestop_id, stop_pattern, trip_stop_points, shape_points)
+  def self.create_from_gtfs(trip, route_onestop_id, stop_pattern, stop_times, trip_stop_points, shape_points)
     # both trip_stop_points and stop_pattern correspond to stop_times.
     # GTFSGraph should already filter out stop_times of size 0 or 1 (using filter_empty).
     # We can still have one unique stop, but must have at least 2 stop times.
@@ -311,9 +317,9 @@ class RouteStopPattern < BaseRouteStopPattern
     rsp = RouteStopPattern.new(
       stop_pattern: stop_pattern,
     )
-    if shape_points.present?
+    if shape_points.present? && shape_points.size > 1
       rsp.geometry = self.line_string(self.set_precision(shape_points))
-      rsp.geometry_source = shape_points.shape_dist_traveled.all? ? :shapes_txt_with_dist_traveled : :shapes_txt
+      rsp.geometry_source = (stop_times.all?{ |st| st.shape_dist_traveled.present? } && shape_points.shape_dist_traveled.all?(&:present?)) ? :shapes_txt_with_dist_traveled : :shapes_txt
     else
       rsp.geometry = self.line_string(self.set_precision(trip_stop_points))
       rsp.geometry_source = :trip_stop_points

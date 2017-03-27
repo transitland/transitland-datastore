@@ -2,16 +2,50 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.23...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.24...HEAD)
+
+**Closed issues:**
+
+- schedule\_stop\_pairs: time=now [\#1008](https://github.com/transitland/transitland-datastore/issues/1008)
+- schedule\_stop\_pairs: date=today query param [\#965](https://github.com/transitland/transitland-datastore/issues/965)
+
+**Merged pull requests:**
+
+- Production release 4.9.24 [\#1005](https://github.com/transitland/transitland-datastore/pull/1005) ([irees](https://github.com/irees))
+
+## [4.9.24](https://github.com/transitland/transitland-datastore/tree/4.9.24) (2017-03-07)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.23...4.9.24)
+
+**Implemented enhancements:**
+
+- Utilize stop\_times.txt and shapes.txt shape\_dist\_traveled [\#987](https://github.com/transitland/transitland-datastore/issues/987)
+- Route endpoint: Accept multiple operated\_by operators [\#710](https://github.com/transitland/transitland-datastore/issues/710)
+
+**Fixed bugs:**
+
+- Non-import changesets should update nil stop distances of SSPs [\#1002](https://github.com/transitland/transitland-datastore/issues/1002)
 
 **Closed issues:**
 
 - Optimize SSP distances in update computed attributes [\#1000](https://github.com/transitland/transitland-datastore/issues/1000)
 - Validate entity attribute on EntityWithIssues model [\#998](https://github.com/transitland/transitland-datastore/issues/998)
+- Quality Issue for RSP reversed geometry [\#925](https://github.com/transitland/transitland-datastore/issues/925)
+- refactor computed properties [\#829](https://github.com/transitland/transitland-datastore/issues/829)
+- Changeset: entity destroy is order dependent [\#742](https://github.com/transitland/transitland-datastore/issues/742)
+- FeedEater creates Changeset that only represent entity diffs [\#571](https://github.com/transitland/transitland-datastore/issues/571)
+- Stop EIFF Debugging [\#561](https://github.com/transitland/transitland-datastore/issues/561)
+- Error parsing GTFS CSV with incorrect quote escaping [\#511](https://github.com/transitland/transitland-datastore/issues/511)
+- store Who's on First integer IDs for Feed country and region \(in addition to string names\) [\#284](https://github.com/transitland/transitland-datastore/issues/284)
 
 **Merged pull requests:**
 
+- operator name look-up needs to properly handle case insensitive queries of UTF-8 strings [\#1004](https://github.com/transitland/transitland-datastore/pull/1004) ([drewda](https://github.com/drewda))
+- updating ssp distances for non-import changesets [\#1003](https://github.com/transitland/transitland-datastore/pull/1003) ([doublestranded](https://github.com/doublestranded))
+- Update computed attributes refactor [\#995](https://github.com/transitland/transitland-datastore/pull/995) ([doublestranded](https://github.com/doublestranded))
+- Utilize shape dist traveled [\#994](https://github.com/transitland/transitland-datastore/pull/994) ([doublestranded](https://github.com/doublestranded))
+- SSPs: date=today [\#989](https://github.com/transitland/transitland-datastore/pull/989) ([irees](https://github.com/irees))
 - Production release 4.9.23 [\#976](https://github.com/transitland/transitland-datastore/pull/976) ([irees](https://github.com/irees))
+- Switch to iso 3166 [\#955](https://github.com/transitland/transitland-datastore/pull/955) ([drewda](https://github.com/drewda))
 
 ## [4.9.23](https://github.com/transitland/transitland-datastore/tree/4.9.23) (2017-03-01)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.22...4.9.23)
@@ -31,7 +65,6 @@
 **Closed issues:**
 
 - Create Issue when a Feed import has no matching Operators [\#997](https://github.com/transitland/transitland-datastore/issues/997)
-- StopTransfer: Transfers between stations [\#985](https://github.com/transitland/transitland-datastore/issues/985)
 - Still more "false positive" issues with dist calc [\#945](https://github.com/transitland/transitland-datastore/issues/945)
 - Remove rake task for deleting unreferenced entities [\#926](https://github.com/transitland/transitland-datastore/issues/926)
 - Hide or delete 'inactive' RouteStopPatterns [\#907](https://github.com/transitland/transitland-datastore/issues/907)
