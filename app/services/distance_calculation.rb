@@ -3,11 +3,6 @@ module DistanceCalculation
   FIRST_MATCH_THRESHOLD = 25 # meters
   DISTANCE_PRECISION = 1
 
-  def self.locators_for_point(spherical_stop, route_line_as_cartesian)
-    cartesian_stop = cartesian_cast(spherical_stop[:geometry])
-    route_line_as_cartesian.locators(cartesian_stop)
-  end
-
   def self.stop_before_geometry(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian)
     line_geometry_as_cartesian.before?(stop_as_cartesian) || self.outlier_stop_from_precomputed_geometries(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian)
   end
@@ -167,7 +162,7 @@ module DistanceCalculation
       elsif i == stops.size - 1 && last_stop_after_geom
         rsp.stop_distances << rsp[:geometry].length
       else
-        if (i + 1 < stops.size - 1)
+        if (i + 1 <= stops.size - 1)
           next_stop = stops[i+1]
           next_stop_as_cartesian = cartesian_cast(next_stop[:geometry])
           next_stop_locators = route_line_as_cartesian.locators(next_stop_as_cartesian)
@@ -183,7 +178,7 @@ module DistanceCalculation
 
         # The next stop's match may be too early and restrictive, so allow more segment possibilities
         if distance_to_nearest_point_on_line(current_stop_as_spherical, nearest_point) > FIRST_MATCH_THRESHOLD
-          if (i + 2 < stops.size - 1)
+          if (i + 2 <= stops.size - 1)
             next_stop = stops[i+2]
             next_stop_as_cartesian = cartesian_cast(next_stop[:geometry])
             next_stop_locators = route_line_as_cartesian.locators(next_stop_as_cartesian)
