@@ -5,6 +5,53 @@ class Api::V1::StopsController < Api::V1::BaseApiController
 
   before_action :set_stop, only: [:show]
 
+  # GET /stops
+  include Swagger::Blocks
+  swagger_path '/stops' do
+    operation :get do
+      key :tags, ['stop']
+      key :name, :tags
+      key :summary, 'Returns all stops with filtering and sorting'
+      key :produces, [
+        'application/json',
+        'application/vnd.geo+json',
+        'text/csv'
+      ]
+      parameter do
+        key :name, :onestop_id
+        key :in, :query
+        key :description, 'Onestop ID(s) to filter by'
+        key :required, false
+        key :type, :string
+      end
+      parameter do
+        key :name, :servedBy
+        key :in, :query
+        key :description, 'operator Onestop ID(s) to filter by'
+        key :required, false
+        key :type, :string
+      end
+      # parameter do
+      #   key :name, :identifier
+      #   key :in, :query
+      #   key :description, 'identifier to filter by'
+      #   key :required, false
+      #   key :type, :string
+      # end
+      # parameter do
+        # key :'$ref', '#/parameters/jsonCollectionPagination/perPageParam'
+      # end
+      response 200 do
+        # key :description, 'stop response'
+        schema do
+          key :type, :array
+          items do
+            key :'$ref', :Stop
+          end
+        end
+      end
+    end
+  end
   def index
     # Entity
     @stops = Stop.where('')
@@ -74,6 +121,32 @@ class Api::V1::StopsController < Api::V1::BaseApiController
     end
   end
 
+  # GET /stops/{onestop_id}
+  include Swagger::Blocks
+  swagger_path '/stops/{onestop_id}' do
+    operation :get do
+      key :tags, ['stop']
+      key :name, :tags
+      key :summary, 'Returns one stop by its Onestop ID'
+      key :produces, [
+        'application/json',
+        # 'application/vnd.geo+json',
+      ]
+      parameter do
+        key :name, :onestop_id
+        key :in, :path
+        key :description, 'Onestop ID to filter by'
+        key :required, true
+        key :type, :string
+      end
+      response 200 do
+        # key :description, 'stop response'
+        schema do
+          key :'$ref', :Stop
+        end
+      end
+    end
+  end
   def show
     respond_to do |format|
       format.json { render json: @stop, serializer: StopSerializer, scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }

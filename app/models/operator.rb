@@ -105,6 +105,11 @@ class Operator < BaseOperator
     return true
   end
 
+  include Swagger::Blocks
+  swagger_schema :Operator do
+    # TODO
+  end
+
   after_initialize :set_default_values
   after_save :bust_aggregate_cache
 

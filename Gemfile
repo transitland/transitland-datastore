@@ -52,6 +52,7 @@ gem 'devise'
 gem 'active_model_serializers', '0.10.2'
 gem 'oj'
 gem 'oj_mimic_json'
+gem 'swagger-blocks'
 
 # consuming other APIs
 gem 'faraday'

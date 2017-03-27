@@ -120,6 +120,11 @@ class Route < BaseRoute
     return true
   end
 
+  include Swagger::Blocks
+  swagger_schema :Route do
+    # TODO
+  end
+
   has_many :routes_serving_stop
   has_many :stops, through: :routes_serving_stop
   has_many :schedule_stop_pairs

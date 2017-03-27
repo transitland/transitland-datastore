@@ -5,6 +5,43 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
 
   before_action :set_route, only: [:show]
 
+  # GET /routes
+  include Swagger::Blocks
+  swagger_path '/routes' do
+    operation :get do
+      key :tags, ['route']
+      key :name, :tags
+      key :summary, 'Returns all routes with filtering and sorting'
+      key :produces, [
+        'application/json',
+        'application/vnd.geo+json',
+        'text/csv'
+      ]
+      parameter do
+        key :name, :onestop_id
+        key :in, :query
+        key :description, 'Onestop ID(s) to filter by'
+        key :required, false
+        key :type, :string
+      end
+      parameter do
+        key :name, :servedBy
+        key :in, :query
+        key :description, 'operator Onestop ID(s) to filter by'
+        key :required, false
+        key :type, :string
+      end
+      response 200 do
+        # key :description, 'stop response'
+        schema do
+          key :type, :array
+          items do
+            key :'$ref', :Route
+          end
+        end
+      end
+    end
+  end
   def index
     # Entity
     @routes = Route.where('')
@@ -91,6 +128,32 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     end
   end
 
+  # GET /routes/{onestop_id}
+  include Swagger::Blocks
+  swagger_path '/routes/{onestop_id}' do
+    operation :get do
+      key :tags, ['route']
+      key :name, :tags
+      key :summary, 'Returns a single route'
+      key :produces, [
+        'application/json',
+        # TODO: 'application/vnd.geo+json'
+      ]
+      parameter do
+        key :name, :onestop_id
+        key :in, :path
+        key :description, 'Onestop ID for route'
+        key :required, true
+        key :type, :string
+      end
+      response 200 do
+        # key :description, 'stop response'
+        schema do
+          key :'$ref', :Route
+        end
+      end
+    end
+  end
   def show
     respond_to do |format|
       # consider removing exclude_geometry

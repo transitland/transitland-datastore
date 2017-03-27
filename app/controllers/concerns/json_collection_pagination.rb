@@ -2,6 +2,17 @@ module JsonCollectionPagination
   extend ActiveSupport::Concern
   PER_PAGE ||= 50
 
+  SWAGGER_PARAMETERS = {
+    perPageParam: {
+      name: :per_page,
+      in: :query,
+      description: 'number of results to return in each page',
+      required: false,
+      type: :integer,
+      default: 50
+    }
+  }
+
   def paginated_collection(collection)
     # Meta
     per_page = sort_per_page

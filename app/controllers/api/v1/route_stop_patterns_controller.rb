@@ -5,6 +5,32 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
 
   before_action :set_route_stop_pattern, only: [:show]
 
+  # GET /route_stop_patterns
+  include Swagger::Blocks
+  swagger_path '/route_stop_patterns' do
+    operation :get do
+      key :tags, ['route']
+      key :name, :tags
+      key :summary, 'Returns all route stop patterns with filtering and sorting'
+      key :produces, ['application/json']
+      # parameter do
+      #   key :name, :servedBy
+      #   key :in, :query
+      #   key :description, 'operator Onestop ID(s) to filter by'
+      #   key :required, false
+      #   key :type, :string
+      # end
+      response 200 do
+        # key :description, 'stop response'
+        schema do
+          key :type, :array
+          items do
+            key :'$ref', :ScheduleStopPair
+          end
+        end
+      end
+    end
+  end
   def index
     # Entity
     @rsps = RouteStopPattern.where('')
@@ -64,6 +90,29 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
     end
   end
 
+  # GET /route_stop_patterns/{onestop_id}
+  include Swagger::Blocks
+  swagger_path '/route_stop_patterns/{onestop_id}' do
+    operation :get do
+      key :tags, ['route']
+      key :name, :tags
+      key :summary, 'Returns one route stop pattern by its Onestop ID'
+      key :produces, ['application/json']
+      parameter do
+        key :name, :onestop_id
+        key :in, :path
+        key :description, 'Onestop ID of the route stop pattern'
+        key :required, true
+        key :type, :string
+      end
+      response 200 do
+        # key :description, 'stop response'
+        schema do
+          key :'$ref', :RouteStopPattern
+        end
+      end
+    end
+  end
   def show
     respond_to do |format|
       format.json { render json: @route_stop_pattern, scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }

@@ -30,6 +30,11 @@
 #
 
 class FeedVersion < ActiveRecord::Base
+  include Swagger::Blocks
+  swagger_schema :FeedVersion do
+    # TODO
+  end
+
   include HasTags
   include IsAnEntityWithIssues
 

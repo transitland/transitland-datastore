@@ -5,6 +5,43 @@ class Api::V1::FeedVersionImportsController < Api::V1::BaseApiController
 
   before_action :set_feed_version_import, only: [:show]
 
+  # GET /feed_version_imports
+  include Swagger::Blocks
+  swagger_path '/feed_version_imports' do
+    operation :get do
+      key :tags, ['feed']
+      key :name, :tags
+      key :summary, 'Returns all feed version imports with filtering and sorting'
+      key :produces, [
+        'application/json',
+        'application/vnd.geo+json',
+        'text/csv'
+      ]
+      parameter do
+        key :name, :onestop_id
+        key :in, :query
+        key :description, 'Onestop ID(s) to filter by'
+        key :required, false
+        key :type, :string
+      end
+      parameter do
+        key :name, :servedBy
+        key :in, :query
+        key :description, 'operator Onestop ID(s) to filter by'
+        key :required, false
+        key :type, :string
+      end
+      response 200 do
+        # key :description, 'stop response'
+        schema do
+          key :type, :array
+          items do
+            key :'$ref', :FeedVersionImport
+          end
+        end
+      end
+    end
+  end
   def index
     @feed_version_imports = FeedVersionImport.where('')
     @feed_version_imports = AllowFiltering.by_primary_key_ids(@feed_version_imports, params)
@@ -25,6 +62,29 @@ class Api::V1::FeedVersionImportsController < Api::V1::BaseApiController
     end
   end
 
+  # GET /feed_version_imports/{id}
+  include Swagger::Blocks
+  swagger_path '/feed_version_imports/{id}' do
+    operation :get do
+      key :tags, ['feed']
+      key :name, :tags
+      key :summary, 'Returns a single feed version import'
+      key :produces, ['application/json']
+      parameter do
+        key :name, :id
+        key :in, :path
+        key :description, 'ID for feed version import'
+        key :required, true
+        key :type, :integer
+      end
+      response 200 do
+        # key :description, 'stop response'
+        schema do
+          key :'$ref', :FeedVersionImport
+        end
+      end
+    end
+  end
   def show
     render json: @feed_version_import
   end

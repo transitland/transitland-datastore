@@ -7,6 +7,35 @@ class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
   before_action :set_change_payload, only: [:show, :update, :destroy]
   before_action :changeset_applied_lock, only: [:create, :update, :destroy]
 
+  # GET changesets/{changeset_id}/change_payloads
+  include Swagger::Blocks
+  swagger_path '/changesets/{changeset_id}/change_payloads' do
+    operation :get do
+      key :tags, ['changeset']
+      key :name, :tags
+      key :summary, 'Returns all all change payloads included in a given changeset'
+      key :produces, ['application/json']
+      parameter do
+        key :name, :changeset_id
+        key :in, :path
+        key :description, 'ID for changeset'
+        key :required, true
+        key :type, :integer
+      end
+      response 200 do
+        # key :description, 'stop response'
+        schema do
+          key :type, :array
+          items do
+            key :'$ref', :ChangePayload
+          end
+        end
+      end
+      security do
+        key :api_auth_token, []
+      end
+    end
+  end
   def index
     @change_payloads = @changeset.change_payloads
 
@@ -17,20 +46,147 @@ class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
     end
   end
 
+  # POST changesets/{changeset_id}/change_payloads
+  include Swagger::Blocks
+  swagger_path '/changesets/{changeset_id}/change_payloads' do
+    operation :post do
+      key :tags, ['changeset']
+      key :name, :tags
+      key :summary, 'Append a change payload to the given changeset'
+      key :produces, ['application/json']
+      parameter do
+        key :name, :changeset_id
+        key :in, :path
+        key :description, 'ID for changeset'
+        key :required, true
+        key :type, :integer
+      end
+      # TODO: param body
+      response 200 do
+        # key :description, 'stop response'
+        schema do
+          key :type, :array
+          items do
+            key :'$ref', :ChangePayload
+          end
+        end
+      end
+      security do
+        key :api_auth_token, []
+      end
+    end
+  end
   def create
     @change_payload = @changeset.change_payloads.create!(change_payload_params)
     render json: @change_payload
   end
 
+  # GET changesets/{changeset_id}/change_payloads/{id}
+  include Swagger::Blocks
+  swagger_path '/changesets/{changeset_id}/change_payloads/{id}' do
+    operation :get do
+      key :tags, ['changeset']
+      key :name, :tags
+      key :summary, 'Returns one particular changeset in a given changeset'
+      key :produces, ['application/json']
+      parameter do
+        key :name, :changeset_id
+        key :in, :path
+        key :description, 'ID for changeset'
+        key :required, true
+        key :type, :integer
+      end
+      parameter do
+        key :name, :id
+        key :in, :path
+        key :description, 'ID for change payload'
+        key :required, true
+        key :type, :integer
+      end
+      response 200 do
+        # key :description, 'stop response'
+        schema do
+          key :'$ref', :ChangePayload
+        end
+      end
+      security do
+        key :api_auth_token, []
+      end
+    end
+  end
   def show
     render json: @change_payload
   end
 
+  # PUT changesets/{changeset_id}/change_payloads/{id}
+  include Swagger::Blocks
+  swagger_path '/changesets/{changeset_id}/change_payloads/{id}' do
+    operation :put do
+      key :tags, ['changeset']
+      key :name, :tags
+      key :summary, 'Update a particular changeset in a given changeset'
+      key :produces, ['application/json']
+      parameter do
+        key :name, :changeset_id
+        key :in, :path
+        key :description, 'ID for changeset'
+        key :required, true
+        key :type, :integer
+      end
+      parameter do
+        key :name, :id
+        key :in, :path
+        key :description, 'ID for change payload'
+        key :required, true
+        key :type, :integer
+      end
+      # TODO: body params
+      response 200 do
+        # key :description, 'stop response'
+        schema do
+          key :'$ref', :ChangePayload
+        end
+      end
+      security do
+        key :api_auth_token, []
+      end
+    end
+  end
   def update
     @change_payload.update!(change_payload_params)
     render json: @change_payload
   end
 
+  # DELETE changesets/{changeset_id}/change_payloads/{id}
+  include Swagger::Blocks
+  swagger_path '/changesets/{changeset_id}/change_payloads/{id}' do
+    operation :delete do
+      key :tags, ['changeset']
+      key :name, :tags
+      key :summary, 'Delete a particular changeset from a given changeset'
+      key :produces, ['application/json']
+      parameter do
+        key :name, :changeset_id
+        key :in, :path
+        key :description, 'ID for changeset'
+        key :required, true
+        key :type, :integer
+      end
+      parameter do
+        key :name, :id
+        key :in, :path
+        key :description, 'ID for change payload'
+        key :required, true
+        key :type, :integer
+      end
+      response 200 do
+        # key :description, 'stop response'
+        # schema do
+        #   key :'$ref', :ChangePayload
+        # end
+      end
+    end
+  end
   def destroy
     @change_payload.destroy!
     render json: {}, status: :no_content
