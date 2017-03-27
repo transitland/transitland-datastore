@@ -3,12 +3,25 @@ module DistanceCalculation
   FIRST_MATCH_THRESHOLD = 25 # meters
   DISTANCE_PRECISION = 1
 
-  def self.find_nearest_point(locators, nearest_seg_index)
+  def self.locators_for_point(spherical_stop, route_line_as_cartesian)
+    cartesian_stop = cartesian_cast(spherical_stop[:geometry])
+    route_line_as_cartesian.locators(cartesian_stop)
+  end
+
+  def self.stop_before_geometry(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian)
+    line_geometry_as_cartesian.before?(stop_as_cartesian) || self.outlier_stop_from_precomputed_geometries(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian)
+  end
+
+  def self.stop_after_geometry(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian)
+    line_geometry_as_cartesian.after?(stop_as_cartesian) || self.outlier_stop_from_precomputed_geometries(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian)
+  end
+
+  def self.nearest_point_on_line(locators, nearest_seg_index)
     locators[nearest_seg_index].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326))
   end
 
-  def self.nearest_segment_index_forward(locators, s, e, point)
-    # the method is 'forward' since it's going along the line's direction to find the closest match.
+  def self.index_of_line_segment_with_nearest_point(locators, s, e, point)
+    # the method is going forward along the line's direction to find the closest match.
 
     closest_point_candidates = locators[s..e].map{ |loc| loc.interpolate_point(Stop::GEOFACTORY) }
     closest_point_and_dist = closest_point_candidates.map{ |closest_point|
@@ -37,33 +50,46 @@ module DistanceCalculation
       end
       return s + i
     end
+
     # If no match is found within the threshold, just take closest match wthin the search range.
-    a = locators[s..e].map(&:distance_from_segment)
-    s + a.index(a.min)
+    self.index_of_line_segment_with_nearest_point_global(locators, s, e)
   end
 
-  def self.distance_along_line_to_nearest(cartesian_route, nearest_point, nearest_seg_index)
+  def self.index_of_line_segment_with_nearest_point_global(locators, start, stop)
+    # 'global' meaning within the start and stop range
+    distances_from_segs = locators[start..stop].map(&:distance_from_segment)
+    start + distances_from_segs.index(distances_from_segs.min)
+  end
+
+  def self.distance_along_line_to_nearest_point(route_line_as_cartesian, nearest_point, nearest_seg_index)
     if nearest_seg_index == 0
-      points = [cartesian_route.coordinates[0], [nearest_point.x, nearest_point.y]]
+      points = [route_line_as_cartesian.coordinates[0], [nearest_point.x, nearest_point.y]]
     else
-      points = cartesian_route.line_subset(0, nearest_seg_index-1).coordinates << [nearest_point.x, nearest_point.y]
+      points = route_line_as_cartesian.line_subset(0, nearest_seg_index-1).coordinates << [nearest_point.x, nearest_point.y]
     end
     RouteStopPattern.line_string(points).length
   end
 
-  def self.distance_to_nearest_point(stop_point_spherical, nearest_point)
-    stop_point_spherical[:geometry].distance(RGeo::Feature.cast(nearest_point, RouteStopPattern::GEOFACTORY))
+  def self.distance_to_nearest_point_on_line(stop_point_spherical, nearest_point)
+    stop_point_spherical.distance(RGeo::Feature.cast(nearest_point, RouteStopPattern::GEOFACTORY))
   end
 
   def self.test_distance(distance)
     distance < OUTLIER_THRESHOLD
   end
 
-  def self.outlier_stop(rsp, spherical_stop)
-    cartesian_line = cartesian_cast(rsp[:geometry])
-    closest_point = cartesian_line.closest_point(cartesian_cast(spherical_stop))
-    spherical_closest = RGeo::Feature.cast(closest_point, RouteStopPattern::GEOFACTORY)
-    spherical_stop.distance(spherical_closest) > OUTLIER_THRESHOLD
+  def self.outlier_stop(stop, rsp)
+    stop_as_spherical = stop[:geometry]
+    stop_as_cartesian = self.cartesian_cast(stop_as_spherical)
+    line_geometry_as_cartesian = self.cartesian_cast(rsp[:geometry])
+    self.outlier_stop_from_precomputed_geometries(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian)
+  end
+
+  def self.outlier_stop_from_precomputed_geometries(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian)
+    # trying to avoid casting when possible
+    closest_point_as_cartesian = line_geometry_as_cartesian.closest_point(stop_as_cartesian)
+    closest_point_as_spherical = RGeo::Feature.cast(closest_point_as_cartesian, RouteStopPattern::GEOFACTORY)
+    stop_as_spherical.distance(closest_point_as_spherical) > OUTLIER_THRESHOLD
   end
 
   def self.cartesian_cast(geometry)
@@ -105,10 +131,10 @@ module DistanceCalculation
           raise StandardError.new("Problem finding stop distance for Stop #{stop_onestop_id}, number #{i + 1} of RSP #{rsp.onestop_id} using shape_dist_traveled")
         end
       else
-        cartesian_line = cartesian_cast(rsp[:geometry])
+        route_line_as_cartesian = cartesian_cast(rsp[:geometry])
         stop = tl_stops[i]
-        nearest_point_on_line = cartesian_line.closest_point_on_segment(cartesian_cast(stop[:geometry]), seg_index)
-        rsp.stop_distances << distance_along_line_to_nearest(cartesian_line, nearest_point_on_line, seg_index)
+        nearest_point_on_line = route_line_as_cartesian.closest_point_on_segment(cartesian_cast(stop[:geometry]), seg_index)
+        rsp.stop_distances << distance_along_line_to_nearest_point(route_line_as_cartesian, nearest_point_on_line, seg_index)
       end
     end
     rsp.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
@@ -124,54 +150,55 @@ module DistanceCalculation
       return rsp.stop_distances
     end
     rsp.stop_distances = []
-    route = cartesian_cast(rsp[:geometry])
-    num_segments = route.coordinates.size - 1
+    route_line_as_cartesian = cartesian_cast(rsp[:geometry])
+    num_segments = route_line_as_cartesian.coordinates.size - 1
     a = 0
     b = 0
     c = num_segments - 1
-    last_stop_after_geom = route.after?(stops[-1][:geometry]) || self.outlier_stop(rsp, stops[-1][:geometry])
+    last_stop_after_geom = self.stop_after_geometry(stops[-1][:geometry], cartesian_cast(stops[-1][:geometry]), route_line_as_cartesian)
     previous_stop_before_geom = false
     stops.each_index do |i|
-      stop_spherical = stops[i]
-      this_stop = cartesian_cast(stop_spherical[:geometry])
-      if i == 0 && (route.before?(stops[i][:geometry]) || self.outlier_stop(rsp, this_stop))
+      current_stop = stops[i]
+      current_stop_as_spherical = current_stop[:geometry]
+      current_stop_as_cartesian = cartesian_cast(current_stop_as_spherical)
+      if i == 0 && self.stop_before_geometry(current_stop_as_spherical, current_stop_as_cartesian, route_line_as_cartesian)
         previous_stop_before_geom = true
         rsp.stop_distances << 0.0
       elsif i == stops.size - 1 && last_stop_after_geom
         rsp.stop_distances << rsp[:geometry].length
       else
         if (i + 1 < stops.size - 1)
-          next_stop_spherical = stops[i+1]
-          next_stop = cartesian_cast(next_stop_spherical[:geometry])
-          next_stop_locators = route.locators(next_stop)
+          next_stop = stops[i+1]
+          next_stop_as_cartesian = cartesian_cast(next_stop[:geometry])
+          next_stop_locators = route_line_as_cartesian.locators(next_stop_as_cartesian)
           next_candidates = next_stop_locators[a..num_segments-1].map(&:distance_from_segment)
           c = a + next_candidates.index(next_candidates.min)
         else
           c = num_segments - 1
         end
 
-        locators = route.locators(this_stop)
-        b = nearest_segment_index_forward(locators, a, c, this_stop)
-        nearest_point = find_nearest_point(locators, b)
+        locators = route_line_as_cartesian.locators(current_stop_as_cartesian)
+        b = index_of_line_segment_with_nearest_point(locators, a, c, current_stop_as_cartesian)
+        nearest_point = nearest_point_on_line(locators, b)
 
         # The next stop's match may be too early and restrictive, so allow more segment possibilities
-        if distance_to_nearest_point(stop_spherical, nearest_point) > FIRST_MATCH_THRESHOLD
+        if distance_to_nearest_point_on_line(current_stop_as_spherical, nearest_point) > FIRST_MATCH_THRESHOLD
           if (i + 2 < stops.size - 1)
-            next_stop_spherical = stops[i+2]
-            next_stop = cartesian_cast(next_stop_spherical[:geometry])
-            next_stop_locators = route.locators(next_stop)
+            next_stop = stops[i+2]
+            next_stop_as_cartesian = cartesian_cast(next_stop[:geometry])
+            next_stop_locators = route_line_as_cartesian.locators(next_stop_as_cartesian)
             next_candidates = next_stop_locators[a..num_segments-1].map(&:distance_from_segment)
             c = a + next_candidates.index(next_candidates.min)
           else
             c = num_segments - 1
           end
-          b = nearest_segment_index_forward(locators, a, c, this_stop)
-          nearest_point = find_nearest_point(locators, b)
+          b = index_of_line_segment_with_nearest_point(locators, a, c, current_stop_as_cartesian)
+          nearest_point = nearest_point_on_line(locators, b)
         end
 
-        distance = distance_along_line_to_nearest(route, nearest_point, b)
+        distance = distance_along_line_to_nearest_point(route_line_as_cartesian, nearest_point, b)
         if (i!=0)
-          if (route.before?(stops[i][:geometry]) || self.outlier_stop(rsp, this_stop)) && previous_stop_before_geom
+          if self.stop_before_geometry(current_stop_as_spherical, current_stop_as_cartesian, route_line_as_cartesian) && previous_stop_before_geom
             previous_stop_before_geom = true
           else
             equivalent_stop = stops[i].onestop_id.eql?(stops[i-1].onestop_id) || stops[i][:geometry].eql?(stops[i-1][:geometry])
@@ -187,17 +214,16 @@ module DistanceCalculation
                   break
                 end
                 a += 1
-                b = nearest_segment_index_forward(locators, a, c, this_stop)
-                nearest_point = find_nearest_point(locators, b)
-                distance = distance_along_line_to_nearest(route, nearest_point, b)
+                b = index_of_line_segment_with_nearest_point(locators, a, c, current_stop_as_cartesian)
+                nearest_point = nearest_point_on_line(locators, b)
+                distance = distance_along_line_to_nearest_point(route_line_as_cartesian, nearest_point, b)
               end
             end
             previous_stop_before_geom = false
           end
         end
 
-        distance_to_line = distance_to_nearest_point(stop_spherical, nearest_point)
-        if !test_distance(distance_to_line)
+        if !test_distance(distance_to_nearest_point_on_line(current_stop_as_spherical, nearest_point))
           if (i==0)
             rsp.stop_distances << 0.0
           elsif (i==stops.size-1)

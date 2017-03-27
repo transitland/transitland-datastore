@@ -41,25 +41,25 @@ describe DistanceCalculation do
       @trip = GTFS::Trip.new(trip_id: 'test', shape_id: 'test')
     end
 
-    it '#distance_along_line_to_nearest' do
-      cartesian_line = @rsp.cartesian_cast(@rsp[:geometry])
+    it '#distance_along_line_to_nearest_point' do
+      cartesian_line = DistanceCalculation::cartesian_cast(@rsp[:geometry])
       # this is the midpoint between stop_a and stop_b, with a little offset
-      target_point = @rsp.cartesian_cast(Stop::GEOFACTORY.point(-121.9664615, 37.36))
+      target_point = DistanceCalculation::cartesian_cast(Stop::GEOFACTORY.point(-121.9664615, 37.36))
       locators = cartesian_line.locators(target_point)
-      i = @rsp.nearest_segment_index_forward(locators, 0, locators.size-1, target_point)
-      nearest_point = @rsp.nearest_point(locators, i)
-      expect(@rsp.distance_along_line_to_nearest(cartesian_line, nearest_point, i)).to be_within(0.1).of(6508.84)
+      i = DistanceCalculation::index_of_line_segment_with_nearest_point(locators, 0, locators.size-1, target_point)
+      nearest_point = DistanceCalculation::nearest_point_on_line(locators, i)
+      expect(DistanceCalculation::distance_along_line_to_nearest_point(cartesian_line, nearest_point, i)).to be_within(0.1).of(6508.84)
     end
 
-    it '#nearest_segment_index' do
+    it '#index_of_line_segment_with_nearest_point' do
       coords = @rsp.geometry[:coordinates].concat [stop_b.geometry[:coordinates],stop_a.geometry[:coordinates]]
       @rsp.geometry = RouteStopPattern.line_string(coords)
-      cartesian_line = @rsp.cartesian_cast(@rsp[:geometry])
+      cartesian_line = DistanceCalculation::cartesian_cast(@rsp[:geometry])
       # this is the midpoint between stop_a and stop_b, with a little offset
       mid = Stop::GEOFACTORY.point(-121.9664615, 37.36)
-      target_point = @rsp.cartesian_cast(mid)
+      target_point = DistanceCalculation::cartesian_cast(mid)
       locators = cartesian_line.locators(target_point)
-      i = @rsp.nearest_segment_index_forward(locators, 0, locators.size - 1, target_point)
+      i = DistanceCalculation::index_of_line_segment_with_nearest_point(locators, 0, locators.size - 1, target_point)
       expect(i).to eq 0
     end
 
@@ -396,7 +396,7 @@ describe DistanceCalculation do
         geometry: Stop::GEOFACTORY.point(-122.3975, 37.741).to_s
       )
       @rsp.stop_pattern = [@sp[0],test_stop.onestop_id,@sp[1]]
-      expect(DistanceCalculation::outlier_stop(@rsp, test_stop[:geometry])).to be false
+      expect(DistanceCalculation::outlier_stop(test_stop, @rsp)).to be false
     end
 
     it 'returns true when the stop is greater than 100 meters of the closest point on the line' do
@@ -406,7 +406,7 @@ describe DistanceCalculation do
         geometry: Stop::GEOFACTORY.point(-122.3968, 37.7405).to_s
       )
       @rsp.stop_pattern = [@sp[0],test_stop.onestop_id,@sp[1]]
-      expect(DistanceCalculation::outlier_stop(@rsp, test_stop[:geometry])).to be true
+      expect(DistanceCalculation::outlier_stop(test_stop, @rsp)).to be true
     end
   end
 end
