@@ -106,7 +106,7 @@ module Geometry
         return s + i
       end
 
-      # If no match is found within the threshold, just take closest match wthin the search range.
+      # If no match is found within the threshold, just take closest match within the search range.
       self.index_of_line_segment_with_nearest_point(locators, s, e)
     end
 
@@ -239,6 +239,7 @@ module Geometry
             end
           end
 
+          # exhausting the search before outlier stop test 
           if !OutlierStop.test_distance(LineString.distance_to_nearest_point_on_line(current_stop_as_spherical, nearest_point))
             if (i==0)
               rsp.stop_distances << 0.0
