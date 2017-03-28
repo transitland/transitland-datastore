@@ -88,11 +88,11 @@ describe Issue do
                     created_or_updated_in_changeset_id: @changeset1.id)
       interpolated_rsp = create(:route_stop_pattern)
       @rsp1 = create(:route_stop_pattern, stop_pattern: ["s-9qscv9zzb5-bullfrogdemo", "s-9qkxnx40xt-furnacecreekresortdemo"],
-                    geometry: RouteStopPattern.line_string([[-117.13316, 36.42529], [-116.81797, 36.88108]]),
+                    geometry: Geometry::LineString.line_string([[-117.13316, 36.42529], [-116.81797, 36.88108]]),
                     stop_distances: [58023.5, 0.0],
                     created_or_updated_in_changeset_id: @changeset1.id)
       @rsp2 = create(:route_stop_pattern, stop_pattern: ["s-9qsfp2212t-stagecoachhotel~casinodemo", "s-9qscwx8n60-nyecountyairportdemo"],
-                    geometry: RouteStopPattern.line_string([[-116.75168, 36.91568], [-116.77458, 36.90645], [-116.78458, 36.88845]]),
+                    geometry: Geometry::LineString.line_string([[-116.75168, 36.91568], [-116.77458, 36.90645], [-116.78458, 36.88845]]),
                     stop_distances: [0.0, 4475.2],
                     created_or_updated_in_changeset_id: @changeset1.id)
       @rsp_line_only_stop_points_issue = Issue.create!(issue_type: 'rsp_line_only_stop_points', details: 'rsp line wrong.', created_by_changeset: @changeset1)

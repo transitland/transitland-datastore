@@ -42,6 +42,10 @@ module RGeo
       def locator(target)
         PointLocator.new target, self
       end
+
+      def single_point?
+        return self.s.eql?(self.e) ? true : false
+      end
     end
 
     class PointLocator
@@ -77,10 +81,10 @@ module RGeo
       end
 
       def interpolate_point(factory)
-        return segment.e if segment.length == 0
+        return factory.point(segment.e.x, segment.e.y) if segment.length == 0
         location = distance_on_segment / segment.length
-        return segment.e if location >= 1
-        return segment.s if location <= 0
+        return factory.point(segment.e.x, segment.e.y) if location >= 1
+        return factory.point(segment.s.x, segment.s.y) if location <= 0
         dx_location, dy_location = segment.dx * location, segment.dy * location
         factory.point(segment.s.x + dx_location, segment.s.y + dy_location)
       end
