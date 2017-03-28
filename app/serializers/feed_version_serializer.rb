@@ -42,6 +42,7 @@ class FeedVersionSerializer < ApplicationSerializer
              :updated_at,
              :feed_version_imports,
              :feed_version_imports_url,
+             :feed_version_infos,
              :import_level,
              :is_active_feed_version,
              :changesets_imported_from_this_feed_version,
@@ -60,6 +61,10 @@ class FeedVersionSerializer < ApplicationSerializer
       feed_onestop_id: object.feed.onestop_id,
       feed_version_sha1: object.sha1
     })
+  end
+
+  def feed_version_infos
+    object.feed_version_infos.map(&:id)
   end
 
   def is_active_feed_version
