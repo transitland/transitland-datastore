@@ -64,7 +64,7 @@ class FeedVersionSerializer < ApplicationSerializer
   end
 
   def feed_version_infos
-    object.feed_version_imports.map(&:id)
+    object.feed_version_infos.map(&:id)
   end
 
   def is_active_feed_version
