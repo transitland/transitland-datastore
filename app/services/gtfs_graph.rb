@@ -187,7 +187,7 @@ class GTFSGraph
     graph_log "Calculating distances"
     rsps.each do |rsp|
       stops = rsp.stop_pattern.map { |onestop_id| find_by_onestop_id(onestop_id) }
-      begin
+      # begin
         # edited rsps will probably have a shape
         if (rsp.geometry_source.to_sym.eql?(:shapes_txt_with_dist_traveled))
           # do nothing
@@ -198,10 +198,10 @@ class GTFSGraph
           # unless if rsps have inaccurate stop distances, we'll allow a recomputation if there's a fix in place.
           Geometry::DistanceCalculation.calculate_distances(rsp, stops=stops)
         end
-      rescue StandardError
-        graph_log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
-        Geometry::DistanceCalculation.fallback_distances(rsp, stops=stops)
-      end
+      # rescue StandardError
+      #   graph_log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
+      #   Geometry::DistanceCalculation.fallback_distances(rsp, stops=stops)
+      # end
     end
   end
 
