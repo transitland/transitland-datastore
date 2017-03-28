@@ -79,7 +79,6 @@ describe Geometry do
       it 'sets stop distance to the geometry length when stop_time\'s shape_dist_traveled is greater than the last shape point' do
         # the last stop time of trip 636342A5394B6507 is set to "3.0" in the GTFS, greater than "2.677" in shapes.txt
         feed, feed_version = load_feed(feed_version_name: :feed_version_nj_path_last_stop_past_edge, import_level: 1)
-        gtfs = GTFS::Source.build(feed_version.file.file.file)
         expect(RouteStopPattern.first.stop_distances).to match_array([0.0, 1166.3, 2507.7, 4313.8])
         expect(RouteStopPattern.first[:geometry].length).to be_within(0.1).of(4313.8)
         expect(RouteStopPattern.last.stop_distances).to match_array([0.0, 1805.2, 3145.8, 4320.6])
@@ -92,6 +91,18 @@ describe Geometry do
         gtfs = GTFS::Source.build(feed_version.file.file.file)
         expect(RouteStopPattern.first.stop_distances).to match_array([0.0, 1166.3, 2507.7, 4313.8])
         expect(RouteStopPattern.last.stop_distances).to match_array([0.0, 1805.2, 3145.8, 4320.6])
+      end
+
+      it 'shape_dist_traveled has equal distances, but calculate_distances does not' do
+        feed, feed_version = load_feed(feed_version_name: :feed_version_wmata_75098, import_level: 1)
+        gtfs = GTFS::Source.build(feed_version.file.file.file)
+        rsp = feed.imported_route_stop_patterns.first
+        tl_stops = rsp.stop_pattern.map{ |stop_onestop_id| Stop.find_by_onestop_id!(stop_onestop_id) }
+        trip = gtfs.trips.detect{|trip| trip.id == rsp.trips.first}
+        trip_stop_times = []
+        gtfs.trip_stop_times(trips=[trip]){ |trip, stop_times| trip_stop_times = stop_times }
+        expect(Geometry::DistanceCalculation.gtfs_shape_dist_traveled(rsp, trip_stop_times, tl_stops, gtfs.shape_line(trip.shape_id).shape_dist_traveled)).to match_array([0.0,399.4,553.4,761.0,906.2,1145.0,1385.2,1586.9,1774.2,2030.3,2214.0,2519.2,2764.1,2885.8,3057.6,3194.0,3429.4,3610.4,4359.9,4359.9,4910.9,5135.1,5363.9,5702.6,5885.2,6103.7,6465.9,6802.6,7415.0,7663.8,8118.1,8358.9,8588.2,8793.5,8963.8,9152.1])
+        expect(Geometry::DistanceCalculation.calculate_distances(rsp)).to match_array([0.3,406.7,552.9,761.4,906.0,1144.8,1385.5,1586.9,1774.2,2030.7,2214.5,2519.2,2763.9,2885.8,3057.2,3194.0,3429.1,3610.1,4363.4,4363.8,4915.4,5134.9,5363.7,5702.6,5885.2,6103.7,6465.9,6835.4,7357.5,7672.5,8118.1,8359.0,8588.2,8793.5,8963.4,9151.9])
       end
     end
 

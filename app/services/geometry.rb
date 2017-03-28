@@ -130,16 +130,18 @@ module Geometry
     def self.gtfs_shape_dist_traveled(rsp, stop_times, tl_stops, shape_distances_traveled)
       # assumes stop times and shapes BOTH have shape_dist_traveled, and they're in the same units
       # assumes the line geometry is not generated, and shape_points equals the rsp geometry.
-      # TODO consider using a more efficient search method?
       rsp.stop_distances = []
+      seg_index = 0
       stop_times.each_with_index do |st, i|
         stop_onestop_id = rsp.stop_pattern[i]
         # Find segment along shape points where stop shape_dist_traveled is between the two shape points' shape_dist_traveled
-        seg_index = -1
-        dist1, dist2 = shape_distances_traveled.each_cons(2).detect do |d1, d2|
-          seg_index += 1
+        subset_seg_index = -1
+        dist1, dist2 = shape_distances_traveled[seg_index..-1].each_cons(2).detect do |d1, d2|
+          subset_seg_index += 1
           st.shape_dist_traveled.to_f >= d1 && st.shape_dist_traveled.to_f <= d2
         end
+
+        seg_index += subset_seg_index
 
         if dist1.nil? || dist2.nil?
           if st.shape_dist_traveled.to_f < shape_distances_traveled[0]
@@ -152,8 +154,10 @@ module Geometry
         else
           route_line_as_cartesian = self.cartesian_cast(rsp[:geometry])
           stop = tl_stops[i]
-          nearest_point = route_line_as_cartesian.closest_point_on_segment(self.cartesian_cast(stop[:geometry]), seg_index)
-          rsp.stop_distances << LineString.distance_along_line_to_nearest_point(route_line_as_cartesian, nearest_point, seg_index)
+          locators = route_line_as_cartesian.locators(self.cartesian_cast(stop[:geometry]))
+          seg_dist = st.shape_dist_traveled.to_f - shape_distances_traveled[seg_index]
+          point_on_line = locators[seg_index].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326), seg_dist=seg_dist)
+          rsp.stop_distances << LineString.distance_along_line_to_nearest_point(route_line_as_cartesian, point_on_line, seg_index)
         end
       end
       rsp.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
