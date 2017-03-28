@@ -11,6 +11,10 @@ module RGeo
         nearest_locator(target).interpolate_point(factory)
       end
 
+      def closest_point_on_segment(target, seg_index)
+        _segments[seg_index].locator(target).interpolate_point(factory)
+      end
+
       def line_subset(start_index, stop_index)
         factory.line_string([_segments[start_index].s] + _segments[start_index..stop_index].map {|s| s.e})
       end
@@ -24,17 +28,23 @@ module RGeo
       end
 
       def before?(target)
-        return _segments.find{ |seg| !seg.s.eql?(seg.e) }.tproj(target) < 0.0 ? true : false
+        segs = _segments.find{ |seg| !seg.s.eql?(seg.e) }
+        return !segs.nil? && segs.tproj(target) < 0.0 ? true : false
       end
 
       def after?(target)
-        return _segments.reverse_each.detect { |seg| !seg.s.eql?(seg.e) }.tproj(target) > 1.0 ? true : false
+        segs = _segments.reverse_each.detect { |seg| !seg.s.eql?(seg.e) }
+        return !segs.nil? && segs.tproj(target) > 1.0 ? true : false
       end
     end
 
     class Segment
       def locator(target)
         PointLocator.new target, self
+      end
+
+      def single_point?
+        return self.s.eql?(self.e) ? true : false
       end
     end
 
@@ -71,10 +81,10 @@ module RGeo
       end
 
       def interpolate_point(factory)
-        return segment.e if segment.length == 0
+        return factory.point(segment.e.x, segment.e.y) if segment.length == 0
         location = distance_on_segment / segment.length
-        return segment.e if location >= 1
-        return segment.s if location <= 0
+        return factory.point(segment.e.x, segment.e.y) if location >= 1
+        return factory.point(segment.s.x, segment.s.y) if location <= 0
         dx_location, dy_location = segment.dx * location, segment.dy * location
         factory.point(segment.s.x + dx_location, segment.s.y + dy_location)
       end

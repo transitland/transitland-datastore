@@ -2,7 +2,9 @@ Rails.application.routes.default_url_options = TransitlandDatastore::Application
 
 Rails.application.routes.draw do
   namespace :api do
+    get '/', to: 'api#index'
     namespace :v1 do
+      get '/', to: 'api_v1#index'
       get '/onestop_id/:onestop_id', to: 'onestop_id#show'
       get '/activity_updates', to: 'activity_updates#index'
       resources :changesets, only: [:index, :show, :create, :update, :destroy] do
@@ -24,11 +26,22 @@ Rails.application.routes.draw do
       resources :routes, only: [:index, :show]
       resources :route_stop_patterns, only: [:index, :show]
       resources :schedule_stop_pairs, only: [:index]
-      resources :feeds, only: [:index, :show]
+      resources :feeds, only: [:index, :show] do
+        member do
+          get 'download_latest_feed_version'
+        end
+        collection do
+          post 'fetch_info'
+        end
+      end
       resources :feed_versions, only: [:index, :show, :update]
+      resources :feed_version_infos, only: [:index, :show]
       resources :feed_version_imports, only: [:index, :show]
-      resources :issues, only: [:index, :show, :create, :update, :destroy]
-      post '/feeds/fetch_info', to: 'feeds#fetch_info'
+      resources :issues, only: [:index, :show, :create, :update, :destroy] do
+        collection do
+          get 'categories'
+        end
+      end
       post '/webhooks/feed_fetcher', to: 'webhooks#feed_fetcher'
       post '/webhooks/feed_eater', to: 'webhooks#feed_eater'
 

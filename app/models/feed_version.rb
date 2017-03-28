@@ -20,26 +20,34 @@
 #  file_raw               :string
 #  sha1_raw               :string
 #  md5_raw                :string
+#  file_feedvalidator     :string
 #
 # Indexes
 #
-#  index_feed_versions_on_feed_type_and_feed_id  (feed_type,feed_id)
+#  index_feed_versions_on_earliest_calendar_date  (earliest_calendar_date)
+#  index_feed_versions_on_feed_type_and_feed_id   (feed_type,feed_id)
+#  index_feed_versions_on_latest_calendar_date    (latest_calendar_date)
 #
 
 class FeedVersion < ActiveRecord::Base
   include HasTags
+  include IsAnEntityWithIssues
 
   belongs_to :feed, polymorphic: true
+  has_many :feed_version_infos, dependent: :destroy
   has_many :feed_version_imports, -> { order 'created_at DESC' }, dependent: :destroy
   has_many :changesets_imported_from_this_feed_version, class_name: 'Changeset'
+
   has_many :entities_imported_from_feed
-  has_many :imported_operators, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'
-  has_many :imported_stops, through: :entities_imported_from_feed, source: :entity, source_type: 'Stop'
-  has_many :imported_routes, through: :entities_imported_from_feed, source: :entity, source_type: 'Route'
+  has_many :imported_operators, -> { distinct }, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'
+  has_many :imported_stops, -> { distinct }, through: :entities_imported_from_feed, source: :entity, source_type: 'Stop'
+  has_many :imported_routes, -> { distinct }, through: :entities_imported_from_feed, source: :entity, source_type: 'Route'
+  has_many :imported_route_stop_patterns, -> { distinct }, through: :entities_imported_from_feed, source: :entity, source_type: 'RouteStopPattern'
   has_many :imported_schedule_stop_pairs, class_name: 'ScheduleStopPair', dependent: :delete_all
 
   mount_uploader :file, FeedVersionUploader
   mount_uploader :file_raw, FeedVersionUploaderRaw
+  mount_uploader :file_feedvalidator, FeedVersionUploaderFeedvalidator
 
   validates :sha1, presence: true, uniqueness: true
   validates :feed, presence: true
@@ -48,6 +56,22 @@ class FeedVersion < ActiveRecord::Base
 
   scope :where_active, -> {
     joins('INNER JOIN current_feeds ON feed_versions.id = current_feeds.active_feed_version_id')
+  }
+
+  scope :where_calendar_coverage_begins_at_or_before, -> (date) {
+    date = date.is_a?(Date) ? date : Date.parse(date)
+    where('earliest_calendar_date <= ?', date)
+  }
+
+  scope :where_calendar_coverage_begins_at_or_after, -> (date) {
+    date = date.is_a?(Date) ? date : Date.parse(date)
+    where('earliest_calendar_date >= ?', date)
+  }
+
+  scope :where_calendar_coverage_includes, -> (date) {
+    date = date.is_a?(Date) ? date : Date.parse(date)
+    where('earliest_calendar_date <= ?', date)
+      .where('latest_calendar_date >= ?', date)
   }
 
   def succeeded(timestamp)
@@ -99,6 +123,13 @@ class FeedVersion < ActiveRecord::Base
     elsif self.try(:file).try(:url)
       # we don't want to include any query parameters
       self.file.url.split('?').first
+    end
+  end
+
+  def feedvalidator_url
+    if self.try(:file_feedvalidator).try(:url)
+      # we don't want to include any query parameters
+      self.file_feedvalidator.url.split('?').first
     end
   end
 

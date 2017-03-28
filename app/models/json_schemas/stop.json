@@ -9,6 +9,19 @@
       "type": "string",
       "format": "stop-onestop-id"
     },
+    "newOnestopId": {
+      "type": "string",
+      "format": "stop-onestop-id"
+    },
+    "onestopIdsToMerge": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "format": "stop-onestop-id"
+      }
+    },
     "geometry": { "type": "object" },
     "timezone": { "type": "string" },
     "tags": { "type": "object" },
@@ -18,18 +31,20 @@
       "type": "string",
       "format": "stop-onestop-id"
     },
-    "identifiedBy": {
-      "type": ["array", "null"],
+    "addImportedFromFeeds": {
+      "type": "array",
+      "minItems": 1,
       "uniqueItems": true,
       "items": {
-        "type": "string"
+        "$ref": "./imported_from_feed.json"
       }
     },
-    "notIdentifiedBy": {
-      "type": ["array", "null"],
+    "notImportedFromFeeds": {
+      "type": "array",
+      "minItems": 1,
       "uniqueItems": true,
       "items": {
-        "type": "string"
+        "$ref": "./imported_from_feed.json"
       }
     },
     "servedBy": {

@@ -13,11 +13,11 @@
             "onestopId": "o-9q9-bart",
             "name": "Bay Area Rapid Transit",
             "shortName": "BART",
-            "identifiedBy": [
-              "usntd://9003"
-            ],
-            "country": "United States",
-            "state": "California",
+            "tags": {
+              "us_ntd_id": "9003"
+            },
+            "country": "US",
+            "state": "US-CA",
             "metro": "San Francisco Bay Area",
             "timezone": "America/Los_Angeles",
             "website": "http://www.bart.gov/",
@@ -80,7 +80,50 @@
                 "gtfsAgencyId": "BART",
                 "operatorOnestopId": "o-9q9-bart"
               }
-            ]
+            ],
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [
+                [
+                  [
+                    -121.97640000000001,
+                    37.557354999999994
+                  ],
+                  [
+                    -122.38665999999999,
+                    37.599786999999985
+                  ],
+                  [
+                    -122.46623299999997,
+                    37.684638000000014
+                  ],
+                  [
+                    -122.4690807,
+                    37.70612055
+                  ],
+                  [
+                    -122.35316500000002,
+                    37.936887
+                  ],
+                  [
+                    -122.024597,
+                    38.00327499999998
+                  ],
+                  [
+                    -121.945154,
+                    38.018913999999995
+                  ],
+                  [
+                    -121.900367,
+                    37.701694999999994
+                  ],
+                  [
+                    -121.97640000000001,
+                    37.557354999999994
+                  ]
+                ]
+              ]
+            }
           }
         }
       ]

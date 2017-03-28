@@ -1,5 +1,8 @@
 class Api::V1::BaseApiController < ApplicationController
+
   include JwtAuthToken
+
+  API_KIND = 'JSON-psuedo-RESTful'
 
   protect_from_forgery with: :null_session
   skip_before_action :verify_authenticity_token

@@ -13,9 +13,11 @@
             "onestopId": "o-9q9-vta",
             "name": "Santa Clara Valley Transportation Authority",
             "shortName": "VTA",
-            "identifiedBy": ["usntd://9013"],
-            "country": "United States",
-            "state": "California",
+            "tags": {
+              "us_ntd_id": "9013"
+            },
+            "country": "US",
+            "state": "US-CA",
             "metro": "San Francisco Bay Area",
             "timezone": "America/Los_Angeles",
             "website": "http://www.vta.org/",
@@ -42,7 +44,11 @@
                 "gtfsAgencyId": "VTA",
                 "operatorOnestopId": "o-9q9-vta"
               }
-            ]
+            ],
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [[[-122.173638697,37.440556809],[-122.149990584,37.395450619],[-122.130937923,37.361408526],[-122.030939181,37.259406422],[-121.983920828,37.222231292],[-121.570633691,36.974922178],[-121.54902915,37.00006636],[-121.55177066,37.00582962],[-121.631097271,37.148849231],[-121.923956233,37.540138969],[-121.92699421,37.542184637],[-121.953170709,37.558388156],[-121.975949,37.557288],[-122.173568669,37.443449787],[-122.173638697,37.440556809]]]
+            }
           }
         }
       ]

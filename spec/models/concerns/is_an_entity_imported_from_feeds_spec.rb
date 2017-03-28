@@ -10,16 +10,59 @@ describe IsAnEntityImportedFromFeeds do
     @fv1 = create(:feed_version, feed: @feed)
     @fv2 = create(:feed_version, feed: @feed)
     # add EIFFs; stop0 in fv1; stop1 in fv1, fv2; stop2 in fv2
-    @fv1.entities_imported_from_feed.create!(entity: @stop0, feed: @feed)
-    @fv1.entities_imported_from_feed.create!(entity: @stop1, feed: @feed)
-    @fv2.entities_imported_from_feed.create!(entity: @stop1, feed: @feed)
-    @fv2.entities_imported_from_feed.create!(entity: @stop2, feed: @feed)
+    @fv1.entities_imported_from_feed.create!(entity: @stop0, feed: @feed, gtfs_id: "0")
+    @fv1.entities_imported_from_feed.create!(entity: @stop1, feed: @feed, gtfs_id: "1")
+    @fv2.entities_imported_from_feed.create!(entity: @stop1, feed: @feed, gtfs_id: "1")
+    @fv2.entities_imported_from_feed.create!(entity: @stop2, feed: @feed, gtfs_id: "2")
     # activate
     @feed.activate_feed_version(@fv1.sha1, 1)
     @feed.activate_feed_version(@fv2.sha1, 2)
     # --> only stops referenced by @fv2 are active
     #     @stop1, @stop2 active
     #     @stop0, @stop3 inactive
+  end
+
+  context 'changeset' do
+    it 'can add feed_version' do
+      feed_version = create(:feed_version)
+      stop = create(:stop, onestop_id: 's-9q9-test')
+      gtfs_id = 'test'
+      payload = {
+        changes: [
+          {
+            action: "createUpdate",
+            stop: {
+              onestopId: stop.onestop_id,
+              addImportedFromFeeds: [{feedVersion: feed_version.sha1, gtfsId: gtfs_id}],
+            }
+          }
+        ]
+      }
+      c = Changeset.create!(payload: payload)
+      c.apply!
+      expect(stop.reload.entities_imported_from_feed.find_by(feed_version: feed_version, gtfs_id: gtfs_id)).to be_truthy
+    end
+
+    it 'can remove feed_version' do
+      feed_version = create(:feed_version)
+      stop = create(:stop, onestop_id: 's-9q9-test')
+      gtfs_id = 'test'
+      stop.entities_imported_from_feed.create!(feed_version_id: feed_version.id, feed_id: feed_version.feed_id, gtfs_id: gtfs_id)
+      payload = {
+        changes: [
+          {
+            action: "createUpdate",
+            stop: {
+              onestopId: stop.onestop_id,
+              notImportedFromFeeds: [{feedVersion: feed_version.sha1, gtfsId: gtfs_id}],
+            }
+          }
+        ]
+      }
+      c = Changeset.create!(payload: payload)
+      c.apply!
+      expect(stop.reload.entities_imported_from_feed.find_by(feed_version: feed_version, gtfs_id: gtfs_id)).to be_falsy
+    end
   end
 
   context '.where_import_level' do
@@ -75,6 +118,25 @@ describe IsAnEntityImportedFromFeeds do
     it 'finds entities not referenced by active feed_version' do
       # see notes in before(:each)
       expect(Stop.where_not_imported_from_active_feed_version).to match_array([@stop0, @stop3])
+    end
+  end
+
+  context '.where_imported_with_gtfs_id' do
+    it 'finds entities imported with a gtfs_id' do
+      expect(Stop.where_imported_with_gtfs_id('0')).to match_array([@stop0])
+      expect(Stop.where_imported_with_gtfs_id('1')).to match_array([@stop1])
+    end
+
+    it 'finds entities imported with a gtfs_id from a feed' do
+      feed2 = create(:feed)
+      expect(Stop.where_imported_with_gtfs_id('0').where_imported_from_feed(@feed)).to match_array([@stop0])
+      expect(Stop.where_imported_with_gtfs_id('0').where_imported_from_feed(feed2)).to match_array([])
+    end
+
+    it 'finds entities imported from an active feed version with gtfs_id' do
+      feed2 = create(:feed)
+      expect(Stop.where_imported_with_gtfs_id('0').where_imported_from_feed(@feed).where_imported_from_active_feed_version).to match_array([])
+      expect(Stop.where_imported_with_gtfs_id('1').where_imported_from_feed(@feed).where_imported_from_active_feed_version).to match_array([@stop1])
     end
   end
 

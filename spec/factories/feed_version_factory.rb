@@ -20,16 +20,26 @@
 #  file_raw               :string
 #  sha1_raw               :string
 #  md5_raw                :string
+#  file_feedvalidator     :string
 #
 # Indexes
 #
-#  index_feed_versions_on_feed_type_and_feed_id  (feed_type,feed_id)
+#  index_feed_versions_on_earliest_calendar_date  (earliest_calendar_date)
+#  index_feed_versions_on_feed_type_and_feed_id   (feed_type,feed_id)
+#  index_feed_versions_on_latest_calendar_date    (latest_calendar_date)
 #
 
 FactoryGirl.define do
   factory :feed_version do
     sha1 { SecureRandom.hex(32) }
+    earliest_calendar_date '2016-01-01'
+    latest_calendar_date '2017-01-01'
     feed
+
+    factory :feed_version_recursosdatabuenosairesgobar do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/f-69y7-recursosdatabuenosairesgobar.zip'))}
+      association :feed, factory: :feed_recursosdatabuenosairesgobar
+    end
 
     factory :feed_version_caltrain do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/f-9q9-caltrain.zip')) }
@@ -66,6 +76,31 @@ FactoryGirl.define do
       association :feed, factory: :feed_sfmta
     end
 
+    factory :feed_version_sfmta_7310245 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/sfmta-trip-7310245.zip')) }
+      association :feed, factory: :feed_sfmta
+    end
+
+    factory :feed_version_sfmta_7385783 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/sfmta-trip-7385783.zip')) }
+      association :feed, factory: :feed_sfmta
+    end
+
+    factory :feed_version_grand_river_1426033 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/grand-river-trip-1426033.zip')) }
+      association :feed, factory: :feed_grand_river
+    end
+
+    factory :feed_version_hdpt_trip do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/hdpt_gtfs.zip')) }
+      association :feed, factory: :feed_hdpt
+    end
+
+    factory :feed_version_pvta_trip do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/pvta_trip_gtfs.zip')) }
+      association :feed, factory: :feed_pvta
+    end
+
     factory :feed_version_nycdotsiferry do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/siferry-gtfs.zip')) }
       association :feed, factory: :feed_nycdotsiferry
@@ -81,8 +116,33 @@ FactoryGirl.define do
       association :feed, factory: :feed_rome
     end
 
+    factory :feed_version_nj_path do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/path-nj-us.zip')) }
+      association :feed, factory: :feed_nj_path
+    end
+
+    factory :feed_version_nj_path_last_stop_past_edge do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/path-nj-us-last-stop-past-edge.zip')) }
+      association :feed, factory: :feed_nj_path
+    end
+
+    factory :feed_version_nj_path_first_stop_before_edge do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/path-nj-us-first-stop-before-edge.zip')) }
+      association :feed, factory: :feed_nj_path
+    end
+
+    factory :feed_version_marta do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/marta-trip-5453552.zip')) }
+      association :feed, factory: :feed_marta
+    end
+
     factory :feed_version_example do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example.zip')) }
+      association :feed, factory: :feed_example
+    end
+
+    factory :feed_version_example_no_shapes do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example-no-shapes.zip')) }
       association :feed, factory: :feed_example
     end
 
@@ -102,6 +162,24 @@ FactoryGirl.define do
     factory :feed_version_example_trips_special_stop_times do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example-trips-special-stop-times.zip')) }
       association :feed, factory: :feed_example
+    end
+
+    factory :feed_version_example_multiple_agency_id_same_operator do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example-multiple-agency-id-same-operator.zip')) }
+      association :feed, factory: :feed_example
+      after :create do |feed_version, evaluator|
+        feed = feed_version.feed
+        operator = feed.operators_in_feed.first.operator
+        feed_version.feed.operators_in_feed.create!(
+          operator: operator,
+          gtfs_agency_id: 'DTA2'
+        )
+      end
+    end
+
+    factory :feed_version_seattle_childrens do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/seattle-childrens.zip')) }
+      association :feed, factory: :feed_seattle_childrens
     end
   end
 end

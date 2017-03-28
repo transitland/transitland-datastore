@@ -38,30 +38,36 @@ class FeedFetcherService
     feed_version = nil
     log "Fetching feed #{feed.onestop_id} from #{feed.url}"
     # Try to fetch and normalize feed; log error
-    begin
-      feed_version = fetch_and_normalize_feed_version(feed)
-    rescue GTFS::InvalidSourceException => e
+    error_handler = Proc.new { |e, issue_type|
       fetch_exception_log = e.message
       if e.backtrace.present?
         fetch_exception_log << "\n"
         fetch_exception_log << e.backtrace.join("\n")
       end
       log fetch_exception_log, level=:error
+      Issue.create!(issue_type: issue_type, details: fetch_exception_log)
+        .entities_with_issues.create!(entity: feed, entity_attribute: "url")
+    }
+    begin
+      Issue.issues_of_entity(feed, entity_attributes: ["url"]).each(&:deprecate)
+      feed_version = fetch_and_normalize_feed_version(feed)
+    rescue GTFS::InvalidURLException => e
+      error_handler.call(e, 'feed_fetch_invalid_url')
+    rescue GTFS::InvalidResponseException => e
+      error_handler.call(e, 'feed_fetch_invalid_response')
+    rescue GTFS::InvalidZipException => e
+      error_handler.call(e, 'feed_fetch_invalid_zip')
+    rescue GTFS::InvalidSourceException => e
+      error_handler.call(e, 'feed_fetch_invalid_source')
     ensure
       feed.update(
-        latest_fetch_exception_log: fetch_exception_log,
         last_fetched_at: DateTime.now
       )
     end
     # Return if there was not a successful fetch.
     return unless feed_version
     return unless feed_version.valid?
-    if feed_version.persisted?
-      log "File downloaded from #{feed.url} has an existing sha1 hash: #{feed_version.sha1}"
-    else
-      log "File downloaded from #{feed.url} has a new sha1 hash: #{feed_version.sha1}"
-      feed_version.save!
-    end
+    log "File downloaded from #{feed.url}, sha1 hash: #{feed_version.sha1}"
     # Return found/created FeedVersion
     feed_version
   end
@@ -71,12 +77,13 @@ class FeedFetcherService
   end
 
   def self.fetch_and_normalize_feed_version(feed)
+    # Fetch GTFS
     gtfs = GTFS::Source.build(
       feed.url,
       strict: false,
       tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
     )
-    # Normalize
+    # Normalize & create sha1
     gtfs_file = nil
     gtfs_file_raw = nil
     sha1 = nil
@@ -95,18 +102,27 @@ class FeedFetcherService
       sha1 = Digest::SHA1.file(gtfs_file).hexdigest
     end
     # Create a new FeedVersion
-    feed_version = FeedVersion.find_by(sha1: sha1)
-    if !feed_version
+    # (upload attachments later to avoid race conditions)
+    feed_version = FeedVersion.find_or_create_by!(
+      feed: feed,
+      sha1: sha1
+    )
+    # Is this a new feed_version?
+    if feed_version.file.url.nil?
+      # Save the file attachments
       data = {
-        feed: feed,
         url: feed.url,
+        fetched_at: DateTime.now,
         file: gtfs_file,
         file_raw: gtfs_file_raw,
-        fetched_at: DateTime.now
       }
       data = data.merge!(read_gtfs_info(gtfs))
-      feed_version = FeedVersion.new(data)
+      feed_version.update!(data)
+      # Enqueue validators
+      FeedValidationWorker.perform_async(feed_version.sha1)
+      GTFSStatisticsWorker.perform_async(feed_version.sha1)
     end
+    # Return the found or created feed_version
     feed_version
   end
 
@@ -124,7 +140,9 @@ class FeedFetcherService
         feed_start_date:     feed_info.feed_start_date,
         feed_end_date:       feed_info.feed_end_date,
         feed_version:        feed_info.feed_version,
-        feed_id:             feed_info.feed_id
+        feed_id:             feed_info.feed_id,
+        feed_contact_email:  feed_info.feed_contact_email,
+        feed_contact_url:    feed_info.feed_contact_url
       })
     end
     return {

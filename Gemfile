@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.2.7.1'
+gem 'rails', '4.2.8'
 
 # Transitland Datastore components
 path 'components' do
@@ -18,6 +18,12 @@ gem 'pg'
 gem 'activerecord-postgis-adapter'
 gem 'activerecord-import'
 gem 'redis-rails'
+# NOTE: pegging version of Redis gems
+# because of past operations issues: https://github.com/transitland/transitland-datastore/pull/880
+# hopefully will be fixed in future versions
+gem 'redis', '3.3.1'
+gem 'redis-actionpack', '5.0.0'
+gem 'redis-rack', '2.0.0.pre'
 
 # background processing
 gem 'sidekiq', '< 5'
@@ -28,11 +34,12 @@ gem 'whenever', require: false # to manage crontab
 # data model
 gem 'squeel'
 gem 'enumerize'
-gem 'gtfs', github: 'transitland/gtfs', tag: 'dab8bdecccc466cccadd6f2ddfff78e95d8375c7'
+gem 'gtfs', github: 'transitland/gtfs', tag: '82b564898cd08f0b50e56b45348a027af135fbb5'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 gem 'json-schema', '2.5.2' # running into problems with 2.6.0
 gem 'email_validator'
+gem 'tzinfo'
 
 # text matching
 gem 'text'
@@ -43,7 +50,7 @@ gem 'devise'
 gem 'jwt'
 
 # providing API
-gem 'active_model_serializers', '0.9.5'
+gem 'active_model_serializers', '0.10.2'
 gem 'oj'
 gem 'oj_mimic_json'
 
@@ -52,10 +59,7 @@ gem 'faraday'
 
 # file attachments
 gem 'fog-aws', group: [:staging, :production]
-gem 'carrierwave', github: 'carrierwaveuploader/carrierwave', ref: '49fdad1'
-# using a development version of carrierwave in order to only
-# load fog-aws, rather than the entire fog library
-# https://github.com/carrierwaveuploader/carrierwave/issues/1698
+gem 'carrierwave', '~>1.0.0'
 
 # development tools
 gem 'better_errors', group: :development
@@ -65,8 +69,6 @@ gem 'pry-byebug', group: [:development, :test]
 gem 'pry-rails', group: [:development, :test]
 gem 'pry-rescue', group: [:development, :test]
 gem 'pry-stack_explorer', group: [:development, :test]
-gem 'rubocop', require: false, group: [:development, :test]
-gem 'rubocop-rspec', require: false, group: [:development, :test]
 gem 'active_record_doctor', group: :development
 
 # code coverage and documentation

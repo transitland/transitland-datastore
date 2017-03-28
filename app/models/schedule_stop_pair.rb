@@ -16,7 +16,6 @@
 #  destination_departure_time         :string
 #  frequency_start_time               :string
 #  frequency_end_time                 :string
-#  frequency_headway_seconds          :string
 #  tags                               :hstore
 #  service_start_date                 :date
 #  service_end_date                   :date
@@ -44,6 +43,8 @@
 #  destination_dist_traveled          :float
 #  feed_id                            :integer
 #  feed_version_id                    :integer
+#  frequency_type                     :string
+#  frequency_headway_seconds          :integer
 #
 # Indexes
 #
@@ -56,6 +57,7 @@
 #  c_ssp_trip                                                   (trip)
 #  index_current_schedule_stop_pairs_on_feed_id_and_id          (feed_id,id)
 #  index_current_schedule_stop_pairs_on_feed_version_id_and_id  (feed_version_id,id)
+#  index_current_schedule_stop_pairs_on_frequency_type          (frequency_type)
 #  index_current_schedule_stop_pairs_on_operator_id             (operator_id)
 #  index_current_schedule_stop_pairs_on_origin_departure_time   (origin_departure_time)
 #  index_current_schedule_stop_pairs_on_route_stop_pattern_id   (route_stop_pattern_id)
@@ -80,6 +82,10 @@ class BaseScheduleStopPair < ActiveRecord::Base
       :transitland_interpolated_geometric,
       :transitland_interpolated_shape
     ]
+  enumerize :frequency_type, in: [
+    :exact,
+    :not_exact
+  ]
 end
 
 class ScheduleStopPair < BaseScheduleStopPair
@@ -110,8 +116,14 @@ class ScheduleStopPair < BaseScheduleStopPair
             :service_start_date,
             :service_end_date,
             presence: true
+  validates :frequency_start_time, presence: true, if: :frequency_type
+  validates :frequency_end_time, presence: true, if: :frequency_type
+  validates :frequency_headway_seconds, numericality: { greater_than_or_equal_to: 0, allow_nil: true }
+  validates :frequency_headway_seconds, presence: true, if: :frequency_type
+
   validate :validate_service_range
   validate :validate_service_exceptions
+
 
   # Add scope for updated_since
   include UpdatedSince
@@ -167,6 +179,10 @@ class ScheduleStopPair < BaseScheduleStopPair
     self.operator = route.operator
   end
 
+  def route_stop_pattern_onestop_id
+    route_stop_pattern.onestop_id
+  end
+
   def origin_onestop_id
     origin.onestop_id
   end
@@ -218,6 +234,14 @@ class ScheduleStopPair < BaseScheduleStopPair
     super(GTFS::WideTime.parse(value))
   end
 
+  def frequency_start_time=(value)
+    super(GTFS::WideTime.parse(value))
+  end
+
+  def frequency_end_time=(value)
+    super(GTFS::WideTime.parse(value))
+  end
+
   # Tracked by changeset
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
@@ -234,8 +258,8 @@ class ScheduleStopPair < BaseScheduleStopPair
       find(attrs[:id])
     end
   end
-  def self.apply_params(params, cache={})
-    params = super(params, cache)
+  def self.apply_params(params, changeset: nil)
+    params = super(params)
     {
       origin_onestop_id: :origin,
       destination_onestop_id: :destination,
@@ -243,10 +267,9 @@ class ScheduleStopPair < BaseScheduleStopPair
       route_stop_pattern_onestop_id: :route_stop_pattern
     }.each do |k,v|
       next if params[k].nil?
-      cache[params[k]] ||= OnestopId.find!(params[k])
-      params[v] = cache[params.delete(k)]
+      params[v] = OnestopId.find_current_and_old!(params[k])
     end
-    params[:operator] = params[:route].operator
+    params[:operator] = params[:route].operator if params[:route]
     params
   end
 

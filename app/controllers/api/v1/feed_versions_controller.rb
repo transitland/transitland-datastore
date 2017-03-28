@@ -35,6 +35,7 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
       feed,
       feed_version_imports,
       feed.active_feed_version,
+      feed_version_infos,
       changesets_imported_from_this_feed_version
     ]}
 
@@ -59,32 +60,42 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
       @feed_versions = @feed_versions.where(sha1: sha1s)
     end
 
+    if params[:calendar_coverage_begins_at_or_before].present?
+      @feed_versions = @feed_versions.where_calendar_coverage_begins_at_or_before(
+        params[:calendar_coverage_begins_at_or_before]
+      )
+    end
+
+    if params[:calendar_coverage_begins_at_or_after].present?
+      @feed_versions = @feed_versions.where_calendar_coverage_begins_at_or_after(
+        params[:calendar_coverage_begins_at_or_after]
+      )
+    end
+
+    if params[:calendar_coverage_includes].present?
+      @feed_versions = @feed_versions.where_calendar_coverage_includes(
+        params[:calendar_coverage_includes]
+      )
+    end
+
     if params[:feed_onestop_id].present?
       feed_onestop_ids = params[:feed_onestop_id].split(',')
       @feed_versions = @feed_versions.where(feed: Feed.where(onestop_id: feed_onestop_ids))
     end
 
+    @feed_versions = @feed_versions.includes(:issues) if AllowFiltering.to_boolean(params[:embed_issues])
+
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(
-          @feed_versions,
-          Proc.new { |params| api_v1_feed_versions_url(params) },
-          params[:sort_key],
-          params[:sort_order],
-          params[:offset],
-          params[:per_page],
-          params[:total],
-          {}
-        )
-      end
-      format.csv do
-        return_downloadable_csv(@feed_versions, 'feed_versions')
-      end
+      format.json { render paginated_json_collection(@feed_versions).merge({ scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }) }
+      format.csv { return_downloadable_csv(@feed_versions, 'feed_versions') }
     end
   end
 
   def show
-    render json: @feed_version
+    respond_to do |format|
+      format.json { render json: @feed_version, scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }
+    end
+
   end
 
   def update

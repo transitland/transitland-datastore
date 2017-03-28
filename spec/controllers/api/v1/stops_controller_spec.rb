@@ -1,6 +1,6 @@
 describe Api::V1::StopsController do
   before(:each) do
-    @glen_park = create(:stop, geometry: 'POINT(-122.433416 37.732525)', name: 'Glen Park', identifiers: ['SFMTA-GP'])
+    @glen_park = create(:stop, geometry: 'POINT(-122.433416 37.732525)', name: 'Glen Park')
     @bosworth_diamond = create(:stop, geometry: 'POINT(-122.434011 37.733595)', name: 'Bosworth + Diamond')
     @metro_embarcadero = create(:stop, geometry: 'POINT(-122.396431 37.793152)', name: 'Metro Embarcadero')
     @gilman_paul_3rd = create(:stop, geometry: 'POINT(-122.395644 37.722413)', name: 'Gilman + Paul + 3rd St.')
@@ -13,13 +13,6 @@ describe Api::V1::StopsController do
         expect_json_types({ stops: :array }) # TODO: remove root node?
         expect_json({ stops: -> (stops) {
           expect(stops.length).to eq 4
-        }})
-      end
-
-      it 'returns the appropriate stop when identifier provided' do
-        get :index, identifier: 'SFMTA-GP'
-        expect_json({ stops: -> (stops) {
-          expect(stops.first[:onestop_id]).to eq @glen_park.onestop_id
         }})
       end
 
@@ -41,10 +34,24 @@ describe Api::V1::StopsController do
         stop_true = create(:stop, wheelchair_boarding: true)
         stop_false = create(:stop, wheelchair_boarding: false)
         get :index, wheelchair_boarding: 'true'
-        expect({ stops: -> (stops) {
-            expect(stops.first.onestop_id = stop_true.onestop_id)
+        expect_json({ stops: -> (stops) {
+            expect(stops.first[:onestop_id]).to eq stop_true.onestop_id
             expect(stops.count).to eq 1
-            expect(stops.first.wheelchair_boarding).to be true
+            expect(stops.first[:wheelchair_boarding]).to be true
+        }})
+      end
+
+      it 'returns stops with issues' do
+        Issue.create!(issue_type: 'stop_name').entities_with_issues.create!(entity: @glen_park, entity_attribute: 'name')
+
+        get :index, embed_issues: 'true'
+        expect_json({ stops: -> (stops) {
+            expect(stops.first[:issues].size).to eq 1
+        }})
+
+        get :index, embed_issues: 'false'
+        expect_json({ stops: -> (stops) {
+            expect(stops.first[:issues]).to be_nil
         }})
       end
 
@@ -67,7 +74,6 @@ describe Api::V1::StopsController do
             expect(stops.map { |stop| stop[:onestop_id] }).to match_array([@stop1.onestop_id, @stop2.onestop_id])
           }})
         end
-
       end
 
       context 'returns stop by servedBy' do

@@ -19,7 +19,6 @@
 #  updated_at                         :datetime
 #  created_or_updated_in_changeset_id :integer
 #  geometry                           :geography({:srid geometry, 4326
-#  latest_fetch_exception_log         :text
 #  license_attribution_text           :text
 #  active_feed_version_id             :integer
 #  edited_attributes                  :string           default([]), is an Array
@@ -44,7 +43,6 @@ describe Feed do
             operator: {
               onestopId: 'o-9q9-caltrain',
               name: 'Caltrain',
-              identifiedBy: ['usntd://9134'],
               geometry: { type: "Polygon", coordinates:[[[-121.56649700000001,37.00360599999999],[-122.23195700000001,37.48541199999998],[-122.38653400000001,37.600005999999965],[-122.412018,37.63110599999998],[-122.39432299999996,37.77643899999997],[-121.65072100000002,37.12908099999998],[-121.61080899999999,37.085774999999984],[-121.56649700000001,37.00360599999999]]]}
             }
           },
@@ -62,7 +60,8 @@ describe Feed do
                   operatorOnestopId: 'o-9q9-caltrain',
                   gtfsAgencyId: 'caltrain-ca-us'
                 }
-              ]
+              ],
+              geometry: { type: "Polygon", coordinates:[[[-121.56649700000001,37.00360599999999],[-122.23195700000001,37.48541199999998],[-122.38653400000001,37.600005999999965],[-122.412018,37.63110599999998],[-122.39432299999996,37.77643899999997],[-121.65072100000002,37.12908099999998],[-121.61080899999999,37.085774999999984],[-121.56649700000001,37.00360599999999]]]}
             }
           }
         ]
@@ -93,30 +92,6 @@ describe Feed do
       changeset2.apply!
       expect(Feed.first.operators).to match_array([Operator.first])
       expect(Feed.first.license_redistribute).to eq 'no'
-      expect(changeset2.feeds_created_or_updated).to match_array([Feed.first])
-    end
-
-    it 'can modify a feed, modifying a GTFS agency ID' do
-      changeset2 = create(:changeset, payload: {
-        changes: [
-          {
-            action: 'createUpdate',
-            feed: {
-              onestopId: 'f-9q9-caltrain',
-              includesOperators: [
-                {
-                  operatorOnestopId: 'o-9q9-caltrain',
-                  gtfsAgencyId: 'new-id'
-                }
-              ]
-            }
-          }
-        ]
-      })
-      @changeset1.apply!
-      changeset2.apply!
-      expect(Feed.first.operators).to match_array([Operator.first])
-      expect(Feed.first.operators_in_feed.first.gtfs_agency_id).to eq 'new-id'
       expect(changeset2.feeds_created_or_updated).to match_array([Feed.first])
     end
 
@@ -160,7 +135,8 @@ describe Feed do
               onestopId: 'f-9q9-caltrain',
               doesNotIncludeOperators: [
                 {
-                  operatorOnestopId: 'o-9q9-caltrain'
+                  operatorOnestopId: 'o-9q9-caltrain',
+                  gtfsAgencyId: 'caltrain-ca-us'
                 }
               ]
             }
@@ -307,7 +283,10 @@ describe Feed do
 
   context '.where_latest_fetch_exception' do
     let(:feed_succeed) { create(:feed) }
-    let(:feed_failed) { create(:feed, latest_fetch_exception_log: 'test') }
+    let(:feed_failed) { create(:feed) }
+    before(:each) do
+      Issue.create!(issue_type: 'feed_fetch_invalid_source').entities_with_issues.create!(entity: feed_failed, entity_attribute: 'url')
+    end
 
     it 'finds feeds with latest_fetch_exception_log' do
         expect(Feed.where_latest_fetch_exception(true)).to match_array([feed_failed])
@@ -361,6 +340,62 @@ describe Feed do
     it 'active_feed_version that has not started' do
       expect(Feed.where_active_feed_version_valid('2014-06-01').count).to eq(0)
     end
+  end
+
+  context '.with_latest_feed_version_import' do
+    before(:each) do
+      @feed1 = create(:feed)
+      @feed1_fv1 = create(:feed_version, feed: @feed1)
+      @feed1_fvi1 = create(:feed_version_import, feed_version: @feed1_fv1, success: true, created_at: '2016-01-02')
+    end
+
+    it 'with_latest_feed_version_import' do
+      expect(Feed.with_latest_feed_version_import.first.latest_feed_version_import_id).to eq(@feed1_fvi1.id)
+    end
+  end
+
+  context '.where_latest_feed_version_import_status' do
+    before(:each) do
+      # Create several feeds with different #'s of FVs and FVIs
+
+      # Last import: true
+      @feed1 = create(:feed)
+      @feed1_fv1 = create(:feed_version, feed: @feed1)
+      create(:feed_version_import, feed_version: @feed1_fv1, success: false, created_at: '2016-01-01')
+      create(:feed_version_import, feed_version: @feed1_fv1, success: true, created_at: '2016-01-02')
+
+      # Last import: false
+      @feed2 = create(:feed)
+      @feed2_fv1 = create(:feed_version, feed: @feed2)
+      create(:feed_version_import, feed_version: @feed2_fv1, success: true, created_at: '2016-01-01')
+      create(:feed_version_import, feed_version: @feed2_fv1, success: true, created_at: '2016-01-02')
+      @feed2_fv2 = create(:feed_version, feed: @feed2)
+      create(:feed_version_import, feed_version: @feed2_fv2, success: false, created_at: '2016-01-02')
+      create(:feed_version_import, feed_version: @feed2_fv2, success: false, created_at: '2016-01-03')
+      # create(:feed_version_import, feed_version: @feed2_fv2, success: false, created_at: '2016-01-03')
+
+      # Last import: nil
+      @feed3 = create(:feed)
+      @feed3_fv1 = create(:feed_version, feed: @feed3)
+      create(:feed_version_import, feed_version: @feed3_fv1, success: nil, created_at: '2016-01-01')
+
+      # Last import: does not exist
+      @feed4 = create(:feed)
+      @feed4_fv1 = create(:feed_version, feed: @feed4)
+    end
+
+    it 'finds successful import' do
+      expect(Feed.where_latest_feed_version_import_status(true)).to match_array([@feed1])
+    end
+
+    it 'finds failed import' do
+      expect(Feed.where_latest_feed_version_import_status(false)).to match_array([@feed2])
+    end
+
+    it 'finds in progress import' do
+      expect(Feed.where_latest_feed_version_import_status(nil)).to match_array([@feed3])
+    end
+
   end
 
   context '.where_newer_feed_version' do

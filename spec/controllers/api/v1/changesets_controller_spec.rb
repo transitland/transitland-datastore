@@ -225,7 +225,8 @@ describe Api::V1::ChangesetsController do
             stop: {
               onestopId: 's-9q8yt4b-1AvHoS',
               name: '1st Ave. & Holloway Street',
-              timezone: 'America/Los_Angeles'
+              timezone: 'America/Los_Angeles',
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
             }
           }
         ]
@@ -297,7 +298,8 @@ describe Api::V1::ChangesetsController do
             stop: {
               onestopId: 's-9q8yt4b-1AvHoS',
               name: '1st Ave. & Holloway Street',
-              timezone: 'America/Los_Angeles'
+              timezone: 'America/Los_Angeles',
+              geometry: { type: 'Point', coordinates: [10.195312, 43.755225] }
             }
           }
         ]
@@ -339,28 +341,42 @@ describe Api::V1::ChangesetsController do
     it 'resolves issue with issues_resolved changeset' do
       Timecop.freeze(3.minutes.from_now) do
         # Moving this stop will create other stop_rsp_distance_gap issues, but we only care about this one issue
+        issue = Issue.last
         changeset = create(:changeset, payload: {
           changes: [
             action: 'createUpdate',
-            issuesResolved: [8],
+            issuesResolved: [issue.id],
             stop: {
               onestopId: 's-9qscwx8n60-nyecountyairportdemo',
               timezone: 'America/Los_Angeles',
-              "geometry": {
+              geometry: {
                 "type": "Point",
                 "coordinates": [-116.784582, 36.88845]
               }
             }
           ]
         })
-        # expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>1/)
-        # expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>2/)
-        # expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>5/)
-        # expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>6/)
         expect(Sidekiq::Logging.logger).to receive(:info).with(/Calculating distances/)
-        expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>8.*"resolved_by_changeset_id"=>2.*"open"=>false/)
+        expect(Sidekiq::Logging.logger).to receive(:info).with(/Deprecating issue: \{"id"=>#{issue.id}.*"resolved_by_changeset_id"=>#{changeset.id}.*"open"=>false/)
         post :apply, id: changeset.id
       end
+    end
+  end
+
+  context 'changing and merging onestop ids' do
+    it 'should be able to changeOnestopID' do
+      stop = create(:stop)
+      changeset = create(:changeset, payload: {
+        changes: [
+          action: 'changeOnestopID',
+          stop: {
+              onestopId: stop.onestop_id,
+              newOnestopId: 's-dnrugf3mck-test'
+          }
+        ]
+      })
+      post :check, id: changeset.id
+      expect_json({ trialSucceeds: true })
     end
   end
 

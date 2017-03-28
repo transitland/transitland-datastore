@@ -19,7 +19,6 @@
 #  updated_at                         :datetime
 #  created_or_updated_in_changeset_id :integer
 #  geometry                           :geography({:srid geometry, 4326
-#  latest_fetch_exception_log         :text
 #  license_attribution_text           :text
 #  active_feed_version_id             :integer
 #  edited_attributes                  :string           default([]), is an Array
@@ -34,15 +33,42 @@
 
 FactoryGirl.define do
   factory :feed do
-    url 'http://www.ridemetro.org/News/Downloads/DataFiles/google_transit.zip'
+    sequence (:url) { |n| "http://www.ridemetro.org/News/Downloads/DataFiles/google_transit#{n}.zip" }
     onestop_id { Faker::OnestopId.feed }
+    geometry { {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -122.43438720703125,
+              37.771393199665255
+            ],
+            [
+              -122.43438720703125,
+              37.79289719200161
+            ],
+            [
+              -122.39988327026369,
+              37.79289719200161
+            ],
+            [
+              -122.39988327026369,
+              37.771393199665255
+            ],
+            [
+              -122.43438720703125,
+              37.771393199665255
+            ]
+          ]
+        ]
+      }
+    }
     version 1
   end
 
-  factory :feed_caltrain, class: Feed do
+  factory :feed_caltrain, parent: :feed, class: Feed do
     onestop_id 'f-9q9-caltrain'
     url 'http://www.caltrain.com/Assets/GTFS/caltrain/GTFS-Caltrain-Devs.zip'
-    version 1
     after :create do |feed, evaluator|
       operator = create(
         :operator,
@@ -50,7 +76,6 @@ FactoryGirl.define do
         onestop_id: 'o-9q9-caltrain',
         timezone: 'America/Los_Angeles',
         website: 'http://www.caltrain.com',
-        version: 1
       )
       feed.operators_in_feed.create(
         operator: operator,
@@ -59,10 +84,9 @@ FactoryGirl.define do
     end
   end
 
-  factory :feed_vta, class: Feed do
+  factory :feed_vta, parent: :feed, class: Feed do
     onestop_id 'f-9q9-vta'
     url 'http://www.vta.org/sfc/servlet.shepherd/document/download/069A0000001NUea'
-    version 1
     after :create do |feed, evaluator|
       operator = create(
         :operator,
@@ -70,7 +94,6 @@ FactoryGirl.define do
         onestop_id: 'o-9q9-vta',
         timezone: 'America/Los_Angeles',
         website: 'http://www.vta.org/',
-        version: 1
       )
       feed.operators_in_feed.create(
         operator: operator,
@@ -79,10 +102,9 @@ FactoryGirl.define do
     end
   end
 
-  factory :feed_sfmta, class: Feed do
+  factory :feed_sfmta, parent: :feed, class: Feed do
     onestop_id 'f-9q8y-sfmta'
     url 'http://archives.sfmta.com/transitdata/google_transit.zip'
-    version 1
     after :create do |feed, evaluator|
       operator = create(
         :operator,
@@ -90,7 +112,6 @@ FactoryGirl.define do
         onestop_id: 'o-9q8y-sfmta',
         timezone: 'America/Los_Angeles',
         website: 'http://www.sfmta.com/',
-        version: 1
       )
       feed.operators_in_feed.create(
         operator: operator,
@@ -99,7 +120,7 @@ FactoryGirl.define do
     end
   end
 
-  factory :feed_bart, class: Feed do
+  factory :feed_bart, parent: :feed, class: Feed do
     onestop_id 'f-9q9-bart'
     url 'http://www.bart.gov/dev/schedules/google_transit.zip'
     version 1
@@ -111,7 +132,6 @@ FactoryGirl.define do
         onestop_id: 'o-9q9-bart',
         timezone: 'America/Los_Angeles',
         website: 'http://www.bart.gov',
-        version: 1
       )
       feed.operators_in_feed.create(
         operator: operator,
@@ -120,7 +140,7 @@ FactoryGirl.define do
     end
   end
 
-  factory :feed_rome, class: Feed do
+  factory :feed_rome, parent: :feed, class: Feed do
     onestop_id 'f-sr2-datimuoviromait'
     url 'http://dati.muovi.roma.it/gtfs/google_transit.zip'
     version 1
@@ -132,7 +152,6 @@ FactoryGirl.define do
         onestop_id: 'o-sr2-romaserviziperlamobilitsrl',
         timezone: 'Europe/Rome',
         website: 'http://www.agenziamobilita.roma.it',
-        version: 1
       )
       feed.operators_in_feed.create(
         operator: operator,
@@ -141,7 +160,7 @@ FactoryGirl.define do
     end
   end
 
-  factory :feed_nycdotsiferry, class: Feed do
+  factory :feed_nycdotsiferry, parent: :feed, class: Feed do
     onestop_id 'f-dr5r7-nycdotsiferry'
     url 'http://www.nyc.gov/html/dot/downloads/misc/siferry-gtfs.zip'
     version 1
@@ -153,7 +172,6 @@ FactoryGirl.define do
         onestop_id: 'o-dr5r7-nycdot',
         timezone: 'America/New_York',
         website: 'http://nyc.gov/dot',
-        version: 1
       )
       feed.operators_in_feed.create(
         operator: operator,
@@ -162,7 +180,7 @@ FactoryGirl.define do
     end
   end
 
-  factory :feed_mtanyctbusstatenisland, class: Feed do
+  factory :feed_mtanyctbusstatenisland, parent: :feed, class: Feed do
     onestop_id 'f-dr5r-mtanyctbusstatenisland'
     url 'http://web.mta.info/developers/data/nyct/bus/google_transit_staten_island.zip'
     version 1
@@ -173,7 +191,6 @@ FactoryGirl.define do
         onestop_id: 'o-dr5r-nyct',
         timezone: 'America/New_York',
         website: 'http://www.google.com',
-        version: 1
       )
       feed.operators_in_feed.create(
         operator: operator,
@@ -182,7 +199,44 @@ FactoryGirl.define do
     end
   end
 
-  factory :feed_example, class: Feed do
+  factory :feed_recursosdatabuenosairesgobar, parent: :feed, class: Feed do
+    onestop_id 'f-69y7-recursosdatabuenosairesgobar'
+    url 'http://recursos-data.buenosaires.gob.ar/ckan2/subte-gtfs/subte-gtfs.zip'
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Subterráneos de Buenos Aires',
+        onestop_id: 'o-69y7-sbase',
+        timezone: 'America/Argentina/Buenos_Aires',
+        website: 'http://www.buenosaires.gob.ar/subte',
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: '3'
+      )
+    end
+  end
+
+  factory :feed_nj_path, parent: :feed, class: Feed do
+    onestop_id 'f-dr5r-panynjpath'
+    url 'http://data.trilliumtransit.com/gtfs/path-nj-us/path-nj-us.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Port Authority Trans-Hudson',
+        onestop_id: 'o-dr5r-path',
+        timezone: 'America/New_York',
+        website: 'http://www.panynj.gov/',
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: '151'
+      )
+    end
+  end
+
+  factory :feed_example, parent: :feed, class: Feed do
     onestop_id 'f-9qs-example'
     url 'http://www.bart.gov/dev/schedules/google_transit.zip'
     version 1
@@ -193,11 +247,105 @@ FactoryGirl.define do
         onestop_id: 'o-9qs-demotransitauthority',
         timezone: 'America/Los_Angeles',
         website: 'http://www.google.com',
-        version: 1
       )
       feed.operators_in_feed.create(
         operator: operator,
         gtfs_agency_id: 'DTA'
+      )
+    end
+  end
+
+  factory :feed_marta, parent: :feed, class: Feed do
+    onestop_id 'f-dnh-marta'
+    url 'http://www.itsmarta.com/google_transit_feed/google_transit.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Metropolitan Atlanta Rapid Transit Authority',
+        onestop_id: 'o-dnh-metropolitanatlantarapidtransitauthority',
+        timezone: 'America/New_York',
+        website: 'http://www.google.com',
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: 'MARTA'
+      )
+    end
+  end
+
+  factory :feed_grand_river, parent: :feed, class: Feed do
+    onestop_id 'f-dpwz-grandrivertransit'
+    url 'http://www.regionofwaterloo.ca/opendatadownloads/GRT_GTFS.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Grand River Transit',
+        onestop_id: 'o-dpwz-grandrivertransit',
+        timezone: 'America/New_York',
+        website: 'http://www.grt.ca',
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: nil
+      )
+    end
+  end
+
+  factory :feed_hdpt, parent: :feed, class: Feed do
+    onestop_id 'f-dnzft-harrisonburgdepartmentofpublictransportation'
+    url 'https://www.harrisonburgva.gov/sites/default/files/Transit/google_transit.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Harrisonburg Department of Public Transportation',
+        onestop_id: 'o-dnzft-harrisonburgdepartmentofpublictransportation',
+        timezone: 'America/New_York',
+        website: 'http://www.hdpt.com',
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: 'HDPT'
+      )
+    end
+  end
+
+  factory :feed_pvta, parent: :feed, class: Feed do
+    onestop_id 'f-drk-pvta'
+    url 'http://www.pvta.com/g_trans/google_transit.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Pioneer Valley Transit Authority',
+        onestop_id: 'o-drk-pvta',
+        timezone: 'America/New_York',
+        website: 'http://www.pvta.com',
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: 'SATCo'
+      )
+    end
+  end
+
+  factory :feed_seattle_childrens, parent: :feed, class: Feed do
+    onestop_id 'f-c23p1-seattlechildrenshospitalshuttle'
+    url 'http://example.com/gtfs.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Seattle Children\'s Hospital Shuttle',
+        onestop_id: 'o-c23p1-seattlechildrenshospitalshuttle',
+        timezone: 'America/Los_Angeles',
+        website: 'http://www.google.com',
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: '98'
       )
     end
   end

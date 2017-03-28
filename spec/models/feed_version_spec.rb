@@ -20,13 +20,60 @@
 #  file_raw               :string
 #  sha1_raw               :string
 #  md5_raw                :string
+#  file_feedvalidator     :string
 #
 # Indexes
 #
-#  index_feed_versions_on_feed_type_and_feed_id  (feed_type,feed_id)
+#  index_feed_versions_on_earliest_calendar_date  (earliest_calendar_date)
+#  index_feed_versions_on_feed_type_and_feed_id   (feed_type,feed_id)
+#  index_feed_versions_on_latest_calendar_date    (latest_calendar_date)
 #
 
 describe FeedVersion do
+  context 'calendar scopes' do
+    before(:each) do
+      @fv1 = create(:feed_version, earliest_calendar_date: '2016-01-01', latest_calendar_date: '2017-01-01')
+      @fv2 = create(:feed_version, earliest_calendar_date: '2016-02-01', latest_calendar_date: '2017-02-01')
+      @fv3 = create(:feed_version, earliest_calendar_date: '2016-03-01', latest_calendar_date: '2017-03-01')
+    end
+
+    context '.where_calendar_coverage_begins_at_or_before' do
+      it 'finds FeedVersions with coverage before a date' do
+        expect(FeedVersion.where_calendar_coverage_begins_at_or_before('2016-04-15')).to match_array([@fv1, @fv2, @fv3])
+      end
+      it 'finds FeedVersions with coverage on or before a date' do
+        expect(FeedVersion.where_calendar_coverage_begins_at_or_before('2016-02-01')).to match_array([@fv1, @fv2])
+      end
+      it 'finds FeedVersions with coverage on a date' do
+        expect(FeedVersion.where_calendar_coverage_begins_at_or_before('2016-01-01')).to match_array([@fv1])
+      end
+    end
+
+    context '.where_calendar_coverage_begins_at_or_after' do
+      it 'finds FeedVersions with coverage after a date' do
+        expect(FeedVersion.where_calendar_coverage_begins_at_or_after('2015-12-01')).to match_array([@fv1, @fv2, @fv3])
+      end
+      it 'finds FeedVersions with coverage on or after a date' do
+        expect(FeedVersion.where_calendar_coverage_begins_at_or_after('2016-02-01')).to match_array([@fv2, @fv3])
+      end
+      it 'finds FeedVersions with coverage on a date' do
+        expect(FeedVersion.where_calendar_coverage_begins_at_or_after('2016-03-01')).to match_array([@fv3])
+      end
+    end
+
+    context '.where_calendar_coverage_includes' do
+      it 'finds FeedVersions with coverage including a date' do
+        expect(FeedVersion.where_calendar_coverage_includes('2016-04-01')).to match_array([@fv1, @fv2, @fv3])
+      end
+      it 'finds FeedVersions with coverage including, inclusive' do
+        expect(FeedVersion.where_calendar_coverage_includes('2016-02-01')).to match_array([@fv1, @fv2])
+      end
+      it 'excludes FeedVersions outside coverage range' do
+        expect(FeedVersion.where_calendar_coverage_includes('2017-01-15')).to match_array([@fv2, @fv3])
+      end
+    end
+  end
+
   context '#compute_and_set_hashes' do
     it 'computes file hashes' do
       feed_version = create(:feed_version_bart)

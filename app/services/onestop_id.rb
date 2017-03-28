@@ -6,7 +6,6 @@ module OnestopId
   GEOHASH_FILTER = /[^0123456789bcdefghjkmnpqrstuvwxyz]/
   NAME_TILDE = /[\-\:\&\@\/]/
   NAME_FILTER = /[^[:alnum:]\~\>\<]/
-  IDENTIFIER_TEMPLATE = Addressable::Template.new("gtfs://{feed_onestop_id}/{entity_prefix}/{entity_id}")
 
   class OnestopIdException < StandardError
   end
@@ -218,19 +217,32 @@ module OnestopId
     LOOKUP_MODEL[model]
   end
 
-  def self.create_identifier(feed_onestop_id, entity_prefix, entity_id)
-    IDENTIFIER_TEMPLATE.expand(
-      feed_onestop_id: feed_onestop_id,
-      entity_prefix: entity_prefix,
-      entity_id: entity_id
-    ).to_s
-  end
-
   def self.validate_onestop_id_string(onestop_id, expected_entity_type: nil)
     klass = handler_by_string(string: onestop_id)
     return false, ['must not be empty'] if onestop_id.blank?
     return false, ['no matching handler'] unless klass
     klass.new(string: onestop_id).validate
+  end
+
+  def self.find_current_and_old(onestop_id)
+    model = handler_by_string(string: onestop_id)::MODEL
+    entity = model.find_by(onestop_id: onestop_id)
+    if entity.nil?
+      old_entity = Object.const_get("Old#{model.name}").find_by(onestop_id: onestop_id)
+      entity = old_entity.current unless old_entity.nil?
+    end
+    entity
+  end
+
+  def self.find_current_and_old!(onestop_id)
+    model = handler_by_string(string: onestop_id)::MODEL
+    begin
+      model.find_by!(onestop_id: onestop_id)
+    rescue ActiveRecord::RecordNotFound
+      entity = Object.const_get("Old#{model.name}").find_by!(onestop_id: onestop_id)
+      fail ActiveRecord::RecordNotFound, "#{model.name}: #{onestop_id} has been destroyed." if entity.current.nil?
+      entity.current
+    end
   end
 
   def self.find(onestop_id)

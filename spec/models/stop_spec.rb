@@ -11,7 +11,6 @@
 #  name                               :string
 #  created_or_updated_in_changeset_id :integer
 #  version                            :integer
-#  identifiers                        :string           default([]), is an Array
 #  timezone                           :string
 #  last_conflated_at                  :datetime
 #  type                               :string
@@ -24,7 +23,6 @@
 #
 #  #c_stops_cu_in_changeset_id_index           (created_or_updated_in_changeset_id)
 #  index_current_stops_on_geometry             (geometry)
-#  index_current_stops_on_identifiers          (identifiers)
 #  index_current_stops_on_onestop_id           (onestop_id) UNIQUE
 #  index_current_stops_on_parent_stop_id       (parent_stop_id)
 #  index_current_stops_on_tags                 (tags)
@@ -186,6 +184,16 @@ describe Stop do
       expect {
         Stop.re_conflate_with_osm(2.hours.ago)
       }.to change(ConflateStopsWithOsmWorker.jobs, :size).by(1)
+    end
+
+    it 'handles case of stop returning a valid Tyr response, but no edges' do
+      allow(Figaro.env).to receive(:tyr_auth_token) { 'fakeapikey' }
+      stub_const('TyrService::BASE_URL', 'https://valhalla.mapzen.com')
+      VCR.use_cassette('null_island_stop') do
+        stop = create(:stop, geometry: { type: 'Point', coordinates: [0.0, 0.0] })
+        expect(Sidekiq::Logging.logger).to receive(:info).with(/Tyr response for Stop #{stop.onestop_id} did not contain edges. Leaving osm_way_id./)
+        Stop.conflate_with_osm([stop])
+      end
     end
 
     it '.conflate_with_osm' do

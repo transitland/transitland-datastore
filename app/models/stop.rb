@@ -11,7 +11,6 @@
 #  name                               :string
 #  created_or_updated_in_changeset_id :integer
 #  version                            :integer
-#  identifiers                        :string           default([]), is an Array
 #  timezone                           :string
 #  last_conflated_at                  :datetime
 #  type                               :string
@@ -24,7 +23,6 @@
 #
 #  #c_stops_cu_in_changeset_id_index           (created_or_updated_in_changeset_id)
 #  index_current_stops_on_geometry             (geometry)
-#  index_current_stops_on_identifiers          (identifiers)
 #  index_current_stops_on_onestop_id           (onestop_id) UNIQUE
 #  index_current_stops_on_parent_stop_id       (parent_stop_id)
 #  index_current_stops_on_tags                 (tags)
@@ -38,12 +36,12 @@ end
 
 class Stop < BaseStop
   self.table_name = 'current_stops'
+  attr_accessor :parent_stop_onestop_id
   attr_accessor :served_by, :not_served_by
   attr_accessor :includes_stop_transfers, :does_not_include_stop_transfers
   validates :timezone, presence: true
 
   include HasAOnestopId
-  include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
   include HasTags
   include UpdatedSince
@@ -78,13 +76,12 @@ class Stop < BaseStop
     virtual_attributes: [
       :served_by,
       :not_served_by,
-      :identified_by,
-      :not_identified_by,
       :includes_stop_transfers,
-      :does_not_include_stop_transfers
+      :does_not_include_stop_transfers,
+      :add_imported_from_feeds,
+      :not_imported_from_feeds
     ],
     protected_attributes: [
-      :identifiers,
       :last_conflated_at,
       :type
     ],
@@ -95,18 +92,30 @@ class Stop < BaseStop
     ]
   })
 
-  def after_create_making_history(changeset)
-    super(changeset)
+  def update_stop_pattern_onestop_ids(old_onestop_ids, changeset)
+    old_onestop_ids = Array.wrap(old_onestop_ids)
+    RouteStopPattern.with_any_stops(old_onestop_ids).each do |rsp|
+      rsp.stop_pattern.map! { |stop_onestop_id| old_onestop_ids.include?(stop_onestop_id) ? self.onestop_id : stop_onestop_id }
+      rsp.update_making_history(changeset: changeset)
+    end
+  end
+
+  def after_change_onestop_id(old_onestop_id, changeset)
+    self.update_stop_pattern_onestop_ids(old_onestop_id, changeset)
+  end
+
+  def after_merge_onestop_ids(merging_onestop_ids, changeset)
+    self.update_stop_pattern_onestop_ids(merging_onestop_ids, changeset)
+  end
+
+  def update_associations(changeset)
+    update_entity_imported_from_feeds(changeset)
     update_served_by(changeset)
     update_includes_stop_transfers(changeset)
     update_does_not_include_stop_transfers(changeset)
-  end
-  def before_update_making_history(changeset)
     super(changeset)
-    update_served_by(changeset)
-    update_includes_stop_transfers(changeset)
-    update_does_not_include_stop_transfers(changeset)
   end
+
   def before_destroy_making_history(changeset, old_model)
     operators_serving_stop.each do |operator_serving_stop|
       operator_serving_stop.destroy_making_history(changeset: changeset)
@@ -167,6 +176,9 @@ class Stop < BaseStop
   has_many :stops_out, through: :trips_out, source: :destination
   has_many :stops_in, through: :trips_in, source: :origin
 
+  # Issues
+  has_many :issues, through: :entities_with_issues
+
   def parent_stop
     # Dummy relation
   end
@@ -182,7 +194,7 @@ class Stop < BaseStop
       when Route
         routes << onestop_id_or_model
       when String
-        model = OnestopId.find!(onestop_id_or_model)
+        model = OnestopId.find_current_and_old!(onestop_id_or_model)
         case model
         when Route then routes << model
         when Operator then operators << model
@@ -284,7 +296,24 @@ class Stop < BaseStop
         tyr_locate_response = TyrService.locate(locations: locations)
         now = DateTime.now
         group.each_with_index do |stop, index|
-          osm_way_id = tyr_locate_response[index][:edges][0][:way_id]
+          osm_way_id = stop.osm_way_id
+
+          if tyr_locate_response[index].nil?
+            log "Index #{index} for stop #{stop.onestop_id} not found in Tyr Response."
+            next
+          end
+
+          # Issues will disappear on their own when a way id is finally found (e.g. the stop location is fixed)
+          # An issue will be replaced when conflation occurs again and the missing way id persists
+          Issue.issues_of_entity(stop, entity_attributes: ["osm_way_id"]).each(&:deprecate)
+          if tyr_locate_response[index][:edges].present?
+            osm_way_id = tyr_locate_response[index][:edges][0][:way_id]
+          else
+            log "Tyr response for Stop #{stop.onestop_id} did not contain edges. Leaving osm_way_id."
+            Issue.create!(issue_type: 'missing_stop_conflation_result', details: "Tyr response for Stop #{stop.onestop_id} did not contain edges. Leaving osm_way_id.")
+              .entities_with_issues.create!(entity: stop, entity_attribute: 'osm_way_id')
+          end
+
           if stop.osm_way_id != osm_way_id
             log "osm_way_id changed for Stop #{stop.onestop_id}: was \"#{stop.osm_way_id}\" now \"#{osm_way_id}\""
           end

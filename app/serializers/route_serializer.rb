@@ -12,7 +12,6 @@
 #  created_at                         :datetime
 #  updated_at                         :datetime
 #  geometry                           :geography({:srid geometry, 4326
-#  identifiers                        :string           default([]), is an Array
 #  vehicle_type                       :integer
 #  color                              :string
 #  edited_attributes                  :string           default([]), is an Array
@@ -24,7 +23,6 @@
 #  c_route_cu_in_changeset                        (created_or_updated_in_changeset_id)
 #  index_current_routes_on_bikes_allowed          (bikes_allowed)
 #  index_current_routes_on_geometry               (geometry)
-#  index_current_routes_on_identifiers            (identifiers)
 #  index_current_routes_on_onestop_id             (onestop_id) UNIQUE
 #  index_current_routes_on_operator_id            (operator_id)
 #  index_current_routes_on_tags                   (tags)
@@ -34,10 +32,10 @@
 #
 
 class RouteSerializer < CurrentEntitySerializer
+  attribute :geometry, if: :include_geometry?
   attributes :onestop_id,
              :name,
              :vehicle_type,
-             :geometry,
              :color,
              :tags,
              :stops_served_by_route,
@@ -48,6 +46,16 @@ class RouteSerializer < CurrentEntitySerializer
              :created_at,
              :updated_at,
              :route_stop_patterns_by_onestop_id
+
+  def include_geometry?
+    # support exclude_geometry here, but include_geometry takes priority
+    if (scope.present? && scope.has_key?(:include_geometry) && !scope[:include_geometry].nil?)
+      return scope[:include_geometry] && !!object.try(:geometry)
+    elsif (scope.present? && scope.has_key?(:exclude_geometry) && !scope[:exclude_geometry].nil?)
+      return !scope[:exclude_geometry] && !!object.try(:geometry)
+    end
+    return true
+  end
 
   def operated_by_onestop_id
     object.operator.try(:onestop_id)

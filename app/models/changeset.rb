@@ -48,6 +48,9 @@ class Changeset < ActiveRecord::Base
   has_many :stops_created_or_updated, class_name: 'Stop', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :stops_destroyed, class_name: 'OldStop', foreign_key: 'destroyed_in_changeset_id'
 
+  has_many :stop_platforms_created_or_updated, class_name: 'StopPlatform', foreign_key: 'created_or_updated_in_changeset_id'
+  has_many :stop_platforms_destroyed, class_name: 'StopPlatform', foreign_key: 'destroyed_in_changeset_id'
+
   has_many :operators_created_or_updated, class_name: 'Operator', foreign_key: 'created_or_updated_in_changeset_id'
   has_many :operators_destroyed, class_name: 'OldOperator', foreign_key: 'destroyed_in_changeset_id'
 
@@ -162,116 +165,123 @@ class Changeset < ActiveRecord::Base
   end
 
   def issues_unresolved(resolving_issues, changeset_issues)
-    changeset_issues.map { |c| resolving_issues.map { |r| r if c.equivalent?(r) } }.flatten.compact
+    # changeset does not contain entities matching any resolving issue entities
+    unresolved_issues = Set.new(resolving_issues.select { |issue|
+      unless issue.entities_with_issues.empty?
+        issue.entities_with_issues.map(&:entity).none? { |issue_entity|
+          eqls = []
+          entities_created_or_updated { |entity| eqls << issue_entity.eql?(entity) }
+          eqls.any?
+        }
+      end
+    })
+    # changeset does not resolve issue (creates the same issue in quality checks)
+    unresolved_issues.merge(changeset_issues.map { |c| resolving_issues.map { |r| r if c.equivalent?(r) } }.flatten.compact)
   end
 
   def check_quality
     gqc = QualityCheck::GeometryQualityCheck.new(changeset: self)
+    shqc = QualityCheck::StationHierarchyQualityCheck.new(changeset: self)
     issues = []
     issues += gqc.check
+    issues += shqc.check
     issues
   end
 
   def update_computed_attributes
-    # This method updates the changeset's entity attributes that are computed/derived from the attribute data
-    # of multiple entity types. For example, here RouteStopPatterns will have to have their stop distances recomputed
-    # using both the RouteStopPattern and its stop_pattern Stops' geometries. Operators have their convex hulls
-    # recomputed from the Stops it serves.
-    #
-    # Ideally we would like to define methods at the model level (that would be the first place to put new
-    # recomputed attribute functionality if possible) but the need to avoid duplicate recomputation on entities of update
-    # changesets complicates this. E.g, We don't want to recompute the stop_distances of one RouteStopPattern
-    # multiple times if there are multiple Stops of that RouteStopPattern in the changeset.
-    rsps_to_update_distances = Set.new
-    operators_to_update_convex_hull = Set.new
+    old_issues_to_deprecate = Set.new
+    geometry_updater = UpdateComputedAttributes::GeometryUpdateComputedAttributes.new(changeset: self)
+    old_geometry_issues_to_deprecate, sizes = geometry_updater.update_computed_attributes
+    old_issues_to_deprecate.merge(old_geometry_issues_to_deprecate)
+  end
 
-    unless self.stops_created_or_updated.empty?
-      self.stops_created_or_updated.each do |stop|
-        operators_to_update_convex_hull.merge(OperatorServingStop.where(stop: stop).map(&:operator))
-      end
-      rsps_to_update_distances.merge(RouteStopPattern.with_stops(self.stops_created_or_updated.map(&:onestop_id).join(',')))
+  def cycle_issues(issues_changeset_is_resolving, new_issues_created_by_changeset, old_issues_to_deprecate)
+    # check if a changeset's specified issuesResolved, if any, are actually resolved.
+    unresolved_issues = issues_unresolved(issues_changeset_is_resolving, new_issues_created_by_changeset)
+    if (unresolved_issues.empty?)
+      issues_changeset_is_resolving.each { |issue| issue.update!({ open: false, resolved_by_changeset: self}) }
 
-      operators_to_update_convex_hull.each { |operator|
-        operator.geometry = operator.recompute_convex_hull_around_stops
-        operator.update_making_history(changeset: self)
-      }
+      new_issues_created_by_changeset.each(&:save!)
+
+      # need to make sure the right instances of the resolving issues -
+      # those containing open=false and resolved_by_changeset - are added
+      # to old_issues_to_deprecate so they are logged as "resolved" during deprecation,
+      # before the transaction is complete.
+      old_issues_to_deprecate.keep_if { |i|
+          !issues_changeset_is_resolving.map(&:id).include?(i.id)
+        }.merge(issues_changeset_is_resolving)
+        .each(&:deprecate)
+    else
+      message = unresolved_issues.map { |issue| "Issue #{issue.id} was not resolved." }.join(" ")
+      log "Error applying Changeset #{self.id}: #{message}", :error
+      raise Changeset::Error.new(changeset: self, message: message)
     end
+  end
 
-    rsps_to_update_distances.merge(self.route_stop_patterns_created_or_updated)
-    log "Calculating distances" unless rsps_to_update_distances.empty?
-    rsps_to_update_distances.each { |rsp|
-      begin
-        rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
-      rescue StandardError
-        log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
-        rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.fallback_distances })
-      end
-
-      rsp.ordered_ssp_trip_chunks { |trip_chunk|
-        trip_chunk.each_with_index do |ssp, i|
-          ssp.update_column(:origin_dist_traveled, rsp.stop_distances[i])
-          ssp.update_column(:destination_dist_traveled, rsp.stop_distances[i+1])
+  def post_quality_check_updates
+    self.route_stop_patterns_created_or_updated.each do |rsp|
+      if Issue.issues_of_entity(rsp).any?{ |issue| issue.issue_type.eql?('distance_calculation_inaccurate') }
+        rsp.stop_distances = Array.new(rsp.stop_pattern.size)
+        rsp.update_making_history(changeset: self)
+        unless import?
+          rsp.ordered_ssp_trip_chunks { |trip_chunk|
+            trip_chunk.each_with_index do |ssp, i|
+              ssp.update_column(:origin_dist_traveled, rsp.stop_distances[i])
+              ssp.update_column(:destination_dist_traveled, rsp.stop_distances[i+1])
+            end
+          }
         end
-      }
-    }
-    #mainly for testing
-    [rsps_to_update_distances.size, operators_to_update_convex_hull.size]
+      end
+    end
   end
 
   def apply!
     fail Changeset::Error.new(changeset: self, message: 'has already been applied.') if applied
-    changeset_issues = nil
+    new_issues_created_by_changeset = []
+    old_issues_to_deprecate = Set.new
 
     Changeset.transaction do
       begin
-        # Apply ChangePayloads, collect issues
-        resolving_issues = []
+        # Apply changes
         change_payloads.each do |change_payload|
-          resolving_issues += change_payload.apply!
+          change_payload.apply_change
         end
+
+        # Apply associations
+        change_payloads.each do |change_payload|
+          change_payload.apply_associations
+        end
+
+        # Collect issues
+        issues_changeset_is_resolving = []
+        change_payloads.each do |change_payload|
+          payload_issues_changeset_is_resolving, payload_old_issues_to_deprecate = change_payload.resolving_and_deprecating_issues
+          issues_changeset_is_resolving += payload_issues_changeset_is_resolving
+          old_issues_to_deprecate.merge(payload_old_issues_to_deprecate)
+        end
+
+        # Mark as applied
         self.update(applied: true, applied_at: Time.now)
 
-        # Create any feed-entity associations
-        if import?
-          eiff_batch = []
-          self.entities_created_or_updated do |entity|
-            eiff_batch << entity
-              .entities_imported_from_feed
-              .new(feed: self.imported_from_feed, feed_version: self.imported_from_feed_version)
-            if eiff_batch.size >= 1000
-              EntityImportedFromFeed.import eiff_batch
-              eiff_batch = []
-            end
-          end
-          EntityImportedFromFeed.import eiff_batch
+        # Update attributes that derive from attributes between models
+        # This needs to be done before quality checks. Only on import.
+        unless import?
+          computed_attrs_old_issues_to_deprecate, sizes = update_computed_attributes
+          old_issues_to_deprecate.merge(computed_attrs_old_issues_to_deprecate)
         end
 
-        # Update attributes that derive from imported attributes between models
-        update_computed_attributes unless import?
+        # Check for new issues on this changeset
+        new_issues_created_by_changeset = check_quality
 
-        # Check for issues
-        changeset_issues = check_quality
-        unresolved_issues = issues_unresolved(resolving_issues, changeset_issues)
-        if (unresolved_issues.empty?)
-          resolving_issues.each { |issue| issue.update!({ open: false, resolved_by_changeset: self}) }
-          changeset_issues.each(&:save!)
-          # Temporarily disabling deactivation for non-import changesets until faster implementation
-          # or all-async changesets
-          Issue.bulk_deactivate if import?
-          resolving_issues.each {|issue|
-            log("Deprecating issue: #{issue.as_json(include: [:entities_with_issues])}")
-            EntityWithIssues.delete issue.entities_with_issues
-            issue.delete
-          }
-        else
-          message = unresolved_issues.map { |issue| "Issue #{issue.id} was not resolved." }.join(" ")
-          logger.error "Error applying Changeset #{self.id}: " + message
-          raise Changeset::Error.new(changeset: self, message: message)
-        end
+        # save new issues; deprecate old issues; resolve changeset-specified issues
+        cycle_issues(issues_changeset_is_resolving, new_issues_created_by_changeset, old_issues_to_deprecate)
+
+        # modify entity attribute values based on quality issues found
+        post_quality_check_updates
 
       rescue StandardError => error
-        logger.error "Error applying Changeset #{self.id}: #{error.message}"
-        logger.error error.backtrace
+        log "Error applying Changeset #{self.id}: #{error.message}", :error
+        log error.backtrace, :error
         raise Changeset::Error.new(changeset: self, message: error.message, backtrace: error.backtrace)
       end
     end
@@ -292,7 +302,7 @@ class Changeset < ActiveRecord::Base
     if Figaro.env.auto_fetch_feed_version.presence == 'true'
       FeedFetcherService.fetch_these_feeds_async(self.feeds_created_or_updated)
     end
-    return true, changeset_issues
+    return true, new_issues_created_by_changeset
   end
 
   def revert!

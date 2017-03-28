@@ -20,20 +20,33 @@
         "type": ["number", "null"]
       }
     },
-    "isModified": {
-      "type": "boolean"
+    "geometrySource": {
+      "type": "string"
     },
-    "isGenerated": {
-      "type": "boolean"
-    },
-    "identifiedBy": {
+    "addImportedFromFeeds": {
       "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "./imported_from_feed.json"
+      }
+    },
+    "notImportedFromFeeds": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "./imported_from_feed.json"
+      }
+    },
+    "onestopId": {"type": "string"},
+    "newOnestopId": {"type": "string"},
+    "onestopIdsToMerge": {
+      "type": "array",
+      "minItems": 1,
       "uniqueItems": true,
       "items": {
         "type": "string"
       }
     },
-    "onestopId": {"type": "string"},
     "traversedBy": {
       "type": "string",
       "format": "route-onestop-id"

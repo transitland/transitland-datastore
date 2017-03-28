@@ -12,7 +12,6 @@
 #  created_at                         :datetime
 #  updated_at                         :datetime
 #  geometry                           :geography({:srid geometry, 4326
-#  identifiers                        :string           default([]), is an Array
 #  vehicle_type                       :integer
 #  color                              :string
 #  edited_attributes                  :string           default([]), is an Array
@@ -24,7 +23,6 @@
 #  c_route_cu_in_changeset                        (created_or_updated_in_changeset_id)
 #  index_current_routes_on_bikes_allowed          (bikes_allowed)
 #  index_current_routes_on_geometry               (geometry)
-#  index_current_routes_on_identifiers            (identifiers)
 #  index_current_routes_on_onestop_id             (onestop_id) UNIQUE
 #  index_current_routes_on_operator_id            (operator_id)
 #  index_current_routes_on_tags                   (tags)
@@ -36,6 +34,13 @@
 FactoryGirl.define do
   factory :route do
     onestop_id { Faker::OnestopId.route }
+    geometry { {
+      type: 'MultiLineString',
+      coordinates: [
+        [[-73.87, 40.88],[-73.97, 40.76],[-73.94, 40.68],[-73.95, 40.61]],
+        [[-74.18, 40.81],[-74.00, 40.83],[-73.94, 40.79],[-73.80, 40.75]]
+      ]
+    } }
     name { [
       '19 Polk',
       'N Judah',
@@ -47,12 +52,10 @@ FactoryGirl.define do
     association :operator
   end
 
-  factory :route_bart, class: Route do
+  factory :route_bart, parent: :route, class: Route do
     onestop_id { 'r-9q8y-richmond~dalycity~millbrae' }
     name { 'Richmond - Daly City/Millbrae'  }
     vehicle_type { 1 }
     version 1
-    association :created_or_updated_in_changeset, factory: :changeset
-    association :operator
   end
 end

@@ -3,7 +3,7 @@
 # Table name: issues
 #
 #  id                       :integer          not null, primary key
-#  created_by_changeset_id  :integer          not null
+#  created_by_changeset_id  :integer
 #  resolved_by_changeset_id :integer
 #  details                  :string
 #  issue_type               :string
@@ -27,28 +27,29 @@ class Issue < ActiveRecord::Base
     Feed.find_by_onestop_id!(feed_onestop_id), Feed.find_by_onestop_id!(feed_onestop_id))
   }
 
-  extend Enumerize
-  enumerize :issue_type,
-            in: ['stop_position_inaccurate',
-                 'stop_rsp_distance_gap',
-                 'distance_calculation_inaccurate',
-                 'rsp_line_inaccurate',
-                 'route_color',
-                 'stop_name',
-                 'route_name',
-                 'uncategorized']
+  CATEGORIES = {
+    :route_geometry => [:stop_position_inaccurate, :stop_rsp_distance_gap, :rsp_line_only_stop_points, :rsp_line_inaccurate, :distance_calculation_inaccurate, :rsp_stops_too_close],
+    :feed_fetch => [:feed_fetch_invalid_url, :feed_fetch_invalid_source, :feed_fetch_invalid_zip, :feed_fetch_invalid_response],
+    :feed_import => [:feed_import_no_operators_found],
+    :station_hierarchy => [:stop_platform_parent_distance_gap, :stop_platforms_too_close],
+    :uncategorized => [:route_color, :stop_name, :route_name, :other, :feed_version_maintenance_extend, :feed_version_maintenance_import, :missing_stop_conflation_result]
+  }
+  ISSUE_CATEGORY = Hash[CATEGORIES.map { |k,v| v.map { |i| [i,k] } }.reduce(Array.new, :+)]
 
-  def changeset_from_entities
-    # all entities must have the same created or updated in changeset, or no changeset will represent them
-    changesets = entities_with_issues.map { |ewi| ewi.entity.created_or_updated_in_changeset }
-    if changesets.all? {|changeset| changeset.id == changesets.first.id }
-     changesets.first
-    end
+  def self.categories
+    CATEGORIES
   end
 
-  def outdated?
-    # This can create false negatives if different changesets w/ same entities are made less than 1 second apart.
-    entities_with_issues.any? { |ewi| ewi.entity.created_or_updated_in_changeset.updated_at.to_i > created_by_changeset.applied_at.to_i}
+  extend Enumerize
+  enumerize :issue_type, in: Issue.categories.values.flatten
+
+  def self.issue_types_in_category(category)
+    category = category.to_sym
+    if self.categories.has_key?(category)
+      return self.categories[category]
+    else
+      raise ArgumentError.new("unknown category #{category}")
+    end
   end
 
   def equivalent?(issue)
@@ -56,6 +57,15 @@ class Issue < ActiveRecord::Base
     Set.new(self.entities_with_issues.map(&:entity_id)) == Set.new(issue.entities_with_issues.map(&:entity_id)) &&
     Set.new(self.entities_with_issues.map(&:entity_type)) == Set.new(issue.entities_with_issues.map(&:entity_type)) &&
     Set.new(self.entities_with_issues.map(&:entity_attribute)) == Set.new(issue.entities_with_issues.map(&:entity_attribute))
+  end
+
+  def issue_category
+    ISSUE_CATEGORY[issue_type.to_sym]
+  end
+
+  def deprecate
+    log("Deprecating issue: #{self.as_json(include: [:entities_with_issues])}")
+    self.destroy
   end
 
   def self.find_by_equivalent(issue)
@@ -66,13 +76,9 @@ class Issue < ActiveRecord::Base
     }
   end
 
-  def self.bulk_deactivate
-    # We need the outdated? method to capture all issues created outside imports, as well as the ones from old imports.
-    Issue.includes(:entities_with_issues)
-      .select{ |issue| issue.outdated? }
-      .each {|issue|
-        log("Deprecating issue: #{issue.as_json(include: [:entities_with_issues])}")
-        issue.destroy
-      }
+  def self.issues_of_entity(entity, entity_attributes: [])
+    issues = Issue.joins(:entities_with_issues).where(entities_with_issues: { entity: entity })
+    issues = issues.where("entity_attribute IN (?)", entity_attributes) unless entity_attributes.empty?
+    return issues
   end
 end

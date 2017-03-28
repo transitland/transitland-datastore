@@ -1,4 +1,5 @@
 require 'simplecov'
+
 SimpleCov.start do
   load_profile 'rails'
 
@@ -6,6 +7,7 @@ SimpleCov.start do
   add_group 'Serializers', 'app/serializers'
   add_group 'Workers', 'app/workers'
 
+  # store SimpleCov reports on CircleCI as artifacts
   coverage_dir(File.join("..", "..", "..", ENV['CIRCLE_ARTIFACTS'], "coverage")) if ENV['CIRCLE_ARTIFACTS']
 end
 
@@ -44,19 +46,24 @@ RSpec.configure do |config|
   config.include FactoryGirl::Syntax::Methods
 
   config.before(:suite) do
-    DatabaseCleaner.strategy = :truncation, { except: ['spatial_ref_sys'] }
-    DatabaseCleaner.start
+    DatabaseCleaner.clean_with :truncation, { except: ['spatial_ref_sys'] }
+    DatabaseCleaner.strategy = :transaction
     clear_carrierwave_attachments
     Sidekiq::Worker.clear_all
+  end
+
+  config.after(:suite) do
+    clear_carrierwave_attachments
   end
 
   config.before(:each) do
-    DatabaseCleaner.clean_with :truncation, { except: ['spatial_ref_sys'] }
     Sidekiq::Worker.clear_all
+    DatabaseCleaner.start
   end
 
   config.after(:each) do
-    clear_carrierwave_attachments
+    Sidekiq::Worker.clear_all
+    DatabaseCleaner.clean
   end
 end
 

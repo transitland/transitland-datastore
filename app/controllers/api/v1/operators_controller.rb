@@ -4,45 +4,34 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
   include JsonCollectionPagination
   include DownloadableCsv
   include AllowFiltering
-  include Geojson
-  GEOJSON_ENTITY_PROPERTIES = Proc.new { |properties, entity|
-    # title property to follow GeoJSON simple style spec
-    title = name
-    title += " (#{entity.short_name})" if entity.short_name.present?
-    properties[:title] = title
-
-    properties[:short_name] = entity.short_name
-    properties[:website] = entity.website
-    properties[:country] = entity.country
-    properties[:state] = entity.state
-    properties[:metro] = entity.metro
-    properties[:timezone] = entity.timezone
-  }
 
   before_action :set_operator, only: [:show]
 
   def index
+    # Entity
     @operators = Operator.where('')
-
     @operators = AllowFiltering.by_onestop_id(@operators, params)
     @operators = AllowFiltering.by_tag_keys_and_values(@operators, params)
-    @operators = AllowFiltering.by_identifer_and_identifier_starts_with(@operators, params)
     @operators = AllowFiltering.by_updated_since(@operators, params)
-    @operators = AllowFiltering.by_attribute_array(@operators, params, :country)
-    @operators = AllowFiltering.by_attribute_array(@operators, params, :state)
-    @operators = AllowFiltering.by_attribute_array(@operators, params, :metro)
-    @operators = AllowFiltering.by_attribute_array(@operators, params, :timezone)
-    @operators = AllowFiltering.by_attribute_array(@operators, params, :name)
-    @operators = AllowFiltering.by_attribute_array(@operators, params, :short_name)
 
+    # Imported From Feed
     if params[:imported_from_feed].present?
       @operators = @operators.where_imported_from_feed(Feed.find_by_onestop_id(params[:imported_from_feed]))
     end
-
     if params[:imported_from_feed_version].present?
       @operators = @operators.where_imported_from_feed_version(FeedVersion.find_by!(sha1: params[:imported_from_feed_version]))
     end
+    if params[:imported_from_active_feed_version].presence.eql?("true")
+      @operators = @operators.where_imported_from_active_feed_version
+    end
+    if params[:imported_with_gtfs_id].present?
+      @operators = @operators.where_imported_with_gtfs_id(params[:gtfs_id])
+    end
+    if params[:import_level].present?
+      @operators = @operators.where_import_level(AllowFiltering.param_as_array(params, :import_level))
+    end
 
+    # Geometry
     if [params[:lat], params[:lon]].map(&:present?).all?
       point = Operator::GEOFACTORY.point(params[:lon], params[:lat])
       r = params[:r] || 100 # meters TODO: move this to a more logical place
@@ -51,61 +40,34 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
     if params[:bbox].present?
       @operators = @operators.geometry_within_bbox(params[:bbox])
     end
-    if params[:import_level].present?
-      @operators = @operators.where_import_level(AllowFiltering.param_as_array(params, :import_level))
-    end
 
+    # Operators
+    @operators = AllowFiltering.by_attribute_array(@operators, params, :country)
+    @operators = AllowFiltering.by_attribute_array(@operators, params, :state)
+    @operators = AllowFiltering.by_attribute_array(@operators, params, :metro)
+    @operators = AllowFiltering.by_attribute_array(@operators, params, :timezone)
+    @operators = AllowFiltering.by_attribute_array(@operators, params, :name)
+    @operators = AllowFiltering.by_attribute_array(@operators, params, :short_name)
+
+    # Includes
     @operators = @operators.includes{[
       imported_from_feeds,
       imported_from_feed_versions,
       feeds
     ]}
+    @operators = @operators.includes(:issues) if AllowFiltering.to_boolean(params[:embed_issues])
 
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(
-          @operators,
-          Proc.new { |params| api_v1_operators_url(params) },
-          params[:sort_key],
-          params[:sort_order],
-          params[:offset],
-          params[:per_page],
-          params[:total],
-          params.slice(
-            :identifier,
-            :identifier_starts_with,
-            :lat,
-            :lon,
-            :r,
-            :bbox,
-            :onestop_id,
-            :tag_key,
-            :tag_value,
-            :import_level,
-            :name,
-            :short_name,
-            :imported_from_feed,
-            :imported_from_feed_version
-          )
-        )
-      end
-      format.geojson do
-        render json: Geojson.from_entity_collection(@operators, &GEOJSON_ENTITY_PROPERTIES)
-      end
-      format.csv do
-        return_downloadable_csv(@operators, 'operators')
-      end
+      format.json { render paginated_json_collection(@operators).merge({ scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }) }
+      format.geojson { render paginated_geojson_collection(@operators) }
+      format.csv { return_downloadable_csv(@operators, 'operators') }
     end
   end
 
   def show
     respond_to do |format|
-      format.json do
-        render json: @operator
-      end
-      format.geojson do
-        render json: Geojson.from_entity(@operator, &GEOJSON_ENTITY_PROPERTIES)
-      end
+      format.json { render json: @operator, scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) }  }
+      format.geojson { render json: @operator, serializer: GeoJSONSerializer }
     end
   end
 
@@ -134,6 +96,23 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
   end
 
   private
+
+  def query_params
+    params.slice(
+      :lat,
+      :lon,
+      :r,
+      :bbox,
+      :onestop_id,
+      :tag_key,
+      :tag_value,
+      :import_level,
+      :name,
+      :short_name,
+      :imported_from_feed,
+      :imported_from_feed_version
+    )
+  end
 
   def count_values(array_of_hashes, attr_name: nil)
     return_hash = {}

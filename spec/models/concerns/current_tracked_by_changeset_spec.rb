@@ -5,14 +5,14 @@ describe CurrentTrackedByChangeset do
     it 'merges changeable attributes' do
       stop1 = create(:stop)
       stop2 = create(:stop, name: 'Test')
-      stop1.merge(stop2)
+      stop1.merge_in_entity(stop2)
       expect(stop1.name).to eq(stop2.name)
     end
 
     it 'does not merge non-changeable attributes' do
       stop1 = create(:stop, version: 1)
       stop2 = create(:stop, version: 2)
-      stop1.merge(stop2)
+      stop1.merge_in_entity(stop2)
       expect(stop1.version).to eq(1)
       expect(stop2.version).to eq(2)
     end
@@ -24,23 +24,24 @@ describe CurrentTrackedByChangeset do
       stop1.tags[:test] = '123'
       stop2.tags = {}
       stop2.tags[:foo] = 'bar'
-      stop1.merge(stop2)
+      stop1.merge_in_entity(stop2)
       expect(stop1.tags).to eq({"test"=>"123", "foo"=>"bar"})
     end
 
     it 'does not merge protected attributes' do
       stop1 = create(:stop)
       stop2 = create(:stop)
-      stop1.identifiers = ['foo']
-      stop2.identifiers = ['bar']
-      stop1.merge(stop2)
-      expect(stop1.identifiers).to match_array(['foo'])
+      now = DateTime.now
+      stop1.last_conflated_at = now - 1.day
+      stop2.last_conflated_at = now - 2.days
+      stop1.merge_in_entity(stop2)
+      expect(stop1.last_conflated_at).to eq(now - 1.day)
     end
 
     it 'converts empty string to nil' do
       route1 = create(:route, color: 'FFFFFF')
       route2 = create(:route, color: '')
-      route1.merge(route2)
+      route1.merge_in_entity(route2)
       expect(route1.color).to eq(nil)
     end
   end
@@ -74,7 +75,7 @@ describe CurrentTrackedByChangeset do
     stop.wheelchair_boarding = true
     changeset = create(:changeset)
     changeset.create_change_payloads([stop])
-    Stop.apply_changes_create_update(changeset: changeset, changes: [changeset.change_payloads.first.payload_as_ruby_hash[:changes][0][:stop]])
+    Stop.apply_change(action: 'createUpdate', changeset: changeset, change: changeset.change_payloads.first.payload_as_ruby_hash[:changes][0][:stop])
     expect(Stop.find_by_onestop_id!(stop.onestop_id).edited_attributes).to include("wheelchair_boarding")
   end
 end

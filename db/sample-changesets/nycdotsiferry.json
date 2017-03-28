@@ -13,9 +13,11 @@
             "onestopId": "o-dr5r7-nycdot",
             "name": "New York City Department of Transportation",
             "shortName": "NYC DOT",
-            "identifiedBy": ["usntd://2082"],
-            "country": "United States",
-            "state": "New York",
+            "tags": {
+              "us_ntd_id": "2082"
+            },
+            "country": "US",
+            "state": "US-NY",
             "metro": "New York City",
             "timezone": "America/New_York",
             "website": "http://nyc.gov/dot",
@@ -43,7 +45,11 @@
                 "gtfsAgencyId": "NYC DOT",
                 "operatorOnestopId": "o-dr5r7-nycdot"
               }
-            ]
+            ],
+            "geometry": {
+              "type": "LineString",
+              "coordinates": [[-74.012666,40.70135999999999],[-74.07220099999999,40.64416899999996]]
+            }
           }
         }
       ]

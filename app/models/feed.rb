@@ -19,7 +19,6 @@
 #  updated_at                         :datetime
 #  created_or_updated_in_changeset_id :integer
 #  geometry                           :geography({:srid geometry, 4326
-#  latest_fetch_exception_log         :text
 #  license_attribution_text           :text
 #  active_feed_version_id             :integer
 #  edited_attributes                  :string           default([]), is an Array
@@ -55,20 +54,20 @@ class Feed < BaseFeed
   include HasTags
   include UpdatedSince
   include HasAGeographicGeometry
+  include IsAnEntityWithIssues
 
   has_many :feed_versions, -> { order 'created_at DESC' }, dependent: :destroy, as: :feed
   has_many :feed_version_imports, -> { order 'created_at DESC' }, through: :feed_versions
   belongs_to :active_feed_version, class_name: 'FeedVersion'
 
   has_many :operators_in_feed
-  has_many :operators, through: :operators_in_feed
+  has_many :operators, -> { distinct }, through: :operators_in_feed
 
   has_many :entities_imported_from_feed
-  has_many :imported_operators, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'
-  has_many :imported_stops, through: :entities_imported_from_feed, source: :entity, source_type: 'Stop'
-  has_many :imported_routes, through: :entities_imported_from_feed, source: :entity, source_type: 'Route'
-  has_many :imported_schedule_stop_pairs, through: :entities_imported_from_feed, source: :entity, source_type: 'ScheduleStopPair'
-  has_many :imported_route_stop_patterns, through: :entities_imported_from_feed, source: :entity, source_type: 'RouteStopPattern'
+  has_many :imported_operators, -> { distinct }, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'
+  has_many :imported_stops, -> { distinct }, through: :entities_imported_from_feed, source: :entity, source_type: 'Stop'
+  has_many :imported_routes, -> { distinct }, through: :entities_imported_from_feed, source: :entity, source_type: 'Route'
+  has_many :imported_route_stop_patterns, -> { distinct }, through: :entities_imported_from_feed, source: :entity, source_type: 'RouteStopPattern'
   has_many :imported_schedule_stop_pairs, class_name: 'ScheduleStopPair', dependent: :delete_all
 
   has_many :changesets_imported_from_this_feed, class_name: 'Changeset'
@@ -77,9 +76,9 @@ class Feed < BaseFeed
 
   scope :where_latest_fetch_exception, -> (flag) {
     if flag
-      where.not(latest_fetch_exception_log: nil)
+      where("current_feeds.id IN (SELECT entities_with_issues.entity_id FROM entities_with_issues INNER JOIN issues ON entities_with_issues.issue_id=issues.id WHERE issues.issue_type IN ('feed_fetch_invalid_zip', 'feed_fetch_invalid_url', 'feed_fetch_invalid_response', 'feed_fetch_invalid_source') AND entities_with_issues.entity_type='Feed')")
     else
-      where(latest_fetch_exception_log: nil)
+      where("current_feeds.id NOT IN (SELECT entities_with_issues.entity_id FROM entities_with_issues INNER JOIN issues ON entities_with_issues.issue_id=issues.id WHERE issues.issue_type IN ('feed_fetch_invalid_zip', 'feed_fetch_invalid_url', 'feed_fetch_invalid_response', 'feed_fetch_invalid_source') AND entities_with_issues.entity_type='Feed')")
     end
   }
 
@@ -105,7 +104,7 @@ class Feed < BaseFeed
   scope :where_active_feed_version_update, -> {
     # Find feeds that have a feed_version newer than
     #   the current active_feed_version
-    joins(p %{
+    joins(%{
       INNER JOIN (
         SELECT DISTINCT feed_versions.feed_id
         FROM feed_versions
@@ -121,6 +120,33 @@ class Feed < BaseFeed
     })
   }
 
+  scope :with_latest_feed_version_import, -> {
+    # Get the highest fvi id (=~ created_at) for each feed,
+    joins(%{
+      INNER JOIN (
+        SELECT fv.feed_id, MAX(fvi.id) fvi_max_id
+        FROM feed_versions fv
+        INNER JOIN feed_version_imports fvi ON (fvi.feed_version_id = fv.id)
+        GROUP BY (fv.feed_id)
+      ) fvi_max
+      ON current_feeds.id = fvi_max.feed_id
+    })
+      .joins('INNER JOIN feed_version_imports latest_feed_version_import ON (latest_feed_version_import.id = fvi_max.fvi_max_id)')
+      .select(['current_feeds.*', 'latest_feed_version_import.id AS latest_feed_version_import_id'])
+  }
+
+  scope :where_latest_feed_version_import_status, -> (import_status) {
+    # filter by latest fvi's success status.
+    with_latest_feed_version_import.where('latest_feed_version_import.success': import_status)
+    # Another approach, preserved here for now:
+    # see: http://stackoverflow.com/questions/121387/fetch-the-row-which-has-the-max-value-for-a-column/123481#123481
+    # LEFT OUTER JOIN feed_version_imports fvi2 ON (
+    #   fvi1.feed_version_id = fvi2.feed_version_id AND
+    #   fvi1.created_at < fvi2.created_at
+    # )
+    # WHERE fvi2.id IS NULL GROUP BY (fv.feed_id)
+  }
+
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
@@ -128,29 +154,17 @@ class Feed < BaseFeed
       :includes_operators,
       :does_not_include_operators
     ],
-    protected_attributes: [
-      :identifiers
-    ]
+    protected_attributes: []
   })
-  def after_create_making_history(changeset)
+
+  def update_associations(changeset)
     (self.includes_operators || []).each do |included_operator|
       operator = Operator.find_by!(onestop_id: included_operator[:operator_onestop_id])
-      OperatorInFeed.create_making_history(
-        changeset: changeset,
-        new_attrs: {
-          feed_id: self.id,
-          operator_id: operator.id,
-          gtfs_agency_id: included_operator[:gtfs_agency_id]
-        }
+      existing_relationship = OperatorInFeed.find_by(
+        operator: operator,
+        gtfs_agency_id: included_operator[:gtfs_agency_id],
+        feed: self
       )
-    end
-    # No need to iterate through self.does_not_include_operators
-    # since this is a brand new feed model.
-  end
-  def before_update_making_history(changeset)
-    (self.includes_operators || []).each do |included_operator|
-      operator = Operator.find_by!(onestop_id: included_operator[:operator_onestop_id])
-      existing_relationship = OperatorInFeed.find_by(operator: operator, feed: self)
       if existing_relationship
           existing_relationship.update_making_history(
             changeset: changeset,
@@ -173,13 +187,18 @@ class Feed < BaseFeed
     end
     (self.does_not_include_operators || []).each do |not_included_operator|
       operator = Operator.find_by!(onestop_id: not_included_operator[:operator_onestop_id])
-      existing_relationship = OperatorInFeed.find_by(operator: operator, feed: self)
+      existing_relationship = OperatorInFeed.find_by(
+        operator: operator,
+        gtfs_agency_id: not_included_operator[:gtfs_agency_id],
+        feed: self
+      )
       if existing_relationship
         existing_relationship.destroy_making_history(changeset: changeset)
       end
     end
     super(changeset)
   end
+
   def before_destroy_making_history(changeset, old_model)
     operators_in_feed.each do |operator_in_feed|
       operator_in_feed.destroy_making_history(changeset: changeset)

@@ -2,10 +2,471 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.8...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.25...HEAD)
 
 **Merged pull requests:**
 
+- Production release 4.9.25 [\#1013](https://github.com/transitland/transitland-datastore/pull/1013) ([irees](https://github.com/irees))
+
+## [4.9.25](https://github.com/transitland/transitland-datastore/tree/4.9.25) (2017-03-24)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.24...4.9.25)
+
+**Fixed bugs:**
+
+- RSP geometry source string-sym comparison mismatch [\#1024](https://github.com/transitland/transitland-datastore/issues/1024)
+- Feeds: urlencode nested-zip URI fragments [\#1022](https://github.com/transitland/transitland-datastore/issues/1022)
+- RouteStopPattern gtfs\_shape\_dist\_traveled: seg\_index is nil [\#1020](https://github.com/transitland/transitland-datastore/issues/1020)
+
+**Closed issues:**
+
+- when logging exceptions to Sentry, include context [\#1018](https://github.com/transitland/transitland-datastore/issues/1018)
+- feeds API endpoint: allow filtering by URL [\#1010](https://github.com/transitland/transitland-datastore/issues/1010)
+- Feed Validation Worker [\#1009](https://github.com/transitland/transitland-datastore/issues/1009)
+- schedule\_stop\_pairs: time=now [\#1008](https://github.com/transitland/transitland-datastore/issues/1008)
+- schedule\_stop\_pairs: date=today query param [\#965](https://github.com/transitland/transitland-datastore/issues/965)
+- FeedVersion descriptive stats [\#646](https://github.com/transitland/transitland-datastore/issues/646)
+- upgrade Carrierwave gem now that it has been released [\#639](https://github.com/transitland/transitland-datastore/issues/639)
+- Frequency-based trips [\#408](https://github.com/transitland/transitland-datastore/issues/408)
+
+**Merged pull requests:**
+
+- Fix bug when a calendar entry has no trips associated [\#1031](https://github.com/transitland/transitland-datastore/pull/1031) ([irees](https://github.com/irees))
+- Shape dist traveled nil fix [\#1027](https://github.com/transitland/transitland-datastore/pull/1027) ([doublestranded](https://github.com/doublestranded))
+- Update GTFS to fix urlencoding issue [\#1026](https://github.com/transitland/transitland-datastore/pull/1026) ([irees](https://github.com/irees))
+- Geometry source comparison fix [\#1025](https://github.com/transitland/transitland-datastore/pull/1025) ([doublestranded](https://github.com/doublestranded))
+- Feed Statistics [\#1021](https://github.com/transitland/transitland-datastore/pull/1021) ([irees](https://github.com/irees))
+- when logging exceptions to Sentry, include context [\#1019](https://github.com/transitland/transitland-datastore/pull/1019) ([drewda](https://github.com/drewda))
+- Upgrade to Rails 4.2.8 and update gems [\#1016](https://github.com/transitland/transitland-datastore/pull/1016) ([drewda](https://github.com/drewda))
+- feeds API endpoint: allow filtering by URL [\#1015](https://github.com/transitland/transitland-datastore/pull/1015) ([drewda](https://github.com/drewda))
+- Minor FeedValidationService updates [\#1014](https://github.com/transitland/transitland-datastore/pull/1014) ([irees](https://github.com/irees))
+- FeedValidationWorker [\#1012](https://github.com/transitland/transitland-datastore/pull/1012) ([irees](https://github.com/irees))
+- removing identifiers [\#1011](https://github.com/transitland/transitland-datastore/pull/1011) ([drewda](https://github.com/drewda))
+- Update gems [\#1007](https://github.com/transitland/transitland-datastore/pull/1007) ([drewda](https://github.com/drewda))
+- Production release 4.9.24 [\#1005](https://github.com/transitland/transitland-datastore/pull/1005) ([irees](https://github.com/irees))
+
+## [4.9.24](https://github.com/transitland/transitland-datastore/tree/4.9.24) (2017-03-07)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.23...4.9.24)
+
+**Implemented enhancements:**
+
+- Utilize stop\_times.txt and shapes.txt shape\_dist\_traveled [\#987](https://github.com/transitland/transitland-datastore/issues/987)
+- Route endpoint: Accept multiple operated\_by operators [\#710](https://github.com/transitland/transitland-datastore/issues/710)
+
+**Fixed bugs:**
+
+- Non-import changesets should update nil stop distances of SSPs [\#1002](https://github.com/transitland/transitland-datastore/issues/1002)
+
+**Closed issues:**
+
+- Optimize SSP distances in update computed attributes [\#1000](https://github.com/transitland/transitland-datastore/issues/1000)
+- Validate entity attribute on EntityWithIssues model [\#998](https://github.com/transitland/transitland-datastore/issues/998)
+- Quality Issue for RSP reversed geometry [\#925](https://github.com/transitland/transitland-datastore/issues/925)
+- refactor computed properties [\#829](https://github.com/transitland/transitland-datastore/issues/829)
+- Changeset: entity destroy is order dependent [\#742](https://github.com/transitland/transitland-datastore/issues/742)
+- FeedEater creates Changeset that only represent entity diffs [\#571](https://github.com/transitland/transitland-datastore/issues/571)
+- Stop EIFF Debugging [\#561](https://github.com/transitland/transitland-datastore/issues/561)
+- Error parsing GTFS CSV with incorrect quote escaping [\#511](https://github.com/transitland/transitland-datastore/issues/511)
+- store Who's on First integer IDs for Feed country and region \(in addition to string names\) [\#284](https://github.com/transitland/transitland-datastore/issues/284)
+
+**Merged pull requests:**
+
+- operator name look-up needs to properly handle case insensitive queries of UTF-8 strings [\#1004](https://github.com/transitland/transitland-datastore/pull/1004) ([drewda](https://github.com/drewda))
+- updating ssp distances for non-import changesets [\#1003](https://github.com/transitland/transitland-datastore/pull/1003) ([doublestranded](https://github.com/doublestranded))
+- Update computed attributes refactor [\#995](https://github.com/transitland/transitland-datastore/pull/995) ([doublestranded](https://github.com/doublestranded))
+- Utilize shape dist traveled [\#994](https://github.com/transitland/transitland-datastore/pull/994) ([doublestranded](https://github.com/doublestranded))
+- SSPs: date=today [\#989](https://github.com/transitland/transitland-datastore/pull/989) ([irees](https://github.com/irees))
+- Production release 4.9.23 [\#976](https://github.com/transitland/transitland-datastore/pull/976) ([irees](https://github.com/irees))
+- Switch to iso 3166 [\#955](https://github.com/transitland/transitland-datastore/pull/955) ([drewda](https://github.com/drewda))
+
+## [4.9.23](https://github.com/transitland/transitland-datastore/tree/4.9.23) (2017-03-01)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.22...4.9.23)
+
+**Implemented enhancements:**
+
+- rsp\_line\_inaccurate quality check fix [\#771](https://github.com/transitland/transitland-datastore/issues/771)
+- RSP Optimization 2 [\#748](https://github.com/transitland/transitland-datastore/issues/748)
+
+**Fixed bugs:**
+
+- Bounds not including rsp\_line\_inaccurate RSPs [\#991](https://github.com/transitland/transitland-datastore/issues/991)
+- FeedVersion: Duplicate sha1 [\#981](https://github.com/transitland/transitland-datastore/issues/981)
+- createUpdate looks back at old merged and changed records [\#963](https://github.com/transitland/transitland-datastore/issues/963)
+- rsp\\_line\\_inaccurate quality check fix [\#771](https://github.com/transitland/transitland-datastore/issues/771)
+
+**Closed issues:**
+
+- Create Issue when a Feed import has no matching Operators [\#997](https://github.com/transitland/transitland-datastore/issues/997)
+- Still more "false positive" issues with dist calc [\#945](https://github.com/transitland/transitland-datastore/issues/945)
+- Remove rake task for deleting unreferenced entities [\#926](https://github.com/transitland/transitland-datastore/issues/926)
+- Hide or delete 'inactive' RouteStopPatterns [\#907](https://github.com/transitland/transitland-datastore/issues/907)
+
+**Merged pull requests:**
+
+- Entity attribute validate [\#999](https://github.com/transitland/transitland-datastore/pull/999) ([doublestranded](https://github.com/doublestranded))
+- Issue: Feed import with no matching operators [\#993](https://github.com/transitland/transitland-datastore/pull/993) ([irees](https://github.com/irees))
+- False positive stops close issues [\#990](https://github.com/transitland/transitland-datastore/pull/990) ([doublestranded](https://github.com/doublestranded))
+- Guard against cycles [\#988](https://github.com/transitland/transitland-datastore/pull/988) ([irees](https://github.com/irees))
+- Import: better traverse stops, stations, transfers [\#986](https://github.com/transitland/transitland-datastore/pull/986) ([irees](https://github.com/irees))
+- RSP: Improved create\_from\_gtfs [\#984](https://github.com/transitland/transitland-datastore/pull/984) ([irees](https://github.com/irees))
+- Optimize memory before after stops [\#983](https://github.com/transitland/transitland-datastore/pull/983) ([doublestranded](https://github.com/doublestranded))
+- Create FeedVersion before uploading attachments [\#982](https://github.com/transitland/transitland-datastore/pull/982) ([irees](https://github.com/irees))
+- Rsp line inaccurate fix [\#980](https://github.com/transitland/transitland-datastore/pull/980) ([doublestranded](https://github.com/doublestranded))
+- Remove rake task for unreferenced entities [\#979](https://github.com/transitland/transitland-datastore/pull/979) ([doublestranded](https://github.com/doublestranded))
+- double-quoted string [\#978](https://github.com/transitland/transitland-datastore/pull/978) ([doublestranded](https://github.com/doublestranded))
+- Remove old rsps [\#977](https://github.com/transitland/transitland-datastore/pull/977) ([doublestranded](https://github.com/doublestranded))
+- Production release 4.9.22 [\#953](https://github.com/transitland/transitland-datastore/pull/953) ([irees](https://github.com/irees))
+
+## [4.9.22](https://github.com/transitland/transitland-datastore/tree/4.9.22) (2017-02-17)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.21...4.9.22)
+
+**Fixed bugs:**
+
+- Query of RouteStopPatterns by any stops wrong [\#968](https://github.com/transitland/transitland-datastore/issues/968)
+- Berlin import error in operators [\#930](https://github.com/transitland/transitland-datastore/issues/930)
+
+**Closed issues:**
+
+- Frequency adjustments for interpolated stop\_times [\#973](https://github.com/transitland/transitland-datastore/issues/973)
+- Missing transfer Stops [\#972](https://github.com/transitland/transitland-datastore/issues/972)
+- Direct relationship between parent stations and stops/platforms? [\#971](https://github.com/transitland/transitland-datastore/issues/971)
+- Frequency import: interpolated schedules [\#961](https://github.com/transitland/transitland-datastore/issues/961)
+- gtfs\_graph\_spec quite slow [\#958](https://github.com/transitland/transitland-datastore/issues/958)
+- Frequency based schedules: relative arrival/destination times in SSPs [\#951](https://github.com/transitland/transitland-datastore/issues/951)
+- Change exclude\_geometry false default to include\_geometry true [\#939](https://github.com/transitland/transitland-datastore/issues/939)
+- Optional embedding of issues [\#913](https://github.com/transitland/transitland-datastore/issues/913)
+- Remove Feed onestop\_id from s3 filenames [\#895](https://github.com/transitland/transitland-datastore/issues/895)
+- Issues can be falsely "resolved" on changeset [\#701](https://github.com/transitland/transitland-datastore/issues/701)
+- add Javadoc-style inline docs to GtfsGraph [\#399](https://github.com/transitland/transitland-datastore/issues/399)
+- Onestop ID lineage/deaccessioning [\#332](https://github.com/transitland/transitland-datastore/issues/332)
+- remove EntityImportedFromFeed join model [\#276](https://github.com/transitland/transitland-datastore/issues/276)
+
+**Merged pull requests:**
+
+- stops endpoint: when a stop has a parent, include its Onestop ID [\#975](https://github.com/transitland/transitland-datastore/pull/975) ([drewda](https://github.com/drewda))
+- Missing transfer Stops [\#970](https://github.com/transitland/transitland-datastore/pull/970) ([irees](https://github.com/irees))
+- Update computed attrs bug fix [\#969](https://github.com/transitland/transitland-datastore/pull/969) ([doublestranded](https://github.com/doublestranded))
+- Guard against missing arrival/departure times [\#967](https://github.com/transitland/transitland-datastore/pull/967) ([irees](https://github.com/irees))
+- Guard against nil geometry returned by convex\_hull [\#966](https://github.com/transitland/transitland-datastore/pull/966) ([irees](https://github.com/irees))
+- createUpdate now looks back for merged and changed records [\#964](https://github.com/transitland/transitland-datastore/pull/964) ([doublestranded](https://github.com/doublestranded))
+- removing CodeCov integration [\#962](https://github.com/transitland/transitland-datastore/pull/962) ([drewda](https://github.com/drewda))
+- Don't use Feed OnestopIDs in S3 filenames [\#960](https://github.com/transitland/transitland-datastore/pull/960) ([irees](https://github.com/irees))
+- Run specs even faster [\#959](https://github.com/transitland/transitland-datastore/pull/959) ([irees](https://github.com/irees))
+- Embedded entity issues [\#957](https://github.com/transitland/transitland-datastore/pull/957) ([doublestranded](https://github.com/doublestranded))
+- Faster GTFS import specs [\#956](https://github.com/transitland/transitland-datastore/pull/956) ([irees](https://github.com/irees))
+- Service clean up [\#954](https://github.com/transitland/transitland-datastore/pull/954) ([drewda](https://github.com/drewda))
+- Frequency trips: arrival/departure times relative to start of trip [\#952](https://github.com/transitland/transitland-datastore/pull/952) ([irees](https://github.com/irees))
+- updating gems [\#950](https://github.com/transitland/transitland-datastore/pull/950) ([drewda](https://github.com/drewda))
+- Production release 4.9.21 [\#938](https://github.com/transitland/transitland-datastore/pull/938) ([irees](https://github.com/irees))
+- Onestop id lineage [\#910](https://github.com/transitland/transitland-datastore/pull/910) ([doublestranded](https://github.com/doublestranded))
+- unresolved issues from non-matching entities [\#871](https://github.com/transitland/transitland-datastore/pull/871) ([doublestranded](https://github.com/doublestranded))
+
+## [4.9.21](https://github.com/transitland/transitland-datastore/tree/4.9.21) (2017-02-06)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.20...4.9.21)
+
+**Implemented enhancements:**
+
+- Add "stale" enum attribute to Issue model [\#747](https://github.com/transitland/transitland-datastore/issues/747)
+- Automatic issue resolution on manual changeset [\#746](https://github.com/transitland/transitland-datastore/issues/746)
+- Incorporate shape\_dist\_traveled if available [\#585](https://github.com/transitland/transitland-datastore/issues/585)
+- Integrate RSP distance interpolation with SSP interpolation methods [\#565](https://github.com/transitland/transitland-datastore/issues/565)
+
+**Fixed bugs:**
+
+- Couldn't find stops in quality checks [\#941](https://github.com/transitland/transitland-datastore/issues/941)
+- Route without RSPS [\#842](https://github.com/transitland/transitland-datastore/issues/842)
+
+**Closed issues:**
+
+- Endpoint that redirects to download the latest version of a feed [\#947](https://github.com/transitland/transitland-datastore/issues/947)
+- Harmonize common query parameters across onestop\_id entity controllers [\#943](https://github.com/transitland/transitland-datastore/issues/943)
+- Find entities based on GTFS ID [\#942](https://github.com/transitland/transitland-datastore/issues/942)
+- Quality issue for RSP wrong trip [\#937](https://github.com/transitland/transitland-datastore/issues/937)
+- Manually close "false positive issues" [\#935](https://github.com/transitland/transitland-datastore/issues/935)
+- Enable StopTransfers [\#903](https://github.com/transitland/transitland-datastore/issues/903)
+- Add Representative Route method to docs [\#848](https://github.com/transitland/transitland-datastore/issues/848)
+- try CodeCov.io for test coverage reports [\#676](https://github.com/transitland/transitland-datastore/issues/676)
+- Changeset references across multiple ChangePayloads [\#667](https://github.com/transitland/transitland-datastore/issues/667)
+- Animation for distance calc algorithm in docs [\#633](https://github.com/transitland/transitland-datastore/issues/633)
+
+**Merged pull requests:**
+
+- Update gtfs gem [\#949](https://github.com/transitland/transitland-datastore/pull/949) ([irees](https://github.com/irees))
+- endpoint that redirects to download the latest version of a feed [\#948](https://github.com/transitland/transitland-datastore/pull/948) ([drewda](https://github.com/drewda))
+- gtfs gem update: support ftp & additional feed/agency contact details. [\#946](https://github.com/transitland/transitland-datastore/pull/946) ([irees](https://github.com/irees))
+- Include geometry [\#944](https://github.com/transitland/transitland-datastore/pull/944) ([doublestranded](https://github.com/doublestranded))
+- Find by gtfs\_id [\#940](https://github.com/transitland/transitland-datastore/pull/940) ([irees](https://github.com/irees))
+- Production release 4.9.20 [\#934](https://github.com/transitland/transitland-datastore/pull/934) ([irees](https://github.com/irees))
+- Improved handling of Changeset associations [\#928](https://github.com/transitland/transitland-datastore/pull/928) ([irees](https://github.com/irees))
+- Enable StopTransfers [\#924](https://github.com/transitland/transitland-datastore/pull/924) ([irees](https://github.com/irees))
+- try CodeCov.io for test coverage reports [\#677](https://github.com/transitland/transitland-datastore/pull/677) ([drewda](https://github.com/drewda))
+
+## [4.9.20](https://github.com/transitland/transitland-datastore/tree/4.9.20) (2017-01-25)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.19...4.9.20)
+
+**Closed issues:**
+
+- Exclude Route Geometry in API [\#866](https://github.com/transitland/transitland-datastore/issues/866)
+
+**Merged pull requests:**
+
+- Fix missing Stations [\#936](https://github.com/transitland/transitland-datastore/pull/936) ([irees](https://github.com/irees))
+- Production release 4.9.19 [\#927](https://github.com/transitland/transitland-datastore/pull/927) ([doublestranded](https://github.com/doublestranded))
+
+## [4.9.19](https://github.com/transitland/transitland-datastore/tree/4.9.19) (2017-01-23)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.18...4.9.19)
+
+**Fixed bugs:**
+
+- Import failure on RSP onestop\_id [\#918](https://github.com/transitland/transitland-datastore/issues/918)
+
+**Closed issues:**
+
+- Stations missing EIFFs [\#931](https://github.com/transitland/transitland-datastore/issues/931)
+- Set RSP distances to null if errors [\#929](https://github.com/transitland/transitland-datastore/issues/929)
+
+**Merged pull requests:**
+
+- Stop distances nil fallback [\#933](https://github.com/transitland/transitland-datastore/pull/933) ([doublestranded](https://github.com/doublestranded))
+- Fix Stations missing EIFFs [\#932](https://github.com/transitland/transitland-datastore/pull/932) ([irees](https://github.com/irees))
+- \[WIP\] Production release 4.9.18 [\#922](https://github.com/transitland/transitland-datastore/pull/922) ([doublestranded](https://github.com/doublestranded))
+- Optional geometry [\#915](https://github.com/transitland/transitland-datastore/pull/915) ([doublestranded](https://github.com/doublestranded))
+- Identifier matching in GTFSGraph [\#894](https://github.com/transitland/transitland-datastore/pull/894) ([irees](https://github.com/irees))
+
+## [4.9.18](https://github.com/transitland/transitland-datastore/tree/4.9.18) (2017-01-12)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.17...4.9.18)
+
+**Fixed bugs:**
+
+- sfmta route 23 distance calc issue [\#538](https://github.com/transitland/transitland-datastore/issues/538)
+
+**Closed issues:**
+
+- Maintenance task to remove Feed and all entities [\#919](https://github.com/transitland/transitland-datastore/issues/919)
+
+**Merged pull requests:**
+
+- ignoring nil routes [\#923](https://github.com/transitland/transitland-datastore/pull/923) ([doublestranded](https://github.com/doublestranded))
+- Feed Maintenance: destroy feed [\#920](https://github.com/transitland/transitland-datastore/pull/920) ([irees](https://github.com/irees))
+- Production release 4.9.17 [\#902](https://github.com/transitland/transitland-datastore/pull/902) ([irees](https://github.com/irees))
+- Dist calc index update [\#849](https://github.com/transitland/transitland-datastore/pull/849) ([doublestranded](https://github.com/doublestranded))
+
+## [4.9.17](https://github.com/transitland/transitland-datastore/tree/4.9.17) (2017-01-10)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.16...4.9.17)
+
+**Fixed bugs:**
+
+- Avoid Station Hierarchy issues duplication [\#908](https://github.com/transitland/transitland-datastore/issues/908)
+- FeedFetchService: Handle feedvalidator.py exceptions [\#900](https://github.com/transitland/transitland-datastore/issues/900)
+
+**Closed issues:**
+
+- Allow multiple operator ids in routes "operated\_by" query [\#914](https://github.com/transitland/transitland-datastore/issues/914)
+- Stop Station Issue serialization [\#911](https://github.com/transitland/transitland-datastore/issues/911)
+- Remove or reduce "false positive" issues [\#846](https://github.com/transitland/transitland-datastore/issues/846)
+
+**Merged pull requests:**
+
+- convert embed\_issues param value to boolean [\#921](https://github.com/transitland/transitland-datastore/pull/921) ([doublestranded](https://github.com/doublestranded))
+- Ignoring stops that are repeated [\#917](https://github.com/transitland/transitland-datastore/pull/917) ([doublestranded](https://github.com/doublestranded))
+- operated\_by query allows multiple operators [\#916](https://github.com/transitland/transitland-datastore/pull/916) ([doublestranded](https://github.com/doublestranded))
+- Issues with stop stations [\#912](https://github.com/transitland/transitland-datastore/pull/912) ([doublestranded](https://github.com/doublestranded))
+- fixed details bug and avoiding duplication [\#909](https://github.com/transitland/transitland-datastore/pull/909) ([doublestranded](https://github.com/doublestranded))
+- Production release 4.9.16 [\#889](https://github.com/transitland/transitland-datastore/pull/889) ([irees](https://github.com/irees))
+- Remove duplicate point same distance issues [\#847](https://github.com/transitland/transitland-datastore/pull/847) ([doublestranded](https://github.com/doublestranded))
+
+## [4.9.16](https://github.com/transitland/transitland-datastore/tree/4.9.16) (2016-12-20)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.14...4.9.16)
+
+**Implemented enhancements:**
+
+- Updates to Issues/EWIs serializers [\#878](https://github.com/transitland/transitland-datastore/issues/878)
+
+**Fixed bugs:**
+
+- Finnish feed "f-u6x-turunlinja~autoilijainosakeyhtiö~savonlinjaoy~sl~autolinja" won't import [\#881](https://github.com/transitland/transitland-datastore/issues/881)
+
+**Closed issues:**
+
+- Issue category endpoint [\#898](https://github.com/transitland/transitland-datastore/issues/898)
+- Sidekiq Monitoring authentication [\#897](https://github.com/transitland/transitland-datastore/issues/897)
+- Gentle failure on bad stop\_times.txt data [\#892](https://github.com/transitland/transitland-datastore/issues/892)
+- Use global log method [\#886](https://github.com/transitland/transitland-datastore/issues/886)
+- OIF: Allow null gtfs\_agency\_id [\#884](https://github.com/transitland/transitland-datastore/issues/884)
+- EntityWithIssues serialize id [\#876](https://github.com/transitland/transitland-datastore/issues/876)
+- Station Hierarchy Quality Checks [\#869](https://github.com/transitland/transitland-datastore/issues/869)
+- FeedEater: Lookup entities by identifier [\#669](https://github.com/transitland/transitland-datastore/issues/669)
+
+**Merged pull requests:**
+
+- Feedvalidator ops improvements [\#901](https://github.com/transitland/transitland-datastore/pull/901) ([irees](https://github.com/irees))
+- Issue categories controller [\#899](https://github.com/transitland/transitland-datastore/pull/899) ([doublestranded](https://github.com/doublestranded))
+- Fix Sidekiq Monitoring authentication [\#896](https://github.com/transitland/transitland-datastore/pull/896) ([irees](https://github.com/irees))
+- Station hierarchy issues [\#893](https://github.com/transitland/transitland-datastore/pull/893) ([doublestranded](https://github.com/doublestranded))
+- Gentle failure on bad stop\_times [\#891](https://github.com/transitland/transitland-datastore/pull/891) ([irees](https://github.com/irees))
+- StopStationsController serializer update [\#890](https://github.com/transitland/transitland-datastore/pull/890) ([irees](https://github.com/irees))
+- Update gtfs gem [\#887](https://github.com/transitland/transitland-datastore/pull/887) ([irees](https://github.com/irees))
+- Use global log method [\#885](https://github.com/transitland/transitland-datastore/pull/885) ([irees](https://github.com/irees))
+- OIF: Allow null gtfs\_agency\_id [\#883](https://github.com/transitland/transitland-datastore/pull/883) ([irees](https://github.com/irees))
+- handling case where all shape points equal [\#882](https://github.com/transitland/transitland-datastore/pull/882) ([doublestranded](https://github.com/doublestranded))
+- Roll back redis gems [\#880](https://github.com/transitland/transitland-datastore/pull/880) ([irees](https://github.com/irees))
+- Issue serialization update [\#879](https://github.com/transitland/transitland-datastore/pull/879) ([doublestranded](https://github.com/doublestranded))
+- Entity with issues serialize [\#877](https://github.com/transitland/transitland-datastore/pull/877) ([doublestranded](https://github.com/doublestranded))
+- Production release 4.9.15 [\#875](https://github.com/transitland/transitland-datastore/pull/875) ([irees](https://github.com/irees))
+- Production release 4.9.14 [\#863](https://github.com/transitland/transitland-datastore/pull/863) ([irees](https://github.com/irees))
+- EIFF: Include GTFS identifier [\#854](https://github.com/transitland/transitland-datastore/pull/854) ([irees](https://github.com/irees))
+
+## [4.9.14](https://github.com/transitland/transitland-datastore/tree/4.9.14) (2016-12-07)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.13...4.9.14)
+
+**Implemented enhancements:**
+
+- Feed issues association [\#864](https://github.com/transitland/transitland-datastore/issues/864)
+- allow filtering of feed versions by calendar dates [\#851](https://github.com/transitland/transitland-datastore/issues/851)
+
+**Closed issues:**
+
+- FeedVersion: Attach feedvalidator.py output [\#868](https://github.com/transitland/transitland-datastore/issues/868)
+- Sample Changeset Feeds need geometries [\#859](https://github.com/transitland/transitland-datastore/issues/859)
+- Issue for null island stops [\#835](https://github.com/transitland/transitland-datastore/issues/835)
+- OperatorsInFeed: Operator referenced by multiple gtfs agency\_id's [\#735](https://github.com/transitland/transitland-datastore/issues/735)
+
+**Merged pull requests:**
+
+- FeedVersion serializer: url [\#874](https://github.com/transitland/transitland-datastore/pull/874) ([irees](https://github.com/irees))
+- Feedvalidator attachment fixes [\#873](https://github.com/transitland/transitland-datastore/pull/873) ([irees](https://github.com/irees))
+- FeedVersion: Attach feedvalidator.py output [\#872](https://github.com/transitland/transitland-datastore/pull/872) ([irees](https://github.com/irees))
+- update gems [\#870](https://github.com/transitland/transitland-datastore/pull/870) ([drewda](https://github.com/drewda))
+- FeedVersion: filter calendar dates [\#867](https://github.com/transitland/transitland-datastore/pull/867) ([irees](https://github.com/irees))
+- feed issue associations and serialization [\#865](https://github.com/transitland/transitland-datastore/pull/865) ([doublestranded](https://github.com/doublestranded))
+- copying operator geoms over to feed [\#860](https://github.com/transitland/transitland-datastore/pull/860) ([doublestranded](https://github.com/doublestranded))
+- Production release 4.9.13 [\#858](https://github.com/transitland/transitland-datastore/pull/858) ([irees](https://github.com/irees))
+- Null island stop issues [\#845](https://github.com/transitland/transitland-datastore/pull/845) ([doublestranded](https://github.com/doublestranded))
+- Feed: Operator referenced by multiple gtfs agency\_id's [\#743](https://github.com/transitland/transitland-datastore/pull/743) ([irees](https://github.com/irees))
+
+## [4.9.13](https://github.com/transitland/transitland-datastore/tree/4.9.13) (2016-11-21)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.12...4.9.13)
+
+**Implemented enhancements:**
+
+- When bulk deactivating issues, make sure it's done asynchronously [\#787](https://github.com/transitland/transitland-datastore/issues/787)
+
+**Closed issues:**
+
+- Override stops controller to use 'stops' as root [\#862](https://github.com/transitland/transitland-datastore/issues/862)
+- Save Feed fetch errors as issues [\#820](https://github.com/transitland/transitland-datastore/issues/820)
+
+**Merged pull requests:**
+
+- Stop serializer root fix [\#861](https://github.com/transitland/transitland-datastore/pull/861) ([irees](https://github.com/irees))
+- feed fetch errors create issues [\#844](https://github.com/transitland/transitland-datastore/pull/844) ([doublestranded](https://github.com/doublestranded))
+- Production release 4.9.12 [\#843](https://github.com/transitland/transitland-datastore/pull/843) ([irees](https://github.com/irees))
+
+## [4.9.12](https://github.com/transitland/transitland-datastore/tree/4.9.12) (2016-11-14)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.11...4.9.12)
+
+**Implemented enhancements:**
+
+- Issues deprecated by Changeset Entity [\#816](https://github.com/transitland/transitland-datastore/issues/816)
+
+**Fixed bugs:**
+
+- NoMethodError: undefined method `match' for \#\<Array:0x007f6712bd9888\> [\#850](https://github.com/transitland/transitland-datastore/issues/850)
+- Import: "Undefined method 'factory'" [\#831](https://github.com/transitland/transitland-datastore/issues/831)
+- GeoJSON nested serializers [\#616](https://github.com/transitland/transitland-datastore/issues/616)
+
+**Closed issues:**
+
+- Geometry validation [\#855](https://github.com/transitland/transitland-datastore/issues/855)
+- use Onestop IDs as primary and foreign keys \(to reduce needs for cross-table joins\) [\#278](https://github.com/transitland/transitland-datastore/issues/278)
+
+**Merged pull requests:**
+
+- Geometry required [\#857](https://github.com/transitland/transitland-datastore/pull/857) ([irees](https://github.com/irees))
+- Fix jsonapi gem [\#856](https://github.com/transitland/transitland-datastore/pull/856) ([irees](https://github.com/irees))
+- Convert logging message to string [\#853](https://github.com/transitland/transitland-datastore/pull/853) ([irees](https://github.com/irees))
+- Fix for loading gtfs frequencies [\#852](https://github.com/transitland/transitland-datastore/pull/852) ([irees](https://github.com/irees))
+- \[WIP\] Production release 4.9.11 [\#841](https://github.com/transitland/transitland-datastore/pull/841) ([irees](https://github.com/irees))
+- Frequency based trips [\#828](https://github.com/transitland/transitland-datastore/pull/828) ([irees](https://github.com/irees))
+- GeoJSON Serializer / Pagination [\#822](https://github.com/transitland/transitland-datastore/pull/822) ([irees](https://github.com/irees))
+- Issue deactivation by entity [\#817](https://github.com/transitland/transitland-datastore/pull/817) ([doublestranded](https://github.com/doublestranded))
+
+## [4.9.11](https://github.com/transitland/transitland-datastore/tree/4.9.11) (2016-10-25)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.10...4.9.11)
+
+**Implemented enhancements:**
+
+- consider sidekiq-status for reporting progress within jobs [\#446](https://github.com/transitland/transitland-datastore/issues/446)
+
+**Closed issues:**
+
+- Schedule adjustments to reduce conflicts [\#838](https://github.com/transitland/transitland-datastore/issues/838)
+- include only one geometry for each route on routes endpoint [\#671](https://github.com/transitland/transitland-datastore/issues/671)
+
+**Merged pull requests:**
+
+- Valhalla runs at 3am UTC, not midnight; move 3 hrs forward. [\#840](https://github.com/transitland/transitland-datastore/pull/840) ([irees](https://github.com/irees))
+- Adjust schedule to reduce conflicts [\#839](https://github.com/transitland/transitland-datastore/pull/839) ([irees](https://github.com/irees))
+- update gems [\#837](https://github.com/transitland/transitland-datastore/pull/837) ([drewda](https://github.com/drewda))
+- \[WIP\] Production release 4.9.10 [\#836](https://github.com/transitland/transitland-datastore/pull/836) ([doublestranded](https://github.com/doublestranded))
+- Route rsps repr [\#827](https://github.com/transitland/transitland-datastore/pull/827) ([doublestranded](https://github.com/doublestranded))
+
+## [4.9.10](https://github.com/transitland/transitland-datastore/tree/4.9.10) (2016-10-21)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.9...4.9.10)
+
+**Fixed bugs:**
+
+- Operator convex\_hull specs sometimes fail [\#833](https://github.com/transitland/transitland-datastore/issues/833)
+- OSM conflation for stops has been failing a lot recently [\#830](https://github.com/transitland/transitland-datastore/issues/830)
+- Issues on FeedVersions halting imports [\#825](https://github.com/transitland/transitland-datastore/issues/825)
+
+**Closed issues:**
+
+- Feed: sort by latest feed version import [\#823](https://github.com/transitland/transitland-datastore/issues/823)
+- Turn on automatic feed import and schedule extension [\#795](https://github.com/transitland/transitland-datastore/issues/795)
+
+**Merged pull requests:**
+
+- using match\_array instead of eq in convex hull expects [\#834](https://github.com/transitland/transitland-datastore/pull/834) ([doublestranded](https://github.com/doublestranded))
+- Tyr response guarding [\#832](https://github.com/transitland/transitland-datastore/pull/832) ([doublestranded](https://github.com/doublestranded))
+- Pagination refactor and feed sort by latest feed version import [\#821](https://github.com/transitland/transitland-datastore/pull/821) ([irees](https://github.com/irees))
+- Production release 4.9.9 [\#803](https://github.com/transitland/transitland-datastore/pull/803) ([irees](https://github.com/irees))
+
+## [4.9.9](https://github.com/transitland/transitland-datastore/tree/4.9.9) (2016-10-14)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.8...4.9.9)
+
+**Implemented enhancements:**
+
+- rake task to populate `wheelchair\_accessible` and `bikes\_allowed` attributes on `Route` model [\#804](https://github.com/transitland/transitland-datastore/issues/804)
+- RouteStopPattern onestopId only in JSON validator [\#684](https://github.com/transitland/transitland-datastore/issues/684)
+
+**Fixed bugs:**
+
+- OperatorsInFeed: Should be deleted when Operator is deleted [\#797](https://github.com/transitland/transitland-datastore/issues/797)
+
+**Closed issues:**
+
+- Feeds: Filter by import failure / success / in progress [\#815](https://github.com/transitland/transitland-datastore/issues/815)
+- Operator delete: also remove OperatorInFeed records [\#807](https://github.com/transitland/transitland-datastore/issues/807)
+- include issues in activity feed [\#793](https://github.com/transitland/transitland-datastore/issues/793)
+- FeedMaintenanceService: Create issues when extending/enqueueing [\#792](https://github.com/transitland/transitland-datastore/issues/792)
+- return meaningful info at `/api/v1/` including Datastore version number [\#719](https://github.com/transitland/transitland-datastore/issues/719)
+- edit "stickiness" [\#570](https://github.com/transitland/transitland-datastore/issues/570)
+
+**Merged pull requests:**
+
+- Issue deprecation: ignore FeedVersions [\#824](https://github.com/transitland/transitland-datastore/pull/824) ([irees](https://github.com/irees))
+- Feed: filter by latest import status [\#819](https://github.com/transitland/transitland-datastore/pull/819) ([irees](https://github.com/irees))
+- Update gems correctly [\#818](https://github.com/transitland/transitland-datastore/pull/818) ([drewda](https://github.com/drewda))
+- Delete OperatorsInFeed when Operator is deleted [\#814](https://github.com/transitland/transitland-datastore/pull/814) ([irees](https://github.com/irees))
+- Activity feed: Feed maintenance [\#813](https://github.com/transitland/transitland-datastore/pull/813) ([irees](https://github.com/irees))
+- API info [\#812](https://github.com/transitland/transitland-datastore/pull/812) ([drewda](https://github.com/drewda))
+- Route accessibility rake task [\#811](https://github.com/transitland/transitland-datastore/pull/811) ([doublestranded](https://github.com/doublestranded))
+- Revert "update gems" [\#810](https://github.com/transitland/transitland-datastore/pull/810) ([drewda](https://github.com/drewda))
+- update gems [\#809](https://github.com/transitland/transitland-datastore/pull/809) ([drewda](https://github.com/drewda))
+- Feed version maintenance: create Issues [\#808](https://github.com/transitland/transitland-datastore/pull/808) ([irees](https://github.com/irees))
+- Issues without changesets [\#806](https://github.com/transitland/transitland-datastore/pull/806) ([doublestranded](https://github.com/doublestranded))
+- Sticky attributes [\#790](https://github.com/transitland/transitland-datastore/pull/790) ([doublestranded](https://github.com/doublestranded))
+- only onestopId required [\#789](https://github.com/transitland/transitland-datastore/pull/789) ([doublestranded](https://github.com/doublestranded))
 - \[WIP\] Production release 4.9.8 [\#783](https://github.com/transitland/transitland-datastore/pull/783) ([irees](https://github.com/irees))
 
 ## [4.9.8](https://github.com/transitland/transitland-datastore/tree/4.9.8) (2016-09-22)

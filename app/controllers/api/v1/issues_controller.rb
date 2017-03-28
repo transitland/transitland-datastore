@@ -15,29 +15,23 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
       @issues = @issues.with_type(params[:issue_type])
     end
 
-    if params[:feed_onestop_id].present?
-      @issues = @issues.from_feed(params[:feed_onestop_id])
+    if params[:category].present?
+      @issues = @issues.with_type(Issue.issue_types_in_category(params[:category]))
+    end
+
+    if params[:of_feed_entities].present?
+      @issues = @issues.from_feed(params[:of_feed_entities])
+    end
+
+    if params[:of_entity].present?
+      @issues = @issues.issues_of_entity(OnestopId.find!(params[:of_entity]))
     end
 
     # entities_with_issues entity still loading with n+1 queries; not sure how to fix
     @issues = @issues.includes([:entities_with_issues, created_by_changeset: [:imported_from_feed, :imported_from_feed_version]])
 
     respond_to do |format|
-      format.json do
-        render paginated_json_collection(
-          @issues,
-          Proc.new { |params| api_v1_issues_url(params) },
-          params[:sort_key],
-          params[:sort_order],
-          params[:offset],
-          params[:per_page],
-          params[:total],
-          params.slice(
-            :open,
-            :issue_type
-          )
-        )
-      end
+      format.json { render paginated_json_collection(@issues) }
     end
   end
 
@@ -74,7 +68,7 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
       ewi[:entity] = OnestopId.find!(ewi.delete(:onestop_id))
       @issue.entities_with_issues << EntityWithIssues.create(ewi)
     }
-    @issue.created_by_changeset_id = issue_params_copy[:created_by_changeset_id] || @issue.changeset_from_entities.id
+    @issue.created_by_changeset_id = issue_params_copy[:created_by_changeset_id] unless issue_params_copy[:created_by_changeset_id].nil?
 
     existing_issue = Issue.find_by_equivalent(@issue)
     if existing_issue
@@ -85,7 +79,15 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
     end
   end
 
+  def categories
+    render json: Issue.categories
+  end
+
   private
+
+  def query_params
+    params.slice(:open, :issue_type)
+  end
 
   def set_issue
     @issue = Issue.find(params[:id])

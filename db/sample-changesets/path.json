@@ -13,9 +13,11 @@
             "onestopId": "o-dr5r-path",
             "name": "Port Authority Trans-Hudson",
             "shortName": "PATH",
-            "identifiedBy": ["usntd://2075"],
-            "country": "United States",
-            "state": "New York",
+            "tags": {
+              "us_ntd_id": "2075"
+            },
+            "country": "US",
+            "state": "US-NY",
             "metro": "New York City",
             "timezone": "America/New_York",
             "website": "http://www.panynj.gov/",
@@ -42,7 +44,11 @@
                 "gtfsAgencyId": "151",
                 "operatorOnestopId": "o-dr5r-path"
               }
-            ]
+            ],
+            "geometry": {
+              "type": "Polygon",
+              "coordinates": [[[-74.1649,40.7343],[-74.0112,40.7118],[-73.9876,40.7484],[-73.9885,40.7495],[-74.1559,40.7395],[-74.1649,40.7343]]]
+            }
           }
         }
       ]
