@@ -122,7 +122,7 @@ FactoryGirl.define do
     end
 
     factory :feed_version_wmata_75098 do
-      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/wmata_75098.zip')) }
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/wmata_trip_75098.zip')) }
       association :feed, factory: :feed_wmata
     end
 
