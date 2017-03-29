@@ -131,33 +131,32 @@ module Geometry
       # assumes stop times and shapes BOTH have shape_dist_traveled, and they're in the same units
       # assumes the line geometry is not generated, and shape_points equals the rsp geometry.
       rsp.stop_distances = []
-      seg_index = 0
+      shape_dist_index = 0 # will be index of first shape_dist_traveled value > stop time's shape_dist_traveled
       stop_times.each_with_index do |st, i|
         stop_onestop_id = rsp.stop_pattern[i]
-        # Find segment along shape points where stop shape_dist_traveled is between the two shape points' shape_dist_traveled
-        subset_seg_index = -1
-        dist1, dist2 = shape_distances_traveled[seg_index..-1].each_cons(2).detect do |d1, d2|
-          subset_seg_index += 1
-          st.shape_dist_traveled.to_f >= d1 && st.shape_dist_traveled.to_f <= d2
-        end
 
-        seg_index += subset_seg_index
-
-        if dist1.nil? || dist2.nil?
-          if st.shape_dist_traveled.to_f < shape_distances_traveled[0]
-            rsp.stop_distances << 0.0
-          elsif st.shape_dist_traveled.to_f > shape_distances_traveled[-1]
-            rsp.stop_distances << rsp[:geometry].length
-          else
-            raise StandardError.new("Problem finding stop distance for Stop #{stop_onestop_id}, number #{i + 1} of RSP #{rsp.onestop_id} using shape_dist_traveled")
-          end
+        if st.shape_dist_traveled.to_f < shape_distances_traveled[0]
+          rsp.stop_distances << 0.0
+        elsif st.shape_dist_traveled.to_f > shape_distances_traveled[-1]
+          rsp.stop_distances << rsp[:geometry].length
         else
-          route_line_as_cartesian = self.cartesian_cast(rsp[:geometry])
-          stop = tl_stops[i]
-          locators = route_line_as_cartesian.locators(self.cartesian_cast(stop[:geometry]))
-          seg_dist = st.shape_dist_traveled.to_f - shape_distances_traveled[seg_index]
-          point_on_line = locators[seg_index].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326), seg_dist=seg_dist)
-          rsp.stop_distances << LineString.distance_along_line_to_nearest_point(route_line_as_cartesian, point_on_line, seg_index)
+          # Find segment along shape points where stop shape_dist_traveled is between the two shape points' shape_dist_traveled
+          dist1, dist2 = shape_distances_traveled[shape_dist_index..-1].each_cons(2).detect do |d1, d2|
+            shape_dist_index += 1
+            st.shape_dist_traveled.to_f >= d1 && st.shape_dist_traveled.to_f <= d2
+          end
+
+          if dist1.nil? || dist2.nil?
+            raise StandardError.new("Problem finding stop distance for Stop #{stop_onestop_id}, number #{i + 1} of RSP #{rsp.onestop_id} using shape_dist_traveled")
+          else
+            route_line_as_cartesian = self.cartesian_cast(rsp[:geometry])
+            stop = tl_stops[i]
+            seg_index = shape_dist_index - 1
+            locators = route_line_as_cartesian.locators(self.cartesian_cast(stop[:geometry]))
+            seg_dist = st.shape_dist_traveled.to_f - shape_distances_traveled[seg_index]
+            point_on_line = locators[seg_index].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326), seg_dist=seg_dist)
+            rsp.stop_distances << LineString.distance_along_line_to_nearest_point(route_line_as_cartesian, point_on_line, seg_index)
+          end
         end
       end
       rsp.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
@@ -243,7 +242,7 @@ module Geometry
             end
           end
 
-          # exhausting the search before outlier stop test 
+          # exhausting the search before outlier stop test
           if !OutlierStop.test_distance(LineString.distance_to_nearest_point_on_line(current_stop_as_spherical, nearest_point))
             if (i==0)
               rsp.stop_distances << 0.0
