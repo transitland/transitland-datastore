@@ -1,14 +1,16 @@
 describe Api::V1::ChangesetsController do
+  let(:user) { create(:user) }
+  let(:auth_token) { JwtAuthToken.issue_token({user_id: user.id}) }
+
   before(:each) do
-    allow(Figaro.env).to receive(:transitland_datastore_auth_token) { 'THISISANAPIKEY' }
-    @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANAPIKEY'
+    @request.env['HTTP_AUTHORIZATION'] = "Bearer #{auth_token}"
   end
 
   context 'GET index' do
     it 'returns all changesets when no parameters provided' do
       create_list(:changeset, 2)
       get :index
-      expect_json_types({ changesets: :array }) # TODO: remove root node?
+      expect_json_types({ changesets: :array })
       expect_json({ changesets: -> (changesets) {
         expect(changesets.length).to eq 2
       }})
@@ -22,7 +24,7 @@ describe Api::V1::ChangesetsController do
 
       it 'true' do
         get :index, applied: true
-        expect_json_types({ changesets: :array }) # TODO: remove root node?
+        expect_json_types({ changesets: :array })
         expect_json({ changesets: -> (changesets) {
           expect(changesets.length).to eq 2
         }})
@@ -30,7 +32,7 @@ describe Api::V1::ChangesetsController do
 
       it 'false' do
         get :index, applied: false
-        expect_json_types({ changesets: :array }) # TODO: remove root node?
+        expect_json_types({ changesets: :array })
         expect_json({ changesets: -> (changesets) {
           expect(changesets.length).to eq 3
         }})
