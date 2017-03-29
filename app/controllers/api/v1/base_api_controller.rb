@@ -1,5 +1,4 @@
 class Api::V1::BaseApiController < ApplicationController
-
   include JwtAuthToken
 
   API_KIND = 'JSON-psuedo-RESTful'
