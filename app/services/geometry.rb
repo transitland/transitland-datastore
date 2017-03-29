@@ -106,7 +106,7 @@ module Geometry
         return s + i
       end
 
-      # If no match is found within the threshold, just take closest match wthin the search range.
+      # If no match is found within the threshold, just take closest match within the search range.
       self.index_of_line_segment_with_nearest_point(locators, s, e)
     end
 
@@ -225,25 +225,25 @@ module Geometry
               equivalent_stop = stops[i].onestop_id.eql?(stops[i-1].onestop_id) || stops[i][:geometry].eql?(stops[i-1][:geometry])
               if !equivalent_stop && !previous_stop_before_geom
                 # this can happen if this stop matches to the same segment as the previous
-                while (distance <= rsp.stop_distances[i-1])
+                if (distance <= rsp.stop_distances[i-1])
+                  a += 1
                   if (a == num_segments - 1)
                     distance = rsp[:geometry].length
-                    break
-                  elsif (a == c)
+                  elsif (a > c)
                     # we should leave the faulty distance here (unless the interpolation tries to correct it)
                     # because something might be wrong with the RouteStopPattern.
-                    break
+                  else
+                    b = self.index_of_closest_match_line_segment(locators, a, c, current_stop_as_cartesian)
+                    nearest_point = LineString.nearest_point_on_line(locators, b)
+                    distance = LineString.distance_along_line_to_nearest_point(route_line_as_cartesian, nearest_point, b)
                   end
-                  a += 1
-                  b = self.index_of_closest_match_line_segment(locators, a, c, current_stop_as_cartesian)
-                  nearest_point = LineString.nearest_point_on_line(locators, b)
-                  distance = LineString.distance_along_line_to_nearest_point(route_line_as_cartesian, nearest_point, b)
                 end
               end
               previous_stop_before_geom = false
             end
           end
 
+          # exhausting the search before outlier stop test 
           if !OutlierStop.test_distance(LineString.distance_to_nearest_point_on_line(current_stop_as_spherical, nearest_point))
             if (i==0)
               rsp.stop_distances << 0.0
