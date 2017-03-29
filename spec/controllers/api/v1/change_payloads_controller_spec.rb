@@ -2,10 +2,6 @@ describe Api::V1::ChangePayloadsController do
   let(:user) { create(:user) }
   let(:auth_token) { JwtAuthToken.issue_token({user_id: user.id}) }
 
-  before(:each) do
-    @request.env['HTTP_AUTHORIZATION'] = "Bearer #{auth_token}"
-  end
-
     let(:changeset) { create(:changeset) }
     let(:change_payload) { create(:change_payload, changeset: changeset) }
 
@@ -52,6 +48,11 @@ describe Api::V1::ChangePayloadsController do
     end
 
     context 'POST create' do
+      before(:each) do
+        # requires authentication
+        @request.env['HTTP_AUTHORIZATION'] = "Bearer #{auth_token}" # required authentication
+      end
+
       it 'creates a ChangePayload' do
         change = FactoryGirl.attributes_for(:change_payload)
         post :create, changeset_id: changeset.id, change_payload: change
@@ -79,6 +80,11 @@ describe Api::V1::ChangePayloadsController do
     end
 
     context 'POST update' do
+      before(:each) do
+        # requires authentication
+        @request.env['HTTP_AUTHORIZATION'] = "Bearer #{auth_token}" # required authentication
+      end
+
       it 'updates a ChangePayload' do
         change = FactoryGirl.attributes_for(:change_payload)
         post :update, changeset_id: changeset.id, id: change_payload.id, change_payload: change
@@ -98,6 +104,11 @@ describe Api::V1::ChangePayloadsController do
     end
 
     context 'POST destroy' do
+      before(:each) do
+        # requires authentication
+        @request.env['HTTP_AUTHORIZATION'] = "Bearer #{auth_token}" # required authentication
+      end
+
       it 'deletes a ChangePayload' do
         post :destroy, changeset_id: changeset.id, id: change_payload.id
         expect(ChangePayload.exists?(change_payload.id)).to be(false)

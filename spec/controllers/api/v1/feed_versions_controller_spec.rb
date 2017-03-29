@@ -71,9 +71,12 @@ describe Api::V1::FeedVersionsController do
   end
 
   context 'PUT update' do
+    let(:user) { create(:user) }
+    let(:auth_token) { JwtAuthToken.issue_token({user_id: user.id}) }
     before(:each) do
-      allow(Figaro.env).to receive(:transitland_datastore_auth_token) { 'THISISANAPIKEY' }
-      @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANAPIKEY'
+      # requires authentication
+      @request.env['HTTP_AUTHORIZATION'] = "Bearer #{auth_token}"
+
       @feed_version = create(:feed_version, import_level: 0)
     end
 
