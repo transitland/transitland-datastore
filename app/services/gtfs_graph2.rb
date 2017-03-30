@@ -1,4 +1,4 @@
-class GTFSGraph2
+class GTFSGraph
   class Error < StandardError
   end
 
@@ -66,7 +66,7 @@ class GTFSGraph2
         tl_route_rsps = Set.new
         gtfs_route.trips.each do |gtfs_trip|
           tl_rsp = find_or_initialize_rsp(gtfs_trip, serves: tl_trip_stops[gtfs_trip], traversed_by: tl_route)
-          calculate_rsp_distances(rsps) # TODO
+          calculate_rsp_distances(tl_rsp) # TODO
           tl_route_rsps << tl_rsp
         end
 
@@ -103,6 +103,9 @@ class GTFSGraph2
   end
 
   # Compatibility
+  def import_log
+    @log.join("\n")
+  end
 
   def cleanup
     @feed_version.delete_schedule_stop_pairs!
@@ -265,7 +268,11 @@ class GTFSGraph2
     # Update
     tl_entity.stop_distances = [0.0]*serves.size
     tl_entity.geometry = geometry
-    tl_entity.geometry_source = shape_line.shape_dist_traveled.all? ? :shapes_txt_with_dist_traveled : :shapes_txt
+    if !shape_line.nil?
+      tl_entity.geometry_source = shape_line.shape_dist_traveled.all? ? :shapes_txt_with_dist_traveled : :shapes_txt
+    else
+      tl_entity.geometry_source = :trip_stop_points
+    end
     tl_entity.tags = {}
 
     # Relations
@@ -287,9 +294,9 @@ class GTFSGraph2
     tl_entity
   end
 
-  def calculate_rsp_distances(rsps)
+  def calculate_rsp_distances(rsp)
     # TODO: MOVE
-    stops = rsp.stop_pattern
+    stops = rsp.serves
     begin
       # edited rsps will probably have a shape
       if (rsp.geometry_source.eql?(:shapes_txt_with_dist_traveled))
@@ -302,7 +309,7 @@ class GTFSGraph2
         rsp.calculate_distances(stops=stops)
       end
     rescue StandardError
-      graph_log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
+      log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
       rsp.fallback_distances(stops=stops)
     end
   end
