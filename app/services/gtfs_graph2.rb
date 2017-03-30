@@ -62,10 +62,16 @@ class GTFSGraph2
         tl_route = find_or_initialize_route(gtfs_route, serves: tl_route_stops.uniq, operated_by: tl_operator)
 
         # Trips: Pass 2: Create RSPs
+        tl_route_rsps = Set.new
         gtfs_route.trips.each do |gtfs_trip|
           tl_rsp = find_or_initialize_rsp(gtfs_trip, serves: tl_trip_stops[gtfs_trip], traversed_by: tl_route)
+          calculate_rsp_distances(rsps) # TODO
+          tl_route_rsps << tl_rsp
         end
 
+        # Update Route geometry
+        representative_rsps = Route.representative_geometry(tl_route, tl_route_rsps)
+        Route.geometry_from_rsps(tl_route, representative_rsps)
       end
     end
   end
