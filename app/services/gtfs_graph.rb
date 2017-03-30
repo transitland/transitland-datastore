@@ -541,7 +541,7 @@ class GTFSGraph
       stop_pattern = tl_stops.map(&:onestop_id)
       shape_line = @gtfs.shape_line(trip.shape_id)
       feed_shape_points = shape_line || []
-      tl_route = find_by_gtfs_entity(@gtfs.parents(trip).first)
+      tl_route = find_by_gtfs_entity(trip.parents.first)
       next if tl_route.nil?
       trip_stop_points = tl_stops.map { |s| s.geometry[:coordinates] }
       # temporary RouteStopPattern
