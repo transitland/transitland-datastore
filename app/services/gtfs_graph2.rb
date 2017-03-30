@@ -96,6 +96,26 @@ class GTFSGraph2
     changeset
   end
 
+  # Compatibility
+
+  def cleanup
+    @feed_version.delete_schedule_stop_pairs!
+  end
+
+  def create_change_osr
+    load_graph
+    changeset = create_changeset
+    changeset.apply!
+  end
+
+  def ssp_schedule_async
+    # pass
+  end
+
+  def ssp_perform_async(gtfs_trip_ids, agency_map, route_map, stop_map, rsp_map)
+    # pass
+  end
+
   private
 
   def log(msg)
