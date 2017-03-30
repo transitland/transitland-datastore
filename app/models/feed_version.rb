@@ -105,6 +105,20 @@ class FeedVersion < ActiveRecord::Base
     !!self.feed.active_feed_version && (self.feed.active_feed_version == self)
   end
 
+  def import_status
+    if self.feed_version_imports.count == 0
+      :never_imported
+    elsif self.feed_version_imports.first.success == false
+      :most_recent_failed
+    elsif self.feed_version_imports.first.success == true
+      :most_recent_succeeded
+    elsif self.feed_version_imports.first.success == nil
+      :in_progress
+    else
+      :unknown
+    end
+  end
+
   def open_gtfs
     fail StandardError.new('No file') unless file.present?
     filename = file.local_path_copying_locally_if_needed
