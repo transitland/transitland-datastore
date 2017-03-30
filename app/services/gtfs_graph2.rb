@@ -24,6 +24,7 @@ class GTFSGraph2
     @onestop_tl = {}
   end
 
+
   def load_graph
     @gtfs = @feed_version.open_gtfs
     @gtfs.load_graph
@@ -76,9 +77,10 @@ class GTFSGraph2
     end
   end
 
-  def post_process
+  def create_changeset
+    entities = @entity_tl.values.to_set
     # Convert associations
-    @entity_tl.values.to_set.each do |tl_entity|
+    entities.each do |tl_entity|
       if tl_entity.instance_of?(StopPlatform)
         tl_entity.parent_stop_onestop_id = tl_entity.parent_stop.onestop_id
       elsif tl_entity.instance_of?(Route)
@@ -90,15 +92,13 @@ class GTFSGraph2
         tl_entity.traversed_by = tl_entity.traversed_by.onestop_id
       end
     end
-  end
 
-  def create_changeset
     # Changeset
     changeset = Changeset.create!(
       imported_from_feed: @feed,
       imported_from_feed_version: @feed_version
     )
-    changeset.create_change_payloads(@entity_tl.values.to_set)
+    changeset.create_change_payloads(entities)
     changeset
   end
 
@@ -207,14 +207,7 @@ class GTFSGraph2
     end
 
     # Update
-    geojson = {
-      type: 'MultiLineString',
-      coordinates: [
-        [[-73.87481689453125, 40.88860081193033],[ -73.9764404296875, 40.763901280945866],[ -73.94622802734375, 40.686886382151116],[ -73.9544677734375, 40.61186744303007]],
-        [[-74.1851806640625,40.81588791441588],[-74.00665283203124,40.83251504043271],[-73.948974609375,40.7909394098518],[-73.8006591796875,40.751418432997426],[-73.4326171875,40.79301881008675]]
-      ]
-    }
-    tl_entity.geometry = geojson
+    tl_entity.geometry = nil # TODO
     tl_entity.name = [gtfs_entity.route_short_name, gtfs_entity.route_long_name, gtfs_entity.id, "unknown"].select(&:present?).first
     tl_entity.vehicle_type = gtfs_entity.route_type.to_i
     tl_entity.color = Route.color_from_gtfs(gtfs_entity.route_color)
@@ -227,8 +220,8 @@ class GTFSGraph2
     }
     # ... trips
     gtfs_trips = gtfs_entity.trips
-    tl_entity.wheelchair_accessible = :unknown
-    tl_entity.bikes_allowed = :unknown
+    tl_entity.wheelchair_accessible = :unknown # TODO
+    tl_entity.bikes_allowed = :unknown # TODO
 
     # Relations
     tl_entity.operated_by = operated_by
@@ -286,6 +279,7 @@ class GTFSGraph2
     @onestop_tl[tl_entity.onestop_id] = tl_entity
     @entity_tl[gtfs_entity] = tl_entity
     @entity_tl[rsp_key] = tl_entity
+
     # Update eiff
     add_eiff(tl_entity, gtfs_entity)
 
