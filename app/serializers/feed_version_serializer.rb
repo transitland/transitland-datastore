@@ -44,6 +44,7 @@ class FeedVersionSerializer < ApplicationSerializer
              :feed_version_imports_url,
              :feed_version_infos,
              :import_level,
+             :import_status,
              :is_active_feed_version,
              :changesets_imported_from_this_feed_version,
              :url,
