@@ -61,6 +61,22 @@ class StopPlatform < Stop
     update_parent_stop(changeset)
     super(changeset)
   end
+
+  def generate_onestop_id
+    fail Exception.new('geometry required') if geometry.nil?
+    fail Exception.new('name required') if name.nil?
+    fail Exception.new('parent_stop required') if parent_stop.nil?
+    name = self.name.gsub(/[\>\<]/, '')
+    parent_onestop_id = OnestopId::StopOnestopId.new(
+      string: parent_stop.onestop_id || parent_stop.generate_onestop_id
+    )
+    onestop_id = OnestopId::StopOnestopId.new(
+      geohash: parent_onestop_id.geohash,
+      name: "#{parent_onestop_id.name}<#{name}"
+    )
+    onestop_id.validate!
+    onestop_id.to_s
+  end
 end
 
 class OldStopPlatform < OldStop
