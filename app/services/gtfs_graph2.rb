@@ -1,4 +1,4 @@
-class GTFSGraph
+class GTFSGraph2
   class Error < StandardError
   end
 
