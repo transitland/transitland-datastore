@@ -46,12 +46,12 @@ describe Geometry do
       # this is the midpoint between stop_a and stop_b, with a little offset
       target_point = Geometry::DistanceCalculation.cartesian_cast(Stop::GEOFACTORY.point(-121.9664615, 37.36))
       locators = cartesian_line.locators(target_point)
-      i = Geometry::DistanceCalculation.index_of_closest_match_line_segment(locators, 0, locators.size-1, target_point)
+      i = Geometry::DistanceCalculation.index_of_line_segment_with_nearest_point(locators, 0, locators.size-1)
       nearest_point = Geometry::LineString.nearest_point_on_line(locators, i)
       expect(Geometry::LineString.distance_along_line_to_nearest_point(cartesian_line, nearest_point, i)).to be_within(0.1).of(6508.84)
     end
 
-    it '#index_of_closest_match_line_segment' do
+    it '#index_of_line_segment_with_nearest_point' do
       coords = @rsp.geometry[:coordinates].concat [stop_b.geometry[:coordinates],stop_a.geometry[:coordinates]]
       @rsp.geometry = Geometry::LineString.line_string(coords)
       cartesian_line = Geometry::DistanceCalculation.cartesian_cast(@rsp[:geometry])
@@ -59,7 +59,7 @@ describe Geometry do
       mid = Stop::GEOFACTORY.point(-121.9664615, 37.36)
       target_point = Geometry::DistanceCalculation.cartesian_cast(mid)
       locators = cartesian_line.locators(target_point)
-      i = Geometry::DistanceCalculation.index_of_closest_match_line_segment(locators, 0, locators.size - 1, target_point)
+      i = Geometry::DistanceCalculation.index_of_line_segment_with_nearest_point(locators, 0, locators.size - 1)
       expect(i).to eq 0
     end
 
@@ -103,7 +103,7 @@ describe Geometry do
         gtfs.trip_stop_times(trips=[trip]){ |trip, stop_times| trip_stop_times = stop_times }
         #4359.9 is repeated. NOTE: the given shape_dist_traveled may be different from any best match computed distance
         expect(Geometry::DistanceCalculation.gtfs_shape_dist_traveled(rsp, trip_stop_times, tl_stops, gtfs.shape_line(trip.shape_id).shape_dist_traveled)).to match_array([0.0,399.4,553.4,761.0,906.2,1145.0,1385.2,1586.9,1774.2,2030.3,2214.0,2519.2,2764.1,2885.8,3057.6,3194.0,3429.4,3610.4,4359.9,4359.9,4910.9,5135.1,5363.9,5702.6,5885.2,6103.7,6465.9,6802.6,7415.0,7663.8,8118.1,8358.9,8588.2,8793.5,8963.8,9152.1])
-        expect(Geometry::DistanceCalculation.calculate_distances(rsp)).to match_array([0.3,406.7,552.9,761.4,906.0,1144.8,1385.5,1586.9,1774.2,2030.7,2214.5,2519.2,2763.9,2885.8,3057.2,3194.0,3429.1,3610.1,4363.4,4363.8,4915.4,5134.9,5363.7,5702.6,5885.2,6103.7,6465.9,6835.4,7357.5,7672.5,8118.1,8359.0,8588.2,8793.5,8963.4,9151.9])
+        expect(Geometry::DistanceCalculation.calculate_distances(rsp)).to match_array([0.3,406.7,552.9,761.0,906.0,1144.8,1385.0,1586.9,1774.2,2030.7,2214.5,2519.3,2763.9,2885.8,3057.2,3194.0,3429.1,3610.1,4363.4,4363.8,4915.4,5134.9,5363.7,5702.6,5885.2,6103.7,6465.9,6769.8,7467.3,7672.5,8118.1,8358.8,8588.2,8793.5,8963.4,9151.9])
       end
     end
 
@@ -186,7 +186,7 @@ describe Geometry do
 
     it 'accurately calculates the distances of a route with stops along the line that traversed over itself in the opposite direction, but closest match was segment in opposite direction' do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta_1965654, import_level: 1)
-      expect(Geometry::DistanceCalculation.calculate_distances(@feed.imported_route_stop_patterns[0])).to match_array([0.0,1490.8,1818.6,2478.0,2928.5,3167.2,3583.3,4079.4,4360.6,4784.1,4970.5,5168.1,5340.5,5599.0,6023.2,6483.9,6770.0,7469.3])
+      expect(Geometry::DistanceCalculation.calculate_distances(@feed.imported_route_stop_patterns[0])).to match_array([0.0,1490.8,1818.6,2478.0,2928.5,3167.2,3584.7,4079.4,4360.6,4784.1,4970.5,5168.1,5340.5,5599.0,6023.2,6483.9,6770.0,7469.3])
     end
 
     it 'calculates the first stop distance correctly' do
@@ -362,9 +362,14 @@ describe Geometry do
       expect(Issue.where(issue_type: 'distance_calculation_inaccurate').count).to eq 0
     end
 
+    it 'calculates distances for case when second stop is close to first segment, but there is a loop between first and second stop' do
+      feed, feed_version = load_feed(feed_version_name: :feed_version_mbta_33884627, import_level: 1)
+      expect(RouteStopPattern.first.stop_distances[1]).to eq 327.5
+    end
+
     it 'can calculate distances for a closed loop shape where first and last stops are near each other' do
       feed, feed_version = load_feed(feed_version_name: :feed_version_grand_river_1426033, import_level: 1)
-      expect(RouteStopPattern.first.stop_distances).to match_array([0.8,616.9,939.8,1381.0,1720.0,2001.1,2245.9,2512.0,2893.3,3387.2,3696.1,4020.1,4158.2,4534.9,5060.1,5354.3,5975.7,6496.3,7200.5,7361.4,7676.4,8228.6,8821.3,9169.3,9922.9,10116.2,10278.6,10650.2,11044.9,11170.4,11642.8,12021.2,12465.0,12796.4,13324.0,13557.6,13852.8,14470.1,14719.8,15156.2,15615.4,15754.6,16002.9,16451.2,16992.8,17266.0,17507.5,17783.6,18193.5,18394.9,18812.1,19063.5,19319.6,19500.8,19920.9,20517.5])
+      expect(RouteStopPattern.first.stop_distances).to match_array([0.8,617.8,939.8,1381.0,1720.3,2000.4,2248.0,2515.1,2894.5,3387.2,3696.6,4018.7,4156.4,4534.9,5060.1,5357.4,5977.3,6496.3,7200.5,7362.6,7678.2,8230.4,8818.6,9169.3,9921.2,10113.3,10278.6,10650.2,11044.9,11172.1,11644.4,12022.2,12465.0,12798.3,13324.0,13557.6,13854.5,14470.1,14717.5,15156.8,15615.4,15754.6,16004.2,16451.2,16992.8,17267.9,17507.5,17783.6,18193.5,18394.9,18809.7,19061.2,19319.6,19500.8,19920.9,20517.5])
       expect(Issue.where(issue_type: 'distance_calculation_inaccurate').count).to eq 0
     end
 
@@ -381,6 +386,11 @@ describe Geometry do
 
     it 'calculates distances for line with segments having distances of 0.0 m' do
       feed, feed_version = load_feed(feed_version_name: :feed_version_pvta_trip, import_level: 1)
+      expect(Issue.where(issue_type: 'distance_calculation_inaccurate').count).to eq 0
+    end
+
+    it 'handles short, straight-line, reverse loop' do
+      feed, feed_version = load_feed(feed_version_name: :feed_version_marta_trip_5449755, import_level: 1)
       expect(Issue.where(issue_type: 'distance_calculation_inaccurate').count).to eq 0
     end
   end

@@ -136,6 +136,16 @@ FactoryGirl.define do
       association :feed, factory: :feed_nj_path
     end
 
+    factory :feed_version_mbta_33884627 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/mbta_trip_33884627.zip')) }
+      association :feed, factory: :feed_mbta
+    end
+
+    factory :feed_version_marta_trip_5449755 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/marta_trip_5449755.zip')) }
+      association :feed, factory: :feed_marta
+    end
+
     factory :feed_version_marta do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/marta-trip-5453552.zip')) }
       association :feed, factory: :feed_marta
