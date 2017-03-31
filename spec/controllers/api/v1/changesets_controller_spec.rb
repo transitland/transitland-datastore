@@ -179,6 +179,11 @@ describe Api::V1::ChangesetsController do
   end
 
   context 'POST check' do
+    before(:each) do
+      # requires authentication
+      @request.env['HTTP_AUTHORIZATION'] = "Bearer #{auth_token}"
+    end
+
     it 'should be able to identify a Changeset that will apply cleanly' do
       changeset = create(:changeset)
       post :check, id: changeset.id
@@ -349,6 +354,8 @@ describe Api::V1::ChangesetsController do
   context 'issue resolution' do
     before(:each) do
       load_feed(feed_version_name: :feed_version_example_issues, import_level: 1)
+      # requires authentication
+      @request.env['HTTP_AUTHORIZATION'] = "Bearer #{auth_token}"
     end
 
     it 'resolves issue with issues_resolved changeset' do
@@ -377,6 +384,11 @@ describe Api::V1::ChangesetsController do
   end
 
   context 'changing and merging onestop ids' do
+    before(:each) do
+      # requires authentication
+      @request.env['HTTP_AUTHORIZATION'] = "Bearer #{auth_token}"
+    end
+
     it 'should be able to changeOnestopID' do
       stop = create(:stop)
       changeset = create(:changeset, payload: {

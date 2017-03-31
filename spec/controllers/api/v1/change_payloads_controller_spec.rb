@@ -2,8 +2,7 @@ describe Api::V1::ChangePayloadsController do
   let(:user) { create(:user) }
   let(:auth_token) { JwtAuthToken.issue_token({user_id: user.id}) }
 
-    let(:changeset) { create(:changeset) }
-    let(:change_payload) { create(:change_payload, changeset: changeset) }
+  let(:changeset) { create(:changeset_with_payload) }
 
     context 'member' do
       it 'requires Changeset associated ChangePayload' do
@@ -23,7 +22,7 @@ describe Api::V1::ChangePayloadsController do
         get :index, changeset_id: changeset.id
         expect_json(change_payloads: -> (change_payloads) {
             expect(change_payloads.size).to eq(1)
-            expect(change_payloads.first[:id]).to eq(change_payload.id)
+            expect(change_payloads.first[:id]).to eq(changeset.change_payloads.first.id)
         })
       end
 
@@ -39,9 +38,9 @@ describe Api::V1::ChangePayloadsController do
 
     context 'GET show' do
       it 'shows a ChangePayload' do
-        get :show, changeset_id: changeset.id, id: change_payload.id
+        get :show, changeset_id: changeset.id, id: changeset.change_payloads.first.id
         expect_json({
-          id: change_payload.id,
+          id: changeset.change_payloads.first.id,
           changeset_id: changeset.id
         })
       end
@@ -87,7 +86,7 @@ describe Api::V1::ChangePayloadsController do
 
       it 'updates a ChangePayload' do
         change = FactoryGirl.attributes_for(:change_payload)
-        post :update, changeset_id: changeset.id, id: change_payload.id, change_payload: change
+        post :update, changeset_id: changeset.id, id: changeset.change_payloads.first.id, change_payload: change
         expect_json(payload: -> (payload) {
             expect(payload).to eq(change[:payload])
         })
@@ -110,8 +109,8 @@ describe Api::V1::ChangePayloadsController do
       end
 
       it 'deletes a ChangePayload' do
-        post :destroy, changeset_id: changeset.id, id: change_payload.id
-        expect(ChangePayload.exists?(change_payload.id)).to be(false)
+        post :destroy, changeset_id: changeset.id, id: changeset.change_payloads.first.id
+        expect(ChangePayload.exists?(changeset.change_payloads.first)).to be_falsey
         expect(changeset.change_payloads.size).to eq(0)
       end
 
@@ -119,13 +118,13 @@ describe Api::V1::ChangePayloadsController do
         # Not normally be possible as ChangePayloads destroyed after apply
         changeset.apply!
         change_payload = create(:change_payload, changeset: changeset)
-        post :destroy, changeset_id: changeset.id, id: change_payload.id
+        post :destroy, changeset_id: changeset.id, id: changeset.change_payloads.first.id
         expect(response.status).to eq(400)
       end
 
       it 'requires auth key to delete ChangePayload' do
         @request.env['HTTP_AUTHORIZATION'] = nil
-        post :destroy, changeset_id: changeset.id, id: change_payload.id
+        post :destroy, changeset_id: changeset.id, id: changeset.change_payloads.first.id
         expect(response.status).to eq(401)
       end
     end
