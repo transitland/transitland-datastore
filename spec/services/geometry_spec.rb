@@ -376,6 +376,11 @@ describe Geometry do
       feed, feed_version = load_feed(feed_version_name: :feed_version_pvta_trip, import_level: 1)
       expect(Issue.where(issue_type: 'distance_calculation_inaccurate').count).to eq 0
     end
+
+    it 'handles short, straight-line, reverse loop' do
+      feed, feed_version = load_feed(feed_version_name: :feed_version_marta_trip_5449755, import_level: 1)
+      expect(Issue.where(issue_type: 'distance_calculation_inaccurate').count).to eq 0
+    end
   end
 
   context 'determining outlier stops' do
