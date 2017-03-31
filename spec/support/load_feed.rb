@@ -3,7 +3,7 @@ def load_feed(feed_version_name: nil, feed_version: nil, import_level: 1, block_
   block_before_level_2 ||= Proc.new { |graph| }
   feed_version = create(feed_version_name) if feed_version.nil?
   feed = feed_version.feed
-  graph = GTFSGraph.new(feed, feed_version)
+  graph = GTFSGraph2.new(feed, feed_version)
   block_before_level_1.call(graph)
   graph.create_change_osr
   block_before_level_2.call(graph)
