@@ -350,6 +350,25 @@ FactoryGirl.define do
     end
   end
 
+  factory :feed_wmata, parent: :feed, class: Feed do
+    onestop_id 'f-dqc-wmata'
+    url 'http://lrg.wmata.com/GTFS_data/google_transit.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Washington Metropolitan Area Transit Authority',
+        onestop_id: 'o-dqc-met',
+        timezone: 'America/New_York',
+        website: 'http://www.wmata.com/tripplanner',
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: 'MET'
+      )
+    end
+  end
+
   factory :feed_seattle_childrens, parent: :feed, class: Feed do
     onestop_id 'f-c23p1-seattlechildrenshospitalshuttle'
     url 'http://example.com/gtfs.zip'
