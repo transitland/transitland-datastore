@@ -274,6 +274,25 @@ FactoryGirl.define do
     end
   end
 
+  factory :feed_mbta, parent: :feed, class: Feed do
+    onestop_id 'f-drt-mbta'
+    url 'http://www.mbta.com/uploadedfiles/MBTA_GTFS.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'MBTA',
+        onestop_id: 'o-drt-mbta',
+        timezone: 'America/New_York',
+        website: 'http://www.google.com',
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: '1'
+      )
+    end
+  end
+
   factory :feed_grand_river, parent: :feed, class: Feed do
     onestop_id 'f-dpwz-grandrivertransit'
     url 'http://www.regionofwaterloo.ca/opendatadownloads/GRT_GTFS.zip'
