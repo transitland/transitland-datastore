@@ -79,8 +79,8 @@ class GTFSGraph2
   end
 
   def create_changeset
-    entities = @entity_tl.values.to_set
     # Convert associations
+    entities = @entity_tl.values.to_set
     entities.each do |tl_entity|
       if tl_entity.instance_of?(StopPlatform)
         tl_entity.parent_stop_onestop_id = tl_entity.parent_stop.onestop_id
@@ -92,6 +92,20 @@ class GTFSGraph2
       elsif tl_entity.instance_of?(RouteStopPattern)
         tl_entity.traversed_by = tl_entity.traversed_by.onestop_id
       end
+    end
+
+    # Create FeedVersion issue and fail if no matching operators found.
+    operators = entities.select { |i| i.is_a?(Operator) }
+    Issue.where(issue_type: 'feed_import_no_operators_found').issues_of_entity(feed_version).each(&:deprecate)
+    # ... create new issue
+    if operators.size == 0
+      known_agency_ids = @feed.operators_in_feed.map(&:gtfs_agency_id).map{ |s| "\"#{s}\"" }.join(', ')
+      feed_agency_ids = @gtfs.agencies.map(&:agency_id).map{ |s| "\"#{s}\"" }.join(', ')
+      details = "No agencies found.\noperators_in_feed agency_ids: #{known_agency_ids}\nfeed agency_ids: #{feed_agency_ids}"
+      issue = Issue.new(issue_type: 'feed_import_no_operators_found', details: details)
+      issue.entities_with_issues.new(entity: @feed_version)
+      issue.save!
+      fail GTFSGraph::Error.new('No agencies found that match operators_in_feed')
     end
 
     # Changeset
