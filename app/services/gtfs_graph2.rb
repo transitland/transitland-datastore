@@ -67,6 +67,7 @@ class GTFSGraph2
         gtfs_route.trips.each do |gtfs_trip|
           tl_rsp = find_or_initialize_rsp(gtfs_trip, serves: tl_trip_stops[gtfs_trip], traversed_by: tl_route)
           calculate_rsp_distances(tl_rsp) # TODO
+          calculate_rsp_distance(tl_rsp) # TODO
           tl_route_rsps << tl_rsp
         end
 
@@ -294,14 +295,14 @@ class GTFSGraph2
     tl_entity
   end
 
-  def calculate_rsp_distances(rsp)
+  def calculate_rsp_distance(rsp)
     # TODO: MOVE
     stops = rsp.serves
     begin
       # edited rsps will probably have a shape
-      if (rsp.geometry_source.eql?(:shapes_txt_with_dist_traveled))
+      if (rsp.geometry_source.eql?("shapes_txt_with_dist_traveled"))
         # do nothing
-      elsif (rsp.geometry_source.eql?(:trip_stop_points) && rsp.edited_attributes.empty?)
+      elsif (rsp.geometry_source.eql?("trip_stop_points") && rsp.edited_attributes.empty?)
         rsp.fallback_distances(stops=stops)
       elsif (rsp.stop_distances.compact.empty? || rsp.issues.map(&:issue_type).include?(:distance_calculation_inaccurate))
         # avoid writing over stop distances computed with shape_dist_traveled, or already computed somehow -
