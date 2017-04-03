@@ -251,7 +251,7 @@ describe GTFSGraph do
       allow_any_instance_of(ChangePayload).to receive(:payload_validation_errors).and_return([{message: 'payload validation error'}])
       feed_version = create(:feed_version_example)
       feed = feed_version.feed
-      graph = GTFSGraph.new(feed, feed_version)
+      graph = GTFSGraph2.new(feed, feed_version)
       expect {
         graph.create_change_osr
       }.to raise_error(Changeset::Error)
@@ -263,7 +263,7 @@ describe GTFSGraph do
       feed = feed_version.feed
       oif = feed.operators_in_feed.first
       oif.update!({gtfs_agency_id:'not-found'})
-      graph = GTFSGraph.new(feed, feed_version)
+      graph = GTFSGraph2.new(feed, feed_version)
       expect { graph.create_change_osr }.to raise_error(GTFSGraph::Error)
       issue = Issue.last
       expect(issue.issue_type).to eq(:feed_import_no_operators_found)
@@ -430,7 +430,7 @@ describe GTFSGraph do
         issue.entities_with_issues.create!(entity: Stop.find_by_onestop_id!(rsp.stop_pattern[0]), entity_attribute: 'geometry')
         issue.entities_with_issues.create!(entity: Stop.find_by_onestop_id!(rsp.stop_pattern[1]), entity_attribute: 'geometry')
         # try the import again
-        graph = GTFSGraph.new(@feed, @feed_version)
+        graph = GTFSGraph2.new(@feed, @feed_version)
         graph.create_change_osr
         expect(RouteStopPattern.find_by_onestop_id!(rsp.onestop_id).stop_distances).to match_array([0.0, 8138.0])
       end
@@ -438,7 +438,7 @@ describe GTFSGraph do
       it 'recomputes distances when rsp stop distances are nil' do
         rsp = @feed.imported_route_stop_patterns.first
         rsp.update_column(:stop_distances, Array.new(rsp.stop_distances.size))
-        graph = GTFSGraph.new(@feed, @feed_version)
+        graph = GTFSGraph2.new(@feed, @feed_version)
         graph.create_change_osr
         expect(RouteStopPattern.find_by_onestop_id!(rsp.onestop_id).stop_distances).to match_array([0.0, 8138.0])
       end

@@ -248,7 +248,7 @@ class GTFSGraph2
     stop_distances = []
     shape_line = @gtfs.shape_line(gtfs_entity.shape_id)
     shape_points = serves.map(&:coordinates)
-    geometry = RouteStopPattern.line_string(shape_line || shape_points)
+    geometry = RouteStopPattern.line_string(RouteStopPattern.set_precision(shape_line || shape_points))
     rsp_key = [geometry, serves]
     tl_entity = @entity_tl[rsp_key]
     if tl_entity

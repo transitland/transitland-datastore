@@ -235,7 +235,7 @@ class Stop < BaseStop
 
   def coordinates
     g = geometry(as: :wkt)
-    [g.lat, g.lon]
+    [g.lon, g.lat]
   end
 
   # Similarity search
