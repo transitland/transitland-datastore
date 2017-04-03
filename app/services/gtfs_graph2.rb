@@ -202,7 +202,7 @@ class GTFSGraph2
     }
 
     # Update cache
-    tl_entity.onestop_id = tl_entity.generate_onestop_id
+    tl_entity.onestop_id ||= tl_entity.generate_onestop_id
     tl_entity = @onestop_tl[tl_entity.onestop_id] || tl_entity
     @onestop_tl[tl_entity.onestop_id] = tl_entity
     @entity_tl[gtfs_entity] = tl_entity
@@ -253,7 +253,7 @@ class GTFSGraph2
     tl_entity.serves = serves
 
     # Update cache
-    tl_entity.onestop_id = tl_entity.generate_onestop_id
+    tl_entity.onestop_id ||= tl_entity.generate_onestop_id
     tl_entity = @onestop_tl[tl_entity.onestop_id] || tl_entity
     @onestop_tl[tl_entity.onestop_id] = tl_entity
     @entity_tl[gtfs_entity] = tl_entity
@@ -303,7 +303,7 @@ class GTFSGraph2
     tl_entity.traversed_by = traversed_by
 
     # Update cache
-    tl_entity.onestop_id = tl_entity.generate_onestop_id
+    tl_entity.onestop_id ||= tl_entity.generate_onestop_id
     tl_entity = @onestop_tl[tl_entity.onestop_id] || tl_entity
     @onestop_tl[tl_entity.onestop_id] = tl_entity
     @entity_tl[gtfs_entity] = tl_entity
