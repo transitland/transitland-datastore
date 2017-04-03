@@ -94,19 +94,6 @@ class GTFSGraph2
       end
     end
 
-    # Create FeedVersion issue and fail if no matching operators found.
-    Issue.where(issue_type: 'feed_import_no_operators_found').issues_of_entity(feed_version).each(&:deprecate)
-    # ... create new issue
-    if entities.size == 0
-      known_agency_ids = @feed.operators_in_feed.map(&:gtfs_agency_id).map{ |s| "\"#{s}\"" }.join(', ')
-      feed_agency_ids = @gtfs.agencies.map(&:agency_id).map{ |s| "\"#{s}\"" }.join(', ')
-      details = "No agencies found.\noperators_in_feed agency_ids: #{known_agency_ids}\nfeed agency_ids: #{feed_agency_ids}"
-      issue = Issue.new(issue_type: 'feed_import_no_operators_found', details: details)
-      issue.entities_with_issues.new(entity: @feed_version)
-      issue.save!
-      fail GTFSGraph::Error.new('No agencies found that match operators_in_feed')
-    end
-
     # Changeset
     changeset = Changeset.create!(
       imported_from_feed: @feed,
@@ -127,6 +114,7 @@ class GTFSGraph2
 
   def create_change_osr
     load_graph
+    before_create_changeset
     changeset = create_changeset
     changeset.apply!
   end
@@ -143,6 +131,26 @@ class GTFSGraph2
 
   def log(msg)
     puts msg
+  end
+
+  def before_create_changeset
+    ##### Backwards compat #####
+    # Create FeedVersion issue and fail if no matching operators found.
+    Issue.where(issue_type: 'feed_import_no_operators_found').issues_of_entity(feed_version).each(&:deprecate)
+    # ... create new issue
+    if @entity_tl.size == 0
+      known_agency_ids = @feed.operators_in_feed.map(&:gtfs_agency_id).map{ |s| "\"#{s}\"" }.join(', ')
+      feed_agency_ids = @gtfs.agencies.map(&:agency_id).map{ |s| "\"#{s}\"" }.join(', ')
+      details = "No agencies found.\noperators_in_feed agency_ids: #{known_agency_ids}\nfeed agency_ids: #{feed_agency_ids}"
+      issue = Issue.new(issue_type: 'feed_import_no_operators_found', details: details)
+      issue.entities_with_issues.new(entity: @feed_version)
+      issue.save!
+      fail GTFSGraph::Error.new('No agencies found that match operators_in_feed')
+    end
+
+    # Update Feed Geometry
+    @feed.set_bounding_box_from_stops(@entity_tl.values.select { |i| i.is_a?(Stop) })
+    @feed.save!
   end
 
   def find_by_eiff(gtfs_entity)
