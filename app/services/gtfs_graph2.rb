@@ -165,7 +165,7 @@ class GTFSGraph2
   end
 
   def add_eiff(tl_entity, gtfs_entity)
-    tl_entity.add_imported_from_feeds ||= []
+    tl_entity.add_imported_from_feeds ||= Set.new
     tl_entity.add_imported_from_feeds << {feedVersion: @feed_version.sha1, gtfsId: gtfs_entity.id}
   end
 
