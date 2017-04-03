@@ -39,6 +39,8 @@ class GTFSGraph2
       log "GTFS_AGENCY: #{gtfs_agency.agency_id}"
       tl_operator = oifs[gtfs_agency.agency_id]
       next unless tl_operator
+      @entity_tl[gtfs_agency] = tl_operator
+      add_eiff(tl_operator, gtfs_agency)
 
       # Routes
       gtfs_agency.routes.each do |gtfs_route|
@@ -87,8 +89,6 @@ class GTFSGraph2
       elsif tl_entity.instance_of?(Route)
         tl_entity.serves = tl_entity.serves.map(&:onestop_id).uniq
         tl_entity.operated_by = tl_entity.operated_by.onestop_id
-      elsif tl_entity.instance_of?(Operator)
-        tl_entity.serves = tl_entity.serves.map(&:onestop_id).uniq
       elsif tl_entity.instance_of?(RouteStopPattern)
         tl_entity.traversed_by = tl_entity.traversed_by.onestop_id
       end
