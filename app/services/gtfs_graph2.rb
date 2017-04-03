@@ -95,10 +95,9 @@ class GTFSGraph2
     end
 
     # Create FeedVersion issue and fail if no matching operators found.
-    operators = entities.select { |i| i.is_a?(Operator) }
     Issue.where(issue_type: 'feed_import_no_operators_found').issues_of_entity(feed_version).each(&:deprecate)
     # ... create new issue
-    if operators.size == 0
+    if entities.size == 0
       known_agency_ids = @feed.operators_in_feed.map(&:gtfs_agency_id).map{ |s| "\"#{s}\"" }.join(', ')
       feed_agency_ids = @gtfs.agencies.map(&:agency_id).map{ |s| "\"#{s}\"" }.join(', ')
       details = "No agencies found.\noperators_in_feed agency_ids: #{known_agency_ids}\nfeed agency_ids: #{feed_agency_ids}"
