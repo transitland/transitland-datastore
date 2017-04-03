@@ -45,28 +45,28 @@ class GTFSGraph2
         log "\tGTFS_ROUTE: #{gtfs_route.route_id}"
 
         # Trips: Pass 1: Create Stops
-        tl_route_stops = []
-        tl_trip_stops = {}
+        tl_route_serves = []
+        tl_trip_stop_sequence = {}
         gtfs_route.trips.each do |gtfs_trip|
           log "\t\tGTFS_TRIP: #{gtfs_trip.trip_id}"
-          tl_trip_stops[gtfs_trip] = []
+          tl_trip_stop_sequence[gtfs_trip] = []
           # Stops
-          gtfs_trip.stops.each do |gtfs_stop|
+          gtfs_trip.stop_sequence.each do |gtfs_stop|
             log "\t\t\tGTFS_STOP: #{gtfs_stop.stop_id}"
-            tl_stop = find_or_initialize_stop(gtfs_stop, operator_timezone: tl_operator.timezone)
-            tl_route_stops << tl_stop
-            tl_trip_stops[gtfs_trip] << tl_stop
+            tl_stop = find_or_initialize_stop(gtfs_stop, operated_by: tl_operator)
+            tl_route_serves << tl_stop
+            tl_trip_stop_sequence[gtfs_trip] << tl_stop
           end
         end
 
         # Create Route
-        tl_route = find_or_initialize_route(gtfs_route, serves: tl_route_stops.uniq, operated_by: tl_operator)
+        tl_route = find_or_initialize_route(gtfs_route, serves: tl_route_serves.to_set, operated_by: tl_operator)
 
         # Trips: Pass 2: Create RSPs
         tl_route_rsps = Set.new
         gtfs_route.trips.each do |gtfs_trip|
-          tl_rsp = find_or_initialize_rsp(gtfs_trip, serves: tl_trip_stops[gtfs_trip], traversed_by: tl_route)
-          calculate_rsp_distances(tl_rsp) # TODO
+          next unless gtfs_trip.stop_sequence.size > 1
+          tl_rsp = find_or_initialize_rsp(gtfs_trip, serves: tl_trip_stop_sequence[gtfs_trip], traversed_by: tl_route)
           calculate_rsp_distance(tl_rsp) # TODO
           tl_route_rsps << tl_rsp
         end
