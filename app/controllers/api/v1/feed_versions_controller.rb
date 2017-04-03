@@ -35,6 +35,7 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
       feed,
       feed_version_imports,
       feed.active_feed_version,
+      feed_version_infos,
       changesets_imported_from_this_feed_version
     ]}
 
