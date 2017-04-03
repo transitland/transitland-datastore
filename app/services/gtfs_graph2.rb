@@ -148,7 +148,7 @@ class GTFSGraph2
     tl_entity.add_imported_from_feeds << {feedVersion: @feed_version.sha1, gtfsId: gtfs_entity.id}
   end
 
-  def find_or_initialize_stop(gtfs_entity, operator_timezone: nil)
+  def find_or_initialize_stop(gtfs_entity, operated_by: nil)
     # Check cache
     tl_entity = @entity_tl[gtfs_entity]
     if tl_entity
@@ -162,7 +162,7 @@ class GTFSGraph2
       # log "FOUND EIFF: #{tl_entity}"
     elsif gtfs_entity.parent_station.present?
       tl_entity = StopPlatform.new
-      tl_entity.parent_stop = find_or_initialize_stop(@gtfs.stop(gtfs_entity.parent_station), operator_timezone: operator_timezone)
+      tl_entity.parent_stop = find_or_initialize_stop(@gtfs.stop(gtfs_entity.parent_station), operated_by: operated_by)
       log "NEW: #{tl_entity}"
     else
       tl_entity = Stop.new
@@ -173,7 +173,7 @@ class GTFSGraph2
     tl_entity.geometry = Stop::GEOFACTORY.point(*gtfs_entity.coordinates)
     tl_entity.name = gtfs_entity.stop_name
     tl_entity.wheelchair_boarding = nil
-    tl_entity.timezone = gtfs_entity.stop_timezone || operator_timezone
+    tl_entity.timezone = gtfs_entity.stop_timezone || operated_by.try(:timezone)
     tl_entity.tags = {
       stop_desc: gtfs_entity.stop_desc,
       stop_url: gtfs_entity.stop_url,
