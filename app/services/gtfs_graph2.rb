@@ -181,32 +181,29 @@ class GTFSGraph2
 
 
   def find_or_initialize(gtfs_entity, key: nil, **kwargs)
-    key ||= gtfs_entity
-
     # Check cache
+    key ||= gtfs_entity
     tl_entity = @entity_tl[key]
     if tl_entity
-      log "FOUND GTFS: #{tl_entity}"
+      log "FOUND GTFS: #{gtfs_entity.id} -> #{tl_entity.onestop_id}"
     else
       tl_entity = find_by_eiff(gtfs_entity)
-      log "FOUND EIFF: #{tl_entity}" if tl_entity
+      log "FOUND EIFF: #{gtfs_entity.id} -> #{tl_entity.onestop_id}" if tl_entity
     end
+
     if tl_entity
       # pass
     else
       tl_entity = yield(gtfs_entity, **kwargs)
+      log "NEW: #{gtfs_entity.id} -> #{tl_entity.onestop_id}"
+      tl_entity.onestop_id ||= tl_entity.generate_onestop_id
+      tl_entity = @onestop_tl[tl_entity.onestop_id] || tl_entity
+      @onestop_tl[tl_entity.onestop_id] = tl_entity
+      @entity_tl[key] = tl_entity
     end
 
-    # Update cache
-    tl_entity.onestop_id ||= tl_entity.generate_onestop_id
-    tl_entity = @onestop_tl[tl_entity.onestop_id] || tl_entity
-    @onestop_tl[tl_entity.onestop_id] = tl_entity
-    @entity_tl[key] = tl_entity
-
-    # Update eiff
+    # TODO: update rels on existing entities...
     add_eiff(tl_entity, gtfs_entity)
-
-    # Return entity
     tl_entity
   end
 
