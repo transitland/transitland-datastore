@@ -52,7 +52,6 @@ class GTFSGraph2
         gtfs_route.trips.each do |gtfs_trip|
           log "\t\tGTFS_TRIP: #{gtfs_trip.trip_id}"
           tl_trip_stop_sequence[gtfs_trip] = []
-          # Stops
           gtfs_trip.stop_sequence.each do |gtfs_stop|
             log "\t\t\tGTFS_STOP: #{gtfs_stop.stop_id}"
             tl_stop = find_or_initialize_stop(gtfs_stop, operated_by: tl_operator)
@@ -113,10 +112,7 @@ class GTFSGraph2
   end
 
   def create_change_osr
-    load_graph
-    before_create_changeset
-    changeset = create_changeset
-    changeset.apply!
+    private_create_change_osr
   end
 
   def ssp_schedule_async
@@ -133,8 +129,11 @@ class GTFSGraph2
     puts msg
   end
 
-  def before_create_changeset
+  def private_create_change_osr
     ##### Backwards compat #####
+    load_graph
+    entities = @entity_tl.values.to_set
+
     # Create FeedVersion issue and fail if no matching operators found.
     Issue.where(issue_type: 'feed_import_no_operators_found').issues_of_entity(feed_version).each(&:deprecate)
     # ... create new issue
@@ -149,8 +148,14 @@ class GTFSGraph2
     end
 
     # Update Feed Geometry
-    @feed.set_bounding_box_from_stops(@entity_tl.values.select { |i| i.is_a?(Stop) })
+    @feed.set_bounding_box_from_stops(entities.select { |i| i.is_a?(Stop) })
     @feed.save!
+
+    # Create changeset
+    changeset = create_changeset
+
+    # Apply changeset
+    changeset.apply!
   end
 
   def find_by_eiff(gtfs_entity)
