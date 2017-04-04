@@ -180,6 +180,37 @@ class GTFSGraph2
     tl_entity.add_imported_from_feeds << {feedVersion: @feed_version.sha1, gtfsId: gtfs_entity.id}
   end
 
+
+  def find_or_initialize(gtfs_entity, key: nil, **kwargs)
+    key ||= gtfs_entity
+
+    # Check cache
+    tl_entity = @entity_tl[key]
+    if tl_entity
+      log "FOUND GTFS: #{tl_entity}"
+    else
+      tl_entity = find_by_eiff(gtfs_entity)
+      log "FOUND EIFF: #{tl_entity}" if tl_entity
+    end
+    if tl_entity
+      # pass
+    else
+      tl_entity = yield(gtfs_entity, **kwargs)
+    end
+
+    # Update cache
+    tl_entity.onestop_id ||= tl_entity.generate_onestop_id
+    tl_entity = @onestop_tl[tl_entity.onestop_id] || tl_entity
+    @onestop_tl[tl_entity.onestop_id] = tl_entity
+    @entity_tl[key] = tl_entity
+
+    # Update eiff
+    add_eiff(tl_entity, gtfs_entity)
+
+    # Return entity
+    tl_entity
+  end
+
   def find_or_initialize_stop(gtfs_entity, operated_by: nil)
     # Check cache
     tl_entity = @entity_tl[gtfs_entity]
