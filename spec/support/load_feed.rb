@@ -7,11 +7,9 @@ def load_feed(feed_version_name: nil, feed_version: nil, import_level: 1, block_
   block_before_level_1.call(graph)
   graph.create_change_osr
   block_before_level_2.call(graph)
-  if import_level >= 2
-    graph.ssp_schedule_async do |trip_ids, agency_map, route_map, stop_map, rsp_map|
-      graph.ssp_perform_async(trip_ids, agency_map, route_map, stop_map, rsp_map)
-    end
-  end
+  # if import_level >= 2
+  #   GTFSScheduleImport.new(feed, feed_version).load_schedule
+  # end
   feed.activate_feed_version(feed_version.sha1, import_level)
   return feed, feed_version
 end
