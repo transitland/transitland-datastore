@@ -22,7 +22,6 @@ class GTFSGraph2
     @onestop_tl = {}
   end
 
-
   def load_graph
     @gtfs = @feed_version.open_gtfs
     @gtfs.load_graph
@@ -212,48 +211,25 @@ class GTFSGraph2
   end
 
   def find_or_initialize_stop(gtfs_entity, operated_by: nil)
-    # Check cache
-    tl_entity = @entity_tl[gtfs_entity]
-    if tl_entity
-      # log "FOUND: #{tl_entity}"
-      return tl_entity
-    end
-
-    # Create
-    tl_entity = find_by_eiff(gtfs_entity)
-    if tl_entity
-      # log "FOUND EIFF: #{tl_entity}"
-    elsif gtfs_entity.parent_station.present?
-      tl_entity = StopPlatform.new
-      tl_entity.parent_stop = find_or_initialize_stop(@gtfs.stop(gtfs_entity.parent_station), operated_by: operated_by)
-      log "NEW: #{tl_entity}"
-    else
-      tl_entity = Stop.new
-      log "NEW: #{tl_entity}"
-    end
-
-    # Update
-    tl_entity.geometry = Stop::GEOFACTORY.point(*gtfs_entity.coordinates)
-    tl_entity.name = gtfs_entity.stop_name
-    tl_entity.wheelchair_boarding = nil
-    tl_entity.timezone = gtfs_entity.stop_timezone || operated_by.try(:timezone)
-    tl_entity.tags = {
-      stop_desc: gtfs_entity.stop_desc,
-      stop_url: gtfs_entity.stop_url,
-      zone_id: gtfs_entity.zone_id
+    find_or_initialize(gtfs_entity) {
+      if gtfs_entity.parent_station.present?
+        tl_entity = StopPlatform.new
+        tl_entity.parent_stop = find_or_initialize_stop(@gtfs.stop(gtfs_entity.parent_station), operated_by: operated_by)
+      else
+        tl_entity = Stop.new
+      end
+      # Update
+      tl_entity.geometry = Stop::GEOFACTORY.point(*gtfs_entity.coordinates)
+      tl_entity.name = gtfs_entity.stop_name
+      tl_entity.wheelchair_boarding = nil
+      tl_entity.timezone = gtfs_entity.stop_timezone || operated_by.try(:timezone)
+      tl_entity.tags = {
+        stop_desc: gtfs_entity.stop_desc,
+        stop_url: gtfs_entity.stop_url,
+        zone_id: gtfs_entity.zone_id
+      }
+      tl_entity
     }
-
-    # Update cache
-    tl_entity.onestop_id ||= tl_entity.generate_onestop_id
-    tl_entity = @onestop_tl[tl_entity.onestop_id] || tl_entity
-    @onestop_tl[tl_entity.onestop_id] = tl_entity
-    @entity_tl[gtfs_entity] = tl_entity
-
-    # Update eiff
-    add_eiff(tl_entity, gtfs_entity)
-
-    # Return entity
-    tl_entity
   end
 
   def find_or_initialize_route(gtfs_entity, serves: [], operated_by: nil)
