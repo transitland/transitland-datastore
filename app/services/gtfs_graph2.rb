@@ -154,6 +154,15 @@ class GTFSGraph2
     # Create changeset
     changeset = create_changeset
 
+    # Delete old RSPs
+    feed_rsps = Set.new(@feed.imported_route_stop_patterns.where("edited_attributes='{}'").pluck(:onestop_id))
+    rsps_to_remove = feed_rsps - Set.new(entities.select { |i| i.is_a?(RouteStopPattern)}.map(&:onestop_id))
+    if rsps_to_remove.size > 0
+      changeset.change_payloads.create!(payload: {
+        changes: rsps_to_remove.map {|i| {action: "destroy", routeStopPattern: {onestopId: i}}}
+      })
+    end
+
     # Apply changeset
     changeset.apply!
   end
