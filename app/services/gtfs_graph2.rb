@@ -233,54 +233,28 @@ class GTFSGraph2
   end
 
   def find_or_initialize_route(gtfs_entity, serves: [], operated_by: nil)
-    # Check cache
-    tl_entity = @entity_tl[gtfs_entity]
-    if tl_entity
-      # log "FOUND: #{tl_entity}"
-      return tl_entity
-    end
-
-    # Create
-    tl_entity = find_by_eiff(gtfs_entity)
-    if tl_entity
-      # log "FOUND EIFF: #{tl_entity}"
-    else
+    find_or_initialize(gtfs_entity) {
       tl_entity = Route.new
-      log "NEW: #{tl_entity}"
-    end
-
-    # Update
-    tl_entity.geometry = nil # TODO
-    tl_entity.name = [gtfs_entity.route_short_name, gtfs_entity.route_long_name, gtfs_entity.id, "unknown"].select(&:present?).first
-    tl_entity.vehicle_type = gtfs_entity.route_type.to_i
-    tl_entity.color = Route.color_from_gtfs(gtfs_entity.route_color)
-    tl_entity.tags = {
-      route_long_name: gtfs_entity.route_long_name,
-      route_desc: gtfs_entity.route_desc,
-      route_url: gtfs_entity.route_url,
-      route_color: gtfs_entity.route_color,
-      route_text_color: gtfs_entity.route_text_color
+      tl_entity.geometry = nil # TODO
+      tl_entity.name = [gtfs_entity.route_short_name, gtfs_entity.route_long_name, gtfs_entity.id, "unknown"].select(&:present?).first
+      tl_entity.vehicle_type = gtfs_entity.route_type.to_i
+      tl_entity.color = Route.color_from_gtfs(gtfs_entity.route_color)
+      tl_entity.tags = {
+        route_long_name: gtfs_entity.route_long_name,
+        route_desc: gtfs_entity.route_desc,
+        route_url: gtfs_entity.route_url,
+        route_color: gtfs_entity.route_color,
+        route_text_color: gtfs_entity.route_text_color
+      }
+      # ... trips
+      gtfs_trips = gtfs_entity.trips
+      tl_entity.wheelchair_accessible = :unknown # TODO
+      tl_entity.bikes_allowed = :unknown # TODO
+      # Relations
+      tl_entity.operated_by = operated_by
+      tl_entity.serves = serves
+      tl_entity
     }
-    # ... trips
-    gtfs_trips = gtfs_entity.trips
-    tl_entity.wheelchair_accessible = :unknown # TODO
-    tl_entity.bikes_allowed = :unknown # TODO
-
-    # Relations
-    tl_entity.operated_by = operated_by
-    tl_entity.serves = serves
-
-    # Update cache
-    tl_entity.onestop_id ||= tl_entity.generate_onestop_id
-    tl_entity = @onestop_tl[tl_entity.onestop_id] || tl_entity
-    @onestop_tl[tl_entity.onestop_id] = tl_entity
-    @entity_tl[gtfs_entity] = tl_entity
-
-    # Update eiff
-    add_eiff(tl_entity, gtfs_entity)
-
-    # Return entity
-    tl_entity
   end
 
   def find_or_initialize_rsp(gtfs_entity, serves: [], traversed_by: nil)
