@@ -372,25 +372,25 @@ describe GTFSGraph do
     end
 
     it 'returns unknown if all 0' do
-      expect(GTFSGraph.to_trips_accessible(trips([0,0]), :wheelchair_accessible)).to eq(:unknown)
+      expect(GTFSGraph.send(:to_trips_accessible, trips([0,0]), :wheelchair_accessible)).to eq(:unknown)
     end
 
     it 'returns all_trips if all 1' do
-      expect(GTFSGraph.to_trips_accessible(trips([1,1]), :wheelchair_accessible)).to eq(:all_trips)
+      expect(GTFSGraph.send(:to_trips_accessible, trips([1,1]), :wheelchair_accessible)).to eq(:all_trips)
     end
 
     it 'returns no_trips if all 2' do
-      expect(GTFSGraph.to_trips_accessible(trips([2,2]), :wheelchair_accessible)).to eq(:no_trips)
+      expect(GTFSGraph.send(:to_trips_accessible, trips([2,2]), :wheelchair_accessible)).to eq(:no_trips)
     end
 
     it 'returns no_trips if all 2 or 0' do
-      expect(GTFSGraph.to_trips_accessible(trips([2,0]), :wheelchair_accessible)).to eq(:no_trips)
+      expect(GTFSGraph.send(:to_trips_accessible, trips([2,0]), :wheelchair_accessible)).to eq(:no_trips)
     end
 
     it 'returns some_trips if mixed values but at least one 1' do
-      expect(GTFSGraph.to_trips_accessible(trips([0,1]), :wheelchair_accessible)).to eq(:some_trips)
-      expect(GTFSGraph.to_trips_accessible(trips([1,2]), :wheelchair_accessible)).to eq(:some_trips)
-      expect(GTFSGraph.to_trips_accessible(trips([0,1,2]), :wheelchair_accessible)).to eq(:some_trips)
+      expect(GTFSGraph.send(:to_trips_accessible, trips([0,1]), :wheelchair_accessible)).to eq(:some_trips)
+      expect(GTFSGraph.send(:to_trips_accessible, trips([1,2]), :wheelchair_accessible)).to eq(:some_trips)
+      expect(GTFSGraph.send(:to_trips_accessible, trips([0,1,2]), :wheelchair_accessible)).to eq(:some_trips)
     end
   end
 

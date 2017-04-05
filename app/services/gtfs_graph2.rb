@@ -300,4 +300,21 @@ class GTFSGraph2
       rsp.fallback_distances(stops=stops)
     end
   end
+
+  def to_trips_accessible(trips, key)
+    # All combinations of 0,1,2 to:
+    #    [:some_trips, :all_trips, :no_trips, :unknown]
+    values = trips.map { |trip| trip.send(key).to_i }.to_set
+    if values == Set.new([0])
+      :unknown
+    elsif values == Set.new([1])
+      :all_trips
+    elsif values == Set.new([2])
+      :no_trips
+    elsif values.include?(1)
+      :some_trips
+    else
+      :no_trips
+    end
+  end
 end
