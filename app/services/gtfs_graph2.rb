@@ -33,7 +33,7 @@ class GTFSGraph2
 
     # Operators
     @gtfs.agencies.each do |gtfs_agency|
-      log "GTFS_AGENCY: #{gtfs_agency.agency_id}"
+      debug "GTFS_AGENCY: #{gtfs_agency.agency_id}"
       tl_operator = oifs[gtfs_agency.agency_id]
       next unless tl_operator
       @entity_tl[gtfs_agency] = tl_operator
@@ -41,16 +41,16 @@ class GTFSGraph2
 
       # Routes
       gtfs_agency.routes.each do |gtfs_route|
-        log "\tGTFS_ROUTE: #{gtfs_route.route_id}"
+        debug "\tGTFS_ROUTE: #{gtfs_route.route_id}"
 
         # Trips: Pass 1: Create Stops
         tl_route_serves = []
         tl_trip_stop_sequence = {}
         gtfs_route.trips.each do |gtfs_trip|
-          log "\t\tGTFS_TRIP: #{gtfs_trip.trip_id}"
+          debug "\t\tGTFS_TRIP: #{gtfs_trip.trip_id}"
           tl_trip_stop_sequence[gtfs_trip] = []
           gtfs_trip.stop_sequence.each do |gtfs_stop|
-            log "\t\t\tGTFS_STOP: #{gtfs_stop.stop_id}"
+            debug "\t\t\tGTFS_STOP: #{gtfs_stop.stop_id}"
             tl_stop = find_or_initialize_stop(gtfs_stop, operated_by: tl_operator)
             tl_route_serves << tl_stop
             tl_trip_stop_sequence[gtfs_trip] << tl_stop
@@ -104,24 +104,18 @@ class GTFSGraph2
     @log.join("\n")
   end
 
-  def cleanup
-  end
-
   def create_change_osr
     private_create_change_osr
-  end
-
-  def ssp_schedule_async
-    # pass
-  end
-
-  def ssp_perform_async(gtfs_trip_ids, agency_map, route_map, stop_map, rsp_map)
-    # pass
   end
 
   private
 
   def log(msg)
+    @log << msg
+    puts msg
+  end
+
+  def debug(msg)
     puts msg
   end
 
@@ -175,25 +169,25 @@ class GTFSGraph2
   end
 
   def add_eiff(tl_entity, gtfs_entity)
+    # TODO: use simple set; convert to changeset format at end.
     tl_entity.add_imported_from_feeds ||= Set.new
     tl_entity.add_imported_from_feeds << {feedVersion: @feed_version.sha1, gtfsId: gtfs_entity.id}
   end
-
 
   def find_or_initialize(gtfs_entity, key: nil, **kwargs)
     # Check cache
     key ||= gtfs_entity
     tl_entity = @entity_tl[key]
     if tl_entity
-      log "FOUND GTFS: #{gtfs_entity.class.name} #{gtfs_entity.id} -> #{tl_entity.onestop_id}"
+      # log "FOUND GTFS: #{gtfs_entity.class.name} #{gtfs_entity.id} -> #{tl_entity.onestop_id}"
       return tl_entity
     end
 
     tl_entity = find_by_eiff(gtfs_entity)
     if tl_entity
-      log "FOUND EIFF: #{gtfs_entity.class.name} #{gtfs_entity.id} -> #{tl_entity.onestop_id}"
+      log "#{gtfs_entity.class.name} eiff: #{gtfs_entity.id} -> #{tl_entity.onestop_id}"
     else
-      log "NEW: #{gtfs_entity.class.name} #{gtfs_entity.id} -> ...tbd"
+      log "#{gtfs_entity.class.name} new: #{gtfs_entity.id} -> ..."
     end
 
     # Create / Update
@@ -246,6 +240,7 @@ class GTFSGraph2
       gtfs_trips = gtfs_entity.trips
       tl_entity.wheelchair_accessible = :unknown # TODO
       tl_entity.bikes_allowed = :unknown # TODO
+      # Relations
       tl_entity.operated_by = operated_by
       tl_entity.serves = serves
       tl_entity
@@ -253,7 +248,6 @@ class GTFSGraph2
   end
 
   def find_or_initialize_rsp(gtfs_entity, serves: [], traversed_by: nil)
-    stop_distances = []
     shape_line = @gtfs.shape_line(gtfs_entity.shape_id)
     shape_points = serves.map(&:coordinates)
     geometry = RouteStopPattern.line_string(RouteStopPattern.set_precision(shape_line || shape_points))
