@@ -65,7 +65,6 @@ class GTFSGraph2
         gtfs_route.trips.each do |gtfs_trip|
           next unless gtfs_trip.stop_sequence.size > 1
           tl_rsp = find_or_initialize_rsp(gtfs_trip, serves: tl_trip_stop_sequence[gtfs_trip], traversed_by: tl_route)
-          calculate_rsp_distance(tl_rsp) # TODO
           tl_route_rsps << tl_rsp
         end
 
@@ -266,7 +265,7 @@ class GTFSGraph2
     key = [geometry, serves]
     find_or_initialize(gtfs_entity, key: key) { |tl_entity|
       tl_entity ||= RouteStopPattern.new
-      tl_entity.stop_distances = [0.0]*serves.size
+      tl_entity.stop_distances = [nil]*serves.size
       tl_entity.geometry = geometry
       if !shape_line.nil?
         tl_entity.geometry_source = shape_line.shape_dist_traveled.all? ? :shapes_txt_with_dist_traveled : :shapes_txt
@@ -278,6 +277,17 @@ class GTFSGraph2
       tl_entity.serves = serves
       tl_entity.stop_pattern = serves.map(&:onestop_id)
       tl_entity.traversed_by = traversed_by
+      # Update distances
+      # assume stop_times' and shapes' shape_dist_traveled are in the same units (a condition required by GTFS). TODO: validate that.
+      tl_entity.fallback_distances(stops=serves)
+      shape_distances_traveled = shape_line.try(:shape_dist_traveled)
+      if shape_distances_traveled
+        if gtfs_entity.shape_dist_traveled.all?(&:present?) && shape_distances_traveled.all?(&:present?)
+          # TODO: gtfs_shape_dist_traveled use gtfs_trip.shape_dist_traveled
+          # rsp.gtfs_shape_dist_traveled(stop_times, tl_stops, shape_distances_traveled)
+        end
+      end
+      calculate_rsp_distance(tl_entity)
       tl_entity
     }
   end
