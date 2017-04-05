@@ -98,12 +98,12 @@ class GTFSGraph2
     begin
       changeset.create_change_payloads(entities)
     rescue Changeset::Error => e
-      log "Changeset Error: #{e}"
-      log "Payload:"
-      log e.payload.to_json
+      graph_log "Changeset Error: #{e}"
+      graph_log "Payload:"
+      graph_log e.payload.to_json
       raise e
     rescue StandardError => e
-      log "Error: #{e}"
+      graph_log "Error: #{e}"
       raise e
     end
     changeset
@@ -120,8 +120,9 @@ class GTFSGraph2
 
   private
 
-  def log(msg)
+  def graph_log(msg)
     @log << msg
+    log(msg)
     puts msg
   end
 
