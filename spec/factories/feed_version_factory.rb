@@ -126,6 +126,11 @@ FactoryGirl.define do
       association :feed, factory: :feed_wmata
     end
 
+    factory :feed_version_wmata_48587 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/wmata-trip-48587.zip')) }
+      association :feed, factory: :feed_wmata
+    end
+
     factory :feed_version_nj_path_last_stop_past_edge do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/path-nj-us-last-stop-past-edge.zip')) }
       association :feed, factory: :feed_nj_path

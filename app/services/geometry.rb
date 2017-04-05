@@ -208,7 +208,7 @@ module Geometry
             route_line_as_cartesian = self.cartesian_cast(rsp[:geometry])
             stop = tl_stops[i]
             locators = route_line_as_cartesian.locators(self.cartesian_cast(stop[:geometry]))
-            seg_dist = st.shape_dist_traveled.to_f - shape_distances_traveled[search_and_seg_index]
+            seg_dist = (st.shape_dist_traveled.to_f - shape_distances_traveled[search_and_seg_index])/(shape_distances_traveled[search_and_seg_index+1] - shape_distances_traveled[search_and_seg_index])
             point_on_line = locators[search_and_seg_index].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326), seg_dist=seg_dist)
             rsp.stop_distances << LineString.distance_along_line_to_nearest_point(route_line_as_cartesian, point_on_line, search_and_seg_index)
           end
