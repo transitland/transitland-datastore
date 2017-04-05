@@ -279,10 +279,10 @@ class GTFSGraph2
       tl_entity.traversed_by = traversed_by
       # Update distances
       # assume stop_times' and shapes' shape_dist_traveled are in the same units (a condition required by GTFS). TODO: validate that.
-      tl_entity.fallback_distances(stops=serves)
       shape_distances_traveled = shape_line.try(:shape_dist_traveled)
       if shape_distances_traveled
         if gtfs_entity.shape_dist_traveled.all?(&:present?) && shape_distances_traveled.all?(&:present?)
+          tl_entity.fallback_distances(stops=serves)
           # TODO: gtfs_shape_dist_traveled use gtfs_trip.shape_dist_traveled
           # rsp.gtfs_shape_dist_traveled(stop_times, tl_stops, shape_distances_traveled)
         end
