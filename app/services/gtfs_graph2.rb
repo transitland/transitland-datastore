@@ -190,6 +190,7 @@ class GTFSGraph2
     tl_entity = @entity_tl[key]
     if tl_entity
       # log "FOUND GTFS: #{gtfs_entity.class.name} #{gtfs_entity.id} -> #{tl_entity.onestop_id}"
+      add_eiff(tl_entity, gtfs_entity)
       return tl_entity
     end
 
