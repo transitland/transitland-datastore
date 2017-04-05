@@ -186,34 +186,36 @@ class GTFSGraph2
     tl_entity = @entity_tl[key]
     if tl_entity
       log "FOUND GTFS: #{gtfs_entity.id} -> #{tl_entity.onestop_id}"
-    else
-      tl_entity = find_by_eiff(gtfs_entity)
-      log "FOUND EIFF: #{gtfs_entity.id} -> #{tl_entity.onestop_id}" if tl_entity
+      return tl_entity
     end
 
+    tl_entity = find_by_eiff(gtfs_entity)
     if tl_entity
-      # pass
+      log "FOUND EIFF: #{gtfs_entity.id} -> #{tl_entity.onestop_id}"
     else
-      tl_entity = yield(gtfs_entity, **kwargs)
-      tl_entity.onestop_id ||= tl_entity.generate_onestop_id
-      tl_entity = @onestop_tl[tl_entity.onestop_id] || tl_entity
-      @onestop_tl[tl_entity.onestop_id] = tl_entity
-      @entity_tl[key] = tl_entity
-      log "NEW: #{gtfs_entity.id} -> #{tl_entity.onestop_id}"
+      log "NEW: #{gtfs_entity.id} -> ...tbd"
     end
 
+    # Create / Update
+    tl_entity = yield(gtfs_entity, tl_entity)
     # TODO: update rels on existing entities...
+
+    # Cache
+    tl_entity.onestop_id ||= tl_entity.generate_onestop_id
+    tl_entity = @onestop_tl[tl_entity.onestop_id] || tl_entity
+    @onestop_tl[tl_entity.onestop_id] = tl_entity
+    @entity_tl[key] = tl_entity
     add_eiff(tl_entity, gtfs_entity)
     tl_entity
   end
 
   def find_or_initialize_stop(gtfs_entity, operated_by: nil)
-    find_or_initialize(gtfs_entity) {
+    find_or_initialize(gtfs_entity) { |gtfs_entity, tl_entity|
       if gtfs_entity.parent_station.present?
-        tl_entity = StopPlatform.new
+        tl_entity ||= StopPlatform.new
         tl_entity.parent_stop = find_or_initialize_stop(@gtfs.stop(gtfs_entity.parent_station), operated_by: operated_by)
       else
-        tl_entity = Stop.new
+        tl_entity ||= Stop.new
       end
       tl_entity.geometry = Stop::GEOFACTORY.point(*gtfs_entity.coordinates)
       tl_entity.name = gtfs_entity.stop_name
@@ -229,8 +231,8 @@ class GTFSGraph2
   end
 
   def find_or_initialize_route(gtfs_entity, serves: [], operated_by: nil)
-    find_or_initialize(gtfs_entity) {
-      tl_entity = Route.new
+    find_or_initialize(gtfs_entity) { |gtfs_entity, tl_entity|
+      tl_entity ||= Route.new
       tl_entity.geometry = nil # TODO
       tl_entity.name = [gtfs_entity.route_short_name, gtfs_entity.route_long_name, gtfs_entity.id, "unknown"].select(&:present?).first
       tl_entity.vehicle_type = gtfs_entity.route_type.to_i
@@ -257,8 +259,8 @@ class GTFSGraph2
     shape_points = serves.map(&:coordinates)
     geometry = RouteStopPattern.line_string(RouteStopPattern.set_precision(shape_line || shape_points))
     key = [geometry, serves]
-    find_or_initialize(gtfs_entity, key: key) {
-      tl_entity = RouteStopPattern.new
+    find_or_initialize(gtfs_entity, key: key) { |gtfs_entity, tl_entity|
+      tl_entity ||= RouteStopPattern.new
       tl_entity.stop_distances = [0.0]*serves.size
       tl_entity.geometry = geometry
       if !shape_line.nil?
