@@ -255,54 +255,27 @@ class GTFSGraph2
   end
 
   def find_or_initialize_rsp(gtfs_entity, serves: [], traversed_by: nil)
-    # Check cache
     stop_distances = []
     shape_line = @gtfs.shape_line(gtfs_entity.shape_id)
     shape_points = serves.map(&:coordinates)
     geometry = RouteStopPattern.line_string(RouteStopPattern.set_precision(shape_line || shape_points))
-    rsp_key = [geometry, serves]
-    tl_entity = @entity_tl[rsp_key]
-    if tl_entity
-      # log "FOUND: #{tl_entity}"
-      return tl_entity
-    end
-
-    # Create
-    tl_entity = find_by_eiff(gtfs_entity)
-    if tl_entity
-      # log "FOUND EIFF: #{tl_entity}"
-    else
+    key = [geometry, serves]
+    find_or_initialize(gtfs_entity, key: key) {
       tl_entity = RouteStopPattern.new
-      log "NEW: #{tl_entity}"
-    end
-
-    # Update
-    tl_entity.stop_distances = [0.0]*serves.size
-    tl_entity.geometry = geometry
-    if !shape_line.nil?
-      tl_entity.geometry_source = shape_line.shape_dist_traveled.all? ? :shapes_txt_with_dist_traveled : :shapes_txt
-    else
-      tl_entity.geometry_source = :trip_stop_points
-    end
-    tl_entity.tags = {}
-
-    # Relations
-    tl_entity.serves = serves
-    tl_entity.stop_pattern = serves.map(&:onestop_id)
-    tl_entity.traversed_by = traversed_by
-
-    # Update cache
-    tl_entity.onestop_id ||= tl_entity.generate_onestop_id
-    tl_entity = @onestop_tl[tl_entity.onestop_id] || tl_entity
-    @onestop_tl[tl_entity.onestop_id] = tl_entity
-    @entity_tl[gtfs_entity] = tl_entity
-    @entity_tl[rsp_key] = tl_entity
-
-    # Update eiff
-    add_eiff(tl_entity, gtfs_entity)
-
-    # Return entity
-    tl_entity
+      tl_entity.stop_distances = [0.0]*serves.size
+      tl_entity.geometry = geometry
+      if !shape_line.nil?
+        tl_entity.geometry_source = shape_line.shape_dist_traveled.all? ? :shapes_txt_with_dist_traveled : :shapes_txt
+      else
+        tl_entity.geometry_source = :trip_stop_points
+      end
+      tl_entity.tags = {}
+      # Relations
+      tl_entity.serves = serves
+      tl_entity.stop_pattern = serves.map(&:onestop_id)
+      tl_entity.traversed_by = traversed_by
+      tl_entity
+    }
   end
 
   def calculate_rsp_distance(rsp)
