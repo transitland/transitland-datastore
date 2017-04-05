@@ -195,11 +195,11 @@ class GTFSGraph2
       # pass
     else
       tl_entity = yield(gtfs_entity, **kwargs)
-      log "NEW: #{gtfs_entity.id} -> #{tl_entity.onestop_id}"
       tl_entity.onestop_id ||= tl_entity.generate_onestop_id
       tl_entity = @onestop_tl[tl_entity.onestop_id] || tl_entity
       @onestop_tl[tl_entity.onestop_id] = tl_entity
       @entity_tl[key] = tl_entity
+      log "NEW: #{gtfs_entity.id} -> #{tl_entity.onestop_id}"
     end
 
     # TODO: update rels on existing entities...
@@ -215,7 +215,6 @@ class GTFSGraph2
       else
         tl_entity = Stop.new
       end
-      # Update
       tl_entity.geometry = Stop::GEOFACTORY.point(*gtfs_entity.coordinates)
       tl_entity.name = gtfs_entity.stop_name
       tl_entity.wheelchair_boarding = nil
@@ -243,11 +242,9 @@ class GTFSGraph2
         route_color: gtfs_entity.route_color,
         route_text_color: gtfs_entity.route_text_color
       }
-      # ... trips
       gtfs_trips = gtfs_entity.trips
       tl_entity.wheelchair_accessible = :unknown # TODO
       tl_entity.bikes_allowed = :unknown # TODO
-      # Relations
       tl_entity.operated_by = operated_by
       tl_entity.serves = serves
       tl_entity
