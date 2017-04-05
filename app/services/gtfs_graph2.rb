@@ -95,7 +95,17 @@ class GTFSGraph2
       imported_from_feed: @feed,
       imported_from_feed_version: @feed_version
     )
-    changeset.create_change_payloads(entities)
+    begin
+      changeset.create_change_payloads(entities)
+    rescue Changeset::Error => e
+      log "Changeset Error: #{e}"
+      log "Payload:"
+      log e.payload.to_json
+      raise e
+    rescue StandardError => e
+      log "Error: #{e}"
+      raise e
+    end
     changeset
   end
 
