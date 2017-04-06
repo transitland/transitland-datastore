@@ -266,10 +266,10 @@ class GTFSGraph2
     find_or_initialize(gtfs_entity, key: key) { |tl_entity|
       tl_entity ||= RouteStopPattern.new
       tl_entity.geometry = geometry
-      if !shape_line.nil?
-        tl_entity.geometry_source = shape_line.shape_dist_traveled.all? ? :shapes_txt_with_dist_traveled : :shapes_txt
-      else
+      if shape_line.nil?
         tl_entity.geometry_source = :trip_stop_points
+      else
+        tl_entity.geometry_source = shape_line.shape_dist_traveled.all? ? :shapes_txt_with_dist_traveled : :shapes_txt
       end
       tl_entity.tags = {}
       # Relations
@@ -304,8 +304,6 @@ class GTFSGraph2
         # avoid writing over stop distances computed with shape_dist_traveled, or already computed somehow -
         # unless if rsps have inaccurate stop distances, we'll allow a recomputation if there's a fix in place.
         rsp.calculate_distances(stops=stops)
-      else
-        rsp.fallback_distances(stops=stops)
       end
     rescue StandardError
       log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
