@@ -58,6 +58,7 @@ class GTFSGraph2
         end
 
         # Create Route
+        next if tl_route_serves.empty?
         tl_route = find_or_initialize_route(gtfs_route, serves: tl_route_serves.to_set, operated_by: tl_operator)
 
         # Trips: Pass 2: Create RSPs
