@@ -1,7 +1,9 @@
 describe Api::V1::WebhooksController do
+  let(:user) { create(:user) }
+  let(:auth_token) { JwtAuthToken.issue_token({user_id: user.id}) }
+
   before(:each) do
-    allow(Figaro.env).to receive(:transitland_datastore_auth_token) { 'THISISANOTHERKEY' }
-    @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANOTHERKEY'
+    @request.env['HTTP_AUTHORIZATION'] = "Bearer #{auth_token}"
   end
 
   context 'POST feed_fetcher' do

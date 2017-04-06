@@ -1,7 +1,7 @@
 class Api::V1::IssuesController < Api::V1::BaseApiController
   include JsonCollectionPagination
 
-  before_filter :require_api_auth_token, only: [:update, :create, :destroy]
+  before_filter :verify_jwt_token, only: [:update, :create, :destroy]
   before_action :set_issue, only: [:show, :update, :destroy]
 
   def index

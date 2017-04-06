@@ -1,14 +1,12 @@
 describe Api::V1::ChangesetsController do
-  before(:each) do
-    allow(Figaro.env).to receive(:transitland_datastore_auth_token) { 'THISISANAPIKEY' }
-    @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANAPIKEY'
-  end
+  let(:user) { create(:user) }
+  let(:auth_token) { JwtAuthToken.issue_token({user_id: user.id}) }
 
   context 'GET index' do
     it 'returns all changesets when no parameters provided' do
       create_list(:changeset, 2)
       get :index
-      expect_json_types({ changesets: :array }) # TODO: remove root node?
+      expect_json_types({ changesets: :array })
       expect_json({ changesets: -> (changesets) {
         expect(changesets.length).to eq 2
       }})
@@ -22,7 +20,7 @@ describe Api::V1::ChangesetsController do
 
       it 'true' do
         get :index, applied: true
-        expect_json_types({ changesets: :array }) # TODO: remove root node?
+        expect_json_types({ changesets: :array })
         expect_json({ changesets: -> (changesets) {
           expect(changesets.length).to eq 2
         }})
@@ -30,7 +28,7 @@ describe Api::V1::ChangesetsController do
 
       it 'false' do
         get :index, applied: false
-        expect_json_types({ changesets: :array }) # TODO: remove root node?
+        expect_json_types({ changesets: :array })
         expect_json({ changesets: -> (changesets) {
           expect(changesets.length).to eq 3
         }})
@@ -93,7 +91,7 @@ describe Api::V1::ChangesetsController do
     end
 
     it 'should be able to create a Changeset with a new User author' do
-      post :create, changeset: FactoryGirl.attributes_for(:changeset).merge({ user: { email: 'dummy@example.com' } })
+      post :create, changeset: FactoryGirl.attributes_for(:changeset).merge({ user: { email: user.email } })
       expect(response.status).to eq 200
       expect(Changeset.count).to eq 1
       expect(User.count).to eq 1
@@ -102,7 +100,6 @@ describe Api::V1::ChangesetsController do
     end
 
     it 'should be able to create a Changeset with an existing User author' do
-      user = create(:user)
       post :create, changeset: FactoryGirl.attributes_for(:changeset).merge({ user: { email: user.email } })
       expect(response.status).to eq 200
       expect(Changeset.count).to eq 1
@@ -111,7 +108,6 @@ describe Api::V1::ChangesetsController do
     end
 
     it 'should be able to create a Changeset with multiple associated ChangePayloads in one request (the way Dispatcher does)' do
-      user = create(:user)
       post(:create, {
         changeset: FactoryGirl.attributes_for(:changeset).merge({
           user: { email: user.email },
@@ -128,7 +124,6 @@ describe Api::V1::ChangesetsController do
     end
 
     it 'should be able to create a Changeset with an existing User author (even if email comes in different capitalization)' do
-      user = create(:user)
       post :create, changeset: FactoryGirl.attributes_for(:changeset).merge({ user: { email: user.email.capitalize } })
       expect(response.status).to eq 200
       expect(Changeset.count).to eq 1
@@ -138,6 +133,11 @@ describe Api::V1::ChangesetsController do
   end
 
   context 'POST destroy' do
+    before(:each) do
+      # requires authentication
+      @request.env['HTTP_AUTHORIZATION'] = "Bearer #{auth_token}"
+    end
+
     it 'should delete Changeset' do
       changeset = create(:changeset)
       post :destroy, id: changeset.id
@@ -164,6 +164,11 @@ describe Api::V1::ChangesetsController do
   end
 
   context 'POST update' do
+    before(:each) do
+      # requires authentication
+      @request.env['HTTP_AUTHORIZATION'] = "Bearer #{auth_token}"
+    end
+
     it "should be able to update a Changeset that hasn't yet been applied" do
       changeset = create(:changeset)
       post :update, id: changeset.id, changeset: {
@@ -174,6 +179,11 @@ describe Api::V1::ChangesetsController do
   end
 
   context 'POST check' do
+    before(:each) do
+      # requires authentication
+      @request.env['HTTP_AUTHORIZATION'] = "Bearer #{auth_token}"
+    end
+
     it 'should be able to identify a Changeset that will apply cleanly' do
       changeset = create(:changeset)
       post :check, id: changeset.id
@@ -218,6 +228,9 @@ describe Api::V1::ChangesetsController do
 
   context 'POST apply_async' do
     before(:each) do
+      # requires authentication
+      @request.env['HTTP_AUTHORIZATION'] = "Bearer #{auth_token}"
+
       @changeset = create(:changeset, payload: {
         changes: [
           {
@@ -290,6 +303,11 @@ describe Api::V1::ChangesetsController do
   end
 
   context 'POST apply' do
+    before(:each) do
+      # requires authentication
+      @request.env['HTTP_AUTHORIZATION'] = "Bearer #{auth_token}"
+    end
+
     it 'should be able to apply a clean Changeset' do
       changeset = create(:changeset, payload: {
         changes: [
@@ -336,6 +354,8 @@ describe Api::V1::ChangesetsController do
   context 'issue resolution' do
     before(:each) do
       load_feed(feed_version_name: :feed_version_example_issues, import_level: 1)
+      # requires authentication
+      @request.env['HTTP_AUTHORIZATION'] = "Bearer #{auth_token}"
     end
 
     it 'resolves issue with issues_resolved changeset' do
@@ -364,6 +384,11 @@ describe Api::V1::ChangesetsController do
   end
 
   context 'changing and merging onestop ids' do
+    before(:each) do
+      # requires authentication
+      @request.env['HTTP_AUTHORIZATION'] = "Bearer #{auth_token}"
+    end
+
     it 'should be able to changeOnestopID' do
       stop = create(:stop)
       changeset = create(:changeset, payload: {

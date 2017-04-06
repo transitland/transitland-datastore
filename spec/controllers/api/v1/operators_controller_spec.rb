@@ -23,7 +23,7 @@ describe Api::V1::OperatorsController do
     context 'as JSON' do
       it 'returns all current operators when no parameters provided' do
         get :index
-        expect_json_types({ operators: :array }) # TODO: remove root node?
+        expect_json_types({ operators: :array })
         expect_json({ operators: -> (operators) {
           expect(operators.length).to eq 2
         }})
