@@ -70,7 +70,8 @@ describe Geometry do
         gtfs = GTFS::Source.build(feed_version.file.file.file)
         rsp = feed.imported_route_stop_patterns.first
         tl_stops = rsp.stop_pattern.map{ |stop_onestop_id| Stop.find_by_onestop_id!(stop_onestop_id) }
-        trip = gtfs.trips.detect{|trip| trip.id == rsp.trips.first}
+        trip_ids = EntityImportedFromFeed.where(feed_version: feed_version, entity: rsp).distinct(:gtfs_id).pluck(:gtfs_id)
+        trip = gtfs.trips.detect{|trip| trip.id == trip_ids.first}
         trip_stop_times = []
         gtfs.trip_stop_times(trips=[trip]){ |trip, stop_times| trip_stop_times = stop_times }
         expect(Geometry::DistanceCalculation.gtfs_shape_dist_traveled(rsp, trip_stop_times, tl_stops, gtfs.shape_line(trip.shape_id).shape_dist_traveled)).to match_array([0.0, 1166.3, 2507.7, 4313.8])
@@ -98,7 +99,8 @@ describe Geometry do
         gtfs = GTFS::Source.build(feed_version.file.file.file)
         rsp = feed.imported_route_stop_patterns.first
         tl_stops = rsp.stop_pattern.map{ |stop_onestop_id| Stop.find_by_onestop_id!(stop_onestop_id) }
-        trip = gtfs.trips.detect{|trip| trip.id == rsp.trips.first}
+        trip_ids = EntityImportedFromFeed.where(feed_version: feed_version, entity: rsp).distinct(:gtfs_id).pluck(:gtfs_id)
+        trip = gtfs.trips.detect{|trip| trip.id == trip_ids.first}
         trip_stop_times = []
         gtfs.trip_stop_times(trips=[trip]){ |trip, stop_times| trip_stop_times = stop_times }
         #4359.9 is repeated. NOTE: the given shape_dist_traveled may be different from any best match computed distance
