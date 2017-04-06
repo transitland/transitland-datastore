@@ -265,7 +265,6 @@ class GTFSGraph2
     key = [geometry, serves]
     find_or_initialize(gtfs_entity, key: key) { |tl_entity|
       tl_entity ||= RouteStopPattern.new
-      tl_entity.stop_distances = [nil]*serves.size
       tl_entity.geometry = geometry
       if !shape_line.nil?
         tl_entity.geometry_source = shape_line.shape_dist_traveled.all? ? :shapes_txt_with_dist_traveled : :shapes_txt
@@ -280,11 +279,10 @@ class GTFSGraph2
       # Update distances
       # assume stop_times' and shapes' shape_dist_traveled are in the same units (a condition required by GTFS). TODO: validate that.
       shape_distances_traveled = shape_line.try(:shape_dist_traveled)
+      stop_times = gtfs_entity.shape_dist_traveled.map { |i| GTFS::StopTime.new(shape_dist_traveled: i) }
       if shape_distances_traveled
-        if gtfs_entity.shape_dist_traveled.all?(&:present?) && shape_distances_traveled.all?(&:present?)
-          tl_entity.fallback_distances(stops=serves)
-          # TODO: gtfs_shape_dist_traveled use gtfs_trip.shape_dist_traveled
-          # rsp.gtfs_shape_dist_traveled(stop_times, tl_stops, shape_distances_traveled)
+        if stop_times.all?{ |st| st.shape_dist_traveled.present? } && shape_distances_traveled.all?(&:present?)
+          tl_entity.gtfs_shape_dist_traveled(stop_times, serves, shape_distances_traveled)
         end
       end
       calculate_rsp_distance(tl_entity)
@@ -299,12 +297,15 @@ class GTFSGraph2
       # edited rsps will probably have a shape
       if (rsp.geometry_source.eql?("shapes_txt_with_dist_traveled"))
         # do nothing
+        rsp.fallback_distances(stops=stops) if rsp.stop_distances.empty?
       elsif (rsp.geometry_source.eql?("trip_stop_points") && rsp.edited_attributes.empty?)
         rsp.fallback_distances(stops=stops)
       elsif (rsp.stop_distances.compact.empty? || rsp.issues.map(&:issue_type).include?(:distance_calculation_inaccurate))
         # avoid writing over stop distances computed with shape_dist_traveled, or already computed somehow -
         # unless if rsps have inaccurate stop distances, we'll allow a recomputation if there's a fix in place.
         rsp.calculate_distances(stops=stops)
+      else
+        rsp.fallback_distances(stops=stops)
       end
     rescue StandardError
       log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
