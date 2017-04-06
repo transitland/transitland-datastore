@@ -71,6 +71,9 @@ class GTFSGraph
     @gtfs_to_onestop_id = {}
     # TL Indexed by Onestop ID
     @onestop_id_to_entity = {}
+
+    # make sure distances are only calculated once per rsp
+    @rsp_stop_distances = {}
   end
 
   def cleanup
@@ -88,7 +91,6 @@ class GTFSGraph
     load_tl_routes
 
     rsps = load_tl_route_stop_patterns
-    calculate_rsp_distances(rsps)
     operators = load_tl_operators
 
     # Create FeedVersion issue and fail if no matching operators found.
@@ -182,27 +184,23 @@ class GTFSGraph
     graph_log "  apply done: time #{Time.now - t}"
   end
 
-  def calculate_rsp_distances(rsps)
-    # TODO: move this into UpdateComputedAttributes Service
-    graph_log "Calculating distances"
-    rsps.each do |rsp|
-      stops = rsp.stop_pattern.map { |onestop_id| find_by_onestop_id(onestop_id) }
-      begin
+  def calculate_rsp_distances(rsp, stops, shape_distances_traveled, stop_times)
+    begin
+      if shape_distances_traveled && (rsp.geometry_source.to_sym.eql?(:shapes_txt_with_dist_traveled))
+        # assume stop_times' and shapes' shape_dist_traveled are in the same units (a condition required by GTFS). TODO: validate that.
+        Geometry::DistanceCalculation::gtfs_shape_dist_traveled(rsp, stop_times, stops, shape_distances_traveled)
+      elsif (rsp.geometry_source.to_sym.eql?(:trip_stop_points) && rsp.edited_attributes.empty?)
         # edited rsps will probably have a shape
-        if (rsp.geometry_source.eql?(:shapes_txt_with_dist_traveled))
-          # do nothing
-        elsif (rsp.geometry_source.eql?(:trip_stop_points) && rsp.edited_attributes.empty?)
-          rsp.fallback_distances(stops=stops)
-        elsif (rsp.stop_distances.compact.empty? || rsp.issues.map(&:issue_type).include?(:distance_calculation_inaccurate))
-          # avoid writing over stop distances computed with shape_dist_traveled, or already computed somehow -
-          # unless if rsps have inaccurate stop distances, we'll allow a recomputation if there's a fix in place.
-          rsp.calculate_distances(stops=stops)
-        end
-      rescue StandardError
-        graph_log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
-        rsp.fallback_distances(stops=stops)
+        Geometry::DistanceCalculation.fallback_distances(rsp, stops=stops)
+      elsif (rsp.stop_distances.compact.empty? || rsp.issues.map(&:issue_type).include?(:distance_calculation_inaccurate))
+        # avoid writing over stop distances that have been computed already and have no issues.
+        Geometry::DistanceCalculation.calculate_distances(rsp, stops=stops)
       end
+    rescue => e
+      graph_log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}. Error: #{e}"
+      Geometry::DistanceCalculation.fallback_distances(rsp, stops=stops)
     end
+    return rsp.stop_distances
   end
 
   def ssp_schedule_async
@@ -534,7 +532,6 @@ class GTFSGraph
     # Route Stop Patterns
     graph_log "  route stop patterns"
     rsps = Set.new
-    stop_times_with_shape_dist_traveled = 0
     stop_times_count = 0
     @gtfs.trip_stop_times(trips=nil, filter_empty=true) do |trip,stop_times|
       tl_stops = stop_times.map { |stop_time| find_by_gtfs_entity(@gtfs.stop(stop_time.stop_id)) }
@@ -545,18 +542,17 @@ class GTFSGraph
       next if tl_route.nil?
       trip_stop_points = tl_stops.map { |s| s.geometry[:coordinates] }
       # temporary RouteStopPattern
-      test_rsp = RouteStopPattern.create_from_gtfs(trip, tl_route.onestop_id, stop_pattern, trip_stop_points, feed_shape_points)
+      test_rsp = RouteStopPattern.create_from_gtfs(trip, tl_route.onestop_id, stop_pattern, stop_times, trip_stop_points, feed_shape_points)
       # determine if RouteStopPattern exists
       rsp = find_and_update_entity(nil, test_rsp)
       if test_rsp.equal?(rsp)
         graph_log "   #{rsp.onestop_id}"
       end
       shape_distances_traveled = shape_line.try(:shape_dist_traveled)
-      # assume stop_times' and shapes' shape_dist_traveled are in the same units (a condition required by GTFS). TODO: validate that.
-      if shape_distances_traveled
-        if stop_times.all?{ |st| st.shape_dist_traveled.present? } && shape_distances_traveled.all?(&:present?)
-          rsp.gtfs_shape_dist_traveled(stop_times, tl_stops, shape_distances_traveled)
-        end
+      if @rsp_stop_distances.key?(rsp) && @rsp_stop_distances[rsp].present? && @rsp_stop_distances[rsp].all?
+        rsp.stop_distances = @rsp_stop_distances[rsp]
+      else
+        @rsp_stop_distances[rsp] = calculate_rsp_distances(rsp, tl_stops, shape_distances_traveled, stop_times)
       end
       rsp.traversed_by = tl_route.onestop_id
       rsp.route = tl_route
