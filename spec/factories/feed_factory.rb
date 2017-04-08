@@ -369,6 +369,44 @@ FactoryGirl.define do
     end
   end
 
+  factory :feed_cta, parent: :feed, class: Feed do
+    onestop_id 'f-dp3-cta'
+    url 'http://www.transitchicago.com/downloads/sch_data/google_transit.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Chicago Transit Authority',
+        onestop_id: 'o-dp3-chicagotransitauthority',
+        timezone: 'America/Chicago',
+        website: 'http://transitchicago.com',
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: nil
+      )
+    end
+  end
+
+  factory :feed_trenitalia, parent: :feed, class: Feed do
+    onestop_id 'f-sr-atac~romatpl~trenitalia'
+    url 'http://dati.muovi.roma.it/gtfs/rome_static_gtfs.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Trenitalia',
+        onestop_id: 'o-s-trenitalia',
+        timezone: 'Europe/Rome',
+        website: 'http://www.trenitalia.it',
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: 'trenitalia'
+      )
+    end
+  end
+
   factory :feed_seattle_childrens, parent: :feed, class: Feed do
     onestop_id 'f-c23p1-seattlechildrenshospitalshuttle'
     url 'http://example.com/gtfs.zip'

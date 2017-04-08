@@ -338,16 +338,12 @@ describe Geometry do
                                                               a_value_within(0.1).of(14878.5)])
     end
 
-    it 'accurately calculates distances if the first stop is not a before? stop, but not close enough to the line' do
-      # consequently the first stop distance should be 0.0
-      geom = Geometry::LineString.line_string([[-122.401811, 37.706675],[-122.394935, 37.776348],[-122.39, 37.84]])
-      @rsp.geometry = geom
-      stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.40182, 37.72))
-      stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.394935, 37.776348))
-      stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.39, 37.84))
-      expect(Geometry::DistanceCalculation.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
-                                                              a_value_within(0.1).of(7779.5),
-                                                              a_value_within(0.1).of(14878.5)])
+    it 'accurately calculates distances if the first stop is an outlier stop, but matches to line before second stop' do
+      # in essence, the first stop is not technically a "before?" stop
+      feed_cta, feed_version_cta = load_feed(feed_version_name: :feed_version_cta_476113351107, import_level: 1)
+      feed_trenitalia, feed_version_trenitalia = load_feed(feed_version_name: :feed_version_trenitalia_56808573, import_level: 1)
+      expect(Geometry::DistanceCalculation.calculate_distances(feed_cta.imported_route_stop_patterns.first)[0..1]).to match_array([0.0,29.8])
+      expect(Geometry::DistanceCalculation.calculate_distances(feed_trenitalia.imported_route_stop_patterns.first)[0..1]).to match_array([6547.6, 8079.6])
     end
 
     it 'appropriately handles tricky case where 3rd stop would match to the first segment point' do
