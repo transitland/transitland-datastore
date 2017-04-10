@@ -12,7 +12,7 @@ class GTFSValidationService
 
     # Run feedvalidator
     output = nil
-    IO.popen(['java', '-Xmx6G', '-jar', CONVEYAL_VALIDATOR_PATH, '-validate', filename, outfile], "w+") do |io|
+    IO.popen(['java', '-jar', CONVEYAL_VALIDATOR_PATH, '-validate', filename, outfile], "w+") do |io|
       io.write("\n")
       io.close_write
       output = io.read
