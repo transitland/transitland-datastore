@@ -305,16 +305,22 @@ describe Geometry do
                                                               a_value_within(0.1).of(10192.9)])
     end
 
-    it 'accurately calculates distances if the last stop is not an after? stop, but not close enough to the line' do
-      # last stop distance should be the length of the line, ~ 14129.7
-      geom = Geometry::LineString.line_string([[-122.41, 37.65],[-122.401811, 37.706675],[-122.394935, 37.776348]])
-      @rsp.geometry = geom
-      stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.65))
-      stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.401811, 37.706675))
-      stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.39, 37.77))
-      expect(Geometry::DistanceCalculation.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
-                                                              a_value_within(0.1).of(6350.2),
-                                                              a_value_within(0.1).of(14129.7)])
+    it 'keeps distances out of order when the last and penultimate are out of order' do
+      feed, feed_version = load_feed(feed_version_name: :feed_version_ttc_34360409, import_level: 1)
+      rsp = RouteStopPattern.first
+      # set the penultimate stop coordinate to the last point of the line
+      Stop.find_by_onestop_id!(rsp.stop_pattern[rsp.stop_pattern.size - 2]).update_column(:geometry, Stop::GEOFACTORY.point(*rsp[:geometry].coordinates.last))
+      expect(Geometry::DistanceCalculation.calculate_distances(rsp)[rsp.stop_pattern.size-2..rsp.stop_pattern.size-1]).to eq [950.0, 941.9]
+    end
+
+    it 'sets the last stop distance to the length of the line geometry if it is > 100m from the line and less than distance of previous stop' do
+      feed, feed_version = load_feed(feed_version_name: :feed_version_ttc_34360409, import_level: 1)
+      rsp = RouteStopPattern.first
+      # set the penultimate stop coordinate to be near the last coordinate
+      Stop.find_by_onestop_id!(rsp.stop_pattern[rsp.stop_pattern.size - 2]).update_column(:geometry, Stop::GEOFACTORY.point(-79.53941, 43.7388))
+      # moving the last stop to be an outlier, but with a distance less than the previous stop
+      Stop.find_by_onestop_id!(rsp.stop_pattern[-1]).update_column(:geometry, Stop::GEOFACTORY.point(-79.535, 43.73898))
+      expect(Geometry::DistanceCalculation.calculate_distances(rsp)[rsp.stop_pattern.size-2..rsp.stop_pattern.size-1]).to eq [929.9, 950.0]
     end
 
     it 'accurately calculates distances if the first stop is a before? stop' do
