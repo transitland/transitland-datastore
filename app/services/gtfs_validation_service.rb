@@ -1,4 +1,4 @@
-class FeedValidationService
+class GTFSValidationService
   include Singleton
 
   GOOGLE_VALIDATOR_PATH = './virtualenv/bin/feedvalidator.py'
@@ -55,7 +55,8 @@ class FeedValidationService
 
     # Run validators
     if Figaro.env.run_google_validator.presence == 'true'
-      file_google = run_google_validator(gtfs_filename)
+      file_feedvalidator = run_google_validator(gtfs_filename)
+      feed_version.update!(file_feedvalidator: file_feedvalidator)
     end
     if Figaro.env.run_conveyal_validator.presence == 'true'
       file_conveyal = run_conveyal_validator(gtfs_filename)
@@ -64,11 +65,6 @@ class FeedValidationService
     # Cleanup
     feed_version.file.remove_any_local_cached_copies
 
-    # Save
-    data = {
-      file_feedvalidator: file_google
-    }.compact
-    feed_version.update!(data)
     # Return
     feed_version
   end
