@@ -46,8 +46,7 @@ describe Geometry do
       # this is the midpoint between stop_a and stop_b, with a little offset
       target_point = Geometry::DistanceCalculation.cartesian_cast(Stop::GEOFACTORY.point(-121.9664615, 37.36))
       locators = cartesian_line.locators(target_point)
-      i = Geometry::DistanceCalculation.index_of_line_segment_with_nearest_point(locators, 0, locators.size-1)
-      nearest_point = Geometry::LineString.nearest_point_on_line(locators, i)
+      i, nearest_point = Geometry::DistanceCalculation.index_of_line_segment_with_nearest_point(locators, 0, locators.size-1)
       expect(Geometry::LineString.distance_along_line_to_nearest_point(cartesian_line, nearest_point, i)).to be_within(0.1).of(6508.84)
     end
 
@@ -59,8 +58,10 @@ describe Geometry do
       mid = Stop::GEOFACTORY.point(-121.9664615, 37.36)
       target_point = Geometry::DistanceCalculation.cartesian_cast(mid)
       locators = cartesian_line.locators(target_point)
-      i = Geometry::DistanceCalculation.index_of_line_segment_with_nearest_point(locators, 0, locators.size - 1)
+      i, nearest_point = Geometry::DistanceCalculation.index_of_line_segment_with_nearest_point(locators, 0, locators.size - 1)
       expect(i).to eq 0
+      expect(nearest_point.x).to be_within(0.01).of(-121.97)
+      expect(nearest_point.y).to be_within(0.01).of(37.35)
     end
 
     context '#shape_dist_traveled' do
