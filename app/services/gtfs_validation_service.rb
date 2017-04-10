@@ -7,7 +7,7 @@ class GTFSValidationService
   def self.run_conveyal_validator(filename)
     outfile = nil
     Tempfile.open(['conveyal', '.json']) do |tmpfile|
-    outfile = tmpfile.path
+      outfile = tmpfile.path
     end
 
     # Run feedvalidator
@@ -39,7 +39,6 @@ class GTFSValidationService
       io.close_write
       feedvalidator_output = io.read
     end
-    # feedvalidator_output
 
     return unless File.exists?(outfile)
     # Unlink temporary file
@@ -54,18 +53,19 @@ class GTFSValidationService
     fail Exception.new('FeedVersion has no file attachment') unless gtfs_filename
 
     # Run validators
-    if Figaro.env.run_google_validator.presence == 'true'
-      outfile = run_google_validator(gtfs_filename)
-      if outfile
-        feed_version.update!(file_feedvalidator: outfile)
-      end
-    end
     if Figaro.env.run_conveyal_validator.presence == 'true'
       outfile = run_conveyal_validator(gtfs_filename)
       if outfile
         data = outfile.read
         feed_version.feed_version_infos.where(type: 'FeedVersionInfoConveyalValidation').delete_all
         feed_version.feed_version_infos.create!(type: 'FeedVersionInfoConveyalValidation', data: data)
+      end
+    end
+    # Run this second; sometimes feed_version.update! removes gtfs_filename.
+    if Figaro.env.run_google_validator.presence == 'true'
+      outfile = run_google_validator(gtfs_filename)
+      if outfile
+        feed_version.update!(file_feedvalidator: outfile)
       end
     end
 
