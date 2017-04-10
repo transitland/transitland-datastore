@@ -192,8 +192,7 @@ class GTFSGraph
       elsif (rsp.geometry_source.to_sym.eql?(:trip_stop_points) && rsp.edited_attributes.empty?)
         # edited rsps will probably have a shape
         Geometry::DistanceCalculation.fallback_distances(rsp, stops=stops)
-      elsif (rsp.stop_distances.compact.empty? || rsp.issues.map(&:issue_type).include?(:distance_calculation_inaccurate))
-        # avoid writing over stop distances that have been computed already and have no issues.
+      else
         Geometry::DistanceCalculation.calculate_distances(rsp, stops=stops)
       end
     rescue => e
