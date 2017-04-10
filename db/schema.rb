@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170307003733) do
+ActiveRecord::Schema.define(version: 20170315205738) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -336,6 +336,17 @@ ActiveRecord::Schema.define(version: 20170307003733) do
   end
 
   add_index "feed_version_imports", ["feed_version_id"], name: "index_feed_version_imports_on_feed_version_id", using: :btree
+
+  create_table "feed_version_infos", force: :cascade do |t|
+    t.string   "type"
+    t.json     "data"
+    t.integer  "feed_version_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "feed_version_infos", ["feed_version_id", "type"], name: "index_feed_version_infos_on_feed_version_id_and_type", unique: true, using: :btree
+  add_index "feed_version_infos", ["feed_version_id"], name: "index_feed_version_infos_on_feed_version_id", using: :btree
 
   create_table "feed_versions", force: :cascade do |t|
     t.integer  "feed_id"

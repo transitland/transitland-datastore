@@ -81,6 +81,26 @@ FactoryGirl.define do
       association :feed, factory: :feed_sfmta
     end
 
+    factory :feed_version_sfmta_7385783 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/sfmta-trip-7385783.zip')) }
+      association :feed, factory: :feed_sfmta
+    end
+
+    factory :feed_version_grand_river_1426033 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/grand-river-trip-1426033.zip')) }
+      association :feed, factory: :feed_grand_river
+    end
+
+    factory :feed_version_hdpt_trip do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/hdpt_gtfs.zip')) }
+      association :feed, factory: :feed_hdpt
+    end
+
+    factory :feed_version_pvta_trip do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/pvta_trip_gtfs.zip')) }
+      association :feed, factory: :feed_pvta
+    end
+
     factory :feed_version_nycdotsiferry do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/siferry-gtfs.zip')) }
       association :feed, factory: :feed_nycdotsiferry
@@ -101,6 +121,16 @@ FactoryGirl.define do
       association :feed, factory: :feed_nj_path
     end
 
+    factory :feed_version_wmata_75098 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/wmata_trip_75098.zip')) }
+      association :feed, factory: :feed_wmata
+    end
+
+    factory :feed_version_wmata_48587 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/wmata-trip-48587.zip')) }
+      association :feed, factory: :feed_wmata
+    end
+
     factory :feed_version_nj_path_last_stop_past_edge do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/path-nj-us-last-stop-past-edge.zip')) }
       association :feed, factory: :feed_nj_path
@@ -109,6 +139,21 @@ FactoryGirl.define do
     factory :feed_version_nj_path_first_stop_before_edge do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/path-nj-us-first-stop-before-edge.zip')) }
       association :feed, factory: :feed_nj_path
+    end
+
+    factory :feed_version_mbta_33884627 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/mbta_trip_33884627.zip')) }
+      association :feed, factory: :feed_mbta
+    end
+
+    factory :feed_version_marta_trip_5449755 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/marta_trip_5449755.zip')) }
+      association :feed, factory: :feed_marta
+    end
+
+    factory :feed_version_marta do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/marta-trip-5453552.zip')) }
+      association :feed, factory: :feed_marta
     end
 
     factory :feed_version_example do

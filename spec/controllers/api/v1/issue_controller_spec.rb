@@ -7,9 +7,10 @@ describe Api::V1::IssuesController do
   after(:all) {
     DatabaseCleaner.clean_with :truncation, { except: ['spatial_ref_sys'] }
   }
+  let(:user) { create(:user) }
+  let(:auth_token) { JwtAuthToken.issue_token({user_id: user.id}) }
   before(:each) do
-    allow(Figaro.env).to receive(:transitland_datastore_auth_token) { 'THISISANAPIKEY' }
-    @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANAPIKEY'
+    @request.env['HTTP_AUTHORIZATION'] = "Bearer #{auth_token}"
   end
 
   context 'GET index' do
