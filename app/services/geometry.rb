@@ -116,6 +116,9 @@ module Geometry
         current_stop_as_cartesian = self.cartesian_cast(current_stop_as_spherical)
         locators = route_line_as_cartesian.locators(current_stop_as_cartesian)
         if i == 0 && self.stop_before_geometry(current_stop_as_spherical, current_stop_as_cartesian, route_line_as_cartesian)
+          # compare the second stop's distance to the first. If the first stop's distance
+          # is greater than the second, then it has to be set to 0.0 because the line geometry
+          # is likely to be too short by not coming up to the first stop.
           c, next_nearest_point = self.index_of_line_segment_with_nearest_point_next_stop(route_line_as_cartesian, stops, i+1, a, num_segments)
           next_stop_distance = LineString.distance_along_line_to_nearest_point(route_line_as_cartesian, next_nearest_point, c)
           b, nearest_point = self.index_of_line_segment_with_nearest_point(locators, a, c)
@@ -126,7 +129,16 @@ module Geometry
             rsp.stop_distances << 0.0
           end
         elsif i == stops.size - 1 && last_stop_after_geom
-          rsp.stop_distances << rsp[:geometry].length
+          # compare the last stop's computed distance to the second to last stop's distance. If the last stop has
+          # a smaller distance, then the line geometry might be too short by not reaching the last stop. Its distance is set
+          # to the length of the geometry.
+          b, nearest_point = self.index_of_line_segment_with_nearest_point(locators, a, num_segments - 1)
+          current_stop_distance = LineString.distance_along_line_to_nearest_point(route_line_as_cartesian, nearest_point, b)
+          if rsp.stop_distances[i-1] > current_stop_distance
+            rsp.stop_distances << rsp[:geometry].length
+          else
+            rsp.stop_distances << current_stop_distance
+          end
         else
           c, next_nearest_point = self.index_of_line_segment_with_nearest_point_next_stop(route_line_as_cartesian, stops, i+1, a, num_segments)
           b, nearest_point = self.index_of_line_segment_with_nearest_point(locators, a, c)

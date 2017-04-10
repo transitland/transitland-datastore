@@ -407,6 +407,25 @@ FactoryGirl.define do
     end
   end
 
+  factory :feed_ttc, parent: :feed, class: Feed do
+    onestop_id 'f-dpz8-ttc'
+    url 'http://opendata.toronto.ca/TTC/routes/OpenData_TTC_Schedules.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Toronto Transit Comission',
+        onestop_id: 'o-dpz8-ttc',
+        timezone: 'America/Toronto',
+        website: 'http://www.ttc.ca',
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: '1'
+      )
+    end
+  end
+
   factory :feed_seattle_childrens, parent: :feed, class: Feed do
     onestop_id 'f-c23p1-seattlechildrenshospitalshuttle'
     url 'http://example.com/gtfs.zip'

@@ -383,6 +383,11 @@ describe Geometry do
       feed, feed_version = load_feed(feed_version_name: :feed_version_marta_trip_5449755, import_level: 1)
       expect(Issue.where(issue_type: 'distance_calculation_inaccurate').count).to eq 0
     end
+
+    it 'keeps distances out of order when the first and second stops are clearly out of order' do
+      feed, feed_version = load_feed(feed_version_name: :feed_version_ttc_34398377, import_level: 1)
+      expect(Geometry::DistanceCalculation.calculate_distances(RouteStopPattern.first)[0..1]).to match_array([29.2,29.2])
+    end
   end
 
   context 'determining outlier stops' do
