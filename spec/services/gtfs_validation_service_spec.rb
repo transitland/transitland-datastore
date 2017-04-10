@@ -12,6 +12,7 @@ describe GTFSValidationService do
       expect(feed_version.reload.file_feedvalidator.url).to be nil
       GTFSValidationService.run_validators(feed_version)
       expect(feed_version.reload.file_feedvalidator.url).to end_with('.html')
+      expect(feed_version.reload.feed_version_infos.where(type: 'FeedVersionInfoConveyalValidation').count).to eq(1)
     end
   end
 end

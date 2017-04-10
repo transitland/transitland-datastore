@@ -55,11 +55,18 @@ class GTFSValidationService
 
     # Run validators
     if Figaro.env.run_google_validator.presence == 'true'
-      file_feedvalidator = run_google_validator(gtfs_filename)
-      feed_version.update!(file_feedvalidator: file_feedvalidator)
+      outfile = run_google_validator(gtfs_filename)
+      if outfile
+        feed_version.update!(file_feedvalidator: outfile)
+      end
     end
     if Figaro.env.run_conveyal_validator.presence == 'true'
-      file_conveyal = run_conveyal_validator(gtfs_filename)
+      outfile = run_conveyal_validator(gtfs_filename)
+      if outfile
+        data = outfile.read
+        feed_version.feed_version_infos.where(type: 'FeedVersionInfoConveyalValidation').delete_all
+        feed_version.feed_version_infos.create!(type: 'FeedVersionInfoConveyalValidation', data: data)
+      end
     end
 
     # Cleanup
