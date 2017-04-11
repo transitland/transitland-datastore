@@ -17,6 +17,7 @@
 
 class FeedVersionInfoSerializer < ApplicationSerializer
   attributes :id,
+             :type,
              :data,
              :feed_version_sha1,
              :created_at,
