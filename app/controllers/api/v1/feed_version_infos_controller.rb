@@ -35,6 +35,13 @@ class Api::V1::FeedVersionInfosController < Api::V1::BaseApiController
     end
   end
 
+  def paginated_json_collection(collection)
+    result = super
+    result[:root] = :feed_version_infos
+    result[:each_serializer] = FeedVersionInfoSerializer
+    result
+  end
+
   private
 
   def set_feed_version_info
