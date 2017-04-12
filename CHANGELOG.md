@@ -2,10 +2,54 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.25...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.26...HEAD)
+
+**Implemented enhancements:**
+
+- Improve first and last stop distance logic [\#1047](https://github.com/transitland/transitland-datastore/issues/1047)
+
+**Fixed bugs:**
+
+- Distance calc using shape\_dist\_traveled within segment ratio bug [\#1045](https://github.com/transitland/transitland-datastore/issues/1045)
+- Distance calc matching too early sometimes [\#1043](https://github.com/transitland/transitland-datastore/issues/1043)
+
+**Closed issues:**
+
+- FeedVersion update sometimes removes cached file [\#1049](https://github.com/transitland/transitland-datastore/issues/1049)
+- allow Users to authenticate against API using JSON Web Tokens [\#623](https://github.com/transitland/transitland-datastore/issues/623)
 
 **Merged pull requests:**
 
+- Feed version info serializer updates [\#1051](https://github.com/transitland/transitland-datastore/pull/1051) ([irees](https://github.com/irees))
+- FeedVersion update sometimes removes cached file [\#1050](https://github.com/transitland/transitland-datastore/pull/1050) ([irees](https://github.com/irees))
+- First stop seg matching improvement [\#1048](https://github.com/transitland/transitland-datastore/pull/1048) ([doublestranded](https://github.com/doublestranded))
+- Seg ratio fix [\#1046](https://github.com/transitland/transitland-datastore/pull/1046) ([doublestranded](https://github.com/doublestranded))
+- Production release 4.9.26 [\#1035](https://github.com/transitland/transitland-datastore/pull/1035) ([irees](https://github.com/irees))
+- Conveyal gtfs-lib validation [\#1029](https://github.com/transitland/transitland-datastore/pull/1029) ([irees](https://github.com/irees))
+- User authentication using JWT [\#624](https://github.com/transitland/transitland-datastore/pull/624) ([drewda](https://github.com/drewda))
+
+## [4.9.26](https://github.com/transitland/transitland-datastore/tree/4.9.26) (2017-03-31)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.25...4.9.26)
+
+**Implemented enhancements:**
+
+- FeedVersion: import\_status [\#1040](https://github.com/transitland/transitland-datastore/issues/1040)
+- RSP distances inaccurate in complex loops [\#1033](https://github.com/transitland/transitland-datastore/issues/1033)
+- Refactor Distance Calculation and geometry methods into service [\#1032](https://github.com/transitland/transitland-datastore/issues/1032)
+
+**Fixed bugs:**
+
+- RSP distances inaccurate in complex loops [\#1033](https://github.com/transitland/transitland-datastore/issues/1033)
+- Distance calc using shape\_dist\_traveled within segment problem [\#1028](https://github.com/transitland/transitland-datastore/issues/1028)
+
+**Merged pull requests:**
+
+- Before stop first only [\#1044](https://github.com/transitland/transitland-datastore/pull/1044) ([doublestranded](https://github.com/doublestranded))
+- upgrade gems [\#1042](https://github.com/transitland/transitland-datastore/pull/1042) ([drewda](https://github.com/drewda))
+- FeedVersion import\_status [\#1041](https://github.com/transitland/transitland-datastore/pull/1041) ([irees](https://github.com/irees))
+- Shape dist traveled within seg fix [\#1039](https://github.com/transitland/transitland-datastore/pull/1039) ([doublestranded](https://github.com/doublestranded))
+- FeedVersion Serializer: Include FeedVersionInfo IDs [\#1036](https://github.com/transitland/transitland-datastore/pull/1036) ([irees](https://github.com/irees))
+- Distance calculation refactor [\#1034](https://github.com/transitland/transitland-datastore/pull/1034) ([doublestranded](https://github.com/doublestranded))
 - Production release 4.9.25 [\#1013](https://github.com/transitland/transitland-datastore/pull/1013) ([irees](https://github.com/irees))
 
 ## [4.9.25](https://github.com/transitland/transitland-datastore/tree/4.9.25) (2017-03-24)
