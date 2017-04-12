@@ -101,8 +101,9 @@ describe Geometry do
       end
 
       it 'discards invalid shape_dist_traveled' do
+        # this complex trip comes with shape_dist_traveled but there are repeated dist values when there shouldn't be
         feed, feed_version = load_feed(feed_version_name: :feed_version_alleghany, import_level: 1)
-        
+        expect(RouteStopPattern.first.geometry_source).to eq "shapes_txt"
       end
     end
 
