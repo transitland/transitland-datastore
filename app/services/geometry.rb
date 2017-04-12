@@ -204,7 +204,7 @@ module Geometry
         # checking for any out-of-order distance values,
         # or whether any stop except the last has distance > the last shape point distance.
         return stop_times.each_cons(2).none? { |st1,st2|
-          st1.shape_dist_traveled.to_f >= st2.shape_dist_traveled.to_f ||
+          (st1.shape_dist_traveled.to_f >= st2.shape_dist_traveled.to_f && !st1.stop_id.eql?(st2.stop_id)) ||
           st1.shape_dist_traveled.to_f > shape_distances_traveled[-1].to_f
         }
       else
