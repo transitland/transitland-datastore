@@ -199,6 +199,19 @@ module Geometry
       rsp.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
     end
 
+    def self.validate_shape_dist_traveled(stop_times, shape_distances_traveled)
+      if (stop_times.all?{ |st| st.shape_dist_traveled.present? } && shape_distances_traveled.all?(&:present?))
+        # checking for any out-of-order distance values,
+        # or whether any stop except the last has distance > the last shape point distance.
+        return stop_times.each_cons(2).none? { |st1,st2|
+          (st1.shape_dist_traveled.to_f >= st2.shape_dist_traveled.to_f && !st1.stop_id.eql?(st2.stop_id)) ||
+          st1.shape_dist_traveled.to_f > shape_distances_traveled[-1].to_f
+        }
+      else
+        return false
+      end
+    end
+
     def self.gtfs_shape_dist_traveled(rsp, stop_times, tl_stops, shape_distances_traveled)
       # assumes stop times and shapes BOTH have shape_dist_traveled, and they're in the same units
       # assumes the line geometry is not generated, and shape_points equals the rsp geometry.

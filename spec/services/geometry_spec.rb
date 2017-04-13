@@ -99,6 +99,13 @@ describe Geometry do
         feed, feed_version = load_feed(feed_version_name: :feed_version_wmata_48587, import_level: 1)
         expect(RouteStopPattern.first.stop_distances).to match_array([0.0, 155.2, 863.5, 1794.1, 2913.2, 3187.8, 3733.7, 3918.1, 4762.5])
       end
+
+      it 'discards shape_dist_traveled that results in distance issues' do
+        # this complex trip comes with shape_dist_traveled but there are repeated dist values when there shouldn't be
+        feed_cta, feed_version_cta = load_feed(feed_version_name: :feed_version_cta_476113351107, import_level: 1)
+        expect(Issue.where(issue_type: 'distance_calculation_inaccurate').count).to eq 0
+        expect(RouteStopPattern.first.geometry_source).to eq "shapes_txt"
+      end
     end
 
     it 'no distance issues with RSPs generated from trip stop points' do
