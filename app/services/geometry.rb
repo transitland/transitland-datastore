@@ -110,6 +110,7 @@ module Geometry
       c = num_segments - 1
       last_stop_after_geom = self.stop_after_geometry(stops[-1][:geometry], self.cartesian_cast(stops[-1][:geometry]), route_line_as_cartesian)
       stop_matched_inside_line = false
+      extra_distance_before_line = 0.0
       stops.each_index do |i|
         current_stop = stops[i]
         current_stop_as_spherical = current_stop[:geometry]
@@ -127,6 +128,7 @@ module Geometry
             rsp.stop_distances << current_stop_distance
           else
             rsp.stop_distances << 0.0
+            extra_distance_before_line = stops[i][:geometry].distance(rsp[:geometry].start_point)
           end
         elsif i == stops.size - 1 && last_stop_after_geom
           # compare the last stop's computed distance to the second to last stop's distance. If the last stop has
@@ -135,9 +137,10 @@ module Geometry
           b, nearest_point = self.index_of_line_segment_with_nearest_point(locators, a, num_segments - 1)
           current_stop_distance = LineString.distance_along_line_to_nearest_point(route_line_as_cartesian, nearest_point, b)
           if rsp.stop_distances[i-1] > current_stop_distance
-            rsp.stop_distances << rsp[:geometry].length
+            extra_distance_after_line = stops[i][:geometry].distance(rsp[:geometry].end_point)
+            rsp.stop_distances << rsp[:geometry].length + extra_distance_before_line + extra_distance_after_line
           else
-            rsp.stop_distances << current_stop_distance
+            rsp.stop_distances << current_stop_distance + extra_distance_before_line
           end
         else
           c, next_nearest_point = self.index_of_line_segment_with_nearest_point_next_stop(route_line_as_cartesian, stops, i+1, a, num_segments)
@@ -179,7 +182,7 @@ module Geometry
               rsp.stop_distances << rsp.stop_distances[i-1] + stops[i-1][:geometry].distance(stops[i+1][:geometry])/2.0
             end
           else
-            rsp.stop_distances << current_stop_distance
+            rsp.stop_distances << current_stop_distance + extra_distance_before_line
           end
           stop_matched_inside_line = true if !nearest_point.eql?(route_line_as_cartesian.points.first)
           a = b
