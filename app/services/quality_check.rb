@@ -137,10 +137,9 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
       rsp = RouteStopPattern.find_by_onestop_id!(onestop_id)
       # handle the case of 1 stop trips
       next if rsp.geometry[:coordinates].uniq.size == 1
-      max_dist = Geometry::DistanceCalculation.rsp_max_dist(rsp)
       rsp.stop_pattern.each_index do |i|
         self.distances_between_rsp_stops(rsp, i)
-        self.stop_distances_accuracy(rsp, i, max_dist)
+        self.stop_distances_accuracy(rsp, i)
       end
     end
 
@@ -202,7 +201,8 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
     end
   end
 
-  def stop_distances_accuracy(rsp, index, max_dist)
+  def stop_distances_accuracy(rsp, index)
+    geometry_length = rsp[:geometry].length
     if (index != 0)
       stop1 = rsp.stop_pattern[index-1]
       stop2 = rsp.stop_pattern[index]
@@ -230,10 +230,10 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
         self.issues << issue
       end
     end
-    if ((rsp.stop_distances[index] - max_dist) > LAST_STOP_DISTANCE_LENIENCY)
+    if ((rsp.stop_distances[index] - geometry_length) > LAST_STOP_DISTANCE_LENIENCY)
       issue = Issue.new(created_by_changeset: self.changeset,
                         issue_type: 'distance_calculation_inaccurate',
-                        details: "Distance calculation inaccuracy. Stop #{stop2}, number #{index+1}/#{rsp.stop_pattern.size}, of RouteStopPattern #{rsp.onestop_id} has a distance (#{rsp.stop_distances[index]} m), greater than the allowable distance (#{max_dist}) based on the line geometry. Distances: #{rsp.stop_distances}")
+                        details: "Distance calculation inaccuracy. Stop #{stop2}, number #{index+1}/#{rsp.stop_pattern.size}, of RouteStopPattern #{rsp.onestop_id} has a distance (#{rsp.stop_distances[index]} m), greater than the length of the geometry, #{geometry_length}. Distances: #{rsp.stop_distances}")
       issue.entities_with_issues.new(entity: rsp, issue: issue, entity_attribute: 'stop_distances')
       issue.entities_with_issues.new(entity: OnestopId.find_current_and_old!(stop1), issue: issue, entity_attribute: 'geometry') unless index < 1
       issue.entities_with_issues.new(entity: OnestopId.find_current_and_old!(stop2), issue: issue, entity_attribute: 'geometry')

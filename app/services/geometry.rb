@@ -67,23 +67,6 @@ module Geometry
     FIRST_MATCH_THRESHOLD = 25 # meters
     DISTANCE_PRECISION = 1
 
-    def self.rsp_max_dist(rsp)
-      geometry_length = rsp[:geometry].length
-      max_dist = geometry_length
-      line_geometry_as_cartesian = OutlierStop.cartesian_cast(rsp[:geometry])
-      first_stop = Stop.find_by_onestop_id!(rsp.stop_pattern.first)
-      first_stop_as_cartesian = OutlierStop.cartesian_cast(first_stop[:geometry])
-      last_stop = Stop.find_by_onestop_id!(rsp.stop_pattern.last)
-      last_stop_as_cartesian = OutlierStop.cartesian_cast(last_stop[:geometry])
-      if rsp.stop_distances.first == 0 && Geometry::DistanceCalculation.stop_before_geometry(first_stop[:geometry],first_stop_as_cartesian,line_geometry_as_cartesian)
-        max_dist += rsp[:geometry].start_point.distance(first_stop[:geometry])
-      end
-      if Geometry::DistanceCalculation.stop_after_geometry(last_stop[:geometry],last_stop_as_cartesian,line_geometry_as_cartesian)
-        max_dist += rsp[:geometry].end_point.distance(last_stop[:geometry])
-      end
-      max_dist
-    end
-
     def self.stop_before_geometry(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian)
       line_geometry_as_cartesian.before?(stop_as_cartesian) || OutlierStop.outlier_stop_from_precomputed_geometries(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian)
     end
