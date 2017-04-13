@@ -226,8 +226,9 @@ class Changeset < ActiveRecord::Base
           # shape_dist_traveled values may be faulty. So trying the TL algorithm here.
           Geometry::DistanceCalculation.calculate_distances(rsp)
           qc = QualityCheck::GeometryQualityCheck.new(changeset: self)
+          max_dist = Geometry::DistanceCalculation.rsp_max_dist(rsp)
           rsp.stop_pattern.each_index do |i|
-            qc.stop_distances_accuracy(rsp, i)
+            qc.stop_distances_accuracy(rsp, i, max_dist)
           end
           rsp_dist_issues.each(&:deprecate)
           rsp_dist_issues = qc.issues

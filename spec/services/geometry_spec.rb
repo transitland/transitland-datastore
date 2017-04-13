@@ -222,9 +222,9 @@ describe Geometry do
         geometry: Stop::GEOFACTORY.point(-121.5, 37.30).to_s
       ).onestop_id)
       expect(Geometry::DistanceCalculation.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
-                                                       a_value_within(0.1).of(0.0),
-                                                       a_value_within(0.1).of(12617.9),
-                                                       a_value_within(0.1).of(17001.5)])
+                                                       a_value_within(0.1).of(35756.8),
+                                                       a_value_within(0.1).of(48374.8),
+                                                       a_value_within(0.1).of(52758.3)])
     end
 
     it 'calculates the distance of the last stop to be the length of the line geometry if it is after the last point of the geometry' do
@@ -265,7 +265,7 @@ describe Geometry do
       expect(Geometry::DistanceCalculation.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(12617.9271),
                                                               a_value_within(0.1).of(17001.5107),
-                                                              a_value_within(0.1).of(17001.5107)])
+                                                              a_value_within(0.1).of(69063.9)])
     end
 
     it 'can calculate distances when two consecutive stop points are identical' do
@@ -327,7 +327,7 @@ describe Geometry do
       Stop.find_by_onestop_id!(rsp.stop_pattern[rsp.stop_pattern.size - 2]).update_column(:geometry, Stop::GEOFACTORY.point(-79.53941, 43.7388))
       # moving the last stop to be an outlier, but with a distance less than the previous stop
       Stop.find_by_onestop_id!(rsp.stop_pattern[-1]).update_column(:geometry, Stop::GEOFACTORY.point(-79.535, 43.73898))
-      expect(Geometry::DistanceCalculation.calculate_distances(rsp)[rsp.stop_pattern.size-2..rsp.stop_pattern.size-1]).to eq [929.9, 950.0]
+      expect(Geometry::DistanceCalculation.calculate_distances(rsp)[rsp.stop_pattern.size-2..rsp.stop_pattern.size-1]).to eq [929.9, 1307.1]
     end
 
     it 'accurately calculates distances if the first stop is a before? stop' do
@@ -353,10 +353,10 @@ describe Geometry do
     end
 
     it 'accurately calculates distances if the first stop is an outlier stop, but matches to line before second stop' do
-      # in essence, the first stop can a "before?" stop, but can match to the inside of a line.
+      # in essence, the first stop can be a "before?" stop, but can match to the inside of a line.
       feed_cta, feed_version_cta = load_feed(feed_version_name: :feed_version_cta_476113351107, import_level: 1)
       feed_trenitalia, feed_version_trenitalia = load_feed(feed_version_name: :feed_version_trenitalia_56808573, import_level: 1)
-      expect(Geometry::DistanceCalculation.calculate_distances(feed_cta.imported_route_stop_patterns.first)[0..1]).to match_array([0.0,29.8])
+      expect(Geometry::DistanceCalculation.calculate_distances(feed_cta.imported_route_stop_patterns.first)[0..1]).to match_array([0.0,204.6])
       expect(Geometry::DistanceCalculation.calculate_distances(feed_trenitalia.imported_route_stop_patterns.first)[0..1]).to match_array([6547.6, 8079.6])
     end
 
