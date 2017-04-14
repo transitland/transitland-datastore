@@ -99,10 +99,17 @@ class Api::V1::FeedsController < Api::V1::BaseApiController
 
   def query_params
     params.slice(
+      :onestop_id,
+      :updated_since,
+      :url,
       :tag_key,
       :tag_value,
+      :lat,
+      :lon,
+      :r,
       :bbox,
       :last_imported_since,
+      :latest_fetch_exception,
       :active_feed_version_valid,
       :active_feed_version_expired,
       :active_feed_version_update,
