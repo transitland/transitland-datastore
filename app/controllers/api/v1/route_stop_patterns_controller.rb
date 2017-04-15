@@ -23,7 +23,7 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
       @rsps = @rsps.where_imported_from_active_feed_version
     end
     if params[:imported_with_gtfs_id].present?
-      @rsps = @rsps.where_imported_with_gtfs_id(params[:gtfs_id])
+      @rsps = @rsps.where_imported_with_gtfs_id(params[:imported_with_gtfs_id])
     end
     if params[:import_level].present?
       @rsps = @rsps.where_import_level(AllowFiltering.param_as_array(params, :import_level))
@@ -78,10 +78,18 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
       :onestop_id,
       :traversed_by,
       :trip,
+      :lat,
+      :lon,
+      :r,
       :bbox,
       :stop_visited,
       :imported_from_feed,
-      :imported_from_feed_version
+      :imported_from_feed_version,
+      :imported_from_active_feed_version,
+      :imported_with_gtfs_id,
+      :import_level,
+      :trips,
+      :embed_issues
     )
   end
 
