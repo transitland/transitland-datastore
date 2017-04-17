@@ -34,6 +34,7 @@ class FeedVersion < ActiveRecord::Base
   include IsAnEntityWithIssues
 
   belongs_to :feed, polymorphic: true
+  has_many :feed_version_infos, dependent: :destroy
   has_many :feed_version_imports, -> { order 'created_at DESC' }, dependent: :destroy
   has_many :changesets_imported_from_this_feed_version, class_name: 'Changeset'
 
@@ -102,6 +103,20 @@ class FeedVersion < ActiveRecord::Base
 
   def is_active_feed_version
     !!self.feed.active_feed_version && (self.feed.active_feed_version == self)
+  end
+
+  def import_status
+    if self.feed_version_imports.count == 0
+      :never_imported
+    elsif self.feed_version_imports.first.success == false
+      :most_recent_failed
+    elsif self.feed_version_imports.first.success == true
+      :most_recent_succeeded
+    elsif self.feed_version_imports.first.success == nil
+      :in_progress
+    else
+      :unknown
+    end
   end
 
   def open_gtfs

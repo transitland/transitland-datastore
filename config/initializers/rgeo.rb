@@ -80,9 +80,9 @@ module RGeo
         segment.s.distance target
       end
 
-      def interpolate_point(factory)
+      def interpolate_point(factory, seg_dist_ratio=nil)
         return factory.point(segment.e.x, segment.e.y) if segment.length == 0
-        location = distance_on_segment / segment.length
+        location = seg_dist_ratio ? seg_dist_ratio : distance_on_segment / segment.length
         return factory.point(segment.e.x, segment.e.y) if location >= 1
         return factory.point(segment.s.x, segment.s.y) if location <= 0
         dx_location, dy_location = segment.dx * location, segment.dy * location

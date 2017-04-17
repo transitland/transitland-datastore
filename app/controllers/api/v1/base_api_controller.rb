@@ -1,4 +1,6 @@
 class Api::V1::BaseApiController < ApplicationController
+  include JwtAuthToken
+
   API_KIND = 'JSON-psuedo-RESTful'
 
   protect_from_forgery with: :null_session
@@ -49,16 +51,6 @@ class Api::V1::BaseApiController < ApplicationController
   end
 
   private
-
-  def require_api_auth_token
-    authenticate_or_request_with_http_token do |token, options|
-      api_auth_token == token
-    end
-  end
-
-  def api_auth_token
-    @api_auth_token ||= Figaro.env.transitland_datastore_auth_token.to_s.strip
-  end
 
   def set_default_response_format
     request.format = :json unless [:geojson, :csv, :rss].include?(request.format.to_sym)

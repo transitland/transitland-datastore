@@ -35,6 +35,7 @@ Rails.application.routes.draw do
         end
       end
       resources :feed_versions, only: [:index, :show, :update]
+      resources :feed_version_infos, only: [:index, :show]
       resources :feed_version_imports, only: [:index, :show]
       resources :issues, only: [:index, :show, :create, :update, :destroy] do
         collection do
@@ -43,10 +44,14 @@ Rails.application.routes.draw do
       end
       post '/webhooks/feed_fetcher', to: 'webhooks#feed_fetcher'
       post '/webhooks/feed_eater', to: 'webhooks#feed_eater'
-      # TODO: expose user authentication endpoints in the future
-      # devise_for :users
+
+      # authentication using Devise gem and JWT auth tokens
+      devise_for :users, :skip => :all
+      post 'users/session', to: 'user_sessions#create'
+      delete 'users/session', to: 'user_sessions#destroy'
       resources :users
     end
+
     match '*unmatched_route', :to => 'v1/base_api#raise_not_found!', via: :all
   end
 
