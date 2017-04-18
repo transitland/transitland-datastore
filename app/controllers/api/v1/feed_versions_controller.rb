@@ -28,7 +28,7 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
   include AllowFiltering
 
   before_action :set_feed_version, only: [:show, :update]
-  before_filter :require_api_auth_token, only: [:update]
+  before_filter :verify_jwt_token, only: [:update]
 
   def index
     @feed_versions = FeedVersion.where('').includes{[

@@ -126,6 +126,21 @@ FactoryGirl.define do
       association :feed, factory: :feed_wmata
     end
 
+    factory :feed_version_wmata_48587 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/wmata-trip-48587.zip')) }
+      association :feed, factory: :feed_wmata
+    end
+
+    factory :feed_version_cta_476113351107 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/cta-trip-476113351107.zip')) }
+      association :feed, factory: :feed_cta
+    end
+
+    factory :feed_version_trenitalia_56808573 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/trenitalia-trip-56808573.zip')) }
+      association :feed, factory: :feed_trenitalia
+    end
+
     factory :feed_version_nj_path_last_stop_past_edge do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/path-nj-us-last-stop-past-edge.zip')) }
       association :feed, factory: :feed_nj_path
@@ -149,6 +164,21 @@ FactoryGirl.define do
     factory :feed_version_marta do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/marta-trip-5453552.zip')) }
       association :feed, factory: :feed_marta
+    end
+
+    factory :feed_version_ttc_34398377 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/ttc-trip-34398377.zip')) }
+      association :feed, factory: :feed_ttc
+    end
+
+    factory :feed_version_ttc_34360409 do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/ttc-trip-34360409.zip')) }
+      association :feed, factory: :feed_ttc
+    end
+
+    factory :feed_version_alleghany do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/alleghany.zip')) }
+      association :feed, factory: :feed_alleghany
     end
 
     factory :feed_version_example do

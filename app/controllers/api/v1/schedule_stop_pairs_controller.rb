@@ -72,6 +72,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
 
   def query_params
     params.slice(
+      :active,
       :date,
       :service_from_date,
       :service_before_date,

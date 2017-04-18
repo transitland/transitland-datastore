@@ -1,7 +1,7 @@
 class Api::V1::IssuesController < Api::V1::BaseApiController
   include JsonCollectionPagination
 
-  before_filter :require_api_auth_token, only: [:update, :create, :destroy]
+  before_filter :verify_jwt_token, only: [:update, :create, :destroy]
   before_action :set_issue, only: [:show, :update, :destroy]
 
   def index
@@ -86,7 +86,15 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
   private
 
   def query_params
-    params.slice(:open, :issue_type)
+    params.slice(
+      :open,
+      :issue_type,
+      :category,
+      :of_feed_entities,
+      :of_entity,
+      :imported_from_feed,
+      :imported_from_feed_version
+    )
   end
 
   def set_issue

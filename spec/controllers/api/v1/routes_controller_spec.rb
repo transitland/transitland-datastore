@@ -28,7 +28,7 @@ describe Api::V1::RoutesController do
     context 'as JSON' do
       it 'returns all current routes when no parameters provided' do
         get :index
-        expect_json_types({ routes: :array }) # TODO: remove root node?
+        expect_json_types({ routes: :array })
         expect_json({ routes: -> (routes) {
           expect(routes.length).to eq 1
         }})

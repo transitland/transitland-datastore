@@ -108,7 +108,7 @@ describe FeedFetcherService do
       expect(Issue.issues_of_entity(feed).count).to eq 0
     end
 
-    it 'creates FeedValidationWorker job' do
+    it 'creates GTFSValidationWorker job' do
       allow(Figaro.env).to receive(:run_google_validator) { 'true' }
       feed = create(:feed_caltrain)
       Sidekiq::Testing.fake! do
@@ -116,7 +116,7 @@ describe FeedFetcherService do
           VCR.use_cassette('feed_fetch_caltrain') do
             FeedFetcherService.fetch_and_return_feed_version(feed)
           end
-        }.to change(FeedValidationWorker.jobs, :size).by(1)
+        }.to change(GTFSValidationWorker.jobs, :size).by(1)
       end
     end
   end

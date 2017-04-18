@@ -17,7 +17,7 @@
 
 class FeedVersionInfo < ActiveRecord::Base
   belongs_to :feed_version
-  validates :feed_version_id, uniqueness: { scope: :type }
+  validates :feed_version_id, uniqueness: { scope: :type }, presence: true
 end
 
 class FeedVersionInfoStatistics < FeedVersionInfo

@@ -312,6 +312,25 @@ FactoryGirl.define do
     end
   end
 
+  factory :feed_alleghany, parent: :feed, class: Feed do
+    onestop_id 'f-dppc-alleganycountytransit'
+    url 'http://mdtrip.org/googletransit/Allegany/google_transit.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Allegany County Transit',
+        onestop_id: 'o-dppc-alleganycountytransit',
+        timezone: 'America/New_York',
+        website: 'http://gov.allconet.org/act',
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: 'ACT'
+      )
+    end
+  end
+
   factory :feed_hdpt, parent: :feed, class: Feed do
     onestop_id 'f-dnzft-harrisonburgdepartmentofpublictransportation'
     url 'https://www.harrisonburgva.gov/sites/default/files/Transit/google_transit.zip'
@@ -365,6 +384,63 @@ FactoryGirl.define do
       feed.operators_in_feed.create(
         operator: operator,
         gtfs_agency_id: 'MET'
+      )
+    end
+  end
+
+  factory :feed_cta, parent: :feed, class: Feed do
+    onestop_id 'f-dp3-cta'
+    url 'http://www.transitchicago.com/downloads/sch_data/google_transit.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Chicago Transit Authority',
+        onestop_id: 'o-dp3-chicagotransitauthority',
+        timezone: 'America/Chicago',
+        website: 'http://transitchicago.com',
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: nil
+      )
+    end
+  end
+
+  factory :feed_trenitalia, parent: :feed, class: Feed do
+    onestop_id 'f-sr-atac~romatpl~trenitalia'
+    url 'http://dati.muovi.roma.it/gtfs/rome_static_gtfs.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Trenitalia',
+        onestop_id: 'o-s-trenitalia',
+        timezone: 'Europe/Rome',
+        website: 'http://www.trenitalia.it',
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: 'trenitalia'
+      )
+    end
+  end
+
+  factory :feed_ttc, parent: :feed, class: Feed do
+    onestop_id 'f-dpz8-ttc'
+    url 'http://opendata.toronto.ca/TTC/routes/OpenData_TTC_Schedules.zip'
+    version 1
+    after :create do |feed, evaluator|
+      operator = create(
+        :operator,
+        name: 'Toronto Transit Comission',
+        onestop_id: 'o-dpz8-ttc',
+        timezone: 'America/Toronto',
+        website: 'http://www.ttc.ca',
+      )
+      feed.operators_in_feed.create(
+        operator: operator,
+        gtfs_agency_id: '1'
       )
     end
   end
