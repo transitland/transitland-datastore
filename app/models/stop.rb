@@ -48,6 +48,8 @@ class Stop < BaseStop
   include UpdatedSince
   include IsAnEntityImportedFromFeeds
   include IsAnEntityWithIssues
+  extend Enumerize
+  enumerize :directionality, in: {:enter => 1, :exit => 2}
 
   include CanBeSerializedToCsv
   def self.csv_column_names
@@ -70,6 +72,7 @@ class Stop < BaseStop
       geometry_centroid[:lon]
     ]
   end
+
 
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
