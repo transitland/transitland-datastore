@@ -97,6 +97,10 @@
     },
     "wheelchairBoarding": {
       "type": ["boolean", "null"]
+    },
+    "directionality": {
+      "type": ["string", "null"],
+      "enum": [ "enter", "exit" ]
     }
   }
 }
