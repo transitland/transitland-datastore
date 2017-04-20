@@ -23,7 +23,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
       @routes = @routes.where_imported_from_active_feed_version
     end
     if params[:imported_with_gtfs_id].present?
-      @routes = @routes.where_imported_with_gtfs_id(params[:imported_with_gtfs_id])
+      @routes = @routes.where_imported_with_gtfs_id(params[:gtfs_id] || params[:imported_with_gtfs_id])
     end
     if params[:import_level].present?
       @routes = @routes.where_import_level(AllowFiltering.param_as_array(params, :import_level))
@@ -125,6 +125,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
       :imported_from_feed_version,
       :imported_from_active_feed_version,
       :imported_with_gtfs_id,
+      :gtfs_id,
       :exclude_geometry,
       :include_geometry,
       :updated_since

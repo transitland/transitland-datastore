@@ -23,7 +23,7 @@ class Api::V1::StopStationsController < Api::V1::BaseApiController
       @stops = @stops.where_imported_from_active_feed_version
     end
     if params[:imported_with_gtfs_id].present?
-      @stops = @stops.where_imported_with_gtfs_id(params[:imported_with_gtfs_id])
+      @stops = @stops.where_imported_with_gtfs_id(params[:gtfs_id] || params[:imported_with_gtfs_id])
     end
     if params[:import_level].present?
       @stops = @stops.where_import_level(AllowFiltering.param_as_array(params, :import_level))
@@ -133,6 +133,7 @@ class Api::V1::StopStationsController < Api::V1::BaseApiController
       :tag_value,
       :import_level,
       :imported_with_gtfs_id,
+      :gtfs_id,
       :imported_from_feed,
       :imported_from_feed_version,
       :imported_from_active_feed_version
