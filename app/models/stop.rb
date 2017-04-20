@@ -49,7 +49,8 @@ class Stop < BaseStop
   include IsAnEntityImportedFromFeeds
   include IsAnEntityWithIssues
   extend Enumerize
-  enumerize :directionality, in: {:enter => 1, :exit => 2}
+  enumerize :directionality, in: {:enter => 1, :exit => 2, :both => 0}
+  # TODO: use default: :both ?
 
   include CanBeSerializedToCsv
   def self.csv_column_names
