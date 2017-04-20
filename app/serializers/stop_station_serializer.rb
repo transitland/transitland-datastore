@@ -57,7 +57,7 @@ class StopStationSerializer < CurrentEntitySerializer
       timezone: object.timezone,
       last_conflated_at: object.last_conflated_at,
       osm_way_id: object.osm_way_id,
-      directionality: null
+      directionality: nil
     )]
   end
 
