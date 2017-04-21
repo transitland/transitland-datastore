@@ -41,6 +41,32 @@ describe Stop do
     expect(stop.name).to eq 'Main St. Stop'
   end
 
+  context 'directionality' do
+    it 'allows 1/enter' do
+      stop = create(:stop)
+      stop.update!(directionality: 'enter')
+      expect(stop.reload.directionality).to eq(:enter)
+      stop.update!(directionality: 1)
+      expect(stop.reload.directionality).to eq(:enter)
+    end
+    it 'allows 2/exit' do
+      stop = create(:stop)
+      stop.update!(directionality: 'exit')
+      expect(stop.reload.directionality).to eq(:exit)
+      stop.update!(directionality: 2)
+      expect(stop.reload.directionality).to eq(:exit)
+    end
+    it 'allows 0/both' do
+      stop = create(:stop)
+      stop.update!(directionality: 'both')
+      expect(stop.reload.directionality).to eq(:both)
+      stop.update!(directionality: 0)
+      expect(stop.reload.directionality).to eq(:both)
+      # stop.update!(directionality: nil)
+      # expect(stop.reload.directionality).to eq(:both)
+    end
+  end
+
   context 'geometry' do
     it 'can be specified with WKT' do
       stop = create(:stop, geometry: 'POINT(-122.433416 37.732525)')

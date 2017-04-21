@@ -34,6 +34,7 @@ class StopStationSerializer < CurrentEntitySerializer
                :osm_way_id,
                :wheelchair_boarding,
                :generated,
+               :directionality,
                :created_at,
                :updated_at
                :last_conflated_at
@@ -56,6 +57,7 @@ class StopStationSerializer < CurrentEntitySerializer
       timezone: object.timezone,
       last_conflated_at: object.last_conflated_at,
       osm_way_id: object.osm_way_id,
+      directionality: nil
     )]
   end
 

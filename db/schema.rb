@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170315205738) do
+ActiveRecord::Schema.define(version: 20170419200247) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -278,6 +278,7 @@ ActiveRecord::Schema.define(version: 20170315205738) do
     t.integer   "osm_way_id"
     t.string    "edited_attributes",                                                                              default: [], array: true
     t.boolean   "wheelchair_boarding"
+    t.integer   "directionality"
   end
 
   add_index "current_stops", ["created_or_updated_in_changeset_id"], name: "#c_stops_cu_in_changeset_id_index", using: :btree
@@ -663,6 +664,7 @@ ActiveRecord::Schema.define(version: 20170315205738) do
     t.string    "edited_attributes",                                                                              default: [], array: true
     t.boolean   "wheelchair_boarding"
     t.string    "action"
+    t.integer   "directionality"
   end
 
   add_index "old_stops", ["created_or_updated_in_changeset_id"], name: "o_stops_cu_in_changeset_id_index", using: :btree
