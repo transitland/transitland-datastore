@@ -75,38 +75,40 @@ module Geometry
 
     def self.best_possible_matching_segments_for_stops(route_line_as_cartesian, stops)
       @stop_segment_matching_candidates = []
+      min_index = -1
       stops.each_with_index.map do |stop, i|
         stop_as_cartesian = self.cartesian_cast(stop[:geometry])
         locators = route_line_as_cartesian.locators(stop_as_cartesian)
+        s = min_index > -1 ? min_index : 0
         matches = locators.each_with_index.select{|loc,i|
-          stop[:geometry].distance(loc.interpolate_point(Stop::GEOFACTORY)) < 150.0
+          i>=s && stop[:geometry].distance(loc.interpolate_point(Stop::GEOFACTORY)) < 150.0
         }
         if matches.to_a.empty?
-          best_match = locators.each_with_index.min_by{|loc,i| loc.distance_from_segment}
-          max_index = best_match[1]
+          best_match = locators[s..-1].each_with_index.min_by{|loc,i| loc.distance_from_segment}
+          max_index = s + best_match[1]
+          min_index = max_index
           matches = [best_match]
         else
           max_index = matches.max_by{ |loc,i| i }[1]
+          min_index = matches.min_by{ |loc,i| i }[1]
         end
-        if i > 1
-          i-1.downto(0).each do |j|
-            @stop_segment_matching_candidates[j] = @stop_segment_matching_candidates[j].select{|m| m[1] <= max_index }
-          end
+        (i-1).downto(0).each do |j|
+          @stop_segment_matching_candidates[j] = @stop_segment_matching_candidates[j].select{|m| m[1] <= max_index }
         end
         @stop_segment_matching_candidates[i] = matches
       end
     end
 
     def self.matching_segments(stops, stop_index, route_line_as_cartesian, start_seg_index)
+      if stop_index == stops.size
+        return []
+      end
       stop_as_cartesian = self.cartesian_cast(stops[stop_index][:geometry])
       @stop_segment_matching_candidates[stop_index].sort_by{|dfs| dfs[0].distance_from_segment }.each do |dfs|
         index = dfs[1]
-        next if dfs[1] < start_seg_index
-        if stop_index == stops.size - 1
-          return [index]
-        else
-          forward_matches = self.matching_segments(stops, stop_index+1, route_line_as_cartesian, index)
-          next if forward_matches.nil?
+        next if index < start_seg_index
+        forward_matches = self.matching_segments(stops, stop_index+1, route_line_as_cartesian, index)
+        unless forward_matches.nil?
           forward_matches = [index].concat forward_matches
           # if forward_matches.each_cons(2).each_with_index.all? {|m,j| m[1] > m[0] || ((m[1] == m[0]) && @stop_segment_matching_candidates[stop_index+j].detect{|s| s[1] == m[0]}[0].distance_on_segment < @stop_segment_matching_candidates[stop_index+j+1].detect{|s| s[1] == m[1]}[0].distance_on_segment) }
             return forward_matches
