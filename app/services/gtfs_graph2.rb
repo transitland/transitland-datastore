@@ -20,6 +20,8 @@ class GTFSGraph2
     # Lookup
     @entity_tl = {}
     @onestop_tl = {}
+    # Logging prettiness
+    @indent = 0
   end
 
   def load_graph
@@ -33,24 +35,33 @@ class GTFSGraph2
 
     # Operators
     @gtfs.agencies.each do |gtfs_agency|
-      debug "GTFS_AGENCY: #{gtfs_agency.agency_id}"
       tl_operator = oifs[gtfs_agency.agency_id]
-      next unless tl_operator
+      if !tl_operator
+        info("AGENCY: #{gtfs_agency.agency_id}: Operator not found, skipping", indent: 0)
+        next
+      end
+      info("AGENCY: #{gtfs_agency.agency_id} -> #{tl_operator.onestop_id}", indent: 0)
+
       @entity_tl[gtfs_agency] = tl_operator
       add_eiff(tl_operator, gtfs_agency)
 
       # Routes
       gtfs_agency.routes.each do |gtfs_route|
-        debug "\tGTFS_ROUTE: #{gtfs_route.route_id}"
+        info("ROUTE: #{gtfs_route.route_id}", indent: 1)
 
         # Trips: Pass 1: Create Stops
-        tl_route_serves = []
+        if gtfs_route.trips.empty?
+          info("Route: contains no trips, skipping")
+          next
+        end
+        info("Processing Trips...", indent: 2)
+
+        tl_route_serves = Set.new
         tl_trip_stop_sequence = {}
         gtfs_route.trips.each do |gtfs_trip|
-          debug "\t\tGTFS_TRIP: #{gtfs_trip.trip_id}"
+          # debug("TRIP: #{gtfs_trip.trip_id}", indent: 3)
           tl_trip_stop_sequence[gtfs_trip] = []
           gtfs_trip.stop_sequence.each do |gtfs_stop|
-            debug "\t\t\tGTFS_STOP: #{gtfs_stop.stop_id}"
             tl_stop = find_or_initialize_stop(gtfs_stop, operated_by: tl_operator)
             tl_route_serves << tl_stop
             tl_trip_stop_sequence[gtfs_trip] << tl_stop
@@ -58,10 +69,16 @@ class GTFSGraph2
         end
 
         # Create Route
-        next if tl_route_serves.empty?
-        tl_route = find_or_initialize_route(gtfs_route, serves: tl_route_serves.to_set, operated_by: tl_operator)
+        if tl_route_serves.empty?
+          info("Route: contains no stops, skipping", indent: 2)
+          next
+        end
+        info("Processing Route...", indent: 2)
+
+        tl_route = find_or_initialize_route(gtfs_route, serves: tl_route_serves, operated_by: tl_operator)
 
         # Trips: Pass 2: Create RSPs
+        info("Processing RouteStopPatterns...", indent: 2)
         tl_route_rsps = Set.new
         gtfs_route.trips.each do |gtfs_trip|
           next unless gtfs_trip.stop_sequence.size > 1
@@ -72,6 +89,13 @@ class GTFSGraph2
         # Update Route geometry
         representative_rsps = Route.representative_geometry(tl_route, tl_route_rsps)
         Route.geometry_from_rsps(tl_route, representative_rsps)
+
+        # Log
+        info("Route: #{tl_route.onestop_id}", indent: 2)
+        info("Stops: #{tl_route_serves.size}", indent: 2)
+        # tl_route_serves.each { |i| info(i.onestop_id, indent: 3)}
+        info("RouteStopPatterns: #{tl_route_rsps.size}", indent: 2)
+        # tl_route_rsps.each { |i| info(i.onestop_id, indent: 3)}
       end
     end
   end
@@ -98,12 +122,12 @@ class GTFSGraph2
     begin
       changeset.create_change_payloads(entities)
     rescue Changeset::Error => e
-      graph_log "Changeset Error: #{e}"
-      graph_log "Payload:"
-      graph_log e.payload.to_json
+      debug "Changeset Error: #{e}"
+      debug "Payload:"
+      debug e.payload.to_json
       raise e
     rescue StandardError => e
-      graph_log "Error: #{e}"
+      debug "Error: #{e}"
       raise e
     end
     changeset
@@ -120,14 +144,20 @@ class GTFSGraph2
 
   private
 
-  def graph_log(msg)
+  def info(msg, indent: nil, plus: 0)
+    @indent = indent if indent
+    msg = ("\t"*@indent) + ("\t"*plus) + msg
     @log << msg
-    log(msg)
+    # log(msg)
     puts msg
   end
 
-  def debug(msg)
-    puts msg
+  def debug(msg, indent: nil, plus: 0)
+    @indent = indent if indent
+    msg = ("\t"*@indent) + ("\t"*plus) + msg
+    # @log << msg
+    # log(msg)
+    # puts msg
   end
 
   def private_create_change_osr
@@ -190,17 +220,12 @@ class GTFSGraph2
     key ||= gtfs_entity
     tl_entity = @entity_tl[key]
     if tl_entity
-      # log "FOUND GTFS: #{gtfs_entity.class.name} #{gtfs_entity.id} -> #{tl_entity.onestop_id}"
       add_eiff(tl_entity, gtfs_entity)
+      # debug("#{tl_entity.class.name} cached: #{gtfs_entity.id} -> #{tl_entity.onestop_id}", plus: 1)
       return tl_entity
     end
 
     tl_entity = find_by_eiff(gtfs_entity)
-    if tl_entity
-      log "#{gtfs_entity.class.name} eiff: #{gtfs_entity.id} -> #{tl_entity.onestop_id}"
-    else
-      log "#{gtfs_entity.class.name} new: #{gtfs_entity.id} -> ..."
-    end
 
     # Create / Update
     tl_entity = yield(tl_entity)
@@ -211,6 +236,14 @@ class GTFSGraph2
     @onestop_tl[tl_entity.onestop_id] = tl_entity
     @entity_tl[key] = tl_entity
     add_eiff(tl_entity, gtfs_entity)
+
+    # Debug
+    if tl_entity.persisted?
+      debug("#{tl_entity.class.name} eiff: #{gtfs_entity.id} -> #{tl_entity.onestop_id}", plus: 1)
+    else
+      debug("#{tl_entity.class.name} new: #{gtfs_entity.id} -> #{tl_entity.onestop_id}", plus: 1)
+    end
+
     tl_entity
   end
 
@@ -299,7 +332,7 @@ class GTFSGraph2
         Geometry::DistanceCalculation.calculate_distances(rsp, stops=stops)
       end
     rescue => e
-      graph_log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}. Error: #{e}"
+      debug "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}. Error: #{e}"
       Geometry::DistanceCalculation.fallback_distances(rsp, stops=stops)
     end
     return rsp.stop_distances
