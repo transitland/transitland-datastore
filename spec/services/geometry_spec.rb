@@ -46,22 +46,9 @@ describe Geometry do
       # this is the midpoint between stop_a and stop_b, with a little offset
       target_point = Geometry::DistanceCalculation.cartesian_cast(Stop::GEOFACTORY.point(-121.9664615, 37.36))
       locators = cartesian_line.locators(target_point)
-      i, nearest_point = Geometry::DistanceCalculation.index_of_line_segment_with_nearest_point(locators, 0, locators.size-1)
+      i = locators.each_with_index.min_by{|loc,i| loc.distance_from_segment}[1]
+      nearest_point = locators[i].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326))
       expect(Geometry::LineString.distance_along_line_to_nearest_point(cartesian_line, nearest_point, i)).to be_within(0.1).of(6508.84)
-    end
-
-    it '#index_of_line_segment_with_nearest_point' do
-      coords = @rsp.geometry[:coordinates].concat [stop_b.geometry[:coordinates],stop_a.geometry[:coordinates]]
-      @rsp.geometry = Geometry::LineString.line_string(coords)
-      cartesian_line = Geometry::DistanceCalculation.cartesian_cast(@rsp[:geometry])
-      # this is the midpoint between stop_a and stop_b, with a little offset
-      mid = Stop::GEOFACTORY.point(-121.9664615, 37.36)
-      target_point = Geometry::DistanceCalculation.cartesian_cast(mid)
-      locators = cartesian_line.locators(target_point)
-      i, nearest_point = Geometry::DistanceCalculation.index_of_line_segment_with_nearest_point(locators, 0, locators.size - 1)
-      expect(i).to eq 0
-      expect(nearest_point.x).to be_within(0.01).of(-121.97)
-      expect(nearest_point.y).to be_within(0.01).of(37.35)
     end
 
     context '#shape_dist_traveled' do

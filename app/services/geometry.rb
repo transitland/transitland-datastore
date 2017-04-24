@@ -28,9 +28,9 @@ module Geometry
       Geometry::LineString.line_string(points).length
     end
 
-    def self.distance_to_nearest_point_on_line(stop_point_spherical, nearest_point)
-      stop_point_spherical.distance(RGeo::Feature.cast(nearest_point, RouteStopPattern::GEOFACTORY))
-    end
+    # def self.distance_to_nearest_point_on_line(stop_point_spherical, nearest_point)
+    #   stop_point_spherical.distance(RGeo::Feature.cast(nearest_point, RouteStopPattern::GEOFACTORY))
+    # end
   end
 
   class OutlierStop
@@ -47,9 +47,13 @@ module Geometry
 
     def self.outlier_stop_from_precomputed_geometries(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian)
       # trying to avoid casting when possible
+      self.stop_distance_from_line(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian) > OUTLIER_THRESHOLD
+    end
+
+    def self.stop_distance_from_line(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian)
       closest_point_as_cartesian = line_geometry_as_cartesian.closest_point(stop_as_cartesian)
       closest_point_as_spherical = RGeo::Feature.cast(closest_point_as_cartesian, RouteStopPattern::GEOFACTORY)
-      stop_as_spherical.distance(closest_point_as_spherical) > OUTLIER_THRESHOLD
+      stop_as_spherical.distance(closest_point_as_spherical)
     end
 
     def self.test_distance(distance)
@@ -60,10 +64,9 @@ module Geometry
   class DistanceCalculation
     extend Lib
 
-    FIRST_MATCH_THRESHOLD = 25 # meters
     DISTANCE_PRECISION = 1
 
-    attr_accessor :stop_segment_matching_candidates
+    attr_accessor :stop_segment_matching_candidates, :segment_matching_threshold
 
     def self.stop_before_geometry(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian)
       line_geometry_as_cartesian.before?(stop_as_cartesian) || OutlierStop.outlier_stop_from_precomputed_geometries(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian)
@@ -73,19 +76,23 @@ module Geometry
       line_geometry_as_cartesian.after?(stop_as_cartesian) || OutlierStop.outlier_stop_from_precomputed_geometries(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian)
     end
 
+    def self.compute_segment_matching_threshold(route_line_as_cartesian, stops)
+        @segment_matching_threshold = stops.map{ |stop| OutlierStop.stop_distance_from_line(stop[:geometry], self.cartesian_cast(stop[:geometry]), route_line_as_cartesian)}.max + 1.0
+    end
+
     def self.best_possible_matching_segments_for_stops(route_line_as_cartesian, stops)
+      self.compute_segment_matching_threshold(route_line_as_cartesian,stops)
       @stop_segment_matching_candidates = []
-      min_index = -1
+      min_index = 0
       stops.each_with_index.map do |stop, i|
         stop_as_cartesian = self.cartesian_cast(stop[:geometry])
         locators = route_line_as_cartesian.locators(stop_as_cartesian)
-        s = min_index > -1 ? min_index : 0
         matches = locators.each_with_index.select{|loc,i|
-          i>=s && stop[:geometry].distance(loc.interpolate_point(Stop::GEOFACTORY)) < 150.0
+          i>=min_index && stop[:geometry].distance(loc.interpolate_point(Stop::GEOFACTORY)) < 150
         }
         if matches.to_a.empty?
-          best_match = locators[s..-1].each_with_index.min_by{|loc,i| loc.distance_from_segment}
-          max_index = s + best_match[1]
+          best_match = locators[min_index..-1].each_with_index.min_by{|loc,i| loc.distance_from_segment}
+          max_index = best_match[1]
           min_index = max_index
           matches = [best_match]
         else
