@@ -297,18 +297,18 @@ class GTFSGraph2
   def find_or_initialize_rsp(gtfs_entity, serves: [], traversed_by: nil)
     shape_line = @gtfs.shape_line(gtfs_entity.shape_id)
     shape_points = serves.map(&:coordinates)
-    geometry = Geometry::LineString.line_string(Geometry::Lib.set_precision(shape_line || shape_points, RouteStopPattern::COORDINATE_PRECISION))
-    key = [geometry, serves]
+    shape = shape_line || shape_points
+    key = [shape, serves]
     find_or_initialize(gtfs_entity, key: key) { |tl_entity|
       tl_entity ||= RouteStopPattern.new
       tl_entity.geometry = geometry
+      tl_entity.geometry = Geometry::LineString.line_string(Geometry::Lib.set_precision(shape, RouteStopPattern::COORDINATE_PRECISION))
       if shape_line.nil?
         tl_entity.geometry_source = :trip_stop_points
       else
         tl_entity.geometry_source = shape_line.shape_dist_traveled.all? ? :shapes_txt_with_dist_traveled : :shapes_txt
       end
-      tl_entity.tags = {}
-      # Relations
+      # # Relations
       tl_entity.serves = serves
       tl_entity.stop_pattern = serves.map(&:onestop_id)
       tl_entity.traversed_by = traversed_by
