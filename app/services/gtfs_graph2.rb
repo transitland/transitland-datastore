@@ -55,6 +55,7 @@ class GTFSGraph2
         end
         info("Processing Trips...", indent: 2)
 
+        # Trips: Pass 1: Create Stops
         tl_route_serves = Set.new
         tl_trip_stop_sequence = {}
         gtfs_route.trips.each do |gtfs_trip|
@@ -86,6 +87,7 @@ class GTFSGraph2
         end
 
         # Update Route geometry
+        info("Processing representative geometries...", indent: 2)
         representative_rsps = Route.representative_geometry(tl_route, tl_route_rsps)
         Route.geometry_from_rsps(tl_route, representative_rsps)
 
@@ -299,14 +301,13 @@ class GTFSGraph2
     key = [shape, serves]
     find_or_initialize(gtfs_entity, key: key) { |tl_entity|
       tl_entity ||= RouteStopPattern.new
-      tl_entity.geometry = geometry
       tl_entity.geometry = Geometry::LineString.line_string(Geometry::Lib.set_precision(shape, RouteStopPattern::COORDINATE_PRECISION))
       if shape_line.nil?
         tl_entity.geometry_source = :trip_stop_points
       else
         tl_entity.geometry_source = shape_line.shape_dist_traveled.all? ? :shapes_txt_with_dist_traveled : :shapes_txt
       end
-      # # Relations
+      # Relations
       tl_entity.serves = serves
       tl_entity.stop_pattern = serves.map(&:onestop_id)
       tl_entity.traversed_by = traversed_by
