@@ -47,6 +47,7 @@ class GTFSGraph2
 
       # Routes
       gtfs_agency.routes.each do |gtfs_route|
+        t = Time.now
         info("ROUTE: #{gtfs_route.route_id}", indent: 1)
 
         # Trips: Pass 1: Create Stops
@@ -96,6 +97,7 @@ class GTFSGraph2
         # tl_route_serves.each { |i| info(i.onestop_id, indent: 3)}
         info("RouteStopPatterns: #{tl_route_rsps.size}", indent: 2)
         # tl_route_rsps.each { |i| info(i.onestop_id, indent: 3)}
+        info("Time: #{Time.now - t}")
       end
     end
   end
