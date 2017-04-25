@@ -35,13 +35,13 @@ class GTFSGraph2
 
     # Operators
     @gtfs.agencies.each do |gtfs_agency|
+      info("AGENCY: #{gtfs_agency.agency_id}", indent: 0)
       tl_operator = oifs[gtfs_agency.agency_id]
       if !tl_operator
-        info("AGENCY: #{gtfs_agency.agency_id}: Operator not found, skipping", indent: 0)
+        info("Operator not found, skipping", indent: 1)
         next
       end
-      info("AGENCY: #{gtfs_agency.agency_id} -> #{tl_operator.onestop_id}", indent: 0)
-
+      info("Operator: #{tl_operator.onestop_id}", indent: 1)
       @entity_tl[gtfs_agency] = tl_operator
       add_eiff(tl_operator, gtfs_agency)
 
@@ -49,10 +49,8 @@ class GTFSGraph2
       gtfs_agency.routes.each do |gtfs_route|
         t0 = Time.now
         info("ROUTE: #{gtfs_route.route_id}", indent: 1)
-
-        # Trips: Pass 1: Create Stops
         if gtfs_route.trips.empty?
-          info("Route: contains no trips, skipping")
+          info("Contains no trips, skipping", indent: 2)
           next
         end
         info("Processing Trips...", indent: 2)
@@ -71,7 +69,7 @@ class GTFSGraph2
 
         # Create Route
         if tl_route_serves.empty?
-          info("Route: contains no stops, skipping", indent: 2)
+          info("Contains no stops, skipping", indent: 2)
           next
         end
         info("Processing Route...", indent: 2)
@@ -92,12 +90,12 @@ class GTFSGraph2
         Route.geometry_from_rsps(tl_route, representative_rsps)
 
         # Log
+        info("Time: #{Time.now - t0}", indent: 2)
         info("Route: #{tl_route.onestop_id}", indent: 2)
         info("Stops: #{tl_route_serves.size}", indent: 2)
-        # tl_route_serves.each { |i| info(i.onestop_id, indent: 3)}
+        tl_route_serves.each { |i| info(i.onestop_id, indent: 3)}
         info("RouteStopPatterns: #{tl_route_rsps.size}", indent: 2)
-        # tl_route_rsps.each { |i| info(i.onestop_id, indent: 3)}
-        info("Time: #{Time.now - t0}")
+        tl_route_rsps.each { |i| info(i.onestop_id, indent: 3)}
       end
     end
   end
@@ -150,7 +148,7 @@ class GTFSGraph2
     @indent = indent if indent
     msg = ("\t"*@indent) + ("\t"*plus) + msg
     @log << msg
-    log(msg)
+    # log(msg)
     puts msg
   end
 
@@ -159,7 +157,7 @@ class GTFSGraph2
     msg = ("\t"*@indent) + ("\t"*plus) + msg
     # @log << msg
     # log(msg)
-    # puts msg
+    puts msg
   end
 
   def private_create_change_osr
