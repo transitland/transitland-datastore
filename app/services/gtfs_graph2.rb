@@ -47,7 +47,7 @@ class GTFSGraph2
 
       # Routes
       gtfs_agency.routes.each do |gtfs_route|
-        t = Time.now
+        t0 = Time.now
         info("ROUTE: #{gtfs_route.route_id}", indent: 1)
 
         # Trips: Pass 1: Create Stops
@@ -97,7 +97,7 @@ class GTFSGraph2
         # tl_route_serves.each { |i| info(i.onestop_id, indent: 3)}
         info("RouteStopPatterns: #{tl_route_rsps.size}", indent: 2)
         # tl_route_rsps.each { |i| info(i.onestop_id, indent: 3)}
-        info("Time: #{Time.now - t}")
+        info("Time: #{Time.now - t0}")
       end
     end
   end
@@ -124,12 +124,12 @@ class GTFSGraph2
     begin
       changeset.create_change_payloads(entities)
     rescue Changeset::Error => e
-      debug "Changeset Error: #{e}"
-      debug "Payload:"
-      debug e.payload.to_json
+      info("Changeset Error: #{e}")
+      info("Payload:")
+      info(e.payload.to_json.to_s)
       raise e
     rescue StandardError => e
-      debug "Error: #{e}"
+      info("Error: #{e}")
       raise e
     end
     changeset
@@ -150,7 +150,7 @@ class GTFSGraph2
     @indent = indent if indent
     msg = ("\t"*@indent) + ("\t"*plus) + msg
     @log << msg
-    # log(msg)
+    log(msg)
     puts msg
   end
 
