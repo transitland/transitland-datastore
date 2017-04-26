@@ -17,6 +17,7 @@ class GTFSScheduleImport
     @gtfs = nil
     # Log
     @log = []
+    @indent = 0
     # Lookup
     @entity_tl = {}
   end
@@ -52,7 +53,7 @@ class GTFSScheduleImport
       end
     end
     if ssps.size > 0
-      log  "  ssps: #{ssps.size}"
+      info("ssps: #{ssps.size}")
       bulk_insert(ssps)
       ssps = []
     end
@@ -69,8 +70,11 @@ class GTFSScheduleImport
 
   private
 
-  def log(msg)
-    puts msg
+  def info(msg, indent: nil, plus: 0)
+    @indent = indent if indent
+    msg = ("\t"*@indent) + ("\t"*plus) + msg
+    @log << msg
+    log(msg)
   end
 
   def find_by_eiff(gtfs_entity)
@@ -92,7 +96,7 @@ class GTFSScheduleImport
   end
 
   def bulk_insert(ssps)
-    log  "  ssps: #{ssps.size}"
+    info("ssps: #{ssps.size}")
     ScheduleStopPair.import ssps, validate: false
   end
 
@@ -101,21 +105,21 @@ class GTFSScheduleImport
     gtfs_route = @gtfs.route(gtfs_trip.route_id)
     tl_route = find_by_gtfs_entity(gtfs_route)
     unless tl_route
-      log "Trip #{gtfs_trip.trip_id}: Missing Route for route_id: #{gtfs_route.route_id}"
+      info("Trip #{gtfs_trip.trip_id}: Missing Route for route_id: #{gtfs_route.route_id}")
       return []
     end
 
     # Lookup tl_rsp from gtfs_trip.trip_id
     tl_rsp = find_by_gtfs_entity(gtfs_trip)
     unless tl_rsp
-      log "Trip #{gtfs_trip.trip_id}: Missing RouteStopPattern for trip_id: #{gtfs_trip.trip_id}"
+      info("Trip #{gtfs_trip.trip_id}: Missing RouteStopPattern for trip_id: #{gtfs_trip.trip_id}")
       return []
     end
 
     # Lookup gtfs_service_period from gtfs_trip.service_id
     gtfs_service_period = @gtfs.service_period(gtfs_trip.service_id)
     unless gtfs_service_period
-      log "Trip #{gtfs_trip.trip_id}: Unknown GTFS ServicePeriod: #{gtfs_trip.service_id}"
+      info("Trip #{gtfs_trip.trip_id}: Unknown GTFS ServicePeriod: #{gtfs_trip.service_id}")
       return []
     end
 
@@ -141,13 +145,13 @@ class GTFSScheduleImport
       gtfs_origin_stop = @gtfs.stop(gtfs_origin_stop_time.stop_id)
       tl_origin_stop = find_by_gtfs_entity(gtfs_origin_stop)
       unless tl_origin_stop
-        log "Trip #{gtfs_trip.trip_id}: Missing Stop for origin stop_id: #{gtfs_origin_stop.stop_id}"
+        info("Trip #{gtfs_trip.trip_id}: Missing Stop for origin stop_id: #{gtfs_origin_stop.stop_id}")
         next
       end
       gtfs_destination_stop = @gtfs.stop(gtfs_destination_stop_time.stop_id)
       tl_destination_stop = find_by_gtfs_entity(gtfs_destination_stop)
       unless tl_destination_stop
-        log "Trip #{gtfs_trip.trip_id}: Missing Stop for destination stop_id: #{gtfs_destination_stop.stop_id}"
+        info("Trip #{gtfs_trip.trip_id}: Missing Stop for destination stop_id: #{gtfs_destination_stop.stop_id}")
         next
       end
 
@@ -224,7 +228,7 @@ class GTFSScheduleImport
 
     # Skip trip if validation errors
     unless ssp_trip.map(&:valid?).all?
-      log "Trip #{gtfs_trip.trip_id}: Invalid SSPs, skipping"
+      info("Trip #{gtfs_trip.trip_id}: Invalid SSPs, skipping")
       return []
     end
 

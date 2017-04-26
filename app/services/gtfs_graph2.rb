@@ -17,11 +17,10 @@ class GTFSGraph2
     @gtfs = nil
     # Log
     @log = []
+    @indent = 0
     # Lookup
     @entity_tl = {}
     @onestop_tl = {}
-    # Logging prettiness
-    @indent = 0
   end
 
   def load_graph
