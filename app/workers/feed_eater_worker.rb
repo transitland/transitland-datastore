@@ -16,7 +16,7 @@ class FeedEaterWorker
       feed_version = feed.feed_versions.first!
     end
 
-  # Create import record
+    # Create import record
     feed_version_import = feed_version.feed_version_imports.create(
       import_level: import_level
     )
