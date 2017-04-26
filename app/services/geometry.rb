@@ -66,7 +66,7 @@ module Geometry
 
     DISTANCE_PRECISION = 1
 
-    attr_accessor :stop_segment_matching_candidates, :segment_matching_threshold
+    attr_accessor :stop_segment_matching_candidates
 
     def self.stop_before_geometry(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian)
       line_geometry_as_cartesian.before?(stop_as_cartesian) || OutlierStop.outlier_stop_from_precomputed_geometries(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian)
@@ -76,33 +76,21 @@ module Geometry
       line_geometry_as_cartesian.after?(stop_as_cartesian) || OutlierStop.outlier_stop_from_precomputed_geometries(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian)
     end
 
-    def self.compute_segment_matching_threshold(route_line_as_cartesian, stops)
-        @segment_matching_threshold = stops.map{ |stop| OutlierStop.stop_distance_from_line(stop[:geometry], self.cartesian_cast(stop[:geometry]), route_line_as_cartesian)}.max + 1.0
+    def self.cost_matrix(stops, route_line_as_cartesian)
+      # where 'cost' is stops' distances to line segments
+      stops.map do |stop|
+        stop_as_cartesian = self.cartesian_cast(stop[:geometry])
+        locators = route_line_as_cartesian.locators(stop_as_cartesian)
+        locators.map{|locator| [locator, locator.distance_from_segment]}
+      end
     end
 
     def self.best_possible_matching_segments_for_stops(route_line_as_cartesian, stops)
-      self.compute_segment_matching_threshold(route_line_as_cartesian,stops)
+      cost_matrix = self.cost_matrix(stops, route_line_as_cartesian)
       @stop_segment_matching_candidates = []
-      min_index = 0
+      threshold = cost_matrix.map{|locators_and_costs| locators_and_costs.min_by{|lc| lc[1]}[1] }.max
       stops.each_with_index.map do |stop, i|
-        stop_as_cartesian = self.cartesian_cast(stop[:geometry])
-        locators = route_line_as_cartesian.locators(stop_as_cartesian)
-        matches = locators.each_with_index.select{|loc,i|
-          i>=min_index && stop[:geometry].distance(loc.interpolate_point(Stop::GEOFACTORY)) < 150
-        }
-        if matches.to_a.empty?
-          best_match = locators[min_index..-1].each_with_index.min_by{|loc,i| loc.distance_from_segment}
-          max_index = best_match[1]
-          min_index = max_index
-          matches = [best_match]
-        else
-          max_index = matches.max_by{ |loc,i| i }[1]
-          min_index = matches.min_by{ |loc,i| i }[1]
-        end
-        (i-1).downto(0).each do |j|
-          @stop_segment_matching_candidates[j] = @stop_segment_matching_candidates[j].select{|m| m[1] <= max_index }
-        end
-        @stop_segment_matching_candidates[i] = matches
+        @stop_segment_matching_candidates[i] = cost_matrix[i].each_with_index.select{|locator_and_cost, j| locator_and_cost[1] <= threshold}
       end
     end
 
@@ -111,15 +99,15 @@ module Geometry
         return []
       end
       stop_as_cartesian = self.cartesian_cast(stops[stop_index][:geometry])
-      @stop_segment_matching_candidates[stop_index].sort_by{|dfs| dfs[0].distance_from_segment }.each do |dfs|
+      @stop_segment_matching_candidates[stop_index].sort_by{|dfs| dfs[0][1] }.each do |dfs|
         index = dfs[1]
         next if index < start_seg_index
         forward_matches = self.matching_segments(stops, stop_index+1, route_line_as_cartesian, index)
         unless forward_matches.nil?
           forward_matches = [index].concat forward_matches
-          # if forward_matches.each_cons(2).each_with_index.all? {|m,j| m[1] > m[0] || ((m[1] == m[0]) && @stop_segment_matching_candidates[stop_index+j].detect{|s| s[1] == m[0]}[0].distance_on_segment < @stop_segment_matching_candidates[stop_index+j+1].detect{|s| s[1] == m[1]}[0].distance_on_segment) }
+          if forward_matches.each_cons(2).each_with_index.all? {|m,j| m[1] > m[0] || ((m[1] == m[0]) && @stop_segment_matching_candidates[stop_index+j].detect{|s| s[1] == m[0]}[0][0].distance_on_segment < @stop_segment_matching_candidates[stop_index+j+1].detect{|s| s[1] == m[1]}[0][0].distance_on_segment) }
             return forward_matches
-          # end
+          end
         end
       end
       return nil
