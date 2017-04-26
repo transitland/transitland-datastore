@@ -2,7 +2,7 @@ class GTFSScheduleImport
   class Error < StandardError
   end
 
-  attr_accessor :feed, :feed_version
+  attr_accessor :feed, :feed_version, :gtfs
 
   ENTITY_CLASS_MAP = {
     GTFS::Stop => Stop,
@@ -22,13 +22,21 @@ class GTFSScheduleImport
     @entity_tl = {}
   end
 
-  def load_schedule
-    # Load GTFS
+  def load_schedule(trip_ids: nil)
+    info("GTFSScheduleImport: #{@feed.onestop_id} #{@feed_version.sha1}")
     @gtfs = @feed_version.open_gtfs
     @gtfs.agencies
     @gtfs.routes
     @gtfs.stops
     @gtfs.trips
+
+    # Lookup trips
+    if trip_ids
+      trips = trip_ids.map { |i| @gtfs.trip(i) }
+    else
+      trips = @gtfs.trips
+    end
+    info("Trips: #{trips.size}")
 
     # Lookup frequencies.txt
     gtfs_frequencies = {}
@@ -38,22 +46,22 @@ class GTFSScheduleImport
 
     # Import
     ssps = []
-    trips = @gtfs.trips
     @gtfs.trip_stop_times(trips=trips, filter_empty=true) do |gtfs_trip, gtfs_stop_times|
+      # info("TRIP: #{gtfs_trip.id}")
       # Process frequencies
       (gtfs_frequencies[gtfs_trip.trip_id] || [nil]).each do |gtfs_frequency|
-        # Make SSPs for trip
         ssp_trip = make_ssp_trip(gtfs_trip, gtfs_stop_times, gtfs_frequency: gtfs_frequency)
         ssps += ssp_trip
       end
       # Bulk insert
       if ssps.size >= 1000
+        info("ScheduleStopPairs: #{ssps.size}")
         bulk_insert(ssps)
         ssps = []
       end
     end
     if ssps.size > 0
-      info("ssps: #{ssps.size}")
+      info("ScheduleStopPairs: #{ssps.size}")
       bulk_insert(ssps)
       ssps = []
     end
@@ -96,7 +104,6 @@ class GTFSScheduleImport
   end
 
   def bulk_insert(ssps)
-    info("ssps: #{ssps.size}")
     ScheduleStopPair.import ssps, validate: false
   end
 
