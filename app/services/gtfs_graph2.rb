@@ -150,16 +150,13 @@ class GTFSGraph2
     @indent = indent if indent
     msg = ("\t"*@indent) + ("\t"*plus) + msg
     @log << msg
-    # log(msg)
-    puts msg
+    log(msg)
   end
 
   def debug(msg, indent: nil, plus: 0)
     @indent = indent if indent
     msg = ("\t"*@indent) + ("\t"*plus) + msg
-    # @log << msg
-    # log(msg)
-    puts msg
+    log(msg)
   end
 
   def private_create_change_osr
