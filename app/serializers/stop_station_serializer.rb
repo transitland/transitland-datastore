@@ -8,6 +8,7 @@ class StopStationSerializer < CurrentEntitySerializer
                :served_by_vehicle_types,
                :timezone,
                :wheelchair_boarding,
+               :generated,
                :created_at,
                :updated_at,
                :last_conflated_at
@@ -17,6 +18,10 @@ class StopStationSerializer < CurrentEntitySerializer
 
      def issues
        issues = object.issues
+     end
+
+     def generated
+       !object.persisted?
      end
   end
   # Egress serializer
@@ -28,12 +33,18 @@ class StopStationSerializer < CurrentEntitySerializer
                :timezone,
                :osm_way_id,
                :wheelchair_boarding,
+               :generated,
+               :directionality,
                :created_at,
                :updated_at
                :last_conflated_at
 
      def issues
        issues = object.issues
+     end
+
+     def generated
+       !object.persisted?
      end
   end
 
@@ -45,7 +56,8 @@ class StopStationSerializer < CurrentEntitySerializer
       name: object.name,
       timezone: object.timezone,
       last_conflated_at: object.last_conflated_at,
-      osm_way_id: object.osm_way_id
+      osm_way_id: object.osm_way_id,
+      directionality: nil
     )]
   end
 
@@ -57,7 +69,7 @@ class StopStationSerializer < CurrentEntitySerializer
       timezone: object.timezone,
       operators_serving_stop: object.operators_serving_stop,
       routes_serving_stop: object.routes_serving_stop,
-      tags: {}
+      tags: {},
     )]
   end
 

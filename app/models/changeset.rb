@@ -220,8 +220,23 @@ class Changeset < ActiveRecord::Base
 
   def post_quality_check_updates
     self.route_stop_patterns_created_or_updated.each do |rsp|
-      if Issue.issues_of_entity(rsp).any?{ |issue| issue.issue_type.eql?('distance_calculation_inaccurate') }
-        rsp.stop_distances = Array.new(rsp.stop_pattern.size)
+      rsp_dist_issues = Issue.issues_of_entity(rsp).where(issue_type: 'distance_calculation_inaccurate').to_a
+      if rsp_dist_issues.any?
+        if rsp.geometry_source.eql?("shapes_txt_with_dist_traveled")
+          # shape_dist_traveled values may be faulty. So trying the TL algorithm here.
+          Geometry::DistanceCalculation.calculate_distances(rsp)
+          qc = QualityCheck::GeometryQualityCheck.new(changeset: self)
+          rsp.stop_pattern.each_index do |i|
+            qc.stop_distances_accuracy(rsp, i)
+          end
+          rsp_dist_issues.each(&:deprecate)
+          rsp_dist_issues = qc.issues
+          rsp_dist_issues.each(&:save!)
+          rsp.geometry_source = :shapes_txt
+        end
+        if rsp_dist_issues.any?
+          rsp.stop_distances = Array.new(rsp.stop_pattern.size)
+        end
         rsp.update_making_history(changeset: self)
         unless import?
           rsp.ordered_ssp_trip_chunks { |trip_chunk|

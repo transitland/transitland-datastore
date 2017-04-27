@@ -1,10 +1,10 @@
 describe Api::V1::UsersController do
-  before(:each) do
-    allow(Figaro.env).to receive(:transitland_datastore_auth_token) { 'THISISANOTHERKEY' }
-    @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANOTHERKEY'
-  end
-
   let(:user) { create(:user) }
+  let(:auth_token) { JwtAuthToken.issue_token({user_id: user.id}) }
+
+  before(:each) do
+    @request.env['HTTP_AUTHORIZATION'] = "Bearer #{auth_token}"
+  end
 
   context 'GET index' do
     it 'requires auth key to view' do
@@ -18,7 +18,7 @@ describe Api::V1::UsersController do
       get :index
       expect_json_types({ users: :array })
       expect_json({ users: -> (users) {
-        expect(users.length).to eq 2
+        expect(users.length).to eq 3 # because we create one for auth
       }})
     end
 
@@ -27,7 +27,7 @@ describe Api::V1::UsersController do
       get :index, format: :csv
       parsed_csv = CSV.parse(response.body)
       expect(parsed_csv[0]).to eq ["Name", "Affiliation", "User Type", "Email"]
-      expect(parsed_csv.length).to eq 3
+      expect(parsed_csv.length).to eq 4 # because we create one for auth
     end
   end
 
@@ -35,7 +35,7 @@ describe Api::V1::UsersController do
     it 'can create a new user' do
       post :create, user: FactoryGirl.attributes_for(:user)
       expect(response.status).to eq 200
-      expect(User.count).to eq 1
+      expect(User.count).to eq 2 # because we already created one for auth
     end
   end
 

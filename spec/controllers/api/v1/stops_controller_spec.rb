@@ -10,7 +10,7 @@ describe Api::V1::StopsController do
     context 'as JSON' do
       it 'returns all current stops when no parameters provided' do
         get :index
-        expect_json_types({ stops: :array }) # TODO: remove root node?
+        expect_json_types({ stops: :array })
         expect_json({ stops: -> (stops) {
           expect(stops.length).to eq 4
         }})

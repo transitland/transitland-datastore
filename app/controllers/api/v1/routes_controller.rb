@@ -23,7 +23,7 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
       @routes = @routes.where_imported_from_active_feed_version
     end
     if params[:imported_with_gtfs_id].present?
-      @routes = @routes.where_imported_with_gtfs_id(params[:gtfs_id])
+      @routes = @routes.where_imported_with_gtfs_id(params[:gtfs_id] || params[:imported_with_gtfs_id])
     end
     if params[:import_level].present?
       @routes = @routes.where_import_level(AllowFiltering.param_as_array(params, :import_level))
@@ -107,8 +107,15 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
     params.slice(
       :operated_by,
       :operatedBy,
+      :serves,
+      :traverses,
       :color,
       :vehicle_type,
+      :wheelchair_accessible,
+      :bikes_allowed,
+      :lat,
+      :lon,
+      :r,
       :bbox,
       :onestop_id,
       :tag_key,
@@ -116,8 +123,12 @@ class Api::V1::RoutesController < Api::V1::BaseApiController
       :import_level,
       :imported_from_feed,
       :imported_from_feed_version,
+      :imported_from_active_feed_version,
+      :imported_with_gtfs_id,
+      :gtfs_id,
       :exclude_geometry,
-      :include_geometry
+      :include_geometry,
+      :updated_since
     )
   end
 
