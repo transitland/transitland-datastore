@@ -9,9 +9,9 @@ def load_feed(feed_version_name: nil, feed_version: nil, import_level: 1, block_
   graph.create_change_osr
   block_before_level_2.call(graph)
   if import_level >= 2
-    graph.gtfs.trip_chunks(stop_times_max_load) do |trips|
-      GTFSScheduleImport.new(feed, feed_version).load_schedule(trip_ids: trips.map(&:id))
-    end
+    # graph.gtfs.trip_chunks(stop_times_max_load) do |trips|
+    GTFSScheduleImport.new(feed, feed_version).load_schedule
+    # end
   end
   feed.activate_feed_version(feed_version.sha1, import_level)
   return feed, feed_version
