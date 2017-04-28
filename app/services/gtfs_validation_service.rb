@@ -5,23 +5,15 @@ class GTFSValidationService
   CONVEYAL_VALIDATOR_PATH = './lib/conveyal-gtfs-lib/gtfs-lib.jar'
 
   def self.run_conveyal_validator(filename)
-    outfile = nil
-    Tempfile.open(['conveyal', '.json']) do |tmpfile|
-      outfile = tmpfile.path
+    f = nil
+    Dir.mktmpdir do |dir|
+      # Run feedvalidator
+      outfile = File.join(dir, 'conveyal.json')
+      IO.popen(['java', '-Djava.io.tmpdir='+dir, '-jar', CONVEYAL_VALIDATOR_PATH, '-validate', filename, outfile], "w+") do |io|
+      end
+      return unless File.exists?(outfile)
+      f = File.open(outfile)
     end
-
-    # Run feedvalidator
-    output = nil
-    IO.popen(['java', '-jar', CONVEYAL_VALIDATOR_PATH, '-validate', filename, outfile], "w+") do |io|
-      io.write("\n")
-      io.close_write
-      output = io.read
-    end
-
-    return unless File.exists?(outfile)
-    # Unlink temporary file
-    f = File.open(outfile)
-    File.unlink(outfile)
     f
   end
 
