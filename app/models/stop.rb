@@ -18,6 +18,7 @@
 #  osm_way_id                         :integer
 #  edited_attributes                  :string           default([]), is an Array
 #  wheelchair_boarding                :boolean
+#  directionality                     :integer
 #
 # Indexes
 #
@@ -47,6 +48,9 @@ class Stop < BaseStop
   include UpdatedSince
   include IsAnEntityImportedFromFeeds
   include IsAnEntityWithIssues
+  extend Enumerize
+  enumerize :directionality, in: {:enter => 1, :exit => 2, :both => 0}
+  # TODO: use default: :both ?
 
   include CanBeSerializedToCsv
   def self.csv_column_names
@@ -69,6 +73,7 @@ class Stop < BaseStop
       geometry_centroid[:lon]
     ]
   end
+
 
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({

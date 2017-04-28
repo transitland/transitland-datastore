@@ -1,4 +1,15 @@
 describe Api::V1::StopStationsController do
+  describe 'GET show' do
+    context 'generated' do
+      it 'returns generated stop platform' do
+        stop_platform = create(:stop_platform)
+        get :show, id: stop_platform.parent_stop.onestop_id
+        expect_json({ stop_platforms: -> (i) { expect(i.first[:generated]).to be_falsey } })
+        expect_json({ stop_egresses: -> (i) { expect(i.first[:generated]).to be_truthy } })
+      end
+    end
+  end
+
   describe 'GET index' do
     context 'as JSON' do
       context 'with issues' do
