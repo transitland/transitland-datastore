@@ -193,15 +193,15 @@ describe Geometry do
       expect(distances[77]).to be > distances[75]
     end
 
-    # it 'can accurately calculate distances when a stop matches to a segment before the previous stop\'s matching segment' do
-    #   # from sfmta, N-OWL route.
-    #   # See https://transit.land/documentation/datastore/previous_segment_1_sfmta_n~owl.png
-    #   # and https://transit.land/documentation/datastore/previous_segment_2_sfmta_n~owl.png
-    #   @feed, @feed_version = load_feed(feed_version_name: :feed_version_sfmta_6731593, import_level: 1)
-    #   tricky_rsp = @feed.imported_route_stop_patterns[0]
-    #   distances = Geometry::DistanceCalculation.calculate_distances(tricky_rsp)
-    #   expect(distances[-1]).to be > distances[-2]
-    # end
+    it 'can accurately calculate distances when a stop matches to a segment before the previous stop\'s matching segment' do
+      # from sfmta, N-OWL route.
+      # See https://transit.land/documentation/datastore/previous_segment_1_sfmta_n~owl.png
+      # and https://transit.land/documentation/datastore/previous_segment_2_sfmta_n~owl.png
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_sfmta_6731593, import_level: 1)
+      tricky_rsp = @feed.imported_route_stop_patterns[0]
+      distances = Geometry::DistanceCalculation.calculate_distances(tricky_rsp)
+      expect(distances[-1]).to be > distances[-2]
+    end
 
     it 'calculates the distance of the first stop to be 0 if it is before the first point of a geometry' do
       @rsp.stop_pattern = @rsp.stop_pattern.unshift(create(:stop,
@@ -390,10 +390,10 @@ describe Geometry do
       expect(RouteStopPattern.first.stop_distances).to match_array([0.0, 1564.3, 2948.4, 7916.3, 15691.7, 21963.3, 28515.8, 34874.6, 35537.6, 37509.6, 38152.8, 39011.8, 40017.6, 41943.4, 51008.5, 57260.7, 64464.1, 70759.1])
     end
 
-    # it 'keeps distances out of order when the first and second stops are clearly out of order' do
-    #   feed, feed_version = load_feed(feed_version_name: :feed_version_ttc_34398377, import_level: 1)
-    #   expect(Geometry::DistanceCalculation.calculate_distances(RouteStopPattern.first)[0..1]).to match_array([29.2,29.2])
-    # end
+    it 'keeps distances out of order when the first and second stops are clearly out of order' do
+      feed, feed_version = load_feed(feed_version_name: :feed_version_ttc_34398377, import_level: 1)
+      expect(Geometry::DistanceCalculation.calculate_distances(RouteStopPattern.first)[0..1]).to match_array([29.2,29.2])
+    end
   end
 
   context 'determining outlier stops' do
