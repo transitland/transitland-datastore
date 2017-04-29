@@ -178,6 +178,11 @@ module Geometry
     end
 
     def self.calculate_distances(rsp, stops=nil)
+      # This algorithm borrows heavily from OpenTripPlanner's approach seen at:
+      # https://github.com/opentripplanner/OpenTripPlanner/blob/31e712d42668c251181ec50ad951be9909c3b3a7/src/main/java/org/opentripplanner/routing/edgetype/factory/GTFSPatternHopFactory.java#L610
+      # First we compute reasonable segment matching possibilities for each stop based on a threshold.
+      # Then, through a recursive call on each stop, we test the stop's segment possibilities in sorted order (of distance from the line)
+      # until we find a list of all stop distances along the line that are in increasing order.
       if stops.nil?
         stop_hash = Hash[Stop.find_by_onestop_ids!(rsp.stop_pattern).map { |s| [s.onestop_id, s] }]
         stops = rsp.stop_pattern.map{|s| stop_hash.fetch(s) }
@@ -199,10 +204,10 @@ module Geometry
       self.best_possible_matching_segments_for_stops(route_line_as_cartesian, stops, skip_stops=skip_stops)
       best_segment_matches_for_stops = self.matching_segments(stops, 0, route_line_as_cartesian, 0, skip_stops=skip_stops)
 
-      if best_segment_matches_for_stops.nil?
-        # something is wrong, so we'll fallback. TODO: quality check for mismatched rsp shapes before all this, and set to nil
-        return self.fallback_distances(rsp, stops=stops)
-      end
+      # if best_segment_matches_for_stops.nil?
+      #   # something is wrong, so we'll fallback. TODO: quality check for mismatched rsp shapes before all this, and set to nil
+      #   return self.fallback_distances(rsp, stops=stops)
+      # end
       stops.each_with_index do |stop, i|
         next if skip_stops.include?(i)
         current_stop_as_spherical = stop[:geometry]
