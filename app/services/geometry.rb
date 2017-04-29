@@ -27,10 +27,6 @@ module Geometry
       end
       Geometry::LineString.line_string(points).length
     end
-
-    # def self.distance_to_nearest_point_on_line(stop_point_spherical, nearest_point)
-    #   stop_point_spherical.distance(RGeo::Feature.cast(nearest_point, RouteStopPattern::GEOFACTORY))
-    # end
   end
 
   class OutlierStop
@@ -66,7 +62,7 @@ module Geometry
 
     DISTANCE_PRECISION = 1
 
-    attr_accessor :stop_segment_matching_candidates
+    attr_accessor :stop_segment_matching_candidates, :cost_matrix
 
     def self.stop_before_geometry(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian)
       line_geometry_as_cartesian.before?(stop_as_cartesian) || OutlierStop.outlier_stop_from_precomputed_geometries(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian)
@@ -78,39 +74,107 @@ module Geometry
 
     def self.cost_matrix(stops, route_line_as_cartesian)
       # where 'cost' is stops' distances to line segments
-      stops.map do |stop|
+      @cost_matrix = stops.map do |stop|
         stop_as_cartesian = self.cartesian_cast(stop[:geometry])
         locators = route_line_as_cartesian.locators(stop_as_cartesian)
         locators.map{|locator| [locator, locator.distance_from_segment]}
       end
     end
 
-    def self.best_possible_matching_segments_for_stops(route_line_as_cartesian, stops)
-      cost_matrix = self.cost_matrix(stops, route_line_as_cartesian)
+    def self.best_possible_matching_segments_for_stops(route_line_as_cartesian, stops, skip_stops=[])
       @stop_segment_matching_candidates = []
-      threshold = cost_matrix.map{|locators_and_costs| locators_and_costs.min_by{|lc| lc[1]}[1] }.max
+      threshold = @cost_matrix.map{|locators_and_costs| locators_and_costs.min_by{|lc| lc[1]}[1] }.max
+      min_index = 0
       stops.each_with_index.map do |stop, i|
-        @stop_segment_matching_candidates[i] = cost_matrix[i].each_with_index.select{|locator_and_cost, j| locator_and_cost[1] <= threshold}
+        if skip_stops.include?(i)
+          @stop_segment_matching_candidates[i] = nil
+          next
+        end
+        matches = @cost_matrix[i].each_with_index.select{|locator_and_cost,j|
+          j>=min_index && locator_and_cost[1] <= threshold
+        }
+        if matches.to_a.empty?
+          best_match = @cost_matrix[i].each_with_index.select{|locator_and_cost,j| j>= min_index}.min_by{|locator_and_cost,j| locator_and_cost[0].distance_from_segment}
+          max_index = best_match[1]
+          min_index = max_index
+          matches = [best_match]
+        else
+          max_index = matches.max_by{ |locator_and_cost,j| j }[1]
+          min_index = matches.min_by{ |locator_and_cost,j| j }[1]
+        end
+        (i-1).downto(0).each do |j|
+          next if @stop_segment_matching_candidates[j].nil?
+          @stop_segment_matching_candidates[j] = @stop_segment_matching_candidates[j].select{|m| m[1] <= max_index }
+        end
+        @stop_segment_matching_candidates[i] = matches
       end
     end
 
-    def self.matching_segments(stops, stop_index, route_line_as_cartesian, start_seg_index)
+    def self.matching_segments(stops, stop_index, route_line_as_cartesian, start_seg_index, skip_stops=[])
       if stop_index == stops.size
         return []
       end
-      stop_as_cartesian = self.cartesian_cast(stops[stop_index][:geometry])
-      @stop_segment_matching_candidates[stop_index].sort_by{|dfs| dfs[0][1] }.each do |dfs|
-        index = dfs[1]
+      if skip_stops.include?(stop_index)
+        forward_matches = self.matching_segments(stops, stop_index+1, route_line_as_cartesian, start_seg_index, skip_stops=skip_stops)
+        if forward_matches.nil?
+          return nil
+        else
+          return [nil].concat forward_matches
+        end
+      end
+
+      @stop_segment_matching_candidates[stop_index].sort_by{|locator_and_cost,j| locator_and_cost[1] }.each do |locator_and_cost,index|
         next if index < start_seg_index
-        forward_matches = self.matching_segments(stops, stop_index+1, route_line_as_cartesian, index)
+        forward_matches = self.matching_segments(stops, stop_index+1, route_line_as_cartesian, index, skip_stops=skip_stops)
         unless forward_matches.nil?
           forward_matches = [index].concat forward_matches
-          if forward_matches.each_cons(2).each_with_index.all? {|m,j| m[1] > m[0] || ((m[1] == m[0]) && @stop_segment_matching_candidates[stop_index+j].detect{|s| s[1] == m[0]}[0][0].distance_on_segment < @stop_segment_matching_candidates[stop_index+j+1].detect{|s| s[1] == m[1]}[0][0].distance_on_segment) }
-            return forward_matches
+          validate = forward_matches.each_cons(2).each_with_index.all? do |m,j|
+            m[0].nil? || m[1].nil? ||
+            m[1] > m[0] ||
+            m[1] == m[0] && @stop_segment_matching_candidates[stop_index+j].detect{|s| s[1] == m[0]}[0][0].distance_on_segment <= @stop_segment_matching_candidates[stop_index+j+1].detect{|s| s[1] == m[1]}[0][0].distance_on_segment
           end
+          return forward_matches if validate
         end
       end
       return nil
+    end
+
+    def self.assign_first_stop_distance(rsp, route_line_as_cartesian, first_stop_as_spherical, first_stop_as_cartesian)
+      # compare the second stop's closest segment point to the first. If the first stop's point
+      # is after the second, then it has to be set to 0.0 because the line geometry
+      # is likely to be too short by not coming up to the first stop.
+      if self.stop_before_geometry(first_stop_as_spherical, first_stop_as_cartesian, route_line_as_cartesian)
+        first_stop_locator_and_index = @cost_matrix[0].each_with_index.min_by{|locator_and_cost, i| locator_and_cost[1]}
+        second_stop_locator_and_index = @cost_matrix[1].each_with_index.min_by{|locator_and_cost, i| locator_and_cost[1]}
+        if first_stop_locator_and_index[1] < second_stop_locator_and_index[1]
+          rsp.stop_distances[0] = LineString.distance_along_line_to_nearest_point(route_line_as_cartesian,first_stop_locator_and_index[0][0].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326)),first_stop_locator_and_index[1])
+        elsif first_stop_locator_and_index[1] == second_stop_locator_and_index[1] && first_stop_locator_and_index[0][0].distance_on_segment < second_stop_locator_and_index[0][0].distance_on_segment
+          rsp.stop_distances[0] = LineString.distance_along_line_to_nearest_point(route_line_as_cartesian,first_stop_locator_and_index[0][0].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326)),first_stop_locator_and_index[1])
+        else
+          rsp.stop_distances[0] = 0.0
+        end
+        return true
+      end
+      return false
+    end
+
+    def self.assign_last_stop_distance(rsp, route_line_as_cartesian, last_stop_as_spherical, last_stop_as_cartesian)
+      # compare the last stop's closest segment point to the penultimate. If the last stop's point
+      # is before the second, then it has to be set to the length of the line geometry, as it
+      # is likely to be too short by not coming up to the last stop.
+      if self.stop_after_geometry(last_stop_as_spherical, last_stop_as_cartesian, route_line_as_cartesian)
+        last_stop_locator_and_index = @cost_matrix[-1].each_with_index.min_by{|locator_and_cost, i| locator_and_cost[1]}
+        penultimate_stop_locator_and_index = @cost_matrix[-2].each_with_index.min_by{|locator_and_cost, i| locator_and_cost[1]}
+        if last_stop_locator_and_index[1] > penultimate_stop_locator_and_index[1]
+          rsp.stop_distances[-1] = LineString.distance_along_line_to_nearest_point(route_line_as_cartesian,last_stop_locator_and_index[0][0].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326)),last_stop_locator_and_index[1])
+        elsif last_stop_locator_and_index[1] == penultimate_stop_locator_and_index[1] && last_stop_locator_and_index[0][0].distance_on_segment > penultimate_stop_locator_and_index[0][0].distance_on_segment
+          rsp.stop_distances[-1] = LineString.distance_along_line_to_nearest_point(route_line_as_cartesian,last_stop_locator_and_index[0][0].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326)),last_stop_locator_and_index[1])
+        else
+          rsp.stop_distances[-1] = rsp[:geometry].length
+        end
+        return true
+      end
+      return false
     end
 
     def self.calculate_distances(rsp, stops=nil)
@@ -122,13 +186,29 @@ module Geometry
         rsp.stop_distances = Array.new(stops.size).map{|i| 0.0}
         return rsp.stop_distances
       end
-      rsp.stop_distances = []
+      rsp.stop_distances = Array.new(stops.size)
       route_line_as_cartesian = self.cartesian_cast(rsp[:geometry])
-      self.best_possible_matching_segments_for_stops(route_line_as_cartesian, stops)
-      best_segment_matches_for_stops = self.matching_segments(stops, 0, route_line_as_cartesian, 0)
+      self.cost_matrix(stops, route_line_as_cartesian)
+
+      skip_stops = []
+      skip_first_stop = self.assign_first_stop_distance(rsp, route_line_as_cartesian, stops[0][:geometry], self.cartesian_cast(stops[0][:geometry]))
+      skip_last_stop = self.assign_last_stop_distance(rsp, route_line_as_cartesian, stops[-1][:geometry], self.cartesian_cast(stops[-1][:geometry]))
+      skip_stops << 0 if skip_first_stop
+      skip_stops << stops.size - 1 if skip_last_stop
+
+      self.best_possible_matching_segments_for_stops(route_line_as_cartesian, stops, skip_stops=skip_stops)
+      best_segment_matches_for_stops = self.matching_segments(stops, 0, route_line_as_cartesian, 0, skip_stops=skip_stops)
+
+      if best_segment_matches_for_stops.nil?
+        # something is wrong, so we'll fallback. TODO: quality check for mismatched rsp shapes before all this, and set to nil
+        return self.fallback_distances(rsp, stops=stops)
+      end
       stops.each_with_index do |stop, i|
-        locator = route_line_as_cartesian._segments[best_segment_matches_for_stops[i]].locator(stop[:geometry])
-        rsp.stop_distances << LineString.distance_along_line_to_nearest_point(route_line_as_cartesian,locator.interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326)),best_segment_matches_for_stops[i])
+        next if skip_stops.include?(i)
+        current_stop_as_spherical = stop[:geometry]
+        current_stop_as_cartesian = self.cartesian_cast(current_stop_as_spherical)
+        locator = @cost_matrix[i][best_segment_matches_for_stops[i]][0]
+        rsp.stop_distances[i] = LineString.distance_along_line_to_nearest_point(route_line_as_cartesian,locator.interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326)),best_segment_matches_for_stops[i])
       end
       rsp.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
     end
