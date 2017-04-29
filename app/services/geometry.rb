@@ -81,23 +81,31 @@ module Geometry
       end
     end
 
+    def self.compute_matching_candidate_threshold(stops)
+      distances = stops.each_cons(2).map{|stop1,stop2| stop1[:geometry].distance(stop2[:geometry]) }
+      distances.sum/(2.0*distances.size)
+    end
+
     def self.best_possible_matching_segments_for_stops(route_line_as_cartesian, stops, skip_stops=[])
       @stop_segment_matching_candidates = []
-      threshold = @cost_matrix.map{|locators_and_costs| locators_and_costs.min_by{|lc| lc[1]}[1] }.max
+      threshold = compute_matching_candidate_threshold(stops)
       min_index = 0
       stops.each_with_index.map do |stop, i|
         if skip_stops.include?(i)
           @stop_segment_matching_candidates[i] = nil
           next
         end
-        matches = @cost_matrix[i].each_with_index.select{|locator_and_cost,j|
-          j>=min_index && locator_and_cost[1] <= threshold
-        }
+        matches = @cost_matrix[i].each_with_index.select do |locator_and_cost,j|
+          distance = stop[:geometry].distance(locator_and_cost[0].interpolate_point(RouteStopPattern::GEOFACTORY))
+          j >= min_index && distance <= threshold
+        end
         if matches.to_a.empty?
-          best_match = @cost_matrix[i].each_with_index.select{|locator_and_cost,j| j>= min_index}.min_by{|locator_and_cost,j| locator_and_cost[0].distance_from_segment}
-          max_index = best_match[1]
-          min_index = max_index
-          matches = [best_match]
+          # best_match = @cost_matrix[i].each_with_index.select{|locator_and_cost,j| j>= min_index}.min_by{|locator_and_cost,j| locator_and_cost[0].distance_from_segment}
+          # max_index = best_match[1]
+          # min_index = max_index
+          # matches = [best_match]
+          skip_stops << i
+          next
         else
           max_index = matches.max_by{ |locator_and_cost,j| j }[1]
           min_index = matches.min_by{ |locator_and_cost,j| j }[1]
@@ -178,11 +186,16 @@ module Geometry
     end
 
     def self.calculate_distances(rsp, stops=nil)
-      # This algorithm borrows heavily from OpenTripPlanner's approach seen at:
+      # This algorithm borrows heavily, with modifications, from OpenTripPlanner's approach seen at:
       # https://github.com/opentripplanner/OpenTripPlanner/blob/31e712d42668c251181ec50ad951be9909c3b3a7/src/main/java/org/opentripplanner/routing/edgetype/factory/GTFSPatternHopFactory.java#L610
       # First we compute reasonable segment matching possibilities for each stop based on a threshold.
       # Then, through a recursive call on each stop, we test the stop's segment possibilities in sorted order (of distance from the line)
       # until we find a list of all stop distances along the line that are in increasing order.
+
+      # It may be worthwhile to consider the problem defined and solved algorithmically in:
+      # http://www.sciencedirect.com/science/article/pii/0012365X9500325Q
+      # Computing the stop distances along a line can be considered a variation of the Assignment problem.
+
       if stops.nil?
         stop_hash = Hash[Stop.find_by_onestop_ids!(rsp.stop_pattern).map { |s| [s.onestop_id, s] }]
         stops = rsp.stop_pattern.map{|s| stop_hash.fetch(s) }
@@ -214,6 +227,11 @@ module Geometry
         current_stop_as_cartesian = self.cartesian_cast(current_stop_as_spherical)
         locator = @cost_matrix[i][best_segment_matches_for_stops[i]][0]
         rsp.stop_distances[i] = LineString.distance_along_line_to_nearest_point(route_line_as_cartesian,locator.interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326)),best_segment_matches_for_stops[i])
+      end
+      # now, handle outlier stops that are not the first or last stops
+      skip_stops.reject{|i| [0, stops.size-1].include?(i) }.each do |i|
+        # interpolate between the previous and next stop distances
+        rsp.stop_distances[i] = (rsp.stop_distances[i-1] + rsp.stop_distances[i+1])/2.0
       end
       rsp.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
     end
