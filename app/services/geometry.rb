@@ -82,6 +82,7 @@ module Geometry
     end
 
     def self.compute_matching_candidate_threshold(stops)
+      # 1/2 of the average distance between two consecutive stops
       distances = stops.each_cons(2).map{|stop1,stop2| stop1[:geometry].distance(stop2[:geometry]) }
       distances.sum/(2.0*distances.size)
     end
@@ -100,10 +101,6 @@ module Geometry
           j >= min_index && distance <= threshold
         end
         if matches.to_a.empty?
-          # best_match = @cost_matrix[i].each_with_index.select{|locator_and_cost,j| j>= min_index}.min_by{|locator_and_cost,j| locator_and_cost[0].distance_from_segment}
-          # max_index = best_match[1]
-          # min_index = max_index
-          # matches = [best_match]
           skip_stops << i
           next
         else
@@ -186,7 +183,7 @@ module Geometry
     end
 
     def self.calculate_distances(rsp, stops=nil)
-      # This algorithm borrows heavily, with modifications, from OpenTripPlanner's approach seen at:
+      # This algorithm borrows heavily, with modifications and adaptions, from OpenTripPlanner's approach seen at:
       # https://github.com/opentripplanner/OpenTripPlanner/blob/31e712d42668c251181ec50ad951be9909c3b3a7/src/main/java/org/opentripplanner/routing/edgetype/factory/GTFSPatternHopFactory.java#L610
       # First we compute reasonable segment matching possibilities for each stop based on a threshold.
       # Then, through a recursive call on each stop, we test the stop's segment possibilities in sorted order (of distance from the line)
@@ -217,10 +214,16 @@ module Geometry
       self.best_possible_matching_segments_for_stops(route_line_as_cartesian, stops, skip_stops=skip_stops)
       best_segment_matches_for_stops = self.matching_segments(stops, 0, route_line_as_cartesian, 0, skip_stops=skip_stops)
 
-      # if best_segment_matches_for_stops.nil?
-      #   # something is wrong, so we'll fallback. TODO: quality check for mismatched rsp shapes before all this, and set to nil
-      #   return self.fallback_distances(rsp, stops=stops)
-      # end
+      if best_segment_matches_for_stops.nil?
+        # something is wrong, so we'll fake distances by using the closet match. Hopefully it'll throw quality issues
+        # TODO: quality check for mismatched rsp shapes before all this, and set to nil?
+        rsp.stop_distances = @cost_matrix.map do |m|
+          locator_and_cost, i = m.each_with_index.min_by{|locator_and_cost,i| locator_and_cost[1] }
+          closest_point = locator_and_cost[0].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326))
+          LineString.distance_along_line_to_nearest_point(route_line_as_cartesian,closest_point,i)
+        end
+        return rsp.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
+      end
       stops.each_with_index do |stop, i|
         next if skip_stops.include?(i)
         current_stop_as_spherical = stop[:geometry]
