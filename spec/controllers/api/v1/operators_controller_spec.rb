@@ -29,6 +29,27 @@ describe Api::V1::OperatorsController do
         }})
       end
 
+      it 'filters by imported_with_gtfs_id' do
+        operators = create_list(:operator, 3)
+        operator = create(:operator, name: 'Test 123')
+        feed_version = create(:feed_version_example)
+        feed_version.entities_imported_from_feed.create!(entity: operator, feed: feed_version.feed, gtfs_id: "test")
+        get :index, imported_with_gtfs_id: 'test'
+        expect_json({ operators: -> (operators) {
+          expect(operators.first[:onestop_id]).to eq operator.onestop_id
+          expect(operators.count).to eq 1
+        }})
+        get :index, imported_with_gtfs_id: 'true', gtfs_id: 'test'
+        expect_json({ operators: -> (operators) {
+          expect(operators.first[:onestop_id]).to eq operator.onestop_id
+          expect(operators.count).to eq 1
+        }})
+        get :index, imported_with_gtfs_id: 'unknown'
+        expect_json({ operators: -> (operators) {
+          expect(operators.size).to eq 0
+        }})
+      end
+
       it 'filters by name' do
         operators = create_list(:operator, 3)
         operator = create(:operator, name: 'Test 123')

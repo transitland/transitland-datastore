@@ -2,7 +2,34 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.26...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.28...HEAD)
+
+**Merged pull requests:**
+
+- Production release 4.9.28 [\#1065](https://github.com/transitland/transitland-datastore/pull/1065) ([irees](https://github.com/irees))
+
+## [4.9.28](https://github.com/transitland/transitland-datastore/tree/4.9.28) (2017-04-28)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.27...4.9.28)
+
+**Closed issues:**
+
+- StopEgress directionality [\#1072](https://github.com/transitland/transitland-datastore/issues/1072)
+- API not returning objects when requested by gtfs\_id [\#1070](https://github.com/transitland/transitland-datastore/issues/1070)
+- feedvalidator.py: ensure tmp sqlite db files are removed [\#1069](https://github.com/transitland/transitland-datastore/issues/1069)
+- Missing allowed query\_params in pagination [\#1062](https://github.com/transitland/transitland-datastore/issues/1062)
+- Show feedvalidator.py results in IFrame [\#1061](https://github.com/transitland/transitland-datastore/issues/1061)
+- run external validator libraries on new feed versions [\#888](https://github.com/transitland/transitland-datastore/issues/888)
+
+**Merged pull requests:**
+
+- Run validators in tmpdir [\#1074](https://github.com/transitland/transitland-datastore/pull/1074) ([irees](https://github.com/irees))
+- Allow either imported\_with\_gtfs\_id or gtfs\_id [\#1071](https://github.com/transitland/transitland-datastore/pull/1071) ([irees](https://github.com/irees))
+- StopEgress directionality [\#1068](https://github.com/transitland/transitland-datastore/pull/1068) ([irees](https://github.com/irees))
+- StopPlatform: mark as generated [\#1067](https://github.com/transitland/transitland-datastore/pull/1067) ([irees](https://github.com/irees))
+- Production release 4.9.27 [\#1053](https://github.com/transitland/transitland-datastore/pull/1053) ([irees](https://github.com/irees))
+
+## [4.9.27](https://github.com/transitland/transitland-datastore/tree/4.9.27) (2017-04-15)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.26...4.9.27)
 
 **Implemented enhancements:**
 
@@ -15,11 +42,18 @@
 
 **Closed issues:**
 
+- Validation of shape\_dist\_traveled [\#1057](https://github.com/transitland/transitland-datastore/issues/1057)
+- update Google TransitFeed validator dependency [\#1054](https://github.com/transitland/transitland-datastore/issues/1054)
 - FeedVersion update sometimes removes cached file [\#1049](https://github.com/transitland/transitland-datastore/issues/1049)
 - allow Users to authenticate against API using JSON Web Tokens [\#623](https://github.com/transitland/transitland-datastore/issues/623)
 
 **Merged pull requests:**
 
+- Update allowed query\_params [\#1063](https://github.com/transitland/transitland-datastore/pull/1063) ([irees](https://github.com/irees))
+- Feed version serializer: include feed [\#1060](https://github.com/transitland/transitland-datastore/pull/1060) ([irees](https://github.com/irees))
+- Validate gtfs shape dist traveled [\#1058](https://github.com/transitland/transitland-datastore/pull/1058) ([doublestranded](https://github.com/doublestranded))
+- update gems [\#1056](https://github.com/transitland/transitland-datastore/pull/1056) ([drewda](https://github.com/drewda))
+- updating Google Python-based validator library [\#1055](https://github.com/transitland/transitland-datastore/pull/1055) ([drewda](https://github.com/drewda))
 - Feed version info serializer updates [\#1051](https://github.com/transitland/transitland-datastore/pull/1051) ([irees](https://github.com/irees))
 - FeedVersion update sometimes removes cached file [\#1050](https://github.com/transitland/transitland-datastore/pull/1050) ([irees](https://github.com/irees))
 - First stop seg matching improvement [\#1048](https://github.com/transitland/transitland-datastore/pull/1048) ([doublestranded](https://github.com/doublestranded))
