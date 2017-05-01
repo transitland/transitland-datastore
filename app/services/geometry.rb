@@ -88,7 +88,7 @@ module Geometry
 
       # average minimum distance from stop to line
       mins = @cost_matrix.each_with_index.map{|locators_and_costs,i| stops[i][:geometry].distance(locators_and_costs.min_by{|lc| lc[1]}[0].interpolate_point(Stop::GEOFACTORY)) }
-      y = mins.sum/(2.0*mins.size)
+      y = mins.sum/mins.size.to_f
       Math.sqrt(x**2 + y**2)
     end
 
