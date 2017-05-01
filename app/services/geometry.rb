@@ -83,8 +83,13 @@ module Geometry
 
     def self.compute_matching_candidate_threshold(stops)
       # 1/2 of the average distance between two consecutive stops
-      distances = stops.each_cons(2).map{|stop1,stop2| stop1[:geometry].distance(stop2[:geometry]) }
-      distances.sum/(2.0*distances.size)
+      between = stops.each_cons(2).map{|stop1,stop2| stop1[:geometry].distance(stop2[:geometry]) }
+      x = between.sum/(2.0*between.size)
+
+      # average minimum distance from stop to line
+      mins = @cost_matrix.each_with_index.map{|locators_and_costs,i| stops[i][:geometry].distance(locators_and_costs.min_by{|lc| lc[1]}[0].interpolate_point(Stop::GEOFACTORY)) }
+      y = mins.sum/(2.0*mins.size)
+      Math.sqrt(x**2 + y**2)
     end
 
     def self.best_possible_matching_segments_for_stops(route_line_as_cartesian, stops, skip_stops=[])
@@ -213,8 +218,7 @@ module Geometry
 
       self.best_possible_matching_segments_for_stops(route_line_as_cartesian, stops, skip_stops=skip_stops)
       best_segment_matches_for_stops = self.matching_segments(stops, 0, route_line_as_cartesian, 0, skip_stops=skip_stops)
-
-      if best_segment_matches_for_stops.nil?
+      if best_segment_matches_for_stops.nil? || best_segment_matches_for_stops.any?{|b| b.nil?}
         # something is wrong, so we'll fake distances by using the closet match. Hopefully it'll throw quality issues
         # TODO: quality check for mismatched rsp shapes before all this, and set to nil?
         rsp.stop_distances = @cost_matrix.map do |m|
@@ -268,6 +272,7 @@ module Geometry
       # assumes the line geometry is not generated, and shape_points equals the rsp geometry.
       rsp.stop_distances = []
       search_and_seg_index = 0
+      route_line_as_cartesian = self.cartesian_cast(rsp[:geometry])
       stop_times.each_with_index do |st, i|
         stop_onestop_id = rsp.stop_pattern[i]
 
@@ -289,7 +294,6 @@ module Geometry
           if dist1.nil? || dist2.nil?
             raise StandardError.new("Problem finding stop distance for Stop #{stop_onestop_id}, number #{i + 1} of RSP #{rsp.onestop_id} using shape_dist_traveled")
           else
-            route_line_as_cartesian = self.cartesian_cast(rsp[:geometry])
             stop = tl_stops[i]
             locators = route_line_as_cartesian.locators(self.cartesian_cast(stop[:geometry]))
             seg_length = shape_distances_traveled[search_and_seg_index+1] - shape_distances_traveled[search_and_seg_index]
