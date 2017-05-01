@@ -218,7 +218,7 @@ module Geometry
 
       self.best_possible_matching_segments_for_stops(route_line_as_cartesian, stops, skip_stops=skip_stops)
       best_segment_matches_for_stops = self.matching_segments(stops, 0, route_line_as_cartesian, 0, skip_stops=skip_stops)
-      if best_segment_matches_for_stops.nil? || best_segment_matches_for_stops.any?{|b| b.nil?}
+      if best_segment_matches_for_stops.nil? || best_segment_matches_for_stops.each_with_index.any?{|b,i| b.nil? && !skip_stops.include?(i)}
         # something is wrong, so we'll fake distances by using the closet match. Hopefully it'll throw quality issues
         # TODO: quality check for mismatched rsp shapes before all this, and set to nil?
         rsp.stop_distances = @cost_matrix.map do |m|
