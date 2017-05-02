@@ -250,6 +250,8 @@ module Geometry
     end
 
     def self.fallback_distances(rsp, route_line_as_cartesian)
+      # a naive assigment of stops to closest segment.
+      # This can create inaccuracies, which may be intentional for quality checks to pick up. 
       rsp.stop_distances = @cost_matrix.map do |m|
         locator_and_cost, i = m.each_with_index.min_by{|locator_and_cost,i| locator_and_cost[1] }
         closest_point = locator_and_cost[0].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326))
