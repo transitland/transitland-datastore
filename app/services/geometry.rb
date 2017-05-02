@@ -32,6 +32,9 @@ module Geometry
   class OutlierStop
     extend Lib
 
+    # NOTE: The determination for outliers during distance calculation
+    # may be different than the one for quality checks.
+
     OUTLIER_THRESHOLD = 100 # meters
 
     def self.outlier_stop(stop, rsp)
@@ -226,12 +229,7 @@ module Geometry
       if self.matches_invalid?(best_segment_matches_for_stops, skip_stops)
         # something is wrong, so we'll fake distances by using the closest match. It should throw distance quality issues later on.
         # TODO: quality check for mismatched rsp shapes before all this, and set to nil?
-        rsp.stop_distances = @cost_matrix.map do |m|
-          locator_and_cost, i = m.each_with_index.min_by{|locator_and_cost,i| locator_and_cost[1] }
-          closest_point = locator_and_cost[0].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326))
-          LineString.distance_along_line_to_nearest_point(route_line_as_cartesian,closest_point,i)
-        end
-        return rsp.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
+        return self.fallback_distances(rsp, route_line_as_cartesian)
       end
       stops.each_with_index do |stop, i|
         next if skip_stops.include?(i)
@@ -251,7 +249,17 @@ module Geometry
       rsp.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
     end
 
-    def self.fallback_distances(rsp, stops=nil)
+    def self.fallback_distances(rsp, route_line_as_cartesian)
+      rsp.stop_distances = @cost_matrix.map do |m|
+        locator_and_cost, i = m.each_with_index.min_by{|locator_and_cost,i| locator_and_cost[1] }
+        closest_point = locator_and_cost[0].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326))
+        LineString.distance_along_line_to_nearest_point(route_line_as_cartesian,closest_point,i)
+      end
+      rsp.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
+    end
+
+    def self.straight_line_distances(rsp, stops=nil)
+      # stop distances on straight lines from stop to stop
       rsp.stop_distances = [0.0]
       total_distance = 0.0
       stops = rsp.stop_pattern.map {|onestop_id| Stop.find_by_onestop_id!(onestop_id) } if stops.nil?

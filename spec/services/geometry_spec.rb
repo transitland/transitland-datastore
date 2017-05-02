@@ -101,9 +101,9 @@ describe Geometry do
       expect(Issue.where(issue_type: 'distance_calculation_inaccurate').size).to eq 0
     end
 
-    it '#fallback_distances' do
+    it '#straight_line_distances' do
       expect(@rsp.stop_distances).to match_array([])
-      Geometry::DistanceCalculation.fallback_distances(@rsp)
+      Geometry::DistanceCalculation.straight_line_distances(@rsp)
       expect(@rsp.stop_distances).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(12617.9),
                                                               a_value_within(0.1).of(17001.5)])
