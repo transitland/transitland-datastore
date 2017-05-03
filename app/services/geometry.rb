@@ -85,10 +85,11 @@ module Geometry
     end
 
     def compute_recursive_call_limit(num_stops)
-      if num_stops <= 10
-        @recursive_call_limit = 2**num_stops
+      # TODO evaluate these limits
+      if num_stops <= 50
+        @recursive_call_limit = 2**num_stops + 16
       elsif num_stops > 10 && num_stops < 50
-        @recursive_call_limit = 1.5**num_stops
+        @recursive_call_limit = 1.5**num_stops + 1040
       else
         @recursive_call_limit = 3*num_stops
       end
