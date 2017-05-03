@@ -1,4 +1,4 @@
-class GTFSScheduleImport
+class GTFSScheduleImporter
   class Error < StandardError
   end
 
