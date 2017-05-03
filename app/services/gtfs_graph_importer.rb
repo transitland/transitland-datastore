@@ -1,4 +1,4 @@
-class GTFSGraph2
+class GTFSGraphImporter
   class Error < StandardError
   end
 
