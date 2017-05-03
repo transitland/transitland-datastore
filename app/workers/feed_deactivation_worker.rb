@@ -1,5 +1,7 @@
 class FeedDeactivationWorker
   include Sidekiq::Worker
+  sidekiq_options queue: :default,
+                  retry: false
 
   def perform(feed_onestop_id, feed_version_sha1)
     log "FeedDeactivationWorker #{feed_onestop_id}: deactivating #{feed_version_sha1}"

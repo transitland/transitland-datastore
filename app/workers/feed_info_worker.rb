@@ -2,7 +2,8 @@ require 'net/http'
 
 class FeedInfoWorker
   include Sidekiq::Worker
-  sidekiq_options :retry => false
+  sidekiq_options queue: :high,
+                  retry: false
 
   def perform(url, cachekey)
     @url = url
