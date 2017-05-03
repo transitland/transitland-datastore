@@ -1,9 +1,10 @@
 class ChangesetApplyWorker
   include Sidekiq::Worker
-  sidekiq_options unique: :until_and_while_executing,
-                  unique_job_expiration: 60 * 60, # 1 hour
-                  log_duplicate_payload: true,
-                  retry: false
+  sidekiq_options queue: :high,
+                  retry: false,
+                  unique: :until_and_while_executing,
+                  unique_job_expiration: 60 * 60 * 22, # 22 hours
+                  log_duplicate_payload: true
 
   def perform(changeset_id, cachekey)
     log "ChangesetApplyWorker: #{changeset_id}"
