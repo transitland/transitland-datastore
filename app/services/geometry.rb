@@ -127,6 +127,7 @@ module Geometry
           max_index = matches.max_by{ |locator_and_cost,j| j }[1]
           min_index = matches.min_by{ |locator_and_cost,j| j }[1]
         end
+        # prune segments of previous stops whose indexes are greater than the max of the current stop's segments.
         (i-1).downto(0).each do |j|
           next if @stop_segment_matching_candidates[j].nil?
           @stop_segment_matching_candidates[j] = @stop_segment_matching_candidates[j].select{|m| m[1] <= max_index }
