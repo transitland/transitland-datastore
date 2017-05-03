@@ -2,10 +2,22 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.28...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.29...HEAD)
+
+**Closed issues:**
+
+- Sidekiq: high & low priority queues [\#1078](https://github.com/transitland/transitland-datastore/issues/1078)
 
 **Merged pull requests:**
 
+- Production release 4.9.29 [\#1075](https://github.com/transitland/transitland-datastore/pull/1075) ([irees](https://github.com/irees))
+
+## [4.9.29](https://github.com/transitland/transitland-datastore/tree/4.9.29) (2017-05-03)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.28...4.9.29)
+
+**Merged pull requests:**
+
+- Sidekiq queue adjustments [\#1079](https://github.com/transitland/transitland-datastore/pull/1079) ([irees](https://github.com/irees))
 - Production release 4.9.28 [\#1065](https://github.com/transitland/transitland-datastore/pull/1065) ([irees](https://github.com/irees))
 
 ## [4.9.28](https://github.com/transitland/transitland-datastore/tree/4.9.28) (2017-04-28)
