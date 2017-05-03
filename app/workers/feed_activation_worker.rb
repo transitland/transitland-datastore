@@ -1,5 +1,7 @@
 class FeedActivationWorker
   include Sidekiq::Worker
+  sidekiq_options queue: :default,
+                  retry: false
 
   def perform(feed_onestop_id, feed_version_sha1, import_level)
     log "FeedActivationWorker #{feed_onestop_id}: activating #{feed_version_sha1} at import_level #{import_level}"
