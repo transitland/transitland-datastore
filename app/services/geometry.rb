@@ -85,14 +85,9 @@ module Geometry
     end
 
     def compute_recursive_call_limit(num_stops)
-      # TODO evaluate these limits
-      if num_stops <= 50
-        @recursive_call_limit = 2**num_stops + 16
-      elsif num_stops > 10 && num_stops < 50
-        @recursive_call_limit = 1.5**num_stops + 1040
-      else
-        @recursive_call_limit = 3*num_stops
-      end
+      # TODO evaluate these limits 
+      k = 1.0 + 3.0*(Math.log(num_stops)/num_stops**1.2) # max 'average' allowable num of segment candidates per stop. Approaches 1.0 as num_stops increases
+      @recursive_call_limit = 3.0*num_stops*k**num_stops
     end
 
     def compute_matching_candidate_threshold(stops)
@@ -136,14 +131,14 @@ module Geometry
       end
     end
 
-    def matching_segments(stops, stop_index, route_line_as_cartesian, start_seg_index, skip_stops=[])
+    def matching_segments(stops, stop_index, start_seg_index, skip_stops=[])
       return nil if @recursive_calls > @recursive_call_limit
       @recursive_calls += 1
       if stop_index == stops.size
         return []
       end
       if skip_stops.include?(stop_index)
-        forward_matches = self.matching_segments(stops, stop_index+1, route_line_as_cartesian, start_seg_index, skip_stops=skip_stops)
+        forward_matches = self.matching_segments(stops, stop_index+1, start_seg_index, skip_stops=skip_stops)
         if forward_matches.nil?
           return nil
         else
@@ -151,19 +146,23 @@ module Geometry
         end
       end
 
-      @stop_segment_matching_candidates[stop_index].sort_by{|locator_and_cost,j| locator_and_cost[1] }.each do |locator_and_cost,index|
+      @stop_segment_matching_candidates[stop_index].sort_by{|locator_and_cost,index| locator_and_cost[1] }.each do |locator_and_cost,index|
         next if index < start_seg_index
-        forward_matches = self.matching_segments(stops, stop_index+1, route_line_as_cartesian, index, skip_stops=skip_stops)
+        # sometimes the current stop's candidates are the same as the previous, and the distance on the segment is out of order.
+        # in this case, we need to continue the loop for the current stop, not the previous.
+        previous_match_candidates = @stop_segment_matching_candidates[stop_index-1]
+        next if stop_index != 0 && index == start_seg_index && !previous_match_candidates.nil? && (locator_and_cost[0].distance_on_segment < previous_match_candidates.detect{|lc,i| start_seg_index == i}[0][0].distance_on_segment)
+        forward_matches = self.matching_segments(stops, stop_index+1, index, skip_stops=skip_stops)
         unless forward_matches.nil?
           forward_matches = [index].concat forward_matches
-          validate = forward_matches.each_cons(2).each_with_index.all? do |m,j|
+          valid = forward_matches.each_cons(2).each_with_index.all? do |m,j|
             # Preserve segment order, unless stops match to same segment. If so,
             # check that their positions along the segment are preserved.
             m[0].nil? || m[1].nil? ||
             m[1] > m[0] ||
             m[1] == m[0] && @stop_segment_matching_candidates[stop_index+j].detect{|s| s[1] == m[0]}[0][0].distance_on_segment <= @stop_segment_matching_candidates[stop_index+j+1].detect{|s| s[1] == m[1]}[0][0].distance_on_segment
           end
-          return forward_matches if validate
+          return forward_matches if valid
         end
       end
       return nil
@@ -240,7 +239,7 @@ module Geometry
       best_possible_matching_segments_for_stops(route_line_as_cartesian, stops, skip_stops=skip_stops)
       @recursive_calls = 0
       compute_recursive_call_limit(stops.size)
-      best_single_segment_match_for_stops = matching_segments(stops, 0, route_line_as_cartesian, 0, skip_stops=skip_stops)
+      best_single_segment_match_for_stops = matching_segments(stops, 0, 0, skip_stops=skip_stops)
 
       if matches_invalid?(best_single_segment_match_for_stops, skip_stops)
         # something is wrong, so we'll fake distances by using the closest match. It should throw distance quality issues later on.

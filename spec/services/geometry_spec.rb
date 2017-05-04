@@ -369,8 +369,14 @@ describe Geometry do
     end
 
     it 'handles case where first stop is not close to the line except towards the end' do
-      feed, feed_version = load_feed(feed_version_name: :feed_version_hdpt_trip, import_level: 1)
-      expect(RouteStopPattern.first.stop_distances).to match_array([91.2,357.2,811.5,1130.7,1716.7,1981.3,2909.3,3029.7,3364.5,3639.4,4179.9,6054.3,6506.2,6886.6,7351.3,7435.3,7968.8,8182.2,8433.0,8589.9,8709.7,8895.6,9444.7,9790.9,10485.9,11178.0,11963.4,12467.3,12733.2,13208.4,13518.9])
+      feed, feed_version = load_feed(feed_version_name: :feed_version_hdpt_shop_trip, import_level: 1)
+      expect(RouteStopPattern.first.stop_distances).to match_array([91.2,357.2,811.5,1130.7,1716.7,1981.3,2909.3,3029.7,3364.5,3639.4,4179.9,6054.3,6506.2,6886.6,7440.9,7476.3,7968.8,8182.2,8433.0,8589.9,8709.7,8895.6,9444.7,9790.9,10485.9,11178.0,11963.4,12467.3,12733.2,13208.4,13518.9])
+      expect(Issue.where(issue_type: 'distance_calculation_inaccurate').count).to eq 0
+    end
+
+    it 'handles case of stop slight out of order with previous, and identical matching segments. readjusts distances.' do
+      feed, feed_version = load_feed(feed_version_name: :feed_version_hdpt_sun_trip, import_level: 1)
+      expect(RouteStopPattern.first.stop_distances).to match_array([35.9,295.3,747.8,1061.6,1652.3,1946.8,4168.1,4616.7,4994.4,5547.6,5573.1,6063.4,6282.9,6524.0,6682.7,6775.9,6961.1,7505.6,8912.2,9572.1,10265.7,11055.5,11547.6,11822.3,12294.7,12653.7,13071.7,13371.8,13862.3,14025.0,14184.7,15050.8,15923.9,16247.5,16636.5])
       expect(Issue.where(issue_type: 'distance_calculation_inaccurate').count).to eq 0
     end
 
@@ -391,9 +397,9 @@ describe Geometry do
       expect(RouteStopPattern.first.stop_distances).to match_array([0.0, 1564.3, 2948.4, 7916.3, 15691.7, 21963.3, 28515.8, 34874.6, 35537.6, a_value_within(2.0).of(37510.9), 38152.8, 39011.8, 40017.6, 41943.4, 51008.5, 57260.7, 64464.1, 70759.1])
     end
 
-    it 'keeps distances out of order when the first and second stops are clearly out of order' do
+    it 'attempts a readjustment if stops are out of order' do
       feed, feed_version = load_feed(feed_version_name: :feed_version_ttc_34398377, import_level: 1)
-      expect(Geometry::DistanceCalculation.new.calculate_distances(RouteStopPattern.first)[0..1]).to match_array([136.0,136.0])
+      expect(Geometry::DistanceCalculation.new.calculate_distances(RouteStopPattern.first)[0..1]).to match_array([40.0, 52.4])
     end
   end
 
