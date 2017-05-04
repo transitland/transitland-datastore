@@ -143,6 +143,12 @@ class GTFSGraphImporter
     private_create_change_osr
   end
 
+  def cleanup
+  end
+
+  def ssp_schedule_async
+  end
+
   private
 
   def info(msg, indent: nil, plus: 0)
