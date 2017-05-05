@@ -1,7 +1,7 @@
 class FeedEaterService
   include Singleton
 
-  VERSION = 1
+  VERSION = 2
 
   def self.import_level_1(feed_onestop_id, feed_version_sha1: nil, import_level: 0, version: nil, block_before_level_1: nil, block_before_level_2: nil)
     # Get the correct Importer version
