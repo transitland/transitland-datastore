@@ -72,8 +72,8 @@ class GTFSScheduleImporter
     @log.join("\n")
   end
 
-  def cleanup
-    @feed_version.delete_schedule_stop_pairs!
+  def ssp_perform_async(gtfs_trip_ids, *args)
+    load_schedule(trip_ids: gtfs_trip_ids)
   end
 
   private

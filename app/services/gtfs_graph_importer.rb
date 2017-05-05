@@ -144,9 +144,14 @@ class GTFSGraphImporter
   end
 
   def cleanup
+    @feed_version.delete_schedule_stop_pairs!
   end
 
   def ssp_schedule_async
+    @gtfs.trip_chunks(1_000_000) do |trips|
+      trip_ids = trips.map(&:id)
+      yield trip_ids, nil, nil, nil, nil
+    end
   end
 
   private
