@@ -53,7 +53,7 @@ module HasAOnestopId
   end
 
   def generate_onestop_id
-    OnestopId.handler_by_model(self.class).new(name: (self.try(:name) || "test"), geohash: "9q9").to_s
+    fail NotImplementedError
   end
 
   private
