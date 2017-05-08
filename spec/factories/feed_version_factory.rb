@@ -91,8 +91,13 @@ FactoryGirl.define do
       association :feed, factory: :feed_grand_river
     end
 
-    factory :feed_version_hdpt_trip do
-      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/hdpt_gtfs.zip')) }
+    factory :feed_version_hdpt_shop_trip do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/hdpt_gtfs_shop.zip')) }
+      association :feed, factory: :feed_hdpt
+    end
+
+    factory :feed_version_hdpt_sun_trip do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/hdpt_gtfs_sun2.zip')) }
       association :feed, factory: :feed_hdpt
     end
 

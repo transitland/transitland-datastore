@@ -191,9 +191,9 @@ class GTFSGraph
         Geometry::DistanceCalculation::gtfs_shape_dist_traveled(rsp, stop_times, stops, shape_distances_traveled)
       elsif (rsp.geometry_source.to_sym.eql?(:trip_stop_points) && rsp.edited_attributes.empty?)
         # edited rsps will probably have a shape
-        Geometry::DistanceCalculation.fallback_distances(rsp, stops=stops)
+        Geometry::DistanceCalculation.straight_line_distances(rsp, stops=stops)
       else
-        Geometry::DistanceCalculation.calculate_distances(rsp, stops=stops)
+        Geometry::DistanceCalculation.new.calculate_distances(rsp, stops=stops)
       end
     rescue => e
       graph_log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}. Error: #{e}"
