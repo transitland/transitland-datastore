@@ -3,7 +3,16 @@ class FeedEaterService
 
   VERSION = 2
 
-  def self.import_level_1(feed_onestop_id, feed_version_sha1: nil, import_level: 0, version: nil, block_before_level_1: nil, block_before_level_2: nil)
+  def self.import(feed_version, import_level: 1)
+    feed = feed_version.feed
+    import_level_1(
+      feed.onestop_id,
+      feed_version_sha1: feed_version.sha1,
+      import_level: import_level
+    )
+  end
+
+  def self.import_level_1(feed_onestop_id, feed_version_sha1: nil, import_level: 1, version: nil, block_before_level_1: nil, block_before_level_2: nil)
     # Get the correct Importer version
     version ||= VERSION
     importer = (version == 1 ? GTFSGraph : GTFSGraphImporter)
