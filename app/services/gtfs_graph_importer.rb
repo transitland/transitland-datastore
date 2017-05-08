@@ -308,12 +308,6 @@ class GTFSGraphImporter
     key = [shape, serves]
     find_or_initialize(gtfs_entity, key: key) { |tl_entity|
       tl_entity ||= RouteStopPattern.new
-      tl_entity.geometry = Geometry::LineString.line_string(Geometry::Lib.set_precision(shape, RouteStopPattern::COORDINATE_PRECISION))
-      if shape_line.nil?
-        tl_entity.geometry_source = :trip_stop_points
-      else
-        tl_entity.geometry_source = shape_line.shape_dist_traveled.all? ? :shapes_txt_with_dist_traveled : :shapes_txt
-      end
       # Relations
       tl_entity.serves = serves
       tl_entity.stop_pattern = serves.map(&:onestop_id)
@@ -322,6 +316,12 @@ class GTFSGraphImporter
       # assume stop_times' and shapes' shape_dist_traveled are in the same units (a condition required by GTFS). TODO: validate that.
       shape_distances_traveled = shape_line.try(:shape_dist_traveled)
       stop_times = gtfs_entity.shape_dist_traveled.map { |i| GTFS::StopTime.new(shape_dist_traveled: i) }
+      tl_entity.geometry = Geometry::LineString.line_string(Geometry::Lib.set_precision(shape, RouteStopPattern::COORDINATE_PRECISION))
+      if shape_line.present? && shape_line.size > 1
+        tl_entity.geometry_source = Geometry::DistanceCalculation.validate_shape_dist_traveled(stop_times, shape_distances_traveled) ? :shapes_txt_with_dist_traveled : :shapes_txt
+      else
+        tl_entity.geometry_source = :trip_stop_points
+      end
       calculate_rsp_distance(tl_entity, tl_entity.serves, shape_distances_traveled, stop_times)
       tl_entity
     }
