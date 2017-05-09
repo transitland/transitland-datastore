@@ -89,7 +89,7 @@ class FeedFetcherService
     sha1 = nil
     if self.url_fragment(feed.url)
       # Get temporary path; deletes after block
-      Dir.mktmpdir do |dir|
+      Dir.mktmpdir("gtfs", Figaro.env.gtfs_tmpdir_basepath) do |dir|
         tmp_file_path = File.join(dir, 'normalized.zip')
         # Create normalize archive
         gtfs.create_archive(tmp_file_path)
