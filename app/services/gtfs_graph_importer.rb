@@ -34,31 +34,31 @@ class GTFSGraphImporter
 
     # Operators
     @gtfs.agencies.each do |gtfs_agency|
-      info("AGENCY: #{gtfs_agency.agency_id}", indent: 0)
+      info("GTFS Agency: #{gtfs_agency.agency_id}", indent: 1)
       tl_operator = oifs[gtfs_agency.agency_id]
       if !tl_operator
-        info("Operator not found, skipping", indent: 1)
+        info("Operator not found, skipping", indent: 2)
         next
       end
-      info("Operator: #{tl_operator.onestop_id}", indent: 1)
+      info("Operator: #{tl_operator.onestop_id}", indent: 2)
       @entity_tl[gtfs_agency] = tl_operator
       add_eiff(tl_operator, gtfs_agency)
 
       # Routes
       gtfs_agency.routes.each do |gtfs_route|
         t0 = Time.now
-        info("ROUTE: #{gtfs_route.route_id}", indent: 1)
+        info("GTFS Route: #{gtfs_route.route_id}", indent: 2)
         if gtfs_route.trips.empty?
-          info("Contains no trips, skipping", indent: 2)
+          info("Contains no trips, skipping", indent: 3)
           next
         end
-        info("Processing Trips...", indent: 2)
+        info("Processing Trips...", indent: 3)
 
         # Trips: Pass 1: Create Stops
         tl_route_serves = Set.new
         tl_trip_stop_sequence = {}
         gtfs_route.trips.each do |gtfs_trip|
-          # debug("TRIP: #{gtfs_trip.trip_id}", indent: 3)
+          # info("GTFS Trip: #{gtfs_trip.trip_id}", indent: 3)
           tl_trip_stop_sequence[gtfs_trip] = []
           gtfs_trip.stop_sequence.each do |gtfs_stop|
             tl_stop = find_or_initialize_stop(gtfs_stop, operated_by: tl_operator)
@@ -69,15 +69,15 @@ class GTFSGraphImporter
 
         # Create Route
         if tl_route_serves.empty?
-          info("Contains no stops, skipping", indent: 2)
+          info("Contains no stops, skipping", indent: 3)
           next
         end
-        info("Processing Route...", indent: 2)
+        info("Processing Route...", indent: 3)
 
         tl_route = find_or_initialize_route(gtfs_route, serves: tl_route_serves, operated_by: tl_operator)
 
         # Trips: Pass 2: Create RSPs
-        info("Processing RouteStopPatterns...", indent: 2)
+        info("Processing RouteStopPatterns...", indent: 3)
         tl_route_rsps = Set.new
         gtfs_route.trips.each do |gtfs_trip|
           next unless gtfs_trip.stop_sequence.size > 1
@@ -86,17 +86,17 @@ class GTFSGraphImporter
         end
 
         # Update Route geometry
-        info("Processing representative geometries...", indent: 2)
+        info("Processing representative geometries...", indent: 3)
         representative_rsps = Route.representative_geometry(tl_route, tl_route_rsps)
         Route.geometry_from_rsps(tl_route, representative_rsps)
 
         # Log
-        info("Time: #{Time.now - t0}", indent: 2)
-        info("Route: #{tl_route.onestop_id}", indent: 2)
-        info("Stops: #{tl_route_serves.size}", indent: 2)
-        tl_route_serves.each { |i| info(i.onestop_id, indent: 3)}
-        info("RouteStopPatterns: #{tl_route_rsps.size}", indent: 2)
-        tl_route_rsps.each { |i| info(i.onestop_id, indent: 3)}
+        info("Time: #{Time.now - t0}", indent: 3)
+        info("Route: #{tl_route.onestop_id}", indent: 3)
+        info("Stops: #{tl_route_serves.size}", indent: 3)
+        tl_route_serves.each { |i| info(i.onestop_id, indent: 4)}
+        info("RouteStopPatterns: #{tl_route_rsps.size}", indent: 3)
+        tl_route_rsps.each { |i| info(i.onestop_id, indent: 4)}
       end
     end
   end
@@ -171,10 +171,13 @@ class GTFSGraphImporter
 
   def private_create_change_osr
     ##### Backwards compat #####
+    info("GTFSGraphImporter: #{@feed.onestop_id} #{@feed_version.sha1}", indent: 0)
+
     load_graph
     entities = @entity_tl.values.to_set
 
     # Create FeedVersion issue and fail if no matching operators found.
+    info("Comparing agencies", indent: 0)
     Issue.where(issue_type: 'feed_import_no_operators_found').issues_of_entity(feed_version).each(&:deprecate)
     # ... create new issue
     if @entity_tl.size == 0
@@ -188,13 +191,16 @@ class GTFSGraphImporter
     end
 
     # Update Feed Geometry
+    info("Updating Feed geometry", indent: 0)
     @feed.set_bounding_box_from_stops(entities.select { |i| i.is_a?(Stop) })
     @feed.save!
 
     # Create changeset
+    info("Changeset create", indent: 0)
     changeset = create_changeset
 
     # Delete old RSPs
+    info("Checking for old RSPs", indent: 0)
     feed_rsps = Set.new(@feed.imported_route_stop_patterns.where("edited_attributes='{}'").pluck(:onestop_id))
     rsps_to_remove = feed_rsps - Set.new(entities.select { |i| i.is_a?(RouteStopPattern)}.map(&:onestop_id))
     if rsps_to_remove.size > 0
@@ -204,7 +210,10 @@ class GTFSGraphImporter
     end
 
     # Apply changeset
+    info("Changeset apply", indent: 0)
+    t = Time.now
     changeset.apply!
+    info("Changeset apply done! Time: #{Time.now - t}", indent: 0)
   end
 
   def find_by_eiff(gtfs_entity)
