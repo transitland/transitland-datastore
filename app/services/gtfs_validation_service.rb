@@ -6,7 +6,7 @@ class GTFSValidationService
 
   def self.run_conveyal_validator(filename)
     f = nil
-    Dir.mktmpdir do |dir|
+    Dir.mktmpdir("gtfs", Figaro.env.gtfs_tmpdir_basepath) do |dir|
       # Run feedvalidator
       outfile = File.join(dir, 'conveyal.json')
       IO.popen(['java', '-Djava.io.tmpdir='+dir, '-jar', CONVEYAL_VALIDATOR_PATH, '-validate', filename, outfile], "w+") do |io|
@@ -19,7 +19,7 @@ class GTFSValidationService
 
   def self.run_google_validator(filename)
     f = nil
-    Dir.mktmpdir do |dir|
+    Dir.mktmpdir("gtfs", Figaro.env.gtfs_tmpdir_basepath) do |dir|
       # Create a tempfile to use the filename.
       outfile = File.join(dir, 'feedvalidator.html')
       # Run feedvalidator
