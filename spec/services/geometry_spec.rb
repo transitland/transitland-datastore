@@ -59,7 +59,7 @@ describe Geometry do
         gtfs = GTFS::Source.build(feed_version.file.file.file)
         rsp = feed.imported_route_stop_patterns.first
         tl_stops = rsp.stop_pattern.map{ |stop_onestop_id| Stop.find_by_onestop_id!(stop_onestop_id) }
-        # FIXME: Use rsp eiffs in GTFSGraph 1
+        # This uses a different approach than in GTFSGraph 1
         trip_ids = EntityImportedFromFeed.where(feed_version: feed_version, entity: rsp).distinct(:gtfs_id).pluck(:gtfs_id)
         trip = gtfs.trips.detect{|trip| trip.id == trip_ids.first}
         trip_stop_times = []

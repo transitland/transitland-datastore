@@ -292,7 +292,7 @@ class GTFSGraphImporter
       end
       tl_entity.geometry = Stop::GEOFACTORY.point(*gtfs_entity.coordinates)
       tl_entity.name = gtfs_entity.stop_name
-      tl_entity.wheelchair_boarding = nil
+      tl_entity.wheelchair_boarding = to_tfn(gtfs_entity.wheelchair_boarding)
       tl_entity.timezone = gtfs_entity.stop_timezone || operated_by.try(:timezone)
       tl_entity.tags = {
         stop_desc: gtfs_entity.stop_desc,
@@ -306,7 +306,7 @@ class GTFSGraphImporter
   def find_or_initialize_route(gtfs_entity, serves: [], operated_by: nil)
     find_or_initialize(gtfs_entity) { |tl_entity|
       tl_entity ||= Route.new
-      tl_entity.geometry = nil # TODO
+      tl_entity.geometry = nil # Calculate later from representative RSPs
       tl_entity.name = [gtfs_entity.route_short_name, gtfs_entity.route_long_name, gtfs_entity.id, "unknown"].select(&:present?).first
       tl_entity.vehicle_type = gtfs_entity.route_type.to_i
       tl_entity.color = Route.color_from_gtfs(gtfs_entity.route_color)
@@ -318,8 +318,8 @@ class GTFSGraphImporter
         route_text_color: gtfs_entity.route_text_color
       }
       gtfs_trips = gtfs_entity.trips
-      tl_entity.wheelchair_accessible = :unknown # TODO
-      tl_entity.bikes_allowed = :unknown # TODO
+      tl_entity.wheelchair_accessible = to_trips_accessible(gtfs_trips, :wheelchair_accessible)
+      tl_entity.bikes_allowed = to_trips_accessible(gtfs_trips, :bikes_allowed)
       # Relations
       tl_entity.operated_by = operated_by
       tl_entity.serves = serves
@@ -369,6 +369,17 @@ class GTFSGraphImporter
       Geometry::DistanceCalculation.fallback_distances(rsp, stops=stops)
     end
     return rsp.stop_distances
+  end
+
+  def to_tfn(value)
+    case value.to_i
+    when 0
+      nil
+    when 1
+      true
+    when 2
+      false
+    end
   end
 
   def to_trips_accessible(trips, key)
