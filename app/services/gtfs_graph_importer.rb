@@ -99,6 +99,22 @@ class GTFSGraphImporter
         tl_route_rsps.each { |i| info(i.onestop_id, indent: 4)}
       end
     end
+
+    # Load transfers
+    if @gtfs.file_present?('transfers.txt')
+      @gtfs.transfers.each do |transfer|
+        stop = @entity_tl[@gtfs.stop(transfer.from_stop_id)]
+        to_stop = @entity_tl[@gtfs.stop(transfer.to_stop_id)]
+        next unless stop && to_stop
+        stop.includes_stop_transfers ||= Set.new
+        stop.includes_stop_transfers << {
+          toStopOnestopId: to_stop.onestop_id,
+          transferType: StopTransfer::GTFS_TRANSFER_TYPE[transfer.transfer_type.presence || "0"],
+          minTransferTime: transfer.min_transfer_time.to_i
+        }
+      end
+    end
+
   end
 
   def create_changeset
