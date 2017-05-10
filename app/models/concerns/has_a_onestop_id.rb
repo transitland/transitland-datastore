@@ -52,6 +52,10 @@ module HasAOnestopId
     end
   end
 
+  def generate_onestop_id
+    fail NotImplementedError
+  end
+
   private
 
   def validate_onestop_id
