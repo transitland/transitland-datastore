@@ -51,6 +51,9 @@ class StopPlatform < Stop
   belongs_to :parent_stop, class_name: 'Stop'
   # validates :parent_stop, presence: true
 
+  # Temporary
+  attr_accessor :platform_name
+
   def update_parent_stop(changeset)
     if self.parent_stop_onestop_id
       parent_stop = Stop.find_by_onestop_id!(self.parent_stop_onestop_id)
@@ -66,14 +69,15 @@ class StopPlatform < Stop
   def generate_onestop_id
     fail Exception.new('geometry required') if geometry.nil?
     fail Exception.new('name required') if name.nil?
+    fail Exception.new('platform_name required') if platform_name.nil?
     fail Exception.new('parent_stop required') if parent_stop.nil?
-    name = self.name.gsub(/[\>\<]/, '')
+    platform_name = self.platform_name.gsub(/[\>\<]/, '')
     parent_onestop_id = OnestopId::StopOnestopId.new(
       string: parent_stop.onestop_id || parent_stop.generate_onestop_id
     )
     onestop_id = OnestopId::StopOnestopId.new(
       geohash: parent_onestop_id.geohash,
-      name: "#{parent_onestop_id.name}<#{name}"
+      name: "#{parent_onestop_id.name}<#{platform_name}"
     )
     onestop_id.validate!
     onestop_id.to_s
