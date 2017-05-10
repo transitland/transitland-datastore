@@ -1,8 +1,6 @@
 class FeedEaterService
   include Singleton
 
-  VERSION = 2
-
   def self.import(feed_version, import_level: 1)
     feed = feed_version.feed
     import_level_1(
@@ -12,9 +10,9 @@ class FeedEaterService
     )
   end
 
-  def self.import_level_1(feed_onestop_id, feed_version_sha1: nil, import_level: 1, version: nil, block_before_level_1: nil, block_before_level_2: nil)
+  def self.import_level_1(feed_onestop_id, feed_version_sha1: nil, import_level: 1, block_before_level_1: nil, block_before_level_2: nil)
     # Get the correct Importer version
-    version ||= VERSION
+    version  = (Figaro.env.gtfs_graph_version.presence || 2).to_i
     importer = (version == 1 ? GTFSGraph : GTFSGraphImporter)
     # These are only for testing
     block_before_level_1 ||= Proc.new { |graph| }
@@ -89,8 +87,8 @@ class FeedEaterService
     end
   end
 
-  def self.import_level_2(feed_onestop_id, feed_version_sha1, feed_schedule_import_id, trip_ids, agency_map, route_map, stop_map, rsp_map, version: nil)
-    version ||= VERSION
+  def self.import_level_2(feed_onestop_id, feed_version_sha1, feed_schedule_import_id, trip_ids, agency_map, route_map, stop_map, rsp_map)
+    version  = (Figaro.env.gtfs_graph_version.presence || 2).to_i
     importer = (version == 1 ? GTFSGraph : GTFSScheduleImporter)
 
     log "FeedEaterScheduleWorker #{feed_onestop_id}: Importing #{trip_ids.size} trips"
