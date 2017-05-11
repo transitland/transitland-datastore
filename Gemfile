@@ -37,7 +37,7 @@ gem 'enumerize'
 gem 'gtfs', github: 'transitland/gtfs', tag: 'a1f6d19a1d574c00cf93a042ff27e5495f7087e9'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
-gem 'json-schema', '2.5.2' # running into problems with 2.6.0
+gem 'json-schema'
 gem 'email_validator'
 gem 'tzinfo'
 
@@ -50,7 +50,7 @@ gem 'devise'
 gem 'jwt'
 
 # providing API
-gem 'active_model_serializers', '0.10.2'
+gem 'active_model_serializers', '~> 0.10'
 gem 'oj'
 gem 'oj_mimic_json'
 
@@ -59,7 +59,7 @@ gem 'faraday'
 
 # file attachments
 gem 'fog-aws', group: [:staging, :production]
-gem 'carrierwave', '~>1.0.0'
+gem 'carrierwave', '~>1.1.0'
 
 # development tools
 gem 'better_errors', group: :development
