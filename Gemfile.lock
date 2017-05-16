@@ -381,7 +381,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  active_model_serializers
+  active_model_serializers (~> 0.10)
   active_record_doctor
   activerecord-import
   activerecord-postgis-adapter

@@ -51,7 +51,7 @@ gem 'devise'
 gem 'jwt'
 
 # providing API
-gem 'active_model_serializers'
+gem 'active_model_serializers', '~> 0.10'
 gem 'oj'
 
 # consuming other APIs
