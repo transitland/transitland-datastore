@@ -37,6 +37,7 @@ gem 'enumerize'
 gem 'gtfs', github: 'transitland/gtfs', tag: 'a1f6d19a1d574c00cf93a042ff27e5495f7087e9'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
+gem 'json'
 gem 'json-schema'
 gem 'email_validator'
 gem 'tzinfo'
@@ -50,9 +51,8 @@ gem 'devise'
 gem 'jwt'
 
 # providing API
-gem 'active_model_serializers', '~> 0.10'
+gem 'active_model_serializers'
 gem 'oj'
-gem 'oj_mimic_json'
 
 # consuming other APIs
 gem 'faraday'
