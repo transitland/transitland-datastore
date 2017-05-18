@@ -20,7 +20,6 @@ describe GTFSStatisticsService do
         "trips.txt"
       )
       expect(data['scheduled_service'].size).to eq(1460)
-      expect(data['statistics'].size).to eq(12)
       expect(data['statistics']['routes.txt']['agency_id']['total']).to eq(5)
       expect(data['statistics']['routes.txt']['agency_id']['unique']).to eq(1)
     end
