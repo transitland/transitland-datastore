@@ -138,7 +138,7 @@ class GTFSStatisticsService
     end
 
     # Filenames
-    filenames = Dir.entries(gtfs.path) - ['.','..']
+    filenames = gtfs.source_filenames
 
     # Service hours -- use already parsed trip durations
     scheduled_service = self.stats_for_service_hours(gtfs, statistics['stop_times.txt'][:arrival_time])
