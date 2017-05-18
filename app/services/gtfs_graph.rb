@@ -193,7 +193,7 @@ class GTFSGraph
         # edited rsps will probably have a shape
         Geometry::DistanceCalculation.straight_line_distances(rsp, stops=stops)
       else
-        if rsp.stop_pattern.size < Geometry::DistanceCalculation::MAX_STOP_CUTOFF
+        if rsp.stop_pattern.size < Geometry::DistanceCalculation::MAX_NUM_STOPS_FOR_RECURSION
           Geometry::EnhancedOTPDistances.new.calculate_distances(rsp, stops=stops)
         else
           Geometry::ABCDistances.new.calculate_distances(rsp, stops=stops)

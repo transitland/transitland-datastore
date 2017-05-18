@@ -224,7 +224,7 @@ class Changeset < ActiveRecord::Base
       if rsp_dist_issues.any?
         if rsp.geometry_source.eql?("shapes_txt_with_dist_traveled")
           # shape_dist_traveled values may be faulty. So trying the TL algorithm here.
-          if rsp.stop_pattern.size < Geometry::DistanceCalculation::MAX_STOP_CUTOFF
+          if rsp.stop_pattern.size < Geometry::DistanceCalculation::MAX_NUM_STOPS_FOR_RECURSION
             Geometry::EnhancedOTPDistances.new.calculate_distances(rsp, stops=stops)
           else
             Geometry::ABCDistances.new.calculate_distances(rsp, stops=stops)
