@@ -188,12 +188,16 @@ class GTFSGraph
     begin
       if shape_distances_traveled && (rsp.geometry_source.to_sym.eql?(:shapes_txt_with_dist_traveled))
         # assume stop_times' and shapes' shape_dist_traveled are in the same units (a condition required by GTFS). TODO: validate that.
-        Geometry::DistanceCalculation::gtfs_shape_dist_traveled(rsp, stop_times, stops, shape_distances_traveled)
+        Geometry::GTFSShapeDistanceTraveled::gtfs_shape_dist_traveled(rsp, stop_times, stops, shape_distances_traveled)
       elsif (rsp.geometry_source.to_sym.eql?(:trip_stop_points) && rsp.edited_attributes.empty?)
         # edited rsps will probably have a shape
         Geometry::DistanceCalculation.straight_line_distances(rsp, stops=stops)
       else
-        Geometry::DistanceCalculation.new.calculate_distances(rsp, stops=stops)
+        if rsp.stop_pattern.size < Geometry::DistanceCalculation::MAX_STOP_CUTOFF
+          Geometry::EnhancedOTPDistances.new.calculate_distances(rsp, stops=stops)
+        else
+          Geometry::ABCDistances.new.calculate_distances(rsp, stops=stops)
+        end
       end
     rescue => e
       graph_log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}. Error: #{e}"

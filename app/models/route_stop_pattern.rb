@@ -143,7 +143,7 @@ class RouteStopPattern < BaseRouteStopPattern
     )
     if shape_points.present? && shape_points.size > 1
       rsp.geometry = Geometry::LineString.line_string(Geometry::Lib.set_precision(shape_points, COORDINATE_PRECISION))
-      rsp.geometry_source = Geometry::DistanceCalculation.validate_shape_dist_traveled(stop_times, shape_points.shape_dist_traveled) ? :shapes_txt_with_dist_traveled : :shapes_txt
+      rsp.geometry_source = Geometry::GTFSShapeDistanceTraveled.validate_shape_dist_traveled(stop_times, shape_points.shape_dist_traveled) ? :shapes_txt_with_dist_traveled : :shapes_txt
     else
       rsp.geometry = Geometry::LineString.line_string(Geometry::Lib.set_precision(trip_stop_points, COORDINATE_PRECISION))
       rsp.geometry_source = :trip_stop_points
