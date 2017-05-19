@@ -60,7 +60,7 @@ module Geometry
     extend Lib
 
     DISTANCE_PRECISION = 1
-    MAX_NUM_STOPS_FOR_RECURSION = 500
+    MAX_NUM_STOPS_FOR_RECURSION = 10000
 
     attr_accessor :stop_segment_matching_candidates, :cost_matrix, :recursive_calls, :recursive_call_limit
 
@@ -147,20 +147,29 @@ module Geometry
       @recursive_call_limit = 3.0*num_stops*k**num_stops
     end
 
-    def compute_matching_candidate_threshold(stops)
-      # 1/2 of the average distance between two consecutive stops
-      between = stops.each_cons(2).map{|stop1,stop2| stop1[:geometry].distance(stop2[:geometry]) }
-      x = between.sum/(2.0*between.size)
-
+    def compute_matching_candidate_thresholds(stops)
       # average minimum distance from stop to line
       mins = @cost_matrix.each_with_index.map{|locators_and_costs,i| stops[i][:geometry].distance(locators_and_costs.min_by{|lc| lc[1]}[0].interpolate_point(Stop::GEOFACTORY)) }
       y = mins.sum/mins.size.to_f
-      Math.sqrt(x**2 + y**2)
+
+      thresholds = []
+
+      stops.each_with_index do |stop, i|
+        if i == 0
+          x = (stops[0][:geometry].distance(stops[1][:geometry]))/2.0
+        elsif i == stops.size - 1
+          x = (stops[-1][:geometry].distance(stops[-2][:geometry]))/2.0
+        else
+          x = (stops[i-1][:geometry].distance(stops[i][:geometry]) + stops[i][:geometry].distance(stops[i+1][:geometry]))/4.0
+        end
+        thresholds << Math.sqrt(x**2 + y**2)
+      end
+      thresholds
     end
 
     def best_possible_matching_segments_for_stops(route_line_as_cartesian, stops, skip_stops=[])
       @stop_segment_matching_candidates = []
-      threshold = compute_matching_candidate_threshold(stops)
+      thresholds = compute_matching_candidate_thresholds(stops)
       min_index = 0
       stops.each_with_index.map do |stop, i|
         if skip_stops.include?(i)
@@ -169,7 +178,7 @@ module Geometry
         end
         matches = @cost_matrix[i].each_with_index.select do |locator_and_cost,j|
           distance = stop[:geometry].distance(locator_and_cost[0].interpolate_point(RouteStopPattern::GEOFACTORY))
-          j >= min_index && distance <= threshold
+          j >= min_index && distance <= thresholds[i]
         end
         if matches.to_a.empty?
           # an outlier
@@ -283,7 +292,7 @@ module Geometry
         # interpolate between the previous and next stop distances
         rsp.stop_distances[i] = (rsp.stop_distances[i-1] + rsp.stop_distances[i+1])/2.0
       end
-      if skip_last_stop
+      if skip_last_stop || skip_stops.include?(stops.size - 1)
         assign_last_stop_distance(rsp, route_line_as_cartesian, best_single_segment_match_for_stops[-2])
       end
       rsp.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
