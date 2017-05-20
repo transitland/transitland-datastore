@@ -60,9 +60,9 @@ module Geometry
     extend Lib
 
     DISTANCE_PRECISION = 1
-    MAX_NUM_STOPS_FOR_RECURSION = 10000
+    MAX_NUM_STOPS_FOR_RECURSION = 8000
 
-    attr_accessor :stop_segment_matching_candidates, :cost_matrix, :recursive_calls, :recursive_call_limit
+    attr_accessor :stop_segment_matching_candidates, :cost_matrix
 
     def self.stop_before_geometry(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian)
       line_geometry_as_cartesian.before?(stop_as_cartesian) || OutlierStop.outlier_stop_from_precomputed_geometries(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian)
@@ -142,9 +142,12 @@ module Geometry
 
   class EnhancedOTPDistances < DistanceCalculation
 
-    def compute_recursive_call_limit(num_stops)
+    attr_accessor :matching_method_calls, :matching_method_call_limit
+
+    def compute_matching_method_call_limit(num_stops)
+      # prevent runaway loops from any lurking bugs (you never know)
       k = 1.0 + 3.0*(Math.log(num_stops)/num_stops**1.2) # max 'average' allowable num of segment candidates per stop. Approaches 1.0 as num_stops increases
-      @recursive_call_limit = 3.0*num_stops*k**num_stops
+      @matching_method_call_limit = 3.0*num_stops*k**num_stops
     end
 
     def compute_matching_candidate_thresholds(stops)
@@ -198,8 +201,8 @@ module Geometry
     end
 
     def matching_segments(stops, stop_index, start_seg_index, skip_stops=[])
-      return nil if @recursive_calls > @recursive_call_limit
-      @recursive_calls += 1
+      return nil if @matching_method_calls > @matching_method_call_limit || @matching_method_calls > Geometry::DistanceCalculation::MAX_NUM_STOPS_FOR_RECURSION
+      @matching_method_calls += 1
       if stop_index == stops.size
         return []
       end
@@ -214,7 +217,7 @@ module Geometry
 
       @stop_segment_matching_candidates[stop_index].sort_by{|locator_and_cost,index| locator_and_cost[1] }.each do |locator_and_cost,index|
         next if index < start_seg_index
-        # sometimes the current stop's candidates are the same as the previous, and the distance on the segment is out of order.
+        # sometimes the current stop's segment candidates are the same as the previous, and the distance on the segment is out of order.
         # in this case, we need to continue the loop for the current stop, not the previous.
         previous_match_candidates = @stop_segment_matching_candidates[stop_index-1]
         next if stop_index != 0 && index == start_seg_index && !previous_match_candidates.nil? && (locator_and_cost[0].distance_on_segment < previous_match_candidates.detect{|lc,i| start_seg_index == i}[0][0].distance_on_segment)
@@ -252,6 +255,8 @@ module Geometry
       # http://www.sciencedirect.com/science/article/pii/0012365X9500325Q
       # Computing the stop distances along a line can be considered a variation of the Assignment problem.
 
+      # TODO: consider converting recursive to iterative
+
       if stops.nil?
         stop_hash = Hash[Stop.find_by_onestop_ids!(rsp.stop_pattern).map { |s| [s.onestop_id, s] }]
         stops = rsp.stop_pattern.map{|s| stop_hash.fetch(s) }
@@ -271,8 +276,8 @@ module Geometry
       skip_stops << stops.size - 1 if skip_last_stop
 
       best_possible_matching_segments_for_stops(route_line_as_cartesian, stops, skip_stops=skip_stops)
-      @recursive_calls = 0
-      compute_recursive_call_limit(stops.size)
+      @matching_method_calls = 0
+      compute_matching_method_call_limit(stops.size)
       best_single_segment_match_for_stops = matching_segments(stops, 0, 0, skip_stops=skip_stops)
 
       if matches_invalid?(best_single_segment_match_for_stops, skip_stops)
@@ -354,10 +359,14 @@ module Geometry
               try_again = true
             end
             if i < stops.size - 1 && c == b && @cost_matrix[i][b][0].distance_on_segment > @cost_matrix[forward_stop_index][c][0].distance_on_segment
-              c = num_segments - 1
+              if i < stops.size - 2
+                c, forward_stop_index = index_of_line_segment_for_max_search(i+1, b)
+              else
+                c = num_segments - 1
+              end
               try_again = true
             end
-            b, nearest_point = index_of_line_segment_with_nearest_point(i, a, c) if try_again
+            b, nearest_point = index_of_line_segment_with_nearest_point(i, a, c) if try_again && a<=c
           end
 
           if OutlierStop.outlier_stop_from_precomputed_geometries(current_stop_as_spherical, current_stop_as_cartesian, route_line_as_cartesian)
@@ -378,7 +387,6 @@ module Geometry
           rsp.stop_distances[j] = rsp.stop_distances[j-1] + stops[j-1][:geometry].distance(stops[j+1][:geometry])/2.0
         end
       end
-
       rsp.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
     end
   end
