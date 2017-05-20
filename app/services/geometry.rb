@@ -60,7 +60,7 @@ module Geometry
     extend Lib
 
     DISTANCE_PRECISION = 1
-    MAX_NUM_STOPS_FOR_RECURSION = 0
+    MAX_NUM_STOPS_FOR_RECURSION = 1000
 
     attr_accessor :stop_segment_matching_candidates, :cost_matrix
 
