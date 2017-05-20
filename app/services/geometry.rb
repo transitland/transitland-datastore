@@ -60,7 +60,7 @@ module Geometry
     extend Lib
 
     DISTANCE_PRECISION = 1
-    MAX_NUM_STOPS_FOR_RECURSION = 8000
+    MAX_NUM_STOPS_FOR_RECURSION = 0
 
     attr_accessor :stop_segment_matching_candidates, :cost_matrix
 
@@ -78,6 +78,57 @@ module Geometry
         stop_as_cartesian = self.cartesian_cast(stop[:geometry])
         locators = route_line_as_cartesian.locators(stop_as_cartesian)
         locators.map{|locator| [locator, locator.distance_from_segment]}
+      end
+    end
+
+    def compute_matching_candidate_thresholds(stops)
+      # average minimum distance from stop to line
+      mins = @cost_matrix.each_with_index.map{|locators_and_costs,i| stops[i][:geometry].distance(locators_and_costs.min_by{|lc| lc[1]}[0].interpolate_point(Stop::GEOFACTORY)) }
+      y = mins.sum/mins.size.to_f
+
+      thresholds = []
+
+      stops.each_with_index do |stop, i|
+        if i == 0
+          x = (stops[0][:geometry].distance(stops[1][:geometry]))/2.0
+        elsif i == stops.size - 1
+          x = (stops[-1][:geometry].distance(stops[-2][:geometry]))/2.0
+        else
+          x = (stops[i-1][:geometry].distance(stops[i][:geometry]) + stops[i][:geometry].distance(stops[i+1][:geometry]))/4.0
+        end
+        thresholds << Math.sqrt(x**2 + y**2)
+      end
+      thresholds
+    end
+
+    def best_possible_matching_segments_for_stops(route_line_as_cartesian, stops, skip_stops=[])
+      # prune segment matches per stop that are impossible
+      @stop_segment_matching_candidates = []
+      thresholds = compute_matching_candidate_thresholds(stops)
+      min_index = 0
+      stops.each_with_index.map do |stop, i|
+        if skip_stops.include?(i)
+          @stop_segment_matching_candidates[i] = nil
+          next
+        end
+        matches = @cost_matrix[i].each_with_index.select do |locator_and_cost,j|
+          distance = stop[:geometry].distance(locator_and_cost[0].interpolate_point(RouteStopPattern::GEOFACTORY))
+          j >= min_index && distance <= thresholds[i]
+        end
+        if matches.to_a.empty?
+          # an outlier
+          skip_stops << i
+          next
+        else
+          max_index = matches.max_by{ |locator_and_cost,j| j }[1]
+          min_index = matches.min_by{ |locator_and_cost,j| j }[1]
+        end
+        # prune segments of previous stops whose indexes are greater than the max of the current stop's segments.
+        (i-1).downto(0).each do |j|
+          next if @stop_segment_matching_candidates[j].nil?
+          @stop_segment_matching_candidates[j] = @stop_segment_matching_candidates[j].select{|m| m[1] <= max_index }
+        end
+        @stop_segment_matching_candidates[i] = matches
       end
     end
 
@@ -145,59 +196,9 @@ module Geometry
     attr_accessor :matching_method_calls, :matching_method_call_limit
 
     def compute_matching_method_call_limit(num_stops)
-      # prevent runaway loops from any lurking bugs (you never know)
+      # prevent runaway loops from bad data or any lurking bugs
       k = 1.0 + 3.0*(Math.log(num_stops)/num_stops**1.2) # max 'average' allowable num of segment candidates per stop. Approaches 1.0 as num_stops increases
       @matching_method_call_limit = 3.0*num_stops*k**num_stops
-    end
-
-    def compute_matching_candidate_thresholds(stops)
-      # average minimum distance from stop to line
-      mins = @cost_matrix.each_with_index.map{|locators_and_costs,i| stops[i][:geometry].distance(locators_and_costs.min_by{|lc| lc[1]}[0].interpolate_point(Stop::GEOFACTORY)) }
-      y = mins.sum/mins.size.to_f
-
-      thresholds = []
-
-      stops.each_with_index do |stop, i|
-        if i == 0
-          x = (stops[0][:geometry].distance(stops[1][:geometry]))/2.0
-        elsif i == stops.size - 1
-          x = (stops[-1][:geometry].distance(stops[-2][:geometry]))/2.0
-        else
-          x = (stops[i-1][:geometry].distance(stops[i][:geometry]) + stops[i][:geometry].distance(stops[i+1][:geometry]))/4.0
-        end
-        thresholds << Math.sqrt(x**2 + y**2)
-      end
-      thresholds
-    end
-
-    def best_possible_matching_segments_for_stops(route_line_as_cartesian, stops, skip_stops=[])
-      @stop_segment_matching_candidates = []
-      thresholds = compute_matching_candidate_thresholds(stops)
-      min_index = 0
-      stops.each_with_index.map do |stop, i|
-        if skip_stops.include?(i)
-          @stop_segment_matching_candidates[i] = nil
-          next
-        end
-        matches = @cost_matrix[i].each_with_index.select do |locator_and_cost,j|
-          distance = stop[:geometry].distance(locator_and_cost[0].interpolate_point(RouteStopPattern::GEOFACTORY))
-          j >= min_index && distance <= thresholds[i]
-        end
-        if matches.to_a.empty?
-          # an outlier
-          skip_stops << i
-          next
-        else
-          max_index = matches.max_by{ |locator_and_cost,j| j }[1]
-          min_index = matches.min_by{ |locator_and_cost,j| j }[1]
-        end
-        # prune segments of previous stops whose indexes are greater than the max of the current stop's segments.
-        (i-1).downto(0).each do |j|
-          next if @stop_segment_matching_candidates[j].nil?
-          @stop_segment_matching_candidates[j] = @stop_segment_matching_candidates[j].select{|m| m[1] <= max_index }
-        end
-        @stop_segment_matching_candidates[i] = matches
-      end
     end
 
     def matching_segments(stops, stop_index, start_seg_index, skip_stops=[])
@@ -313,9 +314,9 @@ module Geometry
     end
 
     def index_of_line_segment_for_max_search(stop_index, min_index)
-      # find the best matching segments for each stop after the current stop and previous segment index. And then of those, the one with the lowest segment index.
-      @cost_matrix[stop_index+1..-1].each_with_index.map{|stop_locators_and_dists,forward_stop_index| [stop_locators_and_dists.each_with_index.reject{|ld,i| i <= min_index}.min_by{|ld,i| ld[1]}[-1], stop_index+1+forward_stop_index]  }
-      .min_by{|best_match_index, forward_stop_index| best_match_index }
+      unless @stop_segment_matching_candidates[stop_index].nil?
+        @stop_segment_matching_candidates[stop_index].reject{|locator_and_cost,index| index < min_index }.sort_by{|locator_and_cost,index| locator_and_cost[1] }[0][1]
+      end
     end
 
     def calculate_distances(rsp, stops=nil)
@@ -331,6 +332,7 @@ module Geometry
       route_line_as_cartesian = self.class.cartesian_cast(rsp[:geometry])
       num_segments = route_line_as_cartesian._segments.size
       @cost_matrix = self.class.compute_cost_matrix(stops, route_line_as_cartesian)
+      best_possible_matching_segments_for_stops(route_line_as_cartesian, stops)
 
       first_stop_outlier = assign_first_stop_distance(rsp, route_line_as_cartesian, stops[0][:geometry], self.class.cartesian_cast(stops[0][:geometry]))
       outlier_indexes = []
@@ -347,7 +349,7 @@ module Geometry
         else
           next if i == 0 and first_stop_outlier
           if i < stops.size - 1
-            c, forward_stop_index = index_of_line_segment_for_max_search(i, a)
+            c = index_of_line_segment_for_max_search(i+1, a) || num_segments - 1
           end
           b, nearest_point = index_of_line_segment_with_nearest_point(i, a, c)
 
@@ -356,14 +358,6 @@ module Geometry
             try_again = false
             if i > 0 && a == b && @cost_matrix[i][b][0].distance_on_segment < @cost_matrix[i-1][a][0].distance_on_segment
               a += 1
-              try_again = true
-            end
-            if i < stops.size - 1 && c == b && @cost_matrix[i][b][0].distance_on_segment > @cost_matrix[forward_stop_index][c][0].distance_on_segment
-              if i < stops.size - 2
-                c, forward_stop_index = index_of_line_segment_for_max_search(i+1, b)
-              else
-                c = num_segments - 1
-              end
               try_again = true
             end
             b, nearest_point = index_of_line_segment_with_nearest_point(i, a, c) if try_again && a<=c
