@@ -60,7 +60,6 @@ module Geometry
     extend Lib
 
     DISTANCE_PRECISION = 1
-    MAX_NUM_STOPS_FOR_RECURSION = 1000
 
     attr_accessor :stop_segment_matching_candidates, :cost_matrix
 
@@ -201,31 +200,80 @@ module Geometry
       @matching_method_call_limit = 3.0*num_stops*k**num_stops
     end
 
-    def matching_segments(stops, stop_index, start_seg_index, skip_stops=[])
-      return nil if @matching_method_calls > @matching_method_call_limit || @matching_method_calls > Geometry::DistanceCalculation::MAX_NUM_STOPS_FOR_RECURSION
-      @matching_method_calls += 1
-      if stop_index == stops.size
-        return []
-      end
-      if skip_stops.include?(stop_index)
-        forward_matches = self.matching_segments(stops, stop_index+1, start_seg_index, skip_stops=skip_stops)
-        if forward_matches.nil?
-          return nil
+    # def matching_segments(stops, stop_index, start_seg_index, skip_stops=[])
+    #   return nil if @matching_method_calls > @matching_method_call_limit || @matching_method_calls > Geometry::DistanceCalculation::MAX_NUM_STOPS_FOR_RECURSION
+    #   @matching_method_calls += 1
+    #   if stop_index == stops.size
+    #     return []
+    #   end
+    #   if skip_stops.include?(stop_index)
+    #     forward_matches = self.matching_segments(stops, stop_index+1, start_seg_index, skip_stops=skip_stops)
+    #     if forward_matches.nil?
+    #       return nil
+    #     else
+    #       return [nil].concat forward_matches
+    #     end
+    #   end
+    #
+    #   @stop_segment_matching_candidates[stop_index].sort_by{|locator_and_cost,index| locator_and_cost[1] }.each do |locator_and_cost,index|
+    #     next if index < start_seg_index
+    #     # sometimes the current stop's segment candidates are the same as the previous, and the distance on the segment is out of order.
+    #     # in this case, we need to continue the loop for the current stop, not the previous.
+    #     previous_match_candidates = @stop_segment_matching_candidates[stop_index-1]
+    #     next if stop_index != 0 && index == start_seg_index && !previous_match_candidates.nil? && (locator_and_cost[0].distance_on_segment < previous_match_candidates.detect{|lc,i| start_seg_index == i}[0][0].distance_on_segment)
+    #     forward_matches = self.matching_segments(stops, stop_index+1, index, skip_stops=skip_stops)
+    #     unless forward_matches.nil?
+    #       forward_matches = [index].concat forward_matches
+    #       valid = forward_matches.each_cons(2).each_with_index.all? do |m,j|
+    #         # Preserve segment order, unless stops match to same segment. If so,
+    #         # check that their positions along the segment are preserved.
+    #         equivalent_stops = stops[stop_index+j].onestop_id.eql?(stops[stop_index+j+1]) || stops[stop_index+j][:geometry].eql?(stops[stop_index+j+1][:geometry])
+    #         m[0].nil? || m[1].nil? ||
+    #         m[1] > m[0] ||
+    #         m[1] == m[0] && (@stop_segment_matching_candidates[stop_index+j].detect{|s| s[1] == m[0]}[0][0].distance_on_segment <= @stop_segment_matching_candidates[stop_index+j+1].detect{|s| s[1] == m[1]}[0][0].distance_on_segment || equivalent_stops)
+    #       end
+    #       return forward_matches if valid
+    #     end
+    #   end
+    #   return nil
+    # end
+
+    def forward_matching_segments(stops, stop_index, start_seg_index, stack, tried_index_for_stop: nil, skip_stops: [])
+      stops[stop_index..-1].each_with_index do |stop, i|
+        if skip_stops.include?(stop_index + i)
+          stack.push [stop_index + i, nil]
         else
-          return [nil].concat forward_matches
+          reject_seg_index = Proc.new{|locator_and_cost, index|
+              current_match_candidates = @stop_segment_matching_candidates[stop_index+i]
+              index < start_seg_index || (index == start_seg_index && !current_match_candidates.nil? && (locator_and_cost[0].distance_on_segment < current_match_candidates.detect{|lc,j| start_seg_index == j}[0][0].distance_on_segment))
+          }
+          start_search = i==0 && !tried_index_for_stop.nil? ? tried_index_for_stop + 1 : 0
+          index = @stop_segment_matching_candidates[i+stop_index][start_search..-1].reject{|locator_and_cost,index| reject_seg_index.call(locator_and_cost, index) }.min_by{|locator_and_cost,index| locator_and_cost[1] }
+          unless index.nil?
+            stack.push [stop_index + i, index[1]] unless index.nil?
+            start_seg_index = index[1]
+          end
         end
       end
+    end
 
-      @stop_segment_matching_candidates[stop_index].sort_by{|locator_and_cost,index| locator_and_cost[1] }.each do |locator_and_cost,index|
-        next if index < start_seg_index
-        # sometimes the current stop's segment candidates are the same as the previous, and the distance on the segment is out of order.
-        # in this case, we need to continue the loop for the current stop, not the previous.
-        previous_match_candidates = @stop_segment_matching_candidates[stop_index-1]
-        next if stop_index != 0 && index == start_seg_index && !previous_match_candidates.nil? && (locator_and_cost[0].distance_on_segment < previous_match_candidates.detect{|lc,i| start_seg_index == i}[0][0].distance_on_segment)
-        forward_matches = self.matching_segments(stops, stop_index+1, index, skip_stops=skip_stops)
-        unless forward_matches.nil?
-          forward_matches = [index].concat forward_matches
-          valid = forward_matches.each_cons(2).each_with_index.all? do |m,j|
+    def matching_segments(stops, stop_index, start_seg_index, skip_stops=[])
+
+      stack = []
+      segment_matches = Array.new(stops.size)
+
+      forward_matching_segments(stops, 0, 0, stack, skip_stops: skip_stops)
+
+      while stack.any?
+        stop_index, stop_seg_match = stack.pop
+        next if @matching_method_calls > @matching_method_call_limit
+        @matching_method_calls += 1
+        next if skip_stops.include?(stop_index)
+
+        if stop_index == stops.size - 1
+          segment_matches[stop_index] = stop_seg_match
+        else
+          valid = ([stop_seg_match].concat segment_matches[stop_index+1..-1]).each_cons(2).each_with_index.all? do |m,j|
             # Preserve segment order, unless stops match to same segment. If so,
             # check that their positions along the segment are preserved.
             equivalent_stops = stops[stop_index+j].onestop_id.eql?(stops[stop_index+j+1]) || stops[stop_index+j][:geometry].eql?(stops[stop_index+j+1][:geometry])
@@ -233,10 +281,16 @@ module Geometry
             m[1] > m[0] ||
             m[1] == m[0] && (@stop_segment_matching_candidates[stop_index+j].detect{|s| s[1] == m[0]}[0][0].distance_on_segment <= @stop_segment_matching_candidates[stop_index+j+1].detect{|s| s[1] == m[1]}[0][0].distance_on_segment || equivalent_stops)
           end
-          return forward_matches if valid
+          if stop_seg_match && (!valid || (segment_matches[stop_index+1].nil? && !skip_stops.include?(stop_index + 1)))
+            index_of_seg_tried = @stop_segment_matching_candidates[stop_index].map{|locator_and_cost,seg_index| seg_index}.index(stop_seg_match)
+            forward_matching_segments(stops, stop_index, stop_seg_match, stack, tried_index_for_stop: index_of_seg_tried, skip_stops: skip_stops)
+          else
+            segment_matches[stop_index] = stop_seg_match
+          end
         end
       end
-      return nil
+
+      return segment_matches
     end
 
     def matches_invalid?(best_single_segment_match_for_stops, skip_stops)
@@ -251,12 +305,11 @@ module Geometry
       # First we compute reasonable segment matching possibilities for each stop based on a threshold.
       # Then, through a recursive call on each stop, we test the stop's segment possibilities in sorted order (of distance from the line)
       # until we find a list of all stop distances along the line that are in increasing order.
+      # Ultimately, it's still a greedy heuristic algorithm, so inaccuracy is not guaranteed.
 
       # It may be worthwhile to consider the problem defined and solved algorithmically in:
       # http://www.sciencedirect.com/science/article/pii/0012365X9500325Q
       # Computing the stop distances along a line can be considered a variation of the Assignment problem.
-
-      # TODO: consider converting recursive to iterative
 
       if stops.nil?
         stop_hash = Hash[Stop.find_by_onestop_ids!(rsp.stop_pattern).map { |s| [s.onestop_id, s] }]
