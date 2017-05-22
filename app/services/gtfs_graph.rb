@@ -193,11 +193,7 @@ class GTFSGraph
         # edited rsps will probably have a shape
         Geometry::DistanceCalculation.straight_line_distances(rsp, stops=stops)
       else
-        if rsp.stop_pattern.size < Geometry::DistanceCalculation::MAX_NUM_STOPS_FOR_RECURSION
-          Geometry::EnhancedOTPDistances.new.calculate_distances(rsp, stops=stops)
-        else
-          Geometry::ABCDistances.new.calculate_distances(rsp, stops=stops)
-        end
+        Geometry::DistanceCalculation.calculate_and_evaluate_distances(rsp, stops=stops)
       end
     rescue => e
       graph_log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}. Error: #{e}"

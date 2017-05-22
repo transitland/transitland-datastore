@@ -80,7 +80,7 @@ class UpdateComputedAttributes::GeometryUpdateComputedAttributes < UpdateCompute
       @old_issues_to_deprecate.merge(Issue.issues_of_entity(rsp, entity_attributes: ["stop_distances"]))
 
       begin
-        stop_distances = rsp.stop_pattern.size < Geometry::DistanceCalculation::MAX_NUM_STOPS_FOR_RECURSION ? Geometry::EnhancedOTPDistances.new.calculate_distances(rsp) : Geometry::ABCDistances.new.calculate_distances(rsp)
+        stop_distances = Geometry::DistanceCalculation.calculate_and_evaluate_distances(rsp)
         rsp.update_making_history(changeset: @changeset, new_attrs: { stop_distances: stop_distances })
       rescue StandardError
         log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"

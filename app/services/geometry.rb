@@ -60,7 +60,6 @@ module Geometry
     extend Lib
 
     DISTANCE_PRECISION = 1
-    MAX_NUM_STOPS_FOR_RECURSION = 1000
 
     attr_accessor :stop_segment_matching_candidates, :cost_matrix
 
@@ -189,20 +188,35 @@ module Geometry
       end
       rsp.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
     end
+
+    def self.calculate_and_evaluate_distances(rsp, stops=nil)
+      if rsp.stop_pattern.size < Geometry::EnhancedOTPDistances::MAX_NUM_STOPS_FOR_RECURSION
+        dc = Geometry::EnhancedOTPDistances.new
+        dc.calculate_distances(rsp, stops=stops)
+        if dc.matching_method_calls > Geometry::EnhancedOTPDistances::RECURSIVE_CALL_LIMIT
+          Geometry::ABCDistances.new.calculate_distances(rsp, stops=stops)
+        end
+      else
+        Geometry::ABCDistances.new.calculate_distances(rsp, stops=stops)
+      end
+    end
   end
 
   class EnhancedOTPDistances < DistanceCalculation
 
+    RECURSIVE_CALL_LIMIT = 8000
+    MAX_NUM_STOPS_FOR_RECURSION = 1000
+
     attr_accessor :matching_method_calls, :matching_method_call_limit
 
     def compute_matching_method_call_limit(num_stops)
-      # prevent runaway loops from bad data or any lurking bugs
+      # prevent runaway loops from bad data or any lurking bugs that would slow down imports
       k = 1.0 + 3.0*(Math.log(num_stops)/num_stops**1.2) # max 'average' allowable num of segment candidates per stop. Approaches 1.0 as num_stops increases
       @matching_method_call_limit = 3.0*num_stops*k**num_stops
     end
 
     def matching_segments(stops, stop_index, start_seg_index, skip_stops=[])
-      return nil if @matching_method_calls > @matching_method_call_limit || @matching_method_calls > Geometry::DistanceCalculation::MAX_NUM_STOPS_FOR_RECURSION
+      return nil if @matching_method_calls > @matching_method_call_limit || @matching_method_calls > RECURSIVE_CALL_LIMIT
       @matching_method_calls += 1
       if stop_index == stops.size
         return []
