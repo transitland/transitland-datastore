@@ -8,6 +8,6 @@ class GTFSStatisticsWorker
 
   def perform(feed_version_sha1)
     feed_version = FeedVersion.find_by!(sha1: feed_version_sha1)
-    GTFSStatisticsService.create_feed_version_info(feed_version)
+    GTFSStatisticsService.create_feed_version_info_statistics(feed_version)
   end
 end
