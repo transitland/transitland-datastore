@@ -30,6 +30,7 @@ class BaseRouteStopPattern < ActiveRecord::Base
   self.abstract_class = true
 
   attr_accessor :traversed_by
+  attr_accessor :serves
 end
 
 class RouteStopPattern < BaseRouteStopPattern
@@ -117,6 +118,20 @@ class RouteStopPattern < BaseRouteStopPattern
   end
 
   ##### FromGTFS ####
+  def generate_onestop_id
+    route = self.traversed_by.present? ? self.traversed_by : self.route
+    stop_pattern = self.serves.present? ? self.serves.map(&:onestop_id) : self.stop_pattern
+    fail Exception.new('route required') unless route
+    fail Exception.new('stop_pattern required') unless stop_pattern
+    fail Exception.new('geometry required') unless self.geometry
+    onestop_id = OnestopId.handler_by_model(RouteStopPattern).new(
+     route_onestop_id: route.onestop_id,
+     stop_pattern: stop_pattern,
+     geometry_coords: self.geometry[:coordinates]
+    )
+    onestop_id.to_s
+  end
+
   def self.create_from_gtfs(trip, route_onestop_id, stop_pattern, stop_times, trip_stop_points, shape_points)
     # both trip_stop_points and stop_pattern correspond to stop_times.
     # GTFSGraph should already filter out stop_times of size 0 or 1 (using filter_empty).

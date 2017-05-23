@@ -2,7 +2,18 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.29...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.30...HEAD)
+
+**Merged pull requests:**
+
+- Production release 4.9.30 [\#1080](https://github.com/transitland/transitland-datastore/pull/1080) ([irees](https://github.com/irees))
+
+## [4.9.30](https://github.com/transitland/transitland-datastore/tree/4.9.30) (2017-05-09)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.29...4.9.30)
+
+**Fixed bugs:**
+
+- NoMethodError: undefined method `valid\_password?' for nil:NilClass [\#1082](https://github.com/transitland/transitland-datastore/issues/1082)
 
 **Closed issues:**
 
@@ -10,6 +21,10 @@
 
 **Merged pull requests:**
 
+- Limit low priority queue to 1 thread per process [\#1084](https://github.com/transitland/transitland-datastore/pull/1084) ([irees](https://github.com/irees))
+- when creating a session, make sure that user is found [\#1083](https://github.com/transitland/transitland-datastore/pull/1083) ([drewda](https://github.com/drewda))
+- Workers: use GTFS\_TMPDIR\_BASEPATH [\#1081](https://github.com/transitland/transitland-datastore/pull/1081) ([irees](https://github.com/irees))
+- Dist calc recursion [\#1077](https://github.com/transitland/transitland-datastore/pull/1077) ([doublestranded](https://github.com/doublestranded))
 - Production release 4.9.29 [\#1075](https://github.com/transitland/transitland-datastore/pull/1075) ([irees](https://github.com/irees))
 
 ## [4.9.29](https://github.com/transitland/transitland-datastore/tree/4.9.29) (2017-05-03)

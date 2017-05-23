@@ -21,12 +21,12 @@ gem 'redis-rails'
 # NOTE: pegging version of Redis gems
 # because of past operations issues: https://github.com/transitland/transitland-datastore/pull/880
 # hopefully will be fixed in future versions
-gem 'redis', '3.3.1'
-gem 'redis-actionpack', '5.0.0'
-gem 'redis-rack', '2.0.0.pre'
+gem 'redis'
+gem 'redis-actionpack'
+gem 'redis-rack'
 
 # background processing
-gem 'sidekiq', '< 5'
+gem 'sidekiq', '~> 5'
 gem 'sidekiq-unique-jobs', group: [:development, :staging, :production] # doesn't play well with test
 gem 'sidekiq-limit_fetch'
 gem 'whenever', require: false # to manage crontab
@@ -34,10 +34,11 @@ gem 'whenever', require: false # to manage crontab
 # data model
 gem 'squeel'
 gem 'enumerize'
-gem 'gtfs', github: 'transitland/gtfs', tag: '82b564898cd08f0b50e56b45348a027af135fbb5'
+gem 'gtfs', github: 'transitland/gtfs', tag: 'e3a78cb5776794082b20d6aa7b675a32ff637a38'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
-gem 'json-schema', '2.5.2' # running into problems with 2.6.0
+gem 'json'
+gem 'json-schema'
 gem 'email_validator'
 gem 'tzinfo'
 
@@ -50,16 +51,15 @@ gem 'devise'
 gem 'jwt'
 
 # providing API
-gem 'active_model_serializers', '0.10.2'
+gem 'active_model_serializers', '~> 0.10'
 gem 'oj'
-gem 'oj_mimic_json'
 
 # consuming other APIs
 gem 'faraday'
 
 # file attachments
 gem 'fog-aws', group: [:staging, :production]
-gem 'carrierwave', '~>1.0.0'
+gem 'carrierwave', '~>1.1.0'
 
 # development tools
 gem 'better_errors', group: :development

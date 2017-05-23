@@ -228,6 +228,18 @@ class Route < BaseRoute
   end
 
   ##### FromGTFS ####
+  def generate_onestop_id
+    stops = self.serves || self.stops
+    fail Exception.new('no Stop coordinates') if stops.empty?
+    fail Exception.new('name required') if name.nil?
+    geohash = GeohashHelpers.fit(Stop::GEOFACTORY.collection(stops.map { |s| s[:geometry] }))
+    onestop_id = OnestopId.handler_by_model(self.class).new(
+      geohash: geohash,
+      name: name
+    )
+    onestop_id.to_s
+  end
+
   include FromGTFS
   def self.from_gtfs(entity, attrs={})
     # GTFS Constructor

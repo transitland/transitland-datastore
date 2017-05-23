@@ -238,6 +238,11 @@ class Stop < BaseStop
     where('last_conflated_at <= ?', last_conflated_at)
   }
 
+  def coordinates
+    g = geometry(as: :wkt)
+    [g.lon, g.lat]
+  end
+
   # Similarity search
   def self.find_by_similarity(point, name, radius=100, threshold=0.75)
     # Similarity search. Returns a score,stop tuple or nil.
@@ -337,6 +342,19 @@ class Stop < BaseStop
   end
 
   ##### FromGTFS ####
+  def generate_onestop_id
+    fail Exception.new('geometry required') if geometry.nil?
+    fail Exception.new('name required') if name.nil?
+    geohash = GeohashHelpers.encode(self[:geometry])
+    name = self.name.gsub(/[\>\<]/, '')
+    onestop_id = OnestopId.handler_by_model(self.class).new(
+      geohash: geohash,
+      name: name
+    )
+    onestop_id.validate!
+    onestop_id.to_s
+  end
+
   include FromGTFS
   def self.from_gtfs(entity, attrs={})
     # GTFS Constructor

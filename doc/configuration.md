@@ -19,3 +19,4 @@ key | possible values | default | description
 `SEND_CHANGESET_EMAILS_TO_USERS` | `true`, `false` | `true` | By default, e-mail notifications go out to a changeset's author (as long as the user isn't an admin)
 `FEED_INFO_CACHE_EXPIRATION` | Any integer > 0 | 14400 seconds | Cache expiration time, in seconds, for FeedInfo results
 `AUTO_FETCH_FEED_VERSION` | `true`, `false` | `false` | Automatically run FeedFetch to create FeedVersion when a Feed is created
+`GTFS_GRAPH_VERSION` | `1`, `2` | `2` | Use legacy GTFSGraph by setting to 1. This option may be removed in the future.
