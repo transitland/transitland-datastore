@@ -15,12 +15,22 @@ class Api::V1::FeedVersionInfosController < Api::V1::BaseApiController
     @feed_version_infos = AllowFiltering.by_primary_key_ids(@feed_version_infos, params)
 
     if params[:feed_version_sha1].present?
-      feed_versions = FeedVersion.where(sha1: params[:feed_version_sha1].split(','))
+      feed_versions = FeedVersion.where(sha1: AllowFiltering.param_as_array(params, :feed_version_sha1))
       @feed_version_infos = @feed_version_infos.where(feed_version: feed_versions)
     end
 
+    if params[:feed_onestop_id].present?
+      feeds = Feed.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :feed_onestop_id))
+      @feed_version_infos = @feed_version_infos.where_feed(feeds)
+    end
+
+    if params[:type].present?
+      @feed_version_infos = @feed_version_infos.where_type(AllowFiltering.param_as_array(params, :type))
+    end
+
     @feed_version_infos = @feed_version_infos.includes{[
-      feed_version
+      feed_version,
+      # feed_version.feed # TODO: various polymorphic relations in feed_version prevent this
     ]}
 
     respond_to do |format|
