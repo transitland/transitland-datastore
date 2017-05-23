@@ -1,8 +1,8 @@
 describe GTFSStatisticsService do
-  context 'statistics' do
-    it '.create_feed_version_info' do
+  context '.create_feed_version_info_statistics' do
+    it 'creates FeedVersionInfoStatistics' do
       feed_version = create(:feed_version_example)
-      feed_version_info = GTFSStatisticsService.create_feed_version_info(feed_version)
+      feed_version_info = GTFSStatisticsService.create_feed_version_info_statistics(feed_version)
       data = feed_version_info.data
       expect(data['filenames']).to contain_exactly(
         "LICENSE.txt",
@@ -22,6 +22,13 @@ describe GTFSStatisticsService do
       expect(data['scheduled_service'].size).to eq(1460)
       expect(data['statistics']['routes.txt']['agency_id']['total']).to eq(5)
       expect(data['statistics']['routes.txt']['agency_id']['unique']).to eq(1)
+    end
+
+    it 'creates FeedVersionInfoStatistics with exception' do
+      allow(GTFSStatisticsService).to receive(:run_statistics) { fail StandardError.new('test') }
+      feed_version = create(:feed_version_example)
+      feed_version_info = GTFSStatisticsService.create_feed_version_info_statistics(feed_version)
+      expect(feed_version_info.data["error"]).to eq("test")
     end
   end
 end
