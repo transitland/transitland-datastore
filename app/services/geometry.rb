@@ -243,7 +243,7 @@ module Geometry
           if !valid
             if inverted
               s = @stop_segment_matching_candidates[stop_index+1].detect{|locator_and_cost,seg_index| seg_index > stop_seg_match}
-              segment_matches[stop_index+1] = s[1] || @stop_segment_matching_candidates[stop_index+1][0][1]
+              segment_matches[stop_index+1] = s.nil? ? @stop_segment_matching_candidates[stop_index+1][0][1] : s[1]
               segment_matches[stop_index] = stop_seg_match
               next
             end
