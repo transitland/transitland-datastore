@@ -18,6 +18,14 @@
 class FeedVersionInfo < ActiveRecord::Base
   belongs_to :feed_version
   validates :feed_version_id, uniqueness: { scope: :type }, presence: true
+
+  scope :where_feed, -> (feeds) {
+    joins(:feed_version).where(feed_version: {feed_id: Array.wrap(feeds).map(&:id)})
+  }
+
+  scope :where_type, -> (t) {
+    where(type: Array.wrap(t))
+  }
 end
 
 class FeedVersionInfoStatistics < FeedVersionInfo
