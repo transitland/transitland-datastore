@@ -127,7 +127,7 @@ module Geometry
           next if @stop_segment_matching_candidates[j].nil?
           @stop_segment_matching_candidates[j] = @stop_segment_matching_candidates[j].select{|m| m[1] <= max_index }
         end
-        @stop_segment_matching_candidates[i] = matches
+        @stop_segment_matching_candidates[i] = matches.sort_by{|locator_and_cost,j| locator_and_cost[1]}
       end
     end
 
@@ -230,7 +230,7 @@ module Geometry
         end
       end
 
-      @stop_segment_matching_candidates[stop_index].sort_by{|locator_and_cost,index| locator_and_cost[1] }.each do |locator_and_cost,index|
+      @stop_segment_matching_candidates[stop_index].each do |locator_and_cost,index|
         next if index < start_seg_index
         # sometimes the current stop's segment candidates are the same as the previous, and the distance on the segment is out of order.
         # in this case, we need to continue the loop for the current stop, not the previous.
@@ -329,7 +329,7 @@ module Geometry
 
     def index_of_line_segment_for_max_search(stop_index, min_index)
       unless @stop_segment_matching_candidates[stop_index].nil?
-        @stop_segment_matching_candidates[stop_index].reject{|locator_and_cost,index| index < min_index }.sort_by{|locator_and_cost,index| locator_and_cost[1] }[0][1]
+        @stop_segment_matching_candidates[stop_index].reject{|locator_and_cost,index| index < min_index }[0][1]
       end
     end
 
