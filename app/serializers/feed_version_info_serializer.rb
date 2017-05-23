@@ -20,10 +20,15 @@ class FeedVersionInfoSerializer < ApplicationSerializer
              :type,
              :data,
              :feed_version_sha1,
+             :feed_onestop_id,
              :created_at,
              :updated_at
 
   def feed_version_sha1
     object.feed_version.sha1
+  end
+
+  def feed_onestop_id
+    object.feed_version.feed.onestop_id
   end
 end
