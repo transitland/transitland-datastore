@@ -192,12 +192,12 @@ module Geometry
 
   class EnhancedOTPDistances < DistanceCalculation
 
-    attr_accessor :matching_method_calls, :matching_method_call_limit
+    attr_accessor :stack_calls, :stack_call_limit
 
-    def compute_matching_method_call_limit(num_stops)
+    def compute_stack_call_limit(num_stops)
       # prevent runaway loops from bad data or any lurking bugs that would slow down imports
       k = 1.0 + 3.0*(Math.log(num_stops)/num_stops**1.2) # max 'average' allowable num of segment candidates per stop. Approaches 1.0 as num_stops increases
-      @matching_method_call_limit = 3.0*num_stops*k**num_stops
+      @stack_call_limit = 3.0*num_stops*k**num_stops
     end
 
     def forward_matches(stops, stop_index, min_seg_index, stack, skip_stops=[])
@@ -225,8 +225,8 @@ module Geometry
 
       while stack.any?
         stop_index, stop_seg_match = stack.pop
-        next if @matching_method_calls > @matching_method_call_limit
-        @matching_method_calls += 1
+        next if @stack_calls > @stack_call_limit
+        @stack_calls += 1
         next if skip_stops.include?(stop_index)
 
         if stop_index == stops.size - 1
@@ -299,8 +299,8 @@ module Geometry
       skip_stops << stops.size - 1 if skip_last_stop
 
       best_possible_matching_segments_for_stops(route_line_as_cartesian, stops, skip_stops=skip_stops)
-      @matching_method_calls = 0
-      compute_matching_method_call_limit(stops.size)
+      @stack_calls = 0
+      compute_stack_call_limit(stops.size)
       best_single_segment_match_for_stops = matching_segments(stops, skip_stops=skip_stops)
 
       if matches_invalid?(best_single_segment_match_for_stops, skip_stops)
