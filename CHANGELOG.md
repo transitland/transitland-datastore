@@ -2,11 +2,36 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.30...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.31...HEAD)
 
 **Merged pull requests:**
 
+- Production release 4.9.31 [\#1086](https://github.com/transitland/transitland-datastore/pull/1086) ([irees](https://github.com/irees))
+
+## [4.9.31](https://github.com/transitland/transitland-datastore/tree/4.9.31) (2017-05-23)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.30...4.9.31)
+
+**Fixed bugs:**
+
+- only one FeedEater job should run at a time [\#1087](https://github.com/transitland/transitland-datastore/issues/1087)
+
+**Closed issues:**
+
+- FeedVersionInfo filtering: FeedVersion, Feed, and Type [\#1098](https://github.com/transitland/transitland-datastore/issues/1098)
+- GTFS Statistics: All filenames [\#1095](https://github.com/transitland/transitland-datastore/issues/1095)
+- StopTransfer: Transfers between stations [\#985](https://github.com/transitland/transitland-datastore/issues/985)
+
+**Merged pull requests:**
+
+- FeedVersionInfo: query\_params [\#1099](https://github.com/transitland/transitland-datastore/pull/1099) ([irees](https://github.com/irees))
+- Feed version info controller updates [\#1097](https://github.com/transitland/transitland-datastore/pull/1097) ([irees](https://github.com/irees))
+- GTFS Statistics: improved filenames [\#1094](https://github.com/transitland/transitland-datastore/pull/1094) ([irees](https://github.com/irees))
+- update mail gem [\#1092](https://github.com/transitland/transitland-datastore/pull/1092) ([drewda](https://github.com/drewda))
+- updating gems, including Sidekiq and Redis libraries [\#1090](https://github.com/transitland/transitland-datastore/pull/1090) ([drewda](https://github.com/drewda))
+- Production release 4.9.30-2   [\#1089](https://github.com/transitland/transitland-datastore/pull/1089) ([drewda](https://github.com/drewda))
+- only one FeedEater job should run at a time [\#1088](https://github.com/transitland/transitland-datastore/pull/1088) ([drewda](https://github.com/drewda))
 - Production release 4.9.30 [\#1080](https://github.com/transitland/transitland-datastore/pull/1080) ([irees](https://github.com/irees))
+- GTFS Graph Refactor [\#1037](https://github.com/transitland/transitland-datastore/pull/1037) ([irees](https://github.com/irees))
 
 ## [4.9.30](https://github.com/transitland/transitland-datastore/tree/4.9.30) (2017-05-09)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.29...4.9.30)
