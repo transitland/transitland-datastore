@@ -8,7 +8,7 @@ describe GTFSStatisticsWorker do
       Sidekiq::Testing.inline! do
         GTFSStatisticsWorker.perform_async(feed_version.sha1)
         fvi = feed_version.reload.feed_version_infos.first
-        expect(fvi.data['filenames'].size).to eq(12)
+        expect(fvi.data['filenames'].size).to eq(13)
       end
     end
   end
