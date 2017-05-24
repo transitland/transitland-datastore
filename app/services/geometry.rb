@@ -233,12 +233,12 @@ module Geometry
           segment_matches[stop_index] = stop_seg_match
         else
           equivalent_stops = stops[stop_index].onestop_id.eql?(stops[stop_index+1]) || stops[stop_index][:geometry].eql?(stops[stop_index+1][:geometry])
-          # consecutive stops match to same segment, but their position on the segment is out of order.
+          # consecutive stops match to same segment, but their positions on the segment are out of order.
           inverted = !stop_seg_match.nil? &&
             !segment_matches[stop_index+1].nil? &&
             stop_seg_match == segment_matches[stop_index+1] &&
             @stop_segment_matching_candidates[stop_index].detect{|s| s[1] == stop_seg_match}[0][0].distance_on_segment > @stop_segment_matching_candidates[stop_index+1].detect{|s| s[1] == segment_matches[stop_index+1]}[0][0].distance_on_segment
-          valid = stop_seg_match && equivalent_stops || !inverted || segment_matches[stop_index+1] > stop_seg_match || segment_matches[stop_index+1].nil?
+          valid = stop_seg_match && equivalent_stops || !inverted || segment_matches[stop_index+1] > stop_seg_match || (segment_matches[stop_index+1].nil? && skip_stops.include?(stop_index+1))
 
           if !valid
             if inverted
@@ -249,7 +249,8 @@ module Geometry
             end
             index_of_seg_index = @stop_segment_matching_candidates[stop_index].map{|locator_and_cost,seg_index| seg_index }.index(stop_seg_match)
             if @stop_segment_matching_candidates[stop_index][index_of_seg_index+1].nil?
-              stack.push([stop_index+i,nil])
+              stack.push([stop_index,nil])
+              next
             else
               min_seg_index = @stop_segment_matching_candidates[stop_index][index_of_seg_index+1][1]
             end
@@ -274,7 +275,7 @@ module Geometry
       # First we compute reasonable segment matching possibilities for each stop based on a threshold.
       # Then, through a recursive call on each stop, we test the stop's segment possibilities in sorted order (of distance from the line)
       # until we find a list of all stop distances along the line that are in increasing order.
-      # Ultimately, it's still a greedy heuristic algorithm, so inaccuracy is not guaranteed.
+      # Ultimately, it's still a greedy heuristic algorithm, so accuracy is not guaranteed.
 
       # It may be worthwhile to consider the problem defined and solved algorithmically in:
       # http://www.sciencedirect.com/science/article/pii/0012365X9500325Q
