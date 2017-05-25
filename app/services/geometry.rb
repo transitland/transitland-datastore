@@ -86,7 +86,6 @@ module Geometry
       y = mins.sum/mins.size.to_f
 
       thresholds = []
-
       stops.each_with_index do |stop, i|
         if i == 0
           x = (stops[0][:geometry].distance(stops[1][:geometry]))/2.0
@@ -200,6 +199,14 @@ module Geometry
       @stack_call_limit = 3.0*num_stops*k**num_stops
     end
 
+    def resolve_inverted_matches(stop_index, max_seg_match)
+      candidates = @stop_segment_matching_candidates[stop_index].reject{|s| s[1] > max_seg_match }.product(@stop_segment_matching_candidates[stop_index+1].reject{|s| s[1] > max_seg_match }).reject do |m1,m2|
+        m1[1] > m2[1] || (m1[1] == m2[1] && m1[0][0].distance_on_segment > m2[0][0].distance_on_segment )
+      end
+      result = candidates.min_by{|m1,m2| m1[0][1] + m2[0][1] }
+      result.map{|m| m[1] } unless result.nil?
+    end
+
     def forward_matches(stops, stop_index, min_seg_index, stack, skip_stops=[])
       stops[stop_index..-1].each_with_index do |stop, i|
         if skip_stops.include?(stop_index+i)
@@ -242,9 +249,20 @@ module Geometry
 
           if !valid
             if inverted
-              s = @stop_segment_matching_candidates[stop_index+1].detect{|locator_and_cost,seg_index| seg_index > stop_seg_match}
-              segment_matches[stop_index+1] = s.nil? ? @stop_segment_matching_candidates[stop_index+1][0][1] : s[1]
-              segment_matches[stop_index] = stop_seg_match
+              if stop_index + 2 < stops.size
+                max_seg_index = segment_matches[stop_index+2..-1].detect{|m| !m.nil? } || Float::INFINITY
+                m = resolve_inverted_matches(stop_index, max_seg_index)
+              else
+                m = resolve_inverted_matches(stop_index, Float::INFINITY)
+              end
+
+              if m.nil?
+                segment_matches[stop_index+1] = nil
+                segment_matches[stop_index] = nil
+              else
+                segment_matches[stop_index+1] = m[1]
+                segment_matches[stop_index] = m[0]
+              end
               next
             end
             index_of_seg_index = @stop_segment_matching_candidates[stop_index].map{|locator_and_cost,seg_index| seg_index }.index(stop_seg_match)
