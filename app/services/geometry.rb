@@ -163,13 +163,15 @@ module Geometry
       # compare the last stop's closest segment point to the penultimate. If the last stop's point
       # is before the penultimate, then it has to be set to the length of the line geometry, as the line
       # is likely to be too short by not coming up to the last stop.
-      last_stop_locator_and_index = @cost_matrix[-1].each_with_index.select{|locator_and_cost, i| i >= penultimate_match }.min_by{|locator_and_cost, i| locator_and_cost[1]}
-      if last_stop_locator_and_index[1] > penultimate_match
-        rsp.stop_distances[-1] = LineString.distance_along_line_to_nearest_point(route_line_as_cartesian,last_stop_locator_and_index[0][0].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326)),last_stop_locator_and_index[1])
-      elsif last_stop_locator_and_index[1] == penultimate_match && last_stop_locator_and_index[0][0].distance_on_segment > @cost_matrix[-2][penultimate_match][0].distance_on_segment
-        rsp.stop_distances[-1] = LineString.distance_along_line_to_nearest_point(route_line_as_cartesian,last_stop_locator_and_index[0][0].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326)),last_stop_locator_and_index[1])
-      else
+      if penultimate_match.nil?
         rsp.stop_distances[-1] = rsp[:geometry].length
+      else
+        last_stop_locator_and_index = @cost_matrix[-1].each_with_index.select{|locator_and_cost, i| i >= penultimate_match }.min_by{|locator_and_cost, i| locator_and_cost[1]}
+        if last_stop_locator_and_index[1] > penultimate_match || last_stop_locator_and_index[1] == penultimate_match && last_stop_locator_and_index[0][0].distance_on_segment > @cost_matrix[-2][penultimate_match][0].distance_on_segment
+            rsp.stop_distances[-1] = LineString.distance_along_line_to_nearest_point(route_line_as_cartesian,last_stop_locator_and_index[0][0].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326)),last_stop_locator_and_index[1])
+        else
+          rsp.stop_distances[-1] = rsp[:geometry].length
+        end
       end
     end
 
