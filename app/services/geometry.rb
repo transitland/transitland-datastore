@@ -143,7 +143,7 @@ module Geometry
     def assign_first_stop_distance(rsp, route_line_as_cartesian, first_stop_as_spherical, first_stop_as_cartesian)
       # compare the second stop's closest segment point to the first. If the first stop's point
       # is after the second, then it has to be set to 0.0 because the line geometry
-      # is likely to be too short by not coming up to the first stop.
+      # is likely to be too short by not starting at or near the first stop.
       if self.class.stop_before_geometry(first_stop_as_spherical, first_stop_as_cartesian, route_line_as_cartesian)
         first_stop_locator_and_index = @cost_matrix[0].each_with_index.min_by{|locator_and_cost, i| locator_and_cost[1]}
         second_stop_locator_and_index = @cost_matrix[1].each_with_index.min_by{|locator_and_cost, i| locator_and_cost[1]}
@@ -294,7 +294,7 @@ module Geometry
     def matches_invalid?(best_single_segment_match_for_stops, skip_stops)
       best_single_segment_match_for_stops.nil? ||
       best_single_segment_match_for_stops.each_with_index.any?{|b,i| b.nil? && !skip_stops.include?(i)} ||
-      best_single_segment_match_for_stops.each_cons(2).any?{|m1,m2| m1.nil? && m2.nil?}
+      best_single_segment_match_for_stops.each_cons(2).any?{|m1,m2| m1.nil? && m2.nil? && best_single_segment_match_for_stops.size != 2 }
     end
 
     def calculate_distances(rsp, stops=nil)
