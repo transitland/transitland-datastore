@@ -109,13 +109,15 @@ module Geometry
           @stop_segment_matching_candidates[i] = nil
           next
         end
+        distances = []
         matches = @cost_matrix[i].each_with_index.select do |locator_and_cost,j|
           distance = stop[:geometry].distance(locator_and_cost[0].interpolate_point(RouteStopPattern::GEOFACTORY))
+          distances << distance
           j >= min_index && distance <= thresholds[i]
         end
         if matches.to_a.empty?
           # an outlier
-          skip_stops << i
+          skip_stops << i if distances.all?{|d| d > thresholds[i]}
           next
         else
           max_index = matches.max_by{ |locator_and_cost,j| j }[1]
@@ -128,6 +130,14 @@ module Geometry
         end
         @stop_segment_matching_candidates[i] = matches.sort_by{|locator_and_cost,j| locator_and_cost[1]}
       end
+    end
+
+    def resolve_inverted_matches(stop_index, max_seg_match)
+      candidates = @stop_segment_matching_candidates[stop_index].reject{|s| s[1] > max_seg_match }.product(@stop_segment_matching_candidates[stop_index+1].reject{|s| s[1] > max_seg_match }).reject do |m1,m2|
+        m1[1] > m2[1] || (m1[1] == m2[1] && m1[0][0].distance_on_segment > m2[0][0].distance_on_segment )
+      end
+      result = candidates.min_by{|m1,m2| m1[0][1] + m2[0][1] }
+      result.map{|m| m[1] } unless result.nil?
     end
 
     def assign_first_stop_distance(rsp, route_line_as_cartesian, first_stop_as_spherical, first_stop_as_cartesian)
@@ -199,26 +209,22 @@ module Geometry
       @stack_call_limit = 3.0*num_stops*k**num_stops
     end
 
-    def resolve_inverted_matches(stop_index, max_seg_match)
-      candidates = @stop_segment_matching_candidates[stop_index].reject{|s| s[1] > max_seg_match }.product(@stop_segment_matching_candidates[stop_index+1].reject{|s| s[1] > max_seg_match }).reject do |m1,m2|
-        m1[1] > m2[1] || (m1[1] == m2[1] && m1[0][0].distance_on_segment > m2[0][0].distance_on_segment )
-      end
-      result = candidates.min_by{|m1,m2| m1[0][1] + m2[0][1] }
-      result.map{|m| m[1] } unless result.nil?
-    end
-
     def forward_matches(stops, stop_index, min_seg_index, stack, skip_stops=[])
       stops[stop_index..-1].each_with_index do |stop, i|
         if skip_stops.include?(stop_index+i)
           stack.push([stop_index+i,nil])
         else
-          next_seg_indexes = @stop_segment_matching_candidates[stop_index+i].reject{|locator_and_cost,index| index < min_seg_index }
-          if next_seg_indexes.empty?
+          if @stop_segment_matching_candidates[stop_index+i].nil?
             stack.push([stop_index+i,nil])
           else
-            seg_index = next_seg_indexes[0][1]
-            stack.push([stop_index+i,seg_index])
-            min_seg_index = seg_index
+            next_seg_indexes = @stop_segment_matching_candidates[stop_index+i].reject{|locator_and_cost,index| index < min_seg_index }
+            if next_seg_indexes.empty?
+              stack.push([stop_index+i,nil])
+            else
+              seg_index = next_seg_indexes[0][1]
+              stack.push([stop_index+i,seg_index])
+              min_seg_index = seg_index
+            end
           end
         end
       end
@@ -245,8 +251,9 @@ module Geometry
             !segment_matches[stop_index+1].nil? &&
             stop_seg_match == segment_matches[stop_index+1] &&
             @stop_segment_matching_candidates[stop_index].detect{|s| s[1] == stop_seg_match}[0][0].distance_on_segment > @stop_segment_matching_candidates[stop_index+1].detect{|s| s[1] == segment_matches[stop_index+1]}[0][0].distance_on_segment
-          valid = stop_seg_match && equivalent_stops || !inverted || segment_matches[stop_index+1] > stop_seg_match || (segment_matches[stop_index+1].nil? && skip_stops.include?(stop_index+1))
-
+          valid = stop_seg_match &&
+                  segment_matches[stop_index+1..-1].each_with_index.all?{|m,j| !m.nil? || skip_stops.include?(stop_index+1+j) } &&
+                  (skip_stops.include?(stop_index+1) || (!inverted || equivalent_stops || segment_matches[stop_index+1] > stop_seg_match))
           if !valid
             if inverted
               if stop_index + 2 < stops.size
@@ -255,7 +262,6 @@ module Geometry
               else
                 m = resolve_inverted_matches(stop_index, Float::INFINITY)
               end
-
               if m.nil?
                 segment_matches[stop_index+1] = nil
                 segment_matches[stop_index] = nil
@@ -263,21 +269,25 @@ module Geometry
                 segment_matches[stop_index+1] = m[1]
                 segment_matches[stop_index] = m[0]
               end
-              next
-            end
-            index_of_seg_index = @stop_segment_matching_candidates[stop_index].map{|locator_and_cost,seg_index| seg_index }.index(stop_seg_match)
-            if @stop_segment_matching_candidates[stop_index][index_of_seg_index+1].nil?
-              stack.push([stop_index,nil])
-              next
             else
-              min_seg_index = @stop_segment_matching_candidates[stop_index][index_of_seg_index+1][1]
+              push_back = @stop_segment_matching_candidates[stop_index].nil?
+              unless push_back
+                index_of_seg_index = @stop_segment_matching_candidates[stop_index].map{|locator_and_cost,seg_index| seg_index }.index(stop_seg_match)
+                push_back = index_of_seg_index.nil? || @stop_segment_matching_candidates[stop_index][index_of_seg_index+1].nil?
+              end
+              if push_back
+                segment_matches[stop_index] = nil
+              else
+                min_seg_index = @stop_segment_matching_candidates[stop_index][index_of_seg_index+1][1]
+                stack.push([stop_index,min_seg_index])
+                forward_matches(stops, stop_index + 1, min_seg_index, stack, skip_stops=skip_stops)
+              end
             end
-            forward_matches(stops, stop_index + 1, min_seg_index, stack, skip_stops=skip_stops)
           else
             segment_matches[stop_index] = stop_seg_match
           end
         end
-      end
+      end # end loop
       return segment_matches
     end
 
