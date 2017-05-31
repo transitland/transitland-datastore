@@ -68,7 +68,6 @@ class FeedEaterService
           }
         })
       end
-      fail e
     else
       # Enqueue FeedEaterScheduleWorker jobs, or save successful import.
       if import_level < 2
