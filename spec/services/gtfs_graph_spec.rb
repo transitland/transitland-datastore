@@ -312,6 +312,20 @@ describe GTFSGraph do
       expect(feed.imported_route_stop_patterns.size).to eq 8
     end
 
+    it 'does not use RSP EIFFs' do
+      feed_version = create(:feed_version_example)
+      feed = feed_version.feed
+      feed.update!(active_feed_version: feed_version)
+      route = create(:route, onestop_id: "r-9qscy-test")
+      rsp = create(:route_stop_pattern, route: route)
+      rsp.update!(onestop_id: "r-9qscy-10-5dca2b-ae2f1e")
+      rsp.entities_imported_from_feed.create!(gtfs_id: "AB1", feed: feed, feed_version: feed_version)
+      expect(rsp.route.onestop_id).to eq("r-9qscy-test")
+      feed, feed_version = load_feed(feed_version: feed_version, import_level: 1)
+      rsp.reload
+      expect(rsp.route.onestop_id).to eq("r-9qscy-10")
+    end
+
     it 'allows multiple agency_ids to point to single Operator' do
       # In this feed, Route "r-9qt1-50" is associated with agency_id "DTA2"
       # where both "DTA" and "DTA2" point to "o-9qs-demotransitauthority"

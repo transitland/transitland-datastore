@@ -333,7 +333,7 @@ class GTFSGraphImporter
     shape = shape_line || shape_points
     key = [traversed_by, shape, serves]
     find_or_initialize(gtfs_entity, key: key) { |tl_entity|
-      tl_entity = RouteStopPattern.new
+      tl_entity = RouteStopPattern.new # ignore EIFFs
       # Relations
       tl_entity.serves = serves
       tl_entity.stop_pattern = serves.map(&:onestop_id)
