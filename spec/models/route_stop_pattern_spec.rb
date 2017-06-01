@@ -167,16 +167,24 @@ describe RouteStopPattern do
   end
 
   it 'can be found by trips' do
-    rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, trips: ['trip1','trip2'])
-    expect(RouteStopPattern.with_trips('trip1')).to match_array([rsp])
-    expect(RouteStopPattern.with_trips('trip1,trip2')).to match_array([rsp])
-    expect(RouteStopPattern.with_trips('trip3')).to match_array([])
-    expect(RouteStopPattern.with_trips('trip1,trip3')).to match_array([])
+    feed_version = create(:feed_version_example)
+    rsp1 = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id)
+    rsp1.entities_imported_from_feed.create!(gtfs_id: 'trip1', feed: feed_version.feed, feed_version: feed_version)
+    rsp1.entities_imported_from_feed.create!(gtfs_id: 'trip2', feed: feed_version.feed, feed_version: feed_version)
+    rsp2 = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id)
+    rsp2.entities_imported_from_feed.create!(gtfs_id: 'trip3', feed: feed_version.feed, feed_version: feed_version)
+    expect(RouteStopPattern.with_trips('trip1')).to match_array([rsp1])
+    expect(RouteStopPattern.with_trips(['trip1','trip2'])).to match_array([rsp1])
+    expect(RouteStopPattern.with_trips(['trip1','trip3'])).to match_array([rsp1, rsp2])
+    expect(RouteStopPattern.with_trips('trip_missing')).to match_array([])
   end
 
   it 'ordered_ssp_trip_chunks' do
+    feed_version = create(:feed_version_example)
     route = create(:route, onestop_id: @onestop_id)
-    rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id, trips: ['trip1','trip2'])
+    rsp = create(:route_stop_pattern, stop_pattern: @sp, geometry: @geom, onestop_id: @onestop_id)
+    rsp.entities_imported_from_feed.create!(gtfs_id: 'trip1', feed: feed_version.feed, feed_version: feed_version)
+    rsp.entities_imported_from_feed.create!(gtfs_id: 'trip2', feed: feed_version.feed, feed_version: feed_version)
     ssp_1a = create(:schedule_stop_pair, origin: stop_a, origin_departure_time: "09:00:00", destination: stop_b, route: route, route_stop_pattern: rsp, trip: 'trip1')
     ssp_1b = create(:schedule_stop_pair, origin: stop_b, origin_departure_time: "09:30:00", destination: stop_c, route: route, route_stop_pattern: rsp, trip: 'trip1')
     ssp_2a = create(:schedule_stop_pair, origin: stop_a, origin_departure_time: "10:00:00", destination: stop_b, route: route, route_stop_pattern: rsp, trip: 'trip2')
