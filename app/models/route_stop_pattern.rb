@@ -103,9 +103,13 @@ class RouteStopPattern < BaseRouteStopPattern
     end
   end
 
-  scope :with_trips, -> (search_string) { where{trips.within(search_string)} }
+  scope :with_trips, -> (search_string) { where_imported_with_gtfs_id(search_string) }
   scope :with_all_stops, -> (search_string) { where{stop_pattern.within(search_string)} }
   scope :with_any_stops, -> (stop_onestop_ids) { where( "stop_pattern && ARRAY[?]::varchar[]", stop_onestop_ids ) }
+
+  def trips
+    entities_imported_from_feed.map(&:gtfs_id).uniq.compact
+  end
 
   def ordered_ssp_trip_chunks(&block)
     if block
