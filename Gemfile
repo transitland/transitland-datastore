@@ -112,7 +112,7 @@ gem 'unicorn', group: [:staging, :production]
 gem 'memory_profiler', group: [:test, :development]
 
 # email
-# temporarily pegging this version to address a security vunerability
+# temporarily pegging this version to address a security vulnerability
 # https://github.com/mikel/mail/pull/1097
 # TODO: remove once https://github.com/mikel/mail/issues/1116 is addressed
 gem 'mail', '2.6.6.rc1'
