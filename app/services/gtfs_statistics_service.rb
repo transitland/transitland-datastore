@@ -126,7 +126,7 @@ class GTFSStatisticsService
     results
   end
 
-  def self.generate_statistics(gtfs)
+  def self.run_statistics(gtfs)
     statistics = {}
     GTFS::Source::SOURCE_FILES.each do |model_filename, model_cls|
       next unless gtfs.file_present?(model_filename)
@@ -150,13 +150,18 @@ class GTFSStatisticsService
     }
   end
 
-  def self.create_feed_version_info(feed_version)
+  def self.create_feed_version_info_statistics(feed_version)
     # Generate statistics
-    gtfs = feed_version.open_gtfs
-    data = generate_statistics(gtfs)
     FeedVersionInfo.connection
-    # Remove previous
+    feed_version_info = nil
     feed_version.feed_version_infos.where(type: 'FeedVersionInfoStatistics').delete_all
-    feed_version.feed_version_infos.create!(type: 'FeedVersionInfoStatistics', data: data)
+    begin
+      gtfs = feed_version.open_gtfs
+      data = run_statistics(gtfs)
+      feed_version_info = feed_version.feed_version_infos.create!(type: 'FeedVersionInfoStatistics', data: data)
+    rescue StandardError => e
+      feed_version_info = feed_version.feed_version_infos.create!(type: 'FeedVersionInfoStatistics', data: {error: e.message})
+    end
+    feed_version_info
   end
 end

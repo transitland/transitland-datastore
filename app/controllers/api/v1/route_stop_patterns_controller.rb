@@ -44,7 +44,7 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
       @rsps = @rsps.where(route: Route.find_by_onestop_id!(params[:traversed_by]))
     end
     if params[:trips].present?
-      @rsps = @rsps.with_trips(params[:trips])
+      @rsps = @rsps.with_trips(AllowFiltering.param_as_array(params, :trips))
     end
     if params[:stops_visited].present?
       @rsps = @rsps.with_all_stops(params[:stops_visited])
@@ -53,6 +53,7 @@ class Api::V1::RouteStopPatternsController < Api::V1::BaseApiController
     # Includes
     @rsps = @rsps.includes{[
       route,
+      entities_imported_from_feed,
       imported_from_feeds,
       imported_from_feed_versions
     ]}

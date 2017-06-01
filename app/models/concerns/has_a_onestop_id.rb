@@ -30,7 +30,11 @@ module HasAOnestopId
 
     def self.find_by_onestop_id!(onestop_id)
       # TODO: make this case insensitive
-      self.find_by!(onestop_id: onestop_id)
+      begin
+        self.find_by!(onestop_id: onestop_id)
+      rescue ActiveRecord::RecordNotFound => e
+        fail ActiveRecord::RecordNotFound.new("Couldn't find #{self.name}: #{onestop_id}")
+      end
     end
 
     def self.find_by_onestop_id(onestop_id)
@@ -42,7 +46,7 @@ module HasAOnestopId
       # First query to check for missing id's
       # keep them in order
       missing = onestop_ids - self.where(onestop_id: onestop_ids).pluck(:onestop_id)
-      fail ActiveRecord::RecordNotFound, "Couldn't find: #{missing.join(' ')}" if missing.size > 0
+      fail ActiveRecord::RecordNotFound, "Couldn't find #{self.name}: #{missing.join(' ')}" if missing.size > 0
       # Second query as usual
       self.where(onestop_id: onestop_ids)
     end

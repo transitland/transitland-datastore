@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170419200247) do
+ActiveRecord::Schema.define(version: 20170601181416) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -127,7 +127,6 @@ ActiveRecord::Schema.define(version: 20170419200247) do
     t.hstore    "tags"
     t.string    "stop_pattern",                                                                                   default: [],              array: true
     t.integer   "version"
-    t.string    "trips",                                                                                          default: [],              array: true
     t.datetime  "created_at",                                                                                                  null: false
     t.datetime  "updated_at",                                                                                                  null: false
     t.integer   "created_or_updated_in_changeset_id"
@@ -141,7 +140,6 @@ ActiveRecord::Schema.define(version: 20170419200247) do
   add_index "current_route_stop_patterns", ["onestop_id"], name: "index_current_route_stop_patterns_on_onestop_id", unique: true, using: :btree
   add_index "current_route_stop_patterns", ["route_id"], name: "index_current_route_stop_patterns_on_route_id", using: :btree
   add_index "current_route_stop_patterns", ["stop_pattern"], name: "index_current_route_stop_patterns_on_stop_pattern", using: :gin
-  add_index "current_route_stop_patterns", ["trips"], name: "index_current_route_stop_patterns_on_trips", using: :gin
 
   create_table "current_routes", force: :cascade do |t|
     t.string    "onestop_id"
@@ -487,7 +485,6 @@ ActiveRecord::Schema.define(version: 20170419200247) do
     t.hstore    "tags"
     t.string    "stop_pattern",                                                                                   default: [],              array: true
     t.integer   "version"
-    t.string    "trips",                                                                                          default: [],              array: true
     t.datetime  "created_at",                                                                                                  null: false
     t.datetime  "updated_at",                                                                                                  null: false
     t.integer   "created_or_updated_in_changeset_id"
@@ -506,7 +503,6 @@ ActiveRecord::Schema.define(version: 20170419200247) do
   add_index "old_route_stop_patterns", ["onestop_id"], name: "index_old_route_stop_patterns_on_onestop_id", using: :btree
   add_index "old_route_stop_patterns", ["route_type", "route_id"], name: "index_old_route_stop_patterns_on_route_type_and_route_id", using: :btree
   add_index "old_route_stop_patterns", ["stop_pattern"], name: "index_old_route_stop_patterns_on_stop_pattern", using: :gin
-  add_index "old_route_stop_patterns", ["trips"], name: "index_old_route_stop_patterns_on_trips", using: :gin
 
   create_table "old_routes", force: :cascade do |t|
     t.string    "onestop_id"
