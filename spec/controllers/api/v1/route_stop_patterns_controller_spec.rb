@@ -23,9 +23,11 @@ describe Api::V1::RouteStopPatternsController do
     @rsp = create(:route_stop_pattern,
       stop_pattern: sp,
       geometry: geom,
-      route: @bullet_route,
-      trips: ['trip1','trip2']
+      route: @bullet_route
     )
+    feed_version = create(:feed_version_example)
+    @rsp.entities_imported_from_feed.create!(gtfs_id: 'trip1', feed: feed_version.feed, feed_version: feed_version)
+    @rsp.entities_imported_from_feed.create!(gtfs_id: 'trip2', feed: feed_version.feed, feed_version: feed_version)
   end
 
 
