@@ -2,10 +2,35 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.31...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.32...HEAD)
+
+**Fixed bugs:**
+
+- RSPs missing trips [\#1104](https://github.com/transitland/transitland-datastore/issues/1104)
+
+**Closed issues:**
+
+- Auto-enqueue improvements [\#1038](https://github.com/transitland/transitland-datastore/issues/1038)
 
 **Merged pull requests:**
 
+- Production release 4.9.32 [\#1102](https://github.com/transitland/transitland-datastore/pull/1102) ([irees](https://github.com/irees))
+
+## [4.9.32](https://github.com/transitland/transitland-datastore/tree/4.9.32) (2017-06-01)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.31...4.9.32)
+
+**Fixed bugs:**
+
+- New GTFS Import: Do not lookup RSPs by EIFF [\#1105](https://github.com/transitland/transitland-datastore/issues/1105)
+- SystemStackError: stack level too deep [\#1093](https://github.com/transitland/transitland-datastore/issues/1093)
+
+**Merged pull requests:**
+
+- RSP: Use EIFFs for trips [\#1109](https://github.com/transitland/transitland-datastore/pull/1109) ([irees](https://github.com/irees))
+- updating gems & pegging `mail` gem to address security vulnerability [\#1108](https://github.com/transitland/transitland-datastore/pull/1108) ([drewda](https://github.com/drewda))
+- RSPs for each Route [\#1106](https://github.com/transitland/transitland-datastore/pull/1106) ([irees](https://github.com/irees))
+- Better recursive bounds [\#1101](https://github.com/transitland/transitland-datastore/pull/1101) ([doublestranded](https://github.com/doublestranded))
+- FeedVersionInfo: Improved error handling [\#1100](https://github.com/transitland/transitland-datastore/pull/1100) ([irees](https://github.com/irees))
 - Production release 4.9.31 [\#1086](https://github.com/transitland/transitland-datastore/pull/1086) ([irees](https://github.com/irees))
 
 ## [4.9.31](https://github.com/transitland/transitland-datastore/tree/4.9.31) (2017-05-23)
