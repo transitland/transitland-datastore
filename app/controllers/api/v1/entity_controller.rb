@@ -7,7 +7,6 @@ class Api::V1::EntityController < Api::V1::BaseApiController
 
   def index
     index_query
-    index_collection_model
     index_includes
     index_response
   end
