@@ -44,6 +44,7 @@ class Api::V1::EntityController < Api::V1::BaseApiController
     if params[:bbox].present?
       @collection = @collection.geometry_within_bbox(params[:bbox])
     end
+  end
 
   def index_includes
     @collection = @collection.includes{[
