@@ -17,10 +17,13 @@ class Api::V1::EntityController < Api::V1::BaseApiController
   private
 
   def index_response
+    scope = {
+      embed_issues: AllowFiltering.to_boolean(params[:embed_issues])
+    }
     respond_to do |format|
-      format.json { render paginated_json_collection(@collection).merge({ scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }) }
-      format.geojson { render paginated_geojson_collection(@collection) }
-      format.csv { return_downloadable_csv(@collection, 'feeds') }
+      format.json { render paginated_json_collection(@collection).merge({ scope: scope }) }
+      format.geojson { render paginated_geojson_collection(@collection).merge({ scope: scope }) }
+      format.csv { return_downloadable_csv(@collection, self.class::MODEL.to_s) }
     end
   end
 
