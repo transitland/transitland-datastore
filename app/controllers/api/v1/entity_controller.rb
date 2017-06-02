@@ -13,26 +13,6 @@ class Api::V1::EntityController < Api::V1::BaseApiController
   end
 
   def index_collection_model
-    # Filtering
-    @collection = AllowFiltering.by_attribute_since(@collection, params, :last_imported_since, :last_imported_at)
-    if params[:latest_fetch_exception].present?
-      @collection = @collection.where_latest_fetch_exception(AllowFiltering.to_boolean(params[:latest_fetch_exception]))
-    end
-    if params[:active_feed_version_valid].present?
-      @collection = @collection.where_active_feed_version_valid(params[:active_feed_version_valid])
-    end
-    if params[:active_feed_version_expired].present?
-      @collection = @collection.where_active_feed_version_expired(params[:active_feed_version_expired])
-    end
-    if params[:active_feed_version_update].presence == 'true'
-      @collection = @collection.where_active_feed_version_update
-    end
-    if params[:active_feed_version_import_level].present?
-      @collection = @collection.where_active_feed_version_import_level(params[:active_feed_version_import_level])
-    end
-    if params[:latest_feed_version_import_status].present?
-      @collection = @collection.where_latest_feed_version_import_status(AllowFiltering.to_boolean(params[:latest_feed_version_import_status]))
-    end
   end
 
   private
