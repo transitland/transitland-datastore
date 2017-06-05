@@ -1,10 +1,9 @@
 class Api::V1::FeedsController < Api::V1::EntityController
   MODEL = Feed
-  before_action :set_feed, only: [:show, :download_latest_feed_version]
+  before_action :set_model, only: [:download_latest_feed_version]
 
   def index_query
     super
-    # Feeds
     @collection = AllowFiltering.by_attribute_since(@collection, params, :last_imported_since, :last_imported_at)
     if params[:latest_fetch_exception].present?
       @collection = @collection.where_latest_fetch_exception(AllowFiltering.to_boolean(params[:latest_fetch_exception]))
@@ -36,13 +35,6 @@ class Api::V1::FeedsController < Api::V1::EntityController
     ]}
   end
 
-  def show
-    respond_to do |format|
-      format.json { render json: @feed, scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }
-      format.geojson { render json: @feed, serializer: GeoJSONSerializer }
-    end
-  end
-
   def fetch_info
     url = params[:url]
     raise Exception.new('invalid URL') if url.empty?
@@ -62,7 +54,7 @@ class Api::V1::FeedsController < Api::V1::EntityController
   end
 
   def download_latest_feed_version
-    feed_version = @feed.feed_versions.order(fetched_at: :desc).first!
+    feed_version = @model.feed_versions.order(fetched_at: :desc).first!
     if feed_version.download_url.present?
       redirect_to feed_version.download_url, status: 302
     else
@@ -92,10 +84,6 @@ class Api::V1::FeedsController < Api::V1::EntityController
       :latest_feed_version_import_status,
       :latest_fetch_exception
     )
-  end
-
-  def set_feed
-    @feed = Feed.find_by_onestop_id!(params[:id])
   end
 
   def sort_reorder(collection)

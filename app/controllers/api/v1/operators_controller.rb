@@ -1,7 +1,6 @@
 class Api::V1::OperatorsController < Api::V1::EntityController
   AGGREGATE_CACHE_KEY = 'operators_aggregate_json'
   MODEL = Operator
-  before_action :set_operator, only: [:show]
 
   def index_query
     super
@@ -36,13 +35,6 @@ class Api::V1::OperatorsController < Api::V1::EntityController
       json
     end
     render json: aggregate_json
-  end
-
-  def show
-    respond_to do |format|
-      format.json { render json: @operator, scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) }  }
-      format.geojson { render json: @operator, serializer: GeoJSONSerializer }
-    end
   end
 
   private
@@ -112,9 +104,5 @@ class Api::V1::OperatorsController < Api::V1::EntityController
       aggregate_hash
     end
     counts_hash.sort_by { |key, value| -value.count }.to_h # descending order
-  end
-
-  def set_operator
-    @operator = Operator.find_by_onestop_id!(params[:id])
   end
 end
