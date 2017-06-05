@@ -44,6 +44,23 @@ class Api::V1::EntityController < Api::V1::BaseApiController
     if params[:bbox].present?
       @collection = @collection.geometry_within_bbox(params[:bbox])
     end
+
+    # Imported From Feed
+    if params[:imported_from_feed].present?
+      @collection = @collection.where_imported_from_feed(Feed.find_by_onestop_id(params[:imported_from_feed]))
+    end
+    if params[:imported_from_feed_version].present?
+      @collection = @collection.where_imported_from_feed_version(FeedVersion.find_by!(sha1: params[:imported_from_feed_version]))
+    end
+    if params[:imported_from_active_feed_version].presence.eql?("true")
+      @collection = @collection.where_imported_from_active_feed_version
+    end
+    if params[:imported_with_gtfs_id].present?
+      @collection = @collection.where_imported_with_gtfs_id(params[:gtfs_id] || params[:imported_with_gtfs_id])
+    end
+    if params[:import_level].present?
+      @collection = @collection.where_import_level(AllowFiltering.param_as_array(params, :import_level))
+    end
   end
 
   def index_includes
