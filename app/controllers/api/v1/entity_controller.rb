@@ -23,7 +23,7 @@ class Api::V1::EntityController < Api::V1::BaseApiController
     respond_to do |format|
       format.json { render paginated_json_collection(@collection).merge({ scope: scope }) }
       format.geojson { render paginated_geojson_collection(@collection).merge({ scope: scope }) }
-      format.csv { return_downloadable_csv(@collection, self.class::MODEL.to_s) }
+      format.csv { return_downloadable_csv(@collection, self.class::MODEL.name.underscore.pluralize) }
     end
   end
 
