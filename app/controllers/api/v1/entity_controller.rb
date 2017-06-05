@@ -39,14 +39,7 @@ class Api::V1::EntityController < Api::V1::BaseApiController
     @collection = AllowFiltering.by_attribute_array(@collection, params, :url, case_sensitive: true)
 
     # Geometry
-    if [params[:lat], params[:lon]].map(&:present?).all?
-      point = (self.class::MODEL)::GEOFACTORY.point(params[:lon], params[:lat])
-      r = params[:r] || 100 # meters TODO: move this to a more logical place
-      @collection = @collection.where{st_dwithin(geometry, point, r)}.order{st_distance(geometry, point)}
-    end
-    if params[:bbox].present?
-      @collection = @collection.geometry_within_bbox(params[:bbox])
-    end
+    index_query_geometry
 
     # Imported From Feed
     if params[:imported_from_feed].present?
@@ -63,6 +56,17 @@ class Api::V1::EntityController < Api::V1::BaseApiController
     end
     if params[:import_level].present?
       @collection = @collection.where_import_level(AllowFiltering.param_as_array(params, :import_level))
+    end
+  end
+
+  def index_query_geometry
+    if [params[:lat], params[:lon]].map(&:present?).all?
+      point = (self.class::MODEL)::GEOFACTORY.point(params[:lon], params[:lat])
+      r = params[:r] || 100 # meters TODO: move this to a more logical place
+      @collection = @collection.where{st_dwithin(geometry, point, r)}.order{st_distance(geometry, point)}
+    end
+    if params[:bbox].present?
+      @collection = @collection.geometry_within_bbox(params[:bbox])
     end
   end
 
