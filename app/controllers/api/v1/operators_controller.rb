@@ -1,74 +1,17 @@
-class Api::V1::OperatorsController < Api::V1::BaseApiController
+class Api::V1::OperatorsController < Api::V1::EntityController
   AGGREGATE_CACHE_KEY = 'operators_aggregate_json'
-
-  include JsonCollectionPagination
-  include DownloadableCsv
-  include AllowFiltering
-
+  MODEL = Operator
   before_action :set_operator, only: [:show]
 
-  def index
-    # Entity
-    @operators = Operator.where('')
-    @operators = AllowFiltering.by_onestop_id(@operators, params)
-    @operators = AllowFiltering.by_tag_keys_and_values(@operators, params)
-    @operators = AllowFiltering.by_updated_since(@operators, params)
-
-    # Imported From Feed
-    if params[:imported_from_feed].present?
-      @operators = @operators.where_imported_from_feed(Feed.find_by_onestop_id(params[:imported_from_feed]))
-    end
-    if params[:imported_from_feed_version].present?
-      @operators = @operators.where_imported_from_feed_version(FeedVersion.find_by!(sha1: params[:imported_from_feed_version]))
-    end
-    if params[:imported_from_active_feed_version].presence.eql?("true")
-      @operators = @operators.where_imported_from_active_feed_version
-    end
-    if params[:imported_with_gtfs_id].present?
-      @operators = @operators.where_imported_with_gtfs_id(params[:gtfs_id] || params[:imported_with_gtfs_id])
-    end
-    if params[:import_level].present?
-      @operators = @operators.where_import_level(AllowFiltering.param_as_array(params, :import_level))
-    end
-
-    # Geometry
-    if [params[:lat], params[:lon]].map(&:present?).all?
-      point = Operator::GEOFACTORY.point(params[:lon], params[:lat])
-      r = params[:r] || 100 # meters TODO: move this to a more logical place
-      @operators = @operators.where{st_dwithin(geometry, point, r)}.order{st_distance(geometry, point)}
-    end
-    if params[:bbox].present?
-      @operators = @operators.geometry_within_bbox(params[:bbox])
-    end
-
+  def index_query
+    super
     # Operators
-    @operators = AllowFiltering.by_attribute_array(@operators, params, :country)
-    @operators = AllowFiltering.by_attribute_array(@operators, params, :state)
-    @operators = AllowFiltering.by_attribute_array(@operators, params, :metro)
-    @operators = AllowFiltering.by_attribute_array(@operators, params, :timezone)
-    @operators = AllowFiltering.by_attribute_array(@operators, params, :name)
-    @operators = AllowFiltering.by_attribute_array(@operators, params, :short_name)
-
-    # Includes
-    @operators = @operators.includes{[
-      imported_from_feeds,
-      imported_from_feed_versions,
-      feeds
-    ]}
-    @operators = @operators.includes(:issues) if AllowFiltering.to_boolean(params[:embed_issues])
-
-    respond_to do |format|
-      format.json { render paginated_json_collection(@operators).merge({ scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }) }
-      format.geojson { render paginated_geojson_collection(@operators) }
-      format.csv { return_downloadable_csv(@operators, 'operators') }
-    end
-  end
-
-  def show
-    respond_to do |format|
-      format.json { render json: @operator, scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) }  }
-      format.geojson { render json: @operator, serializer: GeoJSONSerializer }
-    end
+    @collection = AllowFiltering.by_attribute_array(@collection, params, :country)
+    @collection = AllowFiltering.by_attribute_array(@collection, params, :state)
+    @collection = AllowFiltering.by_attribute_array(@collection, params, :metro)
+    @collection = AllowFiltering.by_attribute_array(@collection, params, :timezone)
+    @collection = AllowFiltering.by_attribute_array(@collection, params, :name)
+    @collection = AllowFiltering.by_attribute_array(@collection, params, :short_name)
   end
 
   def aggregate
@@ -93,6 +36,13 @@ class Api::V1::OperatorsController < Api::V1::BaseApiController
       json
     end
     render json: aggregate_json
+  end
+
+  def show
+    respond_to do |format|
+      format.json { render json: @operator, scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) }  }
+      format.geojson { render json: @operator, serializer: GeoJSONSerializer }
+    end
   end
 
   private
