@@ -28,15 +28,12 @@ class Api::V1::FeedsController < Api::V1::EntityController
 
   def index_includes
     super
-    # Includes
     @collection = @collection.includes{[
+      changesets_imported_from_this_feed,
       operators_in_feed,
       operators_in_feed.operator,
-      changesets_imported_from_this_feed,
-      active_feed_version,
-      feed_versions
+      active_feed_version
     ]}
-    @collection = @collection.includes(:issues) if AllowFiltering.to_boolean(params[:embed_issues])
   end
 
   def show
