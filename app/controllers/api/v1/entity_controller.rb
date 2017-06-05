@@ -9,7 +9,11 @@ class Api::V1::EntityController < Api::V1::BaseApiController
   def index
     index_query
     index_includes
-    index_response
+    respond_to do |format|
+      format.json { render paginated_json_collection(@collection).merge({ scope: render_scope }) }
+      format.geojson { render paginated_geojson_collection(@collection).merge({ scope: render_scope }) }
+      format.csv { return_downloadable_csv(@collection, self.class::MODEL.name.underscore.pluralize) }
+    end
   end
 
   def show
@@ -24,22 +28,9 @@ class Api::V1::EntityController < Api::V1::BaseApiController
 
   private
 
-  def index_collection_model
-  end
 
   def set_model
     @model = (self.class::MODEL).find_by_onestop_id!(params[:id])
-  end
-
-  def index_response
-    scope = {
-      embed_issues: AllowFiltering.to_boolean(params[:embed_issues])
-    }
-    respond_to do |format|
-      format.json { render paginated_json_collection(@collection).merge({ scope: scope }) }
-      format.geojson { render paginated_geojson_collection(@collection).merge({ scope: scope }) }
-      format.csv { return_downloadable_csv(@collection, self.class::MODEL.name.underscore.pluralize) }
-    end
   end
 
   def index_query
