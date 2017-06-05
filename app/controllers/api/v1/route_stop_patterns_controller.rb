@@ -2,6 +2,7 @@ class Api::V1::RouteStopPatternsController < Api::V1::EntityController
   MODEL = RouteStopPattern
 
   def index_query
+    super
     if params[:traversed_by].present?
       @collection = @collection.where(route: Route.find_by_onestop_id!(params[:traversed_by]))
     end
