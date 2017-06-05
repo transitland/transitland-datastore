@@ -8,7 +8,6 @@
 #  tags                               :hstore
 #  stop_pattern                       :string           default([]), is an Array
 #  version                            :integer
-#  trips                              :string           default([]), is an Array
 #  created_at                         :datetime         not null
 #  updated_at                         :datetime         not null
 #  created_or_updated_in_changeset_id :integer
@@ -23,7 +22,6 @@
 #  index_current_route_stop_patterns_on_onestop_id    (onestop_id) UNIQUE
 #  index_current_route_stop_patterns_on_route_id      (route_id)
 #  index_current_route_stop_patterns_on_stop_pattern  (stop_pattern)
-#  index_current_route_stop_patterns_on_trips         (trips)
 #
 
 class BaseRouteStopPattern < ActiveRecord::Base
@@ -105,9 +103,13 @@ class RouteStopPattern < BaseRouteStopPattern
     end
   end
 
-  scope :with_trips, -> (search_string) { where{trips.within(search_string)} }
+  scope :with_trips, -> (search_string) { where_imported_with_gtfs_id(search_string) }
   scope :with_all_stops, -> (search_string) { where{stop_pattern.within(search_string)} }
   scope :with_any_stops, -> (stop_onestop_ids) { where( "stop_pattern && ARRAY[?]::varchar[]", stop_onestop_ids ) }
+
+  def trips
+    entities_imported_from_feed.map(&:gtfs_id).uniq.compact
+  end
 
   def ordered_ssp_trip_chunks(&block)
     if block
@@ -143,7 +145,7 @@ class RouteStopPattern < BaseRouteStopPattern
     )
     if shape_points.present? && shape_points.size > 1
       rsp.geometry = Geometry::LineString.line_string(Geometry::Lib.set_precision(shape_points, COORDINATE_PRECISION))
-      rsp.geometry_source = Geometry::DistanceCalculation.validate_shape_dist_traveled(stop_times, shape_points.shape_dist_traveled) ? :shapes_txt_with_dist_traveled : :shapes_txt
+      rsp.geometry_source = Geometry::GTFSShapeDistanceTraveled.validate_shape_dist_traveled(stop_times, shape_points.shape_dist_traveled) ? :shapes_txt_with_dist_traveled : :shapes_txt
     else
       rsp.geometry = Geometry::LineString.line_string(Geometry::Lib.set_precision(trip_stop_points, COORDINATE_PRECISION))
       rsp.geometry_source = :trip_stop_points

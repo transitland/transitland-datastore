@@ -312,6 +312,28 @@ describe GTFSGraph do
       expect(feed.imported_route_stop_patterns.size).to eq 8
     end
 
+    it 'does not use RSP EIFFs' do
+      # Before fix, RSPs can become mismatched with Routes:
+      #   rsp.route.onestop_id: r-9q9-test
+      #   BFC1 is a trip_id for Route BFC / r-9qsb-20
+      #   import
+      #     -> rsp.onestop_id: r-9q9-test-5dca2b-ae2f1e
+      #     -> rsp.route.onestop_id: r-9qsb-20 # prefix mismatch!
+      # After fix:
+      #   RSPs are not re-used via EIFF
+      #   import
+      #     -> rsp is deleted because it is no longer referenced.
+      feed_version = create(:feed_version_example)
+      feed = feed_version.feed
+      feed.update!(active_feed_version: feed_version)
+      route = create(:route, onestop_id: "r-9q9-test")
+      rsp = create(:route_stop_pattern, route: route)
+      rsp.update!(onestop_id: "r-9q9-test-5dca2b-ae2f1e")
+      rsp.entities_imported_from_feed.create!(gtfs_id: "BFC1", feed: feed, feed_version: feed_version)
+      feed, feed_version = load_feed(feed_version: feed_version, import_level: 1)
+      expect { rsp.reload }.to raise_error(ActiveRecord::RecordNotFound)
+    end
+
     it 'allows multiple agency_ids to point to single Operator' do
       # In this feed, Route "r-9qt1-50" is associated with agency_id "DTA2"
       # where both "DTA" and "DTA2" point to "o-9qs-demotransitauthority"
@@ -409,7 +431,7 @@ describe GTFSGraph do
         # here we take advantage of the fact that there can be slight, allowable discrepancies between shape_dist_traveled and our algorithm.
         # It's possible the shape_dist_traveled given for the stop doesn't match the distance computed for the closest point
         # just want to make sure we're using the shape_dist_traveled ultimately
-        expect(RouteStopPattern.find_by_onestop_id!(rsp.onestop_id).stop_distances).not_to match_array(Geometry::DistanceCalculation.new.calculate_distances(rsp))
+        expect(RouteStopPattern.find_by_onestop_id!(rsp.onestop_id).stop_distances).not_to match_array(Geometry::EnhancedOTPDistances.new.calculate_distances(rsp))
       end
     end
 

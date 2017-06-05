@@ -3,18 +3,19 @@ class Api::V1::RouteStopPatternsController < Api::V1::EntityController
 
   def index_query
     if params[:traversed_by].present?
-      @rsps = @rsps.where(route: Route.find_by_onestop_id!(params[:traversed_by]))
+      @collection = @collection.where(route: Route.find_by_onestop_id!(params[:traversed_by]))
     end
     if params[:trips].present?
-      @rsps = @rsps.with_trips(params[:trips])
+      @collection = @collection.with_trips(AllowFiltering.param_as_array(params, :trips))
     end
     if params[:stops_visited].present?
-      @rsps = @rsps.with_all_stops(params[:stops_visited])
+      @collection = @collection.with_all_stops(params[:stops_visited])
     end
   end
 
   def index_includes
-    @rsps = @rsps.includes{[
+    super
+    @collection = @collection.includes{[
       route,
     ]}
   end

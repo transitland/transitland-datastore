@@ -31,31 +31,51 @@ class GTFSValidationService
     f
   end
 
-  def self.run_validators(feed_version)
-    # Copy file
-    gtfs_filename = feed_version.file.local_path_copying_locally_if_needed
-    fail Exception.new('FeedVersion has no file attachment') unless gtfs_filename
+  def self.create_google_validation(feed_version)
+    begin
+      gtfs_filename = feed_version.file.local_path_copying_locally_if_needed
+      outfile = run_google_validator(gtfs_filename)
+      if outfile
+        feed_version.update!(file_feedvalidator: outfile)
+      else
+        fail StandardError.new('No output')
+      end
+    rescue StandardError => e
+      # TODO: Create a record to mark failure
+    ensure
+      feed_version.file.remove_any_local_cached_copies
+    end
+  end
 
-    # Run validators
-    if Figaro.env.run_conveyal_validator.presence == 'true'
+  def self.create_feed_version_info_conveyal_validation(feed_version)
+    feed_version_info = nil
+    begin
+      gtfs_filename = feed_version.file.local_path_copying_locally_if_needed
       outfile = run_conveyal_validator(gtfs_filename)
       if outfile
         data = outfile.read
         feed_version.feed_version_infos.where(type: 'FeedVersionInfoConveyalValidation').delete_all
-        feed_version.feed_version_infos.create!(type: 'FeedVersionInfoConveyalValidation', data: data)
+        feed_version_info = feed_version.feed_version_infos.create!(type: 'FeedVersionInfoConveyalValidation', data: data)
+      else
+        fail StandardError.new('No output')
       end
+    rescue StandardError => e
+      feed_version_info = feed_version.feed_version_infos.create!(type: 'FeedVersionInfoConveyalValidation', data: {error: e.message})
+    ensure
+      feed_version.file.remove_any_local_cached_copies
     end
-    # Run this second; sometimes feed_version.update! removes gtfs_filename.
+    feed_version_info
+  end
+
+  def self.run_validators(feed_version)
+    # Run Conveyal Validator
+    if Figaro.env.run_conveyal_validator.presence == 'true'
+      create_feed_version_info_conveyal_validation(feed_version)
+    end
+    # Run Google Validator
     if Figaro.env.run_google_validator.presence == 'true'
-      outfile = run_google_validator(gtfs_filename)
-      if outfile
-        feed_version.update!(file_feedvalidator: outfile)
-      end
+      create_google_validation(feed_version)
     end
-
-    # Cleanup
-    feed_version.file.remove_any_local_cached_copies
-
     # Return
     feed_version
   end
