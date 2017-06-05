@@ -65,9 +65,8 @@ class Api::V1::EntityController < Api::V1::BaseApiController
 
   def index_includes
     @collection = @collection.includes{[
-      changesets_imported_from_this_feed,
-      active_feed_version,
-      feed_versions
+      imported_from_feeds,
+      imported_from_feed_versions,
     ]}
     @collection = @collection.includes(:issues) if AllowFiltering.to_boolean(params[:embed_issues])
   end
