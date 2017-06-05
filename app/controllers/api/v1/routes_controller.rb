@@ -32,11 +32,6 @@ class Api::V1::RoutesController < Api::V1::EntityController
     if params[:bikes_allowed].present?
       @collection = @collection.where(bikes_allowed: params[:bikes_allowed])
     end
-
-    # BBOX
-    if params[:bbox].present?
-      @collection = @collection.stop_within_bbox(params[:bbox])
-    end
   end
 
   def query_includes
@@ -48,31 +43,23 @@ class Api::V1::RoutesController < Api::V1::EntityController
     ]}
   end
 
-  def index_response
-    scope = {
-      exclude_geometry: AllowFiltering.to_boolean(params[:exclude_geometry]),
-      include_geometry: AllowFiltering.to_boolean(params[:include_geometry]),
-      embed_issues: AllowFiltering.to_boolean(params[:embed_issues])
-    }
-    respond_to do |format|
-      # consider removing exclude_geometry
-      format.json { render paginated_json_collection(@collection).merge({ scope: scope }) }
-      format.geojson { render paginated_geojson_collection(@collection) }
-      format.csv { return_downloadable_csv(@collection, 'routes') }
+  def index_query_geometry
+    if [params[:lat], params[:lon]].map(&:present?).all?
+      point = (self.class::MODEL)::GEOFACTORY.point(params[:lon], params[:lat])
+      r = params[:r] || 100 # meters TODO: move this to a more logical place
+      @collection = @collection.where{st_dwithin(geometry, point, r)}.order{st_distance(geometry, point)}
+    end
+    if params[:bbox].present?
+      @collection = @collection.stop_within_bbox(params[:bbox])
     end
   end
 
-  def show
-    scope = {
+  def render_scope
+    scope = super
+    scope.merge({
       exclude_geometry: AllowFiltering.to_boolean(params[:exclude_geometry]),
-      include_geometry: AllowFiltering.to_boolean(params[:include_geometry]),
-      embed_issues: AllowFiltering.to_boolean(params[:embed_issues])
-    }
-    respond_to do |format|
-      # consider removing exclude_geometry
-      format.json { render json: @model, scope: scope }
-      format.geojson { render json: @model, serializer: GeoJSONSerializer }
-    end
+      include_geometry: AllowFiltering.to_boolean(params[:include_geometry])
+    })
   end
 
   private
