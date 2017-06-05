@@ -4,6 +4,7 @@ class Api::V1::EntityController < Api::V1::BaseApiController
   include AllowFiltering
 
   MODEL = nil
+  before_action :set_model, only: [:show]
 
   def index
     index_query
@@ -11,10 +12,24 @@ class Api::V1::EntityController < Api::V1::BaseApiController
     index_response
   end
 
-  def index_collection_model
+  def show
+    scope = {
+      embed_issues: AllowFiltering.to_boolean(params[:embed_issues])
+    }
+    respond_to do |format|
+      format.json { render json: @model, scope: scope }
+      format.geojson { render json: @model, serializer: GeoJSONSerializer }
+    end
   end
 
   private
+
+  def index_collection_model
+  end
+
+  def set_model
+    @model = (self.class::MODEL).find_by_onestop_id!(params[:id])
+  end
 
   def index_response
     scope = {
