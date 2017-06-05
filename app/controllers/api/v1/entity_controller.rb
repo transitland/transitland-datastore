@@ -17,11 +17,8 @@ class Api::V1::EntityController < Api::V1::BaseApiController
   end
 
   def show
-    scope = {
-      embed_issues: AllowFiltering.to_boolean(params[:embed_issues])
-    }
     respond_to do |format|
-      format.json { render json: @model, scope: scope }
+      format.json { render json: @model, scope: render_scope }
       format.geojson { render json: @model, serializer: GeoJSONSerializer }
     end
   end
@@ -75,6 +72,16 @@ class Api::V1::EntityController < Api::V1::BaseApiController
       imported_from_feed_versions,
     ]}
     @collection = @collection.includes(:issues) if AllowFiltering.to_boolean(params[:embed_issues])
+  end
+
+  def render_scope
+    scope = {}
+    scope[:embed_issues] = AllowFiltering.to_boolean(params[:embed_issues])
+    scope
+  end
+
+  def set_model
+    @model = (self.class::MODEL).find_by_onestop_id!(params[:id])
   end
 
   def query_params
