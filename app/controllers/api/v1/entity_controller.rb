@@ -25,11 +25,6 @@ class Api::V1::EntityController < Api::V1::BaseApiController
 
   private
 
-
-  def set_model
-    @model = (self.class::MODEL).find_by_onestop_id!(params[:id])
-  end
-
   def index_query
     # Entity
     @collection = (self.class::MODEL).where('')
