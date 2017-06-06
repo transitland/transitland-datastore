@@ -93,4 +93,30 @@ class Api::V1::EntityController < Api::V1::BaseApiController
       :bbox,
     )
   end
+
+  def query_params2
+    # Allowed query parameters - and documentation
+    {
+      onestop_id: {
+        desc: "Onestop ID",
+        type: "string"
+      },
+      lat: {
+        desc: "Latitude",
+        type: "float"
+      },
+      lon: {
+        desc: "Longitude",
+        type: "float"
+      },
+      r: {
+        desc: "Radius, in meters",
+        type: "float"
+      },
+      bbox: {
+        desc: "Bounding box",
+        type: "bbox"
+      }
+    }
+  end
 end
