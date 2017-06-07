@@ -95,32 +95,12 @@ class Api::V1::EntityController < Api::V1::BaseApiController
       :lon,
       :r,
       :bbox,
+      :import_level,
+      :imported_with_gtfs_id,
+      :gtfs_id,
+      :imported_from_feed,
+      :imported_from_feed_version,
+      :imported_from_active_feed_version
     )
-  end
-
-  def query_params2
-    # Allowed query parameters - and documentation
-    {
-      onestop_id: {
-        desc: "Onestop ID",
-        type: "string"
-      },
-      lat: {
-        desc: "Latitude",
-        type: "float"
-      },
-      lon: {
-        desc: "Longitude",
-        type: "float"
-      },
-      r: {
-        desc: "Radius, in meters",
-        type: "float"
-      },
-      bbox: {
-        desc: "Bounding box",
-        type: "bbox"
-      }
-    }
   end
 end
