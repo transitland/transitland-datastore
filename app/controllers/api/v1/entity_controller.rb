@@ -10,7 +10,7 @@ class Api::V1::EntityController < Api::V1::BaseApiController
     index_query
     index_includes
     respond_to do |format|
-      format.json { render paginated_json_collection(@collection).merge({ scope: render_scope }) }
+      format.json { render paginated_json_collection(@collection).merge({ scope: render_scope, each_serializer: render_serializer }) }
       format.geojson { render paginated_geojson_collection(@collection).merge({ scope: render_scope }) }
       format.csv { return_downloadable_csv(@collection, self.class::MODEL.name.underscore.pluralize) }
     end
@@ -18,7 +18,7 @@ class Api::V1::EntityController < Api::V1::BaseApiController
 
   def show
     respond_to do |format|
-      format.json { render json: @model, scope: render_scope }
+      format.json { render json: @model, serializer: render_serializer, scope: render_scope }
       format.geojson { render json: @model, serializer: GeoJSONSerializer }
     end
   end
@@ -77,6 +77,10 @@ class Api::V1::EntityController < Api::V1::BaseApiController
     scope = {}
     scope[:embed_issues] = AllowFiltering.to_boolean(params[:embed_issues])
     scope
+  end
+
+  def render_serializer
+    ActiveModel::Serializer.serializer_for(self.class::MODEL)
   end
 
   def set_model
