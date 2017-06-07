@@ -56,14 +56,6 @@ class Api::V1::RoutesController < Api::V1::EntityController
     end
   end
 
-  def render_scope
-    scope = super
-    scope.merge({
-      exclude_geometry: AllowFiltering.to_boolean(params[:exclude_geometry]),
-      include_geometry: AllowFiltering.to_boolean(params[:include_geometry])
-    })
-  end
-
   def query_params
     params.slice(
       :operated_by,

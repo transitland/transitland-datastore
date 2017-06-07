@@ -75,6 +75,8 @@ class Api::V1::EntityController < Api::V1::BaseApiController
 
   def render_scope
     scope = {}
+    scope[:exclude_geometry] = AllowFiltering.to_boolean(params[:exclude_geometry])
+    scope[:include_geometry] = AllowFiltering.to_boolean(params[:include_geometry])
     scope[:embed_issues] = AllowFiltering.to_boolean(params[:embed_issues])
     scope
   end
