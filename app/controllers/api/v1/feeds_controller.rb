@@ -2,6 +2,35 @@ class Api::V1::FeedsController < Api::V1::EntityController
   MODEL = Feed
   before_action :set_model, only: [:download_latest_feed_version]
 
+  def fetch_info
+    url = params[:url]
+    raise Exception.new('invalid URL') if url.empty?
+    # Use read/write instead of fetch block to avoid race with Sidekiq.
+    cachekey = "feeds/fetch_info/#{url}"
+    cachedata = Rails.cache.read(cachekey)
+    if !cachedata
+      cachedata = {status: 'queued', url: url}
+      Rails.cache.write(cachekey, cachedata, expires_in: FeedInfo::CACHE_EXPIRATION)
+      FeedInfoWorker.perform_async(url, cachekey)
+    end
+    if cachedata[:status] == 'error'
+      render json: cachedata, status: 500
+    else
+      render json: cachedata
+    end
+  end
+
+  def download_latest_feed_version
+    feed_version = @model.feed_versions.order(fetched_at: :desc).first!
+    if feed_version.download_url.present?
+      redirect_to feed_version.download_url, status: 302
+    else
+      fail ActiveRecord::RecordNotFound, "Either no feed versions are available for this feed or their license prevents redistribution"
+    end
+  end
+
+  private
+
   def index_query
     super
     @collection = AllowFiltering.by_attribute_since(@collection, params, :last_imported_since, :last_imported_at)
@@ -34,35 +63,6 @@ class Api::V1::FeedsController < Api::V1::EntityController
       active_feed_version
     ]}
   end
-
-  def fetch_info
-    url = params[:url]
-    raise Exception.new('invalid URL') if url.empty?
-    # Use read/write instead of fetch block to avoid race with Sidekiq.
-    cachekey = "feeds/fetch_info/#{url}"
-    cachedata = Rails.cache.read(cachekey)
-    if !cachedata
-      cachedata = {status: 'queued', url: url}
-      Rails.cache.write(cachekey, cachedata, expires_in: FeedInfo::CACHE_EXPIRATION)
-      FeedInfoWorker.perform_async(url, cachekey)
-    end
-    if cachedata[:status] == 'error'
-      render json: cachedata, status: 500
-    else
-      render json: cachedata
-    end
-  end
-
-  def download_latest_feed_version
-    feed_version = @model.feed_versions.order(fetched_at: :desc).first!
-    if feed_version.download_url.present?
-      redirect_to feed_version.download_url, status: 302
-    else
-      fail ActiveRecord::RecordNotFound, "Either no feed versions are available for this feed or their license prevents redistribution"
-    end
-  end
-
-  private
 
   def query_params
     params.slice(

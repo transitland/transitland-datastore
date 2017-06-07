@@ -2,17 +2,6 @@ class Api::V1::OperatorsController < Api::V1::EntityController
   AGGREGATE_CACHE_KEY = 'operators_aggregate_json'
   MODEL = Operator
 
-  def index_query
-    super
-    # Operators
-    @collection = AllowFiltering.by_attribute_array(@collection, params, :country)
-    @collection = AllowFiltering.by_attribute_array(@collection, params, :state)
-    @collection = AllowFiltering.by_attribute_array(@collection, params, :metro)
-    @collection = AllowFiltering.by_attribute_array(@collection, params, :timezone)
-    @collection = AllowFiltering.by_attribute_array(@collection, params, :name)
-    @collection = AllowFiltering.by_attribute_array(@collection, params, :short_name)
-  end
-
   def aggregate
     # this cache will also be busted whenever an operator is saved
     aggregate_json = Rails.cache.fetch(AGGREGATE_CACHE_KEY, expires_in: 1.day) do
@@ -38,6 +27,17 @@ class Api::V1::OperatorsController < Api::V1::EntityController
   end
 
   private
+
+  def index_query
+    super
+    # Operators
+    @collection = AllowFiltering.by_attribute_array(@collection, params, :country)
+    @collection = AllowFiltering.by_attribute_array(@collection, params, :state)
+    @collection = AllowFiltering.by_attribute_array(@collection, params, :metro)
+    @collection = AllowFiltering.by_attribute_array(@collection, params, :timezone)
+    @collection = AllowFiltering.by_attribute_array(@collection, params, :name)
+    @collection = AllowFiltering.by_attribute_array(@collection, params, :short_name)
+  end
 
   def query_params
     params.slice(

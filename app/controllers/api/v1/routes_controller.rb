@@ -1,6 +1,8 @@
 class Api::V1::RoutesController < Api::V1::EntityController
   MODEL = Route
 
+  private
+
   def index_query
     super
     if params[:serves].present?
@@ -61,8 +63,6 @@ class Api::V1::RoutesController < Api::V1::EntityController
       include_geometry: AllowFiltering.to_boolean(params[:include_geometry])
     })
   end
-
-  private
 
   def query_params
     params.slice(

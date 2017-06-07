@@ -1,6 +1,8 @@
 class Api::V1::RouteStopPatternsController < Api::V1::EntityController
   MODEL = RouteStopPattern
 
+  private
+
   def index_query
     super
     if params[:traversed_by].present?
@@ -20,8 +22,6 @@ class Api::V1::RouteStopPatternsController < Api::V1::EntityController
       route,
     ]}
   end
-
-  private
 
   def query_params
     params.slice(

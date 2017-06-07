@@ -1,6 +1,8 @@
 class Api::V1::StopsController < Api::V1::EntityController
   MODEL = Stop
 
+  private
+
   def index_query
     super
     if params[:served_by].present? || params[:servedBy].present?
@@ -36,8 +38,6 @@ class Api::V1::StopsController < Api::V1::EntityController
     result[:each_serializer] = StopSerializer
     result
   end
-
-  private
 
   def query_params
     params.slice(
