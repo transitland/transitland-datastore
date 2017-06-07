@@ -66,10 +66,7 @@ class Api::V1::EntityController < Api::V1::BaseApiController
   end
 
   def index_includes
-    @collection = @collection.includes{[
-      imported_from_feeds,
-      imported_from_feed_versions,
-    ]}
+    @collection = @collection.includes{[imported_from_feeds, imported_from_feed_versions]} if AllowFiltering.to_boolean(params[:embed_imported_from_feeds])
     @collection = @collection.includes(:issues) if AllowFiltering.to_boolean(params[:embed_issues])
   end
 
@@ -77,6 +74,7 @@ class Api::V1::EntityController < Api::V1::BaseApiController
     scope = {}
     scope[:exclude_geometry] = AllowFiltering.to_boolean(params[:exclude_geometry])
     scope[:include_geometry] = AllowFiltering.to_boolean(params[:include_geometry])
+    scope[:embed_imported_from_feeds] = true # AllowFiltering.to_boolean(params[:embed_imported_from_feeds])
     scope[:embed_issues] = AllowFiltering.to_boolean(params[:embed_issues])
     scope
   end
