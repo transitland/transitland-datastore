@@ -1,6 +1,7 @@
 class EntitySerializer < ApplicationSerializer
-  attribute :geometry, if: :include_geometry?
   attribute :imported_from_feeds, if: :embed_imported_from_feeds?
+  attribute :id, if: :include_id?
+  attribute :geometry, if: :include_geometry?
   has_many :issues, if: :embed_issues?
 
   def imported_from_feeds
@@ -23,5 +24,9 @@ class EntitySerializer < ApplicationSerializer
       return !scope[:exclude_geometry] && !!object.try(:geometry)
     end
     return true
+  end
+
+  def include_id?
+    !!scope && !!scope[:include_id]
   end
 end
