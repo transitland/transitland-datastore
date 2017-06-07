@@ -31,7 +31,6 @@ class Api::V1::EntityController < Api::V1::BaseApiController
     @collection = AllowFiltering.by_onestop_id(@collection, params)
     @collection = AllowFiltering.by_tag_keys_and_values(@collection, params)
     @collection = AllowFiltering.by_updated_since(@collection, params)
-    @collection = AllowFiltering.by_attribute_array(@collection, params, :url, case_sensitive: true)
 
     # Geometry
     index_query_geometry

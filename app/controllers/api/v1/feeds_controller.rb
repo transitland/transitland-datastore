@@ -33,6 +33,7 @@ class Api::V1::FeedsController < Api::V1::EntityController
 
   def index_query
     super
+    @collection = AllowFiltering.by_attribute_array(@collection, params, :url, case_sensitive: true)
     @collection = AllowFiltering.by_attribute_since(@collection, params, :last_imported_since, :last_imported_at)
     if params[:latest_fetch_exception].present?
       @collection = @collection.where_latest_fetch_exception(AllowFiltering.to_boolean(params[:latest_fetch_exception]))
