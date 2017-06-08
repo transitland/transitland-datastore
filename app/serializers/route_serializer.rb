@@ -32,19 +32,16 @@
 #
 
 class RouteSerializer < CurrentEntitySerializer
-  attributes :onestop_id,
-             :name,
+  attributes :name,
              :vehicle_type,
              :color,
-             :tags,
              :stops_served_by_route,
              :operated_by_onestop_id,
              :operated_by_name,
              :wheelchair_accessible,
              :bikes_allowed,
-             :created_at,
-             :updated_at,
              :route_stop_patterns_by_onestop_id
+  attribute :geometry, if: :include_geometry?
 
   def operated_by_onestop_id
     object.operator.try(:onestop_id)
