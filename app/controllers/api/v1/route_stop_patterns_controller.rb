@@ -1,5 +1,7 @@
 class Api::V1::RouteStopPatternsController < Api::V1::EntityController
-  MODEL = RouteStopPattern
+  def self.model
+    RouteStopPattern
+  end
 
   private
 

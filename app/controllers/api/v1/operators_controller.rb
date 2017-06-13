@@ -1,6 +1,9 @@
 class Api::V1::OperatorsController < Api::V1::EntityController
   AGGREGATE_CACHE_KEY = 'operators_aggregate_json'
-  MODEL = Operator
+
+  def self.model
+    Operator
+  end
 
   def aggregate
     # this cache will also be busted whenever an operator is saved

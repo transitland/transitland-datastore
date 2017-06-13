@@ -1,5 +1,7 @@
 class Api::V1::StopStationsController < Api::V1::EntityController
-  MODEL = Stop
+  def self.model
+    Stop
+  end
 
   private
 

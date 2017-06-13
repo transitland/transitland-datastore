@@ -3,8 +3,11 @@ class Api::V1::EntityController < Api::V1::BaseApiController
   include DownloadableCsv
   include AllowFiltering
 
-  MODEL = nil
   before_action :set_model, only: [:show]
+
+  def self.model
+    fail Exception.new("Abstract method")
+  end
 
   def index
     index_query
@@ -12,7 +15,7 @@ class Api::V1::EntityController < Api::V1::BaseApiController
     respond_to do |format|
       format.json { render paginated_json_collection(@collection).merge({ scope: render_scope, each_serializer: render_serializer }) }
       format.geojson { render paginated_geojson_collection(@collection).merge({ scope: render_scope }) }
-      format.csv { return_downloadable_csv(@collection, self.class::MODEL.name.underscore.pluralize) }
+      format.csv { return_downloadable_csv(@collection, self.class.model.name.underscore.pluralize) }
     end
   end
 
@@ -27,7 +30,7 @@ class Api::V1::EntityController < Api::V1::BaseApiController
 
   def index_query
     # Entity
-    @collection = (self.class::MODEL).where('')
+    @collection = (self.class.model).where('')
     @collection = AllowFiltering.by_onestop_id(@collection, params)
     @collection = AllowFiltering.by_tag_keys_and_values(@collection, params)
     @collection = AllowFiltering.by_updated_since(@collection, params)
@@ -55,7 +58,7 @@ class Api::V1::EntityController < Api::V1::BaseApiController
 
   def index_query_geometry
     if [params[:lat], params[:lon]].map(&:present?).all?
-      point = (self.class::MODEL)::GEOFACTORY.point(params[:lon], params[:lat])
+      point = (self.class.model)::GEOFACTORY.point(params[:lon], params[:lat])
       r = params[:r] || 100 # meters TODO: move this to a more logical place
       @collection = @collection.where{st_dwithin(geometry, point, r)}.order{st_distance(geometry, point)}
     end
@@ -78,10 +81,11 @@ class Api::V1::EntityController < Api::V1::BaseApiController
       imported_from_feeds: false,
       id: false
     }
-    AllowFiltering.param_as_array(params, :include).each { |i| incl[i] = true }
-    AllowFiltering.param_as_array(params, :exclude).each { |i| incl[i] = false }
+    AllowFiltering.param_as_array(params, :include).map(&:to_sym).each { |i| incl[i] = true }
+    AllowFiltering.param_as_array(params, :exclude).map(&:to_sym).each { |i| incl[i] = false }
     # Backwards compat
-    incl[:issues] = AllowFiltering.to_boolean(params[:embed_issues])
+    ii = AllowFiltering.to_boolean(params[:embed_issues])
+    incl[:issues] = ii if !ii.nil?
     eg = AllowFiltering.to_boolean(params[:exclude_geometry])
     ig = AllowFiltering.to_boolean(params[:include_geometry])
     incl[:geometry] = true if (ig == true || eg == false)
@@ -90,11 +94,11 @@ class Api::V1::EntityController < Api::V1::BaseApiController
   end
 
   def render_serializer
-    ActiveModel::Serializer.serializer_for(self.class::MODEL)
+    ActiveModel::Serializer.serializer_for(self.class.model)
   end
 
   def set_model
-    @model = (self.class::MODEL).find_by_onestop_id!(params[:id])
+    @model = (self.class.model).find_by_onestop_id!(params[:id])
   end
 
   def query_params

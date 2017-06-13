@@ -1,5 +1,7 @@
 class Api::V1::RoutesController < Api::V1::EntityController
-  MODEL = Route
+  def self.model
+    Route
+  end
 
   private
 

@@ -1,6 +1,9 @@
 class Api::V1::FeedsController < Api::V1::EntityController
-  MODEL = Feed
   before_action :set_model, only: [:download_latest_feed_version]
+
+  def self.model
+    Feed
+  end
 
   def fetch_info
     url = params[:url]
