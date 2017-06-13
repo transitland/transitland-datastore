@@ -70,6 +70,26 @@ describe Api::V1::EntityController do
         expect(stops.map { |stop| stop[:onestop_id] }).to match_array([@glen_park.onestop_id])
       }})
     end
+
+    it '?imported_with_gtfs_id' do
+      stop = Stop.first
+      feed_version = create(:feed_version_example)
+      feed_version.entities_imported_from_feed.create!(entity: stop, feed: feed_version.feed, gtfs_id: "test")
+      get :index, imported_with_gtfs_id: 'test'
+      expect_json({ stops: -> (stops) {
+        expect(stops.first[:onestop_id]).to eq stop.onestop_id
+        expect(stops.count).to eq 1
+      }})
+      get :index, imported_with_gtfs_id: 'true', gtfs_id: 'test'
+      expect_json({ stops: -> (stops) {
+        expect(stops.first[:onestop_id]).to eq stop.onestop_id
+        expect(stops.count).to eq 1
+      }})
+      get :index, imported_with_gtfs_id: 'unknown'
+      expect_json({ stops: -> (stops) {
+        expect(stops.size).to eq 0
+      }})
+    end
   end
 
   context 'as GeoJSON' do
@@ -176,7 +196,7 @@ describe Api::V1::EntityController do
   end
 
   describe 'GET show' do
-    it 'returns stops by OnestopID' do
+    it '?id' do
       get :show, id: @metro_embarcadero.onestop_id
       expect_json_types({
         onestop_id: :string,
