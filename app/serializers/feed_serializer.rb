@@ -51,7 +51,6 @@ class FeedSerializer < CurrentEntitySerializer
              :changesets_imported_from_this_feed
 
   has_many :operators_in_feed
-  has_many :issues, if: :has_issues
 
   def embed_imported_from_feeds?
     false
