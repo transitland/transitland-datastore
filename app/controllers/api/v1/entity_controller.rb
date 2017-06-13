@@ -70,13 +70,22 @@ class Api::V1::EntityController < Api::V1::BaseApiController
   end
 
   def render_scope
-    scope = {}
-    scope[:include_id] = AllowFiltering.to_boolean(params[:include_id])
-    scope[:exclude_geometry] = AllowFiltering.to_boolean(params[:exclude_geometry])
-    scope[:include_geometry] = AllowFiltering.to_boolean(params[:include_geometry])
-    scope[:embed_imported_from_feeds] = true # AllowFiltering.to_boolean(params[:embed_imported_from_feeds])
-    scope[:embed_issues] = AllowFiltering.to_boolean(params[:embed_issues])
-    scope
+    # Get the list of include and exclude options
+    incl = {
+      issues: false,
+      geometry: true,
+      imported_from_feeds: false,
+      id: false
+    }
+    AllowFiltering.param_as_array(params, :include).each { |i| incl[i] = true }
+    AllowFiltering.param_as_array(params, :exclude).each { |i| incl[i] = false }
+    # Backwards compat
+    incl[:issues] = AllowFiltering.to_boolean(params[:embed_issues])
+    eg = AllowFiltering.to_boolean(params[:exclude_geometry])
+    ig = AllowFiltering.to_boolean(params[:include_geometry])
+    incl[:geometry] = true if (ig == true || eg == false)
+    incl[:geometry] = false if (ig == false || eg == true)
+    return incl
   end
 
   def render_serializer
