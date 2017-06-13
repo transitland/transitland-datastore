@@ -65,8 +65,9 @@ class Api::V1::EntityController < Api::V1::BaseApiController
   end
 
   def index_includes
-    @collection = @collection.includes{[imported_from_feeds, imported_from_feed_versions]} if AllowFiltering.to_boolean(params[:embed_imported_from_feeds])
-    @collection = @collection.includes(:issues) if AllowFiltering.to_boolean(params[:embed_issues])
+    scope = render_scope
+    @collection = @collection.includes{[imported_from_feeds, imported_from_feed_versions]} if scope[:imported_from_Feeds]
+    @collection = @collection.includes(:issues) if scope[:issues]
   end
 
   def render_scope
