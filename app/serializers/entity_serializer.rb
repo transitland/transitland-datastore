@@ -2,7 +2,10 @@ class EntitySerializer < ApplicationSerializer
   attribute :imported_from_feeds, if: :embed_imported_from_feeds?
   attribute :id, if: :include_id?
   attribute :geometry, if: :include_geometry?
-  attributes :onestop_id, :created_at, :updated_at, :tags, :geometry
+  attribute :onestop_id
+  attribute :created_at
+  attribute :updated_at
+  attribute :tags
   has_many :issues, if: :embed_issues?
 
   def imported_from_feeds
