@@ -30,18 +30,7 @@ describe Api::V1::RouteStopPatternsController do
     @rsp.entities_imported_from_feed.create!(gtfs_id: 'trip2', feed: feed_version.feed, feed_version: feed_version)
   end
 
-
   describe 'GET index' do
-    context 'as JSON' do
-      it 'returns all current route_stop_patterns when no parameters provided' do
-        get :index
-        expect_json_types({ route_stop_patterns: :array })
-        expect_json({ route_stop_patterns: -> (route_stop_patterns) {
-          expect(route_stop_patterns.length).to eq 1
-        }})
-      end
-    end
-
     context 'returns route_stop_patterns by trips' do
       it 'when not found' do
         get :index, trips: 'trip3'
@@ -86,29 +75,6 @@ describe Api::V1::RouteStopPatternsController do
           expect(route_stop_patterns.length).to eq 1
         }})
       end
-    end
-  end
-
-  describe 'GET show' do
-    it 'returns route stop patterns by OnestopID' do
-      get :show, id: 'r-9q9j-bullet-fc9abc-c83be2'
-      expect_json_types({
-        onestop_id: :string,
-        route_onestop_id: :string,
-        geometry: :object,
-        stop_pattern: :array,
-        trips: :array,
-        created_at: :date,
-        updated_at: :date
-      })
-      expect_json({ onestop_id: -> (onestop_id) {
-        expect(onestop_id).to eq 'r-9q9j-bullet-fc9abc-c83be2'
-      }})
-    end
-
-    it 'returns a 404 when not found' do
-      get :show, id: 'r-9q9j-bullet-test12-test12'
-      expect(response.status).to eq 404
     end
   end
 end

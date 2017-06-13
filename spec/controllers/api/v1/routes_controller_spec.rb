@@ -26,21 +26,6 @@ describe Api::V1::RoutesController do
 
   describe 'GET index' do
     context 'as JSON' do
-      it 'returns all current routes when no parameters provided' do
-        get :index
-        expect_json_types({ routes: :array })
-        expect_json({ routes: -> (routes) {
-          expect(routes.length).to eq 1
-        }})
-      end
-
-      it 'returns route within a bounding box' do
-        get :index, bbox: '-122.4228858947754,37.59043119366754,-122.34460830688478,37.62374937200642'
-        expect_json({ routes: -> (routes) {
-          expect(routes.first[:onestop_id]).to eq 'r-9q8y-richmond~dalycity~millbrae'
-        }})
-      end
-
       it 'returns no routes when no route stops in bounding box' do
         get :index, bbox: '-122.353165,37.936887,-122.2992715,37.9030588'
         expect_json({ routes: -> (routes) {
@@ -172,105 +157,6 @@ describe Api::V1::RoutesController do
             expect(routes.length).to eq 0
           }})
         end
-      end
-
-      context 'include and exclude geometry' do
-        it 'exclude_geometry=false' do
-          get :index, exclude_geometry: "false"
-          expect_json({ routes: -> (routes) {
-            expect(routes.first.has_key?(:geometry)).to be true
-          }})
-        end
-
-        it 'exclude_geometry=true' do
-          get :index, exclude_geometry: "true"
-          expect_json({ routes: -> (routes) {
-            expect(routes.first.has_key?(:geometry)).to be false
-          }})
-        end
-
-        it 'include_geometry=false' do
-          get :index, include_geometry: "false"
-          expect_json({ routes: -> (routes) {
-            expect(routes.first.has_key?(:geometry)).to be false
-          }})
-        end
-
-        it 'include_geometry=true' do
-          get :index, include_geometry: "true"
-          expect_json({ routes: -> (routes) {
-            expect(routes.first.has_key?(:geometry)).to be true
-          }})
-        end
-      end
-    end
-
-    context 'as CSV' do
-      before(:each) do
-        @sfmta = create(:operator, geometry: 'POINT(-122.395644 37.722413)', name: 'SFMTA')
-        @richmond_millbrae_route.update(operator: @sfmta)
-      end
-      it 'should return a CSV file for download' do
-        get :index, format: :csv
-        expect(response.headers['Content-Type']).to eq 'text/csv'
-        expect(response.headers['Content-Disposition']).to eq 'attachment; filename=routes.csv'
-      end
-
-      it 'should include column headers and row values' do
-        get :index, format: :csv #, identifier: 'Richmond - Daly City/Millbrae'
-        expect(response.body.lines.count).to eq 2
-        expect(response.body).to start_with(Route.csv_column_names.join(','))
-        expect(response.body).to include([@richmond_millbrae_route.onestop_id, @richmond_millbrae_route.name, @sfmta.name, @sfmta.onestop_id].join(','))
-      end
-    end
-
-    context 'as GeoJSON' do
-      it 'should return GeoJSON for all routes' do
-        get :index, format: :geojson
-        expect_json({
-          type: 'FeatureCollection',
-          features: -> (features) {
-            expect(features.first[:properties][:onestop_id]).to eq 'r-9q8y-richmond~dalycity~millbrae'
-            # expect(features.first[:properties][:title]).to eq 'Richmond - Daly City/Millbrae'
-          }
-        })
-      end
-    end
-  end
-
-  describe 'GET show' do
-    context 'as JSON' do
-      it 'returns routes by OnestopID' do
-        get :show, id: 'r-9q8y-richmond~dalycity~millbrae'
-        expect_json_types({
-          onestop_id: :string,
-          geometry: :object,
-          name: :string,
-          created_at: :date,
-          updated_at: :date,
-          stops_served_by_route: :array
-        })
-        expect_json({ onestop_id: -> (onestop_id) {
-          expect(onestop_id).to eq 'r-9q8y-richmond~dalycity~millbrae'
-        }})
-      end
-
-      it 'returns a 404 when not found' do
-        get :show, id: 'ntd9015-2053'
-        expect(response.status).to eq 404
-      end
-    end
-
-    context 'as GeoJSON' do
-      it 'should return GeoJSON for a single route' do
-        get :show, id: 'r-9q8y-richmond~dalycity~millbrae', format: :geojson
-        expect_json({
-          type: 'Feature',
-          properties: -> (properties) {
-            expect(properties[:onestop_id]).to eq 'r-9q8y-richmond~dalycity~millbrae'
-            # expect(properties[:title]).to eq 'Richmond - Daly City/Millbrae'
-          }
-        })
       end
     end
   end

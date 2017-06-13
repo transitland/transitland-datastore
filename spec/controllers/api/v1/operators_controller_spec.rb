@@ -21,35 +21,6 @@ describe Api::V1::OperatorsController do
     end
 
     context 'as JSON' do
-      it 'returns all current operators when no parameters provided' do
-        get :index
-        expect_json_types({ operators: :array })
-        expect_json({ operators: -> (operators) {
-          expect(operators.length).to eq 2
-        }})
-      end
-
-      it 'filters by imported_with_gtfs_id' do
-        operators = create_list(:operator, 3)
-        operator = create(:operator, name: 'Test 123')
-        feed_version = create(:feed_version_example)
-        feed_version.entities_imported_from_feed.create!(entity: operator, feed: feed_version.feed, gtfs_id: "test")
-        get :index, imported_with_gtfs_id: 'test'
-        expect_json({ operators: -> (operators) {
-          expect(operators.first[:onestop_id]).to eq operator.onestop_id
-          expect(operators.count).to eq 1
-        }})
-        get :index, imported_with_gtfs_id: 'true', gtfs_id: 'test'
-        expect_json({ operators: -> (operators) {
-          expect(operators.first[:onestop_id]).to eq operator.onestop_id
-          expect(operators.count).to eq 1
-        }})
-        get :index, imported_with_gtfs_id: 'unknown'
-        expect_json({ operators: -> (operators) {
-          expect(operators.size).to eq 0
-        }})
-      end
-
       it 'filters by name' do
         operators = create_list(:operator, 3)
         operator = create(:operator, name: 'Test 123')
@@ -87,80 +58,6 @@ describe Api::V1::OperatorsController do
           expect(operators.count).to eq 1
         }})
       end
-
-      it 'returns operators within a circular radius when lat/lon/r provided' do
-        get :index, lat: 37.732520, lon: -122.433415, r: 10_000
-        expect_json({ operators: -> (operators) {
-          expect(operators.first[:onestop_id]).to eq sfmta.onestop_id
-        }})
-      end
-
-      it 'returns operator within a bounding box' do
-        get :index, bbox: '-122.4131,37.7136,-122.3789,37.8065'
-        expect_json({ operators: -> (operators) {
-          expect(operators.first[:onestop_id]).to eq sfmta.onestop_id
-        }})
-      end
-
-      it 'returns the appropriate operator when Onestop ID provided' do
-        get :index, onestop_id: sfmta.onestop_id
-        expect_json({ operators: -> (operators) {
-          expect(operators.first[:onestop_id]).to eq sfmta.onestop_id
-          expect(operators.count).to eq 1
-        }})
-      end
-    end
-
-    context 'as GeoJSON' do
-      it 'returns operator within a bounding box' do
-        get :index, format: :geojson, bbox: '-122.0883,37.198,-121.8191,37.54804'
-        expect_json({
-          type: 'FeatureCollection',
-          features: -> (features) { expect(features.first[:id]).to eq vta.onestop_id }
-        })
-      end
-    end
-
-    context 'as CSV' do
-      it 'should return a CSV file for download' do
-        get :index, format: :csv
-        expect(response.headers['Content-Type']).to eq 'text/csv'
-        expect(response.headers['Content-Disposition']).to eq 'attachment; filename=operators.csv'
-      end
-
-      it 'should include column headers and row values' do
-        get :index, format: :csv, bbox: '-122.0883,37.198,-121.8191,37.54804'
-        expect(response.body.lines.count).to eq 2
-        expect(response.body).to start_with(Operator.csv_column_names.join(','))
-        expect(response.body).to include([vta.onestop_id, vta.name, vta.tags[:agency_url]].join(','))
-      end
-    end
-  end
-
-  describe 'GET show' do
-    context 'as JSON' do
-      it 'returns operators by Onestop ID' do
-        get :show, id: vta.onestop_id
-        expect_json_types({
-          onestop_id: :string,
-          geometry: :object,
-          name: :string,
-          created_at: :date,
-          updated_at: :date
-        })
-        expect_json({ onestop_id: -> (onestop_id) {
-          expect(onestop_id).to eq vta.onestop_id
-        }})
-      end
-
-      it 'returns a 404 when not found' do
-        get :show, id: 'ntd9015'
-        expect(response.status).to eq 404
-      end
-    end
-
-    context 'as GeoJSON' do
-      pending 'TODO: write this functionality'
     end
   end
 
