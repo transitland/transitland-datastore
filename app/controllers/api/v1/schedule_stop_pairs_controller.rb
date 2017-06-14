@@ -71,7 +71,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
   private
 
   def query_params
-    params.slice(
+    [
       :active,
       :date,
       :service_from_date,
@@ -90,7 +90,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
       :import_level,
       :imported_from_feed,
       :imported_from_feed_version
-    )
+    ]
   end
 
   def set_schedule_stop_pairs

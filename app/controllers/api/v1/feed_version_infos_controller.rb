@@ -55,12 +55,12 @@ class Api::V1::FeedVersionInfosController < Api::V1::BaseApiController
   private
 
   def query_params
-    params.slice(
+    [
       :feed_onestop_id,
       :feed_version_sha1,
       :type,
       :id
-    )
+    ]
   end
 
   def set_feed_version_info

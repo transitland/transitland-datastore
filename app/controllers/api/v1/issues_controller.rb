@@ -86,7 +86,7 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
   private
 
   def query_params
-    params.slice(
+    [
       :open,
       :issue_type,
       :category,
@@ -94,7 +94,7 @@ class Api::V1::IssuesController < Api::V1::BaseApiController
       :of_entity,
       :imported_from_feed,
       :imported_from_feed_version
-    )
+    ]
   end
 
   def set_issue
