@@ -59,31 +59,43 @@ class Api::V1::RoutesController < Api::V1::EntityController
   end
 
   def query_params
-    params.slice(
-      :operated_by,
-      :operatedBy,
-      :serves,
-      :traverses,
-      :color,
-      :vehicle_type,
-      :wheelchair_accessible,
-      :bikes_allowed,
-      :lat,
-      :lon,
-      :r,
-      :bbox,
-      :onestop_id,
-      :tag_key,
-      :tag_value,
-      :import_level,
-      :imported_from_feed,
-      :imported_from_feed_version,
-      :imported_from_active_feed_version,
-      :imported_with_gtfs_id,
-      :gtfs_id,
-      :exclude_geometry,
-      :include_geometry,
-      :updated_since
-    )
+    super.merge({
+      operated_by: {
+        desc: "Operator",
+        type: "onestop_id",
+        array: true
+      },
+      operatedBy: {
+        show: false
+      },
+      serves: {
+        desc: "Serves Stop",
+        type: "onestop_id",
+        array: true
+      },
+      traverses: {
+        desc: "Traverses RouteStopPattern",
+        type: "onestop_id",
+        array: true
+      },
+      color: {
+        desc: "Route color",
+        type: "string"
+      },
+      vehicle_type: {
+        desc: "Vehicle type",
+        format: "string",
+        array: true
+      },
+      wheelchair_accessible: {
+        desc: "Wheelchair accessible",
+        format: "boolean",
+        array: true
+      },
+      bikes_allowed: {
+        desc: "Bikes allowed",
+        format: "boolean"
+      }
+    })
   end
 end

@@ -26,23 +26,20 @@ class Api::V1::RouteStopPatternsController < Api::V1::EntityController
   end
 
   def query_params
-    params.slice(
-      :onestop_id,
-      :traversed_by,
-      :trip,
-      :lat,
-      :lon,
-      :r,
-      :bbox,
-      :stop_visited,
-      :imported_from_feed,
-      :imported_from_feed_version,
-      :imported_from_active_feed_version,
-      :imported_with_gtfs_id,
-      :gtfs_id,
-      :import_level,
-      :trips,
-      :embed_issues
-    )
+    super.merge({
+      traversed_by: {
+        desc: "Traversed by RouteStopPattern",
+        type: "onestop_id"
+      },
+      trips: {
+        desc: "Imported with GTFS trip ID",
+        type: "string",
+        array: true
+      },
+      stop_visited: {
+        desc: "Visits Stop",
+        type: "onestop_id"
+      }
+    })
   end
 end

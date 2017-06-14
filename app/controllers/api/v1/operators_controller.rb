@@ -43,28 +43,38 @@ class Api::V1::OperatorsController < Api::V1::EntityController
   end
 
   def query_params
-    params.slice(
-      :lat,
-      :lon,
-      :r,
-      :bbox,
-      :onestop_id,
-      :tag_key,
-      :tag_value,
-      :import_level,
-      :name,
-      :short_name,
-      :imported_from_feed,
-      :imported_from_feed_version,
-      :imported_from_active_feed_version,
-      :imported_with_gtfs_id,
-      :gtfs_id,
-      :country,
-      :state,
-      :metro,
-      :timezone,
-      :updated_since
-    )
+    super.merge({
+      name: {
+        desc: "Operator name",
+        type: "string",
+        array: true
+      },
+      short_name: {
+        desc: "Operator short name",
+        type: "string",
+        array: true
+      },
+      country: {
+        desc: "Operator country",
+        type: "string",
+        array: true
+      },
+      state: {
+        desc: "Operator state",
+        type: "string",
+        array: true
+      },
+      metro: {
+        desc: "Operator metropolitan area",
+        type: "string",
+        array: true
+      },
+      timezone: {
+        desc: "Operator timezone",
+        type: "string",
+        array: true
+      }
+    })
   end
 
   def count_values(array_of_hashes, attr_name: nil)

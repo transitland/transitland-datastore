@@ -69,25 +69,36 @@ class Api::V1::FeedsController < Api::V1::EntityController
   end
 
   def query_params
-    params.slice(
-      :onestop_id,
-      :updated_since,
-      :url,
-      :tag_key,
-      :tag_value,
-      :lat,
-      :lon,
-      :r,
-      :bbox,
-      :last_imported_since,
-      :latest_fetch_exception,
-      :active_feed_version_valid,
-      :active_feed_version_expired,
-      :active_feed_version_update,
-      :active_feed_version_import_level,
-      :latest_feed_version_import_status,
-      :latest_fetch_exception
-    )
+    super.merge({
+      last_imported_since: {
+        desc: "Last imported since",
+        type: "datetime"
+      },
+      latest_fetch_exception: {
+        desc: "Latest fetch produced an exception",
+        type: "boolean"
+      },
+      active_feed_version_valid: {
+        desc: "The active Feed Version is valid on this date",
+        type: "datetime"
+      },
+      active_feed_version_expired: {
+        desc: "The active Feed Version is expired on this date",
+        type: "datetime"
+      },
+      active_feed_version_update: {
+        desc: "There is a newer Feed Version than the current active Feed Version",
+        type: "boolean"
+      },
+      active_feed_version_import_level: {
+        desc: "Import level of the active Feed Version",
+        type: "integer"
+      },
+      latest_feed_version_import_status: {
+        desc: "Status of the most recent import",
+        type: "string"
+      }
+    })
   end
 
   def sort_reorder(collection)

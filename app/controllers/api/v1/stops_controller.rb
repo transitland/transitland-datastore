@@ -42,24 +42,24 @@ class Api::V1::StopsController < Api::V1::EntityController
   end
 
   def query_params
-    params.slice(
-      :served_by,
-      :servedBy,
-      :served_by_vehicle_types,
-      :wheelchair_boarding,
-      :lat,
-      :lon,
-      :r,
-      :bbox,
-      :onestop_id,
-      :tag_key,
-      :tag_value,
-      :import_level,
-      :imported_with_gtfs_id,
-      :gtfs_id,
-      :imported_from_feed,
-      :imported_from_feed_version,
-      :imported_from_active_feed_version
-    )
+    super.merge({
+      served_by: {
+        desc: "Served by Route or Operator",
+        type: "onestop_id",
+        array: true
+      },
+      servedBy: {
+        show: false
+      },
+      served_by_vehicle_types: {
+        desc: "Served by vehicle types",
+        type: "string",
+        array: true
+      },
+      wheelchair_boarding: {
+        desc: "Wheelchair boarding",
+        type: "boolean"
+      }
+    })
   end
 end

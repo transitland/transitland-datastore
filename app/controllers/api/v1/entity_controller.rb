@@ -102,19 +102,79 @@ class Api::V1::EntityController < Api::V1::BaseApiController
   end
 
   def query_params
-    params.slice(
-      :onestop_id,
-      :updated_since,
-      :lat,
-      :lon,
-      :r,
-      :bbox,
-      :import_level,
-      :imported_with_gtfs_id,
-      :gtfs_id,
-      :imported_from_feed,
-      :imported_from_feed_version,
-      :imported_from_active_feed_version
-    )
+    # Allowed query parameters - and documentation
+    {
+      onestop_id: {
+        desc: "Onestop ID",
+        type: "onestop_id",
+        array: true
+      },
+      lat: {
+        desc: "Latitude",
+        type: "float"
+      },
+      lon: {
+        desc: "Longitude",
+        type: "float"
+      },
+      r: {
+        desc: "Radius, in meters",
+        type: "float"
+      },
+      bbox: {
+        desc: "Bounding box",
+        type: "bbox"
+      },
+      updated_since: {
+        desc: "Updated since",
+        type: "datetime"
+      },
+      import_level: {
+        desc: "Import level",
+        type: "integer"
+      },
+      imported_with_gtfs_id: {
+        desc: "Imported with GTFS ID",
+        type: "string",
+        array: true
+      },
+      imported_from_feed: {
+        desc: "Imported from Feed",
+        type: "onestop_id",
+        array: true
+      },
+      imported_from_feed_version: {
+        desc: "Imported from Feed Version",
+        type: "sha1",
+        array: true
+      },
+      imported_from_active_feed_version: {
+        desc: "Imported from the current active Feed Version",
+        type: "boolean"
+      },
+      tag_key: {
+        desc: "Tag key",
+        type: "string"
+      },
+      tag_value: {
+        desc: "Tag value",
+        type: "string"
+      },
+      include: {
+
+      },
+      exclude: {
+
+      },
+      embed_issues: {
+        show: false
+      },
+      include_geometry: {
+        show: false
+      },
+      exclude_geometry: {
+        show: false
+      }
+    }
   end
 end
