@@ -109,6 +109,13 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
 
   private
 
+  def query_params
+    {
+      id: {},
+      applied: {}
+    }
+  end
+
   def set_changeset
     @changeset = Changeset.find(params[:id])
   end

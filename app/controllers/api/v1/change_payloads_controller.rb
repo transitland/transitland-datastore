@@ -38,6 +38,12 @@ class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
 
   private
 
+  def query_params
+    {
+      id: {}
+    }
+  end
+
   def change_payload_params
     params.require(:change_payload).permit!
   end

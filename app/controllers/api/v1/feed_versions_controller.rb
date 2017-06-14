@@ -105,6 +105,32 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
 
   private
 
+  def query_params
+    {
+      feed_onestop_id: {
+
+      },
+      calendar_coverage_includes: {
+
+      },
+      calendar_coverage_begins_at_or_after: {
+
+      },
+      calendar_coverage_begins_at_or_before: {
+
+      },
+      id: {
+
+      },
+      ids: {
+
+      },
+      sha1: {
+
+      }
+    }
+  end
+
   def set_feed_version
     @feed_version = FeedVersion.find_by!(sha1: params[:id])
   end

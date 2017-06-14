@@ -71,26 +71,26 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
   private
 
   def query_params
-    [
-      :active,
-      :date,
-      :service_from_date,
-      :service_before_date,
-      :origin_onestop_id,
-      :destination_onestop_id,
-      :origin_departure_between,
-      :trip,
-      :route_onestop_id,
-      :route_stop_pattern_onestop_id,
-      :operator_onestop_id,
-      :bbox,
-      :updated_since,
-      :feed_version_sha1,
-      :feed_onestop_id,
-      :import_level,
-      :imported_from_feed,
-      :imported_from_feed_version
-    ]
+    {
+      active: {},
+      date: {},
+      service_from_date: {},
+      service_before_date: {},
+      origin_onestop_id: {},
+      destination_onestop_id: {},
+      origin_departure_between: {},
+      trip: {},
+      route_onestop_id: {},
+      route_stop_pattern_onestop_id: {},
+      operator_onestop_id: {},
+      bbox: {},
+      updated_since: {},
+      feed_version_sha1: {},
+      feed_onestop_id: {},
+      import_level: {},
+      imported_from_feed: {},
+      imported_from_feed_version: {}
+    }
   end
 
   def set_schedule_stop_pairs

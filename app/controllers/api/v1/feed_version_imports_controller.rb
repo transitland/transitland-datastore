@@ -31,6 +31,14 @@ class Api::V1::FeedVersionImportsController < Api::V1::BaseApiController
 
   private
 
+  def query_params
+    {
+      id: {},
+      feed_onestop_id: {},
+      feed_version_sha1: {}
+    }
+  end
+
   def set_feed_version_import
     @feed_version_import = FeedVersionImport.find(params[:id])
   end

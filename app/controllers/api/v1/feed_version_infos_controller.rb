@@ -55,12 +55,29 @@ class Api::V1::FeedVersionInfosController < Api::V1::BaseApiController
   private
 
   def query_params
-    [
-      :feed_onestop_id,
-      :feed_version_sha1,
-      :type,
-      :id
-    ]
+    {
+      feed_onestop_id: {
+        desc: "Feed Onestop ID",
+        type: "onestop_id",
+        array: true
+      },
+      feed_version_sha1: {
+        desc: "Feed Version",
+        type: "sha1",
+        array: true
+      },
+      type: {
+        desc: "Feed Version Info Type",
+        type: "enum",
+        enum: ["FeedVersionInfoStatistics","FeedVersionInfoConveyal"],
+        array: true
+      },
+      id: {
+        desc: "Feed Version Info ID",
+        type: "integer",
+        array: true
+      }
+    }
   end
 
   def set_feed_version_info
