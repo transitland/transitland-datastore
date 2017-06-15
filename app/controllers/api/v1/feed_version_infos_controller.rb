@@ -57,7 +57,7 @@ class Api::V1::FeedVersionInfosController < Api::V1::BaseApiController
   def query_params
     {
       feed_onestop_id: {
-        desc: "Feed Onestop ID",
+        desc: "Feed",
         type: "onestop_id",
         array: true
       },

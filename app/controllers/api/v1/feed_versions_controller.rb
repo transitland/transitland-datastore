@@ -108,25 +108,34 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
   def query_params
     {
       feed_onestop_id: {
-
+        desc: "Feed",
+        type: "onestop_id",
+        array: true
       },
       calendar_coverage_includes: {
-
+        desc: "Coverage includes date",
+        type: "date",
+        array: true
       },
       calendar_coverage_begins_at_or_after: {
-
+        desc: "Coverage begins on or after date",
+        type: "date",
+        array: true
       },
       calendar_coverage_begins_at_or_before: {
-
-      },
-      id: {
-
+        desc: "Coverage begins on or before date",
+        type: "date",
+        array: true
       },
       ids: {
-
+        desc: "Feed Versions",
+        type: "sha1",
+        array: true
       },
       sha1: {
-
+        desc: "Feed Versions",
+        type: "sha1",
+        array: true
       }
     }
   end

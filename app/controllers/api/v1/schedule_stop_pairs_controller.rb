@@ -70,29 +70,6 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
 
   private
 
-  def query_params
-    {
-      active: {},
-      date: {},
-      service_from_date: {},
-      service_before_date: {},
-      origin_onestop_id: {},
-      destination_onestop_id: {},
-      origin_departure_between: {},
-      trip: {},
-      route_onestop_id: {},
-      route_stop_pattern_onestop_id: {},
-      operator_onestop_id: {},
-      bbox: {},
-      updated_since: {},
-      feed_version_sha1: {},
-      feed_onestop_id: {},
-      import_level: {},
-      imported_from_feed: {},
-      imported_from_feed_version: {}
-    }
-  end
-
   def set_schedule_stop_pairs
     @ssps = ScheduleStopPair.where('')
 
@@ -195,6 +172,98 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
   end
 
   private
+
+
+  def query_params
+    {
+      active: {
+        desc: "Imported from active Feed Version",
+        type: "boolean"
+      },
+      date: {
+        desc: "Service on date",
+        type: "date"
+      },
+      service_from_date: {
+        desc: "Service on or after date",
+        type: "date"
+      },
+      service_before_date: {
+        desc: "Service on or before date",
+        type: "date"
+      },
+      origin_onestop_id: {
+        desc: "Origin Stop",
+        type: "onestop_id",
+        array: true
+      },
+      destination_onestop_id: {
+        desc: "Destination Stop",
+        type: "onestop_id",
+        array: true
+      },
+      origin_departure_between: {
+        desc: "Origin departure between <time1>,<time2>",
+        type: "string",
+        array: true
+      },
+      trip: {
+        desc: "Created from GTFS trip ID",
+        type: "string",
+        array: true
+      },
+      route_onestop_id: {
+        desc: "Route",
+        type: "Route",
+        array: true
+      },
+      route_stop_pattern_onestop_id: {
+        desc: "Route Stop Pattern",
+        type: "onestop_id",
+        array: true
+      },
+      operator_onestop_id: {
+        desc: "Operator",
+        type: "onestop_id",
+        array: true
+      },
+      bbox: {
+        desc: "Bounding box",
+        type: "bbox"
+      },
+      updated_since: {
+        desc: "Updated since",
+        type: "datetime"
+      },
+      feed_version_sha1: {
+        desc: "Imported with Feed Version",
+        type: "sha1",
+        array: true,
+        show: false
+      },
+      feed_onestop_id: {
+        desc: "Imported with Feed",
+        type: "onestop_id",
+        show: false,
+        array: true
+      },
+      import_level: {
+        desc: "Import level",
+        type: "integer",
+        array: true
+      },
+      imported_from_feed: {
+        desc: "Imported with Feed",
+        type: "onestop_id",
+        array: true
+      },
+      imported_from_feed_version: {
+        desc: "Imported with Feed Version",
+        type: "sha1",
+        array: true
+      }
+    }
+  end
 
   def tz_now
     tz_onestop_id = params[:origin_onestop_id].presence || params[:destination_onestop_id].presence || params[:operator_onestop_id].presence

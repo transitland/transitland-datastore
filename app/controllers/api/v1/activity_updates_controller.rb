@@ -24,4 +24,22 @@ class Api::V1::ActivityUpdatesController < Api::V1::BaseApiController
       format.rss { render layout: false }
     end
   end
+
+  private
+
+  def query_params
+    {
+      feed: {
+        desc: "Filter by Feed",
+        type: "onestop_id",
+        array: true
+      },
+      changeset: {
+        desc: "Filter by Changeset ID",
+        type: "integer",
+        array: true
+      }
+    }
+  end
+
 end

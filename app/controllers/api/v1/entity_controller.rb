@@ -131,7 +131,8 @@ class Api::V1::EntityController < Api::V1::BaseApiController
       },
       import_level: {
         desc: "Import level",
-        type: "integer"
+        type: "integer",
+        array: true
       },
       imported_with_gtfs_id: {
         desc: "Imported with GTFS ID",
@@ -161,18 +162,28 @@ class Api::V1::EntityController < Api::V1::BaseApiController
         type: "string"
       },
       include: {
-
+        desc: "Include values",
+        type: "enum",
+        enum: ["geometry","imported_from_feeds","issues"]
       },
       exclude: {
-
+        desc: "Exclude values",
+        type: "enum",
+        enum: ["geometry","imported_from_feeds","issues"]
       },
       embed_issues: {
+        desc: "Embed Issues",
+        type: "boolean",
         show: false
       },
       include_geometry: {
+        desc: "Include geometry",
+        type: "boolean",
         show: false
       },
       exclude_geometry: {
+        desc: "Exclude geometry",
+        type: "boolean",
         show: false
       }
     }

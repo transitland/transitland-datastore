@@ -40,7 +40,11 @@ class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
 
   def query_params
     {
-      id: {}
+      ids: {
+        desc: "Change Payload ID",
+        type: "integer",
+        array: true
+      }
     }
   end
 

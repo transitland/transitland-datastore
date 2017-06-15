@@ -33,9 +33,21 @@ class Api::V1::FeedVersionImportsController < Api::V1::BaseApiController
 
   def query_params
     {
-      id: {},
-      feed_onestop_id: {},
-      feed_version_sha1: {}
+      ids: {
+        desc: "FeedVersionImport IDs",
+        type: "integer",
+        array: true
+      },
+      feed_onestop_id: {
+        desc: "Feed",
+        type: "onestop_id",
+        array: true
+      },
+      feed_version_sha1: {
+        desc: "Feed Version",
+        type: "sha1",
+        array: true
+      }
     }
   end
 

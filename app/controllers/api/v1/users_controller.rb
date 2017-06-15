@@ -40,7 +40,11 @@ class Api::V1::UsersController < Api::V1::BaseApiController
 
   def query_params
     {
-      id: {},
+      ids: {
+        desc: "Users",
+        type: "integer",
+        array: true
+      },
     }
   end
 
