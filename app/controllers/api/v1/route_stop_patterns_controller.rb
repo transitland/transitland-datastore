@@ -36,7 +36,7 @@ class Api::V1::RouteStopPatternsController < Api::V1::EntityController
         type: "string",
         array: true
       },
-      stop_visited: {
+      stops_visited: {
         desc: "Visits Stop",
         type: "onestop_id"
       }

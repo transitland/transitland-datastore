@@ -11,13 +11,10 @@ module JsonCollectionPagination
       sort_key: sort_key,
       sort_order: sort_order,
       offset: offset,
-      per_page: per_page
+      per_page: per_page,
     }
-    if query_params.is_a?(Hash)
-      qps = params.permit(query_params.keys)
-    else
-      qps = params.permit(query_params)
-    end
+    qps = params.permit(query_params.keys)
+    # disallowed = params.keys.map(&:to_sym) - query_params.keys - meta.keys - [:total, :controller, :action, :format]
 
     # Reorder
     collection = sort_reorder(collection)

@@ -139,6 +139,9 @@ class Api::V1::EntityController < Api::V1::BaseApiController
         type: "string",
         array: true
       },
+      gtfs_id: {
+        show: false
+      },
       imported_from_feed: {
         desc: "Imported from Feed",
         type: "onestop_id",

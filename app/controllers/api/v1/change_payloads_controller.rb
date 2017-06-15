@@ -44,6 +44,11 @@ class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
         desc: "Change Payload ID",
         type: "integer",
         array: true
+      },
+      changeset_id: {
+        desc: "Changeset ID",
+        type: "integer",
+        show: false
       }
     }
   end

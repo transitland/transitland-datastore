@@ -97,6 +97,11 @@ class Api::V1::FeedsController < Api::V1::EntityController
       latest_feed_version_import_status: {
         desc: "Status of the most recent import",
         type: "string"
+      },
+      url: {
+        desc: "URL",
+        type: "string",
+        array: true
       }
     })
   end
