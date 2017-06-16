@@ -78,7 +78,7 @@ class Api::V1::EntityController < Api::V1::BaseApiController
     incl = {
       issues: false,
       geometry: true,
-      imported_from_feeds: false,
+      imported_from_feeds: true,
       id: false
     }
     AllowFiltering.param_as_array(params, :include).map(&:to_sym).each { |i| incl[i] = true }
