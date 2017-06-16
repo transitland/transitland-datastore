@@ -40,7 +40,7 @@ class Api::V1::EntityController < Api::V1::BaseApiController
 
     # Imported From Feed
     if params[:imported_from_feed].present?
-      @collection = @collection.where_imported_from_feed(Feed.find_by_onestop_id(params[:imported_from_feed]))
+      @collection = @collection.where_imported_from_feed(Feed.find_by_onestop_id!(params[:imported_from_feed]))
     end
     if params[:imported_from_feed_version].present?
       @collection = @collection.where_imported_from_feed_version(FeedVersion.find_by!(sha1: params[:imported_from_feed_version]))
