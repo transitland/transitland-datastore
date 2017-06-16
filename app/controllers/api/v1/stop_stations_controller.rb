@@ -8,6 +8,20 @@ class Api::V1::StopStationsController < Api::V1::EntityController
   def index_query
     super
     @collection = @collection.where(type: nil)
+    if params[:served_by].present? || params[:servedBy].present?
+      # we previously allowed `servedBy`, so we'll continue to honor that for the time being
+      operator_onestop_ids = []
+      operator_onestop_ids += params[:served_by].split(',') if params[:served_by].present?
+      operator_onestop_ids += params[:servedBy].split(',') if params[:servedBy].present?
+      operator_onestop_ids.uniq!
+      @collection = @collection.served_by(operator_onestop_ids)
+    end
+    if params[:served_by_vehicle_types].present?
+      @collection = @collection.served_by_vehicle_types(AllowFiltering.param_as_array(params, :served_by_vehicle_types))
+    end
+    if params[:wheelchair_boarding].present?
+      @collection = @collection.where(wheelchair_boarding: AllowFiltering.to_boolean(params[:wheelchair_boarding] ))
+    end
   end
 
   def index_includes
