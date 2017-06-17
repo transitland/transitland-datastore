@@ -109,6 +109,20 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
 
   private
 
+  def query_params
+    {
+      ids: {
+        desc: "Filter by Changeset ID",
+        type: "integer",
+        array: true
+      },
+      applied: {
+        desc: "Applied Changesets",
+        type: "boolean"
+      }
+    }
+  end
+
   def set_changeset
     @changeset = Changeset.find(params[:id])
   end

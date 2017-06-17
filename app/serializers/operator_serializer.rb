@@ -31,16 +31,11 @@
 class OperatorSerializer < CurrentEntitySerializer
   attributes :name,
              :short_name,
-             :onestop_id,
-             :geometry,
-             :tags,
              :website,
              :country,
              :state,
              :metro,
              :timezone,
-             :created_at,
-             :updated_at,
              :represented_in_feed_onestop_ids
 
   def represented_in_feed_onestop_ids
