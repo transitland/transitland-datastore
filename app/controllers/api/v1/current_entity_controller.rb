@@ -76,9 +76,9 @@ class Api::V1::CurrentEntityController < Api::V1::BaseApiController
   def render_scope
     # Get the list of include and exclude options
     incl = {
-      issues: false,
       geometry: true,
-      imported_from_feeds: true,
+      issues: false,
+      imported_from_feeds: false,
       id: false
     }
     AllowFiltering.param_as_array(params, :include).map(&:to_sym).each { |i| incl[i] = true }
