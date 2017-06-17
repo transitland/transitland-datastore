@@ -1,4 +1,4 @@
-class Api::V1::RoutesController < Api::V1::EntityController
+class Api::V1::RoutesController < Api::V1::CurrentEntityController
   def self.model
     Route
   end

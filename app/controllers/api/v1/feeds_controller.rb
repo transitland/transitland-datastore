@@ -1,4 +1,4 @@
-class Api::V1::FeedsController < Api::V1::EntityController
+class Api::V1::FeedsController < Api::V1::CurrentEntityController
   before_action :set_model, only: [:download_latest_feed_version]
 
   def self.model

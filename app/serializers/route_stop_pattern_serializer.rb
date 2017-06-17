@@ -25,17 +25,12 @@
 #
 
 class RouteStopPatternSerializer < CurrentEntitySerializer
-  attributes :onestop_id,
-             :route_onestop_id,
+  attributes :route_onestop_id,
              :stop_pattern,
              :stop_distances,
-             :geometry,
              :geometry_source,
              :color,
-             :created_at,
-             :updated_at,
-             :trips,
-             :tags
+             :trips
 
    def route_onestop_id
      object.route.onestop_id

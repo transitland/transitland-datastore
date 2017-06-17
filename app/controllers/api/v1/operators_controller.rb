@@ -1,4 +1,4 @@
-class Api::V1::OperatorsController < Api::V1::EntityController
+class Api::V1::OperatorsController < Api::V1::CurrentEntityController
   AGGREGATE_CACHE_KEY = 'operators_aggregate_json'
 
   def self.model

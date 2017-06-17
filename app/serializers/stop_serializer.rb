@@ -32,9 +32,7 @@
 #
 
 class StopSerializer < CurrentEntitySerializer
-  attributes :onestop_id,
-             :name,
-             :tags,
+  attributes :name,
              :timezone,
              :osm_way_id,
              :served_by_vehicle_types,

@@ -1,4 +1,4 @@
-describe Api::V1::EntityController do
+describe Api::V1::CurrentEntityController do
   controller do
     def self.model
       Stop

@@ -1,24 +1,15 @@
 class StopStationSerializer < CurrentEntitySerializer
   # Platform serializer
   class StopPlatformSerializer < CurrentEntitySerializer
-    attributes :onestop_id,
-               :geometry,
-               :name,
-               :tags,
+    attributes :name,
                :served_by_vehicle_types,
                :timezone,
                :wheelchair_boarding,
                :generated,
-               :created_at,
-               :updated_at,
                :last_conflated_at
      has_many :operators_serving_stop
      has_many :routes_serving_stop
      has_many :stop_transfers
-
-     def issues
-       issues = object.issues
-     end
 
      def generated
        !object.persisted?
@@ -26,22 +17,13 @@ class StopStationSerializer < CurrentEntitySerializer
   end
   # Egress serializer
   class StopEgressSerializer < CurrentEntitySerializer
-    attributes :onestop_id,
-               :geometry,
-               :name,
-               :tags,
+    attributes :name,
                :timezone,
                :osm_way_id,
                :wheelchair_boarding,
                :generated,
                :directionality,
-               :created_at,
-               :updated_at
                :last_conflated_at
-
-     def issues
-       issues = object.issues
-     end
 
      def generated
        !object.persisted?
@@ -90,15 +72,10 @@ class StopStationSerializer < CurrentEntitySerializer
   end
 
   # Attributes
-  attributes :onestop_id,
-             :geometry,
-             :name,
-             :tags,
+  attributes :name,
              :timezone,
              :vehicle_types_serving_stop_and_platforms,
-             :wheelchair_boarding,
-             :created_at,
-             :updated_at
+             :wheelchair_boarding
 
   # Relations
   has_many :stop_platforms, serializer: StopPlatformSerializer

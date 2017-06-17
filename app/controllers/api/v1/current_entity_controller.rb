@@ -1,4 +1,4 @@
-class Api::V1::EntityController < Api::V1::BaseApiController
+class Api::V1::CurrentEntityController < Api::V1::BaseApiController
   include JsonCollectionPagination
   include DownloadableCsv
   include AllowFiltering

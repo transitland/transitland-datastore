@@ -1,4 +1,4 @@
-class Api::V1::RouteStopPatternsController < Api::V1::EntityController
+class Api::V1::RouteStopPatternsController < Api::V1::CurrentEntityController
   def self.model
     RouteStopPattern
   end

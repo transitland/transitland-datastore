@@ -56,10 +56,6 @@ class FeedSerializer < CurrentEntitySerializer
     false
   end
 
-  def has_issues
-    !!scope && !!scope[:embed_issues]
-  end
-
   def feed_versions_count
     object.feed_versions.count
   end

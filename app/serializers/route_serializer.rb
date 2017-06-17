@@ -41,7 +41,6 @@ class RouteSerializer < CurrentEntitySerializer
              :wheelchair_accessible,
              :bikes_allowed,
              :route_stop_patterns_by_onestop_id
-  attribute :geometry, if: :include_geometry?
 
   def operated_by_onestop_id
     object.operator.try(:onestop_id)
