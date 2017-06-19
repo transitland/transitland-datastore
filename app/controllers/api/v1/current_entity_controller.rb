@@ -3,8 +3,6 @@ class Api::V1::CurrentEntityController < Api::V1::BaseApiController
   include DownloadableCsv
   include AllowFiltering
 
-  before_action :set_model, only: [:show]
-
   def self.model
     fail Exception.new("Abstract method")
   end
@@ -20,6 +18,7 @@ class Api::V1::CurrentEntityController < Api::V1::BaseApiController
   end
 
   def show
+    set_model
     respond_to do |format|
       format.json { render json: @model, serializer: render_serializer, scope: render_scope }
       format.geojson { render json: @model, serializer: GeoJSONSerializer }
