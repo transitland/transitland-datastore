@@ -32,17 +32,12 @@
 #
 
 class StopSerializer < CurrentEntitySerializer
-  attributes :onestop_id,
-             :geometry,
-             :name,
-             :tags,
+  attributes :name,
              :timezone,
              :osm_way_id,
              :served_by_vehicle_types,
              :parent_stop_onestop_id,
-             :wheelchair_boarding,
-             :created_at,
-             :updated_at
+             :wheelchair_boarding
 
   has_many :operators_serving_stop
   has_many :routes_serving_stop

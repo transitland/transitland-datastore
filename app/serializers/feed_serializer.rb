@@ -31,12 +31,9 @@
 #  index_current_feeds_on_onestop_id                          (onestop_id) UNIQUE
 #
 
-class FeedSerializer < ApplicationSerializer
-  attributes :onestop_id,
-             :url,
+class FeedSerializer < CurrentEntitySerializer
+  attributes :url,
              :feed_format,
-             :tags,
-             :geometry,
              :license_name,
              :license_url,
              :license_use_without_attribution,
@@ -46,21 +43,17 @@ class FeedSerializer < ApplicationSerializer
              :last_fetched_at,
              :last_imported_at,
              :import_status,
-             :created_at,
-             :updated_at,
              :feed_versions_count,
              :feed_versions_url,
              :feed_versions,
              :active_feed_version,
              :import_level_of_active_feed_version,
-             :created_or_updated_in_changeset_id,
              :changesets_imported_from_this_feed
 
   has_many :operators_in_feed
-  has_many :issues, if: :has_issues
 
-  def has_issues
-    !!scope && !!scope[:embed_issues]
+  def embed_imported_from_feeds?
+    false
   end
 
   def feed_versions_count

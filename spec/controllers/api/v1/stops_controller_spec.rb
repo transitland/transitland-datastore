@@ -69,7 +69,7 @@ describe Api::V1::StopsController do
         end
 
         it 'accepts a mix of strings and integers' do
-          get :index, served_by_vehicle_types: ['metro', 3]
+          get :index, served_by_vehicle_types: 'metro,3'
           expect_json({ stops: -> (stops) {
             expect(stops.map { |stop| stop[:onestop_id] }).to match_array([@stop1.onestop_id, @stop2.onestop_id])
           }})

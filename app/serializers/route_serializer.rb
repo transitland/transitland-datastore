@@ -32,30 +32,15 @@
 #
 
 class RouteSerializer < CurrentEntitySerializer
-  attribute :geometry, if: :include_geometry?
-  attributes :onestop_id,
-             :name,
+  attributes :name,
              :vehicle_type,
              :color,
-             :tags,
              :stops_served_by_route,
              :operated_by_onestop_id,
              :operated_by_name,
              :wheelchair_accessible,
              :bikes_allowed,
-             :created_at,
-             :updated_at,
              :route_stop_patterns_by_onestop_id
-
-  def include_geometry?
-    # support exclude_geometry here, but include_geometry takes priority
-    if (scope.present? && scope.has_key?(:include_geometry) && !scope[:include_geometry].nil?)
-      return scope[:include_geometry] && !!object.try(:geometry)
-    elsif (scope.present? && scope.has_key?(:exclude_geometry) && !scope[:exclude_geometry].nil?)
-      return !scope[:exclude_geometry] && !!object.try(:geometry)
-    end
-    return true
-  end
 
   def operated_by_onestop_id
     object.operator.try(:onestop_id)
