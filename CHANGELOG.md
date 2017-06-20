@@ -2,7 +2,14 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.32...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.33...HEAD)
+
+**Merged pull requests:**
+
+- Production release 4.9.33 [\#1110](https://github.com/transitland/transitland-datastore/pull/1110) ([irees](https://github.com/irees))
+
+## [4.9.33](https://github.com/transitland/transitland-datastore/tree/4.9.33) (2017-06-19)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.32...4.9.33)
 
 **Fixed bugs:**
 
@@ -10,11 +17,15 @@
 
 **Closed issues:**
 
+- Entity Controller Refactor [\#1064](https://github.com/transitland/transitland-datastore/issues/1064)
 - Auto-enqueue improvements [\#1038](https://github.com/transitland/transitland-datastore/issues/1038)
 
 **Merged pull requests:**
 
+- CurrentEntityController before\_action fixes [\#1112](https://github.com/transitland/transitland-datastore/pull/1112) ([irees](https://github.com/irees))
+- updating mail gem [\#1111](https://github.com/transitland/transitland-datastore/pull/1111) ([drewda](https://github.com/drewda))
 - Production release 4.9.32 [\#1102](https://github.com/transitland/transitland-datastore/pull/1102) ([irees](https://github.com/irees))
+- CurrentEntityController [\#1096](https://github.com/transitland/transitland-datastore/pull/1096) ([irees](https://github.com/irees))
 
 ## [4.9.32](https://github.com/transitland/transitland-datastore/tree/4.9.32) (2017-06-01)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.31...4.9.32)
