@@ -284,6 +284,7 @@ class GTFSGraphImporter
   def find_or_initialize_stop(gtfs_entity, operated_by: nil)
     find_or_initialize(gtfs_entity) { |tl_entity|
       if gtfs_entity.parent_station.present?
+        tl_entity = StopPlatform.new unless tl_entity.class == StopPlatform
         tl_entity ||= StopPlatform.new
         tl_entity.parent_stop = find_or_initialize_stop(@gtfs.stop(gtfs_entity.parent_station), operated_by: operated_by)
         tl_entity.platform_name = gtfs_entity.id
