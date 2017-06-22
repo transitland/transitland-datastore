@@ -1,4 +1,4 @@
-describe GTFSGraph do
+describe FeedEaterService do
   context 'example feed' do
     before(:all) {
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 2)
@@ -264,7 +264,7 @@ describe GTFSGraph do
       oif = feed.operators_in_feed.first
       oif.update!({gtfs_agency_id:'not-found'})
       graph = GTFSGraphImporter.new(feed, feed_version)
-      expect { graph.create_change_osr }.to raise_error(GTFSGraph::Error)
+      expect { graph.create_change_osr }.to raise_error(GTFSGraphImporter::Error)
       issue = Issue.last
       expect(issue.issue_type).to eq(:feed_import_no_operators_found)
       expect(issue.entities_with_issues.map(&:entity)).to match_array([feed_version])
@@ -394,25 +394,25 @@ describe GTFSGraph do
     end
 
     it 'returns unknown if all 0' do
-      expect(GTFSGraph.send(:to_trips_accessible, trips([0,0]), :wheelchair_accessible)).to eq(:unknown)
+      expect(GTFSGraphImporter.new(nil,nil).send(:to_trips_accessible, trips([0,0]), :wheelchair_accessible)).to eq(:unknown)
     end
 
     it 'returns all_trips if all 1' do
-      expect(GTFSGraph.send(:to_trips_accessible, trips([1,1]), :wheelchair_accessible)).to eq(:all_trips)
+      expect(GTFSGraphImporter.new(nil,nil).send(:to_trips_accessible, trips([1,1]), :wheelchair_accessible)).to eq(:all_trips)
     end
 
     it 'returns no_trips if all 2' do
-      expect(GTFSGraph.send(:to_trips_accessible, trips([2,2]), :wheelchair_accessible)).to eq(:no_trips)
+      expect(GTFSGraphImporter.new(nil,nil).send(:to_trips_accessible, trips([2,2]), :wheelchair_accessible)).to eq(:no_trips)
     end
 
     it 'returns no_trips if all 2 or 0' do
-      expect(GTFSGraph.send(:to_trips_accessible, trips([2,0]), :wheelchair_accessible)).to eq(:no_trips)
+      expect(GTFSGraphImporter.new(nil,nil).send(:to_trips_accessible, trips([2,0]), :wheelchair_accessible)).to eq(:no_trips)
     end
 
     it 'returns some_trips if mixed values but at least one 1' do
-      expect(GTFSGraph.send(:to_trips_accessible, trips([0,1]), :wheelchair_accessible)).to eq(:some_trips)
-      expect(GTFSGraph.send(:to_trips_accessible, trips([1,2]), :wheelchair_accessible)).to eq(:some_trips)
-      expect(GTFSGraph.send(:to_trips_accessible, trips([0,1,2]), :wheelchair_accessible)).to eq(:some_trips)
+      expect(GTFSGraphImporter.new(nil,nil).send(:to_trips_accessible, trips([0,1]), :wheelchair_accessible)).to eq(:some_trips)
+      expect(GTFSGraphImporter.new(nil,nil).send(:to_trips_accessible, trips([1,2]), :wheelchair_accessible)).to eq(:some_trips)
+      expect(GTFSGraphImporter.new(nil,nil).send(:to_trips_accessible, trips([0,1,2]), :wheelchair_accessible)).to eq(:some_trips)
     end
   end
 
