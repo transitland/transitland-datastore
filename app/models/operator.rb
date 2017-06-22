@@ -125,38 +125,6 @@ class Operator < BaseOperator
     Operator.convex_hull(self.stops, projected: false)
   end
 
-  ##### FromGTFS ####
-  include FromGTFS
-  def self.from_gtfs(entity, attrs={})
-    # GTFS Constructor
-    # Convert to TL Stops so geometry projection works properly...
-    tl_stops = entity.stops.map { |stop| Stop.new(geometry: Stop::GEOFACTORY.point(*stop.coordinates)) }
-    geohash = GeohashHelpers.fit(
-      Stop::GEOFACTORY.collection(tl_stops.map { |stop| stop[:geometry] })
-    )
-    # Generate third Onestop ID component
-    name = [entity.agency_name, entity.id, "unknown"]
-      .select(&:present?)
-      .first
-    # Create Operator
-    attrs[:geometry] = Operator.convex_hull(tl_stops, projected: false)
-    attrs[:name] = name
-    attrs[:onestop_id] = OnestopId.handler_by_model(self).new(
-      geohash: geohash,
-      name: name
-    )
-    operator = Operator.new(attrs)
-    operator.tags ||= {}
-    operator.tags[:agency_phone] = entity.agency_phone
-    operator.tags[:agency_lang] = entity.agency_lang
-    operator.tags[:agency_fare_url] = entity.agency_fare_url
-    operator.tags[:agency_id] = entity.id
-    operator.tags[:agency_email] = entity.agency_email
-    operator.timezone = entity.agency_timezone
-    operator.website = entity.agency_url
-    operator
-  end
-
   private
 
   def set_default_values
