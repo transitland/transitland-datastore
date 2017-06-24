@@ -2,10 +2,23 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.33...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.34...HEAD)
 
 **Merged pull requests:**
 
+- Production release 4.9.34 [\#1113](https://github.com/transitland/transitland-datastore/pull/1113) ([irees](https://github.com/irees))
+
+## [4.9.34](https://github.com/transitland/transitland-datastore/tree/4.9.34) (2017-06-22)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.33...4.9.34)
+
+**Fixed bugs:**
+
+- Stop becomes StopPlatform [\#1103](https://github.com/transitland/transitland-datastore/issues/1103)
+- Slow StopsController include query [\#996](https://github.com/transitland/transitland-datastore/issues/996)
+
+**Merged pull requests:**
+
+- Check if Stop is a Stop or StopPlatform [\#1115](https://github.com/transitland/transitland-datastore/pull/1115) ([irees](https://github.com/irees))
 - Production release 4.9.33 [\#1110](https://github.com/transitland/transitland-datastore/pull/1110) ([irees](https://github.com/irees))
 
 ## [4.9.33](https://github.com/transitland/transitland-datastore/tree/4.9.33) (2017-06-19)
