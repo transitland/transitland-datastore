@@ -57,18 +57,6 @@ describe Issue do
     expect(Issue.from_feed('f-9q9-bart').size).to eq 1
   end
 
-  it '.from_feed having no entities_with_issues' do
-    feed1 = create(:feed_sfmta)
-    feed2 = create(:feed_bart)
-    changeset1 = create(:changeset, imported_from_feed: feed1)
-    changeset2 = create(:changeset, imported_from_feed: feed2)
-    Issue.new(created_by_changeset: changeset1, issue_type: 'stop_position_inaccurate').save!
-    Issue.new(created_by_changeset: changeset1, issue_type: 'rsp_line_only_stop_points').save!
-    Issue.new(created_by_changeset: changeset2, issue_type: 'rsp_line_only_stop_points').save!
-    expect(Issue.from_feed('f-9q8y-sfmta').size).to eq 2
-    expect(Issue.from_feed('f-9q9-bart').size).to eq 1
-  end
-
   context 'existing issues' do
     before(:each) do
       @changeset1 = create(:changeset)
