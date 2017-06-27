@@ -58,7 +58,7 @@ create_caltrain = Proc.new {
 def run_and_report(feed_and_feed_version, args)
   report = MemoryProfiler.report(allow_files: 'app') do
     feed, feed_version = feed_and_feed_version.call
-    graph = GTFSGraph.new(feed, feed_version)
+    graph = GTFSGraphImporter.new(feed, feed_version)
     graph.cleanup
     graph.create_change_osr
   end

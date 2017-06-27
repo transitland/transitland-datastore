@@ -239,37 +239,6 @@ class Route < BaseRoute
     )
     onestop_id.to_s
   end
-
-  include FromGTFS
-  def self.from_gtfs(entity, attrs={})
-    # GTFS Constructor
-    coordinates = Stop::GEOFACTORY.collection(
-      entity.stops.map { |stop| Stop::GEOFACTORY.point(*stop.coordinates) }
-    )
-    geohash = GeohashHelpers.fit(coordinates)
-    name = [entity.route_short_name, entity.route_long_name, entity.id, "unknown"]
-      .select(&:present?)
-      .first
-    onestop_id = OnestopId.handler_by_model(self).new(
-      geohash: geohash,
-      name: name
-    )
-    route = Route.new(
-      name: name,
-      onestop_id: onestop_id.to_s,
-      vehicle_type: entity.route_type.to_i
-    )
-    route.color = Route.color_from_gtfs(entity.route_color)
-    # Copy over GTFS attributes to tags
-    route.tags ||= {}
-    route.tags[:route_long_name] = entity.route_long_name
-    route.tags[:route_desc] = entity.route_desc
-    route.tags[:route_url] = entity.route_url
-    route.tags[:route_color] = entity.route_color
-    route.tags[:route_text_color] = entity.route_text_color
-    route
-  end
-
 end
 
 class OldRoute < BaseRoute
