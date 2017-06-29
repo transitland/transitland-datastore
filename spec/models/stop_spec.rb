@@ -180,6 +180,10 @@ describe Stop do
     it 'returns minimum StopPlatforms' do
       expect(Stop.with_min_platforms(2)).to match_array([@s3])
     end
+
+    it 'works with count' do
+      expect(Stop.with_min_platforms(1).count).to eq(2)
+    end
   end
 
   context 'served_by' do
