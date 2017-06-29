@@ -182,7 +182,8 @@ describe Stop do
     end
 
     it 'works with count' do
-      expect(Stop.with_min_platforms(1).count).to eq(2)
+      # Handled in JSON pagination concern
+      expect(Stop.with_min_platforms(1).count.size).to eq(2)
     end
   end
 
