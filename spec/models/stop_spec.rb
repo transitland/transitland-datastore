@@ -163,6 +163,25 @@ describe Stop do
     end
   end
 
+  context '.with_min_platforms' do
+    before(:each) do
+      @s1 = create(:stop)
+      @s2 = create(:stop)
+      @s2p1 = create(:stop_platform, parent_stop: @s2)
+      @s3 = create(:stop)
+      @s3p1 = create(:stop_platform, parent_stop: @s3)
+      @s3p2 = create(:stop_platform, parent_stop: @s3)
+    end
+
+    it 'returns only Stops with StopPlatforms' do
+      expect(Stop.with_min_platforms(1)).to match_array([@s2, @s3])
+    end
+
+    it 'returns minimum StopPlatforms' do
+      expect(Stop.with_min_platforms(2)).to match_array([@s3])
+    end
+  end
+
   context 'served_by' do
     before(:each) do
       @bart = create(:operator, name: 'BART')
