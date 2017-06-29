@@ -41,7 +41,9 @@ module JsonCollectionPagination
     end
 
     if include_total
-      meta[:total] = collection.count
+      total = collection.count
+      (total = total.size) if total.is_a?(Hash)
+      meta[:total] = total
     end
     # Return results + meta
     data_on_page = data_on_page.empty? ? collection.model.none : data_on_page

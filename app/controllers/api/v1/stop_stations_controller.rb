@@ -22,6 +22,9 @@ class Api::V1::StopStationsController < Api::V1::CurrentEntityController
     if params[:wheelchair_boarding].present?
       @collection = @collection.where(wheelchair_boarding: AllowFiltering.to_boolean(params[:wheelchair_boarding] ))
     end
+    if params[:min_platforms].present?
+      @collection = @collection.with_min_platforms(params[:min_platforms].to_i)
+    end
   end
 
   def index_includes
@@ -92,6 +95,10 @@ class Api::V1::StopStationsController < Api::V1::CurrentEntityController
       wheelchair_boarding: {
         desc: "Wheelchair boarding",
         type: "boolean"
+      },
+      min_platforms: {
+        desc: "Mininum number of platforms",
+        type: "integer"
       }
     })
   end
