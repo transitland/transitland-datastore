@@ -203,7 +203,7 @@ class GTFSGraphImporter
       issue = Issue.new(issue_type: 'feed_import_no_operators_found', details: details)
       issue.entities_with_issues.new(entity: @feed_version)
       issue.save!
-      fail GTFSGraph::Error.new('No agencies found that match operators_in_feed')
+      fail GTFSGraphImporter::Error.new('No agencies found that match operators_in_feed')
     end
 
     # Update Feed Geometry

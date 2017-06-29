@@ -259,38 +259,6 @@ class Feed < BaseFeed
     end
   end
 
-  ##### FromGTFS ####
-  include FromGTFS
-  def self.from_gtfs(entity, attrs={})
-    # Entity is a feed.
-    visited_stops = Set.new
-    entity.agencies.each { |agency| visited_stops |= agency.stops }
-    coordinates = Stop::GEOFACTORY.collection(
-      visited_stops.map { |stop| Stop::GEOFACTORY.point(*stop.coordinates) }
-    )
-    geohash = GeohashHelpers.fit(coordinates)
-    geometry = RGeo::Cartesian::BoundingBox.create_from_geometry(coordinates)
-    # Generate third Onestop ID component
-    feed_id = nil
-    if entity.file_present?('feed_info.txt')
-      feed_info = entity.feed_infos.first
-      feed_id = feed_info.feed_id if feed_info
-    end
-    name_agencies = entity.agencies.select { |agency| agency.stops.size > 0 }.map(&:agency_name).join('~')
-    name_url = Addressable::URI.parse(attrs[:url]).host.gsub(/[^a-zA-Z0-9]/, '') if attrs[:url]
-    name = feed_id.presence || name_agencies.presence || name_url.presence || 'unknown'
-    # Create Feed
-    attrs[:geometry] = geometry.to_geometry
-    attrs[:onestop_id] = OnestopId.handler_by_model(self).new(
-      geohash: geohash,
-      name: name
-    )
-    feed = Feed.new(attrs)
-    feed.tags ||= {}
-    feed.tags[:feed_id] = feed_id if feed_id
-    feed
-  end
-
   private
 
   def set_default_values

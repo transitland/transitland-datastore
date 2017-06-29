@@ -19,12 +19,10 @@ class Issue < ActiveRecord::Base
 
   scope :with_type, -> (search_string) { where(issue_type: search_string.split(',')) }
   scope :from_feed, -> (feed_onestop_id) {
-    where("issues.id IN (SELECT entities_with_issues.issue_id FROM entities_with_issues INNER JOIN
-    entities_imported_from_feed ON entities_with_issues.entity_id=entities_imported_from_feed.entity_id
-    AND entities_with_issues.entity_type=entities_imported_from_feed.entity_type WHERE entities_imported_from_feed.feed_id=?)
-    OR issues.id in (SELECT issues.id FROM issues INNER JOIN changesets ON
-    issues.created_by_changeset_id=changesets.id WHERE changesets.feed_id=?)",
-    Feed.find_by_onestop_id!(feed_onestop_id), Feed.find_by_onestop_id!(feed_onestop_id))
+    joins("INNER JOIN entities_with_issues ON entities_with_issues.issue_id = issues.id")
+      .joins("INNER JOIN entities_imported_from_feed ON entities_imported_from_feed.entity_id = entities_with_issues.entity_id AND entities_imported_from_feed.entity_type = entities_with_issues.entity_type")
+      .where("entities_imported_from_feed.feed_id = ?", Feed.find_by_onestop_id!(feed_onestop_id).id)
+      .distinct
   }
 
   CATEGORIES = {

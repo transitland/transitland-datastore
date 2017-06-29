@@ -238,6 +238,13 @@ class Stop < BaseStop
     where('last_conflated_at <= ?', last_conflated_at)
   }
 
+  scope :with_min_platforms, -> (min_platform_count) {
+    where(type: nil)
+    .joins("INNER JOIN current_stops AS current_stop_platforms ON current_stop_platforms.type = 'StopPlatform' AND current_stop_platforms.parent_stop_id = current_stops.id")
+    .group('current_stops.id, current_stop_platforms.parent_stop_id')
+    .having('COUNT(current_stop_platforms.id) >= ?', min_platform_count || 1)
+  }
+
   def coordinates
     g = geometry(as: :wkt)
     [g.lon, g.lat]
@@ -341,7 +348,6 @@ class Stop < BaseStop
     end
   end
 
-  ##### FromGTFS ####
   def generate_onestop_id
     fail Exception.new('geometry required') if geometry.nil?
     fail Exception.new('name required') if name.nil?
@@ -353,35 +359,6 @@ class Stop < BaseStop
     )
     onestop_id.validate!
     onestop_id.to_s
-  end
-
-  include FromGTFS
-  def self.from_gtfs(entity, attrs={})
-    # GTFS Constructor
-    point = Stop::GEOFACTORY.point(*entity.coordinates)
-    geohash = GeohashHelpers.encode(point)
-    # Use stop_id as a fallback for an invalid onestop ID name component
-    onestop_id = OnestopId.handler_by_model(self).new(geohash: geohash, name: entity.stop_name.gsub(/[\>\<]/, ''))
-    if onestop_id.valid? == false
-      old_onestop_id = onestop_id.to_s
-      onestop_id = OnestopId.handler_by_model(self).new(geohash: geohash, name: entity.id)
-      log "Stop.from_gtfs: Invalid onestop_id: #{old_onestop_id}, trying #{onestop_id.to_s}"
-    end
-    onestop_id.validate! # raise OnestopIdException
-    stop = self.new(
-      name: entity.stop_name,
-      onestop_id: onestop_id.to_s,
-      geometry: point.to_s
-    )
-    stop.wheelchair_boarding = GTFSGraph.to_tfn(entity.wheelchair_boarding)
-    # Copy over GTFS attributes to tags
-    stop.tags ||= {}
-    stop.tags[:wheelchair_boarding] = entity.wheelchair_boarding
-    stop.tags[:stop_desc] = entity.stop_desc
-    stop.tags[:stop_url] = entity.stop_url
-    stop.tags[:zone_id] = entity.zone_id
-    stop.timezone = entity.stop_timezone
-    stop
   end
 
   private
