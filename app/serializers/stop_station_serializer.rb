@@ -32,27 +32,35 @@ class StopStationSerializer < CurrentEntitySerializer
 
   # Create phantom platforms / egresses
   def stop_egresses
-    object.stop_egresses.presence || [StopEgress.new(
-      onestop_id: "#{object.onestop_id}>",
-      geometry: object.geometry,
-      name: object.name,
-      timezone: object.timezone,
-      last_conflated_at: object.last_conflated_at,
-      osm_way_id: object.osm_way_id,
-      directionality: nil
-    )]
+    s = object.stop_egresses.presence
+    if scope[:generated] == true
+      s ||= [StopEgress.new(
+        onestop_id: "#{object.onestop_id}>",
+        geometry: object.geometry,
+        name: object.name,
+        timezone: object.timezone,
+        last_conflated_at: object.last_conflated_at,
+        osm_way_id: object.osm_way_id,
+        directionality: nil
+      )]
+    end
+    s
   end
 
   def stop_platforms
-    object.stop_platforms.presence || [StopPlatform.new(
-      onestop_id: "#{object.onestop_id}<",
-      geometry: object.geometry,
-      name: object.name,
-      timezone: object.timezone,
-      operators_serving_stop: object.operators_serving_stop,
-      routes_serving_stop: object.routes_serving_stop,
-      tags: {},
-    )]
+    s = object.stop_platforms.presence
+    if scope[:generated] == true
+      s ||= [StopPlatform.new(
+        onestop_id: "#{object.onestop_id}<",
+        geometry: object.geometry,
+        name: object.name,
+        timezone: object.timezone,
+        operators_serving_stop: object.operators_serving_stop,
+        routes_serving_stop: object.routes_serving_stop,
+        tags: {},
+      )]
+    end
+    s
   end
 
   # Aggregate operators_serving_stop
