@@ -12,6 +12,33 @@ describe Api::V1::StopStationsController do
 
   describe 'GET index' do
     context 'as JSON' do
+
+      context '?min_platforms' do
+        it 'returns with min_platforms' do
+          s1 = create(:stop)
+          s2 = create(:stop)
+          s2p1 = create(:stop_platform, parent_stop: s2)
+          get :index, min_platforms: 1
+          expect_json({ stop_stations: -> (stops) {
+              expect(stops.size).to eq(1)
+              expect(stops.first[:onestop_id]).to eq(s2.onestop_id)
+          }})
+        end
+      end
+
+      context '?min_egresses' do
+        it 'returns with min_egresses' do
+          s1 = create(:stop)
+          s2 = create(:stop)
+          s2p1 = create(:stop_egress, parent_stop: s2)
+          get :index, min_egresses: 1
+          expect_json({ stop_stations: -> (stops) {
+              expect(stops.size).to eq(1)
+              expect(stops.first[:onestop_id]).to eq(s2.onestop_id)
+          }})
+        end
+      end
+
       context 'with issues' do
         before(:each) do
           @platform_stop_with_issue = create(:stop_platform)

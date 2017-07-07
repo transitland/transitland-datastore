@@ -187,6 +187,30 @@ describe Stop do
     end
   end
 
+  context '.with_min_egresses' do
+    before(:each) do
+      @s1 = create(:stop)
+      @s2 = create(:stop)
+      @s2p1 = create(:stop_egress, parent_stop: @s2)
+      @s3 = create(:stop)
+      @s3p1 = create(:stop_egress, parent_stop: @s3)
+      @s3p2 = create(:stop_egress, parent_stop: @s3)
+    end
+
+    it 'returns only Stops with StopEgresses' do
+      expect(Stop.with_min_egresses(1)).to match_array([@s2, @s3])
+    end
+
+    it 'returns minimum StopPlatforms' do
+      expect(Stop.with_min_egresses(2)).to match_array([@s3])
+    end
+
+    it 'works with count' do
+      # Handled in JSON pagination concern
+      expect(Stop.with_min_egresses(1).count.size).to eq(2)
+    end
+  end
+
   context 'served_by' do
     before(:each) do
       @bart = create(:operator, name: 'BART')
