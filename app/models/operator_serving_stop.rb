@@ -25,6 +25,12 @@ end
 class OperatorServingStop < BaseOperatorServingStop
   self.table_name_prefix = 'current_'
 
+  belongs_to :stop
+  belongs_to :operator
+
+  validates :stop, presence: true
+  validates :operator, presence: true
+
   include CurrentTrackedByChangeset
   current_tracked_by_changeset kind_of_model_tracked: :relationship
 
@@ -37,9 +43,6 @@ class OperatorServingStop < BaseOperatorServingStop
       raise ArgumentError.new('must specify Onestop IDs for an operator and for a stop')
     end
   end
-
-  belongs_to :stop
-  belongs_to :operator
 
   def before_destroy_making_history(changeset, old_model)
     if Stop.exists?(self.stop.id) && !self.stop.marked_for_destroy_making_history

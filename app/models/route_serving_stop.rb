@@ -24,6 +24,11 @@ end
 
 class RouteServingStop < BaseRouteServingStop
   self.table_name_prefix = 'current_'
+  belongs_to :stop
+  belongs_to :route
+
+  validates :stop, presence: true
+  validates :route, presence: true
 
   include CurrentTrackedByChangeset
   current_tracked_by_changeset kind_of_model_tracked: :relationship
@@ -37,9 +42,6 @@ class RouteServingStop < BaseRouteServingStop
       raise ArgumentError.new('must specify Onestop IDs for an route and for a stop')
     end
   end
-
-  belongs_to :stop
-  belongs_to :route
 
   def before_destroy_making_history(changeset, old_model)
     if Stop.exists?(self.stop.id) && !self.stop.marked_for_destroy_making_history
