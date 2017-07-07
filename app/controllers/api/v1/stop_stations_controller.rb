@@ -78,8 +78,9 @@ class Api::V1::StopStationsController < Api::V1::CurrentEntityController
   end
 
   def render_scope
+    # Set default incl generated = true
     incl = super
-    if incl[:generated] == nil
+    if incl[:generated].nil?
       incl[:generated] = true
     end
     incl
