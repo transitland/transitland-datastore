@@ -80,6 +80,15 @@ class Api::V1::StopStationsController < Api::V1::CurrentEntityController
     StopStationSerializer
   end
 
+  def render_scope
+    # Set default incl generated = true
+    incl = super
+    if incl[:generated].nil?
+      incl[:generated] = true
+    end
+    incl
+  end
+
   def query_params
     super.merge({
       served_by: {
