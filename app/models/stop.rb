@@ -238,11 +238,18 @@ class Stop < BaseStop
     where('last_conflated_at <= ?', last_conflated_at)
   }
 
-  scope :with_min_platforms, -> (min_platform_count) {
+  scope :with_min_platforms, -> (min_count) {
     where(type: nil)
     .joins("INNER JOIN current_stops AS current_stop_platforms ON current_stop_platforms.type = 'StopPlatform' AND current_stop_platforms.parent_stop_id = current_stops.id")
     .group('current_stops.id, current_stop_platforms.parent_stop_id')
-    .having('COUNT(current_stop_platforms.id) >= ?', min_platform_count || 1)
+    .having('COUNT(current_stop_platforms.id) >= ?', min_count || 1)
+  }
+
+  scope :with_min_egresses, -> (min_count) {
+    where(type: nil)
+    .joins("INNER JOIN current_stops AS current_stop_egresses ON current_stop_egresses.type = 'StopEgress' AND current_stop_egresses.parent_stop_id = current_stops.id")
+    .group('current_stops.id, current_stop_egresses.parent_stop_id')
+    .having('COUNT(current_stop_egresses.id) >= ?', min_count || 1)
   }
 
   def coordinates
