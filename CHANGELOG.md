@@ -2,10 +2,25 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.34...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.35...HEAD)
 
 **Merged pull requests:**
 
+- Production release 4.9.35 [\#1117](https://github.com/transitland/transitland-datastore/pull/1117) ([irees](https://github.com/irees))
+
+## [4.9.35](https://github.com/transitland/transitland-datastore/tree/4.9.35) (2017-06-29)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.34...4.9.35)
+
+**Fixed bugs:**
+
+- Timeout on Issues endpoint [\#1116](https://github.com/transitland/transitland-datastore/issues/1116)
+
+**Merged pull requests:**
+
+- Stop: min platforms query [\#1120](https://github.com/transitland/transitland-datastore/pull/1120) ([irees](https://github.com/irees))
+- upgrading to Rails 4.2.9 & updating gems [\#1119](https://github.com/transitland/transitland-datastore/pull/1119) ([drewda](https://github.com/drewda))
+- Issue from\_feed query optimization [\#1118](https://github.com/transitland/transitland-datastore/pull/1118) ([irees](https://github.com/irees))
+- Remove old GTFSGraph and dependencies [\#1114](https://github.com/transitland/transitland-datastore/pull/1114) ([irees](https://github.com/irees))
 - Production release 4.9.34 [\#1113](https://github.com/transitland/transitland-datastore/pull/1113) ([irees](https://github.com/irees))
 
 ## [4.9.34](https://github.com/transitland/transitland-datastore/tree/4.9.34) (2017-06-22)

@@ -25,6 +25,9 @@ class Api::V1::StopStationsController < Api::V1::CurrentEntityController
     if params[:min_platforms].present?
       @collection = @collection.with_min_platforms(params[:min_platforms].to_i)
     end
+    if params[:min_egresses].present?
+      @collection = @collection.with_min_egresses(params[:min_egresses].to_i)
+    end
   end
 
   def index_includes
@@ -77,6 +80,15 @@ class Api::V1::StopStationsController < Api::V1::CurrentEntityController
     StopStationSerializer
   end
 
+  def render_scope
+    # Set default incl generated = true
+    incl = super
+    if incl[:generated].nil?
+      incl[:generated] = true
+    end
+    incl
+  end
+
   def query_params
     super.merge({
       served_by: {
@@ -98,6 +110,10 @@ class Api::V1::StopStationsController < Api::V1::CurrentEntityController
       },
       min_platforms: {
         desc: "Mininum number of platforms",
+        type: "integer"
+      },
+      min_egresses: {
+        desc: "Mininum number of egresses",
         type: "integer"
       }
     })
