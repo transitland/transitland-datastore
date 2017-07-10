@@ -290,12 +290,17 @@ class GTFSGraphImporter
     tl_entity
   end
 
-  def find_or_initialize_stop(gtfs_entity, operated_by: nil)
-    find_or_initialize(gtfs_entity) { |tl_entity|
+  def find_or_initialize_stop(gtfs_entity, operated_by: nil, parent_stop: nil)
+    find_or_initialize(gtfs_entity) do |tl_entity|
       if gtfs_entity.parent_station.present?
-        tl_entity = StopPlatform.new unless tl_entity.class == StopPlatform
-        tl_entity ||= StopPlatform.new
-        tl_entity.parent_stop = find_or_initialize_stop(@gtfs.stop(gtfs_entity.parent_station), operated_by: operated_by)
+        if gtfs_entity.location_type.to_i == 2
+          tl_entity = StopEgress.new unless tl_entity.class == StopEgress # force new onestop_id
+          tl_entity ||= StopEgress.new
+        else
+          tl_entity = StopPlatform.new unless tl_entity.class == StopPlatform # force new onestop_id
+          tl_entity ||= StopPlatform.new
+        end
+        tl_entity.parent_stop = parent_stop
         tl_entity.platform_name = gtfs_entity.id
       else
         tl_entity ||= Stop.new
@@ -303,14 +308,17 @@ class GTFSGraphImporter
       tl_entity.geometry = Stop::GEOFACTORY.point(*gtfs_entity.coordinates)
       tl_entity.name = gtfs_entity.stop_name
       tl_entity.wheelchair_boarding = to_tfn(gtfs_entity.wheelchair_boarding)
-      tl_entity.timezone = gtfs_entity.stop_timezone || operated_by.try(:timezone)
+      # Force station timezone, then try GTFS timezone, then try Operator timezone
+      tl_entity.timezone = parent_stop.try(:timezone) || gtfs_entity.stop_timezone || operated_by.try(:timezone)
       tl_entity.tags = {
         stop_desc: gtfs_entity.stop_desc,
         stop_url: gtfs_entity.stop_url,
         zone_id: gtfs_entity.zone_id
       }
       tl_entity
-    }
+    end
+  end
+
   def find_or_initialize_station(gtfs_entity, operated_by: nil)
     find_or_initialize(gtfs_entity) do |tl_entity|
       tl_entity ||= find_or_initialize_stop(gtfs_entity, operated_by: operated_by)
