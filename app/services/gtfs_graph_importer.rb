@@ -29,6 +29,13 @@ class GTFSGraphImporter
     @gtfs.load_shapes
     @gtfs.load_service_periods
 
+    # Find all platforms & entrances for each station
+    @station_children = Hash.new { |h,k| h[k] = Set.new }
+    @gtfs.stops.each do |stop|
+      station = @gtfs.stop(stop.parent_station)
+      @station_children[station] << stop if station
+    end
+
     # gtfs_agency_id => operator
     oifs = Hash[@feed.operators_in_feed.map { |oif| [oif.gtfs_agency_id, oif.operator] }]
 
