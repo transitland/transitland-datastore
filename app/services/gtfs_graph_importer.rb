@@ -130,7 +130,7 @@ class GTFSGraphImporter
     # Convert associations
     entities = @entity_tl.values.to_set
     entities.each do |tl_entity|
-      if tl_entity.instance_of?(StopPlatform)
+      if tl_entity.instance_of?(StopPlatform) || tl_entity.instance_of?(StopEgress)
         tl_entity.parent_stop_onestop_id = tl_entity.parent_stop.onestop_id
       elsif tl_entity.instance_of?(Route)
         tl_entity.serves = tl_entity.serves.map(&:onestop_id).uniq
