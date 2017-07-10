@@ -68,6 +68,8 @@ class GTFSGraphImporter
           # info("GTFS Trip: #{gtfs_trip.trip_id}", indent: 3)
           tl_trip_stop_sequence[gtfs_trip] = []
           gtfs_trip.stop_sequence.each do |gtfs_stop|
+            parent_station = @gtfs.stop(gtfs_stop.parent_station)
+            find_or_initialize_station(parent_station, operated_by: tl_operator) if parent_station
             tl_stop = find_or_initialize_stop(gtfs_stop, operated_by: tl_operator)
             tl_route_serves << tl_stop
             tl_trip_stop_sequence[gtfs_trip] << tl_stop
@@ -309,6 +311,14 @@ class GTFSGraphImporter
       }
       tl_entity
     }
+  def find_or_initialize_station(gtfs_entity, operated_by: nil)
+    find_or_initialize(gtfs_entity) do |tl_entity|
+      tl_entity ||= find_or_initialize_stop(gtfs_entity, operated_by: operated_by)
+      @station_children[gtfs_entity].each do |child_entity|
+        find_or_initialize_stop(child_entity, operated_by: operated_by, parent_stop: tl_entity)
+      end
+      tl_entity
+    end
   end
 
   def find_or_initialize_route(gtfs_entity, serves: [], operated_by: nil)
