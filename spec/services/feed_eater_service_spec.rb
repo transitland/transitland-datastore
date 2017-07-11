@@ -246,6 +246,35 @@ describe FeedEaterService do
     end
   end
 
+  context 'station hierarchy' do
+    before(:all) {
+      @feed, @feed_version = load_feed(feed_version_name: :feed_version_example_station, import_level: 2)
+    }
+    after(:all) {
+      DatabaseCleaner.clean_with :truncation, { except: ['spatial_ref_sys'] }
+    }
+
+    it 'contains a station with 1 platform' do
+      s = Stop.find_by_onestop_id!('s-9qt0rnrkjt-station1')
+      expect(s.stop_platforms.count).to eq(1)
+      expect(s.stop_platforms.first.onestop_id).to eq('s-9qt0rnrkjt-station1<station1p1')
+    end
+
+    it 'contains a station with 1 egress' do
+      s = Stop.find_by_onestop_id!('s-9qt0rnrkjt-station1')
+      expect(s.stop_egresses.count).to eq(1)
+      expect(s.stop_egresses.first.onestop_id).to eq('s-9qt0rnrkjt-station1>station1e1')
+    end
+
+    it 'SSPs do not begin or end at Egresses' do
+      origins = ScheduleStopPair.where('').pluck(:origin_id)
+      destinations = ScheduleStopPair.where('').pluck(:destination_id)
+      egresses = StopEgress.where('').pluck(:id)
+      expect(origins & egresses).to eq([])
+      expect(destinations & egresses).to eq([])
+    end
+  end
+
   context 'errors' do
     it 'fails and logs payload errors' do
       allow_any_instance_of(ChangePayload).to receive(:payload_validation_errors).and_return([{message: 'payload validation error'}])
