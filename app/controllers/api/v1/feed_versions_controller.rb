@@ -28,7 +28,7 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
   include AllowFiltering
 
   before_action :set_feed_version, only: [:show, :update]
-  before_filter :verify_jwt_token, only: [:update]
+  before_filter :verify_jwt_token, only: [:create, :update]
 
   def index
     @feed_versions = FeedVersion.where('').includes{[
@@ -98,6 +98,14 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
 
   end
 
+  def create
+    feed = Feed.find_by_onestop_id!(feed_version_params[:feed_onestop_id])
+    feed_version = feed.feed_versions.create(file: feed_version_params[:file])
+    # TODO: trigger the steps that happen within FeedFetcherService
+    render json: feed_version
+  end
+
+
   def update
     @feed_version.update!(feed_version_params)
     render json: @feed_version
@@ -145,6 +153,6 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
   end
 
   def feed_version_params
-    params.require(:feed_version).permit(:import_level)
+    params.require(:feed_version).permit(:import_level, :feed_onestop_id, :file)
   end
 end

@@ -34,7 +34,7 @@ Rails.application.routes.draw do
           post 'fetch_info'
         end
       end
-      resources :feed_versions, only: [:index, :show, :update]
+      resources :feed_versions, only: [:index, :show, :create, :update]
       resources :feed_version_infos, only: [:index, :show]
       resources :feed_version_imports, only: [:index, :show]
       resources :issues, only: [:index, :show, :create, :update, :destroy] do

@@ -70,6 +70,10 @@ describe Api::V1::FeedVersionsController do
     end
   end
 
+  context 'POST create' do
+    pending 'TODO: write some tests'
+  end
+
   context 'PUT update' do
     let(:user) { create(:user) }
     let(:auth_token) { JwtAuthToken.issue_token({user_id: user.id}) }
