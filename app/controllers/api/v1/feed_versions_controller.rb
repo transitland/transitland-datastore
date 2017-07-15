@@ -153,6 +153,6 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
   end
 
   def feed_version_params
-    params.require(:feed_version).permit(:import_level, :feed_onestop_id, :file)
+    params.require(:feed_version).permit(:import_level, :feed_onestop_id, :file, :url)
   end
 end
