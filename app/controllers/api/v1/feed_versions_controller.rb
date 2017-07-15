@@ -100,7 +100,8 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
 
   def create
     feed = Feed.find_by_onestop_id!(feed_version_params[:feed_onestop_id])
-    feed_version = feed.feed_versions.create(file: feed_version_params[:file])
+    url = feed_version_params[:url] || feed.url
+    feed_version = FeedFetcherService.create_feed_version(feed, url, file: feed_version_params[:file])
     # TODO: trigger the steps that happen within FeedFetcherService
     render json: feed_version
   end
