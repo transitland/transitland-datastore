@@ -40,6 +40,7 @@ class Stop < BaseStop
   attr_accessor :parent_stop_onestop_id
   attr_accessor :served_by, :not_served_by
   attr_accessor :includes_stop_transfers, :does_not_include_stop_transfers
+  attr_accessor :platform_name # temporary
   validates :timezone, presence: true
 
   include HasAOnestopId
@@ -74,7 +75,6 @@ class Stop < BaseStop
     ]
   end
 
-
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
@@ -84,7 +84,8 @@ class Stop < BaseStop
       :includes_stop_transfers,
       :does_not_include_stop_transfers,
       :add_imported_from_feeds,
-      :not_imported_from_feeds
+      :not_imported_from_feeds,
+      :parent_stop_onestop_id
     ],
     protected_attributes: [
       :last_conflated_at,
@@ -118,6 +119,7 @@ class Stop < BaseStop
     update_served_by(changeset)
     update_includes_stop_transfers(changeset)
     update_does_not_include_stop_transfers(changeset)
+    update_parent_stop(changeset)
     super(changeset)
   end
 
@@ -129,6 +131,17 @@ class Stop < BaseStop
       route_serving_stop.destroy_making_history(changeset: changeset)
     end
     return true
+  end
+
+  # Parent stop
+  belongs_to :parent_stop, class_name: 'Stop'
+
+  def update_parent_stop(changeset)
+    if self.parent_stop_onestop_id
+      parent_stop = Stop.find_by_onestop_id!(self.parent_stop_onestop_id)
+      fail Exception.new('parent_stop is not a station') unless parent_stop.parent_stop.nil?
+      self.update!(parent_stop: parent_stop)
+    end
   end
 
   # Operators serving this stop
@@ -183,10 +196,6 @@ class Stop < BaseStop
 
   # Issues
   has_many :issues, through: :entities_with_issues
-
-  def parent_stop
-    # Dummy relation
-  end
 
   # Add service from an Operator or Route
   scope :served_by, -> (onestop_ids_and_models) {

@@ -37,34 +37,22 @@ class StopPlatform < Stop
     virtual_attributes: [
       :served_by,
       :not_served_by,
-      :parent_stop_onestop_id,
       :includes_stop_transfers,
       :does_not_include_stop_transfers,
       :add_imported_from_feeds,
-      :not_imported_from_feeds
+      :not_imported_from_feeds,
+      :parent_stop_onestop_id
     ],
     protected_attributes: [
       :last_conflated_at,
       :type
+    ],
+    sticky_attributes: [
+      :name,
+      :geometry,
+      :wheelchair_boarding
     ]
   })
-  belongs_to :parent_stop, class_name: 'Stop'
-  # validates :parent_stop, presence: true
-
-  # Temporary
-  attr_accessor :platform_name
-
-  def update_parent_stop(changeset)
-    if self.parent_stop_onestop_id
-      parent_stop = Stop.find_by_onestop_id!(self.parent_stop_onestop_id)
-      self.update!(parent_stop: parent_stop)
-    end
-  end
-
-  def update_associations(changeset)
-    update_parent_stop(changeset)
-    super(changeset)
-  end
 
   def generate_onestop_id
     fail Exception.new('geometry required') if geometry.nil?
@@ -83,6 +71,7 @@ class StopPlatform < Stop
     onestop_id.to_s
   end
 end
+
 
 class OldStopPlatform < OldStop
 end
