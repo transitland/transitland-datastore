@@ -77,9 +77,19 @@ class FeedFetcherService
   end
 
   def self.fetch_and_normalize_feed_version(feed)
+    url = feed.url
     # Fetch GTFS
     gtfs = GTFS::Source.build(
-      feed.url,
+      url,
+      strict: false,
+      tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
+    )
+    create_feed_version(feed, url, gtfs: gtfs)
+  end
+
+  def self.create_feed_version(feed, url, gtfs: nil, file: nil)
+    gtfs ||= GTFS::Source.build(
+      file,
       strict: false,
       tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
     )
@@ -87,7 +97,7 @@ class FeedFetcherService
     gtfs_file = nil
     gtfs_file_raw = nil
     sha1 = nil
-    if self.url_fragment(feed.url)
+    if self.url_fragment(url)
       # Get temporary path; deletes after block
       Dir.mktmpdir("gtfs", Figaro.env.gtfs_tmpdir_basepath) do |dir|
         tmp_file_path = File.join(dir, 'normalized.zip')
@@ -111,7 +121,7 @@ class FeedFetcherService
     if feed_version.file.url.nil?
       # Save the file attachments
       data = {
-        url: feed.url,
+        url: url,
         fetched_at: DateTime.now,
         file: gtfs_file,
         file_raw: gtfs_file_raw,
