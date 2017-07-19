@@ -74,7 +74,7 @@ describe Api::V1::FeedVersionsController do
     let(:user) { create(:user) }
     let(:auth_token) { JwtAuthToken.issue_token({user_id: user.id}) }
     let(:url) { 'http://example.com/example-create.zip' }
-    let(:file) { Rails.root.join('spec/support/example_gtfs_archives/example.zip') }
+    let(:file) { fixture_file_upload(File.open(Rails.root.join('spec/support/example_gtfs_archives/example.zip')), 'application/zip') }
     let(:sha1) { Digest::SHA1.file(file).hexdigest }
     let(:feed) { create(:feed_example) }
     before(:each) do
