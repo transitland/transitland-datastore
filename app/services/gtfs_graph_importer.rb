@@ -206,10 +206,15 @@ class GTFSGraphImporter
     Issue.where(issue_type: 'feed_import_no_operators_found').issues_of_entity(feed_version).each(&:deprecate)
     # ... create new issue
     if @entity_tl.size == 0
-      known_agency_ids = @feed.operators_in_feed.map(&:gtfs_agency_id).map{ |s| "\"#{s}\"" }.join(', ')
-      feed_agency_ids = @gtfs.agencies.map(&:agency_id).map{ |s| "\"#{s}\"" }.join(', ')
-      details = "No agencies found.\noperators_in_feed agency_ids: #{known_agency_ids}\nfeed agency_ids: #{feed_agency_ids}"
-      issue = Issue.new(issue_type: 'feed_import_no_operators_found', details: details)
+      # Describe all the rows in 'agency.txt':
+      details = ["No Agency in the GTFS Feed had a matching Transitland Operator"]
+      details << "Agencies in GTFS Feed:"
+      @gtfs.agencies.each { |agency| details << "\t#{agency.agency_id}: #{agency.agency_name}"}
+      # Describe all Operators in Feed records:
+      details << "Existing Feed agency_id <-> Transitland Operator associations:"
+      @feed.operators_in_feed.each { |oif| details << "\t#{oif.gtfs_agency_id}: #{oif.operator.onestop_id}" }
+      # Create Issue
+      issue = Issue.new(issue_type: 'feed_import_no_operators_found', details: details.join("\n"))
       issue.entities_with_issues.new(entity: @feed_version)
       issue.save!
       fail GTFSGraphImporter::Error.new('No agencies found that match operators_in_feed')
