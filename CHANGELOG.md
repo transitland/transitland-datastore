@@ -2,10 +2,25 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.35...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/71...HEAD)
 
 **Merged pull requests:**
 
+- Production release 71 [\#1121](https://github.com/transitland/transitland-datastore/pull/1121) ([irees](https://github.com/irees))
+
+## [71](https://github.com/transitland/transitland-datastore/tree/71) (2017-07-07)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/4.9.35...71)
+
+**Closed issues:**
+
+- StopStations: Query param for minimum number of platforms & egresses [\#1124](https://github.com/transitland/transitland-datastore/issues/1124)
+- StopStations: Include/exclude generated Platforms & Egresses [\#1123](https://github.com/transitland/transitland-datastore/issues/1123)
+
+**Merged pull requests:**
+
+- StopStations: with\_min\_egresses [\#1127](https://github.com/transitland/transitland-datastore/pull/1127) ([irees](https://github.com/irees))
+- Update gtfs gem: Improved CSV handling [\#1126](https://github.com/transitland/transitland-datastore/pull/1126) ([irees](https://github.com/irees))
+- StopStationsController: Option to exclude generated platforms and egresses [\#1122](https://github.com/transitland/transitland-datastore/pull/1122) ([irees](https://github.com/irees))
 - Production release 4.9.35 [\#1117](https://github.com/transitland/transitland-datastore/pull/1117) ([irees](https://github.com/irees))
 
 ## [4.9.35](https://github.com/transitland/transitland-datastore/tree/4.9.35) (2017-06-29)

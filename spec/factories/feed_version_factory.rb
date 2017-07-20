@@ -191,6 +191,11 @@ FactoryGirl.define do
       association :feed, factory: :feed_example
     end
 
+    factory :feed_version_example_station do
+      file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example-station.zip')) }
+      association :feed, factory: :feed_example
+    end
+
     factory :feed_version_example_no_shapes do
       file { File.open(Rails.root.join('spec/support/example_gtfs_archives/example-no-shapes.zip')) }
       association :feed, factory: :feed_example

@@ -29,6 +29,13 @@ class GTFSGraphImporter
     @gtfs.load_shapes
     @gtfs.load_service_periods
 
+    # Find all platforms & entrances for each station
+    @station_children = Hash.new { |h,k| h[k] = Set.new }
+    @gtfs.stops.each do |stop|
+      station = @gtfs.stop(stop.parent_station)
+      @station_children[station] << stop if station
+    end
+
     # gtfs_agency_id => operator
     oifs = Hash[@feed.operators_in_feed.map { |oif| [oif.gtfs_agency_id, oif.operator] }]
 
@@ -61,6 +68,8 @@ class GTFSGraphImporter
           # info("GTFS Trip: #{gtfs_trip.trip_id}", indent: 3)
           tl_trip_stop_sequence[gtfs_trip] = []
           gtfs_trip.stop_sequence.each do |gtfs_stop|
+            parent_station = @gtfs.stop(gtfs_stop.parent_station)
+            find_or_initialize_station(parent_station, operated_by: tl_operator) if parent_station
             tl_stop = find_or_initialize_stop(gtfs_stop, operated_by: tl_operator)
             tl_route_serves << tl_stop
             tl_trip_stop_sequence[gtfs_trip] << tl_stop
@@ -121,7 +130,7 @@ class GTFSGraphImporter
     # Convert associations
     entities = @entity_tl.values.to_set
     entities.each do |tl_entity|
-      if tl_entity.instance_of?(StopPlatform)
+      if tl_entity.instance_of?(StopPlatform) || tl_entity.instance_of?(StopEgress)
         tl_entity.parent_stop_onestop_id = tl_entity.parent_stop.onestop_id
       elsif tl_entity.instance_of?(Route)
         tl_entity.serves = tl_entity.serves.map(&:onestop_id).uniq
@@ -197,10 +206,15 @@ class GTFSGraphImporter
     Issue.where(issue_type: 'feed_import_no_operators_found').issues_of_entity(feed_version).each(&:deprecate)
     # ... create new issue
     if @entity_tl.size == 0
-      known_agency_ids = @feed.operators_in_feed.map(&:gtfs_agency_id).map{ |s| "\"#{s}\"" }.join(', ')
-      feed_agency_ids = @gtfs.agencies.map(&:agency_id).map{ |s| "\"#{s}\"" }.join(', ')
-      details = "No agencies found.\noperators_in_feed agency_ids: #{known_agency_ids}\nfeed agency_ids: #{feed_agency_ids}"
-      issue = Issue.new(issue_type: 'feed_import_no_operators_found', details: details)
+      # Describe all the rows in 'agency.txt':
+      details = ["No Agency in the GTFS Feed had a matching Transitland Operator"]
+      details << "Agencies in GTFS Feed:"
+      @gtfs.agencies.each { |agency| details << "\t#{agency.agency_id}: #{agency.agency_name}"}
+      # Describe all Operators in Feed records:
+      details << "Existing Feed agency_id <-> Transitland Operator associations:"
+      @feed.operators_in_feed.each { |oif| details << "\t#{oif.gtfs_agency_id}: #{oif.operator.onestop_id}" }
+      # Create Issue
+      issue = Issue.new(issue_type: 'feed_import_no_operators_found', details: details.join("\n"))
       issue.entities_with_issues.new(entity: @feed_version)
       issue.save!
       fail GTFSGraphImporter::Error.new('No agencies found that match operators_in_feed')
@@ -281,12 +295,17 @@ class GTFSGraphImporter
     tl_entity
   end
 
-  def find_or_initialize_stop(gtfs_entity, operated_by: nil)
-    find_or_initialize(gtfs_entity) { |tl_entity|
+  def find_or_initialize_stop(gtfs_entity, operated_by: nil, parent_stop: nil)
+    find_or_initialize(gtfs_entity) do |tl_entity|
       if gtfs_entity.parent_station.present?
-        tl_entity = StopPlatform.new unless tl_entity.class == StopPlatform
-        tl_entity ||= StopPlatform.new
-        tl_entity.parent_stop = find_or_initialize_stop(@gtfs.stop(gtfs_entity.parent_station), operated_by: operated_by)
+        if gtfs_entity.location_type.to_i == 2
+          tl_entity = StopEgress.new unless tl_entity.class == StopEgress # force new onestop_id
+          tl_entity ||= StopEgress.new
+        else
+          tl_entity = StopPlatform.new unless tl_entity.class == StopPlatform # force new onestop_id
+          tl_entity ||= StopPlatform.new
+        end
+        tl_entity.parent_stop = parent_stop
         tl_entity.platform_name = gtfs_entity.id
       else
         tl_entity ||= Stop.new
@@ -294,14 +313,25 @@ class GTFSGraphImporter
       tl_entity.geometry = Stop::GEOFACTORY.point(*gtfs_entity.coordinates)
       tl_entity.name = gtfs_entity.stop_name
       tl_entity.wheelchair_boarding = to_tfn(gtfs_entity.wheelchair_boarding)
-      tl_entity.timezone = gtfs_entity.stop_timezone || operated_by.try(:timezone)
+      # Force station timezone, then try GTFS timezone, then try Operator timezone
+      tl_entity.timezone = parent_stop.try(:timezone) || gtfs_entity.stop_timezone || operated_by.try(:timezone)
       tl_entity.tags = {
         stop_desc: gtfs_entity.stop_desc,
         stop_url: gtfs_entity.stop_url,
         zone_id: gtfs_entity.zone_id
       }
       tl_entity
-    }
+    end
+  end
+
+  def find_or_initialize_station(gtfs_entity, operated_by: nil)
+    find_or_initialize(gtfs_entity) do |tl_entity|
+      tl_entity ||= find_or_initialize_stop(gtfs_entity, operated_by: operated_by)
+      @station_children[gtfs_entity].each do |child_entity|
+        find_or_initialize_stop(child_entity, operated_by: operated_by, parent_stop: tl_entity)
+      end
+      tl_entity
+    end
   end
 
   def find_or_initialize_route(gtfs_entity, serves: [], operated_by: nil)
