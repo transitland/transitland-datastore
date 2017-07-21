@@ -2,10 +2,37 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/71...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/72...HEAD)
+
+**Closed issues:**
+
+- SSP: Query by operator\_onestop\_id is slow [\#1138](https://github.com/transitland/transitland-datastore/issues/1138)
 
 **Merged pull requests:**
 
+- Production release 72 [\#1128](https://github.com/transitland/transitland-datastore/pull/1128) ([irees](https://github.com/irees))
+
+## [72](https://github.com/transitland/transitland-datastore/tree/72) (2017-07-20)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/71...72)
+
+**Implemented enhancements:**
+
+- Onestop ID: Include onestop\_id in exception message [\#1052](https://github.com/transitland/transitland-datastore/issues/1052)
+
+**Closed issues:**
+
+- No operators in feed issue: improve descriptive text [\#1132](https://github.com/transitland/transitland-datastore/issues/1132)
+- allow uploading of feed versions for an existing feed [\#1125](https://github.com/transitland/transitland-datastore/issues/1125)
+- Station hierarchy improvements [\#1066](https://github.com/transitland/transitland-datastore/issues/1066)
+- GTFS Station Egress: location\_type = 2 [\#643](https://github.com/transitland/transitland-datastore/issues/643)
+
+**Merged pull requests:**
+
+- Add SSP \(operator\_id, id\) index [\#1139](https://github.com/transitland/transitland-datastore/pull/1139) ([irees](https://github.com/irees))
+- updating misc. gems [\#1135](https://github.com/transitland/transitland-datastore/pull/1135) ([drewda](https://github.com/drewda))
+- allow uploading of feed versions for an existing feed [\#1134](https://github.com/transitland/transitland-datastore/pull/1134) ([drewda](https://github.com/drewda))
+- Improve error message when there is no match on operators\_in\_feed [\#1133](https://github.com/transitland/transitland-datastore/pull/1133) ([irees](https://github.com/irees))
+- StopEgress: Load from GTFS [\#1129](https://github.com/transitland/transitland-datastore/pull/1129) ([irees](https://github.com/irees))
 - Production release 71 [\#1121](https://github.com/transitland/transitland-datastore/pull/1121) ([irees](https://github.com/irees))
 
 ## [71](https://github.com/transitland/transitland-datastore/tree/71) (2017-07-07)
