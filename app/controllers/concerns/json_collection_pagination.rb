@@ -11,8 +11,10 @@ module JsonCollectionPagination
       sort_key: sort_key,
       sort_order: sort_order,
       offset: offset,
-      per_page: per_page
+      per_page: per_page,
     }
+    qps = params.permit(query_params.keys)
+    # disallowed = params.keys.map(&:to_sym) - query_params.keys - meta.keys - [:total, :controller, :action, :format]
 
     # Reorder
     collection = sort_reorder(collection)
@@ -26,10 +28,10 @@ module JsonCollectionPagination
       #  This will be dropped in the return.
       data = collection.offset(offset).limit(per_page+1).to_a
       # Previous and next page
-      meta_prev = url_for(query_params.merge(meta).merge({
+      meta_prev = url_for(qps.merge(meta).merge({
         offset: (offset - per_page) >= 0 ? (offset - per_page) : 0,
       }))
-      meta_next = url_for(query_params.merge(meta).merge({
+      meta_next = url_for(qps.merge(meta).merge({
         offset: offset + per_page,
       }))
       (meta[:prev] = meta_prev) if offset > 0
@@ -39,7 +41,9 @@ module JsonCollectionPagination
     end
 
     if include_total
-      meta[:total] = collection.count
+      total = collection.count
+      (total = total.size) if total.is_a?(Hash)
+      meta[:total] = total
     end
     # Return results + meta
     data_on_page = data_on_page.empty? ? collection.model.none : data_on_page
@@ -63,7 +67,7 @@ module JsonCollectionPagination
   private
 
   def query_params
-    params.slice()
+    {}
   end
 
   def sort_key

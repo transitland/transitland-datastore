@@ -28,26 +28,10 @@ describe Api::V1::RoutesController do
     context 'as JSON' do
       it 'returns all current routes when no parameters provided' do
         get :index
-        expect_json_types({ routes: :array }) # TODO: remove root node?
+        expect_json_types({ routes: :array })
         expect_json({ routes: -> (routes) {
           expect(routes.length).to eq 1
         }})
-      end
-
-      context 'returns routes by identifier' do
-        it 'when not found' do
-          get :index, identifier: '19X'
-          expect_json({ routes: -> (routes) {
-            expect(routes.length).to eq 0
-          }})
-        end
-
-        it 'when found' do
-          get :index, identifier: 'Richmond - Daly City/Millbrae'
-          expect_json({ routes: -> (routes) {
-            expect(routes.length).to eq 1
-          }})
-        end
       end
 
       it 'returns route within a bounding box' do
@@ -90,6 +74,21 @@ describe Api::V1::RoutesController do
         get :index, operatedBy: 'o-9q9-BART'
         expect_json({ routes: -> (routes) {
           expect(routes.first[:onestop_id]).to eq 'r-9q8y-richmond~dalycity~millbrae'
+        }})
+      end
+
+      it 'returns routes operated by multiple Operators' do
+        other_operator = create(:operator)
+        other_route = create(:route, operator: other_operator)
+
+        bart = create(:operator, name: 'BART', onestop_id: 'o-9q9-BART')
+        @richmond_millbrae_route.update(operator: bart)
+        sfmuni = create(:operator, name: 'San Francisco Municipal Transportation Agency', onestop_id: 'o-9q8y-sfmta')
+        muni_route = create(:route, operator: sfmuni)
+
+        get :index, operatedBy: 'o-9q9-BART,o-9q8y-sfmta'
+        expect_json({ routes: -> (routes) {
+          expect(routes.map { |route| route[:onestop_id] } ).to eq [@richmond_millbrae_route.onestop_id, muni_route.onestop_id]
         }})
       end
 
@@ -171,6 +170,36 @@ describe Api::V1::RoutesController do
           get :index, bikes_allowed: "unknown"
           expect_json({ routes: -> (routes) {
             expect(routes.length).to eq 0
+          }})
+        end
+      end
+
+      context 'include and exclude geometry' do
+        it 'exclude_geometry=false' do
+          get :index, exclude_geometry: "false"
+          expect_json({ routes: -> (routes) {
+            expect(routes.first.has_key?(:geometry)).to be true
+          }})
+        end
+
+        it 'exclude_geometry=true' do
+          get :index, exclude_geometry: "true"
+          expect_json({ routes: -> (routes) {
+            expect(routes.first.has_key?(:geometry)).to be false
+          }})
+        end
+
+        it 'include_geometry=false' do
+          get :index, include_geometry: "false"
+          expect_json({ routes: -> (routes) {
+            expect(routes.first.has_key?(:geometry)).to be false
+          }})
+        end
+
+        it 'include_geometry=true' do
+          get :index, include_geometry: "true"
+          expect_json({ routes: -> (routes) {
+            expect(routes.first.has_key?(:geometry)).to be true
           }})
         end
       end

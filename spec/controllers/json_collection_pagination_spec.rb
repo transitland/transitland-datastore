@@ -20,13 +20,14 @@ describe ApplicationController do
   context 'paginated_json_collection' do
     before(:each) do
       @issues = create_list(:changeset, 10)
+      @issue_ids = @issues.sort_by(&:id).map(&:id)
     end
 
     it 'one page' do
       get :index
       expect_json({
         changesets: -> (changesets) {
-          expect(changesets.map { |i| i[:id] }).to eq(1.upto(10).to_a)
+          expect(changesets.map { |i| i[:id] }).to eq(@issue_ids[0...10])
         },
         meta: {
           sort_key: 'id',
@@ -41,7 +42,7 @@ describe ApplicationController do
       get :index, total: true
       expect_json({
         changesets: -> (changesets) {
-          expect(changesets.map { |i| i[:id] }).to eq(1.upto(10).to_a)
+          expect(changesets.map { |i| i[:id] }).to eq(@issue_ids[0...10])
         },
         meta: {
           sort_key: 'id',
@@ -57,7 +58,7 @@ describe ApplicationController do
       get :index, sort_order: :asc, per_page: 5
       expect_json({
         changesets: -> (changesets) {
-          expect(changesets.map { |i| i[:id] }).to eq(1.upto(5).to_a)
+          expect(changesets.map { |i| i[:id] }).to eq(@issue_ids[0...5])
         },
         meta: {
           sort_key: 'id',
@@ -72,7 +73,7 @@ describe ApplicationController do
       get :index, sort_order: :desc, per_page: 5
       expect_json({
         changesets: -> (changesets) {
-          expect(changesets.map { |i| i[:id] }).to eq(10.downto(6).to_a)
+          expect(changesets.map { |i| i[:id] }).to eq(@issue_ids.reverse[0...5])
         },
         meta: {
           sort_key: 'id',
@@ -113,7 +114,7 @@ describe ApplicationController do
       get :index, per_page: '∞'
       expect_json({
         changesets: -> (changesets) {
-          expect(changesets.map { |i| i[:id] }).to eq(1.upto(10).to_a)
+          expect(changesets.map { |i| i[:id] }).to eq(@issue_ids[0...10])
         },
         meta: {
           per_page: '∞'

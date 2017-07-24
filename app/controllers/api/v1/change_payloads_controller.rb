@@ -2,7 +2,7 @@ class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
   include JsonCollectionPagination
   include AllowFiltering
 
-  before_filter :require_api_auth_token, only: [:update, :create, :destroy]
+  before_filter :verify_jwt_token, only: [:update, :create, :destroy]
   before_action :set_changeset, only: [:index, :create]
   before_action :set_change_payload, only: [:show, :update, :destroy]
   before_action :changeset_applied_lock, only: [:create, :update, :destroy]
@@ -37,6 +37,21 @@ class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
   end
 
   private
+
+  def query_params
+    {
+      ids: {
+        desc: "Change Payload ID",
+        type: "integer",
+        array: true
+      },
+      changeset_id: {
+        desc: "Changeset ID",
+        type: "integer",
+        show: false
+      }
+    }
+  end
 
   def change_payload_params
     params.require(:change_payload).permit!

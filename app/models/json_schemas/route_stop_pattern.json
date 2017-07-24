@@ -20,11 +20,8 @@
         "type": ["number", "null"]
       }
     },
-    "isModified": {
-      "type": "boolean"
-    },
-    "isGenerated": {
-      "type": "boolean"
+    "geometrySource": {
+      "type": "string"
     },
     "addImportedFromFeeds": {
       "type": "array",
@@ -40,14 +37,16 @@
         "$ref": "./imported_from_feed.json"
       }
     },
-    "identifiedBy": {
+    "onestopId": {"type": "string"},
+    "newOnestopId": {"type": "string"},
+    "onestopIdsToMerge": {
       "type": "array",
+      "minItems": 1,
       "uniqueItems": true,
       "items": {
         "type": "string"
       }
     },
-    "onestopId": {"type": "string"},
     "traversedBy": {
       "type": "string",
       "format": "route-onestop-id"

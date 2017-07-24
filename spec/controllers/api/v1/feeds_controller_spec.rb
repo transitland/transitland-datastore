@@ -89,6 +89,41 @@ describe Api::V1::FeedsController do
           expect(feeds.first[:onestop_id]).to eq(fvs[2].feed.onestop_id)
         }})
       end
+
+      it 'query: embed_issues' do
+        feeds = create_list(:feed, 3)
+        feed = feeds.first
+        Issue.create!(issue_type: 'feed_fetch_invalid_source').entities_with_issues.create!(entity: feed, entity_attribute: 'url')
+
+        get :index, embed_issues: 'true'
+        expect_json({feeds: -> (feeds) {
+          expect(feeds.first[:issues].size).to eq 1
+        }})
+
+        get :index, embed_issues: 'false'
+        expect_json({feeds: -> (feeds) {
+          expect(feeds.first[:issues]).to be_nil
+        }})
+      end
+
+      it 'query: by one source URL' do
+        feeds = create_list(:feed, 3)
+        feed_to_find = feeds.second
+        get :index, url: feed_to_find.url
+        expect_json({feeds: -> (feeds) {
+          expect(feeds.size).to eq 1
+          expect(feeds.first[:onestop_id]).to eq feed_to_find.onestop_id
+        }})
+      end
+
+      it 'query: by two source URLs' do
+        feeds = create_list(:feed, 3)
+        feeds_to_find = [feeds.second, feeds.third]
+        get :index, url: [feeds_to_find.first.url, feeds_to_find.second.url]
+        expect_json({feeds: -> (feeds) {
+          expect(feeds.size).to eq 2
+        }})
+      end
     end
 
     context 'as GeoJSON' do
@@ -119,5 +154,35 @@ describe Api::V1::FeedsController do
 
   context 'GET fetch_info' do
     pending 'a spec in the future'
+  end
+
+  context 'GET download_latest_feed_version' do
+    before(:each) do
+      @feed_that_allows_download = create(:feed, license_redistribute: 'unknown')
+      @feed_that_disallows_download = create(:feed, license_redistribute: 'no')
+
+      [@feed_that_allows_download, @feed_that_disallows_download].each do |feed|
+        [2, 1].each do |i|
+          fv = create(
+            :feed_version,
+            feed: feed,
+            fetched_at: (DateTime.now - i.months)
+          )
+        end
+      end
+
+      allow_any_instance_of(FeedVersion).to receive_message_chain(:file, :url) { 'https://s3.aws.whatever/file.zip' }
+    end
+
+    it 'should redirect to latest file on S3 when license allows' do
+      get :download_latest_feed_version, id: @feed_that_allows_download.onestop_id
+      expect(response).to redirect_to('https://s3.aws.whatever/file.zip')
+    end
+
+    it 'should return a 404 when license disallows download' do
+      get :download_latest_feed_version, id: @feed_that_disallows_download.onestop_id
+      expect(response.status).to eq(404)
+    end
+
   end
 end

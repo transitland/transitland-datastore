@@ -1,8 +1,10 @@
 class FeedFetcherWorker
   include Sidekiq::Worker
-
-  sidekiq_options unique: :until_and_while_executing,
-                  unique_job_expiration: 22 * 60 * 60 # 22 hours
+  sidekiq_options queue: :default,
+                  retry: false,
+                  unique: :until_and_while_executing,
+                  unique_job_expiration: 22 * 60 * 60, # 22 hours
+                  log_duplicate_payload: true
 
   def perform(feed_onestop_id)
     begin
@@ -19,7 +21,13 @@ class FeedFetcherWorker
       #   SignalException, and SyntaxError
       log e.message, :error
       log e.backtrace, :error
-      Raven.capture_exception(e) if defined?(Raven)
+      if defined?(Raven)
+        Raven.capture_exception(e, {
+          tags: {
+            'feed_onestop_id' => feed_onestop_id
+          }
+        })
+      end
     end
   end
 end

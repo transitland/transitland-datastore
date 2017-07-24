@@ -13,9 +13,11 @@
             "onestopId": "o-dr5r-nyct",
             "name": "MTA New York City Transit",
             "shortName": "NYCT",
-            "identifiedBy": ["usntd://2008"],
-            "country": "United States",
-            "state": "New York",
+            "tags": {
+              "us_ntd_id": "2008"
+            },
+            "country": "US",
+            "state": "US-NY",
             "metro": "New York City",
             "timezone": "America/New_York",
             "website": "http://web.mta.info/",

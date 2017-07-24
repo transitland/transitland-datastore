@@ -14,7 +14,7 @@ class FeedVersionUploader < CarrierWave::Uploader::Base
   end
 
   def filename
-    "#{model.feed.onestop_id}-#{model.sha1}.#{file.extension}"
+    "#{model.sha1}.#{file.extension}" if original_filename.present?
   end
 
   def extension_white_list

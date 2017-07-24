@@ -5,10 +5,10 @@ describe IsAnEntityImportedFromFeeds do
     @route_stop_pattern = create(:route_stop_pattern_bart)
     changeset = create(:changeset, imported_from_feed: feed)
     issue1 = Issue.new(created_by_changeset: changeset, issue_type: 'distance_calculation_inaccurate')
-    issue1.entities_with_issues << EntityWithIssues.new(entity_id: 1, entity_type: 'RouteStopPattern', issue: issue1, entity_attribute: 'stop_distances')
-    issue1.entities_with_issues << EntityWithIssues.new(entity_id: 1, entity_type: 'Stop', issue: issue1, entity_attribute: 'geometry')
-    issue2 = Issue.new(created_by_changeset: changeset, issue_type: 'rsp_line_inaccurate')
-    issue2.entities_with_issues << EntityWithIssues.new(entity_id: 1, entity_type: 'RouteStopPattern', issue: issue2, entity_attribute: 'geometry')
+    issue1.entities_with_issues << EntityWithIssues.new(entity: @route_stop_pattern, issue: issue1, entity_attribute: 'stop_distances')
+    issue1.entities_with_issues << EntityWithIssues.new(entity: @stop, issue: issue1, entity_attribute: 'geometry')
+    issue2 = Issue.new(created_by_changeset: changeset, issue_type: 'rsp_line_only_stop_points')
+    issue2.entities_with_issues << EntityWithIssues.new(entity: @route_stop_pattern, issue: issue2, entity_attribute: 'geometry')
     issue1.save!
     issue2.save!
   end

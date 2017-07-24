@@ -20,6 +20,7 @@ class IssueSerializer < ApplicationSerializer
              :imported_from_feed_version_sha1,
              :details,
              :issue_type,
+             :issue_category,
              :open,
              :created_at,
              :updated_at

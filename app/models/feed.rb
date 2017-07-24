@@ -55,6 +55,7 @@ class Feed < BaseFeed
   include UpdatedSince
   include HasAGeographicGeometry
   include IsAnEntityWithIssues
+  include IsAnEntityImportedFromFeeds
 
   has_many :feed_versions, -> { order 'created_at DESC' }, dependent: :destroy, as: :feed
   has_many :feed_version_imports, -> { order 'created_at DESC' }, through: :feed_versions
@@ -62,8 +63,6 @@ class Feed < BaseFeed
 
   has_many :operators_in_feed
   has_many :operators, -> { distinct }, through: :operators_in_feed
-
-  has_many :issues, through: :entities_with_issues
 
   has_many :entities_imported_from_feed
   has_many :imported_operators, -> { distinct }, through: :entities_imported_from_feed, source: :entity, source_type: 'Operator'
@@ -156,26 +155,10 @@ class Feed < BaseFeed
       :includes_operators,
       :does_not_include_operators
     ],
-    protected_attributes: [
-      :identifiers
-    ]
+    protected_attributes: []
   })
-  def after_create_making_history(changeset)
-    (self.includes_operators || []).each do |included_operator|
-      operator = Operator.find_by!(onestop_id: included_operator[:operator_onestop_id])
-      OperatorInFeed.create_making_history(
-        changeset: changeset,
-        new_attrs: {
-          feed_id: self.id,
-          operator_id: operator.id,
-          gtfs_agency_id: included_operator[:gtfs_agency_id]
-        }
-      )
-    end
-    # No need to iterate through self.does_not_include_operators
-    # since this is a brand new feed model.
-  end
-  def before_update_making_history(changeset)
+
+  def update_associations(changeset)
     (self.includes_operators || []).each do |included_operator|
       operator = Operator.find_by!(onestop_id: included_operator[:operator_onestop_id])
       existing_relationship = OperatorInFeed.find_by(
@@ -216,6 +199,7 @@ class Feed < BaseFeed
     end
     super(changeset)
   end
+
   def before_destroy_making_history(changeset, old_model)
     operators_in_feed.each do |operator_in_feed|
       operator_in_feed.destroy_making_history(changeset: changeset)
@@ -273,38 +257,6 @@ class Feed < BaseFeed
     else
       :unknown
     end
-  end
-
-  ##### FromGTFS ####
-  include FromGTFS
-  def self.from_gtfs(entity, attrs={})
-    # Entity is a feed.
-    visited_stops = Set.new
-    entity.agencies.each { |agency| visited_stops |= agency.stops }
-    coordinates = Stop::GEOFACTORY.collection(
-      visited_stops.map { |stop| Stop::GEOFACTORY.point(*stop.coordinates) }
-    )
-    geohash = GeohashHelpers.fit(coordinates)
-    geometry = RGeo::Cartesian::BoundingBox.create_from_geometry(coordinates)
-    # Generate third Onestop ID component
-    feed_id = nil
-    if entity.file_present?('feed_info.txt')
-      feed_info = entity.feed_infos.first
-      feed_id = feed_info.feed_id if feed_info
-    end
-    name_agencies = entity.agencies.select { |agency| agency.stops.size > 0 }.map(&:agency_name).join('~')
-    name_url = Addressable::URI.parse(attrs[:url]).host.gsub(/[^a-zA-Z0-9]/, '') if attrs[:url]
-    name = feed_id.presence || name_agencies.presence || name_url.presence || 'unknown'
-    # Create Feed
-    attrs[:geometry] = geometry.to_geometry
-    attrs[:onestop_id] = OnestopId.handler_by_model(self).new(
-      geohash: geohash,
-      name: name
-    )
-    feed = Feed.new(attrs)
-    feed.tags ||= {}
-    feed.tags[:feed_id] = feed_id if feed_id
-    feed
   end
 
   private

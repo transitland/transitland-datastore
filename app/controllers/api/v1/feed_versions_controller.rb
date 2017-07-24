@@ -28,13 +28,14 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
   include AllowFiltering
 
   before_action :set_feed_version, only: [:show, :update]
-  before_filter :require_api_auth_token, only: [:update]
+  before_filter :verify_jwt_token, only: [:create, :update]
 
   def index
     @feed_versions = FeedVersion.where('').includes{[
       feed,
       feed_version_imports,
       feed.active_feed_version,
+      feed_version_infos,
       changesets_imported_from_this_feed_version
     ]}
 
@@ -82,15 +83,29 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
       @feed_versions = @feed_versions.where(feed: Feed.where(onestop_id: feed_onestop_ids))
     end
 
+    @feed_versions = @feed_versions.includes(:issues) if AllowFiltering.to_boolean(params[:embed_issues])
+
     respond_to do |format|
-      format.json { render paginated_json_collection(@feed_versions) }
+      format.json { render paginated_json_collection(@feed_versions).merge({ scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }) }
       format.csv { return_downloadable_csv(@feed_versions, 'feed_versions') }
     end
   end
 
   def show
-    render json: @feed_version
+    respond_to do |format|
+      format.json { render json: @feed_version, scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }
+    end
+
   end
+
+  def create
+    feed = Feed.find_by_onestop_id!(feed_version_params[:feed_onestop_id])
+    file = feed_version_params[:file].tempfile.path
+    url = feed_version_params[:url] || feed.url
+    feed_version = FeedFetcherService.create_feed_version(feed, url, file: file)
+    render json: feed_version
+  end
+
 
   def update
     @feed_version.update!(feed_version_params)
@@ -99,11 +114,46 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
 
   private
 
+  def query_params
+    {
+      feed_onestop_id: {
+        desc: "Feed",
+        type: "onestop_id",
+        array: true
+      },
+      calendar_coverage_includes: {
+        desc: "Coverage includes date",
+        type: "date",
+        array: true
+      },
+      calendar_coverage_begins_at_or_after: {
+        desc: "Coverage begins on or after date",
+        type: "date",
+        array: true
+      },
+      calendar_coverage_begins_at_or_before: {
+        desc: "Coverage begins on or before date",
+        type: "date",
+        array: true
+      },
+      ids: {
+        desc: "Feed Versions",
+        type: "sha1",
+        array: true
+      },
+      sha1: {
+        desc: "Feed Versions",
+        type: "sha1",
+        array: true
+      }
+    }
+  end
+
   def set_feed_version
     @feed_version = FeedVersion.find_by!(sha1: params[:id])
   end
 
   def feed_version_params
-    params.require(:feed_version).permit(:import_level)
+    params.require(:feed_version).permit(:import_level, :feed_onestop_id, :file, :url)
   end
 end

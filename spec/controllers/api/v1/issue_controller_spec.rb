@@ -1,10 +1,16 @@
 describe Api::V1::IssuesController do
 
   # TODO: loading this feed each test is slow
-  before(:each) do
-    allow(Figaro.env).to receive(:transitland_datastore_auth_token) { 'THISISANAPIKEY' }
-    @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANAPIKEY'
+  before(:all) do
     load_feed(feed_version_name: :feed_version_example_issues, import_level: 1)
+  end
+  after(:all) {
+    DatabaseCleaner.clean_with :truncation, { except: ['spatial_ref_sys'] }
+  }
+  let(:user) { create(:user) }
+  let(:auth_token) { JwtAuthToken.issue_token({user_id: user.id}) }
+  before(:each) do
+    @request.env['HTTP_AUTHORIZATION'] = "Bearer #{auth_token}"
   end
 
   context 'GET index' do
@@ -51,7 +57,7 @@ describe Api::V1::IssuesController do
 
   context 'GET show' do
     it 'returns a 404 when not found' do
-      get :show, id: 33
+      get :show, id: 0
       expect(response.status).to eq 404
     end
   end
@@ -60,7 +66,7 @@ describe Api::V1::IssuesController do
     before(:each) do
       @issue1 = {
         "details": "This is a test issue",
-        "issue_type": 'rsp_line_inaccurate',
+        "issue_type": 'rsp_line_only_stop_points',
         "entities_with_issues": [
           {
             "onestop_id": "s-9qt0rnrkjt-amargosavalleydemo",
@@ -84,7 +90,7 @@ describe Api::V1::IssuesController do
     it 'does not create issue when an equivalent one exists' do
       issue2 = {
         "details": "This is a test issue",
-        "created_by_changeset_id": 1,
+        "created_by_changeset_id": Changeset.last.id,
         "issue_type": 'stop_rsp_distance_gap',
         "entities_with_issues": [
           {
@@ -111,47 +117,44 @@ describe Api::V1::IssuesController do
 
   context 'POST update' do
     it 'updates an existing issue' do
-      issue = {
-        "details": "This is a test of updating"
-      }
-      post :update, id: 1, issue: issue
-      expect(Issue.find(1).details).to eq "This is a test of updating"
+      issue = Issue.first
+      details = "This is a test of updating"
+      post :update, id: issue.id, issue: {details: details}
+      expect(issue.reload.details).to eq details
     end
 
     it 'avoids deleting EntitiesWithIssues when param not supplied' do
-      issue = {
-        "details": "This is a test of updating"
-      }
-      post :update, id: 1, issue: issue
-      expect(Issue.find(7).entities_with_issues.size).to eq 3
+      issue = Issue.first
+      expect(issue.entities_with_issues.count).to eq(1)
+      details = "This is a test of updating"
+      post :update, id: issue.id, issue: {details: details}
+      expect(issue.reload.entities_with_issues.size).to eq(1)
     end
 
     it 'creates specified EntitiesWithIssues and deletes existing EntitiesWithIssues' do
-      issue = {
-        "details": "This is a test of updating",
-        entities_with_issues: [
-          {
-            "onestop_id": 's-9qscwx8n60-nyecountyairportdemo',
-            "entity_attribute": 'geometry'
-          }
-        ]
-      }
-      post :update, id: 1, issue: issue
-      expect(Issue.find(1).entities_with_issues.size).to eq 1
-      expect(Issue.find(1).entities_with_issues[0].entity.onestop_id).to eq 's-9qscwx8n60-nyecountyairportdemo'
+      issue = Issue.first
+      details = "This is a test of updating",
+      entities_with_issues = [{
+          "onestop_id": 's-9qscwx8n60-nyecountyairportdemo',
+          "entity_attribute": 'geometry'
+      }]
+      post :update, id: issue.id, issue: {details: details, entities_with_issues: entities_with_issues}
+      expect(issue.reload.entities_with_issues.size).to eq 1
+      expect(issue.reload.entities_with_issues.first.entity.onestop_id).to eq 's-9qscwx8n60-nyecountyairportdemo'
     end
   end
 
   context 'POST destroy' do
     it 'should delete issue' do
-      post :destroy, id: 1
-      expect(Issue.exists?(1)).to eq(false)
+      issue = Issue.create!(details: "This is a test issue", created_by_changeset_id: 1, issue_type: "stop_rsp_distance_gap")
+      issue.entities_with_issues.create(entity: Stop.find_by_onestop_id!('s-9qscwx8n60-nyecountyairportdemo'), entity_attribute: "geometry")
+      post :destroy, id: issue.id
+      expect(Issue.exists?(issue.id)).to eq(false)
     end
 
     it 'should require auth token to delete issue' do
       @request.env['HTTP_AUTHORIZATION'] = nil
-      issue = Issue.new(details: "This is a test issue", created_by_changeset_id: 1, issue_type: "stop_rsp_distance_gap")
-      issue.save!
+      issue = Issue.create!(details: "This is a test issue", created_by_changeset_id: 1, issue_type: "stop_rsp_distance_gap")
       issue.entities_with_issues.create(entity: Stop.find_by_onestop_id!('s-9qscwx8n60-nyecountyairportdemo'), entity_attribute: "geometry")
       post :destroy, id: issue.id
       expect(response.status).to eq(401)

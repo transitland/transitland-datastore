@@ -7,8 +7,12 @@ production:
 :limits:
   feed_eater: 1
 :process_limits:
+  default: 1
   feed_eater_schedule: 1
+  low: 1
 :queues:
+  - high
+  - default
   - feed_eater
   - feed_eater_schedule
-  - default
+  - low

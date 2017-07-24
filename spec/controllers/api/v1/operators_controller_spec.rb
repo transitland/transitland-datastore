@@ -3,8 +3,7 @@ describe Api::V1::OperatorsController do
     create(:operator,
       name: 'Santa Clara Valley Transportation Agency',
       geometry: { type: 'Polygon', coordinates:[[[-121.57063369100001,36.974922178],[-121.98392082799998,37.222231291999975],[-122.030939181,37.259406422],[-122.130937923,37.361408525999984],[-122.14999058399997,37.39545061899999],[-122.173638697,37.44055680899999],[-122.17356866899998,37.443449786999984],[-121.97594900000001,37.557287999999964],[-121.953170709,37.558388155999985],[-121.92699421000002,37.542184637],[-121.923956233,37.54013896899999],[-121.631097271,37.14884923099999],[-121.55177065999997,37.00582961999998],[-121.54902915,37.00006636],[-121.57063369100001,36.974922178]]] },
-      tags: { agency_url: 'http://www.vta.org'},
-      identifiers: ['VTA']
+      tags: { agency_url: 'http://www.vta.org'}
     )
   }
   let(:sfmta) {
@@ -24,9 +23,30 @@ describe Api::V1::OperatorsController do
     context 'as JSON' do
       it 'returns all current operators when no parameters provided' do
         get :index
-        expect_json_types({ operators: :array }) # TODO: remove root node?
+        expect_json_types({ operators: :array })
         expect_json({ operators: -> (operators) {
           expect(operators.length).to eq 2
+        }})
+      end
+
+      it 'filters by imported_with_gtfs_id' do
+        operators = create_list(:operator, 3)
+        operator = create(:operator, name: 'Test 123')
+        feed_version = create(:feed_version_example)
+        feed_version.entities_imported_from_feed.create!(entity: operator, feed: feed_version.feed, gtfs_id: "test")
+        get :index, imported_with_gtfs_id: 'test'
+        expect_json({ operators: -> (operators) {
+          expect(operators.first[:onestop_id]).to eq operator.onestop_id
+          expect(operators.count).to eq 1
+        }})
+        get :index, imported_with_gtfs_id: 'true', gtfs_id: 'test'
+        expect_json({ operators: -> (operators) {
+          expect(operators.first[:onestop_id]).to eq operator.onestop_id
+          expect(operators.count).to eq 1
+        }})
+        get :index, imported_with_gtfs_id: 'unknown'
+        expect_json({ operators: -> (operators) {
+          expect(operators.size).to eq 0
         }})
       end
 
@@ -34,6 +54,15 @@ describe Api::V1::OperatorsController do
         operators = create_list(:operator, 3)
         operator = create(:operator, name: 'Test 123')
         get :index, name: operator.name
+        expect_json({ operators: -> (operators) {
+          expect(operators.first[:onestop_id]).to eq operator.onestop_id
+          expect(operators.count).to eq 1
+        }})
+      end
+
+      it 'filters by name in UTF-8' do
+        operator = create(:operator, name: 'Østfold kollektivtrafikk')
+        get :index, name: 'Østfold kollektivtrafikk'
         expect_json({ operators: -> (operators) {
           expect(operators.first[:onestop_id]).to eq operator.onestop_id
           expect(operators.count).to eq 1
@@ -56,13 +85,6 @@ describe Api::V1::OperatorsController do
         expect_json({ operators: -> (operators) {
           expect(operators.first[:onestop_id]).to eq operator.onestop_id
           expect(operators.count).to eq 1
-        }})
-      end
-
-      it 'returns the appropriate operator when identifier provided' do
-        get :index, identifier: 'VTA'
-        expect_json({ operators: -> (operators) {
-          expect(operators.first[:onestop_id]).to eq vta.onestop_id
         }})
       end
 
@@ -145,19 +167,19 @@ describe Api::V1::OperatorsController do
   describe 'GET aggregate' do
     before(:each) do
       Rails.cache.clear
-      create(:operator, country: 'United States', state: 'California', metro: 'San Francisco Bay Area', timezone: 'America/Los_Angeles')
-      create(:operator, country: 'United States', state: 'California', metro: 'San Francisco Bay Area', timezone: 'America/Los_Angeles')
-      create(:operator, country: 'United States', state: 'California', metro: 'Los Angeles', timezone: 'America/Los_Angeles')
+      create(:operator, country: 'US', state: 'US-CA', metro: 'San Francisco Bay Area', timezone: 'America/Los_Angeles')
+      create(:operator, country: 'US', state: 'US-CA', metro: 'San Francisco Bay Area', timezone: 'America/Los_Angeles')
+      create(:operator, country: 'US', state: 'US-CA', metro: 'Los Angeles', timezone: 'America/Los_Angeles')
     end
 
     it 'returns a list of all countries with counts for each' do
       get :aggregate
-      expect_json('country.United States.count', 3)
+      expect_json('country.US.count', 3)
     end
 
     it 'returns a list of all states with counts for each' do
       get :aggregate
-      expect_json('state.California.count', 3)
+      expect_json('state.US-CA.count', 3)
     end
 
     it 'returns a list of all metros with counts for each' do

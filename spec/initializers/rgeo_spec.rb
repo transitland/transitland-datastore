@@ -1,9 +1,31 @@
 describe RGeo::Cartesian do
   context 'with additional LineStringMethods' do
-    before(:each) do
-      @factory = RGeo::Cartesian::Factory.new
-      line_points = [[-121.0, 36.0],[-121.0, 34.0],[-122.0, 33.0]]
-      @line = @factory.line_string(line_points.map {|p| @factory.point(p[0],p[1])})
+    context 'before?' do
+      before(:each) do
+        @factory = RGeo::Cartesian::Factory.new
+        @line_points = [[-122.401811, 37.706675],[-122.394935, 37.776348]]
+        @line = @factory.line_string(@line_points.map {|p| @factory.point(p[0],p[1])})
+      end
+
+      it 'checks after? true' do
+        point = @factory.point(-122.38, 37.8)
+        expect(@line.after?(point)).to be true
+      end
+
+      it 'checks after? false' do
+        point = @factory.point(-122.3975, 37.73)
+        expect(@line.after?(point)).to be false
+      end
+
+      it 'checks before? true' do
+        point = @factory.point(-122.405, 37.63)
+        expect(@line.before?(point)).to be true
+      end
+
+      it 'checks before? false' do
+        point = @factory.point(-122.3975, 37.73)
+        expect(@line.before?(point)).to be false
+      end
     end
   end
 

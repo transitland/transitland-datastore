@@ -60,26 +60,33 @@ class ChangePayload < ActiveRecord::Base
     !!sha1.match(/^[0-9a-f]{5,40}$/)
   })
 
-  def apply!
-    cache = {}
-    changes = []
+  def each_change
     (payload_as_ruby_hash[:changes] || []).each do |change|
       (ENTITY_TYPES.keys & change.keys).each do |entity_type|
-        changes << [entity_type, change[:action], change[entity_type]]
+        yield ENTITY_TYPES[entity_type], change[:action], change[entity_type], change[:onestop_ids_to_merge]
       end
     end
-    changes
-      .chunk { |entity_type, action, change| [entity_type, action] }
-      .each { | chunk_key, chunked_changes |
-        entity_type, action = chunk_key
-        # puts "Applying... #{entity_type}, #{action}, #{chunked_changes.size}"
-        ENTITY_TYPES[entity_type].apply_changes(
-          changeset: changeset,
-          action: action,
-          changes: chunked_changes.map(&:last)
-        )
-      }
-    resolving_and_deprecating_issues
+  end
+
+  def apply_change
+    self.each_change do |entity_cls, action, change, onestop_ids_to_merge|
+      entity_cls.apply_change(
+        changeset: changeset,
+        action: action,
+        change: change,
+        onestop_ids_to_merge: onestop_ids_to_merge
+      )
+    end
+  end
+
+  def apply_associations
+    self.each_change do |entity_cls, action, change, onestop_ids_to_merge|
+      entity_cls.apply_associations(
+        changeset: changeset,
+        action: action,
+        change: change
+      )
+    end
   end
 
   def revert!
@@ -112,8 +119,6 @@ class ChangePayload < ActiveRecord::Base
     end
   end
 
-  private
-
   def resolving_and_deprecating_issues
     issues_to_resolve = []
     old_issues_to_deprecate = Set.new
@@ -124,7 +129,7 @@ class ChangePayload < ActiveRecord::Base
           action = change[:action]
           change = change[entity_type]
           if action.to_s.eql?("createUpdate")
-            entity = ENTITY_TYPES[entity_type].find_by_onestop_id!(change[:onestop_id])
+            entity = ENTITY_TYPES[entity_type].find_by_current_and_old_onestop_id!(change[:onestop_id])
             old_issues_to_deprecate.merge(Issue.issues_of_entity(entity, entity_attributes: change.keys))
           end
         end

@@ -26,21 +26,32 @@ Rails.application.routes.draw do
       resources :routes, only: [:index, :show]
       resources :route_stop_patterns, only: [:index, :show]
       resources :schedule_stop_pairs, only: [:index]
-      resources :feeds, only: [:index, :show]
-      resources :feed_versions, only: [:index, :show, :update]
+      resources :feeds, only: [:index, :show] do
+        member do
+          get 'download_latest_feed_version'
+        end
+        collection do
+          post 'fetch_info'
+        end
+      end
+      resources :feed_versions, only: [:index, :show, :create, :update]
+      resources :feed_version_infos, only: [:index, :show]
       resources :feed_version_imports, only: [:index, :show]
       resources :issues, only: [:index, :show, :create, :update, :destroy] do
         collection do
           get 'categories'
         end
       end
-      post '/feeds/fetch_info', to: 'feeds#fetch_info'
       post '/webhooks/feed_fetcher', to: 'webhooks#feed_fetcher'
       post '/webhooks/feed_eater', to: 'webhooks#feed_eater'
-      # TODO: expose user authentication endpoints in the future
-      # devise_for :users
+
+      # authentication using Devise gem and JWT auth tokens
+      devise_for :users, :skip => :all
+      post 'users/session', to: 'user_sessions#create'
+      delete 'users/session', to: 'user_sessions#destroy'
       resources :users
     end
+
     match '*unmatched_route', :to => 'v1/base_api#raise_not_found!', via: :all
   end
 

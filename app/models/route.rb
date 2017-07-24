@@ -12,7 +12,6 @@
 #  created_at                         :datetime
 #  updated_at                         :datetime
 #  geometry                           :geography({:srid geometry, 4326
-#  identifiers                        :string           default([]), is an Array
 #  vehicle_type                       :integer
 #  color                              :string
 #  edited_attributes                  :string           default([]), is an Array
@@ -24,7 +23,6 @@
 #  c_route_cu_in_changeset                        (created_or_updated_in_changeset_id)
 #  index_current_routes_on_bikes_allowed          (bikes_allowed)
 #  index_current_routes_on_geometry               (geometry)
-#  index_current_routes_on_identifiers            (identifiers)
 #  index_current_routes_on_onestop_id             (onestop_id) UNIQUE
 #  index_current_routes_on_operator_id            (operator_id)
 #  index_current_routes_on_tags                   (tags)
@@ -51,7 +49,6 @@ class Route < BaseRoute
   self.table_name_prefix = 'current_'
 
   include HasAOnestopId
-  include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
   include HasTags
   include UpdatedSince
@@ -84,14 +81,10 @@ class Route < BaseRoute
       :serves,
       :does_not_serve,
       :operated_by,
-      :identified_by,
-      :not_identified_by,
       :add_imported_from_feeds,
       :not_imported_from_feeds
     ],
-    protected_attributes: [
-      :identifiers
-    ],
+    protected_attributes: [],
     sticky_attributes: [
       :name,
       :geometry,
@@ -100,32 +93,11 @@ class Route < BaseRoute
     ]
   })
 
-  # FIXME: this is a temporary fix to run both the following `before_create_making_history` changeset
-  # callback as well as the callback of the same name that is included from IsAnEntityWithIdentifiers
-  class << Route
-    alias_method :existing_before_create_making_history, :before_create_making_history
-  end
-  def self.before_create_making_history(new_model, changeset)
-    operator = Operator.find_by_onestop_id!(new_model.operated_by)
-    new_model.operator = operator
-    self.existing_before_create_making_history(new_model, changeset)
-  end
-  def after_create_making_history(changeset)
+  def update_associations(changeset)
     update_entity_imported_from_feeds(changeset)
-    OperatorRouteStopRelationship.manage_multiple(
-      route: {
-        serves: self.serves || [],
-        does_not_serve: self.does_not_serve || [],
-        model: self
-      },
-      changeset: changeset
-    )
-  end
-  def before_update_making_history(changeset)
-    update_entity_imported_from_feeds(changeset)
-    if self.operated_by.present?
+    if self.operated_by
       operator = Operator.find_by_onestop_id!(self.operated_by)
-      self.operator = operator
+      self.update_columns(operator_id: operator.id)
     end
     OperatorRouteStopRelationship.manage_multiple(
       route: {
@@ -137,6 +109,7 @@ class Route < BaseRoute
     )
     super(changeset)
   end
+
   def before_destroy_making_history(changeset, old_model)
     routes_serving_stop.each do |route_serving_stop|
       route_serving_stop.destroy_making_history(changeset: changeset)
@@ -177,14 +150,15 @@ class Route < BaseRoute
     joins{routes_serving_stop.route}.where{routes_serving_stop.stop_id.in(stops.map(&:id))}.uniq
   }
 
-  scope :operated_by, -> (model_or_onestop_id) {
-    if model_or_onestop_id.is_a?(Operator)
-      where(operator: model_or_onestop_id)
-    elsif model_or_onestop_id.is_a?(String)
-      operator = Operator.find_by_onestop_id!(model_or_onestop_id)
-      where(operator: operator)
+  scope :operated_by, -> (models_or_onestop_ids) {
+    models_or_onestop_ids = Array.wrap(models_or_onestop_ids)
+    if models_or_onestop_ids.all? { |model_or_onestop_id| model_or_onestop_id.is_a?(Operator) }
+      where(operator: models_or_onestop_ids)
+    elsif models_or_onestop_ids.all? { |model_or_onestop_id| model_or_onestop_id.is_a?(String) }
+      operators = Operator.find_by_onestop_ids!(models_or_onestop_ids)
+      where(operator: operators)
     else
-      raise ArgumentError.new('must provide an Operator model or a Onestop ID')
+      raise ArgumentError.new('must provide Operator models or Onestop IDs')
     end
   }
 
@@ -254,36 +228,17 @@ class Route < BaseRoute
   end
 
   ##### FromGTFS ####
-  include FromGTFS
-  def self.from_gtfs(entity, attrs={})
-    # GTFS Constructor
-    coordinates = Stop::GEOFACTORY.collection(
-      entity.stops.map { |stop| Stop::GEOFACTORY.point(*stop.coordinates) }
-    )
-    geohash = GeohashHelpers.fit(coordinates)
-    name = [entity.route_short_name, entity.route_long_name, entity.id, "unknown"]
-      .select(&:present?)
-      .first
-    onestop_id = OnestopId.handler_by_model(self).new(
+  def generate_onestop_id
+    stops = self.serves || self.stops
+    fail Exception.new('no Stop coordinates') if stops.empty?
+    fail Exception.new('name required') if name.nil?
+    geohash = GeohashHelpers.fit(Stop::GEOFACTORY.collection(stops.map { |s| s[:geometry] }))
+    onestop_id = OnestopId.handler_by_model(self.class).new(
       geohash: geohash,
       name: name
     )
-    route = Route.new(
-      name: name,
-      onestop_id: onestop_id.to_s,
-      vehicle_type: entity.route_type.to_i
-    )
-    route.color = Route.color_from_gtfs(entity.route_color)
-    # Copy over GTFS attributes to tags
-    route.tags ||= {}
-    route.tags[:route_long_name] = entity.route_long_name
-    route.tags[:route_desc] = entity.route_desc
-    route.tags[:route_url] = entity.route_url
-    route.tags[:route_color] = entity.route_color
-    route.tags[:route_text_color] = entity.route_text_color
-    route
+    onestop_id.to_s
   end
-
 end
 
 class OldRoute < BaseRoute

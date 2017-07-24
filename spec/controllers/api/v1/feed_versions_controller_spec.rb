@@ -70,10 +70,58 @@ describe Api::V1::FeedVersionsController do
     end
   end
 
-  context 'PUT update' do
+  context 'POST create' do
+    let(:user) { create(:user) }
+    let(:auth_token) { JwtAuthToken.issue_token({user_id: user.id}) }
+    let(:url) { 'http://example.com/example-create.zip' }
+    let(:file) { fixture_file_upload(File.open(Rails.root.join('spec/support/example_gtfs_archives/example.zip')), 'application/zip') }
+    let(:sha1) { Digest::SHA1.file(file).hexdigest }
+    let(:feed) { create(:feed_example) }
     before(:each) do
-      allow(Figaro.env).to receive(:transitland_datastore_auth_token) { 'THISISANAPIKEY' }
-      @request.env['HTTP_AUTHORIZATION'] = 'Token token=THISISANAPIKEY'
+      @request.env['HTTP_AUTHORIZATION'] = "Bearer #{auth_token}"
+    end
+
+    it 'creates a feed_version' do
+      expect(feed.feed_versions.count).to eq(0)
+      post :create, feed_version: {
+        feed_onestop_id: feed.onestop_id,
+        url: url,
+        file: file
+      }
+      feed.reload
+      expect(feed.feed_versions.count).to eq(1)
+      expect(feed.feed_versions.first.url).to eq(url)
+      expect(feed.feed_versions.first.sha1).to eq(sha1)
+    end
+
+    it 'enqueues GTFSValidationWorker' do
+      expect {
+        post :create, feed_version: {
+          feed_onestop_id: feed.onestop_id,
+          url: url,
+          file: file
+        }
+      }.to change(GTFSValidationWorker.jobs, :size).by(1)
+    end
+
+    it 'enqueues GTFSStatisticsWorker' do
+      expect {
+        post :create, feed_version: {
+          feed_onestop_id: feed.onestop_id,
+          url: url,
+          file: file
+        }
+      }.to change(GTFSStatisticsWorker.jobs, :size).by(1)
+    end
+  end
+
+  context 'PUT update' do
+    let(:user) { create(:user) }
+    let(:auth_token) { JwtAuthToken.issue_token({user_id: user.id}) }
+    before(:each) do
+      # requires authentication
+      @request.env['HTTP_AUTHORIZATION'] = "Bearer #{auth_token}"
+
       @feed_version = create(:feed_version, import_level: 0)
     end
 

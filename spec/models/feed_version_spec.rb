@@ -20,6 +20,7 @@
 #  file_raw               :string
 #  sha1_raw               :string
 #  md5_raw                :string
+#  file_feedvalidator     :string
 #
 # Indexes
 #
@@ -123,6 +124,34 @@ describe FeedVersion do
       feed.update(active_feed_version: active_feed_version)
       expect(active_feed_version.is_active_feed_version).to eq true
       expect(inactive_feed_version.is_active_feed_version).to eq false
+    end
+  end
+
+  context '#import_status' do
+    it 'never_imported' do
+      feed_version = create(:feed_version)
+      expect(feed_version.import_status).to eq(:never_imported)
+    end
+
+    it 'in_progress' do
+      feed_version = create(:feed_version)
+      create(:feed_version_import, success: true, feed_version: feed_version)
+      create(:feed_version_import, success: nil, feed_version: feed_version)
+      expect(feed_version.import_status).to eq(:in_progress)
+    end
+
+    it 'most_recent_failed' do
+      feed_version = create(:feed_version)
+      create(:feed_version_import, success: true, feed_version: feed_version)
+      create(:feed_version_import, success: false, feed_version: feed_version)
+      expect(feed_version.import_status).to eq(:most_recent_failed)
+    end
+
+    it 'most_recent_succeeded' do
+      feed_version = create(:feed_version)
+      create(:feed_version_import, success: false, feed_version: feed_version)
+      create(:feed_version_import, success: true, feed_version: feed_version)
+      expect(feed_version.import_status).to eq(:most_recent_succeeded)
     end
   end
 

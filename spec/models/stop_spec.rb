@@ -11,7 +11,6 @@
 #  name                               :string
 #  created_or_updated_in_changeset_id :integer
 #  version                            :integer
-#  identifiers                        :string           default([]), is an Array
 #  timezone                           :string
 #  last_conflated_at                  :datetime
 #  type                               :string
@@ -19,12 +18,12 @@
 #  osm_way_id                         :integer
 #  edited_attributes                  :string           default([]), is an Array
 #  wheelchair_boarding                :boolean
+#  directionality                     :integer
 #
 # Indexes
 #
 #  #c_stops_cu_in_changeset_id_index           (created_or_updated_in_changeset_id)
 #  index_current_stops_on_geometry             (geometry)
-#  index_current_stops_on_identifiers          (identifiers)
 #  index_current_stops_on_onestop_id           (onestop_id) UNIQUE
 #  index_current_stops_on_parent_stop_id       (parent_stop_id)
 #  index_current_stops_on_tags                 (tags)
@@ -41,6 +40,32 @@ describe Stop do
   it "won't have extra spaces in its name" do
     stop = create(:stop, name: ' Main St. Stop ')
     expect(stop.name).to eq 'Main St. Stop'
+  end
+
+  context 'directionality' do
+    it 'allows 1/enter' do
+      stop = create(:stop)
+      stop.update!(directionality: 'enter')
+      expect(stop.reload.directionality).to eq(:enter)
+      stop.update!(directionality: 1)
+      expect(stop.reload.directionality).to eq(:enter)
+    end
+    it 'allows 2/exit' do
+      stop = create(:stop)
+      stop.update!(directionality: 'exit')
+      expect(stop.reload.directionality).to eq(:exit)
+      stop.update!(directionality: 2)
+      expect(stop.reload.directionality).to eq(:exit)
+    end
+    it 'allows 0/both' do
+      stop = create(:stop)
+      stop.update!(directionality: 'both')
+      expect(stop.reload.directionality).to eq(:both)
+      stop.update!(directionality: 0)
+      expect(stop.reload.directionality).to eq(:both)
+      # stop.update!(directionality: nil)
+      # expect(stop.reload.directionality).to eq(:both)
+    end
   end
 
   context 'geometry' do
@@ -135,6 +160,64 @@ describe Stop do
 
     it 'fails when invalid vehicle_type' do
       expect{ Stop.served_by_vehicle_types('unicycle') }.to raise_error(KeyError)
+    end
+  end
+
+  context '.with_min_platforms' do
+    before(:each) do
+      @s1 = create(:stop)
+      @s2 = create(:stop)
+      @s2p1 = create(:stop_platform, parent_stop: @s2)
+      @s3 = create(:stop)
+      @s3p1 = create(:stop_platform, parent_stop: @s3)
+      @s3p2 = create(:stop_platform, parent_stop: @s3)
+    end
+
+    it 'returns only Stops with StopPlatforms' do
+      expect(Stop.with_min_platforms(1)).to match_array([@s2, @s3])
+    end
+
+    it 'returns minimum StopPlatforms' do
+      expect(Stop.with_min_platforms(2)).to match_array([@s3])
+    end
+
+    it 'works with count' do
+      # Handled in JSON pagination concern
+      expect(Stop.with_min_platforms(1).count.size).to eq(2)
+    end
+
+    it 'works with min_egresses' do
+      @s3e1 = create(:stop_egress, parent_stop: @s3)
+      expect(Stop.with_min_platforms(1).with_min_egresses(1)).to eq([@s3])
+    end
+  end
+
+  context '.with_min_egresses' do
+    before(:each) do
+      @s1 = create(:stop)
+      @s2 = create(:stop)
+      @s2e1 = create(:stop_egress, parent_stop: @s2)
+      @s3 = create(:stop)
+      @s3e1 = create(:stop_egress, parent_stop: @s3)
+      @s3e2 = create(:stop_egress, parent_stop: @s3)
+    end
+
+    it 'returns only Stops with StopEgresses' do
+      expect(Stop.with_min_egresses(1)).to match_array([@s2, @s3])
+    end
+
+    it 'returns minimum StopPlatforms' do
+      expect(Stop.with_min_egresses(2)).to match_array([@s3])
+    end
+
+    it 'works with count' do
+      # Handled in JSON pagination concern
+      expect(Stop.with_min_egresses(1).count.size).to eq(2)
+    end
+
+    it 'works with min_platforms' do
+      @s3p1 = create(:stop_platform, parent_stop: @s3)
+      expect(Stop.with_min_platforms(1).with_min_egresses(1)).to eq([@s3])
     end
   end
 

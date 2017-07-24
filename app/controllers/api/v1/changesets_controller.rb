@@ -3,7 +3,7 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   include DownloadableCsv
   include AllowFiltering
 
-  before_filter :require_api_auth_token, only: [:update, :check, :apply, :apply_async, :revert, :destroy]
+  before_filter :verify_jwt_token, only: [:update, :check, :apply, :apply_async, :revert, :destroy]
   before_action :set_changeset, only: [:show, :update, :check, :apply, :apply_async, :revert, :destroy]
 
   def index
@@ -108,6 +108,20 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   end
 
   private
+
+  def query_params
+    {
+      ids: {
+        desc: "Filter by Changeset ID",
+        type: "integer",
+        array: true
+      },
+      applied: {
+        desc: "Applied Changesets",
+        type: "boolean"
+      }
+    }
+  end
 
   def set_changeset
     @changeset = Changeset.find(params[:id])

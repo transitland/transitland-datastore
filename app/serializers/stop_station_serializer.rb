@@ -1,86 +1,81 @@
-# == Schema Information
-#
-# Table name: current_stops
-#
-#  id                                 :integer          not null, primary key
-#  onestop_id                         :string
-#  geometry                           :geography({:srid geometry, 4326
-#  tags                               :hstore
-#  created_at                         :datetime
-#  updated_at                         :datetime
-#  name                               :string
-#  created_or_updated_in_changeset_id :integer
-#  version                            :integer
-#  identifiers                        :string           default([]), is an Array
-#  timezone                           :string
-#  last_conflated_at                  :datetime
-#  type                               :string
-#  parent_stop_id                     :integer
-#
-# Indexes
-#
-#  #c_stops_cu_in_changeset_id_index      (created_or_updated_in_changeset_id)
-#  index_current_stops_on_geometry        (geometry)
-#  index_current_stops_on_identifiers     (identifiers)
-#  index_current_stops_on_onestop_id      (onestop_id)
-#  index_current_stops_on_parent_stop_id  (parent_stop_id)
-#  index_current_stops_on_tags            (tags)
-#  index_current_stops_on_updated_at      (updated_at)
-#
-
 class StopStationSerializer < CurrentEntitySerializer
   # Platform serializer
   class StopPlatformSerializer < CurrentEntitySerializer
-    attributes :onestop_id,
-               :geometry,
-               :name,
-               :tags,
-               :served_by_vehicle_types,
+    attributes :name,
                :timezone,
                :wheelchair_boarding,
-               :created_at,
-               :updated_at,
-               :last_conflated_at
-     has_many :operators_serving_stop
-     has_many :routes_serving_stop
-     has_many :stop_transfers
+               :served_by_vehicle_types,
+               :operators_serving_stop, # use attr, not has_many; see below
+               :routes_serving_stop,    # ..
+               :stop_transfers,         # ..
+               :generated
+
+    def operators_serving_stop
+      # Force through serializer
+      object.operators_serving_stop.map { |i| OperatorServingStopSerializer.new(i) }
+    end
+
+    def routes_serving_stop
+      object.routes_serving_stop.map { |i| RouteServingStopSerializer.new(i) }
+    end
+
+    def stop_transfers
+      object.stop_transfers.map { |i| StopTransferSerializer.new(i) }
+    end
+
+     def generated
+       !object.persisted?
+     end
   end
+
   # Egress serializer
   class StopEgressSerializer < CurrentEntitySerializer
-    attributes :onestop_id,
-               :geometry,
-               :name,
-               :tags,
+    attributes :name,
                :timezone,
-               :osm_way_id,
                :wheelchair_boarding,
-               :created_at,
-               :updated_at
-               :last_conflated_at
+               :osm_way_id,
+               :last_conflated_at,
+               :directionality,
+               :generated
+
+     def generated
+       !object.persisted?
+     end
+  end
+
+  def stop_platforms
+    s = object.stop_platforms.presence || []
+    if s.empty? && scope[:generated]
+      s << StopPlatform.new(
+        onestop_id: "#{object.onestop_id}<",
+        geometry: object.geometry,
+        name: object.name,
+        timezone: object.timezone,
+        wheelchair_boarding: object.wheelchair_boarding,
+        operators_serving_stop: object.operators_serving_stop,
+        routes_serving_stop: object.routes_serving_stop,
+        tags: {},
+      )
+    end
+    s
   end
 
   # Create phantom platforms / egresses
   def stop_egresses
-    object.stop_egresses.presence || [StopEgress.new(
-      onestop_id: "#{object.onestop_id}>",
-      geometry: object.geometry,
-      name: object.name,
-      timezone: object.timezone,
-      last_conflated_at: object.last_conflated_at,
-      osm_way_id: object.osm_way_id
-    )]
-  end
-
-  def stop_platforms
-    object.stop_platforms.presence || [StopPlatform.new(
-      onestop_id: "#{object.onestop_id}<",
-      geometry: object.geometry,
-      name: object.name,
-      timezone: object.timezone,
-      operators_serving_stop: object.operators_serving_stop,
-      routes_serving_stop: object.routes_serving_stop,
-      tags: {}
-    )]
+    s = object.stop_egresses.presence || []
+    if s.empty? && scope[:generated]
+      s << StopEgress.new(
+        onestop_id: "#{object.onestop_id}>",
+        geometry: object.geometry,
+        name: object.name,
+        timezone: object.timezone,
+        wheelchair_boarding: object.wheelchair_boarding,
+        last_conflated_at: object.last_conflated_at,
+        osm_way_id: object.osm_way_id,
+        directionality: nil
+      )
+    end
+    s
   end
 
   # Aggregate operators_serving_stop
@@ -100,15 +95,12 @@ class StopStationSerializer < CurrentEntitySerializer
   end
 
   # Attributes
-  attributes :onestop_id,
-             :geometry,
-             :name,
-             :tags,
+  attributes :name,
              :timezone,
-             :vehicle_types_serving_stop_and_platforms,
              :wheelchair_boarding,
-             :created_at,
-             :updated_at
+             :osm_way_id,
+             :last_conflated_at,
+             :vehicle_types_serving_stop_and_platforms
 
   # Relations
   has_many :stop_platforms, serializer: StopPlatformSerializer

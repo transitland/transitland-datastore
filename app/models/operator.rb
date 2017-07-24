@@ -11,7 +11,6 @@
 #  geometry                           :geography({:srid geometry, 4326
 #  created_or_updated_in_changeset_id :integer
 #  version                            :integer
-#  identifiers                        :string           default([]), is an Array
 #  timezone                           :string
 #  short_name                         :string
 #  website                            :string
@@ -22,12 +21,11 @@
 #
 # Indexes
 #
-#  #c_operators_cu_in_changeset_id_index   (created_or_updated_in_changeset_id)
-#  index_current_operators_on_geometry     (geometry)
-#  index_current_operators_on_identifiers  (identifiers)
-#  index_current_operators_on_onestop_id   (onestop_id) UNIQUE
-#  index_current_operators_on_tags         (tags)
-#  index_current_operators_on_updated_at   (updated_at)
+#  #c_operators_cu_in_changeset_id_index  (created_or_updated_in_changeset_id)
+#  index_current_operators_on_geometry    (geometry)
+#  index_current_operators_on_onestop_id  (onestop_id) UNIQUE
+#  index_current_operators_on_tags        (tags)
+#  index_current_operators_on_updated_at  (updated_at)
 #
 
 class BaseOperator < ActiveRecord::Base
@@ -40,7 +38,6 @@ class Operator < BaseOperator
   self.table_name_prefix = 'current_'
 
   include HasAOnestopId
-  include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
   include HasTags
   include UpdatedSince
@@ -69,14 +66,10 @@ class Operator < BaseOperator
     virtual_attributes: [
       :serves,
       :does_not_serve,
-      :identified_by,
-      :not_identified_by,
       :add_imported_from_feeds,
       :not_imported_from_feeds
     ],
-    protected_attributes: [
-      :identifiers
-    ],
+    protected_attributes: [],
     sticky_attributes: [
       :short_name,
       :country,
@@ -85,18 +78,8 @@ class Operator < BaseOperator
       :website
     ]
   })
-  def after_create_making_history(changeset)
-    update_entity_imported_from_feeds(changeset)
-    OperatorRouteStopRelationship.manage_multiple(
-      operator: {
-        serves: self.serves || [],
-        does_not_serve: self.does_not_serve || [],
-        model: self
-      },
-      changeset: changeset
-    )
-  end
-  def before_update_making_history(changeset)
+
+  def update_associations(changeset)
     update_entity_imported_from_feeds(changeset)
     OperatorRouteStopRelationship.manage_multiple(
       operator: {
@@ -108,6 +91,7 @@ class Operator < BaseOperator
     )
     super(changeset)
   end
+
   def before_destroy_making_history(changeset, old_model)
     operators_serving_stop.each do |operator_serving_stop|
       operator_serving_stop.destroy_making_history(changeset: changeset)
@@ -141,43 +125,11 @@ class Operator < BaseOperator
     Operator.convex_hull(self.stops, projected: false)
   end
 
-  ##### FromGTFS ####
-  include FromGTFS
-  def self.from_gtfs(entity, attrs={})
-    # GTFS Constructor
-    # Convert to TL Stops so geometry projection works properly...
-    tl_stops = entity.stops.map { |stop| Stop.new(geometry: Stop::GEOFACTORY.point(*stop.coordinates)) }
-    geohash = GeohashHelpers.fit(
-      Stop::GEOFACTORY.collection(tl_stops.map { |stop| stop[:geometry] })
-    )
-    # Generate third Onestop ID component
-    name = [entity.agency_name, entity.id, "unknown"]
-      .select(&:present?)
-      .first
-    # Create Operator
-    attrs[:geometry] = Operator.convex_hull(tl_stops, projected: false)
-    attrs[:name] = name
-    attrs[:onestop_id] = OnestopId.handler_by_model(self).new(
-      geohash: geohash,
-      name: name
-    )
-    operator = Operator.new(attrs)
-    operator.tags ||= {}
-    operator.tags[:agency_phone] = entity.agency_phone
-    operator.tags[:agency_lang] = entity.agency_lang
-    operator.tags[:agency_fare_url] = entity.agency_fare_url
-    operator.tags[:agency_id] = entity.id
-    operator.timezone = entity.agency_timezone
-    operator.website = entity.agency_url
-    operator
-  end
-
   private
 
   def set_default_values
     if self.new_record?
       self.tags ||= {}
-      self.identifiers ||= []
     end
   end
 

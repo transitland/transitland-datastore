@@ -165,7 +165,18 @@ class Changeset < ActiveRecord::Base
   end
 
   def issues_unresolved(resolving_issues, changeset_issues)
-    changeset_issues.map { |c| resolving_issues.map { |r| r if c.equivalent?(r) } }.flatten.compact
+    # changeset does not contain entities matching any resolving issue entities
+    unresolved_issues = Set.new(resolving_issues.select { |issue|
+      unless issue.entities_with_issues.empty?
+        issue.entities_with_issues.map(&:entity).none? { |issue_entity|
+          eqls = []
+          entities_created_or_updated { |entity| eqls << issue_entity.eql?(entity) }
+          eqls.any?
+        }
+      end
+    })
+    # changeset does not resolve issue (creates the same issue in quality checks)
+    unresolved_issues.merge(changeset_issues.map { |c| resolving_issues.map { |r| r if c.equivalent?(r) } }.flatten.compact)
   end
 
   def check_quality
@@ -178,68 +189,10 @@ class Changeset < ActiveRecord::Base
   end
 
   def update_computed_attributes
-    # This method updates the changeset's entity attributes that are computed/derived from the attribute data
-    # of multiple entity types. For example, here RouteStopPatterns will have to have their stop distances recomputed
-    # using both the RouteStopPattern and its stop_pattern Stops' geometries. Operators have their convex hulls
-    # recomputed from the Stops it serves.
-    #
-    # Ideally we would like to define methods at the model level (that would be the first place to put new
-    # recomputed attribute functionality if possible) but the need to avoid duplicate recomputation on entities of update
-    # changesets complicates this. E.g, We don't want to recompute the stop_distances of one RouteStopPattern
-    # multiple times if there are multiple Stops of that RouteStopPattern in the changeset.
-
-    rsps_to_update_distances = Set.new
-    operators_to_update_convex_hull = Set.new
     old_issues_to_deprecate = Set.new
-
-    unless self.stops_created_or_updated.empty?
-      self.stops_created_or_updated.each do |stop|
-        operators_to_update_convex_hull.merge(OperatorServingStop.where(stop: stop).map(&:operator))
-      end
-      rsps_to_update_distances.merge(RouteStopPattern.with_stops(self.stops_created_or_updated.map(&:onestop_id).join(',')))
-
-      operators_to_update_convex_hull.each { |operator|
-        operator.geometry = operator.recompute_convex_hull_around_stops
-
-        old_issues_to_deprecate.merge(Issue.issues_of_entity(operator, entity_attributes: ["geometry"]))
-        operator.update_making_history(changeset: self)
-      }
-    end
-
-    # Recompute and update the Route model representative geometry
-    route_rsps = {}
-    self.route_stop_patterns_created_or_updated.each do |rsp|
-      route_rsps[rsp.route] ||= Set.new
-      route_rsps[rsp.route] << rsp
-    end
-    route_rsps.each_pair do |route, rsps|
-      representative_rsps = Route.representative_geometry(route, rsps || [])
-      Route.geometry_from_rsps(route, representative_rsps)
-      route.update_making_history(changeset: self)
-    end
-
-    # Recompute and update RouteStopPattern distances and associated ScheduleStopPairs
-    rsps_to_update_distances.merge(self.route_stop_patterns_created_or_updated)
-    log "Calculating distances" unless rsps_to_update_distances.empty?
-    rsps_to_update_distances.each { |rsp|
-      old_issues_to_deprecate.merge(Issue.issues_of_entity(rsp, entity_attributes: ["stop_distances"]))
-
-      begin
-        rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.calculate_distances })
-      rescue StandardError
-        log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
-        rsp.update_making_history(changeset: self, new_attrs: { stop_distances: rsp.fallback_distances })
-      end
-
-      rsp.ordered_ssp_trip_chunks { |trip_chunk|
-        trip_chunk.each_with_index do |ssp, i|
-          ssp.update_column(:origin_dist_traveled, rsp.stop_distances[i])
-          ssp.update_column(:destination_dist_traveled, rsp.stop_distances[i+1])
-        end
-      }
-    }
-    #second item mainly for testing
-    [old_issues_to_deprecate, [rsps_to_update_distances.size, operators_to_update_convex_hull.size]]
+    geometry_updater = UpdateComputedAttributes::GeometryUpdateComputedAttributes.new(changeset: self)
+    old_geometry_issues_to_deprecate, sizes = geometry_updater.update_computed_attributes
+    old_issues_to_deprecate.merge(old_geometry_issues_to_deprecate)
   end
 
   def cycle_issues(issues_changeset_is_resolving, new_issues_created_by_changeset, old_issues_to_deprecate)
@@ -265,6 +218,38 @@ class Changeset < ActiveRecord::Base
     end
   end
 
+  def post_quality_check_updates
+    self.route_stop_patterns_created_or_updated.each do |rsp|
+      rsp_dist_issues = Issue.issues_of_entity(rsp).where(issue_type: 'distance_calculation_inaccurate').to_a
+      if rsp_dist_issues.any?
+        if rsp.geometry_source.eql?("shapes_txt_with_dist_traveled")
+          # shape_dist_traveled values may be faulty. So trying the TL algorithm here.
+          Geometry::EnhancedOTPDistances.new.calculate_distances(rsp, stops=stops)
+          qc = QualityCheck::GeometryQualityCheck.new(changeset: self)
+          rsp.stop_pattern.each_index do |i|
+            qc.stop_distances_accuracy(rsp, i)
+          end
+          rsp_dist_issues.each(&:deprecate)
+          rsp_dist_issues = qc.issues
+          rsp_dist_issues.each(&:save!)
+          rsp.geometry_source = :shapes_txt
+        end
+        if rsp_dist_issues.any?
+          rsp.stop_distances = Array.new(rsp.stop_pattern.size)
+        end
+        rsp.update_making_history(changeset: self)
+        unless import?
+          rsp.ordered_ssp_trip_chunks { |trip_chunk|
+            trip_chunk.each_with_index do |ssp, i|
+              ssp.update_column(:origin_dist_traveled, rsp.stop_distances[i])
+              ssp.update_column(:destination_dist_traveled, rsp.stop_distances[i+1])
+            end
+          }
+        end
+      end
+    end
+  end
+
   def apply!
     fail Changeset::Error.new(changeset: self, message: 'has already been applied.') if applied
     new_issues_created_by_changeset = []
@@ -272,13 +257,25 @@ class Changeset < ActiveRecord::Base
 
     Changeset.transaction do
       begin
-        # Apply ChangePayloads, collect issues
+        # Apply changes
+        change_payloads.each do |change_payload|
+          change_payload.apply_change
+        end
+
+        # Apply associations
+        change_payloads.each do |change_payload|
+          change_payload.apply_associations
+        end
+
+        # Collect issues
         issues_changeset_is_resolving = []
         change_payloads.each do |change_payload|
-          payload_issues_changeset_is_resolving, payload_old_issues_to_deprecate = change_payload.apply!
+          payload_issues_changeset_is_resolving, payload_old_issues_to_deprecate = change_payload.resolving_and_deprecating_issues
           issues_changeset_is_resolving += payload_issues_changeset_is_resolving
           old_issues_to_deprecate.merge(payload_old_issues_to_deprecate)
         end
+
+        # Mark as applied
         self.update(applied: true, applied_at: Time.now)
 
         # Update attributes that derive from attributes between models
@@ -293,6 +290,9 @@ class Changeset < ActiveRecord::Base
 
         # save new issues; deprecate old issues; resolve changeset-specified issues
         cycle_issues(issues_changeset_is_resolving, new_issues_created_by_changeset, old_issues_to_deprecate)
+
+        # modify entity attribute values based on quality issues found
+        post_quality_check_updates
 
       rescue StandardError => error
         log "Error applying Changeset #{self.id}: #{error.message}", :error

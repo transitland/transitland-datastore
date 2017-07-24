@@ -11,7 +11,6 @@
 #  name                               :string
 #  created_or_updated_in_changeset_id :integer
 #  version                            :integer
-#  identifiers                        :string           default([]), is an Array
 #  timezone                           :string
 #  last_conflated_at                  :datetime
 #  type                               :string
@@ -19,12 +18,12 @@
 #  osm_way_id                         :integer
 #  edited_attributes                  :string           default([]), is an Array
 #  wheelchair_boarding                :boolean
+#  directionality                     :integer
 #
 # Indexes
 #
 #  #c_stops_cu_in_changeset_id_index           (created_or_updated_in_changeset_id)
 #  index_current_stops_on_geometry             (geometry)
-#  index_current_stops_on_identifiers          (identifiers)
 #  index_current_stops_on_onestop_id           (onestop_id) UNIQUE
 #  index_current_stops_on_parent_stop_id       (parent_stop_id)
 #  index_current_stops_on_tags                 (tags)
@@ -38,8 +37,6 @@ class StopPlatform < Stop
     virtual_attributes: [
       :served_by,
       :not_served_by,
-      :identified_by,
-      :not_identified_by,
       :parent_stop_onestop_id,
       :includes_stop_transfers,
       :does_not_include_stop_transfers,
@@ -47,20 +44,43 @@ class StopPlatform < Stop
       :not_imported_from_feeds
     ],
     protected_attributes: [
-      :identifiers,
       :last_conflated_at,
       :type
     ]
   })
   belongs_to :parent_stop, class_name: 'Stop'
-  validates :parent_stop, presence: true
-  def parent_stop_onestop_id
-    if self.parent_stop
-      self.parent_stop.onestop_id
+  # validates :parent_stop, presence: true
+
+  # Temporary
+  attr_accessor :platform_name
+
+  def update_parent_stop(changeset)
+    if self.parent_stop_onestop_id
+      parent_stop = Stop.find_by_onestop_id!(self.parent_stop_onestop_id)
+      self.update!(parent_stop: parent_stop)
     end
   end
-  def parent_stop_onestop_id=(value)
-    self.parent_stop = Stop.find_by_onestop_id!(value)
+
+  def update_associations(changeset)
+    update_parent_stop(changeset)
+    super(changeset)
+  end
+
+  def generate_onestop_id
+    fail Exception.new('geometry required') if geometry.nil?
+    fail Exception.new('name required') if name.nil?
+    fail Exception.new('platform_name required') if platform_name.nil?
+    fail Exception.new('parent_stop required') if parent_stop.nil?
+    platform_name = self.platform_name.gsub(/[\>\<]/, '')
+    parent_onestop_id = OnestopId::StopOnestopId.new(
+      string: parent_stop.onestop_id || parent_stop.generate_onestop_id
+    )
+    onestop_id = OnestopId::StopOnestopId.new(
+      geohash: parent_onestop_id.geohash,
+      name: "#{parent_onestop_id.name}<#{platform_name}"
+    )
+    onestop_id.validate!
+    onestop_id.to_s
   end
 end
 

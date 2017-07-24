@@ -42,12 +42,21 @@ class FeedVersionSerializer < ApplicationSerializer
              :updated_at,
              :feed_version_imports,
              :feed_version_imports_url,
+             :feed_version_infos,
              :import_level,
+             :import_status,
              :is_active_feed_version,
              :changesets_imported_from_this_feed_version,
+             :feed,
              :url,
              :download_url,
              :feedvalidator_url
+
+  has_many :issues, if: :has_issues
+
+  def feed
+    object.feed.onestop_id
+  end
 
   def feed_version_imports
     object.feed_version_imports.map(&:id)
@@ -60,11 +69,19 @@ class FeedVersionSerializer < ApplicationSerializer
     })
   end
 
+  def feed_version_infos
+    object.feed_version_infos.map(&:id)
+  end
+
   def is_active_feed_version
     object.is_active_feed_version
   end
 
   def changesets_imported_from_this_feed_version
     object.changesets_imported_from_this_feed_version.map(&:id)
+  end
+
+  def has_issues
+    !!scope && !!scope[:embed_issues]
   end
 end

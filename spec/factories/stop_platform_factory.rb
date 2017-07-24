@@ -11,7 +11,6 @@
 #  name                               :string
 #  created_or_updated_in_changeset_id :integer
 #  version                            :integer
-#  identifiers                        :string           default([]), is an Array
 #  timezone                           :string
 #  last_conflated_at                  :datetime
 #  type                               :string
@@ -19,12 +18,12 @@
 #  osm_way_id                         :integer
 #  edited_attributes                  :string           default([]), is an Array
 #  wheelchair_boarding                :boolean
+#  directionality                     :integer
 #
 # Indexes
 #
 #  #c_stops_cu_in_changeset_id_index           (created_or_updated_in_changeset_id)
 #  index_current_stops_on_geometry             (geometry)
-#  index_current_stops_on_identifiers          (identifiers)
 #  index_current_stops_on_onestop_id           (onestop_id) UNIQUE
 #  index_current_stops_on_parent_stop_id       (parent_stop_id)
 #  index_current_stops_on_tags                 (tags)

@@ -1,56 +1,43 @@
-class Api::V1::StopStationsController < Api::V1::BaseApiController
-  include JsonCollectionPagination
-  include DownloadableCsv
-  include AllowFiltering
+class Api::V1::StopStationsController < Api::V1::CurrentEntityController
+  def self.model
+    Stop
+  end
 
-  before_action :set_stop, only: [:show]
+  private
 
-  def index
-    @stops = Stop.where(type: nil)
-
-    @stops = AllowFiltering.by_onestop_id(@stops, params)
-    @stops = AllowFiltering.by_tag_keys_and_values(@stops, params)
-    @stops = AllowFiltering.by_identifer_and_identifier_starts_with(@stops, params)
-    @stops = AllowFiltering.by_updated_since(@stops, params)
-
-    if params[:imported_from_feed].present?
-      @stops = @stops.where_imported_from_feed(Feed.find_by_onestop_id(params[:imported_from_feed]))
-    end
-
-    if params[:imported_from_feed_version].present?
-      @stops = @stops.where_imported_from_feed_version(FeedVersion.find_by!(sha1: params[:imported_from_feed_version]))
-    end
-
+  def index_query
+    super
+    @collection = @collection.where(type: nil)
     if params[:served_by].present? || params[:servedBy].present?
       # we previously allowed `servedBy`, so we'll continue to honor that for the time being
       operator_onestop_ids = []
       operator_onestop_ids += params[:served_by].split(',') if params[:served_by].present?
       operator_onestop_ids += params[:servedBy].split(',') if params[:servedBy].present?
       operator_onestop_ids.uniq!
-      @stops = @stops.served_by(operator_onestop_ids)
+      @collection = @collection.served_by(operator_onestop_ids)
     end
-    if [params[:lat], params[:lon]].map(&:present?).all?
-      point = Stop::GEOFACTORY.point(params[:lon], params[:lat])
-      r = params[:r] || 100 # meters TODO: move this to a more logical place
-      @stops = @stops.where{st_dwithin(geometry, point, r)}.order{st_distance(geometry, point)}
+    if params[:served_by_vehicle_types].present?
+      @collection = @collection.served_by_vehicle_types(AllowFiltering.param_as_array(params, :served_by_vehicle_types))
     end
-    if params[:bbox].present?
-      @stops = @stops.geometry_within_bbox(params[:bbox])
+    if params[:wheelchair_boarding].present?
+      @collection = @collection.where(wheelchair_boarding: AllowFiltering.to_boolean(params[:wheelchair_boarding] ))
     end
-    if params[:import_level].present?
-      @stops = @stops.where_import_level(AllowFiltering.param_as_array(params, :import_level))
+    if params[:min_platforms].present?
+      @collection = @collection.with_min_platforms(params[:min_platforms].to_i)
     end
-    # TODO: served_by_vehicle_types
+    if params[:min_egresses].present?
+      @collection = @collection.with_min_egresses(params[:min_egresses].to_i)
+    end
+  end
 
-
-    @stops = @stops.includes{[
+  def index_includes
+    super
+    @collection = @collection.includes{[
       stop_transfers,
       stop_transfers.to_stop,
       stop_platforms,
       stop_egresses,
       # Self
-      imported_from_feeds,
-      imported_from_feed_versions,
       operators_serving_stop,
       operators_serving_stop.operator,
       routes_serving_stop,
@@ -75,52 +62,60 @@ class Api::V1::StopStationsController < Api::V1::BaseApiController
       stop_egresses.routes_serving_stop.route,
       stop_egresses.routes_serving_stop.route.operator,
       stop_egresses.stop_transfers,
-      stop_egresses.stop_transfers.to_stop,
+      stop_egresses.stop_transfers.to_stop
     ]} # TODO: check performance against eager_load, joins, etc.
 
-    respond_to do |format|
-      format.json { render paginated_json_collection(@stops) }
-      format.geojson { render paginated_geojson_collection(@stops) }
-      format.csv { return_downloadable_csv(@stops, 'stops') }
-    end
-  end
-
-  def show
-    respond_to do |format|
-      format.json { render json: @stop, serializer: StopStationSerializer }
-      format.geojson { render json: @stop, serializer: GeoJSONSerializer }
+    if AllowFiltering.to_boolean(params[:embed_issues])
+      @collection = @collection.includes{[stop_platforms.issues, stop_egresses.issues]}
     end
   end
 
   def paginated_json_collection(collection)
     result = super
     result[:root] = :stop_stations
-    result[:each_serializer] = StopStationSerializer
     result
   end
 
-  private
-
-  def query_params
-    params.slice(
-      :identifier,
-      :identifier_starts_with,
-      :served_by,
-      :servedBy,
-      :lat,
-      :lon,
-      :r,
-      :bbox,
-      :onestop_id,
-      :tag_key,
-      :tag_value,
-      :import_level,
-      :imported_from_feed,
-      :imported_from_feed_version
-    )
+  def render_serializer
+    StopStationSerializer
   end
 
-  def set_stop
-    @stop = Stop.find_by_onestop_id!(params[:id])
+  def render_scope
+    # Set default incl generated = true
+    incl = super
+    if incl[:generated].nil?
+      incl[:generated] = true
+    end
+    incl
+  end
+
+  def query_params
+    super.merge({
+      served_by: {
+        desc: "Served by Route or Operator",
+        type: "onestop_id",
+        array: true
+      },
+      servedBy: {
+        show: false
+      },
+      served_by_vehicle_types: {
+        desc: "Served by vehicle types",
+        type: "string",
+        array: true
+      },
+      wheelchair_boarding: {
+        desc: "Wheelchair boarding",
+        type: "boolean"
+      },
+      min_platforms: {
+        desc: "Mininum number of platforms",
+        type: "integer"
+      },
+      min_egresses: {
+        desc: "Mininum number of egresses",
+        type: "integer"
+      }
+    })
   end
 end

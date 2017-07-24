@@ -11,7 +11,6 @@
 #  name                               :string
 #  created_or_updated_in_changeset_id :integer
 #  version                            :integer
-#  identifiers                        :string           default([]), is an Array
 #  timezone                           :string
 #  last_conflated_at                  :datetime
 #  type                               :string
@@ -19,12 +18,12 @@
 #  osm_way_id                         :integer
 #  edited_attributes                  :string           default([]), is an Array
 #  wheelchair_boarding                :boolean
+#  directionality                     :integer
 #
 # Indexes
 #
 #  #c_stops_cu_in_changeset_id_index           (created_or_updated_in_changeset_id)
 #  index_current_stops_on_geometry             (geometry)
-#  index_current_stops_on_identifiers          (identifiers)
 #  index_current_stops_on_onestop_id           (onestop_id) UNIQUE
 #  index_current_stops_on_parent_stop_id       (parent_stop_id)
 #  index_current_stops_on_tags                 (tags)
@@ -38,17 +37,20 @@ end
 
 class Stop < BaseStop
   self.table_name = 'current_stops'
+  attr_accessor :parent_stop_onestop_id
   attr_accessor :served_by, :not_served_by
   attr_accessor :includes_stop_transfers, :does_not_include_stop_transfers
   validates :timezone, presence: true
 
   include HasAOnestopId
-  include IsAnEntityWithIdentifiers
   include HasAGeographicGeometry
   include HasTags
   include UpdatedSince
   include IsAnEntityImportedFromFeeds
   include IsAnEntityWithIssues
+  extend Enumerize
+  enumerize :directionality, in: {:enter => 1, :exit => 2, :both => 0}
+  # TODO: use default: :both ?
 
   include CanBeSerializedToCsv
   def self.csv_column_names
@@ -72,21 +74,19 @@ class Stop < BaseStop
     ]
   end
 
+
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
     virtual_attributes: [
       :served_by,
       :not_served_by,
-      :identified_by,
-      :not_identified_by,
       :includes_stop_transfers,
       :does_not_include_stop_transfers,
       :add_imported_from_feeds,
       :not_imported_from_feeds
     ],
     protected_attributes: [
-      :identifiers,
       :last_conflated_at,
       :type
     ],
@@ -97,20 +97,30 @@ class Stop < BaseStop
     ]
   })
 
-  def after_create_making_history(changeset)
-    super(changeset)
+  def update_stop_pattern_onestop_ids(old_onestop_ids, changeset)
+    old_onestop_ids = Array.wrap(old_onestop_ids)
+    RouteStopPattern.with_any_stops(old_onestop_ids).each do |rsp|
+      rsp.stop_pattern.map! { |stop_onestop_id| old_onestop_ids.include?(stop_onestop_id) ? self.onestop_id : stop_onestop_id }
+      rsp.update_making_history(changeset: changeset)
+    end
+  end
+
+  def after_change_onestop_id(old_onestop_id, changeset)
+    self.update_stop_pattern_onestop_ids(old_onestop_id, changeset)
+  end
+
+  def after_merge_onestop_ids(merging_onestop_ids, changeset)
+    self.update_stop_pattern_onestop_ids(merging_onestop_ids, changeset)
+  end
+
+  def update_associations(changeset)
     update_entity_imported_from_feeds(changeset)
     update_served_by(changeset)
     update_includes_stop_transfers(changeset)
     update_does_not_include_stop_transfers(changeset)
-  end
-  def before_update_making_history(changeset)
     super(changeset)
-    update_entity_imported_from_feeds(changeset)
-    update_served_by(changeset)
-    update_includes_stop_transfers(changeset)
-    update_does_not_include_stop_transfers(changeset)
   end
+
   def before_destroy_making_history(changeset, old_model)
     operators_serving_stop.each do |operator_serving_stop|
       operator_serving_stop.destroy_making_history(changeset: changeset)
@@ -171,6 +181,9 @@ class Stop < BaseStop
   has_many :stops_out, through: :trips_out, source: :destination
   has_many :stops_in, through: :trips_in, source: :origin
 
+  # Issues
+  has_many :issues, through: :entities_with_issues
+
   def parent_stop
     # Dummy relation
   end
@@ -186,7 +199,7 @@ class Stop < BaseStop
       when Route
         routes << onestop_id_or_model
       when String
-        model = OnestopId.find!(onestop_id_or_model)
+        model = OnestopId.find_current_and_old!(onestop_id_or_model)
         case model
         when Route then routes << model
         when Operator then operators << model
@@ -224,6 +237,25 @@ class Stop < BaseStop
   scope :last_conflated_before, -> (last_conflated_at) {
     where('last_conflated_at <= ?', last_conflated_at)
   }
+
+  scope :with_min_platforms, -> (min_count) {
+    where(type: nil)
+    .joins("INNER JOIN current_stops AS current_stop_platforms ON current_stop_platforms.type = 'StopPlatform' AND current_stop_platforms.parent_stop_id = current_stops.id")
+    .group('current_stops.id, current_stop_platforms.parent_stop_id')
+    .having('COUNT(current_stop_platforms.id) >= ?', min_count || 1)
+  }
+
+  scope :with_min_egresses, -> (min_count) {
+    where(type: nil)
+    .joins("INNER JOIN current_stops AS current_stop_egresses ON current_stop_egresses.type = 'StopEgress' AND current_stop_egresses.parent_stop_id = current_stops.id")
+    .group('current_stops.id, current_stop_egresses.parent_stop_id')
+    .having('COUNT(current_stop_egresses.id) >= ?', min_count || 1)
+  }
+
+  def coordinates
+    g = geometry(as: :wkt)
+    [g.lon, g.lat]
+  end
 
   # Similarity search
   def self.find_by_similarity(point, name, radius=100, threshold=0.75)
@@ -302,7 +334,7 @@ class Stop < BaseStop
             osm_way_id = tyr_locate_response[index][:edges][0][:way_id]
           else
             log "Tyr response for Stop #{stop.onestop_id} did not contain edges. Leaving osm_way_id."
-            Issue.create!(issue_type: 'missing_stop_conflation_result', details: 'Tyr response for Stop #{stop.onestop_id} did not contain edges. Leaving osm_way_id.')
+            Issue.create!(issue_type: 'missing_stop_conflation_result', details: "Tyr response for Stop #{stop.onestop_id} did not contain edges. Leaving osm_way_id.")
               .entities_with_issues.create!(entity: stop, entity_attribute: 'osm_way_id')
           end
 
@@ -323,34 +355,17 @@ class Stop < BaseStop
     end
   end
 
-  ##### FromGTFS ####
-  include FromGTFS
-  def self.from_gtfs(entity, attrs={})
-    # GTFS Constructor
-    point = Stop::GEOFACTORY.point(*entity.coordinates)
-    geohash = GeohashHelpers.encode(point)
-    # Use stop_id as a fallback for an invalid onestop ID name component
-    onestop_id = OnestopId.handler_by_model(self).new(geohash: geohash, name: entity.stop_name.gsub(/[\>\<]/, ''))
-    if onestop_id.valid? == false
-      old_onestop_id = onestop_id.to_s
-      onestop_id = OnestopId.handler_by_model(self).new(geohash: geohash, name: entity.id)
-      log "Stop.from_gtfs: Invalid onestop_id: #{old_onestop_id}, trying #{onestop_id.to_s}"
-    end
-    onestop_id.validate! # raise OnestopIdException
-    stop = self.new(
-      name: entity.stop_name,
-      onestop_id: onestop_id.to_s,
-      geometry: point.to_s
+  def generate_onestop_id
+    fail Exception.new('geometry required') if geometry.nil?
+    fail Exception.new('name required') if name.nil?
+    geohash = GeohashHelpers.encode(self[:geometry])
+    name = self.name.gsub(/[\>\<]/, '')
+    onestop_id = OnestopId.handler_by_model(self.class).new(
+      geohash: geohash,
+      name: name
     )
-    stop.wheelchair_boarding = GTFSGraph.to_tfn(entity.wheelchair_boarding)
-    # Copy over GTFS attributes to tags
-    stop.tags ||= {}
-    stop.tags[:wheelchair_boarding] = entity.wheelchair_boarding
-    stop.tags[:stop_desc] = entity.stop_desc
-    stop.tags[:stop_url] = entity.stop_url
-    stop.tags[:zone_id] = entity.zone_id
-    stop.timezone = entity.stop_timezone
-    stop
+    onestop_id.validate!
+    onestop_id.to_s
   end
 
   private
