@@ -23,6 +23,7 @@
       }
     },
     "geometry": { "type": "object" },
+    "geometryReversegeo": { "type": "object" },
     "timezone": { "type": "string" },
     "tags": { "type": "object" },
     "name": { "type": "string" },
