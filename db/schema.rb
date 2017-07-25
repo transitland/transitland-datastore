@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170719230128) do
+ActiveRecord::Schema.define(version: 20170725011839) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -182,7 +182,7 @@ ActiveRecord::Schema.define(version: 20170719230128) do
   add_index "current_routes_serving_stop", ["route_id"], name: "index_current_routes_serving_stop_on_route_id", using: :btree
   add_index "current_routes_serving_stop", ["stop_id"], name: "index_current_routes_serving_stop_on_stop_id", using: :btree
 
-  create_table "current_schedule_stop_pairs", force: :cascade do |t|
+  create_table "current_schedule_stop_pairs", id: :bigserial, force: :cascade do |t|
     t.integer  "origin_id"
     t.integer  "destination_id"
     t.integer  "route_id"
@@ -554,7 +554,7 @@ ActiveRecord::Schema.define(version: 20170719230128) do
   add_index "old_routes_serving_stop", ["route_type", "route_id"], name: "index_old_routes_serving_stop_on_route_type_and_route_id", using: :btree
   add_index "old_routes_serving_stop", ["stop_type", "stop_id"], name: "index_old_routes_serving_stop_on_stop_type_and_stop_id", using: :btree
 
-  create_table "old_schedule_stop_pairs", force: :cascade do |t|
+  create_table "old_schedule_stop_pairs", id: :bigserial, force: :cascade do |t|
     t.integer  "origin_id"
     t.string   "origin_type"
     t.integer  "destination_id"
