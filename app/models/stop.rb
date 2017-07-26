@@ -310,13 +310,18 @@ class Stop < BaseStop
       end
   end
 
+  def geometry_for_centroid
+    self[:geometry_reversegeo] || self[:geometry]
+  end
+
   def self.conflate_with_osm(stops)
     stops.in_groups_of(TyrService::MAX_LOCATIONS_PER_REQUEST, false).each do |group|
       Stop.transaction do
         locations = group.map do |stop|
+          geom = stop.geometry_for_centroid
           {
-            lat: stop.geometry(as: :wkt).lat,
-            lon: stop.geometry(as: :wkt).lon
+            lat: geom.lat,
+            lon: geom.lon
           }
         end
         tyr_locate_response = TyrService.locate(locations: locations)
