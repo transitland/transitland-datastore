@@ -29,7 +29,7 @@ module HasAGeographicGeometry
 
       if projected == false
         convex_hull = RGeo::Feature.cast(convex_hull,
-          factory: RGeo::Geographic.spherical_factory(srid: 4326),
+          factory: GEOFACTORY,
           project: true
         )
       end
@@ -76,28 +76,33 @@ module HasAGeographicGeometry
   end
 
   def geometry_centroid
-    wkt = geometry(as: :wkt)
-    if wkt.respond_to?(:lat) && wkt.respond_to?(:lon)
-      lat = wkt.lat
-      lon = wkt.lon
-    elsif wkt.respond_to?(:centroid)
-      # TODO: fix this
-      lat = nil
-      lon = nil
-      # centroid = wkt.centroid
-      # lat = centroid.lat
-      # lon = centroid.lon
-    else
-      lat = nil
-      lon = nil
-    end
-    {
-      lon: lon,
-      lat: lat
-    }
+    centroid_from_geometry(geometry_for_centroid)
   end
 
-  private
+  def geometry_for_centroid
+    geometry(as: :wkt)
+  end
+
+  def centroid_from_geometry(geom)
+    geom_proj = RGeo::Feature.cast(
+      geom,
+      factory: RGeo::Geographic.simple_mercator_factory.projection_factory,
+      project: true
+    )
+    if geom.respond_to?(:lat) && geom.respond_to?(:lon)
+      centroid = geom.dup
+    elsif geom_proj.respond_to?(:centroid)
+      centroid = geom_proj.centroid
+    else
+      fail Exception.new("Cant create centroid: #{geom}")
+    end
+    # Project back
+    RGeo::Feature.cast(
+      centroid,
+      factory: GEOFACTORY,
+      project: true
+    )
+  end
 
   def self.geometry_from_geojson(value)
     # RGeo::GeoJSON can take hashes directly but requires string keys...
