@@ -42,14 +42,15 @@ describe HasAGeographicGeometry do
 
   end
 
-  context '.geometry_from_geojson' do
+  context '.geometry_parse' do
     it 'converts from string' do
-      g = HasAGeographicGeometry.geometry_from_geojson(JSON.dump(geometry_point))
-      expect(g.geometry_type).to eq(RGeo::Feature::Point)
+      g = Stop.new.geometry_parse('POINT(-122.353165 37.936887)')
+      expect(g).to start_with('POINT')
     end
+
     it 'converts from hash' do
-      g = HasAGeographicGeometry.geometry_from_geojson(geometry_point)
-      expect(g.geometry_type).to eq(RGeo::Feature::Point)
+      g = Stop.new.geometry_parse(geometry_point)
+      expect(g).to start_with('POINT')
     end
   end
 
