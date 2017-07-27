@@ -254,8 +254,12 @@ class Stop < BaseStop
     .having('COUNT(current_stop_egresses.id) >= ?', min_count || 1)
   }
 
+  def geometry_for_centroid
+    self[:geometry_reversegeo] || self[:geometry]
+  end
+
   def coordinates
-    g = geometry(as: :wkt)
+    g = geometry_centroid
     [g.lon, g.lat]
   end
 
@@ -308,10 +312,6 @@ class Stop < BaseStop
       Stop.last_conflated_before(last_conflated_at).ids.each_slice(1000) do |slice|
         ConflateStopsWithOsmWorker.perform_async(slice)
       end
-  end
-
-  def geometry_for_centroid
-    self[:geometry_reversegeo] || self[:geometry]
   end
 
   def self.conflate_with_osm(stops)
