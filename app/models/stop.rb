@@ -71,8 +71,8 @@ class Stop < BaseStop
       name,
       operators_serving_stop.map {|oss| oss.operator.name }.join(', '),
       operators_serving_stop.map {|oss| oss.operator.onestop_id }.join(', '),
-      geometry_centroid[:lat],
-      geometry_centroid[:lon]
+      geometry_centroid.lat,
+      geometry_centroid.lon
     ]
   end
 
