@@ -43,17 +43,8 @@ module HasAGeographicGeometry
     end
   end
 
-  def geometry=(incoming_geometry)
-    case incoming_geometry
-    when Hash
-      # it's GeoJSON
-      geojson_as_string = JSON.dump(incoming_geometry)
-      parsed_geojson = RGeo::GeoJSON.decode(geojson_as_string, json_parser: :json)
-      self.send(:write_attribute, :geometry, parsed_geojson.as_text)
-    else
-      # it's WKT or a RGeo::Geographic feature
-      self.send(:write_attribute, :geometry, incoming_geometry)
-    end
+  def geometry=(value)
+    super(geometry_parse(value))
   end
 
   def geometry(as: :geojson, projected: false)
@@ -73,6 +64,16 @@ module HasAGeographicGeometry
      when :geojson
       return RGeo::GeoJSON.encode(rgeo_geometry).try(:symbolize_keys)
     end
+  end
+
+  def geometry_parse(value)
+    # Doesn't handle JSON strings
+    if value.is_a?(Hash)
+      # it's GeoJSON
+      value = RGeo::GeoJSON.decode(JSON.dump(value), json_parser: :json).as_text
+    end
+    # it's WKT or a RGeo::Geographic feature
+    value
   end
 
   def geometry_centroid
@@ -102,12 +103,6 @@ module HasAGeographicGeometry
       factory: GEOFACTORY,
       project: true
     )
-  end
-
-  def self.geometry_from_geojson(value)
-    # RGeo::GeoJSON can take hashes directly but requires string keys...
-    value = value.is_a?(String) ? value : JSON.dump(value)
-    RGeo::GeoJSON.decode(value, json_parser: :json)
   end
 
   def validate_geometry
