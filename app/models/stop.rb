@@ -254,6 +254,15 @@ class Stop < BaseStop
     .having('COUNT(current_stop_egresses.id) >= ?', min_count || 1)
   }
 
+
+  def geometry_reversegeo=(value)
+    super(geometry_parse(value))
+  end
+
+  def geometry_reversegeo(**kwargs)
+    geometry_encode(self.send(:read_attribute, :geometry_reversegeo), **kwargs)
+  end
+
   def geometry_for_centroid
     self[:geometry_reversegeo] || self[:geometry]
   end
