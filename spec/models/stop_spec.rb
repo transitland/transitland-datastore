@@ -169,6 +169,7 @@ describe Stop do
     end
   end
 
+  context 'convex_hull' do
     it 'can compute a convex hull around multiple stops' do
       # using similar points to http://turfjs.org/static/docs/module-turf_convex.html
       s1 = build(:stop, geometry: { type: 'Point', coordinates: [10.195312, 43.755225] })
@@ -189,6 +190,31 @@ describe Stop do
         expect(touches || within).to eq true
       end
     end
+
+    it 'works if with polygon geometries' do
+      # verified via geojson.io
+      s1 = build(:stop, geometry: geometry_point)
+      s2 = build(:stop, geometry: geometry_point2)
+      s3 = build(:stop, geometry: geometry_polygon)
+      unprojected_convex_hull = Stop.convex_hull([s1,s2,s3], as: :wkt)
+      expect(unprojected_convex_hull.exterior_ring.num_points).to eq 7
+      expected_coordinates = [[
+        [-122.145893, 37.393446999999995],
+        [-122.14871499999997, 37.39384199999998],
+        [-123.00000000000001, 38.0],
+        [-121.945377, 38.017442999999986],
+        [-121.894138, 37.43169999999998],
+        [-121.90015699999998, 37.413860999999976],
+        [-122.145893, 37.393446999999995]
+      ]]
+      unprojected_convex_hull.coordinates[0].zip(expected_coordinates[0]).each { |a,b|
+        # puts "#{a} = #{b}"
+        expect(a[0]).to be_within(0.001).of(b[0])
+        expect(a[1]).to be_within(0.001).of(b[1])
+      }
+    end
+
+  end
 
     it 'can find stops by bounding box' do
       santa_clara = create(:stop, geometry: { type: 'Point', coordinates: [-121.936376, 37.352915] })
