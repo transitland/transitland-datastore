@@ -106,8 +106,22 @@ describe Stop do
       expect(stop.geometry(as: :wkt).to_s).to eq('POINT (-122.433416 37.732525)')
     end
 
-    it 'can provide a centroid when geometry is a polygon' do
-      # TODO: rewrite this functionality
+    it 'can be specified via changeset' do
+      stop = create(:stop)
+      c = {changes: [{action: :createUpdate, stop: {onestopId: stop.onestop_id, geometry: geometry_point}}]}
+      Changeset.new(payload: c).apply!
+      stop.reload
+      expect(stop.geometry).to eq geometry_point
+    end
+
+    it 'can accept a polygon via changeset' do
+      stop = create(:stop)
+      c = {changes: [{action: :createUpdate, stop: {onestopId: stop.onestop_id, geometry: geometry_polygon}}]}
+      Changeset.new(payload: c).apply!
+      stop.reload
+      expect(stop.geometry).to eq geometry_polygon
+    end
+  end
     end
 
     it 'can compute a convex hull around multiple stops' do
