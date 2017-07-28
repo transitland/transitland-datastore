@@ -47,9 +47,11 @@ module HasAGeographicGeometry
     super(geometry_parse(value))
   end
 
-  def geometry(as: :geojson, projected: false)
-    rgeo_geometry = self.send(:read_attribute, :geometry)
+  def geometry(**kwargs)
+    geometry_encode(self.send(:read_attribute, :geometry), **kwargs)
+  end
 
+  def geometry_encode(rgeo_geometry, as: :geojson, projected: false)
     if projected
       rgeo_geometry = RGeo::Feature.cast(
         rgeo_geometry,
