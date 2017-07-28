@@ -122,7 +122,52 @@ describe Stop do
       expect(stop.geometry).to eq geometry_polygon
     end
   end
+
+  context 'geometry_reversegeo' do
+    it 'can be specified with WKT' do
+        stop = create(:stop, geometry_reversegeo: 'POINT(-122.433416 37.732525)')
+        expect(Stop.exists?(stop.id)).to be true
+        expect(stop.geometry_reversegeo).to eq({ type: 'Point', coordinates: [-122.433416, 37.732525] })
     end
+
+    it 'can be specified with GeoJSON' do
+      stop = create(:stop, geometry_reversegeo: geometry_point)
+      expect(Stop.exists?(stop.id)).to be true
+      expect(stop.geometry_reversegeo).to eq geometry_point
+    end
+
+    it 'can be read as GeoJSON (by default)' do
+      stop = create(:stop, geometry_reversegeo: geometry_point)
+      expect(stop.geometry_reversegeo).to eq geometry_point
+    end
+
+    it 'can be read as WKT' do
+      stop = create(:stop, geometry_reversegeo: geometry_point)
+      expect(stop.geometry_reversegeo(as: :wkt).to_s).to eq('POINT (-122.433416 37.732525)')
+    end
+
+    it 'can be specified via changeset' do
+      stop = create(:stop)
+      c = {changes: [{action: :createUpdate, stop: {onestopId: stop.onestop_id, geometryReversegeo: geometry_point}}]}
+      Changeset.new(payload: c).apply!
+      stop.reload
+      expect(stop.geometry_reversegeo).to eq geometry_point
+    end
+
+    it 'rejects polygons' do
+      expect {
+        create(:stop, geometry_reversegeo: geometry_polygon)
+      }.to raise_error(ActiveRecord::StatementInvalid)
+    end
+
+    it 'rejects polygons in changeset' do
+      stop = create(:stop)
+      c = {changes: [{action: :createUpdate, stop: {onestopId: stop.onestop_id, geometryReversegeo: geometry_polygon}}]}
+      expect {
+        Changeset.new(payload: c).apply!
+      }.to raise_error(Changeset::Error)
+    end
+  end
 
     it 'can compute a convex hull around multiple stops' do
       # using similar points to http://turfjs.org/static/docs/module-turf_convex.html
