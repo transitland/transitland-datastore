@@ -40,6 +40,7 @@ class StopSerializer < CurrentEntitySerializer
              :served_by_vehicle_types,
              :parent_stop_onestop_id,
              :wheelchair_boarding
+             :geometry_reversegeo
 
   has_many :operators_serving_stop
   has_many :routes_serving_stop
