@@ -216,6 +216,7 @@ describe Stop do
 
   end
 
+  context 'bbox' do
     it 'can find stops by bounding box' do
       santa_clara = create(:stop, geometry: { type: 'Point', coordinates: [-121.936376, 37.352915] })
       mountain_view = create(:stop, geometry: { type: 'Point', coordinates: [-122.076327, 37.393879] })
@@ -228,6 +229,22 @@ describe Stop do
       expect { Stop.geometry_within_bbox('-122.25,37.25,-122.0') }.to raise_error(ArgumentError)
       expect { Stop.geometry_within_bbox() }.to raise_error(ArgumentError)
       expect { Stop.geometry_within_bbox([-122.25,37.25,-122.0]) }.to raise_error(ArgumentError)
+    end
+  end
+
+  context '.geometry_centroid' do
+    it 'can provide a centroid fallback when geometry is a polygon' do
+      stop = create(:stop, geometry: geometry_polygon)
+      centroid = stop.geometry_centroid
+      expect(centroid.lon).to be_within(0.001).of(-122.13687551482836)
+      expect(centroid.lat).to be_within(0.001).of(37.72253485209869)
+    end
+  end
+
+  context '.geometry_for_centroid' do
+    it 'geometry_reversegeo overrides geometry' do
+      stop = create(:stop, geometry: geometry_polygon, geometry_reversegeo: geometry_point)
+      expect(stop.geometry_for_centroid).to eq(stop[:geometry_reversegeo])
     end
   end
 
