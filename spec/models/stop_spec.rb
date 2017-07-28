@@ -34,6 +34,17 @@
 #
 
 describe Stop do
+  let (:geometry_point) { { type: 'Point', coordinates: [-122.433416, 37.732525] } }
+  let (:geometry_point2) { { type: 'Point', coordinates: [-123.0, 38.0] } }
+  let (:geometry_polygon) {
+    {
+      type: 'Polygon',
+      coordinates: [[
+        [-122.421947,37.772829],[-122.418206,37.752327],[-122.299818,37.535186],[-122.148715,37.393842],[-122.145893,37.393447],[-121.900157,37.413861],[-121.894138,37.4317],[-121.945377,38.017443],[-122.349579,37.996726],[-122.354525,37.993171],[-122.386786,37.92887],[-122.421947,37.772829]
+      ]]
+    }
+  }
+
   it 'can be created' do
     stop = create(:stop)
     expect(Stop.exists?(stop.id)).to be true
