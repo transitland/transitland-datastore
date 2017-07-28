@@ -19,11 +19,13 @@
 #  edited_attributes                  :string           default([]), is an Array
 #  wheelchair_boarding                :boolean
 #  directionality                     :integer
+#  geometry_reversegeo                :geography({:srid point, 4326
 #
 # Indexes
 #
 #  #c_stops_cu_in_changeset_id_index           (created_or_updated_in_changeset_id)
 #  index_current_stops_on_geometry             (geometry)
+#  index_current_stops_on_geometry_reversegeo  (geometry_reversegeo)
 #  index_current_stops_on_onestop_id           (onestop_id) UNIQUE
 #  index_current_stops_on_parent_stop_id       (parent_stop_id)
 #  index_current_stops_on_tags                 (tags)
@@ -69,8 +71,8 @@ class Stop < BaseStop
       name,
       operators_serving_stop.map {|oss| oss.operator.name }.join(', '),
       operators_serving_stop.map {|oss| oss.operator.onestop_id }.join(', '),
-      geometry_centroid[:lat],
-      geometry_centroid[:lon]
+      geometry_centroid.lat,
+      geometry_centroid.lon
     ]
   end
 
@@ -252,8 +254,21 @@ class Stop < BaseStop
     .having('COUNT(current_stop_egresses.id) >= ?', min_count || 1)
   }
 
+
+  def geometry_reversegeo=(value)
+    super(geometry_parse(value))
+  end
+
+  def geometry_reversegeo(**kwargs)
+    geometry_encode(self.send(:read_attribute, :geometry_reversegeo), **kwargs)
+  end
+
+  def geometry_for_centroid
+    self[:geometry_reversegeo] || self[:geometry]
+  end
+
   def coordinates
-    g = geometry(as: :wkt)
+    g = geometry_centroid
     [g.lon, g.lat]
   end
 
@@ -312,9 +327,10 @@ class Stop < BaseStop
     stops.in_groups_of(TyrService::MAX_LOCATIONS_PER_REQUEST, false).each do |group|
       Stop.transaction do
         locations = group.map do |stop|
+          geom = stop.geometry_for_centroid
           {
-            lat: stop.geometry(as: :wkt).lat,
-            lon: stop.geometry(as: :wkt).lon
+            lat: geom.lat,
+            lon: geom.lon
           }
         end
         tyr_locate_response = TyrService.locate(locations: locations)

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170719230128) do
+ActiveRecord::Schema.define(version: 20170725005643) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -277,10 +277,12 @@ ActiveRecord::Schema.define(version: 20170719230128) do
     t.string    "edited_attributes",                                                                              default: [], array: true
     t.boolean   "wheelchair_boarding"
     t.integer   "directionality"
+    t.geography "geometry_reversegeo",                limit: {:srid=>4326, :type=>"st_point", :geographic=>true}
   end
 
   add_index "current_stops", ["created_or_updated_in_changeset_id"], name: "#c_stops_cu_in_changeset_id_index", using: :btree
   add_index "current_stops", ["geometry"], name: "index_current_stops_on_geometry", using: :gist
+  add_index "current_stops", ["geometry_reversegeo"], name: "index_current_stops_on_geometry_reversegeo", using: :gist
   add_index "current_stops", ["onestop_id"], name: "index_current_stops_on_onestop_id", unique: true, using: :btree
   add_index "current_stops", ["parent_stop_id"], name: "index_current_stops_on_parent_stop_id", using: :btree
   add_index "current_stops", ["tags"], name: "index_current_stops_on_tags", using: :btree
@@ -661,12 +663,14 @@ ActiveRecord::Schema.define(version: 20170719230128) do
     t.boolean   "wheelchair_boarding"
     t.string    "action"
     t.integer   "directionality"
+    t.geography "geometry_reversegeo",                limit: {:srid=>4326, :type=>"st_point", :geographic=>true}
   end
 
   add_index "old_stops", ["created_or_updated_in_changeset_id"], name: "o_stops_cu_in_changeset_id_index", using: :btree
   add_index "old_stops", ["current_id"], name: "index_old_stops_on_current_id", using: :btree
   add_index "old_stops", ["destroyed_in_changeset_id"], name: "stops_d_in_changeset_id_index", using: :btree
   add_index "old_stops", ["geometry"], name: "index_old_stops_on_geometry", using: :gist
+  add_index "old_stops", ["geometry_reversegeo"], name: "index_old_stops_on_geometry_reversegeo", using: :gist
   add_index "old_stops", ["parent_stop_id"], name: "index_old_stops_on_parent_stop_id", using: :btree
   add_index "old_stops", ["wheelchair_boarding"], name: "index_old_stops_on_wheelchair_boarding", using: :btree
 
