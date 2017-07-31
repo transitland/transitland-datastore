@@ -19,11 +19,13 @@
 #  edited_attributes                  :string           default([]), is an Array
 #  wheelchair_boarding                :boolean
 #  directionality                     :integer
+#  geometry_reversegeo                :geography({:srid point, 4326
 #
 # Indexes
 #
 #  #c_stops_cu_in_changeset_id_index           (created_or_updated_in_changeset_id)
 #  index_current_stops_on_geometry             (geometry)
+#  index_current_stops_on_geometry_reversegeo  (geometry_reversegeo)
 #  index_current_stops_on_onestop_id           (onestop_id) UNIQUE
 #  index_current_stops_on_parent_stop_id       (parent_stop_id)
 #  index_current_stops_on_tags                 (tags)
@@ -32,6 +34,17 @@
 #
 
 describe Stop do
+  let (:geometry_point) { { type: 'Point', coordinates: [-122.433416, 37.732525] } }
+  let (:geometry_point2) { { type: 'Point', coordinates: [-123.0, 38.0] } }
+  let (:geometry_polygon) {
+    {
+      type: 'Polygon',
+      coordinates: [[
+        [-122.421947,37.772829],[-122.418206,37.752327],[-122.299818,37.535186],[-122.148715,37.393842],[-122.145893,37.393447],[-121.900157,37.413861],[-121.894138,37.4317],[-121.945377,38.017443],[-122.349579,37.996726],[-122.354525,37.993171],[-122.386786,37.92887],[-122.421947,37.772829]
+      ]]
+    }
+  }
+
   it 'can be created' do
     stop = create(:stop)
     expect(Stop.exists?(stop.id)).to be true
@@ -93,10 +106,70 @@ describe Stop do
       expect(stop.geometry(as: :wkt).to_s).to eq('POINT (-122.433416 37.732525)')
     end
 
-    it 'can provide a centroid when geometry is a polygon' do
-      # TODO: rewrite this functionality
+    it 'can be specified via changeset' do
+      stop = create(:stop)
+      c = {changes: [{action: :createUpdate, stop: {onestopId: stop.onestop_id, geometry: geometry_point}}]}
+      Changeset.new(payload: c).apply!
+      stop.reload
+      expect(stop.geometry).to eq geometry_point
     end
 
+    it 'can accept a polygon via changeset' do
+      stop = create(:stop)
+      c = {changes: [{action: :createUpdate, stop: {onestopId: stop.onestop_id, geometry: geometry_polygon}}]}
+      Changeset.new(payload: c).apply!
+      stop.reload
+      expect(stop.geometry).to eq geometry_polygon
+    end
+  end
+
+  context 'geometry_reversegeo' do
+    it 'can be specified with WKT' do
+        stop = create(:stop, geometry_reversegeo: 'POINT(-122.433416 37.732525)')
+        expect(Stop.exists?(stop.id)).to be true
+        expect(stop.geometry_reversegeo).to eq({ type: 'Point', coordinates: [-122.433416, 37.732525] })
+    end
+
+    it 'can be specified with GeoJSON' do
+      stop = create(:stop, geometry_reversegeo: geometry_point)
+      expect(Stop.exists?(stop.id)).to be true
+      expect(stop.geometry_reversegeo).to eq geometry_point
+    end
+
+    it 'can be read as GeoJSON (by default)' do
+      stop = create(:stop, geometry_reversegeo: geometry_point)
+      expect(stop.geometry_reversegeo).to eq geometry_point
+    end
+
+    it 'can be read as WKT' do
+      stop = create(:stop, geometry_reversegeo: geometry_point)
+      expect(stop.geometry_reversegeo(as: :wkt).to_s).to eq('POINT (-122.433416 37.732525)')
+    end
+
+    it 'can be specified via changeset' do
+      stop = create(:stop)
+      c = {changes: [{action: :createUpdate, stop: {onestopId: stop.onestop_id, geometryReversegeo: geometry_point}}]}
+      Changeset.new(payload: c).apply!
+      stop.reload
+      expect(stop.geometry_reversegeo).to eq geometry_point
+    end
+
+    it 'rejects polygons' do
+      expect {
+        create(:stop, geometry_reversegeo: geometry_polygon)
+      }.to raise_error(ActiveRecord::StatementInvalid)
+    end
+
+    it 'rejects polygons in changeset' do
+      stop = create(:stop)
+      c = {changes: [{action: :createUpdate, stop: {onestopId: stop.onestop_id, geometryReversegeo: geometry_polygon}}]}
+      expect {
+        Changeset.new(payload: c).apply!
+      }.to raise_error(Changeset::Error)
+    end
+  end
+
+  context 'convex_hull' do
     it 'can compute a convex hull around multiple stops' do
       # using similar points to http://turfjs.org/static/docs/module-turf_convex.html
       s1 = build(:stop, geometry: { type: 'Point', coordinates: [10.195312, 43.755225] })
@@ -118,6 +191,32 @@ describe Stop do
       end
     end
 
+    it 'works if with polygon geometries' do
+      # verified via geojson.io
+      s1 = build(:stop, geometry: geometry_point)
+      s2 = build(:stop, geometry: geometry_point2)
+      s3 = build(:stop, geometry: geometry_polygon)
+      unprojected_convex_hull = Stop.convex_hull([s1,s2,s3], as: :wkt)
+      expect(unprojected_convex_hull.exterior_ring.num_points).to eq 7
+      expected_coordinates = [[
+        [-122.145893, 37.393446999999995],
+        [-122.14871499999997, 37.39384199999998],
+        [-123.00000000000001, 38.0],
+        [-121.945377, 38.017442999999986],
+        [-121.894138, 37.43169999999998],
+        [-121.90015699999998, 37.413860999999976],
+        [-122.145893, 37.393446999999995]
+      ]]
+      unprojected_convex_hull.coordinates[0].zip(expected_coordinates[0]).each { |a,b|
+        # puts "#{a} = #{b}"
+        expect(a[0]).to be_within(0.001).of(b[0])
+        expect(a[1]).to be_within(0.001).of(b[1])
+      }
+    end
+
+  end
+
+  context 'bbox' do
     it 'can find stops by bounding box' do
       santa_clara = create(:stop, geometry: { type: 'Point', coordinates: [-121.936376, 37.352915] })
       mountain_view = create(:stop, geometry: { type: 'Point', coordinates: [-122.076327, 37.393879] })
@@ -130,6 +229,22 @@ describe Stop do
       expect { Stop.geometry_within_bbox('-122.25,37.25,-122.0') }.to raise_error(ArgumentError)
       expect { Stop.geometry_within_bbox() }.to raise_error(ArgumentError)
       expect { Stop.geometry_within_bbox([-122.25,37.25,-122.0]) }.to raise_error(ArgumentError)
+    end
+  end
+
+  context '.geometry_centroid' do
+    it 'can provide a centroid fallback when geometry is a polygon' do
+      stop = create(:stop, geometry: geometry_polygon)
+      centroid = stop.geometry_centroid
+      expect(centroid.lon).to be_within(0.001).of(-122.13687551482836)
+      expect(centroid.lat).to be_within(0.001).of(37.72253485209869)
+    end
+  end
+
+  context '.geometry_for_centroid' do
+    it 'geometry_reversegeo overrides geometry' do
+      stop = create(:stop, geometry: geometry_polygon, geometry_reversegeo: geometry_point)
+      expect(stop.geometry_for_centroid).to eq(stop[:geometry_reversegeo])
     end
   end
 

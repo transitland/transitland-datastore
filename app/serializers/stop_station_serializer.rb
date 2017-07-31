@@ -8,7 +8,8 @@ class StopStationSerializer < CurrentEntitySerializer
                :operators_serving_stop, # use attr, not has_many; see below
                :routes_serving_stop,    # ..
                :stop_transfers,         # ..
-               :generated
+               :generated,
+               :geometry_reversegeo
 
     def operators_serving_stop
       # Force through serializer
@@ -36,7 +37,8 @@ class StopStationSerializer < CurrentEntitySerializer
                :osm_way_id,
                :last_conflated_at,
                :directionality,
-               :generated
+               :generated,
+               :geometry_reversegeo
 
      def generated
        !object.persisted?
@@ -100,7 +102,8 @@ class StopStationSerializer < CurrentEntitySerializer
              :wheelchair_boarding,
              :osm_way_id,
              :last_conflated_at,
-             :vehicle_types_serving_stop_and_platforms
+             :vehicle_types_serving_stop_and_platforms,
+             :geometry_reversegeo
 
   # Relations
   has_many :stop_platforms, serializer: StopPlatformSerializer
