@@ -182,7 +182,7 @@ ActiveRecord::Schema.define(version: 20170719230128) do
   add_index "current_routes_serving_stop", ["route_id"], name: "index_current_routes_serving_stop_on_route_id", using: :btree
   add_index "current_routes_serving_stop", ["stop_id"], name: "index_current_routes_serving_stop_on_stop_id", using: :btree
 
-  create_table "current_schedule_stop_pairs", force: :cascade do |t|
+  create_table "current_schedule_stop_pairs", id: :bigserial, force: :cascade do |t|
     t.integer  "origin_id"
     t.integer  "destination_id"
     t.integer  "route_id"
@@ -227,20 +227,21 @@ ActiveRecord::Schema.define(version: 20170719230128) do
     t.integer  "frequency_headway_seconds"
   end
 
-  add_index "current_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "c_ssp_cu_in_changeset", using: :btree
-  add_index "current_schedule_stop_pairs", ["destination_id"], name: "c_ssp_destination", using: :btree
-  add_index "current_schedule_stop_pairs", ["feed_id", "id"], name: "index_current_schedule_stop_pairs_on_feed_id_and_id", using: :btree
-  add_index "current_schedule_stop_pairs", ["feed_version_id", "id"], name: "index_current_schedule_stop_pairs_on_feed_version_id_and_id", using: :btree
-  add_index "current_schedule_stop_pairs", ["frequency_type"], name: "index_current_schedule_stop_pairs_on_frequency_type", using: :btree
-  add_index "current_schedule_stop_pairs", ["operator_id", "id"], name: "index_current_schedule_stop_pairs_on_operator_id_and_id", using: :btree
-  add_index "current_schedule_stop_pairs", ["origin_departure_time"], name: "index_current_schedule_stop_pairs_on_origin_departure_time", using: :btree
-  add_index "current_schedule_stop_pairs", ["origin_id"], name: "c_ssp_origin", using: :btree
-  add_index "current_schedule_stop_pairs", ["route_id"], name: "c_ssp_route", using: :btree
-  add_index "current_schedule_stop_pairs", ["route_stop_pattern_id"], name: "index_current_schedule_stop_pairs_on_route_stop_pattern_id", using: :btree
-  add_index "current_schedule_stop_pairs", ["service_end_date"], name: "c_ssp_service_end_date", using: :btree
-  add_index "current_schedule_stop_pairs", ["service_start_date"], name: "c_ssp_service_start_date", using: :btree
-  add_index "current_schedule_stop_pairs", ["trip"], name: "c_ssp_trip", using: :btree
-  add_index "current_schedule_stop_pairs", ["updated_at"], name: "index_current_schedule_stop_pairs_on_updated_at", using: :btree
+  add_index "current_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "current_schedule_stop_pairs64_created_or_updated_in_changes_idx", using: :btree
+  add_index "current_schedule_stop_pairs", ["destination_id"], name: "current_schedule_stop_pairs64_destination_id_idx", using: :btree
+  add_index "current_schedule_stop_pairs", ["feed_id", "id"], name: "current_schedule_stop_pairs64_feed_id_id_idx", using: :btree
+  add_index "current_schedule_stop_pairs", ["feed_version_id", "id"], name: "current_schedule_stop_pairs64_feed_version_id_id_idx", using: :btree
+  add_index "current_schedule_stop_pairs", ["frequency_type"], name: "current_schedule_stop_pairs64_frequency_type_idx", using: :btree
+  add_index "current_schedule_stop_pairs", ["operator_id", "id"], name: "current_schedule_stop_pairs64_operator_id_id_idx", using: :btree
+  add_index "current_schedule_stop_pairs", ["origin_departure_time"], name: "current_schedule_stop_pairs64_origin_departure_time_idx", using: :btree
+  add_index "current_schedule_stop_pairs", ["origin_id"], name: "current_schedule_stop_pairs64_origin_id_idx", using: :btree
+  add_index "current_schedule_stop_pairs", ["route_id"], name: "current_schedule_stop_pairs64_route_id_idx", using: :btree
+  add_index "current_schedule_stop_pairs", ["route_stop_pattern_id"], name: "current_schedule_stop_pairs64_route_stop_pattern_id_idx", using: :btree
+  add_index "current_schedule_stop_pairs", ["service_end_date"], name: "current_schedule_stop_pairs64_service_end_date_idx", using: :btree
+  add_index "current_schedule_stop_pairs", ["service_start_date"], name: "current_schedule_stop_pairs64_service_start_date_idx", using: :btree
+  add_index "current_schedule_stop_pairs", ["trip"], name: "current_schedule_stop_pairs64_trip_idx", using: :btree
+  add_index "current_schedule_stop_pairs", ["updated_at"], name: "current_schedule_stop_pairs64_updated_at_idx", using: :btree
+
 
   create_table "current_stop_transfers", force: :cascade do |t|
     t.string   "transfer_type"
