@@ -6,7 +6,7 @@ module HashHelpers
       value = nil if value == ''
       if merged_hash[key] == value
         next
-      elsif key == :geometry
+      elsif key == :geometry || key == :geometry_reversegeo
         # NOTE: we probably already have an RGeo::Geographic::SphericalPolygonImpl
         # existing internally, and a GeoJSON hash incoming
         merged_hash[key] = value
