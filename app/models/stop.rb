@@ -264,7 +264,7 @@ class Stop < BaseStop
   end
 
   def geometry_for_centroid
-    self[:geometry_reversegeo] || self[:geometry]
+    read_attribute(:geometry_reversegeo) || read_attribute(:geometry)
   end
 
   def coordinates
