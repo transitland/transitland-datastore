@@ -61,7 +61,7 @@ class QualityCheck::StationHierarchyQualityCheck < QualityCheck
   end
 
   def stop_platform_parent_distance_gap(parent_stop, stop_platform)
-    if (parent_stop[:geometry].distance(stop_platform[:geometry]) > STOP_PLATFORM_PARENT_DIST_GAP_THRESHOLD)
+    if (parent_stop.geometry_centroid.distance(stop_platform.geometry_centroid) > STOP_PLATFORM_PARENT_DIST_GAP_THRESHOLD)
       issue = Issue.new(created_by_changeset: self.changeset,
                         issue_type: 'stop_platform_parent_distance_gap',
                         details: "Stop platform #{stop_platform.parent_stop_onestop_id} is too far from parent stop #{parent_stop.onestop_id}.")
@@ -72,7 +72,7 @@ class QualityCheck::StationHierarchyQualityCheck < QualityCheck
   end
 
   def distance_between_stop_platforms(stop_platform, other_stop_platform)
-    if (stop_platform[:geometry].distance(other_stop_platform[:geometry]) <= MINIMUM_DIST_BETWEEN_PLATFORMS)
+    if (stop_platform.geometry_centroid.distance(other_stop_platform.geometry_centroid) <= MINIMUM_DIST_BETWEEN_PLATFORMS)
       issue = Issue.new(created_by_changeset: self.changeset,
                         issue_type: 'stop_platforms_too_close',
                         details: "Stop platform #{stop_platform.onestop_id} is too close to stop platform #{other_stop_platform.onestop_id}")
@@ -189,10 +189,10 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
     if (index != 0)
       stop1 = Stop.find_by_onestop_id!(rsp.stop_pattern[index])
       stop2 = Stop.find_by_onestop_id!(rsp.stop_pattern[index-1])
-      if (!stop1.onestop_id.eql?(stop2.onestop_id) && stop1[:geometry].distance(stop2[:geometry]) < MINIMUM_DIST_BETWEEN_STOP_PARENTS)
+      if (!stop1.onestop_id.eql?(stop2.onestop_id) && stop1.geometry_centroid.distance(stop2.geometry_centroid) < MINIMUM_DIST_BETWEEN_STOP_PARENTS)
         issue = Issue.new(created_by_changeset: self.changeset,
                           issue_type: 'rsp_stops_too_close',
-                          details: "RouteStopPattern #{rsp.onestop_id}. Stop #{stop1.onestop_id}, number #{index-1}, has a geometry (#{stop1[:geometry].to_s}) too close to Stop #{stop2.onestop_id}, number #{index}, with geometry (#{stop2[:geometry].to_s})")
+                          details: "RouteStopPattern #{rsp.onestop_id}. Stop #{stop1.onestop_id}, number #{index-1}, has a geometry (#{stop1.geometry_centroid.to_s}) too close to Stop #{stop2.onestop_id}, number #{index}, with geometry (#{stop2.geometry_centroid.to_s})")
         issue.entities_with_issues.new(entity: rsp, issue: issue, entity_attribute: 'geometry')
         issue.entities_with_issues.new(entity: stop1, issue: issue, entity_attribute: 'geometry')
         issue.entities_with_issues.new(entity: stop2, issue: issue, entity_attribute: 'geometry')
@@ -208,7 +208,7 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
       stop2 = rsp.stop_pattern[index]
       if (rsp.stop_distances[index-1] == rsp.stop_distances[index])
         unless stop2.eql? stop1
-          unless (Stop.find_by_onestop_id!(stop1)[:geometry].distance(Stop.find_by_onestop_id!(stop2)[:geometry]) < 1.0)
+          unless (Stop.find_by_onestop_id!(stop1).geometry_centroid.distance(Stop.find_by_onestop_id!(stop2).geometry_centroid) < 1.0)
             issue = Issue.new(created_by_changeset: self.changeset,
                               issue_type: 'distance_calculation_inaccurate',
                               details: "Distance calculation inaccuracy. Stop #{stop2}, number #{index+1}/#{rsp.stop_pattern.size}, of RouteStopPattern #{rsp.onestop_id} has the same distance (#{rsp.stop_distances[index]} m) as Stop #{stop1}. Distances: #{rsp.stop_distances}")
