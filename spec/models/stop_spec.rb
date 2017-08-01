@@ -121,6 +121,19 @@ describe Stop do
       stop.reload
       expect(stop.geometry).to eq geometry_polygon
     end
+
+    it 'works with rsp distance recalculation changeset' do
+      stop1 = create(:stop, geometry: {"type": "Point", "coordinates": [-122.39999,37.79042]})
+      stop2 = create(:stop, geometry: {"type": "Point", "coordinates": [-122.39614,37.79349]})
+      station_polygon = { "type": "Polygon", "coordinates": [ [ [ -122.39650368690491, 37.79352034138864 ], [ -122.39815592765808, 37.79227403735882 ], [ -122.39809691905974, 37.79196457765796 ], [ -122.39771068096161, 37.791943381740616 ], [ -122.3960906267166, 37.79321512601903 ], [ -122.39621400833128, 37.79349066772748 ], [ -122.39650368690491, 37.79352034138864 ] ] ] }
+      rsp = create(:route_stop_pattern, stop_distances: [0, 481.1], stop_pattern: [stop1.onestop_id, stop2.onestop_id], geometry: {"type": "LineString","coordinates": [[-122.39999,37.79042],[-122.39614,37.79349]]})
+      c = {changes: [{action: :createUpdate, stop: {onestopId: stop2.onestop_id, geometry: station_polygon}}]}
+      Changeset.create!(payload: c).apply!
+      stop2.reload
+      rsp.reload
+      expect(stop2.geometry).to eq station_polygon
+      expect(rsp.stop_distances.last).to be_within(0.01).of(357.6)
+    end
   end
 
   context 'geometry_reversegeo' do
