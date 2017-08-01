@@ -11,7 +11,7 @@ class StopStationSerializer < CurrentEntitySerializer
                :generated
 
     attribute :geometry_reversegeo, if: :include_geometry?
-    attribute :centroid, if: :include_geometry?
+    attribute :geometry_centroid, if: :include_geometry?
 
     def operators_serving_stop
       # Force through serializer
@@ -30,7 +30,7 @@ class StopStationSerializer < CurrentEntitySerializer
       !object.persisted?
     end
 
-    def centroid
+    def geometry_centroid
       RGeo::GeoJSON.encode(object.geometry_centroid)
     end
   end
@@ -46,13 +46,13 @@ class StopStationSerializer < CurrentEntitySerializer
                :generated
 
     attribute :geometry_reversegeo, if: :include_geometry?
-    attribute :centroid, if: :include_geometry?
+    attribute :geometry_centroid, if: :include_geometry?
 
     def generated
       !object.persisted?
     end
 
-    def centroid
+    def geometry_centroid
       RGeo::GeoJSON.encode(object.geometry_centroid)
     end
   end
@@ -117,7 +117,7 @@ class StopStationSerializer < CurrentEntitySerializer
              :vehicle_types_serving_stop_and_platforms
 
   attribute :geometry_reversegeo, if: :include_geometry?
-  attribute :centroid, if: :include_geometry?
+  attribute :geometry_centroid, if: :include_geometry?
 
   # Relations
   has_many :stop_platforms, serializer: StopPlatformSerializer
@@ -126,7 +126,7 @@ class StopStationSerializer < CurrentEntitySerializer
   has_many :operators_serving_stop_and_platforms
   has_many :routes_serving_stop_and_platforms
 
-  def centroid
+  def geometry_centroid
     RGeo::GeoJSON.encode(object.geometry_centroid)
   end
 end

@@ -42,7 +42,7 @@ class StopSerializer < CurrentEntitySerializer
              :wheelchair_boarding
 
   attribute :geometry_reversegeo, if: :include_geometry?
-  attribute :centroid, if: :include_geometry?
+  attribute :geometry_centroid, if: :include_geometry?
 
   has_many :operators_serving_stop
   has_many :routes_serving_stop
@@ -51,7 +51,7 @@ class StopSerializer < CurrentEntitySerializer
     object.parent_stop.try(:onestop_id)
   end
 
-  def centroid
+  def geometry_centroid
     RGeo::GeoJSON.encode(object.geometry_centroid)
   end
 end
