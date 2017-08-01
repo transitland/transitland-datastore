@@ -84,7 +84,7 @@ class FeedInfo
     # Convert to TL Stops so geometry projection works properly...
     tl_stops = entity.stops.map { |stop| Stop.new(geometry: Stop::GEOFACTORY.point(*stop.coordinates)) }
     geohash = GeohashHelpers.fit(
-      Stop::GEOFACTORY.collection(tl_stops.map { |stop| stop[:geometry] })
+      Stop::GEOFACTORY.collection(tl_stops.map { |stop| stop.geometry_centroid })
     )
     # Generate third Onestop ID component
     name = [entity.agency_name, entity.id, "unknown"]

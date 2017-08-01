@@ -264,7 +264,7 @@ class Stop < BaseStop
   end
 
   def geometry_for_centroid
-    self[:geometry_reversegeo] || self[:geometry]
+    read_attribute(:geometry_reversegeo) || read_attribute(:geometry)
   end
 
   def coordinates
@@ -287,7 +287,7 @@ class Stop < BaseStop
   def similarity(other)
     # TODO: instance method, compare against a second instance?
     # Inverse distance in km
-    score_geom = 1 / (self[:geometry].distance(other[:geometry]) / 1000.0 + 1)
+    score_geom = 1 / (self.geometry_centroid.distance(other.geometry_centroid) / 1000.0 + 1)
     # Levenshtein distance as ratio of name length
     score_text = 1 - (Text::Levenshtein.distance(self.name, other.name) / [self.name.size, other.name.size].max.to_f)
     # Weighted average
@@ -374,7 +374,7 @@ class Stop < BaseStop
   def generate_onestop_id
     fail Exception.new('geometry required') if geometry.nil?
     fail Exception.new('name required') if name.nil?
-    geohash = GeohashHelpers.encode(self[:geometry])
+    geohash = GeohashHelpers.encode(self.geometry_centroid)
     name = self.name.gsub(/[\>\<]/, '')
     onestop_id = OnestopId.handler_by_model(self.class).new(
       geohash: geohash,
