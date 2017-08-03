@@ -111,7 +111,7 @@ class GTFSScheduleImporter
     # Lookup tl_route from gtfs_trip.route_id
     gtfs_route = @gtfs.route(gtfs_trip.route_id)
     unless gtfs_route
-      info("Trip #{gtfs_trip.trip_id}: No GTFS Route for route_id: #{gtfs_route.route_id}")
+      info("Trip #{gtfs_trip.trip_id}: No GTFS Route for route_id: #{gtfs_trip.route_id}")
       return []
     end
 

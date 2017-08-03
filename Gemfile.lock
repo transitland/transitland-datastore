@@ -1,7 +1,7 @@
 GIT
   remote: git://github.com/transitland/gtfs.git
-  revision: 7e1c4297a0b81eba00dfd4572cf585eb6f4afcc6
-  tag: 7e1c4297a0b81eba00dfd4572cf585eb6f4afcc6
+  revision: 7fe4fee143e54fd38ff6fd64f77e5875df0cebcd
+  tag: 7fe4fee143e54fd38ff6fd64f77e5875df0cebcd
   specs:
     gtfs (1.0.1)
       multi_json
