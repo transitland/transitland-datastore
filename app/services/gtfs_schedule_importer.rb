@@ -110,6 +110,11 @@ class GTFSScheduleImporter
   def make_ssp_trip(gtfs_trip, gtfs_stop_times, gtfs_frequency: nil)
     # Lookup tl_route from gtfs_trip.route_id
     gtfs_route = @gtfs.route(gtfs_trip.route_id)
+    unless gtfs_route
+      info("Trip #{gtfs_trip.trip_id}: No GTFS Route for route_id: #{gtfs_route.route_id}")
+      return []
+    end
+
     tl_route = find_by_gtfs_entity(gtfs_route)
     unless tl_route
       info("Trip #{gtfs_trip.trip_id}: Missing Route for route_id: #{gtfs_route.route_id}")
