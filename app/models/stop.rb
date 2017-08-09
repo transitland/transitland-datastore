@@ -99,6 +99,14 @@ class Stop < BaseStop
     ]
   })
 
+
+  def update_parent_stop(changeset)
+    if self.parent_stop_onestop_id
+      parent_stop = Stop.find_by_onestop_id!(self.parent_stop_onestop_id)
+      self.update!(parent_stop: parent_stop)
+    end
+  end
+
   def update_stop_pattern_onestop_ids(old_onestop_ids, changeset)
     old_onestop_ids = Array.wrap(old_onestop_ids)
     RouteStopPattern.with_any_stops(old_onestop_ids).each do |rsp|
@@ -116,6 +124,7 @@ class Stop < BaseStop
   end
 
   def update_associations(changeset)
+    update_parent_stop(changeset)
     update_entity_imported_from_feeds(changeset)
     update_served_by(changeset)
     update_includes_stop_transfers(changeset)
@@ -186,9 +195,7 @@ class Stop < BaseStop
   # Issues
   has_many :issues, through: :entities_with_issues
 
-  def parent_stop
-    # Dummy relation
-  end
+  belongs_to :parent_stop, class_name: 'Stop'
 
   # Add service from an Operator or Route
   scope :served_by, -> (onestop_ids_and_models) {
