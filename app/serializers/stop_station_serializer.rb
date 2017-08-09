@@ -10,6 +10,9 @@ class StopStationSerializer < CurrentEntitySerializer
                :stop_transfers,         # ..
                :generated
 
+    attribute :geometry_reversegeo, if: :include_geometry?
+    attribute :geometry_centroid, if: :include_geometry?
+
     def operators_serving_stop
       # Force through serializer
       object.operators_serving_stop.map { |i| OperatorServingStopSerializer.new(i) }
@@ -23,9 +26,13 @@ class StopStationSerializer < CurrentEntitySerializer
       object.stop_transfers.map { |i| StopTransferSerializer.new(i) }
     end
 
-     def generated
-       !object.persisted?
-     end
+    def generated
+      !object.persisted?
+    end
+
+    def geometry_centroid
+      RGeo::GeoJSON.encode(object.geometry_centroid)
+    end
   end
 
   # Egress serializer
@@ -38,9 +45,16 @@ class StopStationSerializer < CurrentEntitySerializer
                :directionality,
                :generated
 
-     def generated
-       !object.persisted?
-     end
+    attribute :geometry_reversegeo, if: :include_geometry?
+    attribute :geometry_centroid, if: :include_geometry?
+
+    def generated
+      !object.persisted?
+    end
+
+    def geometry_centroid
+      RGeo::GeoJSON.encode(object.geometry_centroid)
+    end
   end
 
   def stop_platforms
@@ -102,10 +116,17 @@ class StopStationSerializer < CurrentEntitySerializer
              :last_conflated_at,
              :vehicle_types_serving_stop_and_platforms
 
+  attribute :geometry_reversegeo, if: :include_geometry?
+  attribute :geometry_centroid, if: :include_geometry?
+
   # Relations
   has_many :stop_platforms, serializer: StopPlatformSerializer
   has_many :stop_egresses, serializer: StopEgressSerializer
   has_many :stop_transfers
   has_many :operators_serving_stop_and_platforms
   has_many :routes_serving_stop_and_platforms
+
+  def geometry_centroid
+    RGeo::GeoJSON.encode(object.geometry_centroid)
+  end
 end

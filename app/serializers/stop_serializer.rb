@@ -19,11 +19,13 @@
 #  edited_attributes                  :string           default([]), is an Array
 #  wheelchair_boarding                :boolean
 #  directionality                     :integer
+#  geometry_reversegeo                :geography({:srid point, 4326
 #
 # Indexes
 #
 #  #c_stops_cu_in_changeset_id_index           (created_or_updated_in_changeset_id)
 #  index_current_stops_on_geometry             (geometry)
+#  index_current_stops_on_geometry_reversegeo  (geometry_reversegeo)
 #  index_current_stops_on_onestop_id           (onestop_id) UNIQUE
 #  index_current_stops_on_parent_stop_id       (parent_stop_id)
 #  index_current_stops_on_tags                 (tags)
@@ -39,10 +41,17 @@ class StopSerializer < CurrentEntitySerializer
              :parent_stop_onestop_id,
              :wheelchair_boarding
 
+  attribute :geometry_reversegeo, if: :include_geometry?
+  attribute :geometry_centroid, if: :include_geometry?
+
   has_many :operators_serving_stop
   has_many :routes_serving_stop
 
   def parent_stop_onestop_id
     object.parent_stop.try(:onestop_id)
+  end
+
+  def geometry_centroid
+    RGeo::GeoJSON.encode(object.geometry_centroid)
   end
 end
