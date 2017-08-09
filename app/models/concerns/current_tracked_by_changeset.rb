@@ -84,7 +84,7 @@ module CurrentTrackedByChangeset
         new_onestop_id = "#{parent_stop.onestop_id}>#{platform_name}"
         change[:new_onestop_id] = new_onestop_id
       else
-        raise Changeset::Error.new(changeset: changeset, message: "unknown type: #{stop_type}")
+        raise Changeset::Error.new(changeset: changeset, message: "unknown stop_type: #{stop_type}")
       end
 
       # Rename

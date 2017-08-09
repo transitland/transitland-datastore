@@ -599,6 +599,8 @@ describe Changeset do
     end
 
     it 'changes from Stop to StopEgress' do
+      stop = create(:stop_platform)
+      stop_id = stop.id
       new_onestop_id = 's-9q9-test'
       changeset = create(:changeset, payload: {
         changes: [
