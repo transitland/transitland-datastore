@@ -2,15 +2,35 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/72...HEAD)
-
-**Closed issues:**
-
-- SSP: Query by operator\_onestop\_id is slow [\#1138](https://github.com/transitland/transitland-datastore/issues/1138)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/73...HEAD)
 
 **Merged pull requests:**
 
+- Production release 73 [\#1140](https://github.com/transitland/transitland-datastore/pull/1140) ([irees](https://github.com/irees))
+
+## [73](https://github.com/transitland/transitland-datastore/tree/73) (2017-08-03)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/72...73)
+
+**Closed issues:**
+
+- RSP: Use stop centroids [\#1148](https://github.com/transitland/transitland-datastore/issues/1148)
+- Use 64 bit ID for SSP [\#1141](https://github.com/transitland/transitland-datastore/issues/1141)
+- SSP: Query by operator\_onestop\_id is slow [\#1138](https://github.com/transitland/transitland-datastore/issues/1138)
+- Polygons \(not just points\) for StopStation geometries [\#826](https://github.com/transitland/transitland-datastore/issues/826)
+- consistent precision for geometries [\#362](https://github.com/transitland/transitland-datastore/issues/362)
+
+**Merged pull requests:**
+
+- Gracefully handle references to missing stop or route [\#1153](https://github.com/transitland/transitland-datastore/pull/1153) ([irees](https://github.com/irees))
+- Stop: fallback to stop\_id if stop\_name is not present [\#1151](https://github.com/transitland/transitland-datastore/pull/1151) ([irees](https://github.com/irees))
+- Stop serializer: use geometry\_centroid not centroid [\#1150](https://github.com/transitland/transitland-datastore/pull/1150) ([irees](https://github.com/irees))
+- Include geometry\_reversegeo and centroid in Stop and Station serializers [\#1149](https://github.com/transitland/transitland-datastore/pull/1149) ([irees](https://github.com/irees))
+- RSP: Fixes for stops with polygon geometries [\#1147](https://github.com/transitland/transitland-datastore/pull/1147) ([irees](https://github.com/irees))
+- Tidy up: schema & annotation update [\#1146](https://github.com/transitland/transitland-datastore/pull/1146) ([irees](https://github.com/irees))
+- Cleanup: Alter SSP id to bigserial [\#1145](https://github.com/transitland/transitland-datastore/pull/1145) ([irees](https://github.com/irees))
+- update gems [\#1143](https://github.com/transitland/transitland-datastore/pull/1143) ([drewda](https://github.com/drewda))
 - Production release 72 [\#1128](https://github.com/transitland/transitland-datastore/pull/1128) ([irees](https://github.com/irees))
+- Geometry validation & station polygons [\#904](https://github.com/transitland/transitland-datastore/pull/904) ([irees](https://github.com/irees))
 
 ## [72](https://github.com/transitland/transitland-datastore/tree/72) (2017-07-20)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/71...72)
@@ -21,7 +41,6 @@
 
 **Closed issues:**
 
-- No operators in feed issue: improve descriptive text [\#1132](https://github.com/transitland/transitland-datastore/issues/1132)
 - allow uploading of feed versions for an existing feed [\#1125](https://github.com/transitland/transitland-datastore/issues/1125)
 - Station hierarchy improvements [\#1066](https://github.com/transitland/transitland-datastore/issues/1066)
 - GTFS Station Egress: location\_type = 2 [\#643](https://github.com/transitland/transitland-datastore/issues/643)
