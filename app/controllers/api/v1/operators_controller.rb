@@ -88,7 +88,7 @@ class Api::V1::OperatorsController < Api::V1::CurrentEntityController
         desc: "Operators referenced by a Feed",
         type: "string",
         array: true
-      }
+      },
       without_feed: {
         desc: "Operators not referenced by any Feed",
         type: "boolean",
