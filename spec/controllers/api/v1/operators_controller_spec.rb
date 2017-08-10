@@ -20,6 +20,51 @@ describe Api::V1::OperatorsController do
       sfmta.stops << glen_park
     end
 
+    context '?with_feed' do
+      before(:each) {
+        @operator1 = create(:operator)
+        @operator2 = create(:operator)
+        @feed1 = create(:feed)
+        @feed2 = create(:feed)
+        OperatorInFeed.create!(feed: @feed1, operator: @operator1)
+        OperatorInFeed.create!(feed: @feed2, operator: @operator2)
+      }
+
+      it 'returns operators for a feed' do
+        get :index, with_feed: @feed1.onestop_id
+        expect_json({ operators: -> (operators) {
+          expect(operators.count).to eq 1
+          expect(operators.first[:onestop_id]).to eq @operator1.onestop_id
+        }})
+      end
+
+      it 'returns operators for feeds' do
+        get :index, with_feed: [@feed1.onestop_id, @feed2.onestop_id]
+        expect_json({ operators: -> (operators) {
+          expect(operators.count).to eq 2
+        }})
+      end
+
+    end
+
+    context '?without_feed' do
+      before(:each) {
+        Operator.delete_all # clear out vta, sfmta
+        @operator1 = create(:operator)
+        @operator2 = create(:operator)
+        @feed1 = create(:feed)
+        OperatorInFeed.create!(feed: @feed1, operator: @operator1)
+      }
+
+      it 'returns operators without feed' do
+        get :index, without_feed: 'true'
+        expect_json({ operators: -> (operators) {
+          expect(operators.count).to eq 1
+          expect(operators.first[:onestop_id]).to eq @operator2.onestop_id
+        }})
+      end
+    end
+
     context 'as JSON' do
       it 'returns all current operators when no parameters provided' do
         get :index
@@ -28,7 +73,6 @@ describe Api::V1::OperatorsController do
           expect(operators.length).to eq 2
         }})
       end
-
       it 'filters by imported_with_gtfs_id' do
         operators = create_list(:operator, 3)
         operator = create(:operator, name: 'Test 123')
