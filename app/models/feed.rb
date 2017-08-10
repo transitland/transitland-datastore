@@ -159,7 +159,7 @@ class Feed < BaseFeed
   })
 
   def update_associations(changeset)
-    (self.includes_operators || []).each do |included_operator|
+    (self.includes_operators || []).uniq.each do |included_operator|
       operator = Operator.find_by!(onestop_id: included_operator[:operator_onestop_id])
       existing_relationship = OperatorInFeed.find_by(
         operator: operator,
@@ -186,7 +186,7 @@ class Feed < BaseFeed
         )
       end
     end
-    (self.does_not_include_operators || []).each do |not_included_operator|
+    (self.does_not_include_operators || []).uniq.each do |not_included_operator|
       operator = Operator.find_by!(onestop_id: not_included_operator[:operator_onestop_id])
       existing_relationship = OperatorInFeed.find_by(
         operator: operator,
