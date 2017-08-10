@@ -22,6 +22,8 @@
         "format": "stop-onestop-id"
       }
     },
+    "platformName": { "type": "string" },
+    "stopType": { "type": "string" },
     "geometry": { "type": "object" },
     "geometryReversegeo": { "type": "object" },
     "timezone": { "type": "string" },

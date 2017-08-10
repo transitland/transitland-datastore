@@ -546,6 +546,106 @@ describe Changeset do
     end
   end
 
+  context 'changeStopType' do
+    let(:parent_stop) { create(:stop) }
+    let(:stop) { create(:stop) }
+    let(:stop_id) { stop.id }
+    let(:platform_name) { "test" }
+
+    it 'tracks change' do
+      stop_type = 'StopPlatform'
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'changeStopType',
+            stop: {
+              onestopId: stop.onestop_id,
+              stopType: stop_type,
+              platformName: platform_name,
+              parentStopOnestopId: parent_stop.onestop_id
+            }
+          }
+        ]
+      })
+      expect(stop.version).to eq(1)
+      changeset.apply!
+      stop = Stop.find(stop_id)
+      # Creates two change records
+      expect(stop.version).to eq(3)
+      expect(OldStop.where(current_id: stop.id).pluck(:action)).to match_array(['change_onestop_id', 'change_stop_type'])
+    end
+
+    it 'changes from Stop to StopPlatform' do
+      stop_type = 'StopPlatform'
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'changeStopType',
+            stop: {
+              onestopId: stop.onestop_id,
+              stopType: stop_type,
+              platformName: platform_name,
+              parentStopOnestopId: parent_stop.onestop_id
+            }
+          }
+        ]
+      })
+      changeset.apply!
+      stop = Stop.find(stop_id)
+      expect(stop.type).to eq(stop_type)
+      expect(stop.parent_stop).to eq(parent_stop)
+      expect(stop.onestop_id).to start_with(parent_stop.onestop_id)
+      expect(stop.onestop_id).to eq("#{parent_stop.onestop_id}<#{platform_name}")
+    end
+
+    it 'changes from Stop to StopEgress' do
+      stop_type = 'StopEgress'
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'changeStopType',
+            stop: {
+              onestopId: stop.onestop_id,
+              stopType: stop_type,
+              platformName: platform_name,
+              parentStopOnestopId: parent_stop.onestop_id
+            }
+          }
+        ]
+      })
+      changeset.apply!
+      stop = Stop.find(stop_id)
+      expect(stop.type).to eq(stop_type)
+      expect(stop.parent_stop).to eq(parent_stop)
+      expect(stop.onestop_id).to start_with(parent_stop.onestop_id)
+      expect(stop.onestop_id).to eq("#{parent_stop.onestop_id}>#{platform_name}")
+    end
+
+    it 'changes from Stop to StopEgress' do
+      stop = create(:stop_platform)
+      stop_id = stop.id
+      new_onestop_id = 's-9q9-test'
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'changeStopType',
+            stop: {
+              onestopId: stop.onestop_id,
+              newOnestopId: new_onestop_id,
+              stopType: 'Stop'
+            }
+          }
+        ]
+      })
+      changeset.apply!
+      stop = Stop.find(stop_id)
+      expect(stop.type).to eq(nil)
+      expect(stop.parent_stop).to eq(nil)
+      expect(stop.onestop_id).to eq(new_onestop_id)
+    end
+
+  end
+
   context 'computed attributes' do
     it 'recomputes rsp stop distances from rsp update changeset' do
       richmond = create(:stop_richmond_offset)
