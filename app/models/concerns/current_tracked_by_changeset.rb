@@ -87,14 +87,18 @@ module CurrentTrackedByChangeset
         raise Changeset::Error.new(changeset: changeset, message: "unknown stop_type: #{stop_type}")
       end
 
-      # Rename
+      # Rename - change 1
       apply_change_change_onestop_id(changeset: changeset, change: change)
 
+      # Record change_stop_type action - change 2
+      stop.reload
+      stop.update_making_history(changeset: changeset, new_attrs: {}, old_attrs: { action: 'change_stop_type' })
+
       # Becomes
-      stop = Stop.find_by_onestop_id!(new_onestop_id)
+      # Set parent_stop manually
       stop.becomes(stop_type.constantize).update!(
-       parent_stop: parent_stop,
-       type: (stop_type == 'Stop' ? nil : stop_type)
+       type: (stop_type == 'Stop' ? nil : stop_type),
+       parent_stop: parent_stop
       )
     end
 

@@ -552,6 +552,29 @@ describe Changeset do
     let(:stop_id) { stop.id }
     let(:platform_name) { "test" }
 
+    it 'tracks change' do
+      stop_type = 'StopPlatform'
+      changeset = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'changeStopType',
+            stop: {
+              onestopId: stop.onestop_id,
+              stopType: stop_type,
+              platformName: platform_name,
+              parentStopOnestopId: parent_stop.onestop_id
+            }
+          }
+        ]
+      })
+      expect(stop.version).to eq(1)
+      changeset.apply!
+      stop = Stop.find(stop_id)
+      # Creates two change records
+      expect(stop.version).to eq(3)
+      expect(OldStop.where(current_id: 1).pluck(:action)).to match_array(['change_onestop_id', 'change_stop_type'])
+    end
+
     it 'changes from Stop to StopPlatform' do
       stop_type = 'StopPlatform'
       changeset = create(:changeset, payload: {
