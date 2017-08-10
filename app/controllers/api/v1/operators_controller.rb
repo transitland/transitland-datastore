@@ -40,6 +40,16 @@ class Api::V1::OperatorsController < Api::V1::CurrentEntityController
     @collection = AllowFiltering.by_attribute_array(@collection, params, :timezone)
     @collection = AllowFiltering.by_attribute_array(@collection, params, :name)
     @collection = AllowFiltering.by_attribute_array(@collection, params, :short_name)
+
+    # with_feed
+    if params[:with_feed].present?
+      @collection = @collection.with_feed(Feed.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :with_feed)))
+    end
+
+    # without_feed
+    if params[:without_feed].presence == 'true'
+      @collection = @collection.without_feed
+    end
   end
 
   def query_params
@@ -73,6 +83,15 @@ class Api::V1::OperatorsController < Api::V1::CurrentEntityController
         desc: "Operator timezone",
         type: "string",
         array: true
+      },
+      with_feed: {
+        desc: "Operators referenced by a Feed",
+        type: "string",
+        array: true
+      }
+      without_feed: {
+        desc: "Operators not referenced by any Feed",
+        type: "boolean",
       }
     })
   end
