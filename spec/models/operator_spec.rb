@@ -100,4 +100,41 @@ describe Operator do
     expect(feed.reload.operators_in_feed.count).to eq(0)
   end
 
+  context '.with_feed' do
+    before(:each) {
+      @operator1 = create(:operator)
+      @operator2 = create(:operator)
+      @operator3 = create(:operator)
+      @feed1 = create(:feed)
+      @feed2 = create(:feed)
+      @feed3 = create(:feed)
+      OperatorInFeed.create!(feed: @feed1, operator: @operator1)
+      OperatorInFeed.create!(feed: @feed2, operator: @operator2)
+      OperatorInFeed.create!(feed: @feed2, operator: @operator3)
+    }
+
+    it 'returns operators in a feed' do
+      expect(Operator.with_feed(@feed1)).to match_array([@operator1])
+      expect(Operator.with_feed(@feed2)).to match_array([@operator2, @operator3])
+      expect(Operator.with_feed(@feed3)).to match_array([])
+    end
+
+    it 'returns operators in feeds' do
+      expect(Operator.with_feed([@feed1, @feed2])).to match_array([@operator1, @operator2, @operator3])
+    end
+  end
+
+  context '.without_feed' do
+    before(:each) {
+      @operator1 = create(:operator)
+      @operator2 = create(:operator)
+      @feed1 = create(:feed)
+      OperatorInFeed.create!(feed: @feed1, operator: @operator1)
+    }
+
+    it 'returns operators with no feed references' do
+      expect(Operator.without_feed).to match_array([@operator2])
+    end
+  end
+
 end
