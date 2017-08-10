@@ -79,6 +79,14 @@ class Operator < BaseOperator
     ]
   })
 
+  scope :with_feed, -> (feeds) {
+    joins(:operators_in_feed).where({operators_in_feed: {feed_id: Array.wrap(feeds)}})
+  }
+
+  scope :without_feed, -> {
+    joins('FULL OUTER JOIN current_operators_in_feed ON current_operators.id = current_operators_in_feed.operator_id WHERE current_operators_in_feed.id IS NULL')
+  }
+
   def update_associations(changeset)
     update_entity_imported_from_feeds(changeset)
     OperatorRouteStopRelationship.manage_multiple(
