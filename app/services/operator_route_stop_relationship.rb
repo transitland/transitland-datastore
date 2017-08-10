@@ -78,6 +78,7 @@ class OperatorRouteStopRelationship
   # class methods for management of multiple relationships
 
   def self.manage_multiple(stop: {}, operator: {}, route: {}, changeset: nil)
+    # served_by / not_served_by uniqueness handled by raw_relationships
     relationships_to_apply = []
 
     relationships_to_apply += relationships_to_apply_for_stop(stop) unless stop.blank?
