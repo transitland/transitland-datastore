@@ -572,7 +572,7 @@ describe Changeset do
       stop = Stop.find(stop_id)
       # Creates two change records
       expect(stop.version).to eq(3)
-      expect(OldStop.where(current_id: 1).pluck(:action)).to match_array(['change_onestop_id', 'change_stop_type'])
+      expect(OldStop.where(current_id: stop.id).pluck(:action)).to match_array(['change_onestop_id', 'change_stop_type'])
     end
 
     it 'changes from Stop to StopPlatform' do
