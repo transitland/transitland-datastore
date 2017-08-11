@@ -33,7 +33,8 @@
 #
 
 class FeedSerializer < CurrentEntitySerializer
-  attributes :url,
+  attributes :name,
+             :url,
              :feed_format,
              :license_name,
              :license_url,
