@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20170725011839) do
+ActiveRecord::Schema.define(version: 20170811211047) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -62,6 +62,7 @@ ActiveRecord::Schema.define(version: 20170725011839) do
     t.text      "license_attribution_text"
     t.integer   "active_feed_version_id"
     t.string    "edited_attributes",                                                                              default: [], array: true
+    t.string    "name"
   end
 
   add_index "current_feeds", ["active_feed_version_id"], name: "index_current_feeds_on_active_feed_version_id", using: :btree
@@ -242,7 +243,6 @@ ActiveRecord::Schema.define(version: 20170725011839) do
   add_index "current_schedule_stop_pairs", ["trip"], name: "current_schedule_stop_pairs64_trip_idx", using: :btree
   add_index "current_schedule_stop_pairs", ["updated_at"], name: "current_schedule_stop_pairs64_updated_at_idx", using: :btree
 
-
   create_table "current_stop_transfers", force: :cascade do |t|
     t.string   "transfer_type"
     t.integer  "min_transfer_time"
@@ -408,6 +408,7 @@ ActiveRecord::Schema.define(version: 20170725011839) do
     t.integer   "active_feed_version_id"
     t.string    "edited_attributes",                                                                              default: [], array: true
     t.string    "action"
+    t.string    "name"
   end
 
   add_index "old_feeds", ["active_feed_version_id"], name: "index_old_feeds_on_active_feed_version_id", using: :btree
