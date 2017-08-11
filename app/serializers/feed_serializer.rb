@@ -22,6 +22,7 @@
 #  license_attribution_text           :text
 #  active_feed_version_id             :integer
 #  edited_attributes                  :string           default([]), is an Array
+#  name                               :string
 #
 # Indexes
 #
@@ -32,7 +33,8 @@
 #
 
 class FeedSerializer < CurrentEntitySerializer
-  attributes :url,
+  attributes :name,
+             :url,
              :feed_format,
              :license_name,
              :license_url,

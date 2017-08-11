@@ -15,6 +15,19 @@ describe Api::V1::FeedsController do
         })
       end
 
+      it '?name' do
+        feed1 = create(:feed, name: "test")
+        feed2 = create(:feed, name: "bar")
+        get :index, name: "bar"
+        expect_json_types({ feeds: :array })
+        expect_json({
+          feeds: -> (feeds) {
+            expect(feeds.size).to eq(1)
+            expect(feeds.first[:onestop_id]).to eq feed2.onestop_id
+          }
+        })
+      end
+
       it 'query: onestop_id' do
         create_list(:feed, 3)
         onestop_id = Feed.second.onestop_id

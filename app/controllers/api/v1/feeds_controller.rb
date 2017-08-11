@@ -35,6 +35,7 @@ class Api::V1::FeedsController < Api::V1::CurrentEntityController
 
   def index_query
     super
+    @collection = AllowFiltering.by_attribute_array(@collection, params, :name)
     @collection = AllowFiltering.by_attribute_array(@collection, params, :url, case_sensitive: true)
     @collection = AllowFiltering.by_attribute_since(@collection, params, :last_imported_since, :last_imported_at)
     if params[:latest_fetch_exception].present?
@@ -69,6 +70,11 @@ class Api::V1::FeedsController < Api::V1::CurrentEntityController
 
   def query_params
     super.merge({
+      name: {
+        desc: "Feed name",
+        type: "string",
+        array: true
+      },
       last_imported_since: {
         desc: "Last imported since",
         type: "datetime"
