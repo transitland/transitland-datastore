@@ -58,6 +58,22 @@ class Feed < BaseFeed
   include IsAnEntityWithIssues
   include IsAnEntityImportedFromFeeds
 
+  include CanBeSerializedToCsv
+  def self.csv_column_names
+    [
+      'Onestop ID',
+      'Name',
+      'URL'
+    ]
+  end
+  def csv_row_values
+    [
+      onestop_id,
+      name,
+      url
+    ]
+  end
+
   has_many :feed_versions, -> { order 'earliest_calendar_date' }, dependent: :destroy, as: :feed
   has_many :feed_version_imports, -> { order 'created_at DESC' }, through: :feed_versions
   belongs_to :active_feed_version, class_name: 'FeedVersion'
