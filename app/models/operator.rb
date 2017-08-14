@@ -49,14 +49,26 @@ class Operator < BaseOperator
     [
       'Onestop ID',
       'Name',
-      'Website'
+      'Short Name',
+      'Country',
+      'State',
+      'Metro',
+      'Timezone',
+      'Website',
+      'Transitland Feed Registry URL'
     ]
   end
   def csv_row_values
     [
       onestop_id,
       name,
-      tags.try(:fetch, :agency_url, '')
+      short_name,
+      country,
+      state,
+      metro,
+      timezone,
+      tags.try(:fetch, :agency_url, nil),
+      "https://transit.land/feed-registry/operators/#{onestop_id}"
     ]
   end
 
