@@ -2,10 +2,38 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/73...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/74...HEAD)
 
 **Merged pull requests:**
 
+- Production release 74 [\#1157](https://github.com/transitland/transitland-datastore/pull/1157) ([irees](https://github.com/irees))
+
+## [74](https://github.com/transitland/transitland-datastore/tree/74) (2017-08-14)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/73...74)
+
+**Implemented enhancements:**
+
+- include more information/columns when requesting CSV from API endpoints [\#1164](https://github.com/transitland/transitland-datastore/issues/1164)
+
+**Closed issues:**
+
+- Relax JSON Schema array uniqueness requirements [\#1159](https://github.com/transitland/transitland-datastore/issues/1159)
+- Remove old SSPs [\#1156](https://github.com/transitland/transitland-datastore/issues/1156)
+- Stop becomes StopPlatform [\#1152](https://github.com/transitland/transitland-datastore/issues/1152)
+- Feeds: feed\_versions default ordering by service\_start\_date [\#1144](https://github.com/transitland/transitland-datastore/issues/1144)
+- Feed: Add a 'name' field [\#1131](https://github.com/transitland/transitland-datastore/issues/1131)
+- Query for Operators without Feeds [\#1130](https://github.com/transitland/transitland-datastore/issues/1130)
+
+**Merged pull requests:**
+
+- update misc. gems [\#1166](https://github.com/transitland/transitland-datastore/pull/1166) ([drewda](https://github.com/drewda))
+- CSV additions [\#1165](https://github.com/transitland/transitland-datastore/pull/1165) ([drewda](https://github.com/drewda))
+- SSP: Skip trip if interpolation issues [\#1163](https://github.com/transitland/transitland-datastore/pull/1163) ([irees](https://github.com/irees))
+- Feed: add name [\#1162](https://github.com/transitland/transitland-datastore/pull/1162) ([irees](https://github.com/irees))
+- Operators: with\_feed and without\_feed [\#1161](https://github.com/transitland/transitland-datastore/pull/1161) ([irees](https://github.com/irees))
+- Relax JSON Schema "uniqueItems" requirements [\#1160](https://github.com/transitland/transitland-datastore/pull/1160) ([irees](https://github.com/irees))
+- Feed: sort feed\_versions by earliest\_calendar\_date [\#1158](https://github.com/transitland/transitland-datastore/pull/1158) ([irees](https://github.com/irees))
+- Changeset: changeStopType action [\#1155](https://github.com/transitland/transitland-datastore/pull/1155) ([irees](https://github.com/irees))
 - Production release 73 [\#1140](https://github.com/transitland/transitland-datastore/pull/1140) ([irees](https://github.com/irees))
 
 ## [73](https://github.com/transitland/transitland-datastore/tree/73) (2017-08-03)
