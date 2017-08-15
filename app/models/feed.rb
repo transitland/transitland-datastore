@@ -22,6 +22,7 @@
 #  license_attribution_text           :text
 #  active_feed_version_id             :integer
 #  edited_attributes                  :string           default([]), is an Array
+#  name                               :string
 #
 # Indexes
 #
@@ -57,7 +58,23 @@ class Feed < BaseFeed
   include IsAnEntityWithIssues
   include IsAnEntityImportedFromFeeds
 
-  has_many :feed_versions, -> { order 'created_at DESC' }, dependent: :destroy, as: :feed
+  include CanBeSerializedToCsv
+  def self.csv_column_names
+    [
+      'Onestop ID',
+      'Name',
+      'URL'
+    ]
+  end
+  def csv_row_values
+    [
+      onestop_id,
+      name,
+      url
+    ]
+  end
+
+  has_many :feed_versions, -> { order 'earliest_calendar_date' }, dependent: :destroy, as: :feed
   has_many :feed_version_imports, -> { order 'created_at DESC' }, through: :feed_versions
   belongs_to :active_feed_version, class_name: 'FeedVersion'
 
@@ -159,7 +176,7 @@ class Feed < BaseFeed
   })
 
   def update_associations(changeset)
-    (self.includes_operators || []).each do |included_operator|
+    (self.includes_operators || []).uniq.each do |included_operator|
       operator = Operator.find_by!(onestop_id: included_operator[:operator_onestop_id])
       existing_relationship = OperatorInFeed.find_by(
         operator: operator,
@@ -186,7 +203,7 @@ class Feed < BaseFeed
         )
       end
     end
-    (self.does_not_include_operators || []).each do |not_included_operator|
+    (self.does_not_include_operators || []).uniq.each do |not_included_operator|
       operator = Operator.find_by!(onestop_id: not_included_operator[:operator_onestop_id])
       existing_relationship = OperatorInFeed.find_by(
         operator: operator,

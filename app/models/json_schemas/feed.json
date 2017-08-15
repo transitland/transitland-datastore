@@ -35,7 +35,6 @@
     "includesOperators": {
       "type": "array",
       "minItems": 1,
-      "uniqueItems": true,
       "items": {
         "type": "object",
         "required": ["operatorOnestopId", "gtfsAgencyId"],
@@ -51,7 +50,6 @@
     "doesNotIncludeOperators": {
       "type": "array",
       "minItems": 1,
-      "uniqueItems": true,
       "items": {
         "type": "object",
         "required": ["operatorOnestopId", "gtfsAgencyId"],

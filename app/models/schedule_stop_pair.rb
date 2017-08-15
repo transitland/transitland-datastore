@@ -296,6 +296,8 @@ class ScheduleStopPair < BaseScheduleStopPair
   def self.interpolate_linear(group)
     window_start = GTFS::WideTime.parse(group.first.origin_departure_time)
     window_end = GTFS::WideTime.parse(group.last.destination_arrival_time)
+    fail StandardError.new("First stop in trip must have a departure time") unless window_start
+    fail StandardError.new("Last stop in trip must have an arrival time") unless window_end
     duration = window_end.to_seconds - window_start.to_seconds
     step = duration / group.size.to_f
     current = window_start.to_seconds

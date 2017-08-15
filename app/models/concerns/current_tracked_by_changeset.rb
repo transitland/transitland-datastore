@@ -22,6 +22,8 @@ module CurrentTrackedByChangeset
         apply_change_destroy(changeset: changeset, change: change)
       when 'changeOnestopID'
         apply_change_change_onestop_id(changeset: changeset, change: change)
+      when 'changeStopType'
+        apply_change_change_stop_type(changeset: changeset, change: change)
       when 'merge'
         if onestop_ids_to_merge.nil?
           raise Changeset::Error.new(changeset: changeset, message: "Error: must provide an array of onestop ids to merge.")
@@ -62,6 +64,42 @@ module CurrentTrackedByChangeset
       else
         raise Changeset::Error.new(changeset: changeset, message: "could not find a #{self.name} with Onestop ID of #{change[:onestop_id]} to change Onestop ID")
       end
+    end
+
+    def apply_change_change_stop_type(changeset: nil, change: nil)
+      stop = Stop.find_by_onestop_id!(change[:onestop_id])
+      stop_type = change[:stop_type]
+
+      if stop_type == "Stop"
+        parent_stop = nil
+        new_onestop_id = change[:new_onestop_id]
+      elsif stop_type == "StopPlatform"
+        platform_name = change[:platform_name]
+        parent_stop = Stop.find_by_onestop_id!(change[:parent_stop_onestop_id])
+        new_onestop_id = "#{parent_stop.onestop_id}<#{platform_name}"
+        change[:new_onestop_id] = new_onestop_id
+      elsif stop_type == "StopEgress"
+        platform_name = change[:platform_name]
+        parent_stop = Stop.find_by_onestop_id!(change[:parent_stop_onestop_id])
+        new_onestop_id = "#{parent_stop.onestop_id}>#{platform_name}"
+        change[:new_onestop_id] = new_onestop_id
+      else
+        raise Changeset::Error.new(changeset: changeset, message: "unknown stop_type: #{stop_type}")
+      end
+
+      # Rename - change 1
+      apply_change_change_onestop_id(changeset: changeset, change: change)
+
+      # Record change_stop_type action - change 2
+      stop.reload
+      stop.update_making_history(changeset: changeset, new_attrs: {}, old_attrs: { action: 'change_stop_type' })
+
+      # Becomes
+      # Set parent_stop manually
+      stop.becomes(stop_type.constantize).update!(
+       type: (stop_type == 'Stop' ? nil : stop_type),
+       parent_stop: parent_stop
+      )
     end
 
     def after_merge_onestop_ids(changeset)

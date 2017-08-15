@@ -22,6 +22,8 @@
         "format": "stop-onestop-id"
       }
     },
+    "platformName": { "type": "string" },
+    "stopType": { "type": "string" },
     "geometry": { "type": "object" },
     "geometryReversegeo": { "type": "object" },
     "timezone": { "type": "string" },
@@ -35,7 +37,6 @@
     "addImportedFromFeeds": {
       "type": "array",
       "minItems": 1,
-      "uniqueItems": true,
       "items": {
         "$ref": "./imported_from_feed.json"
       }
@@ -43,14 +44,12 @@
     "notImportedFromFeeds": {
       "type": "array",
       "minItems": 1,
-      "uniqueItems": true,
       "items": {
         "$ref": "./imported_from_feed.json"
       }
     },
     "servedBy": {
       "type": ["array", "null"],
-      "uniqueItems": true,
       "items": {
         "type": "string",
         "format": "operator-onestop-id"
@@ -58,7 +57,6 @@
     },
     "notServedBy": {
       "type": ["array", "null"],
-      "uniqueItems": true,
       "items": {
         "type": "string",
         "format": "operator-onestop-id"
@@ -67,7 +65,6 @@
     "includesStopTransfers": {
       "type": ["array", "null"],
       "minItems": 1,
-      "uniqueItems": true,
       "items": {
         "type": "object",
         "required": ["toStopOnestopId", "transferType"],
@@ -86,7 +83,6 @@
     "doesNotIncludeStopTransfers": {
       "type": ["array", "null"],
       "minItems": 1,
-      "uniqueItems": true,
       "items": {
         "type": "object",
         "required": ["destinationOnestopId"],

@@ -2,8 +2,12 @@ describe Api::V1::OperatorsController do
   let(:vta) {
     create(:operator,
       name: 'Santa Clara Valley Transportation Agency',
+      short_name: 'VTA',
       geometry: { type: 'Polygon', coordinates:[[[-121.57063369100001,36.974922178],[-121.98392082799998,37.222231291999975],[-122.030939181,37.259406422],[-122.130937923,37.361408525999984],[-122.14999058399997,37.39545061899999],[-122.173638697,37.44055680899999],[-122.17356866899998,37.443449786999984],[-121.97594900000001,37.557287999999964],[-121.953170709,37.558388155999985],[-121.92699421000002,37.542184637],[-121.923956233,37.54013896899999],[-121.631097271,37.14884923099999],[-121.55177065999997,37.00582961999998],[-121.54902915,37.00006636],[-121.57063369100001,36.974922178]]] },
-      tags: { agency_url: 'http://www.vta.org'}
+      tags: { agency_url: 'http://www.vta.org'},
+      country: 'US',
+      state: 'US-CA',
+      metro: 'San Francisco Bay Area'
     )
   }
   let(:sfmta) {
@@ -20,6 +24,51 @@ describe Api::V1::OperatorsController do
       sfmta.stops << glen_park
     end
 
+    context '?with_feed' do
+      before(:each) {
+        @operator1 = create(:operator)
+        @operator2 = create(:operator)
+        @feed1 = create(:feed)
+        @feed2 = create(:feed)
+        OperatorInFeed.create!(feed: @feed1, operator: @operator1)
+        OperatorInFeed.create!(feed: @feed2, operator: @operator2)
+      }
+
+      it 'returns operators for a feed' do
+        get :index, with_feed: @feed1.onestop_id
+        expect_json({ operators: -> (operators) {
+          expect(operators.count).to eq 1
+          expect(operators.first[:onestop_id]).to eq @operator1.onestop_id
+        }})
+      end
+
+      it 'returns operators for feeds' do
+        get :index, with_feed: [@feed1.onestop_id, @feed2.onestop_id]
+        expect_json({ operators: -> (operators) {
+          expect(operators.count).to eq 2
+        }})
+      end
+
+    end
+
+    context '?without_feed' do
+      before(:each) {
+        Operator.delete_all # clear out vta, sfmta
+        @operator1 = create(:operator)
+        @operator2 = create(:operator)
+        @feed1 = create(:feed)
+        OperatorInFeed.create!(feed: @feed1, operator: @operator1)
+      }
+
+      it 'returns operators without feed' do
+        get :index, without_feed: 'true'
+        expect_json({ operators: -> (operators) {
+          expect(operators.count).to eq 1
+          expect(operators.first[:onestop_id]).to eq @operator2.onestop_id
+        }})
+      end
+    end
+
     context 'as JSON' do
       it 'returns all current operators when no parameters provided' do
         get :index
@@ -28,7 +77,6 @@ describe Api::V1::OperatorsController do
           expect(operators.length).to eq 2
         }})
       end
-
       it 'filters by imported_with_gtfs_id' do
         operators = create_list(:operator, 3)
         operator = create(:operator, name: 'Test 123')
@@ -132,7 +180,17 @@ describe Api::V1::OperatorsController do
         get :index, format: :csv, bbox: '-122.0883,37.198,-121.8191,37.54804'
         expect(response.body.lines.count).to eq 2
         expect(response.body).to start_with(Operator.csv_column_names.join(','))
-        expect(response.body).to include([vta.onestop_id, vta.name, vta.tags[:agency_url]].join(','))
+        expect(response.body).to include([
+          vta.onestop_id,
+          vta.name,
+          vta.short_name,
+          vta.country,
+          vta.state,
+          vta.metro,
+          vta.timezone,
+          vta.tags[:agency_url],
+          "https://transit.land/feed-registry/operators/#{vta.onestop_id}"
+        ].join(','))
       end
     end
   end
