@@ -187,10 +187,6 @@ class Api::V1::CurrentEntityController < Api::V1::BaseApiController
         desc: "Exclude geometry",
         type: "boolean",
         show: false
-      },
-      apikey: {
-        desc: "API Key",
-        type: "string"
       }
     })
   end
