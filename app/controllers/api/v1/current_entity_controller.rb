@@ -102,7 +102,7 @@ class Api::V1::CurrentEntityController < Api::V1::BaseApiController
 
   def query_params
     # Allowed query parameters - and documentation
-    {
+    super.merge({
       onestop_id: {
         desc: "Onestop ID",
         type: "onestop_id",
@@ -187,7 +187,11 @@ class Api::V1::CurrentEntityController < Api::V1::BaseApiController
         desc: "Exclude geometry",
         type: "boolean",
         show: false
+      },
+      apikey: {
+        desc: "API Key",
+        type: "string"
       }
-    }
+    })
   end
 end

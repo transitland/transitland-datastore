@@ -175,7 +175,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
 
 
   def query_params
-    {
+    super.merge({
       active: {
         desc: "Imported from active Feed Version",
         type: "boolean"
@@ -262,7 +262,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
         type: "sha1",
         array: true
       }
-    }
+    })
   end
 
   def tz_now
