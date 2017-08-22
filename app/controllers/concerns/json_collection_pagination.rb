@@ -66,10 +66,6 @@ module JsonCollectionPagination
 
   private
 
-  def query_params
-    {}
-  end
-
   def sort_key
     (params[:sort_key].presence || :id).to_sym
   end
