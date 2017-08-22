@@ -41,6 +41,7 @@ class Api::V1::BaseApiController < ApplicationController
     render_error code: 400, message: exception.message
   end
 
+
   # following this pattern: https://gist.github.com/Sujimichi/2349565
   def raise_not_found!
     raise ActionController::RoutingError.new("No route matches #{request.env['REQUEST_METHOD']} /api/#{params[:unmatched_route]}")
@@ -51,6 +52,15 @@ class Api::V1::BaseApiController < ApplicationController
   end
 
   private
+
+  def query_params
+    return {
+      apikey: {
+        desc: "API Key",
+        type: "string"
+      }
+    }
+  end
 
   def set_default_response_format
     request.format = :json unless [:geojson, :csv, :rss].include?(request.format.to_sym)
