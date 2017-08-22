@@ -81,7 +81,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     # Feed Version, or default: All active Feed Versions
     feed_version_sha1 = params[:feed_version_sha1].presence || params[:imported_from_feed_version].presence
     if feed_version_sha1
-      @ssps = @ssps.where(feed_version: FeedVersion.find_by!(sha1: feed_version_sha1))
+      @ssps = @ssps.where(feed_version: FeedVersion.find_by!(sha1: feed_version_sha1).id)
     end
 
     # Explicitly use active Feed Versions
@@ -92,7 +92,7 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
     # Feed
     feed_onestop_id = params[:feed_onestop_id].presence || params[:imported_from_feed].presence
     if feed_onestop_id
-      @ssps = @ssps.where(feed: Feed.find_by_onestop_id!(feed_onestop_id))
+      @ssps = @ssps.where(feed: Feed.find_by_onestop_id!(feed_onestop_id).id)
     end
 
     # FeedVersion Import level
@@ -116,11 +116,11 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
 
     # Service between stops
     if params[:origin_onestop_id].present?
-      origin_stops = Stop.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :origin_onestop_id))
+      origin_stops = Stop.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :origin_onestop_id)).pluck(:id)
       @ssps = @ssps.where(origin: origin_stops)
     end
     if params[:destination_onestop_id].present?
-      destination_stops = Stop.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :destination_onestop_id))
+      destination_stops = Stop.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :destination_onestop_id)).pluck(:id)
       @ssps = @ssps.where(destination: destination_stops)
     end
 
@@ -144,15 +144,15 @@ class Api::V1::ScheduleStopPairsController < Api::V1::BaseApiController
 
     # Service on a route
     if params[:route_onestop_id].present?
-      routes = Route.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :route_onestop_id))
+      routes = Route.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :route_onestop_id)).pluck(:id)
       @ssps = @ssps.where(route: routes)
     end
     if params[:route_stop_pattern_onestop_id].present?
-      rsps = RouteStopPattern.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :route_stop_pattern_onestop_id))
+      rsps = RouteStopPattern.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :route_stop_pattern_onestop_id)).pluck(:id)
       @ssps = @ssps.where(route_stop_pattern: rsps)
     end
     if params[:operator_onestop_id].present?
-      operators = Operator.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :operator_onestop_id))
+      operators = Operator.find_by_onestop_ids!(AllowFiltering.param_as_array(params, :operator_onestop_id)).pluck(:id)
       @ssps = @ssps.where(operator: operators)
     end
 
