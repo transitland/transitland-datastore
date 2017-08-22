@@ -39,7 +39,7 @@ class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
   private
 
   def query_params
-    {
+    super.merge({
       ids: {
         desc: "Change Payload ID",
         type: "integer",
@@ -50,7 +50,7 @@ class Api::V1::ChangePayloadsController < Api::V1::BaseApiController
         type: "integer",
         show: false
       }
-    }
+    })
   end
 
   def change_payload_params
