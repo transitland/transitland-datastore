@@ -9,6 +9,9 @@ describe ApplicationController do
     def url_for(params)
       "http://blah/offset=#{params[:offset]}"
     end
+    def query_params
+      {}
+    end
   end
 
   let(:pager) { Proc.new { |offset,per_page,total|
