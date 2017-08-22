@@ -25,16 +25,16 @@ module JsonCollectionPagination
     elsif min_id
       # Get the current page of results, +1 to limit to check next page
       data = collection.where('id > ?', min_id).limit(per_page+1).to_a
-      meta[:sort_min_id] = data[-2].id
+      data_on_page = data[0...per_page]
+      meta[:sort_min_id] = data_on_page.last.id
       meta_next = url_for(qps.merge(meta))
       (meta[:next] = meta_next) if data.size > per_page
-      # Slice data
-      data_on_page = data[0...per_page]
     else
       # Get the current page of results.
       #  Add +1 to limit to see if there is a next page.
       #  This will be dropped in the return.
       data = collection.offset(offset).limit(per_page+1).to_a
+      data_on_page = data[0...per_page]
       # Previous and next page
       meta[:offset] = offset
       meta_prev = url_for(qps.merge(meta).merge({
@@ -45,8 +45,6 @@ module JsonCollectionPagination
       }))
       (meta[:prev] = meta_prev) if offset > 0
       (meta[:next] = meta_next) if data.size > per_page
-      # Slice data
-      data_on_page = data[0...per_page]
     end
 
     if include_total
