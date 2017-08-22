@@ -84,6 +84,25 @@ describe ApplicationController do
       })
     end
 
+    it 'sort_min_id' do
+      idx = 1
+      per_page = 5
+      sort_min_id = @issue_ids[idx]
+      next_sort_min_id = @issue_ids[idx+per_page]
+      get :index, sort_min_id: sort_min_id, per_page: per_page
+      expect_json({
+        changesets: -> (changesets) {
+          expect(changesets.map { |i| i[:id] }).to eq(@issue_ids[idx+1...idx+1+per_page])
+        },
+        meta: {
+          sort_key: 'id',
+          sort_order: 'asc',
+          sort_min_id: next_sort_min_id,
+          per_page: per_page
+        }
+      })
+    end
+
     it 'raises ArgumentError on invalid sort_key' do
       expect {
         get :index, sort_key: :unknown_key
