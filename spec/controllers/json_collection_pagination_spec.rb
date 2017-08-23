@@ -9,6 +9,9 @@ describe ApplicationController do
     def url_for(params)
       "http://blah/offset=#{params[:offset]}"
     end
+    def query_params
+      {}
+    end
   end
 
   let(:pager) { Proc.new { |offset,per_page,total|
@@ -80,6 +83,25 @@ describe ApplicationController do
           sort_order: 'desc',
           offset: 0,
           per_page: 5
+        }
+      })
+    end
+
+    it 'sort_min_id' do
+      idx = 1
+      per_page = 5
+      sort_min_id = @issue_ids[idx]
+      next_sort_min_id = @issue_ids[idx+per_page]
+      get :index, sort_min_id: sort_min_id, per_page: per_page
+      expect_json({
+        changesets: -> (changesets) {
+          expect(changesets.map { |i| i[:id] }).to eq(@issue_ids[idx+1...idx+1+per_page])
+        },
+        meta: {
+          sort_key: 'id',
+          sort_order: 'asc',
+          sort_min_id: next_sort_min_id,
+          per_page: per_page
         }
       })
     end

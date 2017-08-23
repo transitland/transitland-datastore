@@ -55,7 +55,7 @@ class Api::V1::FeedVersionInfosController < Api::V1::BaseApiController
   private
 
   def query_params
-    {
+    super.merge({
       feed_onestop_id: {
         desc: "Feed",
         type: "onestop_id",
@@ -77,7 +77,7 @@ class Api::V1::FeedVersionInfosController < Api::V1::BaseApiController
         type: "integer",
         array: true
       }
-    }
+    })
   end
 
   def set_feed_version_info

@@ -32,7 +32,7 @@ class Api::V1::FeedVersionImportsController < Api::V1::BaseApiController
   private
 
   def query_params
-    {
+    super.merge({
       ids: {
         desc: "FeedVersionImport IDs",
         type: "integer",
@@ -48,7 +48,7 @@ class Api::V1::FeedVersionImportsController < Api::V1::BaseApiController
         type: "sha1",
         array: true
       }
-    }
+    })
   end
 
   def set_feed_version_import
