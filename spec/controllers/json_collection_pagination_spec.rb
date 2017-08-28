@@ -100,8 +100,11 @@ describe ApplicationController do
         meta: {
           sort_key: 'id',
           sort_order: 'asc',
-          sort_min_id: next_sort_min_id,
-          per_page: per_page
+          sort_min_id: sort_min_id,
+          per_page: per_page,
+          next: -> (next_url) {
+            expect(next_url).to include("sort_min_id=#{next_sort_min_id}")
+          }
         }
       })
     end
