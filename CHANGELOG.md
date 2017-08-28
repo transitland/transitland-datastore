@@ -2,10 +2,27 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/74...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/75...HEAD)
 
 **Merged pull requests:**
 
+- Production release 75 [\#1167](https://github.com/transitland/transitland-datastore/pull/1167) ([irees](https://github.com/irees))
+
+## [75](https://github.com/transitland/transitland-datastore/tree/75) (2017-08-22)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/74...75)
+
+**Closed issues:**
+
+- SSP controller: avoid expensive subqueries [\#1173](https://github.com/transitland/transitland-datastore/issues/1173)
+- Pagination: keyset [\#1170](https://github.com/transitland/transitland-datastore/issues/1170)
+- Next url: include apikey [\#1168](https://github.com/transitland/transitland-datastore/issues/1168)
+
+**Merged pull requests:**
+
+- Query params: apikey [\#1174](https://github.com/transitland/transitland-datastore/pull/1174) ([irees](https://github.com/irees))
+- SSP controller: avoid expensive subqueries [\#1172](https://github.com/transitland/transitland-datastore/pull/1172) ([irees](https://github.com/irees))
+- Implement keyset pagination [\#1171](https://github.com/transitland/transitland-datastore/pull/1171) ([irees](https://github.com/irees))
+- Update gems and annotations [\#1169](https://github.com/transitland/transitland-datastore/pull/1169) ([drewda](https://github.com/drewda))
 - Production release 74 [\#1157](https://github.com/transitland/transitland-datastore/pull/1157) ([irees](https://github.com/irees))
 
 ## [74](https://github.com/transitland/transitland-datastore/tree/74) (2017-08-14)

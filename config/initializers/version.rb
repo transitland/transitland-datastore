@@ -1,5 +1,5 @@
 module TransitlandDatastore
   class Application
-    VERSION = "75"
+    VERSION = "76"
   end
 end
