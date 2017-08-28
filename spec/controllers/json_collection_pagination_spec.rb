@@ -106,6 +106,16 @@ describe ApplicationController do
       })
     end
 
+    it 'sort_min_id does not fail on empty result' do
+      get :index, sort_min_id: @issue_ids.last+1
+      expect_json({
+        changesets: -> (changesets) {
+          expect(changesets.size).to eq(0)
+        }
+      })
+      expect(response.code.to_i).to eq(200)
+    end
+
     it 'raises ArgumentError on invalid sort_key' do
       expect {
         get :index, sort_key: :unknown_key
