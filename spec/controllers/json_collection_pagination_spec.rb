@@ -7,7 +7,7 @@ describe ApplicationController do
       render paginated_json_collection(collection)
     end
     def url_for(params)
-      "http://blah/offset=#{params[:offset]}"
+      ActionDispatch::Http::URL.url_for(only_path: true, params: params)
     end
     def query_params
       {}
@@ -126,9 +126,9 @@ describe ApplicationController do
     end
 
     it 'has a next page' do
-      expect(pager.call(0,1,false)['meta']['next']).to eq('http://blah/offset=1')
-      expect(pager.call(0,4,false)['meta']['next']).to eq('http://blah/offset=4')
-      expect(pager.call(4,4,false)['meta']['next']).to eq('http://blah/offset=8')
+      expect(pager.call(0,1,false)['meta']['next']).to include('offset=1')
+      expect(pager.call(0,4,false)['meta']['next']).to include('offset=4')
+      expect(pager.call(4,4,false)['meta']['next']).to include('offset=8')
       expect(pager.call(12,4,false)['meta']['next']).to be_nil
       expect(pager.call(0,15,false)['meta']['next']).to be_nil
     end
@@ -136,13 +136,13 @@ describe ApplicationController do
     it 'has a previous page' do
       expect(pager.call(0,1,false)['meta']['prev']).to be_nil
       expect(pager.call(0,4,false)['meta']['prev']).to be_nil
-      expect(pager.call(4,4,false)['meta']['prev']).to eq('http://blah/offset=0')
-      expect(pager.call(8,4,false)['meta']['prev']).to eq('http://blah/offset=4')
+      expect(pager.call(4,4,false)['meta']['prev']).to include('offset=0')
+      expect(pager.call(8,4,false)['meta']['prev']).to include('offset=4')
       expect(pager.call(0,15,false)['meta']['prev']).to be_nil
     end
 
     it 'will not underflow offset' do
-      expect(pager.call(5,10,false)['meta']['prev']).to eq('http://blah/offset=0')
+      expect(pager.call(5,10,false)['meta']['prev']).to include('offset=0')
     end
 
     it 'allows pagination to be disabled' do
