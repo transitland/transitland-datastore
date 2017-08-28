@@ -22,15 +22,15 @@ describe ApplicationController do
 
   context 'paginated_json_collection' do
     before(:each) do
-      @issues = create_list(:changeset, 10)
-      @issue_ids = @issues.sort_by(&:id).map(&:id)
+      @changesets = create_list(:changeset, 10)
+      @changeset_ids = @changesets.sort_by(&:id).map(&:id)
     end
 
     it 'one page' do
       get :index
       expect_json({
         changesets: -> (changesets) {
-          expect(changesets.map { |i| i[:id] }).to eq(@issue_ids[0...10])
+          expect(changesets.map { |i| i[:id] }).to eq(@changeset_ids[0...10])
         },
         meta: {
           sort_key: 'id',
@@ -45,7 +45,7 @@ describe ApplicationController do
       get :index, total: true
       expect_json({
         changesets: -> (changesets) {
-          expect(changesets.map { |i| i[:id] }).to eq(@issue_ids[0...10])
+          expect(changesets.map { |i| i[:id] }).to eq(@changeset_ids[0...10])
         },
         meta: {
           sort_key: 'id',
@@ -61,7 +61,7 @@ describe ApplicationController do
       get :index, sort_order: :asc, per_page: 5
       expect_json({
         changesets: -> (changesets) {
-          expect(changesets.map { |i| i[:id] }).to eq(@issue_ids[0...5])
+          expect(changesets.map { |i| i[:id] }).to eq(@changeset_ids[0...5])
         },
         meta: {
           sort_key: 'id',
@@ -76,7 +76,7 @@ describe ApplicationController do
       get :index, sort_order: :desc, per_page: 5
       expect_json({
         changesets: -> (changesets) {
-          expect(changesets.map { |i| i[:id] }).to eq(@issue_ids.reverse[0...5])
+          expect(changesets.map { |i| i[:id] }).to eq(@changeset_ids.reverse[0...5])
         },
         meta: {
           sort_key: 'id',
@@ -90,12 +90,12 @@ describe ApplicationController do
     it 'sort_min_id' do
       idx = 1
       per_page = 5
-      sort_min_id = @issue_ids[idx]
-      next_sort_min_id = @issue_ids[idx+per_page]
+      sort_min_id = @changeset_ids[idx]
+      next_sort_min_id = @changeset_ids[idx+per_page]
       get :index, sort_min_id: sort_min_id, per_page: per_page
       expect_json({
         changesets: -> (changesets) {
-          expect(changesets.map { |i| i[:id] }).to eq(@issue_ids[idx+1...idx+1+per_page])
+          expect(changesets.map { |i| i[:id] }).to eq(@changeset_ids[idx+1...idx+1+per_page])
         },
         meta: {
           sort_key: 'id',
@@ -110,7 +110,7 @@ describe ApplicationController do
     end
 
     it 'sort_min_id does not fail on empty result' do
-      get :index, sort_min_id: @issue_ids.last+1
+      get :index, sort_min_id: @changeset_ids.last+1
       expect_json({
         changesets: -> (changesets) {
           expect(changesets.size).to eq(0)
@@ -149,7 +149,7 @@ describe ApplicationController do
       get :index, per_page: '∞'
       expect_json({
         changesets: -> (changesets) {
-          expect(changesets.map { |i| i[:id] }).to eq(@issue_ids[0...10])
+          expect(changesets.map { |i| i[:id] }).to eq(@changeset_ids[0...10])
         },
         meta: {
           per_page: '∞'
