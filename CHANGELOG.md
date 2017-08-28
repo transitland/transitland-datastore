@@ -2,10 +2,22 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/75...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/76...HEAD)
+
+**Closed issues:**
+
+- Keyset pagination: check for result before generating next url [\#1176](https://github.com/transitland/transitland-datastore/issues/1176)
 
 **Merged pull requests:**
 
+- Production release 76 [\#1175](https://github.com/transitland/transitland-datastore/pull/1175) ([irees](https://github.com/irees))
+
+## [76](https://github.com/transitland/transitland-datastore/tree/76) (2017-08-28)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/75...76)
+
+**Merged pull requests:**
+
+- Check for result before next url [\#1177](https://github.com/transitland/transitland-datastore/pull/1177) ([irees](https://github.com/irees))
 - Production release 75 [\#1167](https://github.com/transitland/transitland-datastore/pull/1167) ([irees](https://github.com/irees))
 
 ## [75](https://github.com/transitland/transitland-datastore/tree/75) (2017-08-22)
@@ -892,7 +904,6 @@
 
 - Enqueue next feed versions limit [\#754](https://github.com/transitland/transitland-datastore/pull/754) ([irees](https://github.com/irees))
 - Upgrade Rails to 4.2.7.1 & update gems [\#751](https://github.com/transitland/transitland-datastore/pull/751) ([drewda](https://github.com/drewda))
-- fixing OperatorInFeed bug and some comments [\#750](https://github.com/transitland/transitland-datastore/pull/750) ([doublestranded](https://github.com/doublestranded))
 - Daily crontab: enqueue next feed version [\#744](https://github.com/transitland/transitland-datastore/pull/744) ([irees](https://github.com/irees))
 - Issues controller update fix [\#741](https://github.com/transitland/transitland-datastore/pull/741) ([doublestranded](https://github.com/doublestranded))
 - Entity: where\_imported\_from\_active\_feed\_version [\#739](https://github.com/transitland/transitland-datastore/pull/739) ([irees](https://github.com/irees))
