@@ -94,24 +94,14 @@ describe Api::V1::FeedVersionsController do
       expect(feed.feed_versions.first.sha1).to eq(sha1)
     end
 
-    it 'enqueues GTFSGoogleValidationWorker' do
+    it 'enqueues GTFSValidationWorker' do
       expect {
         post :create, feed_version: {
           feed_onestop_id: feed.onestop_id,
           url: url,
           file: file
         }
-      }.to change(GTFSGoogleValidationWorker.jobs, :size).by(1)
-    end
-
-    it 'enqueues GTFSConveyalValidationWorker' do
-      expect {
-        post :create, feed_version: {
-          feed_onestop_id: feed.onestop_id,
-          url: url,
-          file: file
-        }
-      }.to change(GTFSConveyalValidationWorker.jobs, :size).by(1)
+      }.to change(GTFSValidationWorker.jobs, :size).by(1)
     end
 
     it 'enqueues GTFSStatisticsWorker' do
