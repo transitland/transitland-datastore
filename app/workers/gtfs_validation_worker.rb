@@ -1,4 +1,4 @@
-class GTFSGoogleValidationWorker
+class GTFSValidationWorker
   include Sidekiq::Worker
   sidekiq_options queue: :low,
                   retry: false,
@@ -8,6 +8,6 @@ class GTFSGoogleValidationWorker
 
   def perform(feed_version_sha1)
     feed_version = FeedVersion.find_by!(sha1: feed_version_sha1)
-    GTFSValidationService.create_google_validation(feed_version)
+    GTFSValidationService.run_validators(feed_version)
   end
 end
