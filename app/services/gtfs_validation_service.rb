@@ -3,13 +3,14 @@ class GTFSValidationService
 
   GOOGLE_VALIDATOR_PATH = './virtualenv/bin/feedvalidator.py'
   CONVEYAL_VALIDATOR_PATH = './lib/conveyal-gtfs-lib/gtfs-lib.jar'
+  TIMEOUT_SECONDS = (60 * 60 * 4)
 
   def self.run_conveyal_validator(filename)
     f = nil
     Dir.mktmpdir("gtfs", Figaro.env.gtfs_tmpdir_basepath) do |dir|
       # Run feedvalidator
       outfile = File.join(dir, 'conveyal.json')
-      IO.popen(['java', '-Djava.io.tmpdir='+dir, '-jar', CONVEYAL_VALIDATOR_PATH, '-validate', filename, outfile], "w+") do |io|
+      IO.popen(['timeout', '-s', 'KILL', TIMEOUT_SECONDS, 'java', '-Djava.io.tmpdir='+dir, '-jar', CONVEYAL_VALIDATOR_PATH, '-validate', filename, outfile], "w+") do |io|
       end
       return unless File.exists?(outfile)
       f = File.open(outfile)
@@ -23,7 +24,7 @@ class GTFSValidationService
       # Create a tempfile to use the filename.
       outfile = File.join(dir, 'feedvalidator.html')
       # Run feedvalidator
-      IO.popen({'TMP' => dir}, [GOOGLE_VALIDATOR_PATH, '-n', '-o', outfile, filename], "w+") do |io|
+      IO.popen({'TMP' => dir}, ['timeout', '-s', 'KILL', TIMEOUT_SECONDS, GOOGLE_VALIDATOR_PATH, '-n', '-o', outfile, filename], "w+") do |io|
       end
       return unless File.exists?(outfile)
       f = File.open(outfile)
