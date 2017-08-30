@@ -32,6 +32,7 @@ class GTFSValidationService
   end
 
   def self.create_google_validation(feed_version)
+    return unless Figaro.env.run_google_validator.presence == 'true'
     begin
       gtfs_filename = feed_version.file.local_path_copying_locally_if_needed
       outfile = run_google_validator(gtfs_filename)
@@ -48,6 +49,7 @@ class GTFSValidationService
   end
 
   def self.create_feed_version_info_conveyal_validation(feed_version)
+    return unless Figaro.env.run_conveyal_validator.presence == 'true'
     feed_version_info = nil
     begin
       gtfs_filename = feed_version.file.local_path_copying_locally_if_needed
@@ -69,13 +71,9 @@ class GTFSValidationService
 
   def self.run_validators(feed_version)
     # Run Conveyal Validator
-    if Figaro.env.run_conveyal_validator.presence == 'true'
-      create_feed_version_info_conveyal_validation(feed_version)
-    end
+    create_feed_version_info_conveyal_validation(feed_version)
     # Run Google Validator
-    if Figaro.env.run_google_validator.presence == 'true'
-      create_google_validation(feed_version)
-    end
+    create_google_validation(feed_version)
     # Return
     feed_version
   end
