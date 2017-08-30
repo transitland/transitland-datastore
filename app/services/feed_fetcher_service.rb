@@ -129,8 +129,7 @@ class FeedFetcherService
       data = data.merge!(read_gtfs_info(gtfs))
       feed_version.update!(data)
       # Enqueue validators
-      GTFSGoogleValidationWorker.perform_async(feed_version.sha1)
-      GTFSConveyalValidationWorker.perform_async(feed_version.sha1)
+      GTFSValidationWorker.perform_async(feed_version.sha1)
       GTFSStatisticsWorker.perform_async(feed_version.sha1)
     end
     # Return the found or created feed_version
