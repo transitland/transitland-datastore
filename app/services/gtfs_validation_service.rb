@@ -47,6 +47,7 @@ class GTFSValidationService
     ensure
       feed_version.file.remove_any_local_cached_copies
     end
+    feed_version
   end
 
   def self.create_feed_version_info_conveyal_validation(feed_version)
