@@ -31,7 +31,7 @@
           "action": "createUpdate",
           "feed": {
             "onestopId": "f-9q9-actransit",
-            "url": "http://www.actransit.org/wp-content/uploads/GTFSAug232015b.zip",
+            "url": "http://www.actransit.org/wp-content/uploads/GTFS_Fall17.zip",
             "licenseName": "Creative Commons Attribution 3.0 Unported License",
             "licenseUrl": "http://www.actransit.org/data-terms-and-conditions/",
             "licenseUseWithoutAttribution": "no",
