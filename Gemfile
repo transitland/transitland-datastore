@@ -48,7 +48,7 @@ gem 'text'
 # authentication and authorization
 gem 'rack-cors', require: 'rack/cors'
 gem 'devise'
-gem 'jwt', '1.5.6' # TODO: upgrade to 2.0.0
+gem 'jwt'
 
 # providing API
 gem 'active_model_serializers', '~> 0.10'

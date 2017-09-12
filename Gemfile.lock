@@ -833,7 +833,7 @@ DEPENDENCIES
   gtfs!
   json
   json-schema
-  jwt (= 1.5.6)
+  jwt
   logstasher
   marginalia
   memory_profiler
