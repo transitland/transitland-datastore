@@ -165,6 +165,19 @@ class Feed < BaseFeed
     # WHERE fvi2.id IS NULL GROUP BY (fv.feed_id)
   }
 
+  def self.publication_metrics(feeds)
+    FeedVersion.where(feed: Array.wrap(feeds)).where('fetched_at is not null').order(fetched_at: :asc).group_by(&:feed_id).map do |feed,fvs|
+      fvpairs = fvs[0..-2].zip(fvs[1..-1])
+      fetched_at_frequency = fvpairs.map { |a,b| b.fetched_at - a.fetched_at }.sum / fvpairs.size
+      start_difference_average = fvpairs.map { |a,b| (b.earliest_calendar_date - a.latest_calendar_date) }.sum / fvpairs.size
+      {
+        feed: feed,
+        fetched_at_frequency: fetched_at_frequency,
+        start_difference_average: start_difference_average
+      }
+    end
+  end
+
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
