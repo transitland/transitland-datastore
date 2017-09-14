@@ -488,4 +488,21 @@ describe Feed do
       expect(feed.find_next_feed_version(date)).to be_nil
     end
   end
+
+  context '.publication_metrics' do
+    before(:each) do
+      @feed = create(:feed)
+      d = Date.parse('2015-01-01')
+      @fv1 = create(:feed_version, feed: @feed, fetched_at: d-30.day, earliest_calendar_date: d-30.day, latest_calendar_date: d-15.day)
+      @fv2 = create(:feed_version, feed: @feed, fetched_at: d-15.day, earliest_calendar_date: d-20.day, latest_calendar_date: d)
+      @fv3 = create(:feed_version, feed: @feed, fetched_at: d, earliest_calendar_date: d-5.day, latest_calendar_date: d+15.day)
+      @fv4 = create(:feed_version, feed: @feed, fetched_at: d+15.day, earliest_calendar_date: d+10.day, latest_calendar_date: d+30.day)
+    end
+
+    it 'generates fetched_at frequency' do
+      pm = Feed.publication_metrics(@feed)
+      pmf = pm.first
+      expect(pmf[:fetched_at_frequency]).to eq(1296000.0)
+    end
+  end
 end
