@@ -71,6 +71,26 @@ class FeedFetcherService
     create_feed_version(feed, url, gtfs: gtfs)
   end
 
+  def self.gtfs_minimal_validation(gtfs)
+    # Perform some basic validation!
+    # Required files present
+    return unless gtfs.valid?
+    # At least 1 each: agency, stop, route, trip, stop_times
+    # Read just 1 row & break
+    e = []
+    gtfs.each_agency { |i| e << i; break }
+    gtfs.each_stop { |i| e << i; break }
+    gtfs.each_route { |i| e << i; break }
+    gtfs.each_trip { |i| e << i; break }
+    gtfs.each_stop_time { |i| e << i; break }
+    return unless e.size == 5
+    # calendar/calendar_dates
+    a, b = gtfs.service_period_range
+    return unless a && b
+    # Minimal validation satisfied
+    return true
+  end
+
   def self.create_feed_version(feed, url, gtfs: nil, file: nil)
     # Open GTFS
     gtfs ||= GTFS::Source.build(
