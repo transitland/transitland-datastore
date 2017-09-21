@@ -165,6 +165,26 @@ class Feed < BaseFeed
     # WHERE fvi2.id IS NULL GROUP BY (fv.feed_id)
   }
 
+  def self.feed_version_update_statistics(feed)
+    fvs = feed.feed_versions.to_a
+    fvs_stats = fvs.select { |a| a.url && a.fetched_at && a.earliest_calendar_date && a.latest_calendar_date }.sort_by { |a| a.fetched_at }
+    result = {
+      feed_onestop_id: feed.onestop_id,
+      feed_versions_total: fvs.count,
+      feed_versions_filtered: fvs_stats.count,
+    }
+    return result if fvs_stats.size < 1
+    result[:scheduled_service_duration_average] = fvs_stats.map { |a| a.latest_calendar_date.to_date - a.earliest_calendar_date.to_date}.sum / fvs_stats.size
+
+    fvs_pairs = fvs_stats[0..-2].zip(fvs_stats[1..-1])
+    if fvs_pairs.size > 0
+      result[:feed_version_transitions] = fvs_pairs.map { |a,b| [a.sha1, b.sha1] }
+      result[:fetched_at_frequency] = fvs_pairs.map { |a,b| b.fetched_at.to_date - a.fetched_at.to_date }.sum / fvs_pairs.size
+      result[:scheduled_service_overlap_average] = fvs_pairs.map { |a,b| a.latest_calendar_date.to_date - b.earliest_calendar_date.to_date }.sum / fvs_pairs.size
+    end
+    result
+  end
+
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
