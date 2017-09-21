@@ -42,7 +42,6 @@ class FeedMaintenanceService
     end
   end
 
-
   def self.enqueue_next_feed_versions(date, import_level: nil, max_imports: nil)
     # Find feed versions that can be updated
     queue = []

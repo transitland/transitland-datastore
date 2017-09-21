@@ -14,6 +14,36 @@ describe FeedMaintenanceService do
     let(:date_later) { date + 1.month }
     let(:feed) { create(:feed) }
 
+    it 'import_policy immediately' do
+      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date_earliest, imported_at: date)
+      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier, created_at: date + 1.hour)
+      feed.tags['import_policy'] = 'immediately'
+      feed.active_feed_version = fv1
+      feed.save!
+      expect(FeedMaintenanceService.find_next_feed_version(feed, date)).to eq(fv2)
+    end
+
+    it 'import_policy daily' do
+      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date_earliest, imported_at: date)
+      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier, created_at: date + 5.hour)
+      fv3 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier, created_at: date + 5.day)
+      feed.tags['import_policy'] = 'daily'
+      feed.active_feed_version = fv1
+      feed.save!
+      expect(FeedMaintenanceService.find_next_feed_version(feed, date)).to eq(fv3)
+    end
+
+    it 'import_policy weekly' do
+      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date_earliest, imported_at: date)
+      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier, created_at: date + 5.hour)
+      fv3 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier, created_at: date + 5.day)
+      fv4 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier, created_at: date + 10.day)
+      feed.tags['import_policy'] = 'weekly'
+      feed.active_feed_version = fv1
+      feed.save!
+      expect(FeedMaintenanceService.find_next_feed_version(feed, date)).to eq(fv4)
+    end
+
     it 'returns the next_feed_version' do
       fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date_earliest)
       fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
