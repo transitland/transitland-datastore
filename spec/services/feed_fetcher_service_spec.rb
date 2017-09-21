@@ -15,14 +15,6 @@ describe FeedFetcherService do
   end
 
   context 'asynchronously' do
-    it 'fetch_this_feed_async(feed)' do
-      # Sidekiq::Testing.fake! do
-        expect {
-          FeedFetcherService.fetch_this_feed_async(caltrain_feed)
-        }.to change(FeedFetcherWorker.jobs, :size).by(1)
-      # end
-    end
-
     it 'fetch_these_feeds_async(feeds)' do
       Sidekiq::Testing.fake! do
         expect {
