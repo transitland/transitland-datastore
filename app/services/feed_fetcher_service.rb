@@ -88,11 +88,13 @@ class FeedFetcherService
   end
 
   def self.create_feed_version(feed, url, gtfs: nil, file: nil)
+    # Open GTFS
     gtfs ||= GTFS::Source.build(
       file,
       strict: false,
       tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
     )
+
     # Normalize & create sha1
     gtfs_file = nil
     gtfs_file_raw = nil
@@ -111,28 +113,34 @@ class FeedFetcherService
       gtfs_file = File.open(gtfs.archive)
       sha1 = Digest::SHA1.file(gtfs_file).hexdigest
     end
-    # Create a new FeedVersion
-    # (upload attachments later to avoid race conditions)
-    feed_version = FeedVersion.find_or_create_by!(
+
+    # Check if FeedVersion exists
+    feed_version = FeedVersion.find_by(sha1: sha1)
+    return feed_version if feed_version # already exists
+
+    # Create the FeedVersion
+    # Note: this is not atomic & the constraint is in the model, not index
+    data = {
+      sha1: sha1,
       feed: feed,
-      sha1: sha1
-    )
-    # Is this a new feed_version?
-    if feed_version.file.url.nil?
-      # Save the file attachments
-      data = {
-        url: url,
-        fetched_at: DateTime.now,
-        file: gtfs_file,
-        file_raw: gtfs_file_raw,
-      }
-      data = data.merge!(read_gtfs_info(gtfs))
-      feed_version.update!(data)
-      # Enqueue validators
-      GTFSGoogleValidationWorker.perform_async(feed_version.sha1)
-      GTFSConveyalValidationWorker.perform_async(feed_version.sha1)
-      GTFSStatisticsWorker.perform_async(feed_version.sha1)
-    end
+      url: url,
+      fetched_at: DateTime.now,
+    }
+    data = data.merge!(read_gtfs_info(gtfs))
+    feed_version = FeedVersion.create!(data)
+
+    # Upload files
+    upload = {
+      file: gtfs_file,
+      file_raw: gtfs_file_raw,
+    }
+    feed_version.update!(upload)
+
+    # Enqueue validators
+    GTFSGoogleValidationWorker.perform_async(feed_version.sha1)
+    GTFSConveyalValidationWorker.perform_async(feed_version.sha1)
+    GTFSStatisticsWorker.perform_async(feed_version.sha1)
+
     # Return the found or created feed_version
     feed_version
   end
@@ -165,16 +173,16 @@ class FeedFetcherService
 
   private
 
-    def self.sync_fetch_and_return_feed_versions(feeds)
-      feeds.map do |feed|
-        self.fetch_and_return_feed_version(feed)
-      end
+  def self.sync_fetch_and_return_feed_versions(feeds)
+    feeds.map do |feed|
+      self.fetch_and_return_feed_version(feed)
     end
+  end
 
-    def self.async_enqueue_and_return_workers(feeds)
-      feeds.map do |feed|
-        FeedFetcherWorker.perform_async(feed.onestop_id)
-      end
+  def self.async_enqueue_and_return_workers(feeds)
+    feeds.map do |feed|
+      FeedFetcherWorker.perform_async(feed.onestop_id)
     end
+  end
 
 end
