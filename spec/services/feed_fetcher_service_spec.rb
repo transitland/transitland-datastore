@@ -12,14 +12,6 @@ describe FeedFetcherService do
     before(:each) do
       allow(FeedFetcherService).to receive(:fetch_and_return_feed_version) { true }
     end
-
-    it 'fetch_this_feed_now(feed)' do
-      FeedFetcherService.fetch_this_feed_now(caltrain_feed)
-    end
-
-    it 'fetch_these_feeds_now(feeds)' do
-      FeedFetcherService.fetch_these_feeds_now([caltrain_feed, vta_feed])
-    end
   end
 
   context 'asynchronously' do
