@@ -29,6 +29,7 @@ Rails.application.routes.draw do
       resources :feeds, only: [:index, :show] do
         member do
           get 'download_latest_feed_version'
+          get 'feed_version_update_statistics'
         end
         collection do
           post 'fetch_info'
