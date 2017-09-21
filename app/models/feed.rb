@@ -165,17 +165,24 @@ class Feed < BaseFeed
     # WHERE fvi2.id IS NULL GROUP BY (fv.feed_id)
   }
 
-  def self.publication_metrics(feeds)
-    FeedVersion.where(feed: Array.wrap(feeds)).where('fetched_at is not null').order(fetched_at: :asc).group_by(&:feed_id).map do |feed,fvs|
-      fvpairs = fvs[0..-2].zip(fvs[1..-1])
-      fetched_at_frequency = fvpairs.map { |a,b| b.fetched_at - a.fetched_at }.sum / fvpairs.size
-      start_difference_average = fvpairs.map { |a,b| (b.earliest_calendar_date - a.latest_calendar_date) }.sum / fvpairs.size
-      {
-        feed: feed,
-        fetched_at_frequency: fetched_at_frequency,
-        start_difference_average: start_difference_average
-      }
+  def self.feed_version_update_statistics(feed)
+    fvs = feed.feed_versions.to_a
+    fvs_stats = fvs.select { |a| a.url && a.fetched_at && a.earliest_calendar_date && a.latest_calendar_date }.sort_by { |a| a.fetched_at }
+    result = {
+      feed_onestop_id: feed.onestop_id,
+      feed_versions_total: fvs.count,
+      feed_versions_filtered: fvs_stats.count,
+    }
+    return result if fvs_stats.size < 1
+    result[:scheduled_service_duration_average] = fvs_stats.map { |a| a.latest_calendar_date.to_date - a.earliest_calendar_date.to_date}.sum / fvs_stats.size
+
+    fvs_pairs = fvs_stats[0..-2].zip(fvs_stats[1..-1])
+    if fvs_pairs.size > 0
+      result[:feed_version_transitions] = fvs_pairs.map { |a,b| [a.sha1, b.sha1] }
+      result[:fetched_at_frequency] = fvs_pairs.map { |a,b| b.fetched_at.to_date - a.fetched_at.to_date }.sum / fvs_pairs.size
+      result[:scheduled_service_overlap_average] = fvs_pairs.map { |a,b| a.latest_calendar_date.to_date - b.earliest_calendar_date.to_date }.sum / fvs_pairs.size
     end
+    result
   end
 
   include CurrentTrackedByChangeset
