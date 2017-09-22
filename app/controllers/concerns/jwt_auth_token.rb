@@ -12,7 +12,7 @@ module JwtAuthToken
 
   def self.valid?(token)
     begin
-      JWT.decode(token, Rails.application.secrets.secret_key_base, { :algorithm => SIGNING_ALGORITHM })
+      JWT.decode(token, Rails.application.secrets.secret_key_base, true, { algorithm: SIGNING_ALGORITHM })
     rescue
       false
     end
