@@ -70,6 +70,7 @@ class FeedFetcherService
     # Normalize
     gtfs_file_raw = self.normalize_gtfs(gtfs, url: url)
     # Validate
+    self.gtfs_minimal_validation(gtfs)
     # Create
     create_feed_version(feed, url, gtfs, gtfs_file_raw: gtfs_file_raw)
   end
@@ -161,7 +162,7 @@ class FeedFetcherService
   def self.gtfs_minimal_validation(gtfs)
     # Perform some basic validation!
     # Required files present
-    return unless gtfs.valid?
+    raise GTFS::InvalidSourceException.new('missing required files') unless gtfs.valid?
     # At least 1 each: agency, stop, route, trip, stop_times
     # Read just 1 row & break
     e = []
@@ -170,10 +171,10 @@ class FeedFetcherService
     gtfs.each_route { |i| e << i; break }
     gtfs.each_trip { |i| e << i; break }
     gtfs.each_stop_time { |i| e << i; break }
-    return unless e.size == 5
+    raise GTFS::InvalidSourceException.new('missing required entities') unless e.size == 5
     # calendar/calendar_dates
     a, b = gtfs.service_period_range
-    return unless a && b
+    raise GTFS::InvalidSourceException.new('missing calendar data') unless a && b
     # Minimal validation satisfied
     return true
   end
