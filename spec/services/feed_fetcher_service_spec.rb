@@ -153,7 +153,33 @@ describe FeedFetcherService do
     end
   end
 
-  context '#fetch_and_normalize' do
+  context '#gtfs_minimal_validation' do
+    it 'raises exception when missing a required file' do
+      file = Rails.root.join('spec/support/example_gtfs_archives/example-missing-stops.zip')
+      expect {
+        gtfs = FeedFetcherService.fetch_gtfs(file: file)
+        FeedFetcherService.gtfs_minimal_validation(gtfs)
+      }.to raise_error(GTFS::InvalidSourceException)
+    end
+
+    it 'raises exception when a required file is empty' do
+      file = Rails.root.join('spec/support/example_gtfs_archives/example-empty-stops.zip')
+      gtfs = FeedFetcherService.fetch_gtfs(file: file)
+      expect {
+        FeedFetcherService.gtfs_minimal_validation(gtfs)
+      }.to raise_error(GTFS::InvalidSourceException)
+    end
+
+    it 'raises exception when calendar is empty' do
+      file = Rails.root.join('spec/support/example_gtfs_archives/example-empty-calendar.zip')
+      gtfs = FeedFetcherService.fetch_gtfs(file: file)
+      expect {
+        FeedFetcherService.gtfs_minimal_validation(gtfs)
+      }.to raise_error(GTFS::InvalidSourceException)
+    end
+  end
+
+  context '#fetch_normalize_validate_create' do
     it 'downloads feed' do
       feed = create(:feed, url: example_url)
       feed_version = nil
