@@ -95,32 +95,33 @@ class FeedFetcherService
     return true
   end
 
-  def self.create_feed_version(feed, url, gtfs: nil, file: nil)
+  def self.fetch_and_normalize_gtfs(gtfs: nil, url: nil, file: nil)
     # Open GTFS
     gtfs ||= GTFS::Source.build(
-      file,
+      file || url,
       strict: false,
       tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
     )
 
-    # Normalize & create sha1
     gtfs_file = nil
     gtfs_file_raw = nil
-    sha1 = nil
     if self.url_fragment(url)
-      # Get temporary path; deletes after block
-      Dir.mktmpdir("gtfs", Figaro.env.gtfs_tmpdir_basepath) do |dir|
-        tmp_file_path = File.join(dir, 'normalized.zip')
-        # Create normalize archive
-        gtfs.create_archive(tmp_file_path)
-        gtfs_file = File.open(tmp_file_path)
-        gtfs_file_raw = File.open(gtfs.archive)
-        sha1 = Digest::SHA1.file(tmp_file_path).hexdigest
-      end
+      tmp_file_path = File.join(gtfs.path, 'normalized.zip')
+      gtfs.create_archive(tmp_file_path)
+      gtfs_file = tmp_file_path
+      gtfs_file_raw = gtfs.archive
     else
-      gtfs_file = File.open(gtfs.archive)
-      sha1 = Digest::SHA1.file(gtfs_file).hexdigest
+      gtfs_file = gtfs.archive
     end
+
+    return [gtfs, gtfs_file, gtfs_file_raw]
+  end
+
+  def self.create_feed_version(feed, url, gtfs: nil, file: nil)
+    gtfs, gtfs_file, gtfs_file_raw = fetch_and_normalize_gtfs(gtfs: gtfs, url: url, file: file)
+
+    # Create sha1
+    sha1 = Digest::SHA1.file(gtfs_file).hexdigest
 
     # Check if FeedVersion exists
     feed_version = FeedVersion.find_by(sha1: sha1)
@@ -139,8 +140,8 @@ class FeedFetcherService
 
     # Upload files
     upload = {
-      file: gtfs_file,
-      file_raw: gtfs_file_raw,
+      file: File.open(gtfs_file),
+      file_raw: (File.open(gtfs_file_raw) if gtfs_file_raw),
     }
     feed_version.update!(upload)
 
