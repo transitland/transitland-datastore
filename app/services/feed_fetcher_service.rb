@@ -38,7 +38,7 @@ class FeedFetcherService
     }
     begin
       Issue.issues_of_entity(feed, entity_attributes: ["url"]).each(&:deprecate)
-      feed_version = fetch_and_normalize_feed_version(feed)
+      feed_version = fetch_normalize_validate_create(feed, url: feed.url)
     rescue GTFS::InvalidURLException => e
       error_handler.call(e, 'feed_fetch_invalid_url')
     rescue GTFS::InvalidResponseException => e
@@ -64,63 +64,41 @@ class FeedFetcherService
     (url || "").partition("#").last.presence
   end
 
-  def self.fetch_and_normalize_feed_version(feed)
-    url = feed.url
-    # Fetch GTFS
-    gtfs = GTFS::Source.build(
-      url,
-      strict: false,
-      tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
-    )
-    create_feed_version(feed, url, gtfs: gtfs)
+  def self.fetch_normalize_validate_create(feed, url: url, file: nil)
+    # Fetch
+    gtfs = self.fetch_gtfs(url: url, file: file)
+    # Normalize
+    gtfs_file_raw = self.normalize_gtfs(gtfs, url: url)
+    # Validate
+    # Create
+    create_feed_version(feed, url, gtfs, gtfs_file_raw: gtfs_file_raw)
   end
 
-  def self.gtfs_minimal_validation(gtfs)
-    # Perform some basic validation!
-    # Required files present
-    return unless gtfs.valid?
-    # At least 1 each: agency, stop, route, trip, stop_times
-    # Read just 1 row & break
-    e = []
-    gtfs.each_agency { |i| e << i; break }
-    gtfs.each_stop { |i| e << i; break }
-    gtfs.each_route { |i| e << i; break }
-    gtfs.each_trip { |i| e << i; break }
-    gtfs.each_stop_time { |i| e << i; break }
-    return unless e.size == 5
-    # calendar/calendar_dates
-    a, b = gtfs.service_period_range
-    return unless a && b
-    # Minimal validation satisfied
-    return true
-  end
-
-  def self.fetch_and_normalize_gtfs(gtfs: nil, url: nil, file: nil)
+  def self.fetch_gtfs(url: nil, file: nil)
     # Open GTFS
-    gtfs ||= GTFS::Source.build(
+    gtfs = GTFS::Source.build(
       file || url,
       strict: false,
       tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
     )
+  end
 
-    gtfs_file = nil
+  def self.normalize_gtfs(gtfs, url: nil)
+    # Update gtfs.archive path and return original path
     gtfs_file_raw = nil
     if self.url_fragment(url)
       tmp_file_path = File.join(gtfs.path, 'normalized.zip')
       gtfs.create_archive(tmp_file_path)
       gtfs_file = tmp_file_path
       gtfs_file_raw = gtfs.archive
-    else
-      gtfs_file = gtfs.archive
+      gtfs.archive = tmp_file_path
     end
-
-    return [gtfs, gtfs_file, gtfs_file_raw]
+    gtfs_file_raw
   end
 
-  def self.create_feed_version(feed, url, gtfs: nil, file: nil)
-    gtfs, gtfs_file, gtfs_file_raw = fetch_and_normalize_gtfs(gtfs: gtfs, url: url, file: file)
-
+  def self.create_feed_version(feed, url, gtfs, gtfs_file_raw: nil)
     # Create sha1
+    gtfs_file = gtfs.archive
     sha1 = Digest::SHA1.file(gtfs_file).hexdigest
 
     # Check if FeedVersion exists
@@ -178,6 +156,26 @@ class FeedFetcherService
       latest_calendar_date: latest_calendar_date,
       tags: tags
     }
+  end
+
+  def self.gtfs_minimal_validation(gtfs)
+    # Perform some basic validation!
+    # Required files present
+    return unless gtfs.valid?
+    # At least 1 each: agency, stop, route, trip, stop_times
+    # Read just 1 row & break
+    e = []
+    gtfs.each_agency { |i| e << i; break }
+    gtfs.each_stop { |i| e << i; break }
+    gtfs.each_route { |i| e << i; break }
+    gtfs.each_trip { |i| e << i; break }
+    gtfs.each_stop_time { |i| e << i; break }
+    return unless e.size == 5
+    # calendar/calendar_dates
+    a, b = gtfs.service_period_range
+    return unless a && b
+    # Minimal validation satisfied
+    return true
   end
 
   private

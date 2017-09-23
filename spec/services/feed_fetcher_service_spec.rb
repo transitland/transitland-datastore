@@ -132,7 +132,7 @@ describe FeedFetcherService do
       feed = create(:feed, url: example_url)
       feed_version = nil
       VCR.use_cassette('feed_fetch_example_local') do
-        feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
+        feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
         feed_version.save!
       end
       expect(feed_version.earliest_calendar_date).to eq Date.parse('2007-01-01')
@@ -143,7 +143,7 @@ describe FeedFetcherService do
       feed = create(:feed, url: example_url)
       feed_version = nil
       VCR.use_cassette('feed_fetch_example_local') do
-        feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
+        feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
         feed_version.save!
       end
       expect(feed_version.tags['feed_lang']).to eq 'en-US'
@@ -158,7 +158,7 @@ describe FeedFetcherService do
       feed = create(:feed, url: example_url)
       feed_version = nil
       VCR.use_cassette('feed_fetch_example_local') do
-        feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
+        feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
         feed_version.save!
       end
       expect(feed_version.sha1).to eq example_sha1_raw
@@ -169,7 +169,7 @@ describe FeedFetcherService do
       feed = create(:feed, url: example_url)
       feed_version = nil
       VCR.use_cassette('feed_fetch_example_local') do
-        feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
+        feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
         feed_version.save!
       end
       expect(feed_version.sha1).to be_truthy # eq example_sha1
@@ -180,7 +180,7 @@ describe FeedFetcherService do
       feed = create(:feed, url: example_nested_zip)
       feed_version = nil
       VCR.use_cassette('feed_fetch_nested') do
-        feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
+        feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
         feed_version.save!
       end
       expect(feed_version.sha1).to be_truthy # eq example_nested_sha1_zip
@@ -192,7 +192,7 @@ describe FeedFetcherService do
       feed = create(:feed, url: example_nested_flat)
       feed_version = nil
       VCR.use_cassette('feed_fetch_nested') do
-        feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
+        feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
         feed_version.save!
       end
       expect(feed_version.sha1).to be_truthy # eq example_nested_sha1_flat
@@ -206,7 +206,7 @@ describe FeedFetcherService do
       feed_versions = []
       2.times.each do |i|
         VCR.use_cassette('feed_fetch_nested') do
-          feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
+          feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
         end
         feed_versions << feed_version
         sleep 5
