@@ -31,6 +31,11 @@ class Api::V1::FeedsController < Api::V1::CurrentEntityController
     end
   end
 
+  def feed_version_update_statistics
+    set_model
+    render json: Feed.feed_version_update_statistics(@model)
+  end
+
   private
 
   def index_query

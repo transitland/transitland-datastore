@@ -432,4 +432,55 @@ describe Feed do
       expect(Feed.where_active_feed_version_update).to match_array([@feed0, @feed1])
     end
   end
+
+  context '.feed_version_update_statistics' do
+    before(:each) do
+      @url = 'http://example.com/example.zip'
+      @feed = create(:feed)
+      @d = Date.parse('2015-01-01')
+      @fv1 = create(:feed_version, feed: @feed, url: @url, sha1: 'a', fetched_at: @d-30.day, earliest_calendar_date: @d-30.day, latest_calendar_date: @d-15.day)
+      @fv2 = create(:feed_version, feed: @feed, url: @url, sha1: 'b', fetched_at: @d-15.day, earliest_calendar_date: @d-20.day, latest_calendar_date: @d)
+      @fv3 = create(:feed_version, feed: @feed, url: @url, sha1: 'c', fetched_at: @d, earliest_calendar_date: @d-5.day, latest_calendar_date: @d+15.day)
+      @fv4 = create(:feed_version, feed: @feed, url: @url, sha1: 'd', fetched_at: @d+15.day, earliest_calendar_date: @d+10.day, latest_calendar_date: @d+30.day)
+    end
+
+    it 'generates fetched_at frequency' do
+      pmf = Feed.feed_version_update_statistics(@feed)
+      expect(pmf[:feed_versions_total]).to eq(4)
+      expect(pmf[:feed_versions_filtered]).to eq(4)
+      expect(pmf[:feed_version_transitions].size).to eq(3)
+      expect(pmf[:feed_version_transitions]).to match_array([["a", "b"], ["b", "c"], ["c", "d"]])
+      expect(pmf[:fetched_at_frequency]).to eq(15.0)
+      expect(pmf[:scheduled_service_overlap_average]).to eq(5.0)
+      expect(pmf[:scheduled_service_duration_average]).to eq(18.75)
+    end
+
+    it 'excludes url is nil' do
+      @fv5 = create(:feed_version, feed: @feed, url: nil, sha1: 'e', fetched_at: @d+20.day, earliest_calendar_date: @d+15.day, latest_calendar_date: @d+60.day)
+      pmf = Feed.feed_version_update_statistics(@feed)
+      expect(pmf[:feed_versions_total]).to eq(5)
+      expect(pmf[:feed_versions_filtered]).to eq(4)
+      expect(pmf[:feed_version_transitions].size).to eq(3)
+    end
+
+    it 'works with 0 feed versions' do
+      FeedVersion.delete_all
+      pmf = Feed.feed_version_update_statistics(@feed)
+      expect(pmf[:feed_versions_total]).to eq(0)
+      expect(pmf[:feed_version_transitions]).to be_nil
+      expect(pmf[:fetched_at_frequency]).to be_nil
+      expect(pmf[:scheduled_service_overlap_average]).to be_nil
+      expect(pmf[:scheduled_service_duration_average]).to be_nil
+    end
+
+    it 'works with 1 feed versions' do
+      FeedVersion.where('id not in (?)', @fv1.id).delete_all
+      pmf = Feed.feed_version_update_statistics(@feed)
+      expect(pmf[:feed_versions_total]).to eq(1)
+      expect(pmf[:scheduled_service_duration_average]).to eq(15.0)
+      expect(pmf[:scheduled_service_overlap_average]).to be_nil
+      expect(pmf[:feed_version_transitions]).to be_nil
+      expect(pmf[:fetched_at_frequency]).to be_nil
+    end
+  end
 end
