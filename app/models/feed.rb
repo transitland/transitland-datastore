@@ -286,7 +286,11 @@ class Feed < BaseFeed
   end
 
   def import_policy
-    tags['import_policy']
+    value = tags['import_policy']
+    if tags['manual_import'] == 'true'
+      value ||= 'manual'
+    end
+    value
   end
 
   private
