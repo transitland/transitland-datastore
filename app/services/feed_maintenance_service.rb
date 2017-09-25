@@ -24,11 +24,12 @@ class FeedMaintenanceService
     return unless next_fv
 
     # Feed import policy settings
-    policy = feed.tags['import_policy']
-    policy ||= 'immediately' # default policy
+    policy = feed.import_policy
     days_since_last_import = (next_fv.created_at.to_date - active_feed_version.imported_at.to_date)
     if policy == 'manual'
       return
+    elsif policy.nil?
+      return next_fv
     elsif policy == 'immediately'
       return next_fv
     elsif policy == 'daily'

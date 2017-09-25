@@ -483,4 +483,17 @@ describe Feed do
       expect(pmf[:fetched_at_frequency]).to be_nil
     end
   end
+
+  context '#import_policy' do
+    it 'sets default import_policy' do
+      feed = create(:feed)
+      expect(feed.import_policy).to be_nil
+    end
+
+    it 'sets import_policy' do
+      feed = create(:feed)
+      feed.import_policy = 'immediately'
+      expect(feed.import_policy).to eq('immediately')
+    end
+  end
 end

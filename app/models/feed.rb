@@ -281,6 +281,14 @@ class Feed < BaseFeed
     end
   end
 
+  def import_policy=(value)
+    tags['import_policy'] = value
+  end
+
+  def import_policy
+    tags['import_policy']
+  end
+
   private
 
   def set_default_values
