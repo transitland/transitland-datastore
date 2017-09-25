@@ -5,6 +5,44 @@ class FeedMaintenanceService
   DEFAULT_EXTEND_TO_DATE = 1.year
   DEFAULT_EXPIRED_ON_DATE = 1.week
 
+  def self.find_next_feed_version(feed, date)
+    # Find a feed_version where:
+    #   1. newer than active_feed_version
+    #   2. service begins on or later than active_feed_version
+    #   3. service begins on or before specified date
+    active_feed_version = feed.active_feed_version
+    return unless active_feed_version
+    return unless active_feed_version.imported_at
+
+    next_fv = feed.feed_versions
+      .where('created_at > ?', active_feed_version.created_at)
+      .where('earliest_calendar_date >= ?', active_feed_version.earliest_calendar_date)
+      .where('earliest_calendar_date <= ?', date)
+      .reorder(earliest_calendar_date: :desc, created_at: :desc)
+      .first
+
+    return unless next_fv
+
+    # Feed import policy settings
+    policy = feed.import_policy
+    days_since_last_import = (next_fv.created_at.to_date - active_feed_version.imported_at.to_date)
+    if policy == 'manual'
+      return
+    elsif policy.nil?
+      return next_fv
+    elsif policy == 'immediately'
+      return next_fv
+    elsif policy == 'daily'
+      return next_fv if days_since_last_import >= 1
+    elsif policy == 'weekly'
+      return next_fv if days_since_last_import >= 7
+    elsif policy == 'monthly'
+      return next_fv if days_since_last_import >= 30 # todo: use calendar month
+    elsif policy == 'yearly'
+      return next_fv if days_since_last_import >= 365 # todo: use calendar year
+    end
+  end
+
   def self.enqueue_next_feed_versions(date, import_level: nil, max_imports: nil)
     # Find feed versions that can be updated
     queue = []
@@ -15,7 +53,7 @@ class FeedMaintenanceService
       # Use the previous import_level, or default to 2
       import_level ||= feed.active_feed_version.try(:import_level) || 2
       # Find the next feed_version
-      next_feed_version = feed.find_next_feed_version(date)
+      next_feed_version = find_next_feed_version(feed, date)
       next unless next_feed_version
       # Return if it's been imported before
       next if next_feed_version.feed_version_imports.last

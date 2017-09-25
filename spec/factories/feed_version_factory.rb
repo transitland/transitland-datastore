@@ -34,6 +34,8 @@ FactoryGirl.define do
     sha1 { SecureRandom.hex(32) }
     earliest_calendar_date '2016-01-01'
     latest_calendar_date '2017-01-01'
+    fetched_at '2015-12-01'
+    imported_at '2016-01-01'
     feed
 
     factory :feed_version_recursosdatabuenosairesgobar do

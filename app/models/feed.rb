@@ -244,21 +244,6 @@ class Feed < BaseFeed
     return true
   end
 
-  def find_next_feed_version(date)
-    # Find a feed_version where:
-    #   1. newer than active_feed_version
-    #   2. service begins on or later than active_feed_version
-    #   3. service begins on or before specified date
-    active_feed_version = self.active_feed_version
-    return unless active_feed_version
-    self.feed_versions
-      .where('created_at > ?', active_feed_version.created_at)
-      .where('earliest_calendar_date >= ?', active_feed_version.earliest_calendar_date)
-      .where('earliest_calendar_date <= ?', date)
-      .reorder(earliest_calendar_date: :desc, created_at: :desc)
-      .first
-  end
-
   def activate_feed_version(feed_version_sha1, import_level)
     feed_version = self.feed_versions.find_by!(sha1: feed_version_sha1)
     self.transaction do
@@ -294,6 +279,14 @@ class Feed < BaseFeed
     else
       :unknown
     end
+  end
+
+  def import_policy=(value)
+    tags['import_policy'] = value
+  end
+
+  def import_policy
+    tags['import_policy']
   end
 
   private

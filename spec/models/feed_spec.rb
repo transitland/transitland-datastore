@@ -433,62 +433,6 @@ describe Feed do
     end
   end
 
-  context '.find_next_feed_version' do
-    let(:date) { DateTime.now }
-    let(:date_earliest) { date - 2.month }
-    let(:date_earlier) { date - 1.month }
-    let(:date_later) { date + 1.month }
-    let(:feed) { create(:feed) }
-
-    it 'returns the next_feed_version' do
-      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date_earliest)
-      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
-      feed.update!(active_feed_version: fv1)
-      expect(feed.find_next_feed_version(date)).to eq(fv2)
-    end
-
-    it 'returns feed_version if same service range but newer than active_feed_version' do
-      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
-      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
-      feed.update!(active_feed_version: fv1)
-      expect(feed.find_next_feed_version(date)).to eq(fv2)
-    end
-
-    it 'returns feed_version ignoring feed_versions that begin in the future' do
-      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date_earliest)
-      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
-      fv3 = create(:feed_version, feed: feed, earliest_calendar_date: date_later)
-      feed.update!(active_feed_version: fv1)
-      expect(feed.find_next_feed_version(date)).to eq(fv2)
-    end
-
-    it 'returns most recently created feed_version if more than 1 result' do
-      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date_earliest)
-      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
-      fv3 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
-      feed.update!(active_feed_version: fv1)
-      expect(feed.find_next_feed_version(date)).to eq(fv3)
-    end
-
-    it 'returns nil if no active_feed_version' do
-      expect(feed.find_next_feed_version(DateTime.now)).to be_nil
-    end
-
-    it 'returns nil if active_feed_version is most recent' do
-      fv0 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
-      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date)
-      feed.update!(active_feed_version: fv1)
-      expect(feed.find_next_feed_version(DateTime.now)).to be_nil
-    end
-
-    it 'returns nil if earliest_calendar_date is less than active_feed_version' do
-      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
-      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date_earliest)
-      feed.update!(active_feed_version: fv1)
-      expect(feed.find_next_feed_version(date)).to be_nil
-    end
-  end
-
   context '.feed_version_update_statistics' do
     before(:each) do
       @url = 'http://example.com/example.zip'
@@ -537,6 +481,19 @@ describe Feed do
       expect(pmf[:scheduled_service_overlap_average]).to be_nil
       expect(pmf[:feed_version_transitions]).to be_nil
       expect(pmf[:fetched_at_frequency]).to be_nil
+    end
+  end
+
+  context '#import_policy' do
+    it 'sets default import_policy' do
+      feed = create(:feed)
+      expect(feed.import_policy).to be_nil
+    end
+
+    it 'sets import_policy' do
+      feed = create(:feed)
+      feed.import_policy = 'immediately'
+      expect(feed.import_policy).to eq('immediately')
     end
   end
 end
