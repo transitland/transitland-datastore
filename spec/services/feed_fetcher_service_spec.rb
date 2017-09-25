@@ -12,25 +12,9 @@ describe FeedFetcherService do
     before(:each) do
       allow(FeedFetcherService).to receive(:fetch_and_return_feed_version) { true }
     end
-
-    it 'fetch_this_feed_now(feed)' do
-      FeedFetcherService.fetch_this_feed_now(caltrain_feed)
-    end
-
-    it 'fetch_these_feeds_now(feeds)' do
-      FeedFetcherService.fetch_these_feeds_now([caltrain_feed, vta_feed])
-    end
   end
 
   context 'asynchronously' do
-    it 'fetch_this_feed_async(feed)' do
-      # Sidekiq::Testing.fake! do
-        expect {
-          FeedFetcherService.fetch_this_feed_async(caltrain_feed)
-        }.to change(FeedFetcherWorker.jobs, :size).by(1)
-      # end
-    end
-
     it 'fetch_these_feeds_async(feeds)' do
       Sidekiq::Testing.fake! do
         expect {
@@ -148,7 +132,7 @@ describe FeedFetcherService do
       feed = create(:feed, url: example_url)
       feed_version = nil
       VCR.use_cassette('feed_fetch_example_local') do
-        feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
+        feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
         feed_version.save!
       end
       expect(feed_version.earliest_calendar_date).to eq Date.parse('2007-01-01')
@@ -159,7 +143,7 @@ describe FeedFetcherService do
       feed = create(:feed, url: example_url)
       feed_version = nil
       VCR.use_cassette('feed_fetch_example_local') do
-        feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
+        feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
         feed_version.save!
       end
       expect(feed_version.tags['feed_lang']).to eq 'en-US'
@@ -169,12 +153,38 @@ describe FeedFetcherService do
     end
   end
 
-  context '#fetch_and_normalize' do
+  context '#gtfs_minimal_validation' do
+    it 'raises exception when missing a required file' do
+      file = Rails.root.join('spec/support/example_gtfs_archives/example-missing-stops.zip')
+      expect {
+        gtfs = FeedFetcherService.fetch_gtfs(file: file)
+        FeedFetcherService.gtfs_minimal_validation(gtfs)
+      }.to raise_error(GTFS::InvalidSourceException)
+    end
+
+    it 'raises exception when a required file is empty' do
+      file = Rails.root.join('spec/support/example_gtfs_archives/example-empty-stops.zip')
+      gtfs = FeedFetcherService.fetch_gtfs(file: file)
+      expect {
+        FeedFetcherService.gtfs_minimal_validation(gtfs)
+      }.to raise_error(GTFS::InvalidSourceException)
+    end
+
+    it 'raises exception when calendar is empty' do
+      file = Rails.root.join('spec/support/example_gtfs_archives/example-empty-calendar.zip')
+      gtfs = FeedFetcherService.fetch_gtfs(file: file)
+      expect {
+        FeedFetcherService.gtfs_minimal_validation(gtfs)
+      }.to raise_error(GTFS::InvalidSourceException)
+    end
+  end
+
+  context '#fetch_normalize_validate_create' do
     it 'downloads feed' do
       feed = create(:feed, url: example_url)
       feed_version = nil
       VCR.use_cassette('feed_fetch_example_local') do
-        feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
+        feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
         feed_version.save!
       end
       expect(feed_version.sha1).to eq example_sha1_raw
@@ -185,7 +195,7 @@ describe FeedFetcherService do
       feed = create(:feed, url: example_url)
       feed_version = nil
       VCR.use_cassette('feed_fetch_example_local') do
-        feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
+        feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
         feed_version.save!
       end
       expect(feed_version.sha1).to be_truthy # eq example_sha1
@@ -196,7 +206,7 @@ describe FeedFetcherService do
       feed = create(:feed, url: example_nested_zip)
       feed_version = nil
       VCR.use_cassette('feed_fetch_nested') do
-        feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
+        feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
         feed_version.save!
       end
       expect(feed_version.sha1).to be_truthy # eq example_nested_sha1_zip
@@ -208,7 +218,7 @@ describe FeedFetcherService do
       feed = create(:feed, url: example_nested_flat)
       feed_version = nil
       VCR.use_cassette('feed_fetch_nested') do
-        feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
+        feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
         feed_version.save!
       end
       expect(feed_version.sha1).to be_truthy # eq example_nested_sha1_flat
@@ -222,7 +232,7 @@ describe FeedFetcherService do
       feed_versions = []
       2.times.each do |i|
         VCR.use_cassette('feed_fetch_nested') do
-          feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
+          feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
         end
         feed_versions << feed_version
         sleep 5

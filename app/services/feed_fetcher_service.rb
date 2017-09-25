@@ -4,18 +4,6 @@ class FeedFetcherService
   REFETCH_WAIT = 24.hours
   SPLIT_REFETCH_INTO_GROUPS = 48 # and only refetch the first group
 
-  def self.fetch_this_feed_now(feed)
-    sync_fetch_and_return_feed_versions([feed])
-  end
-
-  def self.fetch_these_feeds_now(feeds)
-    sync_fetch_and_return_feed_versions(feeds)
-  end
-
-  def self.fetch_this_feed_async(feed)
-    async_enqueue_and_return_workers([feed])
-  end
-
   def self.fetch_these_feeds_async(feeds)
     async_enqueue_and_return_workers(feeds)
   end
@@ -50,7 +38,7 @@ class FeedFetcherService
     }
     begin
       Issue.issues_of_entity(feed, entity_attributes: ["url"]).each(&:deprecate)
-      feed_version = fetch_and_normalize_feed_version(feed)
+      feed_version = fetch_normalize_validate_create(feed, url: feed.url)
     rescue GTFS::InvalidURLException => e
       error_handler.call(e, 'feed_fetch_invalid_url')
     rescue GTFS::InvalidResponseException => e
@@ -76,63 +64,71 @@ class FeedFetcherService
     (url || "").partition("#").last.presence
   end
 
-  def self.fetch_and_normalize_feed_version(feed)
-    url = feed.url
-    # Fetch GTFS
-    gtfs = GTFS::Source.build(
-      url,
-      strict: false,
-      tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
-    )
-    create_feed_version(feed, url, gtfs: gtfs)
+  def self.fetch_normalize_validate_create(feed, url: url, file: nil)
+    # Fetch
+    gtfs = self.fetch_gtfs(url: url, file: file)
+    # Normalize
+    gtfs_file_raw = self.normalize_gtfs(gtfs, url: url)
+    # Validate
+    self.gtfs_minimal_validation(gtfs)
+    # Create
+    create_feed_version(feed, url, gtfs, gtfs_file_raw: gtfs_file_raw)
   end
 
-  def self.create_feed_version(feed, url, gtfs: nil, file: nil)
-    gtfs ||= GTFS::Source.build(
-      file,
+  def self.fetch_gtfs(url: nil, file: nil)
+    # Open GTFS
+    gtfs = GTFS::Source.build(
+      file || url,
       strict: false,
       tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
     )
-    # Normalize & create sha1
-    gtfs_file = nil
+  end
+
+  def self.normalize_gtfs(gtfs, url: nil)
+    # Update gtfs.archive path and return original path
     gtfs_file_raw = nil
-    sha1 = nil
     if self.url_fragment(url)
-      # Get temporary path; deletes after block
-      Dir.mktmpdir("gtfs", Figaro.env.gtfs_tmpdir_basepath) do |dir|
-        tmp_file_path = File.join(dir, 'normalized.zip')
-        # Create normalize archive
-        gtfs.create_archive(tmp_file_path)
-        gtfs_file = File.open(tmp_file_path)
-        gtfs_file_raw = File.open(gtfs.archive)
-        sha1 = Digest::SHA1.file(tmp_file_path).hexdigest
-      end
-    else
-      gtfs_file = File.open(gtfs.archive)
-      sha1 = Digest::SHA1.file(gtfs_file).hexdigest
+      tmp_file_path = File.join(gtfs.path, 'normalized.zip')
+      gtfs.create_archive(tmp_file_path)
+      gtfs_file = tmp_file_path
+      gtfs_file_raw = gtfs.archive
+      gtfs.archive = tmp_file_path
     end
-    # Create a new FeedVersion
-    # (upload attachments later to avoid race conditions)
-    feed_version = FeedVersion.find_or_create_by!(
+    gtfs_file_raw
+  end
+
+  def self.create_feed_version(feed, url, gtfs, gtfs_file_raw: nil)
+    # Create sha1
+    gtfs_file = gtfs.archive
+    sha1 = Digest::SHA1.file(gtfs_file).hexdigest
+
+    # Check if FeedVersion exists
+    feed_version = FeedVersion.find_by(sha1: sha1)
+    return feed_version if feed_version # already exists
+
+    # Create the FeedVersion
+    # Note: this is not atomic & the constraint is in the model, not index
+    data = {
+      sha1: sha1,
       feed: feed,
-      sha1: sha1
-    )
-    # Is this a new feed_version?
-    if feed_version.file.url.nil?
-      # Save the file attachments
-      data = {
-        url: url,
-        fetched_at: DateTime.now,
-        file: gtfs_file,
-        file_raw: gtfs_file_raw,
-      }
-      data = data.merge!(read_gtfs_info(gtfs))
-      feed_version.update!(data)
-      # Enqueue validators
-      GTFSGoogleValidationWorker.perform_async(feed_version.sha1)
-      GTFSConveyalValidationWorker.perform_async(feed_version.sha1)
-      GTFSStatisticsWorker.perform_async(feed_version.sha1)
-    end
+      url: url,
+      fetched_at: DateTime.now,
+    }
+    data = data.merge!(read_gtfs_info(gtfs))
+    feed_version = FeedVersion.create!(data)
+
+    # Upload files
+    upload = {
+      file: File.open(gtfs_file),
+      file_raw: (File.open(gtfs_file_raw) if gtfs_file_raw),
+    }
+    feed_version.update!(upload)
+
+    # Enqueue validators
+    GTFSGoogleValidationWorker.perform_async(feed_version.sha1)
+    GTFSConveyalValidationWorker.perform_async(feed_version.sha1)
+    GTFSStatisticsWorker.perform_async(feed_version.sha1)
+
     # Return the found or created feed_version
     feed_version
   end
@@ -163,18 +159,32 @@ class FeedFetcherService
     }
   end
 
+  def self.gtfs_minimal_validation(gtfs)
+    # Perform some basic validation!
+    # Required files present
+    raise GTFS::InvalidSourceException.new('missing required files') unless gtfs.valid?
+    # At least 1 each: agency, stop, route, trip, stop_times
+    # Read just 1 row & break
+    e = []
+    gtfs.each_agency { |i| e << i; break }
+    gtfs.each_stop { |i| e << i; break }
+    gtfs.each_route { |i| e << i; break }
+    gtfs.each_trip { |i| e << i; break }
+    gtfs.each_stop_time { |i| e << i; break }
+    raise GTFS::InvalidSourceException.new('missing required entities') unless e.size == 5
+    # calendar/calendar_dates
+    a, b = gtfs.service_period_range
+    raise GTFS::InvalidSourceException.new('missing calendar data') unless a && b
+    # Minimal validation satisfied
+    return true
+  end
+
   private
 
-    def self.sync_fetch_and_return_feed_versions(feeds)
-      feeds.map do |feed|
-        self.fetch_and_return_feed_version(feed)
-      end
+  def self.async_enqueue_and_return_workers(feeds)
+    feeds.map do |feed|
+      FeedFetcherWorker.perform_async(feed.onestop_id)
     end
-
-    def self.async_enqueue_and_return_workers(feeds)
-      feeds.map do |feed|
-        FeedFetcherWorker.perform_async(feed.onestop_id)
-      end
-    end
+  end
 
 end
