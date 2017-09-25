@@ -48,8 +48,6 @@ class FeedMaintenanceService
     queue = []
     Feed.find_each do |feed|
       # Enqueue FeedEater job for feed.find_next_feed_version
-      # Skip this feed is tag 'manual_import' is 'true'
-      next if feed.tags['manual_import'] == 'true'
       # Use the previous import_level, or default to 2
       import_level ||= feed.active_feed_version.try(:import_level) || 2
       # Find the next feed_version
