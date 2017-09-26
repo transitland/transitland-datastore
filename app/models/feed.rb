@@ -174,16 +174,13 @@ class Feed < BaseFeed
       feed_versions_filtered: fvs_stats.count,
     }
     return result if fvs_stats.size < 1
-    # Duration is a counted value; use float to report average.
-    result[:scheduled_service_duration_average] = (fvs_stats.map { |a| a.latest_calendar_date.to_date - a.earliest_calendar_date.to_date}.sum / fvs_stats.size).to_f
+    result[:scheduled_service_duration_average] = fvs_stats.map { |a| a.latest_calendar_date.to_date - a.earliest_calendar_date.to_date}.sum / fvs_stats.size
 
     fvs_pairs = fvs_stats[0..-2].zip(fvs_stats[1..-1])
     if fvs_pairs.size > 0
-      result[:feed_versions_filtered_sha1] = fvs_stats.map { |a| a.sha1 }
-      # The precision of fetched_at is 1 day; report as an int
-      result[:fetched_at_frequency] = (fvs_pairs.map { |a,b| b.fetched_at.to_date - a.fetched_at.to_date }.sum / fvs_pairs.size).to_i
-      # Duration is a counted value; use float to report average.
-      result[:scheduled_service_overlap_average] = (fvs_pairs.map { |a,b| a.latest_calendar_date.to_date - b.earliest_calendar_date.to_date }.sum / fvs_pairs.size).to_f
+      result[:feed_version_transitions] = fvs_pairs.map { |a,b| [a.sha1, b.sha1] }
+      result[:fetched_at_frequency] = fvs_pairs.map { |a,b| b.fetched_at.to_date - a.fetched_at.to_date }.sum / fvs_pairs.size
+      result[:scheduled_service_overlap_average] = fvs_pairs.map { |a,b| a.latest_calendar_date.to_date - b.earliest_calendar_date.to_date }.sum / fvs_pairs.size
     end
     result
   end
