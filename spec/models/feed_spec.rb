@@ -448,9 +448,9 @@ describe Feed do
       pmf = Feed.feed_version_update_statistics(@feed)
       expect(pmf[:feed_versions_total]).to eq(4)
       expect(pmf[:feed_versions_filtered]).to eq(4)
-      expect(pmf[:feed_versions_filtered_sha1].size).to eq(4)
-      expect(pmf[:feed_versions_filtered_sha1]).to match_array(["a", "b", "c", "d"])
-      expect(pmf[:fetched_at_frequency]).to eq(15)
+      expect(pmf[:feed_version_transitions].size).to eq(3)
+      expect(pmf[:feed_version_transitions]).to match_array([["a", "b"], ["b", "c"], ["c", "d"]])
+      expect(pmf[:fetched_at_frequency]).to eq(15.0)
       expect(pmf[:scheduled_service_overlap_average]).to eq(5.0)
       expect(pmf[:scheduled_service_duration_average]).to eq(18.75)
     end
@@ -460,7 +460,7 @@ describe Feed do
       pmf = Feed.feed_version_update_statistics(@feed)
       expect(pmf[:feed_versions_total]).to eq(5)
       expect(pmf[:feed_versions_filtered]).to eq(4)
-      expect(pmf[:feed_versions_filtered_sha1].size).to eq(4)
+      expect(pmf[:feed_version_transitions].size).to eq(3)
     end
 
     it 'works with 0 feed versions' do
