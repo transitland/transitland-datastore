@@ -184,7 +184,10 @@ describe Api::V1::FeedsController do
       get :feed_version_update_statistics, id: @feed.onestop_id
       expect_json({
         feed_onestop_id: @feed.onestop_id,
-        feed_versions_total: 4
+        feed_versions_total: 4,
+        fetched_at_frequency: 15, # check it's a int not rational e.g. (7/4)
+        scheduled_service_overlap_average: 5.0, # float
+        scheduled_service_duration_average: 18.75 # float
       })
     end
   end
