@@ -2,14 +2,45 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/76...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/77...HEAD)
 
 **Closed issues:**
 
+- sort\_by vs. sort\_key [\#1193](https://github.com/transitland/transitland-datastore/issues/1193)
+
+**Merged pull requests:**
+
+- Production release 77 [\#1178](https://github.com/transitland/transitland-datastore/pull/1178) ([irees](https://github.com/irees))
+
+## [77](https://github.com/transitland/transitland-datastore/tree/77) (2017-09-26)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/76...77)
+
+**Implemented enhancements:**
+
+- Feeds: import\_policy [\#1085](https://github.com/transitland/transitland-datastore/issues/1085)
+
+**Fixed bugs:**
+
+- Validation reports: file not found [\#1154](https://github.com/transitland/transitland-datastore/issues/1154)
+
+**Closed issues:**
+
+- FeedFetcher: Basic validation of new feeds [\#1191](https://github.com/transitland/transitland-datastore/issues/1191)
+- Feed Publication Metrics [\#1183](https://github.com/transitland/transitland-datastore/issues/1183)
+- Validation reports: timeout [\#1180](https://github.com/transitland/transitland-datastore/issues/1180)
 - Keyset pagination: check for result before generating next url [\#1176](https://github.com/transitland/transitland-datastore/issues/1176)
 
 **Merged pull requests:**
 
+- Feed update statistics fixes [\#1192](https://github.com/transitland/transitland-datastore/pull/1192) ([irees](https://github.com/irees))
+- Feed\#import\_policy also checks manual\_import tag [\#1190](https://github.com/transitland/transitland-datastore/pull/1190) ([irees](https://github.com/irees))
+- update gems [\#1189](https://github.com/transitland/transitland-datastore/pull/1189) ([drewda](https://github.com/drewda))
+- Improve FeedVersion creation [\#1188](https://github.com/transitland/transitland-datastore/pull/1188) ([irees](https://github.com/irees))
+- Feed import policy [\#1186](https://github.com/transitland/transitland-datastore/pull/1186) ([irees](https://github.com/irees))
+- Feed Publication Metrics [\#1184](https://github.com/transitland/transitland-datastore/pull/1184) ([irees](https://github.com/irees))
+- updating URLs in sample changesets [\#1182](https://github.com/transitland/transitland-datastore/pull/1182) ([drewda](https://github.com/drewda))
+- update misc. gems [\#1181](https://github.com/transitland/transitland-datastore/pull/1181) ([drewda](https://github.com/drewda))
+- Fix validator missing file and add validator timeouts [\#1179](https://github.com/transitland/transitland-datastore/pull/1179) ([irees](https://github.com/irees))
 - Production release 76 [\#1175](https://github.com/transitland/transitland-datastore/pull/1175) ([irees](https://github.com/irees))
 
 ## [76](https://github.com/transitland/transitland-datastore/tree/76) (2017-08-28)
@@ -904,6 +935,7 @@
 
 - Enqueue next feed versions limit [\#754](https://github.com/transitland/transitland-datastore/pull/754) ([irees](https://github.com/irees))
 - Upgrade Rails to 4.2.7.1 & update gems [\#751](https://github.com/transitland/transitland-datastore/pull/751) ([drewda](https://github.com/drewda))
+- fixing OperatorInFeed bug and some comments [\#750](https://github.com/transitland/transitland-datastore/pull/750) ([doublestranded](https://github.com/doublestranded))
 - Daily crontab: enqueue next feed version [\#744](https://github.com/transitland/transitland-datastore/pull/744) ([irees](https://github.com/irees))
 - Issues controller update fix [\#741](https://github.com/transitland/transitland-datastore/pull/741) ([doublestranded](https://github.com/doublestranded))
 - Entity: where\_imported\_from\_active\_feed\_version [\#739](https://github.com/transitland/transitland-datastore/pull/739) ([irees](https://github.com/irees))
