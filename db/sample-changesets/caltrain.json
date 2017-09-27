@@ -65,7 +65,7 @@
           "action": "createUpdate",
           "feed": {
             "onestopId": "f-9q9-caltrain",
-            "url": "http://www.caltrain.com/Assets/GTFS/caltrain/GTFS-Caltrain-Devs.zip",
+            "url": "http://www.caltrain.com/Assets/GTFS/caltrain/CT-GTFS.zip",
             "licenseUrl": "http://www.caltrain.com/developer/Developer_License_Agreement_and_Privacy_Policy.html",
             "licenseUseWithoutAttribution": "yes",
             "licenseCreateDerivedProduct": "yes",

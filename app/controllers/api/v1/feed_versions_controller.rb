@@ -27,7 +27,7 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
   include DownloadableCsv
   include AllowFiltering
 
-  before_action :set_feed_version, only: [:show, :update]
+  before_action :set_feed_version, only: [:show, :update, :feed_version_update_statistics]
   before_filter :verify_jwt_token, only: [:create, :update]
 
   def index
@@ -95,17 +95,15 @@ class Api::V1::FeedVersionsController < Api::V1::BaseApiController
     respond_to do |format|
       format.json { render json: @feed_version, scope: { embed_issues: AllowFiltering.to_boolean(params[:embed_issues]) } }
     end
-
   end
 
   def create
     feed = Feed.find_by_onestop_id!(feed_version_params[:feed_onestop_id])
+    url = feed_version_params[:url]
     file = feed_version_params[:file].tempfile.path
-    url = feed_version_params[:url] || feed.url
-    feed_version = FeedFetcherService.create_feed_version(feed, url, file: file)
+    feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: url, file: file)
     render json: feed_version
   end
-
 
   def update
     @feed_version.update!(feed_version_params)
