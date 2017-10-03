@@ -66,7 +66,7 @@ class FeedFetcherService
 
   def self.fetch_normalize_validate_create(feed, url: url, file: nil)
     # Fetch
-    gtfs = self.fetch_gtfs(url: url, file: file)
+    gtfs = self.fetch_gtfs(url: url, file: file, ssl_verify: feed.ssl_verify)
     # Normalize
     gtfs_file_raw = self.normalize_gtfs(gtfs, url: url)
     # Validate
@@ -75,11 +75,16 @@ class FeedFetcherService
     create_feed_version(feed, url, gtfs, gtfs_file_raw: gtfs_file_raw)
   end
 
-  def self.fetch_gtfs(url: nil, file: nil)
+  def self.fetch_gtfs(url: nil, file: nil, ssl_verify: nil)
+    # System-wide ssl_verify
+    if Figaro.env.feed_fetcher_ssl_verify.presence == 'false'
+      ssl_verify = false
+    end
     # Open GTFS
-    gtfs = GTFS::Source.build(
+    GTFS::Source.build(
       file || url,
       strict: false,
+      ssl_verify: ssl_verify,
       tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
     )
   end

@@ -296,6 +296,14 @@ class Feed < BaseFeed
     value
   end
 
+  def ssl_verify
+    if tags['ssl_verify'] == 'false'
+      return false
+    else
+      return true
+    end
+  end
+
   private
 
   def set_default_values
