@@ -23,6 +23,7 @@ class FeedInfoWorker
         progress_download: progress_download,
         progress_graph: progress_graph,
         strict: false,
+        auto_detect_root: true,
         tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
       )
       feed_info = FeedInfo.new(url: @url, gtfs: gtfs)

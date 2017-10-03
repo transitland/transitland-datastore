@@ -4,6 +4,10 @@ describe FeedFetcherService do
   let (:example_url)              { 'http://localhost:8000/example.zip' }
   let (:example_nested_flat)      { 'http://localhost:8000/example_nested.zip#example_nested/example' }
   let (:example_nested_zip)       { 'http://localhost:8000/example_nested.zip#example_nested/nested/example.zip' }
+  let (:example_nested_unambiguous){'http://localhost:8000/example_nested_unambiguous.zip' }
+  let (:example_nested_ambiguous) { 'http://localhost:8000/example_nested_ambiguous.zip' }
+
+
   let (:example_sha1_raw)         { '2a7503435dcedeec8e61c2e705f6098e560e6bc6' }
   let (:example_nested_sha1_raw)  { '65d278fdd3f5a9fae775a283ef6ca2cb7b961add' }
 
@@ -224,6 +228,28 @@ describe FeedFetcherService do
       expect(feed_version.sha1).to be_truthy # eq example_nested_sha1_flat
       expect(feed_version.sha1_raw).to eq example_nested_sha1_raw
       expect(feed_version.fetched_at).to be_truthy
+    end
+
+    it 'auto_detect_root unambiguous' do
+      # Note: when root is auto-detected, a raw file is not created.
+      feed = create(:feed, url: example_nested_unambiguous)
+      feed_version = nil
+      VCR.use_cassette('example_nested_unambiguous') do
+        feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
+        feed_version.save!
+      end
+      expect(feed_version.sha1).to eq('ab14bc8689f27acbb9d0e3a0dbf7006da96734bc')
+      expect(feed_version.sha1_raw).to be_nil
+    end
+
+    it 'auto_detect_root ambiguous' do
+      feed = create(:feed, url: example_nested_ambiguous)
+      expect {
+        VCR.use_cassette('example_nested_ambiguous') do
+          feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
+          feed_version.save!
+        end
+      }.to raise_error(GTFS::AmbiguousZipException)
     end
 
     it 'normalizes consistent sha1' do
