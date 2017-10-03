@@ -125,6 +125,7 @@ class FeedVersion < ActiveRecord::Base
     gtfs = GTFS::Source.build(
       filename,
       strict: false,
+      auto_detect_root: true,
       tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
     )
     file.remove_any_local_cached_copies

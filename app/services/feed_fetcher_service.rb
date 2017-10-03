@@ -80,6 +80,7 @@ class FeedFetcherService
     gtfs = GTFS::Source.build(
       file || url,
       strict: false,
+      auto_detect_root: true,
       tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
     )
   end
