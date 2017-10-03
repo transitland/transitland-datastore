@@ -76,8 +76,12 @@ class FeedFetcherService
   end
 
   def self.fetch_gtfs(url: nil, file: nil, ssl_verify: nil)
+    # System-wide ssl_verify
+    if Figaro.env.feed_fetcher_ssl_verify.presence == 'false'
+      ssl_verify = false
+    end
     # Open GTFS
-    gtfs = GTFS::Source.build(
+    GTFS::Source.build(
       file || url,
       strict: false,
       ssl_verify: ssl_verify,
