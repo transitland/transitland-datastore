@@ -15,6 +15,7 @@ class FeedInfo
     @gtfs ||= GTFS::Source.build(
       @source || @url,
       strict: false,
+      auto_detect_root: true,
       tmpdir_basepath: Figaro.env.gtfs_tmpdir_basepath.presence
     )
     yield self
