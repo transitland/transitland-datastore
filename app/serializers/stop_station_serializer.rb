@@ -59,7 +59,7 @@ class StopStationSerializer < CurrentEntitySerializer
 
   def stop_platforms
     s = object.stop_platforms.presence || []
-    if s.empty? && scope[:generated]
+    if scope[:generated]
       s << StopPlatform.new(
         onestop_id: "#{object.onestop_id}<",
         geometry: object.geometry,
@@ -125,6 +125,8 @@ class StopStationSerializer < CurrentEntitySerializer
   has_many :stop_transfers
   has_many :operators_serving_stop_and_platforms
   has_many :routes_serving_stop_and_platforms
+
+  #
 
   def geometry_centroid
     RGeo::GeoJSON.encode(object.geometry_centroid)
