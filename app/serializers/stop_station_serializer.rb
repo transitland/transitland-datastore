@@ -58,7 +58,7 @@ class StopStationSerializer < CurrentEntitySerializer
   end
 
   def stop_platforms
-    s = object.stop_platforms.presence || []
+    s = (object.stop_platforms.presence || []).to_a
     if scope[:generated]
       s << StopPlatform.new(
         onestop_id: "#{object.onestop_id}<",
@@ -76,7 +76,7 @@ class StopStationSerializer < CurrentEntitySerializer
 
   # Create phantom platforms / egresses
   def stop_egresses
-    s = object.stop_egresses.presence || []
+    s = (object.stop_egresses.presence || []).to_a
     if s.empty? && scope[:generated]
       s << StopEgress.new(
         onestop_id: "#{object.onestop_id}>",
