@@ -584,6 +584,7 @@ GEM
     formatador (0.2.5)
     globalid (0.4.0)
       activesupport (>= 4.2.0)
+    google-protobuf (3.4.1.1)
     hashdiff (0.3.6)
     http-cookie (1.0.3)
       domain_name (~> 0.5)
@@ -830,6 +831,7 @@ DEPENDENCIES
   figaro
   fog-aws
   foreman
+  google-protobuf
   gtfs!
   json
   json-schema
