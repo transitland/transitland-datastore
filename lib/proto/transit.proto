@@ -1,17 +1,21 @@
 syntax = "proto3";
 package valhalla.mjolnir;
 
-message Transit_Fetch {
+message Transit {
 
-  message Stop {
-  	float lon = 1;
+  message Node {
+    float lon = 1;
     float lat = 2;
-    uint64 graphid = 3;
-    string name = 4;
-    string onestop_id = 5;
-    uint64 osm_way_id = 6;
-    string timezone = 8;
-    bool wheelchair_boarding = 9;
+    uint32 type = 3;
+    uint64 graphid = 4;
+    uint64 prev_type_graphid = 5;
+    string name = 6;
+    string onestop_id = 7;
+    uint64 osm_way_id = 8;
+    string timezone = 9;
+    bool wheelchair_boarding = 10;
+    bool generated = 11;
+    uint32 traversability = 12;
   }
 
   message StopPair {
@@ -69,7 +73,7 @@ message Transit_Fetch {
     bytes encoded_shape = 2;
   }
 
-  repeated Stop stops = 1;
+  repeated Node nodes = 1;
   repeated StopPair stop_pairs = 2;
   repeated Route routes = 3;
   repeated Shape shapes = 4;

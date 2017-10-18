@@ -4,23 +4,27 @@
 require 'google/protobuf'
 
 Google::Protobuf::DescriptorPool.generated_pool.build do
-  add_message "valhalla.mjolnir.Transit_Fetch" do
-    repeated :stops, :message, 1, "valhalla.mjolnir.Transit_Fetch.Stop"
-    repeated :stop_pairs, :message, 2, "valhalla.mjolnir.Transit_Fetch.StopPair"
-    repeated :routes, :message, 3, "valhalla.mjolnir.Transit_Fetch.Route"
-    repeated :shapes, :message, 4, "valhalla.mjolnir.Transit_Fetch.Shape"
+  add_message "valhalla.mjolnir.Transit" do
+    repeated :nodes, :message, 1, "valhalla.mjolnir.Transit.Node"
+    repeated :stop_pairs, :message, 2, "valhalla.mjolnir.Transit.StopPair"
+    repeated :routes, :message, 3, "valhalla.mjolnir.Transit.Route"
+    repeated :shapes, :message, 4, "valhalla.mjolnir.Transit.Shape"
   end
-  add_message "valhalla.mjolnir.Transit_Fetch.Stop" do
+  add_message "valhalla.mjolnir.Transit.Node" do
     optional :lon, :float, 1
     optional :lat, :float, 2
-    optional :graphid, :uint64, 3
-    optional :name, :string, 4
-    optional :onestop_id, :string, 5
-    optional :osm_way_id, :uint64, 6
-    optional :timezone, :string, 8
-    optional :wheelchair_boarding, :bool, 9
+    optional :type, :uint32, 3
+    optional :graphid, :uint64, 4
+    optional :prev_type_graphid, :uint64, 5
+    optional :name, :string, 6
+    optional :onestop_id, :string, 7
+    optional :osm_way_id, :uint64, 8
+    optional :timezone, :string, 9
+    optional :wheelchair_boarding, :bool, 10
+    optional :generated, :bool, 11
+    optional :traversability, :uint32, 12
   end
-  add_message "valhalla.mjolnir.Transit_Fetch.StopPair" do
+  add_message "valhalla.mjolnir.Transit.StopPair" do
     optional :bikes_allowed, :bool, 1
     optional :block_id, :uint32, 2
     optional :destination_arrival_time, :uint32, 3
@@ -45,7 +49,7 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     optional :frequency_end_time, :uint32, 23
     optional :frequency_headway_seconds, :uint32, 24
   end
-  add_message "valhalla.mjolnir.Transit_Fetch.Route" do
+  add_message "valhalla.mjolnir.Transit.Route" do
     optional :name, :string, 1
     optional :onestop_id, :string, 2
     optional :operated_by_name, :string, 3
@@ -55,13 +59,13 @@ Google::Protobuf::DescriptorPool.generated_pool.build do
     optional :route_desc, :string, 7
     optional :route_long_name, :string, 8
     optional :route_text_color, :uint32, 9
-    optional :vehicle_type, :enum, 10, "valhalla.mjolnir.Transit_Fetch.VehicleType"
+    optional :vehicle_type, :enum, 10, "valhalla.mjolnir.Transit.VehicleType"
   end
-  add_message "valhalla.mjolnir.Transit_Fetch.Shape" do
+  add_message "valhalla.mjolnir.Transit.Shape" do
     optional :shape_id, :uint32, 1
     optional :encoded_shape, :bytes, 2
   end
-  add_enum "valhalla.mjolnir.Transit_Fetch.VehicleType" do
+  add_enum "valhalla.mjolnir.Transit.VehicleType" do
     value :Tram, 0
     value :Metro, 1
     value :Rail, 2
@@ -75,11 +79,11 @@ end
 
 module Valhalla
   module Mjolnir
-    Transit_Fetch = Google::Protobuf::DescriptorPool.generated_pool.lookup("valhalla.mjolnir.Transit_Fetch").msgclass
-    Transit_Fetch::Stop = Google::Protobuf::DescriptorPool.generated_pool.lookup("valhalla.mjolnir.Transit_Fetch.Stop").msgclass
-    Transit_Fetch::StopPair = Google::Protobuf::DescriptorPool.generated_pool.lookup("valhalla.mjolnir.Transit_Fetch.StopPair").msgclass
-    Transit_Fetch::Route = Google::Protobuf::DescriptorPool.generated_pool.lookup("valhalla.mjolnir.Transit_Fetch.Route").msgclass
-    Transit_Fetch::Shape = Google::Protobuf::DescriptorPool.generated_pool.lookup("valhalla.mjolnir.Transit_Fetch.Shape").msgclass
-    Transit_Fetch::VehicleType = Google::Protobuf::DescriptorPool.generated_pool.lookup("valhalla.mjolnir.Transit_Fetch.VehicleType").enummodule
+    Transit = Google::Protobuf::DescriptorPool.generated_pool.lookup("valhalla.mjolnir.Transit").msgclass
+    Transit::Node = Google::Protobuf::DescriptorPool.generated_pool.lookup("valhalla.mjolnir.Transit.Node").msgclass
+    Transit::StopPair = Google::Protobuf::DescriptorPool.generated_pool.lookup("valhalla.mjolnir.Transit.StopPair").msgclass
+    Transit::Route = Google::Protobuf::DescriptorPool.generated_pool.lookup("valhalla.mjolnir.Transit.Route").msgclass
+    Transit::Shape = Google::Protobuf::DescriptorPool.generated_pool.lookup("valhalla.mjolnir.Transit.Shape").msgclass
+    Transit::VehicleType = Google::Protobuf::DescriptorPool.generated_pool.lookup("valhalla.mjolnir.Transit.VehicleType").enummodule
   end
 end
