@@ -1,3 +1,4 @@
+require 'fileutils'
 require 'google/protobuf'
 load 'lib/proto/transit_pb.rb'
 
@@ -18,7 +19,7 @@ class Tile
   end
 end
 
-class TileManager
+class TileSet
   def initialize(path)
     @path = path
     @tiles = {}
@@ -28,13 +29,23 @@ class TileManager
     @tiles[[level, tile]] ||= read_tile(level, tile)
   end
 
-  def get_lll_tile(level, lat, lon)
-    get_graphid_tile(GraphID.new(level: level, lat: lat, lon: lon))
+  def get_tile_by_lll(level, lat, lon)
+    get_tile_by_graphid(GraphID.new(level: level, lat: lat, lon: lon))
   end
 
-  def get_graphid_tile(graphid)
+  def get_tile_by_graphid(graphid)
     get_tile(graphid.level, graphid.tile)
   end
+
+  def write_tile(tile)
+    fn = tile_path(tile.level, tile.tile)
+    FileUtils.mkdir_p(File.dirname(fn))
+    File.open(fn, 'wb') do |f|
+      f.write(tile.encode)
+    end
+  end
+
+  private
 
   def tile_path(level, tile)
     s = tile.to_s.rjust(9, "0")
@@ -47,13 +58,6 @@ class TileManager
       Tile.new(level, tile, data: File.read(fn))
     else
       Tile.new(level, tile)
-    end
-  end
-
-  def write_tile(tile)
-    fn = tile_path(tile.level, tile.tile)
-    File.open(fn, 'wb') do |f|
-      f.write(tile.encode)
     end
   end
 
