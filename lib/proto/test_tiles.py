@@ -1,3 +1,4 @@
+# https://github.com/valhalla/valhalla-docs/blob/master/tiles.md
 valhalla_tiles  = [{'level': 2, 'size': 0.25}, {'level': 1, 'size': 1.0}, {'level': 0, 'size': 4.0}]
 LEVEL_BITS = 3
 TILE_INDEX_BITS = 22
@@ -52,9 +53,21 @@ def get_ll(id):
   return int(tile_index / width) * level['size'] - 90, (tile_index % width) * level['size'] - 180
 
 
-lat = 37.699757
-lon = -121.92824
-tile_id = 734632
-assert get_tile_id(2, lat, lon) == 734632
-print get_ll(tile_id)
-print get_index(tile_id)
+# Tests
+assert get_tile_level(73160266) == 2
+assert get_tile_level(142438865769) == 1
+
+assert get_ll(73160266) == (41.25, -73.75)
+assert get_ll(142438865769) == (14.0, 121.0)
+
+assert get_tile_id(0, 14.601879, 120.972545) == 2415
+assert get_tile_id(1, 14.601879, 120.972545) == 37740
+assert get_tile_id(2, 41.413203, -73.623787) == 756425
+
+assert get_tile_index(73160266) == 756425
+assert get_tile_index(142438865769) == 37741
+
+level_tiles = tiles_for_bounding_box(-74.251961,40.512764,-73.755405,40.903125)
+assert sorted(level_tiles) == sorted([(2, 752102), (2, 753542), (2, 752103), (2, 753543), (2, 752104), (2, 753544), (1, 46905), (1, 46906), (0, 2906)])
+
+#
