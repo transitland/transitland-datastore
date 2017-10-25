@@ -127,7 +127,7 @@ class GraphID
     [xmin, ymin, xmax, ymax]
   end
 
-  def self.bbox_to_level_tiles(xmin, ymin, xmax, ymax)
+  def self.bbox_to_level_tiles(ymin, xmin, ymax, xmax)
     # if this is crossing the anti meridian split it up and combine
     left, bottom, right, top = ymin, xmin, ymax, xmax
     if left > right

@@ -33,7 +33,7 @@ assert graphid.level == 1
 assert graphid.tile == 3
 assert graphid.index == 7
 
-level_tiles = GraphID.bbox_to_level_tiles(40.512764,-74.251961,40.903125,-73.755405)
+level_tiles = GraphID.bbox_to_level_tiles(-74.251961,40.512764,-73.755405,40.903125)
 assert level_tiles.sort == [[2, 752102], [2, 753542], [2, 752103], [2, 753543], [2, 752104], [2, 753544], [1, 46905], [1, 46906], [0, 2906]].sort
 
 # TileSet tests
