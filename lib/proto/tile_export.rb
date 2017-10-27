@@ -18,6 +18,27 @@ NODE_TYPES = {
   StopPlatform: 6
 }
 
+VT = Valhalla::Mjolnir::Transit::VehicleType
+VEHICLE_TYPES = {
+  tram: VT::Tram,
+  tram_service: VT::Tram,
+  metro: VT::Metro,
+  rail: VT::Rail,
+  suburban_railway: VT::Rail,
+  bus: VT::Bus,
+  trolleybys_service: VT::Bus,
+  express_bus_service: VT::Bus,
+  local_bus_service: VT::Bus,
+  bus_service: VT::Bus,
+  shuttle_bus: VT::Bus,
+  demand_and_response_bus_service: VT::Bus,
+  regional_bus_service: VT::Bus,
+  ferry: VT::Ferry,
+  cablecar: VT::CableCar,
+  gondola: VT::Gondola,
+  funicalr: VT::Funicular
+}
+
 def time_to_seconds(value)
   h,m,s = value.split(':').map(&:to_i)
   h * 3600 + m * 60 + s
