@@ -97,12 +97,9 @@ class TileBuilder
     [ymin-padding, xmin, ymax+padding, xmax]
   end
 
+
   def build_stops
     puts "Building stops: #{@tile.tile}"
-
-    # Stops
-    stopid_stopindex = {}
-    stop_index = 0
     Stop.where(parent_stop: nil).geometry_within_bbox(bbox_padded).order(id: :asc).includes(:stop_platforms, :stop_egresses).each do |stop|
       # Check if stop is inside tile
       next if GraphID.new(level: LEVEL, lon: stop.coordinates[0], lat: stop.coordinates[1]).tile != @tile.tile
@@ -116,21 +113,17 @@ class TileBuilder
       stop_egresses << StopEgress.new(stop.attributes) if stop_egresses.empty? # generated egress
       stop_egresses.each do |stop_egress|
         node = make_node(stop_egress)
-        node.type = NODE_TYPES[StopEgress.name.to_sym]
-        node.graphid = GraphID.new(level: LEVEL, tile: @tile.tile, index: stop_index).value
+        node.graphid = GraphID.new(level: LEVEL, tile: @tile.tile, index: node_index).value
         node.prev_type_graphid = prev_type_graphid if prev_type_graphid
         prev_type_graphid = node.graphid
-        stop_index += 1
         @tile.message.nodes << node
       end
 
       # Station
       node = make_node(stop)
-      node.type = NODE_TYPES[Stop.name.to_sym]
-      node.graphid = GraphID.new(level: LEVEL, tile: @tile.tile, index: stop_index).value
+      node.graphid = GraphID.new(level: LEVEL, tile: @tile.tile, index: node_index).value
       node.prev_type_graphid = prev_type_graphid if prev_type_graphid
       prev_type_graphid = node.graphid
-      stop_index += 1
       @tile.message.nodes << node
 
       # Platforms
@@ -138,14 +131,12 @@ class TileBuilder
       stop_platforms << StopPlatform.new(stop.attributes) # station ssps
       stop_platforms.each do |stop_platform|
         node = make_node(stop_platform)
-        node.type = NODE_TYPES[StopPlatform.name.to_sym]
-        node.graphid = GraphID.new(level: LEVEL, tile: @tile.tile, index: stop_index).value
+        node.graphid = GraphID.new(level: LEVEL, tile: @tile.tile, index: node_index).value
         node.prev_type_graphid = prev_type_graphid if prev_type_graphid
         prev_type_graphid = node.graphid
-        stop_index += 1
-        @tile.message.nodes << node
         STOPID_GRAPHID[stop.id] = node.graphid
         GRAPHID_STOPID[node.graphid] = stop.id
+        @tile.message.nodes << node
       end
     end
   end
@@ -156,36 +147,44 @@ class TileBuilder
 
     # Routes
     routeid_routeindex = {}
-    route_index = 0
     route_ids = ScheduleStopPair.where(origin_id: stop_ids).select(:route_id).distinct(:route_id).pluck(:route_id)
     Route.where(id: route_ids).order(id: :asc).includes(:operator).each do |route|
       puts "\troute: #{route.onestop_id}"
-      @tile.message.routes << make_route(route, route_index)
       routeid_routeindex[route.id] = route_index
-      route_index += 1
+      @tile.message.routes << make_route(route, route_index)
     end
 
     # Shapes
     rspid_rspindex = {}
-    rsp_index = 1 # 0 means shape_id is not set in transit builder
     rsp_ids = ScheduleStopPair.where(origin_id: stop_ids).select(:route_stop_pattern_id).distinct(:route_stop_pattern_id).pluck(:route_stop_pattern_id)
     RouteStopPattern.where(id: rsp_ids).order(id: :asc).each do |rsp|
       puts "\trsp: #{rsp.onestop_id}"
-      @tile.message.shapes << make_shape(rsp, rsp_index)
-      rspid_rspindex[rsp.id] = rsp_index
-      rsp_index += 1
+      shape = make_shape(rsp)
+      shape.shape_id = shape_index
+      rspid_rspindex[rsp.id] = shape.shape_id
+      @tile.message.shapes << shape
     end
 
     # StopPairs
-    ssp_index = 0
     ScheduleStopPair.where(origin_id: stop_ids).includes(:origin, :destination, :operator).find_each do |ssp|
       @tile.message.stop_pairs << make_stop_pair(ssp, routeid_routeindex, rspid_rspindex)
-      ssp_index += 1
     end
-    puts "\tssp: total #{ssp_index}"
+    puts "\tssp: total #{@tile.message.stop_pairs.size}"
   end
 
   private
+
+  def node_index
+    @tile.message.nodes.size
+  end
+
+  def route_index
+    @tile.message.routes.size
+  end
+
+  def shape_index
+    @tile.message.shapes.size + 1 # 0 means shape_id is not set
+  end
 
   def make_stop_pair(ssp, routeid_routeindex, rspid_rspindex)
     params = {}
@@ -237,12 +236,11 @@ class TileBuilder
     Valhalla::Mjolnir::Transit::StopPair.new(params)
   end
 
-  def make_shape(rsp, rspindex)
+  def make_shape(rsp)
     params = {}
     # uint32 shape_id = 1;
-    params[:shape_id] = rspindex
     # bytes encoded_shape = 2;
-    params[:shape_id] = rsp.id
+    params[:encoded_shape] = encode_coordinates(rsp.geometry[:coordinates])
     Valhalla::Mjolnir::Transit::Shape.new(params.compact)
   end
 
@@ -259,10 +257,15 @@ class TileBuilder
     # string operated_by_website = 5;
     params[:operated_by_website] = route.operator.website
     # uint32 route_color = 6;
+    params[:route_color] = color_to_int(route.color)
     # string route_desc = 7;
+    params[:route_desc] = route.tags["route_desc"]
     # string route_long_name = 8;
+    params[:route_long_name] = route.tags["route_long_name"] || route.name
     # uint32 route_text_color = 9;
+    params[:route_text_color] = color_to_int(route.tags["route_text_color"])
     # VehicleType vehicle_type = 10;
+    params[:vehicle_type] = VEHICLE_TYPES[route.vehicle_type.to_sym] || VT::Bus
     Valhalla::Mjolnir::Transit::Route.new(params.compact)
   end
 
@@ -273,9 +276,11 @@ class TileBuilder
     # float lat = 2;
     params[:lat] = stop.coordinates[1]
     # uint32 type = 3;
-    params[:type] = 0
+    params[:type] = NODE_TYPES[stop.class.name.to_sym]
     # uint64 graphid = 4;
+    # set in build_stops
     # uint64 prev_type_graphid = 5;
+    # set in build_stops
     # string name = 6;
     params[:name] = stop.name
     # string onestop_id = 7;
@@ -322,7 +327,8 @@ builders = build_tiles.map { |tile| TileBuilder.new(tile) }
 builders.each { |builder| builder.build_stops }
 # Build schedule, routes, shapes for each tile.
 builders.each { |builder| builder.build_schedule }
-
+# Write out result
+builders.each { |builder| tileset.write_tile(builder.tile) }
 
 
 
