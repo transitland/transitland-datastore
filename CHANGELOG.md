@@ -2,14 +2,33 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/77...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/78...HEAD)
+
+**Closed issues:**
+
+- Use gtfs auto\_detect\_root: true [\#1073](https://github.com/transitland/transitland-datastore/issues/1073)
+
+**Merged pull requests:**
+
+- Production release 78 [\#1195](https://github.com/transitland/transitland-datastore/pull/1195) ([irees](https://github.com/irees))
+
+## [78](https://github.com/transitland/transitland-datastore/tree/78) (2017-10-03)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/77...78)
+
+**Implemented enhancements:**
+
+- Configurable SSL verify mode [\#1185](https://github.com/transitland/transitland-datastore/issues/1185)
 
 **Closed issues:**
 
 - sort\_by vs. sort\_key [\#1193](https://github.com/transitland/transitland-datastore/issues/1193)
+- Changesets: examine array uniqueness requirements [\#1059](https://github.com/transitland/transitland-datastore/issues/1059)
 
 **Merged pull requests:**
 
+- Add auto\_detect\_root to GTFS open [\#1197](https://github.com/transitland/transitland-datastore/pull/1197) ([irees](https://github.com/irees))
+- update misc. gems [\#1196](https://github.com/transitland/transitland-datastore/pull/1196) ([drewda](https://github.com/drewda))
+- Configurable SSL validation [\#1194](https://github.com/transitland/transitland-datastore/pull/1194) ([irees](https://github.com/irees))
 - Production release 77 [\#1178](https://github.com/transitland/transitland-datastore/pull/1178) ([irees](https://github.com/irees))
 
 ## [77](https://github.com/transitland/transitland-datastore/tree/77) (2017-09-26)
