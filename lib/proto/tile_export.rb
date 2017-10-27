@@ -85,6 +85,7 @@ def decode_coordinates(value)
 end
 
 class TileBuilder
+  attr_accessor :tile
   def initialize(tile)
     @tile = tile
     @bbox = tile.bbox
