@@ -50,3 +50,17 @@ tile = tiles.get_tile_by_lll(2, lat, lon)
 assert tile.level == 2
 assert tile.tile == 736070
 assert tile.bbox == [-122.5, 37.75, -122.25, 38.0]
+
+# Shape7 Tests
+coords = [
+  [-74.012666, 40.70136],
+  [-74.012962, 40.700478],
+  [-74.01265, 40.699074]
+]
+tolerance = 0.01
+
+Shape7.decode(Shape7.encode(coords)).zip(coords).each do |a,b|
+  assert((a[0]-b[0]).abs < tolerance)
+  assert((a[1]-b[1]).abs < tolerance)
+end
+
