@@ -53,37 +53,6 @@ def color_to_int(value)
   match ? match[0].to_i(16) : nil
 end
 
-# https://github.com/valhalla/valhalla/blob/master/valhalla/midgard/encoded.h
-def encode_int_serialize(number, output)
-  number = number < 0 ? ~(number << 1) : number << 1
-  while (number > 0x7f) do
-    nextValue = (0x80 | (number & 0x7f))
-    output << nextValue.chr
-    number >>= 7
-  end
-  output << (number & 0x7f).chr
-end
-
-def encode_coordinates(coordinates)
-  output = []
-  last_lat = 0
-  last_lon = 0
-  coordinates.each do |lat, lon|
-    # puts "\n\nlat: #{lat} lon: #{lon} last_lat: #{last_lat} last_lon: #{last_lon}"
-    lat = (lat * 1e6).floor
-    lon = (lon * 1e6).floor
-    # puts "\tencode: #{lat-last_lat} #{lon-last_lon}"
-    encode_int_serialize(lat - last_lat, output)
-    encode_int_serialize(lon - last_lon, output)
-    last_lat = lat
-    last_lon = lon
-  end
-  output.join('')
-end
-
-def decode_coordinates(value)
-end
-
 class TileBuilder
   attr_accessor :tile
   def initialize(tile)
@@ -240,7 +209,7 @@ class TileBuilder
     params = {}
     # uint32 shape_id = 1;
     # bytes encoded_shape = 2;
-    params[:encoded_shape] = encode_coordinates(rsp.geometry[:coordinates])
+    params[:encoded_shape] = Shape7.encode(rsp.geometry[:coordinates])
     Valhalla::Mjolnir::Transit::Shape.new(params.compact)
   end
 
