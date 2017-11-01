@@ -64,3 +64,8 @@ Shape7.decode(Shape7.encode(coords)).zip(coords).each do |a,b|
   assert((a[1]-b[1]).abs < tolerance)
 end
 
+# UniqueIndex tests
+index = UniqueIndex.new(start: 1)
+assert index.check("foo") == 1
+assert index.check("foo") == 1
+assert index.check("bar") == 2

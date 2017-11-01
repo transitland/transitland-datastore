@@ -16,6 +16,18 @@ def int(value)
   value.to_i
 end
 
+class UniqueIndex
+  def initialize(start: 0)
+    @index = start - 1
+    @values = {}
+  end
+
+  def check(value)
+    return nil if value.nil?
+    @values[value] ||= (@index += 1)
+  end
+end
+
 # https://github.com/valhalla/valhalla/blob/master/valhalla/midgard/encoded.h
 class Shape7
   def self.encode(coordinates)
