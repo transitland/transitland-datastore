@@ -3,7 +3,6 @@
 
 load 'lib/proto/tile_set.rb'
 
-EPOCH = Date.parse('1970-01-01')
 IMPORT_LEVEL = 4
 LEVEL = 2
 
@@ -61,33 +60,6 @@ class TileBuilder
     @node_index = UniqueIndex.new
     @route_index = UniqueIndex.new
     @shape_index = UniqueIndex.new(start: 1)
-  end
-
-  def trip_id(value)
-    @@trip_id_index.check(value)
-  end
-
-  def block_id(value)
-    @@block_id_index.check(value)
-  end
-
-  def route_index(value)
-    @route_index.check(value)
-  end
-
-  def shape_index(value)
-    @shape_index.check(value)
-  end
-
-  def node_index(value)
-    # use @tile.message.nodes.size
-    @node_index.checkincr(value)
-  end
-
-  def bbox_padded
-    ymin, xmin, ymax, xmax = @tile.bbox
-    padding = 0.0
-    [ymin-padding, xmin, ymax+padding, xmax]
   end
 
   def build_stops
@@ -165,6 +137,36 @@ class TileBuilder
 
   private
 
+  # index accessor methods
+  # TODO: use message.type.size?
+  def trip_id(value)
+    @@trip_id_index.check(value)
+  end
+
+  def block_id(value)
+    @@block_id_index.check(value)
+  end
+
+  def route_index(value)
+    @route_index.check(value)
+  end
+
+  def shape_index(value)
+    @shape_index.check(value)
+  end
+
+  def node_index(value)
+    @node_index.checkincr(value)
+  end
+
+  # bbox padding
+  def bbox_padded
+    ymin, xmin, ymax, xmax = @tile.bbox
+    padding = 0.0
+    [ymin-padding, xmin, ymax+padding, xmax]
+  end
+
+  # make entity methods
   def make_stop_pair(ssp)
     # TODO:
     #   skip if origin == destination_id
