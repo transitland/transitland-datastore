@@ -58,6 +58,7 @@ class TileBuilder
     @@trip_index ||= UniqueIndex.new
     @@block_index ||= UniqueIndex.new(start: 1)
     # tile unique indexes
+    @node_index = UniqueIndex.new
     @route_index = UniqueIndex.new
     @shape_index = UniqueIndex.new(start: 1)
   end
@@ -76,6 +77,11 @@ class TileBuilder
 
   def shape_index(value)
     @shape_index.check(value)
+  end
+
+  def node_index(value)
+    # use @tile.message.nodes.size
+    @node_index.check(value)
   end
 
   def bbox_padded
@@ -99,7 +105,7 @@ class TileBuilder
       stop_egresses << StopEgress.new(stop.attributes) if stop_egresses.empty? # generated egress
       stop_egresses.each do |stop_egress|
         node = make_node(stop_egress)
-        node.graphid = GraphID.new(level: LEVEL, tile: @tile.tile, index: node_index).value
+        node.graphid = GraphID.new(level: LEVEL, tile: @tile.tile, index: node_index(stop.id)).value
         node.prev_type_graphid = prev_type_graphid if prev_type_graphid
         prev_type_graphid = node.graphid
         @tile.message.nodes << node
@@ -107,7 +113,7 @@ class TileBuilder
 
       # Station
       node = make_node(stop)
-      node.graphid = GraphID.new(level: LEVEL, tile: @tile.tile, index: node_index).value
+      node.graphid = GraphID.new(level: LEVEL, tile: @tile.tile, index: node_index(stop.id)).value
       node.prev_type_graphid = prev_type_graphid if prev_type_graphid
       prev_type_graphid = node.graphid
       @tile.message.nodes << node
@@ -117,7 +123,7 @@ class TileBuilder
       stop_platforms << StopPlatform.new(stop.attributes) # station ssps
       stop_platforms.each do |stop_platform|
         node = make_node(stop_platform)
-        node.graphid = GraphID.new(level: LEVEL, tile: @tile.tile, index: node_index).value
+        node.graphid = GraphID.new(level: LEVEL, tile: @tile.tile, index: node_index(stop.id)).value
         node.prev_type_graphid = prev_type_graphid if prev_type_graphid
         prev_type_graphid = node.graphid
         @@stop_graphid[stop.id] = node.graphid
@@ -132,47 +138,32 @@ class TileBuilder
     stop_ids = @tile.message.nodes.map { |node| @@graphid_stop[node.graphid] }.compact
 
     # Routes
-    routeid_routeindex = {}
     route_ids = ScheduleStopPair.where(origin_id: stop_ids).select(:route_id).distinct(:route_id).pluck(:route_id)
     Route.where(id: route_ids).order(id: :asc).includes(:operator).each do |route|
       puts "\troute: #{route.onestop_id}"
-      routeid_routeindex[route.id] = route_index
-      @tile.message.routes << make_route(route, route_index)
+      route_index(route.id)
+      @tile.message.routes << make_route(route)
     end
 
     # Shapes
-    rspid_rspindex = {}
     rsp_ids = ScheduleStopPair.where(origin_id: stop_ids).select(:route_stop_pattern_id).distinct(:route_stop_pattern_id).pluck(:route_stop_pattern_id)
     RouteStopPattern.where(id: rsp_ids).order(id: :asc).each do |rsp|
       puts "\trsp: #{rsp.onestop_id}"
       shape = make_shape(rsp)
-      shape.shape_id = shape_index
-      rspid_rspindex[rsp.id] = shape.shape_id
+      shape.shape_id = shape_index(rsp.id)
       @tile.message.shapes << shape
     end
 
     # StopPairs
     ScheduleStopPair.where(origin_id: stop_ids).includes(:origin, :destination, :operator).find_each do |ssp|
-      @tile.message.stop_pairs << make_stop_pair(ssp, routeid_routeindex, rspid_rspindex)
+      @tile.message.stop_pairs << make_stop_pair(ssp)
     end
     puts "\tssp: total #{@tile.message.stop_pairs.size}"
   end
 
   private
 
-  def node_index
-    @tile.message.nodes.size
-  end
-
-  def route_index
-    @tile.message.routes.size
-  end
-
-  def shape_index
-    @tile.message.shapes.size + 1 # 0 means shape_id is not set
-  end
-
-  def make_stop_pair(ssp, routeid_routeindex, rspid_rspindex)
+  def make_stop_pair(ssp)
     # return if ssp.origin_id == ssp.destination_id
     # return unless routeid_routeindex[ssp.route_id]
     # return if ssp.origin_departure_time < ssp.frequency_start_time
@@ -194,7 +185,7 @@ class TileBuilder
     # string origin_onestop_id = 9;
     params[:origin_onestop_id] = ssp.origin.onestop_id
     # uint32 route_index = 10;
-    params[:route_index] = routeid_routeindex[ssp.route_id]
+    params[:route_index] = route_index(ssp.route_id)
     # repeated uint32 service_added_dates = 11;
      params[:service_added_dates] = ssp.service_added_dates.map(&:jd)
     # repeated bool service_days_of_week = 12;
@@ -210,7 +201,7 @@ class TileBuilder
     # uint32 trip_id = 17;
     # bool wheelchair_accessible = 18;
     # uint32 shape_id = 20;
-    params[:shape_id] = rspid_rspindex[ssp.route_stop_pattern_id]
+    params[:shape_id] = shape_index(ssp.route_stop_pattern_id)
     # float origin_dist_traveled = 21;
     # params[:origin_dist_traveled] = ssp.origin_dist_traveled,
     # float destination_dist_traveled = 22;
@@ -233,7 +224,7 @@ class TileBuilder
     Valhalla::Mjolnir::Transit::Shape.new(params.compact)
   end
 
-  def make_route(route, routeindex)
+  def make_route(route)
     params = {}
     # string name = 1;
     params[:name] = route.name
