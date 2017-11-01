@@ -39,13 +39,9 @@ VEHICLE_TYPES = {
   funicalr: VT::Funicular
 }
 
-def time_to_seconds(value)
+def seconds_from_midnight(value)
   h,m,s = value.split(':').map(&:to_i)
   h * 3600 + m * 60 + s
-end
-
-def date_to_days(value)
-  (value - EPOCH).to_i
 end
 
 def color_to_int(value)
@@ -160,7 +156,7 @@ class TileBuilder
     # bool bikes_allowed = 1;
     # uint32 block_id = 2;
     # uint32 destination_arrival_time = 3;
-    params[:destination_arrival_time] = time_to_seconds(ssp.destination_arrival_time)
+    params[:destination_arrival_time] = seconds_from_midnight(ssp.destination_arrival_time)
     # uint64 destination_graphid = 4;
     params[:destination_graphid] = STOPID_GRAPHID[ssp.destination_id]
     # string destination_onestop_id = 5;
@@ -168,7 +164,7 @@ class TileBuilder
     # string operated_by_onestop_id = 6;
     params[:operated_by_onestop_id] = ssp.operator.onestop_id
     # uint32 origin_departure_time = 7;
-    params[:origin_departure_time] = time_to_seconds(ssp.origin_departure_time)
+    params[:origin_departure_time] = seconds_from_midnight(ssp.origin_departure_time)
     # uint64 origin_graphid = 8;
     params[:origin_graphid] = STOPID_GRAPHID[ssp.origin_id]
     # string origin_onestop_id = 9;
@@ -198,7 +194,7 @@ class TileBuilder
     if ssp.frequency_headway_seconds
       # protobuf doesn't define frequency_start_time
       # uint32 frequency_end_time = 23;
-      params[:frequency_end_time] = time_to_seconds(ssp.frequency_end_time)
+      params[:frequency_end_time] = seconds_from_midnight(ssp.frequency_end_time)
       # uint32 frequency_headway_seconds = 24;
       params[:frequency_headway_seconds] = ssp.frequency_headway_seconds
     end
