@@ -6,8 +6,6 @@ load 'lib/proto/tile_set.rb'
 EPOCH = Date.parse('1970-01-01')
 IMPORT_LEVEL = 4
 LEVEL = 2
-STOPID_GRAPHID = {}
-GRAPHID_STOPID = {}
 
 # kTransitEgress = 4,           // Transit egress
 # kTransitStation = 5,          // Transit station
@@ -54,6 +52,30 @@ class TileBuilder
   def initialize(tile)
     @tile = tile
     @bbox = tile.bbox
+    # globally unique indexes
+    @@stop_graphid ||= {}
+    @@graphid_stop ||= {}
+    @@trip_index ||= UniqueIndex.new
+    @@block_index ||= UniqueIndex.new(start: 1)
+    # tile unique indexes
+    @route_index = UniqueIndex.new
+    @shape_index = UniqueIndex.new(start: 1)
+  end
+
+  def trip_id(value)
+    @@trip_id_index.check(value)
+  end
+
+  def block_id(value)
+    @@block_id_index.check(value)
+  end
+
+  def route_index(value)
+    @route_index.check(value)
+  end
+
+  def shape_index(value)
+    @shape_index.check(value)
   end
 
   def bbox_padded
@@ -61,7 +83,6 @@ class TileBuilder
     padding = 0.0
     [ymin-padding, xmin, ymax+padding, xmax]
   end
-
 
   def build_stops
     puts "Building stops: #{@tile.tile}"
@@ -99,8 +120,8 @@ class TileBuilder
         node.graphid = GraphID.new(level: LEVEL, tile: @tile.tile, index: node_index).value
         node.prev_type_graphid = prev_type_graphid if prev_type_graphid
         prev_type_graphid = node.graphid
-        STOPID_GRAPHID[stop.id] = node.graphid
-        GRAPHID_STOPID[node.graphid] = stop.id
+        @@stop_graphid[stop.id] = node.graphid
+        @@graphid_stop[node.graphid] = stop.id
         @tile.message.nodes << node
       end
     end
@@ -108,7 +129,7 @@ class TileBuilder
 
   def build_schedule
     puts "Building schedule: #{@tile.tile}"
-    stop_ids = @tile.message.nodes.map { |node| GRAPHID_STOPID[node.graphid] }.compact
+    stop_ids = @tile.message.nodes.map { |node| @@graphid_stop[node.graphid] }.compact
 
     # Routes
     routeid_routeindex = {}
@@ -152,13 +173,16 @@ class TileBuilder
   end
 
   def make_stop_pair(ssp, routeid_routeindex, rspid_rspindex)
+    # return if ssp.origin_id == ssp.destination_id
+    # return unless routeid_routeindex[ssp.route_id]
+    # return if ssp.origin_departure_time < ssp.frequency_start_time
     params = {}
     # bool bikes_allowed = 1;
     # uint32 block_id = 2;
     # uint32 destination_arrival_time = 3;
     params[:destination_arrival_time] = seconds_from_midnight(ssp.destination_arrival_time)
     # uint64 destination_graphid = 4;
-    params[:destination_graphid] = STOPID_GRAPHID[ssp.destination_id]
+    params[:destination_graphid] = @@stop_graphid[ssp.destination_id]
     # string destination_onestop_id = 5;
     params[:destination_onestop_id] = ssp.destination.onestop_id
     # string operated_by_onestop_id = 6;
@@ -166,7 +190,7 @@ class TileBuilder
     # uint32 origin_departure_time = 7;
     params[:origin_departure_time] = seconds_from_midnight(ssp.origin_departure_time)
     # uint64 origin_graphid = 8;
-    params[:origin_graphid] = STOPID_GRAPHID[ssp.origin_id]
+    params[:origin_graphid] = @@stop_graphid[ssp.origin_id]
     # string origin_onestop_id = 9;
     params[:origin_onestop_id] = ssp.origin.onestop_id
     # uint32 route_index = 10;
@@ -273,6 +297,7 @@ class TileBuilder
   end
 end
 
+# Tileset
 tileset = TileSet.new('.')
 
 puts "Feeds"
