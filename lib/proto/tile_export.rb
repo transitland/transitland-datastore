@@ -81,7 +81,7 @@ class TileBuilder
 
   def node_index(value)
     # use @tile.message.nodes.size
-    @node_index.check(value)
+    @node_index.checkincr(value)
   end
 
   def bbox_padded
