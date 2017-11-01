@@ -91,6 +91,8 @@ class TileBuilder
   end
 
   def build_stops
+    # TODO:
+    #    max graph_ids in a tile
     puts "Building stops: #{@tile.tile}"
     Stop.where(parent_stop: nil).geometry_within_bbox(bbox_padded).order(id: :asc).includes(:stop_platforms, :stop_egresses).each do |stop|
       # Check if stop is inside tile
@@ -164,9 +166,14 @@ class TileBuilder
   private
 
   def make_stop_pair(ssp)
-    # return if ssp.origin_id == ssp.destination_id
-    # return unless routeid_routeindex[ssp.route_id]
-    # return if ssp.origin_departure_time < ssp.frequency_start_time
+    # TODO:
+    #   skip if origin == destination_id
+    #   skip unless route
+    #   skip if origin_departure_time < frequency_start_time
+    #   skip if bad time information
+    #   skip if no trip
+    #   add < and > to onestop_ids
+    #   line_id?
     params = {}
     # bool bikes_allowed = 1;
     # uint32 block_id = 2;
@@ -225,6 +232,8 @@ class TileBuilder
   end
 
   def make_route(route)
+    # TODO:
+    #   skip if unknown vehicle_type
     params = {}
     # string name = 1;
     params[:name] = route.name
