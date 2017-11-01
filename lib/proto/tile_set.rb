@@ -22,9 +22,12 @@ class UniqueIndex
     @values = {}
   end
 
-  def check(value)
-    return nil if value.nil?
-    @values[value] ||= (@index += 1)
+  def check(key)
+    @values[key] ||= (@index += 1)
+  end
+
+  def checkincr(key)
+    @values[key] = (@index += 1)
   end
 end
 
