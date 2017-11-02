@@ -300,7 +300,7 @@ class TileBuilder
 end
 
 # Tileset
-tileset = TileSet.new('.')
+tileset = TileSet.new(ARGV[0])
 
 puts "Feeds"
 build_tiles = Set.new
