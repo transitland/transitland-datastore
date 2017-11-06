@@ -2,7 +2,18 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/78...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/79...HEAD)
+
+**Closed issues:**
+
+- Station merging: all SSPs on platforms [\#1199](https://github.com/transitland/transitland-datastore/issues/1199)
+
+**Merged pull requests:**
+
+- Production release 79 [\#1198](https://github.com/transitland/transitland-datastore/pull/1198) ([irees](https://github.com/irees))
+
+## [79](https://github.com/transitland/transitland-datastore/tree/79) (2017-10-12)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/78...79)
 
 **Closed issues:**
 
@@ -10,6 +21,7 @@
 
 **Merged pull requests:**
 
+- Station SSPs [\#1200](https://github.com/transitland/transitland-datastore/pull/1200) ([irees](https://github.com/irees))
 - Production release 78 [\#1195](https://github.com/transitland/transitland-datastore/pull/1195) ([irees](https://github.com/irees))
 
 ## [78](https://github.com/transitland/transitland-datastore/tree/78) (2017-10-03)
