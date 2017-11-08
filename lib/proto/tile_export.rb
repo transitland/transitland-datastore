@@ -79,7 +79,7 @@ class TileBuilder
       stop_egresses << StopEgress.new(stop.attributes) if stop_egresses.empty? # generated egress
       stop_egresses.each do |stop_egress|
         node = make_node(stop_egress)
-        node.graphid = GraphID.new(level: LEVEL, tile: @tile.tile, index: node_index(stop.id)).value
+        node.graphid = GraphID.new(level: LEVEL, tile: @tile.tile, index: @node_index.next(stop.id)).value
         node.prev_type_graphid = prev_type_graphid if prev_type_graphid
         prev_type_graphid = node.graphid
         @tile.message.nodes << node
@@ -87,7 +87,7 @@ class TileBuilder
 
       # Station
       node = make_node(stop)
-      node.graphid = GraphID.new(level: LEVEL, tile: @tile.tile, index: node_index(stop.id)).value
+      node.graphid = GraphID.new(level: LEVEL, tile: @tile.tile, index: @node_index.next(stop.id)).value
       node.prev_type_graphid = prev_type_graphid if prev_type_graphid
       prev_type_graphid = node.graphid
       @tile.message.nodes << node
@@ -97,7 +97,7 @@ class TileBuilder
       stop_platforms << StopPlatform.new(stop.attributes) # station ssps
       stop_platforms.each do |stop_platform|
         node = make_node(stop_platform)
-        node.graphid = GraphID.new(level: LEVEL, tile: @tile.tile, index: node_index(stop.id)).value
+        node.graphid = GraphID.new(level: LEVEL, tile: @tile.tile, index: @node_index.next(stop.id)).value
         node.prev_type_graphid = prev_type_graphid if prev_type_graphid
         prev_type_graphid = node.graphid
         @@stop_graphid[stop.id] = node.graphid
@@ -115,7 +115,7 @@ class TileBuilder
     route_ids = ScheduleStopPair.where(origin_id: stop_ids).select(:route_id).distinct(:route_id).pluck(:route_id)
     Route.where(id: route_ids).order(id: :asc).includes(:operator).each do |route|
       puts "\troute: #{route.onestop_id}"
-      route_index(route.id)
+      @route_index.next(route.id)
       @tile.message.routes << make_route(route)
     end
 
@@ -124,40 +124,20 @@ class TileBuilder
     RouteStopPattern.where(id: rsp_ids).order(id: :asc).each do |rsp|
       puts "\trsp: #{rsp.onestop_id}"
       shape = make_shape(rsp)
-      shape.shape_id = shape_index(rsp.id)
+      shape.shape_id = @shape_index.next(rsp.id)
       @tile.message.shapes << shape
     end
 
-    # StopPairs
-    ScheduleStopPair.where(origin_id: stop_ids).includes(:origin, :destination, :operator).find_each do |ssp|
-      @tile.message.stop_pairs << make_stop_pair(ssp)
+    # StopPairs - do per stop
+    stop_ids.each do |stop_id|
+      ScheduleStopPair.where(origin_id: stop_id).includes(:origin, :destination, :operator).find_each do |ssp|
+        @tile.message.stop_pairs << make_stop_pair(ssp)
+      end
     end
     puts "\tssp: total #{@tile.message.stop_pairs.size}"
   end
 
   private
-
-  # index accessor methods
-  # TODO: use message.type.size?
-  def trip_id(value)
-    @@trip_id_index.check(value)
-  end
-
-  def block_id(value)
-    @@block_id_index.check(value)
-  end
-
-  def route_index(value)
-    @route_index.check(value)
-  end
-
-  def shape_index(value)
-    @shape_index.check(value)
-  end
-
-  def node_index(value)
-    @node_index.checkincr(value)
-  end
 
   # bbox padding
   def bbox_padded
@@ -179,10 +159,11 @@ class TileBuilder
     params = {}
     # bool bikes_allowed = 1;
     # uint32 block_id = 2;
+    params[:block_id] = @@block_index.check(ssp.block_id)
     # uint32 destination_arrival_time = 3;
     params[:destination_arrival_time] = seconds_from_midnight(ssp.destination_arrival_time)
     # uint64 destination_graphid = 4;
-    params[:destination_graphid] = @@stop_graphid[ssp.destination_id]
+    params[:destination_graphid] = @@stop_graphid.fetch(ssp.destination_id)
     # string destination_onestop_id = 5;
     params[:destination_onestop_id] = ssp.destination.onestop_id
     # string operated_by_onestop_id = 6;
@@ -190,11 +171,11 @@ class TileBuilder
     # uint32 origin_departure_time = 7;
     params[:origin_departure_time] = seconds_from_midnight(ssp.origin_departure_time)
     # uint64 origin_graphid = 8;
-    params[:origin_graphid] = @@stop_graphid[ssp.origin_id]
+    params[:origin_graphid] = @@stop_graphid.fetch(ssp.origin_id)
     # string origin_onestop_id = 9;
     params[:origin_onestop_id] = ssp.origin.onestop_id
     # uint32 route_index = 10;
-    params[:route_index] = route_index(ssp.route_id)
+    params[:route_index] = @route_index.fetch(ssp.route_id)
     # repeated uint32 service_added_dates = 11;
      params[:service_added_dates] = ssp.service_added_dates.map(&:jd)
     # repeated bool service_days_of_week = 12;
@@ -208,13 +189,14 @@ class TileBuilder
     # string trip_headsign = 16;
     params[:trip_headsign] = ssp.trip_headsign
     # uint32 trip_id = 17;
+    params[:trip_id] = @@trip_index.check(ssp.trip)
     # bool wheelchair_accessible = 18;
     # uint32 shape_id = 20;
-    params[:shape_id] = shape_index(ssp.route_stop_pattern_id)
+    params[:shape_id] = @shape_index.fetch(ssp.route_stop_pattern_id)
     # float origin_dist_traveled = 21;
-    # params[:origin_dist_traveled] = ssp.origin_dist_traveled,
+    params[:origin_dist_traveled] = ssp.origin_dist_traveled
     # float destination_dist_traveled = 22;
-    # params[:destination_dist_traveled] = ssp.destination_dist_traveled
+    params[:destination_dist_traveled] = ssp.destination_dist_traveled
     if ssp.frequency_headway_seconds
       # protobuf doesn't define frequency_start_time
       # uint32 frequency_end_time = 23;
@@ -222,6 +204,7 @@ class TileBuilder
       # uint32 frequency_headway_seconds = 24;
       params[:frequency_headway_seconds] = ssp.frequency_headway_seconds
     end
+    puts "params #{ssp.id} route #{params[:route_index]}"
     Valhalla::Mjolnir::Transit::StopPair.new(params)
   end
 
