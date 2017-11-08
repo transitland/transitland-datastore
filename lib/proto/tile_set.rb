@@ -22,11 +22,15 @@ class UniqueIndex
     @values = {}
   end
 
+  def fetch(key)
+    @values.fetch(key)
+  end
+
   def check(key)
     @values[key] ||= (@index += 1)
   end
 
-  def checkincr(key)
+  def next(key)
     @values[key] = (@index += 1)
   end
 end
