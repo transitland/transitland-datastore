@@ -24,6 +24,7 @@ class FeedVersionImportSerializer < ApplicationSerializer
              :feed_version,
              :feed_url,
              :feed_version_url,
+             :operators_in_feed,
              :success,
              :import_log,
              :import_level,
