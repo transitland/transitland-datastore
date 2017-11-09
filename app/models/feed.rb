@@ -294,7 +294,11 @@ class Feed < BaseFeed
   def status
     tags['status'] || 'active'
   end
+
+  IMPORT_POLICY_VALUES = ['manual','immediately','weekly','daily']
   def import_policy=(value)
+    value = value.to_str
+    fail Exception.new("Invalid import_policy: #{value}") unless IMPORT_POLICY_VALUES.include?(value)
     tags['import_policy'] = value
   end
 
