@@ -28,7 +28,8 @@ class FeedEaterService
 
     # Create import record
     feed_version_import = feed_version.feed_version_imports.create(
-      import_level: import_level
+      import_level: import_level,
+      operators_in_feed: feed.operators_in_feed.map { |i| i.slice(:gtfs_agency_id, :feed_id, :operator_id) }
     )
 
     # Import feed
