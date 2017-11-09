@@ -21,6 +21,12 @@ class FeedFetcherService
   end
 
   def self.fetch_and_return_feed_version(feed)
+    # Check fetch policy
+    fetch_policy = feed.status
+    if fetch_policy != 'active'
+      log "Feed #{feed.onestop_id} not fetched, policy is: #{fetch_policy}"
+      return
+    end
     # Check Feed URL for new files.
     fetch_exception_log = nil
     feed_version = nil
