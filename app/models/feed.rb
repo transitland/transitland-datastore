@@ -284,9 +284,9 @@ class Feed < BaseFeed
     end
   end
 
-  STATUS_VALUES = ['active','replaced','unreachable','unpublished','outdated','broken']
+  STATUS_VALUES = ['active','replaced','unreachable','unpublished','outdated','broken', nil]
   def status=(value)
-    value = value.to_str
+    value = value.to_s.presence
     fail Exception.new("Invalid status: #{value}") unless STATUS_VALUES.include?(value)
     tags['status'] = value
   end
@@ -295,9 +295,9 @@ class Feed < BaseFeed
     tags['status'] || 'active'
   end
 
-  IMPORT_POLICY_VALUES = ['manual','immediately','weekly','daily']
+  IMPORT_POLICY_VALUES = ['manual','immediately','weekly','daily', nil]
   def import_policy=(value)
-    value = value.to_str
+    value = value.to_s.presence
     fail Exception.new("Invalid import_policy: #{value}") unless IMPORT_POLICY_VALUES.include?(value)
     tags['import_policy'] = value
   end
