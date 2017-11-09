@@ -184,6 +184,16 @@ describe FeedEaterService do
     end
   end
 
+  context 'operators_in_feed' do
+    it 'copies operators_in_feed to FeedVersionImport' do
+      feed_version = create(:feed_version_example)
+      oif_feed = feed_version.feed.operators_in_feed.map { |i| i.slice(:gtfs_agency_id, :feed_id, :operator_id)}
+      load_feed(feed_version: feed_version, import_level: 1)
+      oif_fvi = feed_version.feed_version_imports.last.operators_in_feed
+      expect(oif_feed).to eq(oif_fvi)
+    end
+  end
+
   context 'feed transition' do
     before(:each) {
       @feed, @original_feed_version = load_feed(feed_version_name: :feed_version_example, import_level: 1)
