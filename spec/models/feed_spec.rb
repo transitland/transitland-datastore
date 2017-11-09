@@ -490,10 +490,33 @@ describe Feed do
       expect(feed.import_policy).to be_nil
     end
 
+    it 'sets only allowed values' do
+      feed = create(:feed)
+      expect{feed.import_policy = 'asdf'}.to raise_error
+    end
+
     it 'sets import_policy' do
       feed = create(:feed)
       feed.import_policy = 'immediately'
       expect(feed.import_policy).to eq('immediately')
+    end
+  end
+
+  context '#status' do
+    it 'sets default status' do
+      feed = create(:feed)
+      expect(feed.status).to eq 'active'
+    end
+
+    it 'sets only allowed values' do
+      feed = create(:feed)
+      expect{feed.status = 'asdf'}.to raise_error
+    end
+
+    it 'sets status' do
+      feed = create(:feed)
+      feed.status = 'replaced'
+      expect(feed.status).to eq('replaced')
     end
   end
 end
