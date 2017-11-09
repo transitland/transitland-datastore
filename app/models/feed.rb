@@ -284,6 +284,16 @@ class Feed < BaseFeed
     end
   end
 
+  STATUS_VALUES = ['active','replaced','unreachable','unpublished','outdated','broken']
+  def status=(value)
+    value = value.to_str
+    fail Exception.new("Invalid status: #{value}") unless STATUS_VALUES.include?(value)
+    tags['status'] = value
+  end
+
+  def status
+    tags['status'] || 'active'
+  end
   def import_policy=(value)
     tags['import_policy'] = value
   end
