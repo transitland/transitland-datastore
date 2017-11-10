@@ -187,7 +187,7 @@ describe FeedEaterService do
   context 'operators_in_feed' do
     it 'copies operators_in_feed to FeedVersionImport' do
       feed_version = create(:feed_version_example)
-      oif_feed = feed_version.feed.operators_in_feed.map { |i| i.slice(:gtfs_agency_id, :feed_id, :operator_id)}
+      oif_feed = feed_version.feed.operators_in_feed.map{ |i| {'gtfs_agency_id'=>i.gtfs_agency_id, 'feed_id'=>i.feed_id, 'feed_onestop_id'=>i.feed.onestop_id, 'operator_id'=>i.operator_id, 'operator_onestop_id'=>i.operator.onestop_id} }
       load_feed(feed_version: feed_version, import_level: 1)
       oif_fvi = feed_version.feed_version_imports.last.operators_in_feed
       expect(oif_feed).to eq(oif_fvi)
