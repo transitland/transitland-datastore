@@ -11,6 +11,7 @@
 #  exception_log     :text
 #  validation_report :text
 #  import_level      :integer
+#  operators_in_feed :json
 #
 # Indexes
 #
