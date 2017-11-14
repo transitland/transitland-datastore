@@ -23,14 +23,17 @@ class UniqueIndex
   end
 
   def fetch(key)
+    return nil if key.nil?
     @values.fetch(key)
   end
 
   def check(key)
+    return nil if key.nil?
     @values[key] ||= (@index += 1)
   end
 
   def next(key)
+    return nil if key.nil?
     @values[key] = (@index += 1)
   end
 end
@@ -44,6 +47,7 @@ class Shape7
     coordinates.each do |lat, lon|
       lat = (lat * 1e6).floor
       lon = (lon * 1e6).floor
+      # puts "last_lat: #{lat - last_lat} last_lon: #{lon - last_lon}"
       output += encode_int(lat - last_lat)
       output += encode_int(lon - last_lon)
       last_lat = lat
