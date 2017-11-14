@@ -159,7 +159,7 @@ class TileBuilder
     params = {}
     # bool bikes_allowed = 1;
     # uint32 block_id = 2;
-    params[:block_id] = @@block_index.check(ssp.block_id)
+    # params[:block_id] = @@block_index.check(ssp.block_id)
     # uint32 destination_arrival_time = 3;
     params[:destination_arrival_time] = seconds_from_midnight(ssp.destination_arrival_time)
     # uint64 destination_graphid = 4;
@@ -191,6 +191,7 @@ class TileBuilder
     # uint32 trip_id = 17;
     params[:trip_id] = @@trip_index.check(ssp.trip)
     # bool wheelchair_accessible = 18;
+    params[:wheelchair_accessible] = true # !!(ssp.wheelchair_accessible)
     # uint32 shape_id = 20;
     params[:shape_id] = @shape_index.fetch(ssp.route_stop_pattern_id)
     # float origin_dist_traveled = 21;
@@ -204,7 +205,6 @@ class TileBuilder
       # uint32 frequency_headway_seconds = 24;
       params[:frequency_headway_seconds] = ssp.frequency_headway_seconds
     end
-    puts "params #{ssp.id} route #{params[:route_index]}"
     Valhalla::Mjolnir::Transit::StopPair.new(params)
   end
 
@@ -212,8 +212,10 @@ class TileBuilder
     params = {}
     # uint32 shape_id = 1;
     # bytes encoded_shape = 2;
-    params[:encoded_shape] = Shape7.encode(rsp.geometry[:coordinates])
-    Valhalla::Mjolnir::Transit::Shape.new(params.compact)
+    # reverse coordinates
+    reversed = rsp.geometry[:coordinates].map { |a,b| [b,a] }
+    params[:encoded_shape] = Shape7.encode(reversed)
+    Valhalla::Mjolnir::Transit::Shape.new(params)
   end
 
   def make_route(route)
@@ -231,7 +233,7 @@ class TileBuilder
     # string operated_by_website = 5;
     params[:operated_by_website] = route.operator.website
     # uint32 route_color = 6;
-    params[:route_color] = color_to_int(route.color)
+    params[:route_color] = color_to_int(route.color || 'FFFFFF')
     # string route_desc = 7;
     params[:route_desc] = route.tags["route_desc"]
     # string route_long_name = 8;
@@ -272,7 +274,7 @@ class TileBuilder
     end
     if stop.instance_of?(StopPlatform) && !stop.persisted?
       params[:onestop_id] = "#{stop.onestop_id}<"
-      params[:generated] = true
+      # params[:generated] = true # not set for platforms
     end
     # uint32 traversability = 12;
     if stop.instance_of?(StopEgress)
