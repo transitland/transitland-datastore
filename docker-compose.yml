@@ -10,6 +10,15 @@ redis:
   ports:
     - "6379"
 
+web:
+  env_file: env/default
+  build: .
+  command: bundle exec rails s -p 3000 -b '0.0.0.0'
+  volumes:
+    - ".:/app"
+  ports:
+    - "3000:3000"
+
 app:
   env_file: env/default
   build: .
@@ -21,5 +30,3 @@ app:
   links:
     - db
     - redis
-
-
