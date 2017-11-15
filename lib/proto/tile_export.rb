@@ -177,7 +177,7 @@ class TileBuilder
     # uint32 route_index = 10;
     params[:route_index] = @route_index.fetch(ssp.route_id)
     # repeated uint32 service_added_dates = 11;
-     params[:service_added_dates] = ssp.service_added_dates.map(&:jd)
+    params[:service_added_dates] = ssp.service_added_dates.map(&:jd)
     # repeated bool service_days_of_week = 12;
     params[:service_days_of_week] = ssp.service_days_of_week
     # uint32 service_end_date = 13;
