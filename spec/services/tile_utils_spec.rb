@@ -15,7 +15,9 @@ describe TileUtils do
       assert graphid.level == 1
       assert graphid.tile == 37741
       assert graphid.bbox == [121.0, 14.0, 122.0, 15.0]
+    end
 
+    it 'sets tile from lat/lon' do
       graphid = TileUtils::GraphID.new(level: 0, lat: 14.601879, lon: 120.972545)
       assert graphid.tile == 2415
 
@@ -24,10 +26,9 @@ describe TileUtils do
 
       graphid = TileUtils::GraphID.new(level: 2, lat: 41.413203, lon: -73.623787)
       assert graphid.tile == 756425
+    end
 
-      graphid = TileUtils::GraphID.new(value: 73160266)
-      assert graphid.tile == 756425
-
+    it 'sets graphid from components' do
       graphid = TileUtils::GraphID.new(level: 1, tile: 3, index: 7)
       assert graphid.value == 234881049
 
@@ -35,24 +36,26 @@ describe TileUtils do
       assert graphid.level == 1
       assert graphid.tile == 3
       assert graphid.index == 7
+    end
 
+    it '#bbox_to_level_tiles' do
       level_tiles = TileUtils::GraphID.bbox_to_level_tiles(-74.251961,40.512764,-73.755405,40.903125)
       assert level_tiles.sort == [[2, 752102], [2, 753542], [2, 752103], [2, 753543], [2, 752104], [2, 753544], [1, 46905], [1, 46906], [0, 2906]].sort
     end
   end
 
   context 'TileSet' do
-    it 'test' do
-      # TileSet tests
-      level = 2
-      lon, lat = [-122.29514, 37.804872]
-
+    it '#get_tile_by_graphid' do
       tiles = TileUtils::TileSet.new('.')
-
       tile = tiles.get_tile_by_graphid(TileUtils::GraphID.new(level: 2, tile: 736070))
       assert tile.level == 2
       assert tile.tile == 736070
+    end
 
+    it '#get_tile_by_lll' do
+      level = 2
+      lon, lat = [-122.29514, 37.804872]
+      tiles = TileUtils::TileSet.new('.')
       tile = tiles.get_tile_by_lll(2, lat, lon)
       assert tile.level == 2
       assert tile.tile == 736070
@@ -61,7 +64,7 @@ describe TileUtils do
   end
 
   context 'Shape7' do
-    it 'test' do
+    it 'encode/decode' do
       # Shape7 Tests
       coords = [
         [-74.012666, 40.70136],
@@ -78,7 +81,7 @@ describe TileUtils do
   end
 
   context 'UniqueIndex' do
-    it 'test' do
+    it 'assigns sequential int to new key' do
       # UniqueIndex tests
       index = TileUtils::UniqueIndex.new(start: 1)
       assert index.check("foo") == 1
