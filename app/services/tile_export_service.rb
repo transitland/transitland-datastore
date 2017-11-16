@@ -299,7 +299,7 @@ module TileExportService
 
     # Build stops for each tile.
     build_tiles.each do |tile|
-      builder = TileBuilder.new(tileset.read_tile(GRAPH_LEVEL, tile))
+      builder = TileBuilder.new(tileset.new_tile(GRAPH_LEVEL, tile))
       builder.build_stops
       tileset.write_tile(builder.tile)
     end
