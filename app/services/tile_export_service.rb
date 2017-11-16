@@ -52,7 +52,7 @@ module TileExportService
       # TODO:
       #    max graph_ids in a tile
       puts "Building stops: #{@tile.tile}"
-      Stop.where(parent_stop: nil).geometry_within_bbox(bbox_padded).where_import_level(IMPORT_LEVEL).order(id: :asc).includes(:stop_platforms, :stop_egresses).each do |stop|
+      Stop.where(parent_stop: nil).geometry_within_bbox(bbox_padded).where_import_level(IMPORT_LEVEL).includes(:stop_platforms, :stop_egresses).find_each do |stop|
         # Check if stop is inside tile
         next if TileUtils::GraphID.new(level: GRAPH_LEVEL, lon: stop.coordinates[0], lat: stop.coordinates[1]).tile != @tile.tile
         puts "\tstop: #{stop.onestop_id}"
@@ -99,7 +99,7 @@ module TileExportService
 
       # Routes
       route_ids = ScheduleStopPair.where(origin_id: stop_ids).where_import_level(IMPORT_LEVEL).select(:route_id).distinct(:route_id).pluck(:route_id)
-      Route.where(id: route_ids).order(id: :asc).includes(:operator).each do |route|
+      Route.where(id: route_ids).includes(:operator).find_each do |route|
         puts "\troute: #{route.onestop_id}"
         @route_index.next(route.id)
         @tile.message.routes << make_route(route)
@@ -107,7 +107,7 @@ module TileExportService
 
       # Shapes
       rsp_ids = ScheduleStopPair.where(origin_id: stop_ids).where_import_level(IMPORT_LEVEL).select(:route_stop_pattern_id).distinct(:route_stop_pattern_id).pluck(:route_stop_pattern_id)
-      RouteStopPattern.where(id: rsp_ids).order(id: :asc).each do |rsp|
+      RouteStopPattern.where(id: rsp_ids).find_each do |rsp|
         puts "\trsp: #{rsp.onestop_id}"
         shape = make_shape(rsp)
         shape.shape_id = @shape_index.next(rsp.id)
