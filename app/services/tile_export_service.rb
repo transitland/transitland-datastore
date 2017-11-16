@@ -1,5 +1,3 @@
-load 'lib/proto/transit_pb.rb'
-
 module TileExportService
   IMPORT_LEVEL = 4
   GRAPH_LEVEL = 2
