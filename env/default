@@ -1,4 +1,5 @@
 # database.yml
+RAILS_ENV=development
 DATABASE_URL=postgis://user:pass@db:5432/transitland_datastore?pool=5
 REDIS_URL=redis://redis:6379
 POSTGRES_PASSWORD=pass
