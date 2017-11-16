@@ -159,13 +159,6 @@ module TileUtils
       end
     end
 
-    private
-
-    def tile_path(level, tile)
-      s = tile.to_s.rjust(9, "0")
-      File.join(@path, level.to_s, s[0...3], s[3...6], s[6...9]+".pbf")
-    end
-
     def read_tile(level, tile)
       fn = tile_path(level, tile)
       if File.exists?(fn)
@@ -175,6 +168,12 @@ module TileUtils
       end
     end
 
+    private
+
+    def tile_path(level, tile)
+      s = tile.to_s.rjust(9, "0")
+      File.join(@path, level.to_s, s[0...3], s[3...6], s[6...9]+".pbf")
+    end
   end
 
   class GraphID
