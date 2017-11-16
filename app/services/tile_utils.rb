@@ -136,11 +136,6 @@ module TileUtils
   class TileSet
     def initialize(path)
       @path = path
-      @tiles = {}
-    end
-
-    def get_tile(level, tile)
-      @tiles[[level, tile]] ||= read_tile(level, tile)
     end
 
     def get_tile_by_lll(level, lat, lon)
@@ -148,7 +143,7 @@ module TileUtils
     end
 
     def get_tile_by_graphid(graphid)
-      get_tile(graphid.level, graphid.tile)
+      read_tile(graphid.level, graphid.tile)
     end
 
     def write_tile(tile)
@@ -157,6 +152,10 @@ module TileUtils
       File.open(fn, 'wb') do |f|
         f.write(tile.encode)
       end
+    end
+
+    def new_tile(level, tile)
+      Tile.new(level, tile)
     end
 
     def read_tile(level, tile)
