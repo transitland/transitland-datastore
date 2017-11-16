@@ -51,6 +51,9 @@ module TransitlandDatastore
       end
     end
 
+    # Load protobuf definitions
+    Dir["#{Rails.root}/lib/proto/*.rb"].each { |file| require file }
+
     config.assets.enabled = false
 
     # https://github.com/carrierwaveuploader/carrierwave/issues/1576
