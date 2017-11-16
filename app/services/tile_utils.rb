@@ -1,7 +1,7 @@
 require 'fileutils'
 require 'google/protobuf'
 
-module TileSet
+module TileUtils
   class UniqueIndex
     def initialize(start: 0)
       @index = start - 1
