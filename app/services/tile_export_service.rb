@@ -52,7 +52,7 @@ module TileExportService
       # TODO:
       #    max graph_ids in a tile
       puts "Building stops: #{@tile.tile}"
-      Stop.where(parent_stop: nil).geometry_within_bbox(bbox_padded).order(id: :asc).includes(:stop_platforms, :stop_egresses).each do |stop|
+      Stop.where(parent_stop: nil).geometry_within_bbox(bbox_padded).where_import_level(IMPORT_LEVEL).order(id: :asc).includes(:stop_platforms, :stop_egresses).each do |stop|
         # Check if stop is inside tile
         next if TileUtils::GraphID.new(level: GRAPH_LEVEL, lon: stop.coordinates[0], lat: stop.coordinates[1]).tile != @tile.tile
         puts "\tstop: #{stop.onestop_id}"
@@ -98,7 +98,7 @@ module TileExportService
       stop_ids = @tile.message.nodes.map { |node| @@graphid_stop[node.graphid] }.compact
 
       # Routes
-      route_ids = ScheduleStopPair.where(origin_id: stop_ids).select(:route_id).distinct(:route_id).pluck(:route_id)
+      route_ids = ScheduleStopPair.where(origin_id: stop_ids).where_import_level(IMPORT_LEVEL).select(:route_id).distinct(:route_id).pluck(:route_id)
       Route.where(id: route_ids).order(id: :asc).includes(:operator).each do |route|
         puts "\troute: #{route.onestop_id}"
         @route_index.next(route.id)
@@ -106,7 +106,7 @@ module TileExportService
       end
 
       # Shapes
-      rsp_ids = ScheduleStopPair.where(origin_id: stop_ids).select(:route_stop_pattern_id).distinct(:route_stop_pattern_id).pluck(:route_stop_pattern_id)
+      rsp_ids = ScheduleStopPair.where(origin_id: stop_ids).where_import_level(IMPORT_LEVEL).select(:route_stop_pattern_id).distinct(:route_stop_pattern_id).pluck(:route_stop_pattern_id)
       RouteStopPattern.where(id: rsp_ids).order(id: :asc).each do |rsp|
         puts "\trsp: #{rsp.onestop_id}"
         shape = make_shape(rsp)
@@ -116,7 +116,7 @@ module TileExportService
 
       # StopPairs - do per stop
       stop_ids.each do |stop_id|
-        ScheduleStopPair.where(origin_id: stop_id).includes(:origin, :destination, :operator).find_each do |ssp|
+        ScheduleStopPair.where(origin_id: stop_id).where_import_level(IMPORT_LEVEL).includes(:origin, :destination, :operator).find_each do |ssp|
           @tile.message.stop_pairs << make_stop_pair(ssp)
         end
       end
