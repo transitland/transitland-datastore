@@ -291,18 +291,26 @@ module TileExportService
       bbox = feed.geometry_bbox
       b = bbox.min_x, bbox.min_y, bbox.max_x, bbox.max_y
       puts "bbox: #{b.join(',')}"
-      TileUtils::GraphID.bbox_to_level_tiles(*b).select { |a,b| a == 2}.each { |a,b| build_tiles << tileset.get_tile(a,b) }
+      TileUtils::GraphID.bbox_to_level_tiles(*b).select { |a,b| a == 2}.each { |a,b| build_tiles << b }
     end
 
     puts "Tiles to build: #{build_tiles.size}"
+    puts build_tiles.to_a
 
-    builders = build_tiles.map { |tile| TileBuilder.new(tile) }
     # Build stops for each tile.
-    builders.each { |builder| builder.build_stops }
+    build_tiles.each do |tile|
+      builder = TileBuilder.new(tileset.read_tile(GRAPH_LEVEL, tile))
+      builder.build_stops
+      tileset.write_tile(builder.tile)
+    end
+
     # Build schedule, routes, shapes for each tile.
-    builders.each { |builder| builder.build_schedule }
-    # Write out result
-    builders.each { |builder| tileset.write_tile(builder.tile) }
+    build_tiles.each do |tile|
+      builder = TileBuilder.new(tileset.read_tile(GRAPH_LEVEL, tile))
+      builder.build_schedule
+      tileset.write_tile(builder.tile)
+    end
+
     nil
   end
 end
