@@ -29,7 +29,7 @@ module TileExportService
     ferry: VT::Ferry,
     cablecar: VT::CableCar,
     gondola: VT::Gondola,
-    funicalr: VT::Funicular
+    funicular: VT::Funicular
   }
 
   class TileBuilder
