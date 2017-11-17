@@ -8,6 +8,11 @@ module TileUtils
       @values = {}
     end
 
+    def get(key)
+      return nil if key.nil?
+      @values[key]
+    end
+
     def fetch(key)
       return nil if key.nil?
       @values.fetch(key)
