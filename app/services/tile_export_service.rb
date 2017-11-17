@@ -314,6 +314,7 @@ module TileExportService
     build_schedule_tiles = []
     build_tiles.each_with_index do |tile, index|
       puts "Tile: #{tile} (#{index+1} / #{build_size})"
+      t = Time.now
       builder = TileBuilder.new(tileset.new_tile(GRAPH_LEVEL, tile))
       builder.build_stops
       nodes_size = builder.tile.message.nodes.size
@@ -321,6 +322,11 @@ module TileExportService
       if nodes_size > 0
         tileset.write_tile(builder.tile)
         build_schedule_tiles << tile
+        t = Time.now - t
+        puts "\ttime: #{t.round(2)}s (#{(nodes_size/t).to_i} nodes/s)"
+      else
+        t = Time.now - t
+        puts "\ttime: #{t.round(2)}s"
       end
     end
 
@@ -329,12 +335,14 @@ module TileExportService
     build_size = build_schedule_tiles.size
     build_schedule_tiles.each_with_index do |tile, index|
       puts "Tile: #{tile} (#{index+1} / #{build_size})"
+      t = Time.now
       builder = TileBuilder.new(tileset.read_tile(GRAPH_LEVEL, tile))
       builder.build_schedule
       puts "\troutes: #{builder.tile.message.routes.size}"
       puts "\tshapes: #{builder.tile.message.shapes.size}"
       puts "\tstop_pairs: #{builder.tile.message.stop_pairs.size}"
       tileset.write_tile(builder.tile)
+      puts "\ttime: #{Time.now - t}"
     end
 
     nil
