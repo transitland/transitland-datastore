@@ -318,7 +318,7 @@ module TileExportService
     puts "Tile: #{tile} routes: #{builder.tile.message.routes.size} shapes: #{builder.tile.message.shapes.size} stop_pairs: #{builder.tile.message.stop_pairs.size} time: #{Time.now - t}"
   end
 
-  def self.export_tiles(tilepath)
+  def self.export_tiles(tilepath, thread_count: nil)
     # Get tiles
     puts "Feeds"
     build_tiles = Set.new
@@ -331,11 +331,10 @@ module TileExportService
 
     # Setup queue
     # build_tiles = [731750, 733190]
-    thread_count = 2
     queue_stops = Queue.new
     build_tiles.each { |i| queue_stops.push(i) }
 
-    puts "Tiles to build: #{queue_stops.size}"
+    puts "Tiles to build: #{queue_stops.size} with thread_count: #{thread_count}"
 
     # Build stops for each tile.
     puts "\n===== Stops =====\n"
