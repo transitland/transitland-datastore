@@ -1,3 +1,4 @@
+require 'find'
 require 'fileutils'
 require 'google/protobuf'
 
@@ -6,6 +7,11 @@ module TileUtils
     def initialize(start: 0)
       @index = start - 1
       @values = {}
+    end
+
+    def get(key)
+      return nil if key.nil?
+      @values[key]
     end
 
     def fetch(key)
@@ -167,9 +173,28 @@ module TileUtils
       end
     end
 
+    def find_all_tiles
+      all_tiles = []
+      Find.find(@path) do |path|
+        # Just use string methods
+        next unless path.ends_with?('.pbf')
+        path = path[0...-4].split("/")
+        if path[-4].eql?('2')
+          level = 2
+          tile = path.last(3).join('').to_i
+        else
+          level = path[-3].to_i
+          tile = path.last(2).join('').to_i
+        end
+        all_tiles << [level, tile]
+      end
+      all_tiles
+    end
+
     private
 
     def tile_path(level, tile)
+      # TODO: support multiple levels
       s = tile.to_s.rjust(9, "0")
       File.join(@path, level.to_s, s[0...3], s[3...6], s[6...9]+".pbf")
     end

@@ -50,11 +50,11 @@ module TileExportService
     def build_stops
       # TODO:
       #    max graph_ids in a tile
-      puts "Building stops: #{@tile.tile}"
+      # puts "Building stops: #{@tile.tile}"
       Stop.where(parent_stop: nil).geometry_within_bbox(bbox_padded(tile.bbox)).where_import_level(IMPORT_LEVEL).includes(:stop_platforms, :stop_egresses).find_each do |stop|
         # Check if stop is inside tile
         next if TileUtils::GraphID.new(level: GRAPH_LEVEL, lon: stop.coordinates[0], lat: stop.coordinates[1]).tile != @tile.tile
-        puts "\tstop: #{stop.onestop_id}"
+        # puts "\tstop: #{stop.onestop_id}"
 
         # Station references
         prev_type_graphid = nil
@@ -92,14 +92,14 @@ module TileExportService
       end
     end
 
-    def build_schedule
-      puts "Building schedule: #{@tile.tile}"
+    def build_schedules
+      # puts "Building schedule: #{@tile.tile}"
       stop_ids = @tile.message.nodes.map { |node| @@graphid_stop[node.graphid] }.compact
 
       # Routes
       route_ids = ScheduleStopPair.where(origin_id: stop_ids).where_import_level(IMPORT_LEVEL).select(:route_id).distinct(:route_id).pluck(:route_id)
       Route.where(id: route_ids).includes(:operator).find_each do |route|
-        puts "\troute: #{route.onestop_id}"
+        # puts "\troute: #{route.onestop_id}"
         @route_index.next(route.id)
         @tile.message.routes << make_route(route)
       end
@@ -107,7 +107,7 @@ module TileExportService
       # Shapes
       rsp_ids = ScheduleStopPair.where(origin_id: stop_ids).where_import_level(IMPORT_LEVEL).select(:route_stop_pattern_id).distinct(:route_stop_pattern_id).pluck(:route_stop_pattern_id)
       RouteStopPattern.where(id: rsp_ids).find_each do |rsp|
-        puts "\trsp: #{rsp.onestop_id}"
+        # puts "\trsp: #{rsp.onestop_id}"
         shape = make_shape(rsp)
         shape.shape_id = @shape_index.next(rsp.id)
         @tile.message.shapes << shape
@@ -116,15 +116,16 @@ module TileExportService
       # StopPairs - do per stop
       stop_ids.each do |stop_id|
         ScheduleStopPair.where(origin_id: stop_id).where_import_level(IMPORT_LEVEL).includes(:origin, :destination, :operator).find_each do |ssp|
-          @tile.message.stop_pairs << make_stop_pair(ssp)
+          stop_pair = make_stop_pair(ssp)
+          (@tile.message.stop_pairs << stop_pair) if stop_pair
         end
       end
-      puts "\tssp: total #{@tile.message.stop_pairs.size}"
+      # puts "\tssp: total #{@tile.message.stop_pairs.size}"
     end
 
     private
 
-    def seconds_from_midnight(value)
+    def seconds_since_midnight(value)
       h,m,s = value.split(':').map(&:to_i)
       h * 3600 + m * 60 + s
     end
@@ -144,33 +145,46 @@ module TileExportService
     # make entity methods
     def make_stop_pair(ssp)
       # TODO:
-      #   skip if origin == destination_id
-      #   skip unless route
       #   skip if origin_departure_time < frequency_start_time
       #   skip if bad time information
-      #   skip if no trip
       #   add < and > to onestop_ids
-      #   line_id?
+      destination_graphid = @@stop_graphid[ssp.destination_id]
+      origin_graphid = @@stop_graphid[ssp.origin_id]
+      route_index = @route_index.fetch(ssp.route_id)
+      trip_id = @@trip_index.check(ssp.trip)
+      block_id = @@block_index.check(ssp.block_id)
+      shape_id = @shape_index.fetch(ssp.route_stop_pattern_id)
+      destination_arrival_time = seconds_since_midnight(ssp.destination_arrival_time)
+      origin_departure_time = seconds_since_midnight(ssp.origin_departure_time)
+
+      # Bail out
+      return if origin_graphid == destination_graphid
+      return unless origin_graphid && destination_graphid
+      return unless route_index
+      return unless trip_id
+      return unless shape_id
+      return if origin_departure_time < destination_arrival_time
+
       params = {}
       # bool bikes_allowed = 1;
       # uint32 block_id = 2;
-      # params[:block_id] = @@block_index.check(ssp.block_id)
+      # params[:block_id] = block_id
       # uint32 destination_arrival_time = 3;
-      params[:destination_arrival_time] = seconds_from_midnight(ssp.destination_arrival_time)
+      params[:destination_arrival_time] = destination_arrival_time
       # uint64 destination_graphid = 4;
-      params[:destination_graphid] = @@stop_graphid.fetch(ssp.destination_id)
+      params[:destination_graphid] = destination_graphid
       # string destination_onestop_id = 5;
       params[:destination_onestop_id] = ssp.destination.onestop_id
       # string operated_by_onestop_id = 6;
       params[:operated_by_onestop_id] = ssp.operator.onestop_id
       # uint32 origin_departure_time = 7;
-      params[:origin_departure_time] = seconds_from_midnight(ssp.origin_departure_time)
+      params[:origin_departure_time] = origin_departure_time
       # uint64 origin_graphid = 8;
-      params[:origin_graphid] = @@stop_graphid.fetch(ssp.origin_id)
+      params[:origin_graphid] = origin_graphid
       # string origin_onestop_id = 9;
       params[:origin_onestop_id] = ssp.origin.onestop_id
       # uint32 route_index = 10;
-      params[:route_index] = @route_index.fetch(ssp.route_id)
+      params[:route_index] = route_index
       # repeated uint32 service_added_dates = 11;
       params[:service_added_dates] = ssp.service_added_dates.map(&:jd)
       # repeated bool service_days_of_week = 12;
@@ -184,11 +198,11 @@ module TileExportService
       # string trip_headsign = 16;
       params[:trip_headsign] = ssp.trip_headsign
       # uint32 trip_id = 17;
-      params[:trip_id] = @@trip_index.check(ssp.trip)
+      params[:trip_id] = trip_id
       # bool wheelchair_accessible = 18;
       params[:wheelchair_accessible] = true # !!(ssp.wheelchair_accessible)
       # uint32 shape_id = 20;
-      params[:shape_id] = @shape_index.fetch(ssp.route_stop_pattern_id)
+      params[:shape_id] = shape_id
       # float origin_dist_traveled = 21;
       params[:origin_dist_traveled] = ssp.origin_dist_traveled
       # float destination_dist_traveled = 22;
@@ -196,7 +210,7 @@ module TileExportService
       if ssp.frequency_headway_seconds
         # protobuf doesn't define frequency_start_time
         # uint32 frequency_end_time = 23;
-        params[:frequency_end_time] = seconds_from_midnight(ssp.frequency_end_time)
+        params[:frequency_end_time] = seconds_since_midnight(ssp.frequency_end_time)
         # uint32 frequency_headway_seconds = 24;
         params[:frequency_headway_seconds] = ssp.frequency_headway_seconds
       end
@@ -279,37 +293,93 @@ module TileExportService
     end
   end
 
-  def self.export_tiles(path)
-    # Tileset
-    tileset = TileUtils::TileSet.new(path)
+  def self.build_stops(tilepath, tile)
+    t = Time.now
+    tileset = TileUtils::TileSet.new(tilepath)
+    builder = TileBuilder.new(tileset.read_tile(GRAPH_LEVEL, tile))
+    builder.build_stops
+    nodes_size = builder.tile.message.nodes.size
+    if nodes_size > 0
+      tileset.write_tile(builder.tile)
+      t = Time.now - t
+      puts "Tile: #{tile} nodes: #{nodes_size} time: #{t.round(2)}s (#{(nodes_size/t).to_i} nodes/s)"
+    else
+      t = Time.now - t
+      puts "Tile: #{tile} nodes: #{nodes_size} time: #{t.round(2)}s"
+    end
+  end
 
+  def self.build_schedules(tilepath, tile)
+    t = Time.now
+    tileset = TileUtils::TileSet.new(tilepath)
+    builder = TileBuilder.new(tileset.read_tile(GRAPH_LEVEL, tile))
+    builder.build_schedules
+    tileset.write_tile(builder.tile)
+    puts "Tile: #{tile} routes: #{builder.tile.message.routes.size} shapes: #{builder.tile.message.shapes.size} stop_pairs: #{builder.tile.message.stop_pairs.size} time: #{Time.now - t}"
+  end
+
+  def self.export_tiles(tilepath, thread_count: nil)
+    # Get tiles
     puts "Feeds"
     build_tiles = Set.new
     Feed.where_active_feed_version_import_level(IMPORT_LEVEL).find_each do |feed|
-      puts "feed: #{feed.onestop_id}"
+      puts "\t#{feed.onestop_id}"
       bbox = feed.geometry_bbox
       b = bbox.min_x, bbox.min_y, bbox.max_x, bbox.max_y
-      puts "bbox: #{b.join(',')}"
       TileUtils::GraphID.bbox_to_level_tiles(*b).select { |a,b| a == 2}.each { |a,b| build_tiles << b }
     end
 
-    puts "Tiles to build: #{build_tiles.size}"
-    puts build_tiles.to_a
+    # Setup queue
+    # build_tiles = [731750, 733190]
+    queue_stops = Queue.new
+    build_tiles.each { |i| queue_stops.push(i) }
+
+    puts "Tiles to build: #{queue_stops.size} with thread_count: #{thread_count}"
 
     # Build stops for each tile.
-    build_tiles.each do |tile|
-      builder = TileBuilder.new(tileset.new_tile(GRAPH_LEVEL, tile))
-      builder.build_stops
-      tileset.write_tile(builder.tile)
+    puts "\n===== Stops =====\n"
+    workers = (0...thread_count).map do
+      Thread.new do
+        begin
+          while tile = queue_stops.pop(true)
+            t = Time.now
+            # puts "Tiles thread: #{tile}"
+            build_stops(tilepath, tile)
+            # pid = fork { build_stops(tilepath, tile) }
+            # Process.wait(pid)
+            puts "Tiles thread: #{tile} done in #{(Time.now-t).round(2)}s; remaining #{queue_stops.size}"
+          end
+        rescue ThreadError
+          # done
+        end
+      end
     end
+    workers.map(&:join); nil
+
+    # TODO: collect and write out graphid_stopid mapping for multiprocessing.
+    queue_schedules = Queue.new
+    stop_tiles = TileUtils::TileSet.new(tilepath).find_all_tiles
+    stop_tiles.each { |level, tile| puts tile; queue_schedules.push(tile) }
 
     # Build schedule, routes, shapes for each tile.
-    build_tiles.each do |tile|
-      builder = TileBuilder.new(tileset.read_tile(GRAPH_LEVEL, tile))
-      builder.build_schedule
-      tileset.write_tile(builder.tile)
+    puts "\n===== Routes, Shapes, StopPairs =====\n"
+    workers = (0...thread_count).map do
+      Thread.new do
+        begin
+          while tile = queue_schedules.pop(true)
+            t = Time.now
+            # puts "Tiles thread: #{tile}"
+            build_schedules(tilepath, tile)
+            # pid = fork { build_schedules(tilepath, tile) }
+            # Process.wait(pid)
+            puts "Tiles thread: #{tile} done in #{(Time.now-t).round(2)}s; remaining #{queue_stops.size}"
+          end
+        rescue ThreadError
+          # done
+        end
+      end
     end
-
-    nil
+    workers.map(&:join); nil
+    # Done!
   end
 end
