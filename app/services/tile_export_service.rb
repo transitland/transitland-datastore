@@ -92,7 +92,7 @@ module TileExportService
       end
     end
 
-    def build_schedule
+    def build_schedules
       # puts "Building schedule: #{@tile.tile}"
       stop_ids = @tile.message.nodes.map { |node| @@graphid_stop[node.graphid] }.compact
 
@@ -293,10 +293,33 @@ module TileExportService
     end
   end
 
-  def self.export_tiles(path)
-    # Tileset
-    tileset = TileUtils::TileSet.new(path)
+  def self.build_stops(tilepath, tile)
+    t = Time.now
+    tileset = TileUtils::TileSet.new(tilepath)
+    builder = TileBuilder.new(tileset.read_tile(GRAPH_LEVEL, tile))
+    builder.build_stops
+    nodes_size = builder.tile.message.nodes.size
+    if nodes_size > 0
+      tileset.write_tile(builder.tile)
+      t = Time.now - t
+      puts "Tile: #{tile} nodes: #{nodes_size} time: #{t.round(2)}s (#{(nodes_size/t).to_i} nodes/s)"
+    else
+      t = Time.now - t
+      puts "Tile: #{tile} nodes: #{nodes_size} time: #{t.round(2)}s"
+    end
+  end
 
+  def self.build_schedules(tilepath, tile)
+    t = Time.now
+    tileset = TileUtils::TileSet.new(tilepath)
+    builder = TileBuilder.new(tileset.read_tile(GRAPH_LEVEL, tile))
+    builder.build_schedules
+    tileset.write_tile(builder.tile)
+    puts "Tile: #{tile} routes: #{builder.tile.message.routes.size} shapes: #{builder.tile.message.shapes.size} stop_pairs: #{builder.tile.message.stop_pairs.size} time: #{Time.now - t}"
+  end
+
+  def self.export_tiles(tilepath)
+    # Get tiles
     puts "Feeds"
     build_tiles = Set.new
     Feed.where_active_feed_version_import_level(IMPORT_LEVEL).find_each do |feed|
@@ -306,45 +329,58 @@ module TileExportService
       TileUtils::GraphID.bbox_to_level_tiles(*b).select { |a,b| a == 2}.each { |a,b| build_tiles << b }
     end
 
-    puts "Tiles to build: #{build_tiles.size}"
+    # Setup queue
+    # build_tiles = [731750, 733190]
+    thread_count = 2
+    queue_stops = Queue.new
+    build_tiles.each { |i| queue_stops.push(i) }
+
+    puts "Tiles to build: #{queue_stops.size}"
 
     # Build stops for each tile.
     puts "\n===== Stops =====\n"
-    build_size = build_tiles.size
-    build_schedule_tiles = []
-    build_tiles.each_with_index do |tile, index|
-      puts "Tile: #{tile} (#{index+1} / #{build_size})"
-      t = Time.now
-      builder = TileBuilder.new(tileset.new_tile(GRAPH_LEVEL, tile))
-      builder.build_stops
-      nodes_size = builder.tile.message.nodes.size
-      puts "\tnodes: #{nodes_size}"
-      if nodes_size > 0
-        tileset.write_tile(builder.tile)
-        build_schedule_tiles << tile
-        t = Time.now - t
-        puts "\ttime: #{t.round(2)}s (#{(nodes_size/t).to_i} nodes/s)"
-      else
-        t = Time.now - t
-        puts "\ttime: #{t.round(2)}s"
+    workers = (0...thread_count).map do
+      Thread.new do
+        begin
+          while tile = queue_stops.pop(true)
+            t = Time.now
+            # puts "Tiles thread: #{tile}"
+            build_stops(tilepath, tile)
+            # pid = fork { build_stops(tilepath, tile) }
+            # Process.wait(pid)
+            puts "Tiles thread: #{tile} done in #{(Time.now-t).round(2)}s; remaining #{queue_stops.size}"
+          end
+        rescue ThreadError
+          # done
+        end
       end
     end
+    workers.map(&:join); nil
+
+    # TODO: collect and write out graphid_stopid mapping for multiprocessing.
+    queue_schedules = Queue.new
+    stop_tiles = TileUtils::TileSet.new(tilepath).find_all_tiles
+    stop_tiles.each { |level, tile| puts tile; queue_schedules.push(tile) }
 
     # Build schedule, routes, shapes for each tile.
     puts "\n===== Routes, Shapes, StopPairs =====\n"
-    build_size = build_schedule_tiles.size
-    build_schedule_tiles.each_with_index do |tile, index|
-      puts "Tile: #{tile} (#{index+1} / #{build_size})"
-      t = Time.now
-      builder = TileBuilder.new(tileset.read_tile(GRAPH_LEVEL, tile))
-      builder.build_schedule
-      puts "\troutes: #{builder.tile.message.routes.size}"
-      puts "\tshapes: #{builder.tile.message.shapes.size}"
-      puts "\tstop_pairs: #{builder.tile.message.stop_pairs.size}"
-      tileset.write_tile(builder.tile)
-      puts "\ttime: #{Time.now - t}"
+    workers = (0...thread_count).map do
+      Thread.new do
+        begin
+          while tile = queue_schedules.pop(true)
+            t = Time.now
+            # puts "Tiles thread: #{tile}"
+            build_schedules(tilepath, tile)
+            # pid = fork { build_schedules(tilepath, tile) }
+            # Process.wait(pid)
+            puts "Tiles thread: #{tile} done in #{(Time.now-t).round(2)}s; remaining #{queue_stops.size}"
+          end
+        rescue ThreadError
+          # done
+        end
+      end
     end
-
-    nil
+    workers.map(&:join); nil
+    # Done!
   end
 end
