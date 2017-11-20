@@ -142,6 +142,11 @@ module TileExportService
       [ymin-padding, xmin, ymax+padding, xmax]
     end
 
+    def log(msg)
+      puts msg
+      nil
+    end
+
     # make entity methods
     def make_stop_pair(ssp)
       # TODO:
@@ -150,21 +155,26 @@ module TileExportService
       #   add < and > to onestop_ids
       destination_graphid = @@stop_graphid[ssp.destination_id]
       origin_graphid = @@stop_graphid[ssp.origin_id]
-      route_index = @route_index.fetch(ssp.route_id)
+      return log("origin_graphid #{origin_graphid} == destination_graphid #{destination_graphid}") if origin_graphid == destination_graphid
+      return log("missing origin_graphid for stop #{ssp.origin_id}") unless origin_graphid
+      return log("missing destination_graphid for stop #{ssp.destination_graphid}") unless destination_graphid
+
+      route_index = @route_index.get(ssp.route_id)
+      return log("missing route_index for route #{ssp.route_id}") unless route_index
+
+      shape_id = @shape_index.get(ssp.route_stop_pattern_id)
+      return log("missing shape for rsp #{ssp.route_stop_pattern_id}") unless shape_id
+
       trip_id = @@trip_index.check(ssp.trip)
-      block_id = @@block_index.check(ssp.block_id)
-      shape_id = @shape_index.fetch(ssp.route_stop_pattern_id)
+      return log("missing trip_id for trip #{ssp.trip}") unless trip_id
+
       destination_arrival_time = seconds_since_midnight(ssp.destination_arrival_time)
       origin_departure_time = seconds_since_midnight(ssp.origin_departure_time)
+      return log("origin_departure_time #{origin_departure_time} < destination_arrival_time #{destination_arrival_time}") if origin_departure_time < destination_arrival_time
 
-      # Bail out
-      return if origin_graphid == destination_graphid
-      return unless origin_graphid && destination_graphid
-      return unless route_index
-      return unless trip_id
-      return unless shape_id
-      return if origin_departure_time < destination_arrival_time
+      block_id = @@block_index.check(ssp.block_id)
 
+      # Make SSP
       params = {}
       # bool bikes_allowed = 1;
       # uint32 block_id = 2;
