@@ -157,7 +157,7 @@ module TileExportService
       origin_graphid = @@stop_graphid[ssp.origin_id]
       return log("origin_graphid #{origin_graphid} == destination_graphid #{destination_graphid}") if origin_graphid == destination_graphid
       return log("missing origin_graphid for stop #{ssp.origin_id}") unless origin_graphid
-      return log("missing destination_graphid for stop #{ssp.destination_graphid}") unless destination_graphid
+      return log("missing destination_graphid for stop #{ssp.destination_id}") unless destination_graphid
 
       route_index = @route_index.get(ssp.route_id)
       return log("missing route_index for route #{ssp.route_id}") unless route_index
