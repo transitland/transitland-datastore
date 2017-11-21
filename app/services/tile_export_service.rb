@@ -32,6 +32,9 @@ module TileExportService
     funicular: VT::Funicular
   }
 
+  class TileValueError < StandardError
+  end
+
   class TileBuilder
     attr_accessor :tile
     def initialize(tile)
@@ -116,8 +119,14 @@ module TileExportService
       # StopPairs - do per stop
       stop_ids.each do |stop_id|
         ScheduleStopPair.where(origin_id: stop_id).where_import_level(IMPORT_LEVEL).includes(:origin, :destination, :operator).find_each do |ssp|
-          stop_pair = make_stop_pair(ssp)
-          (@tile.message.stop_pairs << stop_pair) if stop_pair
+          begin
+            @tile.message.stop_pairs << make_stop_pair(ssp)
+          rescue TileValueError => e
+            puts "Skipping ssp #{ssp.id}: #{e.message}"
+            # puts ssp.as_json
+          rescue TypeError => e
+            puts "Skipping ssp #{ssp.id} PBF error: #{e.message}"
+          end
         end
       end
       # puts "\tssp: total #{@tile.message.stop_pairs.size}"
@@ -142,11 +151,6 @@ module TileExportService
       [ymin-padding, xmin, ymax+padding, xmax]
     end
 
-    def log(msg)
-      puts msg
-      nil
-    end
-
     # make entity methods
     def make_stop_pair(ssp)
       # TODO:
@@ -155,22 +159,22 @@ module TileExportService
       #   add < and > to onestop_ids
       destination_graphid = @@stop_graphid[ssp.destination_id]
       origin_graphid = @@stop_graphid[ssp.origin_id]
-      return log("origin_graphid #{origin_graphid} == destination_graphid #{destination_graphid}") if origin_graphid == destination_graphid
-      return log("missing origin_graphid for stop #{ssp.origin_id}") unless origin_graphid
-      return log("missing destination_graphid for stop #{ssp.destination_id}") unless destination_graphid
+      fail TileValueError.new("origin_graphid #{origin_graphid} == destination_graphid #{destination_graphid}") if origin_graphid == destination_graphid
+      fail TileValueError.new("missing origin_graphid for stop #{ssp.origin_id}") unless origin_graphid
+      fail TileValueError.new("missing destination_graphid for stop #{ssp.destination_id}") unless destination_graphid
 
       route_index = @route_index.get(ssp.route_id)
-      return log("missing route_index for route #{ssp.route_id}") unless route_index
+      fail TileValueError.new("missing route_index for route #{ssp.route_id}") unless route_index
 
       shape_id = @shape_index.get(ssp.route_stop_pattern_id)
-      return log("missing shape for rsp #{ssp.route_stop_pattern_id}") unless shape_id
+      fail TileValueError.new("missing shape for rsp #{ssp.route_stop_pattern_id}") unless shape_id
 
       trip_id = @@trip_index.check(ssp.trip)
-      return log("missing trip_id for trip #{ssp.trip}") unless trip_id
+      fail TileValueError.new("missing trip_id for trip #{ssp.trip}") unless trip_id
 
       destination_arrival_time = seconds_since_midnight(ssp.destination_arrival_time)
       origin_departure_time = seconds_since_midnight(ssp.origin_departure_time)
-      return log("origin_departure_time #{origin_departure_time} < destination_arrival_time #{destination_arrival_time}") if origin_departure_time < destination_arrival_time
+      fail TileValueError.new("origin_departure_time #{origin_departure_time} > destination_arrival_time #{destination_arrival_time}") if origin_departure_time > destination_arrival_time
 
       block_id = @@block_index.check(ssp.block_id)
 
@@ -214,9 +218,9 @@ module TileExportService
       # uint32 shape_id = 20;
       params[:shape_id] = shape_id
       # float origin_dist_traveled = 21;
-      params[:origin_dist_traveled] = ssp.origin_dist_traveled
+      params[:origin_dist_traveled] = ssp.origin_dist_traveled if ssp.origin_dist_traveled
       # float destination_dist_traveled = 22;
-      params[:destination_dist_traveled] = ssp.destination_dist_traveled
+      params[:destination_dist_traveled] = ssp.destination_dist_traveled if ssp.destination_dist_traveled
       if ssp.frequency_headway_seconds
         # protobuf doesn't define frequency_start_time
         # uint32 frequency_end_time = 23;
@@ -382,7 +386,7 @@ module TileExportService
             build_schedules(tilepath, tile)
             # pid = fork { build_schedules(tilepath, tile) }
             # Process.wait(pid)
-            puts "Tiles thread: #{tile} done in #{(Time.now-t).round(2)}s; remaining #{queue_stops.size}"
+            puts "Tiles thread: #{tile} done in #{(Time.now-t).round(2)}s; remaining #{queue_schedules.size}"
           end
         rescue ThreadError
           # done
