@@ -332,7 +332,7 @@ module TileExportService
     puts "Tile: #{tile} routes: #{builder.tile.message.routes.size} shapes: #{builder.tile.message.shapes.size} stop_pairs: #{builder.tile.message.stop_pairs.size} time: #{Time.now - t}"
   end
 
-  def self.export_tiles(tilepath, thread_count: nil)
+  def self.export_tiles(tilepath, thread_count: nil, feeds: nil)
     # Avoid autoload issues in threads
     Stop.connection
     Route.connection
@@ -344,7 +344,8 @@ module TileExportService
     # Get tiles
     puts "Feeds"
     build_tiles = Set.new
-    Feed.where_active_feed_version_import_level(IMPORT_LEVEL).find_each do |feed|
+    feeds ||= Feed.where_active_feed_version_import_level(IMPORT_LEVEL)
+    feeds.each do |feed|
       puts "\t#{feed.onestop_id}"
       bbox = feed.geometry_bbox
       b = bbox.min_x, bbox.min_y, bbox.max_x, bbox.max_y
