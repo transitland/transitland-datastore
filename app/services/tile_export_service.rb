@@ -307,7 +307,7 @@ module TileExportService
     end
   end
 
-  def self.build_stops(tilepath, tile)
+  def self.tile_build_stops(tilepath, tile)
     t = Time.now
     tileset = TileUtils::TileSet.new(tilepath)
     builder = TileBuilder.new(tileset.read_tile(GRAPH_LEVEL, tile))
@@ -323,13 +323,15 @@ module TileExportService
     end
   end
 
-  def self.build_schedules(tilepath, tile)
+  def self.tile_build_schedules(tilepath, tile)
     t = Time.now
     tileset = TileUtils::TileSet.new(tilepath)
     builder = TileBuilder.new(tileset.read_tile(GRAPH_LEVEL, tile))
     builder.build_schedules
+    stop_pairs_size = builder.tile.message.stop_pairs.size
     tileset.write_tile(builder.tile)
-    puts "Tile: #{tile} routes: #{builder.tile.message.routes.size} shapes: #{builder.tile.message.shapes.size} stop_pairs: #{builder.tile.message.stop_pairs.size} time: #{Time.now - t}"
+    t = Time.now - t
+    puts "Tile: #{tile} routes: #{builder.tile.message.routes.size} shapes: #{builder.tile.message.shapes.size} stop_pairs: #{stop_pairs_size} time: #{t}s (#{(stop_pairs_size/t).to_i} stop_pairs/s)"
   end
 
   def self.export_tiles(tilepath, thread_count: nil, feeds: nil)
@@ -343,6 +345,7 @@ module TileExportService
 
     # Get tiles
     puts "Feeds"
+    thread_count ||= 1
     build_tiles = Set.new
     feeds ||= Feed.where_active_feed_version_import_level(IMPORT_LEVEL)
     feeds.each do |feed|
@@ -367,7 +370,7 @@ module TileExportService
           while tile = queue_stops.pop(true)
             t = Time.now
             # puts "Tiles thread: #{tile}"
-            build_stops(tilepath, tile)
+            tile_build_stops(tilepath, tile)
             # pid = fork { build_stops(tilepath, tile) }
             # Process.wait(pid)
             puts "Tiles thread: #{tile} done in #{(Time.now-t).round(2)}s; remaining #{queue_stops.size}"
@@ -392,7 +395,7 @@ module TileExportService
           while tile = queue_schedules.pop(true)
             t = Time.now
             # puts "Tiles thread: #{tile}"
-            build_schedules(tilepath, tile)
+            tile_build_schedules(tilepath, tile)
             # pid = fork { build_schedules(tilepath, tile) }
             # Process.wait(pid)
             puts "Tiles thread: #{tile} done in #{(Time.now-t).round(2)}s; remaining #{queue_schedules.size}"
