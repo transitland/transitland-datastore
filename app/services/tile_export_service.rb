@@ -162,8 +162,8 @@ module TileExportService
         end
       end
       t = Time.now - t
-      errortxt = errors.map { |k,v| "#{k}: #{v}" }.join(' ')
-      log("Tile: #{@tile.tile} routes: #{@tile.message.routes.size} shapes: #{@tile.message.shapes.size} stop_pairs: #{@tile.message.stop_pairs.size} errors #{errortxt} time: #{t.round(2)}s (#{(@tile.message.stop_pairs.size/t).to_i} stop_pairs/s)")
+      error_txt = ([errors.values.sum.to_s] + errors.map { |k,v| "#{k}: #{v}" }).join(' ')
+      log("Tile: #{@tile.tile} routes: #{@tile.message.routes.size} shapes: #{@tile.message.shapes.size} stop_pairs: #{@tile.message.stop_pairs.size} errors #{error_txt} time: #{t.round(2)}s (#{(@tile.message.stop_pairs.size/t).to_i} stop_pairs/s)")
     end
 
     private
@@ -358,8 +358,14 @@ module TileExportService
   end
 
   def self.export_tiles(tilepath, thread_count: nil, feeds: nil)
+    # Debug
+    # ActiveRecord::Base.logger = Logger.new(STDOUT)
+    # ActiveRecord::Base.logger.level = Logger::DEBUG
+
     # Avoid autoload issues in threads
     Stop.connection
+    StopPlatform.connection
+    StopEgress.connection
     Route.connection
     Operator.connection
     RouteStopPattern.connection
