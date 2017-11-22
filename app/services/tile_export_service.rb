@@ -116,9 +116,9 @@ module TileExportService
         @tile.message.shapes << shape
       end
 
-      # StopPairs - do per stop
-      stop_ids.each do |stop_id|
-        ScheduleStopPair.where(origin_id: stop_id).where_import_level(IMPORT_LEVEL).includes(:origin, :destination, :operator).find_each do |ssp|
+      # StopPairs - do in batches of stops
+      stop_ids.each_slice(1000) do |stop_ids|
+        ScheduleStopPair.where(origin_id: stop_ids).where_import_level(IMPORT_LEVEL).includes(:origin, :destination, :operator).find_each do |ssp|
           begin
             @tile.message.stop_pairs << make_stop_pair(ssp)
           rescue TileValueError => e
