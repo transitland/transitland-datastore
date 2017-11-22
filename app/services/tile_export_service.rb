@@ -98,18 +98,32 @@ module TileExportService
     def build_schedules
       # puts "Building schedule: #{@tile.tile}"
       stop_ids = @tile.message.nodes.map { |node| @@graphid_stop[node.graphid] }.compact
+      puts "build_schedules: stop_ids.size: #{stop_ids.size}"
+      puts stop_ids.join(' ')
 
       # Routes
-      route_ids = ScheduleStopPair.where(origin_id: stop_ids).where_import_level(IMPORT_LEVEL).select(:route_id).distinct(:route_id).pluck(:route_id)
-      Route.where(id: route_ids).includes(:operator).find_each do |route|
+      puts "routes"
+      route_ids = Set.new
+      stop_ids.each_slice(100) do |stop_ids|
+        puts "routes: slice stop_ids.size #{stop_ids.size}"
+        route_ids |= ScheduleStopPair.where(origin_id: stop_ids).where_import_level(IMPORT_LEVEL).select(:route_id).distinct(:route_id).pluck(:route_id)
+      end
+      puts "routes: get route_ids.size #{route_ids.size}"
+      Route.where(id: route_ids.to_a).includes(:operator).find_each do |route|
         # puts "\troute: #{route.onestop_id}"
         @route_index.next(route.id)
         @tile.message.routes << make_route(route)
       end
 
       # Shapes
-      rsp_ids = ScheduleStopPair.where(origin_id: stop_ids).where_import_level(IMPORT_LEVEL).select(:route_stop_pattern_id).distinct(:route_stop_pattern_id).pluck(:route_stop_pattern_id)
-      RouteStopPattern.where(id: rsp_ids).find_each do |rsp|
+      puts "shapes"
+      rsp_ids = Set.new
+      stop_ids.each_slice(100) do |stop_ids|
+        puts "shapes: slice stop_ids.size #{stop_ids.size}"
+        rsp_ids |= ScheduleStopPair.where(origin_id: stop_ids).where_import_level(IMPORT_LEVEL).select(:route_stop_pattern_id).distinct(:route_stop_pattern_id).pluck(:route_stop_pattern_id)
+      end
+      puts "shapes: get rsp_id.size #{rsp_ids.size}"
+      RouteStopPattern.where(id: rsp_ids.to_a).find_each do |rsp|
         # puts "\trsp: #{rsp.onestop_id}"
         shape = make_shape(rsp)
         shape.shape_id = @shape_index.next(rsp.id)
@@ -117,20 +131,29 @@ module TileExportService
       end
 
       # StopPairs - do in batches of stops
-      stop_ids.each_slice(1000) do |stop_ids|
-        ScheduleStopPair.where(origin_id: stop_ids).where_import_level(IMPORT_LEVEL).includes(:origin, :destination, :operator).find_each do |ssp|
-          begin
-            @tile.message.stop_pairs << make_stop_pair(ssp)
-          rescue TileValueError => e
-            puts "Skipping ssp #{ssp.id}: #{e.message}"
-            # puts ssp.as_json
-          rescue TypeError => e
-            puts "Skipping ssp #{ssp.id} PBF error: #{e.message}"
-          end
-        end
-      end
-      # puts "\tssp: total #{@tile.message.stop_pairs.size}"
-    end
+      puts "stop_pairs"
+      stop_ids.each_slice(1) do |stop_ids|
+        puts "stop_pairs: slice stop_ids.size #{stop_ids.size}"
+        ScheduleStopPair.where(origin_id: stop_ids).where_import_level(IMPORT_LEVEL).includes(:origin, :destination, :operator).find_in_batches do |ssps|
+          puts "stop_pairs: batch of #{ssps.size}"
+          ssps.each do |ssp|
+            begin
+              @tile.message.stop_pairs << make_stop_pair(ssp)
+              # puts "added: #{ssp.id}"
+            rescue TileValueError => e
+              puts "Skipping ssp #{ssp.id}: #{e.message}"
+              # puts ssp.as_json
+            rescue TypeError => e
+              puts "Skipping ssp #{ssp.id} PBF error: #{e.message}"
+            end
+           end
+          puts "stop_pairs: batch end"
+         end
+        puts "stop_pairs: slice end"
+       end
+      puts "build_schedules: end"
+       # puts "\tssp: total #{@tile.message.stop_pairs.size}"
+     end
 
     private
 
@@ -329,6 +352,7 @@ module TileExportService
     builder = TileBuilder.new(tileset.read_tile(GRAPH_LEVEL, tile))
     builder.build_schedules
     stop_pairs_size = builder.tile.message.stop_pairs.size
+    puts "writing schedules"
     tileset.write_tile(builder.tile)
     t = Time.now - t
     puts "Tile: #{tile} routes: #{builder.tile.message.routes.size} shapes: #{builder.tile.message.shapes.size} stop_pairs: #{stop_pairs_size} time: #{t}s (#{(stop_pairs_size/t).to_i} stop_pairs/s)"
