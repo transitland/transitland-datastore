@@ -1,4 +1,7 @@
 module TileExportService
+  KEY_QUEUE_STOPS = 'queue_stops'
+  KEY_QUEUE_SCHEDULES = 'queue_schedules'
+  KEY_STOPID_GRAPHID = 'stopid_graphid'
   IMPORT_LEVEL = 4
   GRAPH_LEVEL = 2
 
@@ -341,20 +344,58 @@ module TileExportService
     end
   end
 
-  def self.tile_build_stops(tilepath, tile)
-    tileset = TileUtils::TileSet.new(tilepath)
-    builder = TileBuilder.new(tileset.read_tile(GRAPH_LEVEL, tile))
-    builder.build_stops
-    nodes_size = builder.tile.message.nodes.size
-    tileset.write_tile(builder.tile) if nodes_size > 0
+  def self.tile_build_stops(tilepath)
+    redis = Redis.new
+    while tile = redis.rpop(KEY_QUEUE_STOPS)
+      # puts "Tiles thread: start #{tile}"
+      t = Time.now
+      tile = tile.to_i
+      tileset = TileUtils::TileSet.new(tilepath)
+      builder = TileBuilder.new(tileset.read_tile(GRAPH_LEVEL, tile))
+      builder.build_stops
+      nodes_size = builder.tile.message.nodes.size
+      if nodes_size > 0
+        tileset.write_tile(builder.tile)
+        redis.rpush(KEY_QUEUE_SCHEDULES, tile)
+        stopid_graphid = builder.instance_variable_get('@stopid_graphid')
+        t2 = Time.now
+        stopid_graphid.each_slice(1000) do |i|
+          redis.hmset(KEY_STOPID_GRAPHID, i.flatten)
+        end
+      end
+      remaining = redis.llen(KEY_QUEUE_STOPS)
+      puts "Tiles thread: end #{tile} time #{(Time.now-t).round(2)}s remaining: ~#{remaining}"
+    end
   end
 
-  def self.tile_build_schedules(tilepath, tile)
-    tileset = TileUtils::TileSet.new(tilepath)
-    builder = TileBuilder.new(tileset.read_tile(GRAPH_LEVEL, tile))
-    builder.build_schedules
-    stop_pairs_size = builder.tile.message.stop_pairs.size
-    tileset.write_tile(builder.tile)
+  def self.tile_build_schedules(tilepath)
+    redis = Redis.new
+    # stopid_graphid
+    t2 = Time.now
+    stopid_graphid = {}
+    graphid_stopid = {}
+    redis.hgetall(KEY_STOPID_GRAPHID).each do |k,v|
+      k = k.to_i
+      v = v.to_i
+      stopid_graphid[k] = v
+      graphid_stopid[v] = k
+    end
+    puts "stopid_graphid.size #{stopid_graphid.size} time #{Time.now-t2}"
+    # queue
+    while tile = redis.rpop(KEY_QUEUE_SCHEDULES)
+      # puts "Tiles thread: start #{tile}"
+      t = Time.now
+      tile = tile.to_i
+      tileset = TileUtils::TileSet.new(tilepath)
+      builder = TileBuilder.new(tileset.read_tile(GRAPH_LEVEL, tile))
+      builder.instance_variable_set('@stopid_graphid', stopid_graphid)
+      builder.instance_variable_set('@graphid_stopid', stopid_graphid)
+      builder.build_schedules
+      stop_pairs_size = builder.tile.message.stop_pairs.size
+      tileset.write_tile(builder.tile)
+      remaining = redis.llen(KEY_QUEUE_SCHEDULES)
+      puts "Tiles thread: end #{tile} time #{(Time.now-t).round(2)}s remaining: ~#{remaining}"
+    end
   end
 
   def self.export_tiles(tilepath, thread_count: nil, feeds: nil)
@@ -384,58 +425,36 @@ module TileExportService
       TileUtils::GraphID.bbox_to_level_tiles(*b).select { |a,b| a == 2}.each { |a,b| build_tiles << b }
     end
 
+    # build_tiles = [731750, 733190]
     puts "Tiles to build: #{build_tiles.size} with thread_count: #{thread_count}"
     # Setup queue
-    # build_tiles = [731750, 733190]
-    queue_stops = Queue.new
-    build_tiles.each { |i| queue_stops.push(i) }
-
-    puts "Tiles to build: #{queue_stops.size} with thread_count: #{thread_count}"
+    redis = Redis.new
+    redis.del(KEY_QUEUE_STOPS)
+    redis.del(KEY_QUEUE_SCHEDULES)
+    redis.del(KEY_STOPID_GRAPHID)
+    build_tiles.each_slice(1000) { |i| redis.rpush(KEY_QUEUE_STOPS, i) }
 
     # Build stops for each tile.
     puts "\n===== Stops =====\n"
     workers = (0...thread_count).map do
-      Thread.new do
-        begin
-          while tile = queue_stops.pop(true)
-            t = Time.now
-            # puts "Tiles thread: #{tile}"
-            tile_build_stops(tilepath, tile)
-            # pid = fork { build_stops(tilepath, tile) }
-            # Process.wait(pid)
-            puts "Tiles thread: #{tile} done in #{(Time.now-t).round(2)}s; remaining #{queue_stops.size}"
-          end
-        rescue ThreadError
-          # done
-        end
-      end
+      fork { tile_build_stops(tilepath) }
     end
-    workers.map(&:join); nil
+    workers.each { |pid| Process.wait(pid) }
+    # workers.map(&:join); nil
 
-    # TODO: collect and write out graphid_stopid mapping for multiprocessing.
-    queue_schedules = Queue.new
-    stop_tiles = TileUtils::TileSet.new(tilepath).find_all_tiles
-    stop_tiles.each { |level, tile| queue_schedules.push(tile) }
+    # TODO: use json to pass stopid_graphid instead of redis?
+    # stop_tiles = TileUtils::TileSet.new(tilepath).find_all_tiles
 
     # Build schedule, routes, shapes for each tile.
     puts "\n===== Routes, Shapes, StopPairs =====\n"
     workers = (0...thread_count).map do
-      Thread.new do
-        begin
-          while tile = queue_schedules.pop(true)
-            t = Time.now
-            # puts "Tiles thread: #{tile}"
-            tile_build_schedules(tilepath, tile)
-            # pid = fork { build_schedules(tilepath, tile) }
-            # Process.wait(pid)
-            puts "Tiles thread: #{tile} done in #{(Time.now-t).round(2)}s; remaining ~#{queue_schedules.size}"
-          end
-        rescue ThreadError
-          # done
-        end
-      end
+      fork { tile_build_schedules(tilepath) }
+      # Thread.new do
+      #   tile_build_schedules(tilepath)
+      # end
     end
-    workers.map(&:join); nil
+    workers.each { |pid| Process.wait(pid) }
+    # workers.map(&:join); nil
     # Done!
   end
 end
