@@ -333,6 +333,14 @@ module TileExportService
   end
 
   def self.export_tiles(tilepath, thread_count: nil)
+    # Avoid autoload issues in threads
+    Stop.connection
+    Route.connection
+    Operator.connection
+    RouteStopPattern.connection
+    EntityImportedFromFeed.connection
+    ScheduleStopPair.connection
+
     # Get tiles
     puts "Feeds"
     build_tiles = Set.new
