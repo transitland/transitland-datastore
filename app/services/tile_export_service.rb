@@ -58,10 +58,10 @@ module TileExportService
     def initialize(tile)
       @tile = tile
       # globally unique indexes
-      @@stop_graphid ||= {}
-      @@graphid_stop ||= {}
-      @@trip_index ||= TileUtils::UniqueIndex.new
-      @@block_index ||= TileUtils::UniqueIndex.new(start: 1)
+      @stopid_graphid ||= {}
+      @graphid_stopid ||= {}
+      @trip_index ||= TileUtils::UniqueIndex.new
+      @block_index ||= TileUtils::UniqueIndex.new(start: 1)
       # tile unique indexes
       @node_index = TileUtils::UniqueIndex.new
       @route_index = TileUtils::UniqueIndex.new
@@ -110,8 +110,8 @@ module TileExportService
           node.graphid = TileUtils::GraphID.new(level: GRAPH_LEVEL, tile: @tile.tile, index: @node_index.next(stop.id)).value
           node.prev_type_graphid = prev_type_graphid if prev_type_graphid
           prev_type_graphid = node.graphid
-          @@stop_graphid[stop.id] = node.graphid
-          @@graphid_stop[node.graphid] = stop.id
+          @stopid_graphid[stop.id] = node.graphid
+          @graphid_stopid[node.graphid] = stop.id
           @tile.message.nodes << node
         end
       end
@@ -123,7 +123,7 @@ module TileExportService
     def build_schedules
       # puts "Building schedule: #{@tile.tile}"
       t = Time.now
-      stop_ids = @tile.message.nodes.map { |node| @@graphid_stop[node.graphid] }.compact
+      stop_ids = @tile.message.nodes.map { |node| @graphid_stopid[node.graphid] }.compact
 
       # Routes
       route_ids = Set.new
@@ -191,8 +191,8 @@ module TileExportService
       #   skip if origin_departure_time < frequency_start_time
       #   skip if bad time information
       #   add < and > to onestop_ids
-      destination_graphid = @@stop_graphid[ssp.destination_id]
-      origin_graphid = @@stop_graphid[ssp.origin_id]
+      destination_graphid = @stopid_graphid[ssp.destination_id]
+      origin_graphid = @stopid_graphid[ssp.origin_id]
       fail OriginEqualsDestinationError.new("origin_graphid #{origin_graphid} == destination_graphid #{destination_graphid}") if origin_graphid == destination_graphid
       fail MissingGraphIDError.new("missing origin_graphid for stop #{ssp.origin_id}") unless origin_graphid
       fail MissingGraphIDError.new("missing destination_graphid for stop #{ssp.destination_id}") unless destination_graphid
@@ -203,14 +203,14 @@ module TileExportService
       shape_id = @shape_index.get(ssp.route_stop_pattern_id)
       fail MissingShapeError.new("missing shape for rsp #{ssp.route_stop_pattern_id}") unless shape_id
 
-      trip_id = @@trip_index.check(ssp.trip)
+      trip_id = @trip_index.check(ssp.trip)
       fail MissingTripError.new("missing trip_id for trip #{ssp.trip}") unless trip_id
 
       destination_arrival_time = seconds_since_midnight(ssp.destination_arrival_time)
       origin_departure_time = seconds_since_midnight(ssp.origin_departure_time)
       fail InvalidTimeError.new("origin_departure_time #{origin_departure_time} > destination_arrival_time #{destination_arrival_time}") if origin_departure_time > destination_arrival_time
 
-      block_id = @@block_index.check(ssp.block_id)
+      block_id = @block_index.check(ssp.block_id)
 
       # Make SSP
       params = {}
