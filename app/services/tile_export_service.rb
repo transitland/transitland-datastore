@@ -35,6 +35,24 @@ module TileExportService
   class TileValueError < StandardError
   end
 
+  class OriginEqualsDestinationError < TileValueError
+  end
+
+  class MissingGraphIDError < TileValueError
+  end
+
+  class MissingRouteError < TileValueError
+  end
+
+  class MissingShapeError < TileValueError
+  end
+
+  class MissingTripError < TileValueError
+  end
+
+  class InvalidTimeError < TileValueError
+  end
+
   class TileBuilder
     attr_accessor :tile
     def initialize(tile)
@@ -48,6 +66,10 @@ module TileExportService
       @node_index = TileUtils::UniqueIndex.new
       @route_index = TileUtils::UniqueIndex.new
       @shape_index = TileUtils::UniqueIndex.new(start: 1)
+    end
+
+    def log(msg)
+      puts msg
     end
 
     def build_stops
@@ -182,22 +204,22 @@ module TileExportService
       #   add < and > to onestop_ids
       destination_graphid = @@stop_graphid[ssp.destination_id]
       origin_graphid = @@stop_graphid[ssp.origin_id]
-      fail TileValueError.new("origin_graphid #{origin_graphid} == destination_graphid #{destination_graphid}") if origin_graphid == destination_graphid
-      fail TileValueError.new("missing origin_graphid for stop #{ssp.origin_id}") unless origin_graphid
-      fail TileValueError.new("missing destination_graphid for stop #{ssp.destination_id}") unless destination_graphid
+      fail OriginEqualsDestinationError.new("origin_graphid #{origin_graphid} == destination_graphid #{destination_graphid}") if origin_graphid == destination_graphid
+      fail MissingGraphIDError.new("missing origin_graphid for stop #{ssp.origin_id}") unless origin_graphid
+      fail MissingGraphIDError.new("missing destination_graphid for stop #{ssp.destination_id}") unless destination_graphid
 
       route_index = @route_index.get(ssp.route_id)
-      fail TileValueError.new("missing route_index for route #{ssp.route_id}") unless route_index
+      fail MissingRouteError.new("missing route_index for route #{ssp.route_id}") unless route_index
 
       shape_id = @shape_index.get(ssp.route_stop_pattern_id)
-      fail TileValueError.new("missing shape for rsp #{ssp.route_stop_pattern_id}") unless shape_id
+      fail MissingShapeError.new("missing shape for rsp #{ssp.route_stop_pattern_id}") unless shape_id
 
       trip_id = @@trip_index.check(ssp.trip)
-      fail TileValueError.new("missing trip_id for trip #{ssp.trip}") unless trip_id
+      fail MissingTripError.new("missing trip_id for trip #{ssp.trip}") unless trip_id
 
       destination_arrival_time = seconds_since_midnight(ssp.destination_arrival_time)
       origin_departure_time = seconds_since_midnight(ssp.origin_departure_time)
-      fail TileValueError.new("origin_departure_time #{origin_departure_time} > destination_arrival_time #{destination_arrival_time}") if origin_departure_time > destination_arrival_time
+      fail InvalidTimeError.new("origin_departure_time #{origin_departure_time} > destination_arrival_time #{destination_arrival_time}") if origin_departure_time > destination_arrival_time
 
       block_id = @@block_index.check(ssp.block_id)
 
