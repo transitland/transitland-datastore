@@ -389,7 +389,7 @@ module TileExportService
       tileset = TileUtils::TileSet.new(tilepath)
       builder = TileBuilder.new(tileset.read_tile(GRAPH_LEVEL, tile))
       builder.instance_variable_set('@stopid_graphid', stopid_graphid)
-      builder.instance_variable_set('@graphid_stopid', stopid_graphid)
+      builder.instance_variable_set('@graphid_stopid', graphid_stopid)
       builder.build_schedules
       stop_pairs_size = builder.tile.message.stop_pairs.size
       tileset.write_tile(builder.tile)
