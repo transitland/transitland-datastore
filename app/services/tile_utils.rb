@@ -9,6 +9,10 @@ module TileUtils
       @values = {}
     end
 
+    def key?(key)
+      @values.key?(key)
+    end
+
     def get(key)
       return nil if key.nil?
       @values[key]
