@@ -136,7 +136,6 @@ module TileUtils
     def bbox
       GraphID.level_tile_to_bbox(@level, @tile)
     end
-
   end
 
   class TileSet
@@ -152,8 +151,8 @@ module TileUtils
       read_tile(graphid.level, graphid.tile)
     end
 
-    def write_tile(tile)
-      fn = tile_path(tile.level, tile.tile)
+    def write_tile(tile, ext: nil)
+      fn = tile_path(tile.level, tile.tile, ext: ext)
       FileUtils.mkdir_p(File.dirname(fn))
       File.open(fn, 'wb') do |f|
         f.write(tile.encode)
@@ -193,10 +192,11 @@ module TileUtils
 
     private
 
-    def tile_path(level, tile)
+    def tile_path(level, tile, ext: nil)
       # TODO: support multiple levels
+      ext = ext.nil? ? '.pbf' : ".pbf.#{ext}"
       s = tile.to_s.rjust(9, "0")
-      File.join(@path, level.to_s, s[0...3], s[3...6], s[6...9]+".pbf")
+      File.join(@path, level.to_s, s[0...3], s[3...6], s[6...9]+ext)
     end
   end
 
