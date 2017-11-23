@@ -68,8 +68,8 @@ module TileExportService
       @block_index ||= TileUtils::UniqueIndex.new(start: 1)
       # tile unique indexes
       @node_index = TileUtils::UniqueIndex.new
-      @route_index = TileUtils::UniqueIndex.new
-      @shape_index = TileUtils::UniqueIndex.new(start: 1)
+      @route_index = {}
+      @shape_index = {}
     end
 
     def log(msg)
@@ -138,75 +138,78 @@ module TileExportService
       # puts "Building schedule: #{@tile}"
       t = Time.now
 
-      # Read tile
+      # Get stop_ids and active_feed_version_ids
       tileset = TileUtils::TileSet.new(@tilepath)
       tile = tileset.read_tile(GRAPH_LEVEL, @tile)
-
-      # Get stop_ids and active_feed_version_ids
       stop_ids = tile.message.nodes.map { |node| @graphid_stopid[node.graphid] }.compact
       active_feed_version_ids = FeedVersion.where_active.pluck(:id)
 
-      # Route and Shapes
-      route_ids = Set.new
-      rsp_ids = Set.new
-      stop_ids.each do |stop_id|
-        # .where_import_level(4)
-        ScheduleStopPair.where(origin_id: stop_id).select([:route_id, :route_stop_pattern_id]).distinct([:route_id, :route_stop_pattern_id]).pluck(:route_id, :route_stop_pattern_id).each do |route_id, route_stop_pattern_id|
-          route_ids << route_id
-          rsp_ids << route_stop_pattern_id
-        end
-      end
-
-      Route.where(id: route_ids.to_a).includes(:operator).find_each do |route|
-        @route_index.next(route.id)
-        tile.message.routes << make_route(route)
-      end
-
-      RouteStopPattern.where(id: rsp_ids.to_a).find_each do |rsp|
-        shape = make_shape(rsp)
-        shape.shape_id = @shape_index.next(rsp.id)
-        tile.message.shapes << shape
-      end
-
-      # write the base tile
-      tileset.write_tile(tile)
-
-      # StopPairs - do in batches of stops
+      # stop_pair tiles
       ext = 0
-      tile = tileset.new_tile(GRAPH_LEVEL, @tile)
+      stop_pairs_tile = tileset.new_tile(GRAPH_LEVEL, @tile)
       stop_pairs_tile_limit = 100_000
       stop_pairs_total = 0
       errors = Hash.new(0)
-
       stop_ids.each do |stop_id|
         stop_pairs_stop_id_count = 0
         ScheduleStopPair.where(origin_id: stop_id).includes(:origin, :destination, :operator).find_each do |ssp|
+          # evaluate where_active
           next unless active_feed_version_ids.include?(ssp.feed_version_id)
+
+          # get route
+          if !@route_index.key?(ssp.route_id)
+            route = Route.where(id: ssp.route_id).includes(:operator).first
+            if route
+              @route_index[ssp.route_id] = tile.message.routes.size
+              tile.message.routes << make_route(route)
+            else
+              @route_index[ssp.route_id] = nil
+            end
+          end
+
+          # get rsp
+          if !@shape_index.key?(ssp.route_stop_pattern_id)
+            rsp = RouteStopPattern.where(id: ssp.route_stop_pattern_id).first
+            if rsp
+              shape = make_shape(rsp)
+              shape.shape_id = tile.message.shapes.size + 1
+              @shape_index[ssp.route_stop_pattern_id] = shape.shape_id
+              tile.message.shapes << shape
+            else
+              @shape_index[ssp.route_stop_pattern_id] = nil
+            end
+          end
+
+          # process ssp and count errors
           begin
-            tile.message.stop_pairs << make_stop_pair(ssp)
+            stop_pairs_tile.message.stop_pairs << make_stop_pair(ssp)
             stop_pairs_stop_id_count += 1
             stop_pairs_total += 1
           rescue TileValueError => e
             errors[e.class.name.to_sym] += 1
           rescue TypeError => e
-            # PBF error
-            fail e
+            puts "PBF TypeError! ssp #{ssp.id}"
+            puts ssp.to_json
           end
           # Fail on anything else
         end
         puts "stop_pairs for stop_id #{stop_id}: #{stop_pairs_stop_id_count}"
 
         if tile.message.stop_pairs.size > stop_pairs_tile_limit
-          puts "writing tile #{ext}: #{tile.message.stop_pairs.size} / #{stop_pairs_total}"
-          tileset.write_tile(tile, ext: ext)
-          tile = tileset.new_tile(GRAPH_LEVEL, @tile)
+          puts "writing stop_pair tile #{ext}: #{stop_pairs_tile.message.stop_pairs.size} / #{stop_pairs_total}"
+          tileset.write_tile(stop_pairs_tile, ext: ext)
+          stop_pairs_tile = tileset.new_tile(GRAPH_LEVEL, @tile)
           ext += 1
         end
       end
 
-      # Last tile
-      puts "writing tile #{ext}: #{tile.message.stop_pairs.size} / #{stop_pairs_total}"
-      tileset.write_tile(tile, ext: ext)
+      # last stop_pair tile
+      puts "writing stop_pair tile #{ext}: #{stop_pairs_tile.message.stop_pairs.size} / #{stop_pairs_total}"
+      tileset.write_tile(stop_pairs_tile, ext: ext)
+
+      # write the base tile
+      puts "writing base tile"
+      tileset.write_tile(tile)
 
       # Write tile
       t = Time.now - t
@@ -246,10 +249,10 @@ module TileExportService
       fail MissingGraphIDError.new("missing origin_graphid for stop #{ssp.origin_id}") unless origin_graphid
       fail MissingGraphIDError.new("missing destination_graphid for stop #{ssp.destination_id}") unless destination_graphid
 
-      route_index = @route_index.get(ssp.route_id)
+      route_index = @route_index[ssp.route_id]
       fail MissingRouteError.new("missing route_index for route #{ssp.route_id}") unless route_index
 
-      shape_id = @shape_index.get(ssp.route_stop_pattern_id)
+      shape_id = @shape_index[ssp.route_stop_pattern_id]
       fail MissingShapeError.new("missing shape for rsp #{ssp.route_stop_pattern_id}") unless shape_id
 
       trip_id = @trip_index.check(ssp.trip)
