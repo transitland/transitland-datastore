@@ -158,6 +158,7 @@ module TileUtils
     def write_tile(tile, ext: nil)
       fn = tile_path(tile.level, tile.tile, ext: ext)
       FileUtils.mkdir_p(File.dirname(fn))
+      puts "writing tile: #{fn}"
       File.open(fn, 'wb') do |f|
         f.write(tile.encode)
       end
