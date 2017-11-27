@@ -206,8 +206,8 @@ module TileExportService
 
       # last stop_pair tile
       puts "writing stop_pair tile #{ext}: #{stop_pairs_tile.message.stop_pairs.size} / #{stop_pairs_total}"
-      stop_pairs_tile.message.stop_pairs.clear
       tileset.write_tile(stop_pairs_tile, ext: ext)
+      stop_pairs_tile.message.stop_pairs.clear
 
       # write the base tile
       puts "writing base tile"
