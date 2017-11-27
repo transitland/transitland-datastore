@@ -198,6 +198,7 @@ module TileExportService
         if tile.message.stop_pairs.size > stop_pairs_tile_limit
           puts "writing stop_pair tile #{ext}: #{stop_pairs_tile.message.stop_pairs.size} / #{stop_pairs_total}"
           tileset.write_tile(stop_pairs_tile, ext: ext)
+          stop_pairs_tile.message.stop_pairs.clear
           stop_pairs_tile = tileset.new_tile(GRAPH_LEVEL, @tile)
           ext += 1
         end
@@ -205,6 +206,7 @@ module TileExportService
 
       # last stop_pair tile
       puts "writing stop_pair tile #{ext}: #{stop_pairs_tile.message.stop_pairs.size} / #{stop_pairs_total}"
+      stop_pairs_tile.message.stop_pairs.clear
       tileset.write_tile(stop_pairs_tile, ext: ext)
 
       # write the base tile
