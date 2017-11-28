@@ -4,7 +4,7 @@ module TileExportService
   KEY_STOPID_GRAPHID = 'stopid_graphid'
   IMPORT_LEVEL = 4
   GRAPH_LEVEL = 2
-  STOP_PAIRS_TILE_LIMIT = 500_000
+  STOP_PAIRS_TILE_LIMIT = 100_000
 
   # kTransitEgress = 4,           // Transit egress
   # kTransitStation = 5,          // Transit station
@@ -148,7 +148,7 @@ module TileExportService
 
       # Build stop_pairs for each stop_id
       tile_ext = 0
-      stop_pairs_tile = tileset.new_tile(GRAPH_LEVEL, @tile)
+      stop_pairs_tile = base_tile # tileset.new_tile(GRAPH_LEVEL, @tile)
       stop_pairs_total = 0
       errors = Hash.new(0)
       stop_ids.each do |stop_id|
@@ -192,29 +192,34 @@ module TileExportService
             # Fail on anything else
           end
 
+          # Write supplement tile, start new tile
           if stop_pairs_tile.message.stop_pairs.size > STOP_PAIRS_TILE_LIMIT
-            debug("writing tile #{tile_ext}: stop_pairs #{stop_pairs_tile.message.stop_pairs.size} / #{stop_pairs_total}")
-            tileset.write_tile(stop_pairs_tile, ext: tile_ext)
+            if stop_pairs_tile != base_tile
+              debug("writing tile ext #{tile_ext}: #{stop_pairs_tile.message.stop_pairs.size} stop_pairs")
+              tileset.write_tile(stop_pairs_tile, ext: tile_ext)
+              tile_ext += 1
+            end
             stop_pairs_tile = tileset.new_tile(GRAPH_LEVEL, @tile)
-            tile_ext += 1
           end
         end
         # Done for this stop
         debug("stop_pairs for stop_id #{stop_id}: #{stop_pairs_stop_id_count}")
       end
 
-      # last stop_pair tile
-      debug("writing tile #{tile_ext}: #{stop_pairs_tile.message.stop_pairs.size} / #{stop_pairs_total}")
-      tileset.write_tile(stop_pairs_tile, ext: tile_ext)
+      # Write dangling supplement tile
+      if stop_pairs_tile != base_tile && stop_pairs_tile.message.stop_pairs.size > 0
+        debug("writing tile ext #{tile_ext}: #{stop_pairs_tile.message.stop_pairs.size} stop_pairs")
+        tileset.write_tile(stop_pairs_tile, ext: tile_ext)
+      end
 
-      # write the base tile
-      debug("writing base tile: routes #{base_tile.message.routes.size} shapes #{base_tile.message.shapes.size}")
+      # Write the base tile
+      debug("writing tile base: #{base_tile.message.nodes.size} nodes, #{base_tile.message.routes.size} routes, #{base_tile.message.shapes.size} shapes, #{base_tile.message.stop_pairs.size} stop_pairs (#{stop_pairs_total} tile total)")
       tileset.write_tile(base_tile)
 
       # Write tile
       t = Time.now - t
       error_txt = ([errors.values.sum.to_s] + errors.map { |k,v| "#{k}: #{v}" }).join(' ')
-      log("stop_pairs: #{stop_pairs_total} errors #{error_txt} time: #{t.round(2)} (#{(stop_pairs_total/t).to_i} stop_pairs/s)")
+      log("#{base_tile.message.nodes.size} nodes, #{base_tile.message.routes.size} routes, #{base_tile.message.shapes.size} shapes, #{stop_pairs_total} stop_pairs, errors #{error_txt}, time: #{t.round(2)} (#{(stop_pairs_total/t).to_i} stop_pairs/s)")
       return stop_pairs_total
     end
 
