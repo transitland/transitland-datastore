@@ -68,7 +68,6 @@ module TileExportService
       @trip_index ||= TileUtils::UniqueIndex.new
       @block_index ||= TileUtils::UniqueIndex.new(start: 1)
       # tile unique indexes
-      @node_index = TileUtils::UniqueIndex.new
       @route_index = {}
       @shape_index = {}
     end
@@ -103,7 +102,7 @@ module TileExportService
         stop_egresses << StopEgress.new(stop.attributes) if stop_egresses.empty? # generated egress
         stop_egresses.each do |stop_egress|
           node = make_node(stop_egress)
-          node.graphid = TileUtils::GraphID.new(level: GRAPH_LEVEL, tile: @tile, index: @node_index.next(stop.id)).value
+          node.graphid = TileUtils::GraphID.new(level: GRAPH_LEVEL, tile: @tile, index: tile.message.nodes.size).value
           node.prev_type_graphid = prev_type_graphid if prev_type_graphid
           prev_type_graphid = node.graphid
           tile.message.nodes << node
@@ -111,7 +110,7 @@ module TileExportService
 
         # Station
         node = make_node(stop)
-        node.graphid = TileUtils::GraphID.new(level: GRAPH_LEVEL, tile: @tile, index: @node_index.next(stop.id)).value
+        node.graphid = TileUtils::GraphID.new(level: GRAPH_LEVEL, tile: @tile, index: tile.message.nodes.size).value
         node.prev_type_graphid = prev_type_graphid if prev_type_graphid
         prev_type_graphid = node.graphid
         tile.message.nodes << node
@@ -121,7 +120,7 @@ module TileExportService
         stop_platforms << StopPlatform.new(stop.attributes) # station ssps
         stop_platforms.each do |stop_platform|
           node = make_node(stop_platform)
-          node.graphid = TileUtils::GraphID.new(level: GRAPH_LEVEL, tile: @tile, index: @node_index.next(stop.id)).value
+          node.graphid = TileUtils::GraphID.new(level: GRAPH_LEVEL, tile: @tile, index: tile.message.nodes.size).value
           node.prev_type_graphid = prev_type_graphid if prev_type_graphid
           prev_type_graphid = node.graphid
           @stopid_graphid[stop.id] = node.graphid
