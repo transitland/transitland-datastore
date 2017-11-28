@@ -5,32 +5,28 @@ require 'google/protobuf'
 module TileUtils
   class UniqueIndex
     def initialize(start: 0)
-      @index = start - 1
+      @start = start
       @values = {}
-    end
-
-    def key?(key)
-      @values.key?(key)
-    end
-
-    def get(key)
-      return nil if key.nil?
-      @values[key]
-    end
-
-    def fetch(key)
-      return nil if key.nil?
-      @values.fetch(key)
     end
 
     def check(key)
       return nil if key.nil?
-      @values[key] ||= (@index += 1)
+      @values[key] ||= @values.size + @start
+    end
+  end
+
+  class DigestIndex
+    def initialize(start: 0, bytes: 4)
+      @bytes = bytes
+      @start = start
+      @values = {}
     end
 
-    def next(key)
+    def check(key)
+      # minimum value is start
+      # roll over while keeping start
       return nil if key.nil?
-      @values[key] = (@index += 1)
+      @values[key] ||= Digest::SHA1.hexdigest(key.to_s).first(@bytes*2).to_i(16) % (2**(@bytes*8) - @start) + @start
     end
   end
 
