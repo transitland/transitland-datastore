@@ -16,8 +16,8 @@ module TileUtils
   end
 
   class DigestIndex
-    def initialize(start: 0, bytes: 4)
-      @bytes = bytes
+    def initialize(start: 0, bits: 32)
+      @bits = bits
       @start = start
       @values = {}
     end
@@ -26,7 +26,7 @@ module TileUtils
       # minimum value is start
       # roll over while keeping start
       return nil if key.nil?
-      @values[key] ||= Digest::SHA1.hexdigest(key.to_s).first(@bytes*2).to_i(16) % (2**(@bytes*8) - @start) + @start
+      @values[key] ||= Digest::SHA1.hexdigest(key.to_s).first(@bits*4).to_i(16) % (2**@bits - @start) + @start
     end
   end
 

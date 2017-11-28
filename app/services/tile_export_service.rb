@@ -65,8 +65,8 @@ module TileExportService
       # globally unique indexes
       @stopid_graphid ||= {}
       @graphid_stopid ||= {}
-      @trip_index ||= TileUtils::DigestIndex.new
-      @block_index ||= TileUtils::DigestIndex.new(start: 1)
+      @trip_index ||= TileUtils::DigestIndex.new(bits: 24)
+      @block_index ||= TileUtils::DigestIndex.new(start: 1, bits: 20)
       # tile unique indexes
       @route_index = {}
       @shape_index = {}
