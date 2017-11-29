@@ -5,28 +5,28 @@ require 'google/protobuf'
 module TileUtils
   class UniqueIndex
     def initialize(start: 0)
-      @index = start - 1
+      @start = start
       @values = {}
-    end
-
-    def get(key)
-      return nil if key.nil?
-      @values[key]
-    end
-
-    def fetch(key)
-      return nil if key.nil?
-      @values.fetch(key)
     end
 
     def check(key)
       return nil if key.nil?
-      @values[key] ||= (@index += 1)
+      @values[key] ||= @values.size + @start
+    end
+  end
+
+  class DigestIndex
+    def initialize(start: 0, bits: 32)
+      @bits = bits
+      @start = start
+      @values = {}
     end
 
-    def next(key)
+    def check(key)
+      # minimum value is start
+      # roll over while keeping start
       return nil if key.nil?
-      @values[key] = (@index += 1)
+      @values[key] ||= Digest::SHA1.hexdigest(key.to_s).first(@bits/4).to_i(16) % (2**@bits - @start) + @start
     end
   end
 
@@ -136,7 +136,6 @@ module TileUtils
     def bbox
       GraphID.level_tile_to_bbox(@level, @tile)
     end
-
   end
 
   class TileSet
@@ -152,9 +151,10 @@ module TileUtils
       read_tile(graphid.level, graphid.tile)
     end
 
-    def write_tile(tile)
-      fn = tile_path(tile.level, tile.tile)
+    def write_tile(tile, ext: nil)
+      fn = tile_path(tile.level, tile.tile, ext: ext)
       FileUtils.mkdir_p(File.dirname(fn))
+      puts "writing tile: #{fn}"
       File.open(fn, 'wb') do |f|
         f.write(tile.encode)
       end
@@ -193,10 +193,11 @@ module TileUtils
 
     private
 
-    def tile_path(level, tile)
+    def tile_path(level, tile, ext: nil)
       # TODO: support multiple levels
+      ext = ext.nil? ? '.pbf' : ".pbf.#{ext}"
       s = tile.to_s.rjust(9, "0")
-      File.join(@path, level.to_s, s[0...3], s[3...6], s[6...9]+".pbf")
+      File.join(@path, level.to_s, s[0...3], s[3...6], s[6...9]+ext)
     end
   end
 
