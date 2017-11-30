@@ -414,16 +414,19 @@ module TileExportService
   end
 
   def self.tile_build_schedules(tilepath)
-    redis = Redis.new
     # stopid_graphid
-    t2 = Time.now
     stopid_graphid = {}
     graphid_stopid = {}
-    redis.hgetall(KEY_STOPID_GRAPHID).each do |k,v|
-      k = k.to_i
-      v = v.to_i
-      stopid_graphid[k] = v
-      graphid_stopid[v] = k
+    redis = Redis.new
+    cursor = nil
+    while cursor != '0'
+      cursor, data = redis.hscan(KEY_STOPID_GRAPHID, cursor, count: 1_000)
+      data.each do |k,v|
+        k = k.to_i
+        v = v.to_i
+        stopid_graphid[k] = v
+        graphid_stopid[v] = k
+      end
     end
     # queue
     while tile = redis.rpop(KEY_QUEUE_SCHEDULES)
