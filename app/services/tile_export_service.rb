@@ -186,9 +186,10 @@ module TileExportService
             rescue TileValueError => e
               errors[e.class.name.to_sym] += 1
             rescue TypeError => e
-              log("PBF TypeError! ssp #{ssp.id}: #{ssp.to_json}")
+              log("Error ssp #{ssp.id}: #{e} #{ssp.to_json}")
+            rescue StandardError => e
+              log("Error ssp #{ssp.id}: #{e} #{ssp.to_json}")
             end
-            # Fail on anything else
           end
 
           # Write supplement tile, start new tile
