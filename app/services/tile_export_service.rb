@@ -185,9 +185,9 @@ module TileExportService
               stop_pairs_total += 1
             rescue TileValueError => e
               errors[e.class.name.to_sym] += 1
-            rescue TypeError => e
               log("error: ssp #{ssp.id}: #{e} #{ssp.to_json}")
             rescue StandardError => e
+              errors[e.class.name.to_sym] += 1
               log("error: ssp #{ssp.id}: #{e} #{ssp.to_json}")
             end
           end
