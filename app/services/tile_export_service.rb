@@ -4,7 +4,7 @@ module TileExportService
   KEY_STOPID_GRAPHID = 'stopid_graphid'
   IMPORT_LEVEL = 4
   GRAPH_LEVEL = 2
-  STOP_PAIRS_TILE_LIMIT = 100_000
+  STOP_PAIRS_TILE_LIMIT = 1_000_000
 
   # kTransitEgress = 4,           // Transit egress
   # kTransitStation = 5,          // Transit station
