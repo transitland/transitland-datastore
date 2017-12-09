@@ -244,8 +244,8 @@ module TileUtils
       # if this is crossing the anti meridian split it up and combine
       left, bottom, right, top = ymin, xmin, ymax, xmax
       if left > right
-        east = tiles_for_bbox(left, bottom, 180.0, top)
-        west = tiles_for_bbox(-180.0, bottom, right, top)
+        east = bbox_to_level_tiles(left, bottom, 180.0, top)
+        west = bbox_to_level_tiles(-180.0, bottom, right, top)
         return east + west
       end
       #move these so we can compute percentages
