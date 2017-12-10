@@ -1,4 +1,5 @@
 module TileExportService
+  BBOX_PADDING = 0.1
   KEY_QUEUE_STOPS = 'queue_stops'
   KEY_QUEUE_SCHEDULES = 'queue_schedules'
   KEY_STOPID_GRAPHID = 'stopid_graphid'
@@ -238,7 +239,7 @@ module TileExportService
     # bbox padding
     def bbox_padded(bbox)
       ymin, xmin, ymax, xmax = bbox
-      padding = 0.0
+      padding = BBOX_PADDING
       [ymin-padding, xmin, ymax+padding, xmax]
     end
 
