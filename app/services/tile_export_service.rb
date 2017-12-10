@@ -98,8 +98,12 @@ module TileExportService
         .geometry_within_bbox(bbox_padded(tile.bbox))
         .includes(:stop_platforms, :stop_egresses)
         .find_each do |stop|
+
         # Check if stop is inside tile
-        next if TileUtils::GraphID.new(level: GRAPH_LEVEL, lon: stop.coordinates[0], lat: stop.coordinates[1]).tile != @tile
+        stop_tile = TileUtils::GraphID.new(level: GRAPH_LEVEL, lon: stop.coordinates[0], lat: stop.coordinates[1]).tile
+        if stop_tile != @tile
+          debug("skipping stop #{stop.id}: coordinates #{stop.coordinates.join(',')} map to tile #{stop_tile} outside of tile #{@tile}")
+        end
 
         # Station references
         prev_type_graphid = nil
