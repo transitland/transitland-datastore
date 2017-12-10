@@ -130,8 +130,8 @@ module TileExportService
           node.graphid = TileUtils::GraphID.new(level: GRAPH_LEVEL, tile: @tile, index: tile.message.nodes.size).value
           node.prev_type_graphid = prev_type_graphid if prev_type_graphid
           prev_type_graphid = node.graphid
-          @stopid_graphid[stop.id] = node.graphid
-          @graphid_stopid[node.graphid] = stop.id
+          @stopid_graphid[stop_platform.id] = node.graphid
+          @graphid_stopid[node.graphid] = stop_platform.id
           tile.message.nodes << node
         end
       end
