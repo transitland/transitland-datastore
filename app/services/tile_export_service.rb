@@ -482,19 +482,25 @@ module TileExportService
 
     # Build bboxes
     puts "Selecting tiles..."
-    thread_count ||= 1
+    count_stops = Set.new
+    stop_platforms = Hash.new { |h,k| h[k] = Set.new }
+    stop_egresses = Hash.new { |h,k| h[k] = Set.new }
     tiles = Set.new(tiles)
     if tiles.empty?
-      count = 0
+      count = 1
       total = feed_version_ids.size
       FeedVersion.where(id: feed_version_ids).includes(:feed).find_each do |feed_version|
         feed = feed_version.feed
         fvtiles = Set.new
-        Stop
-          .where(parent_stop: nil)
-          .where_imported_from_feed_version(feed_version)
-          .find_each do |stop|
-            fvtiles << TileUtils::GraphID.new(level: GRAPH_LEVEL, lon: stop.coordinates[0], lat: stop.coordinates[1]).tile
+        Stop.where_imported_from_feed_version(feed_version).find_each do |stop|
+            if stop.is_a?(StopPlatform)
+              stop_platforms[stop.parent_stop_id] << stop.id
+            elsif stop.is_a?(StopEgress)
+              stop_egresses[stop.parent_stop_id] << stop.id
+            else
+              count_stops << stop.id
+              fvtiles << TileUtils::GraphID.new(level: GRAPH_LEVEL, lon: stop.coordinates[0], lat: stop.coordinates[1]).tile
+            end
         end
         puts "\t(#{count}/#{total}) #{feed_version.feed.onestop_id} #{feed_version.sha1}: #{fvtiles.size} tiles"
         tiles += fvtiles
@@ -502,9 +508,23 @@ module TileExportService
       end
     end
 
-    puts "Tiles to build: #{tiles.size} with thread_count: #{thread_count}"
+    # TODO: Filter stop_platforms/stop_egresses by feed_version
+    count_egresses = count_stops.map { |i| stop_egresses[i].empty? ? 1 : stop_egresses[i].size }.sum
+    count_platforms = count_stops.map { |i| stop_platforms[i].empty? ? 1 : stop_platforms[i].size }.sum
+    puts "Tiles to build: #{tiles.size}"
+    puts "Expected:"
+    puts "\tstops: #{count_stops.size}"
+    puts "\tplatforms: #{stop_platforms.map { |k,v| v.size }.sum}"
+    puts "\tegresses: #{stop_egresses.map { |k,v| v.size }.sum}"
+    puts "\tnodes: #{count_stops.size + count_egresses + count_platforms}"
+    puts "\tstopid-graphid: #{count_platforms}"
+    # stopid_graphid = Hash[redis.hgetall('stopid_graphid').map { |k,v| [k.to_i, v.to_i] }]
+    # expected_stops = Set.new
+    # count_stops.each { |i| expected_stops += (stop_platforms[i].empty? ? [i].to_set : stop_platforms[i]) }
+    # missing = stopid_graphid.keys.to_set - expected_stops
 
     # Setup queue
+    thread_count ||= 1
     redis = Redis.new
     redis.del(KEY_QUEUE_STOPS)
     redis.del(KEY_QUEUE_SCHEDULES)
@@ -518,7 +538,7 @@ module TileExportService
     end
     workers.each { |pid| Process.wait(pid) }
 
-    puts "\nStops finished. Schedule tile queue: #{redis.llen(KEY_QUEUE_SCHEDULES)} StopID-GraphID mappings: #{redis.hlen(KEY_STOPID_GRAPHID)}"
+    puts "\nStops finished. Schedule tile queue: #{redis.llen(KEY_QUEUE_SCHEDULES)} stopid-graphid mappings: #{redis.hlen(KEY_STOPID_GRAPHID)}"
 
     # Build schedule, routes, shapes for each tile.
     puts "\n===== Routes, Shapes, StopPairs =====\n"
