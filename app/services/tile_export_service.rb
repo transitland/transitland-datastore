@@ -1,5 +1,5 @@
 module TileExportService
-  BBOX_PADDING = 0.0
+  BBOX_PADDING = 0.1
   KEY_QUEUE_STOPS = 'queue_stops'
   KEY_QUEUE_SCHEDULES = 'queue_schedules'
   KEY_STOPID_GRAPHID = 'stopid_graphid'
@@ -253,7 +253,7 @@ module TileExportService
     def bbox_padded(bbox)
       ymin, xmin, ymax, xmax = bbox
       padding = BBOX_PADDING
-      [ymin-padding, xmin, ymax+padding, xmax]
+      [ymin-padding, xmin-padding, ymax+padding, xmax+padding]
     end
 
     # make entity methods
