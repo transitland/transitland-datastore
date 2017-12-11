@@ -1,5 +1,5 @@
 module TileExportService
-  BBOX_PADDING = 0.1
+  BBOX_PADDING = 0.0
   KEY_QUEUE_STOPS = 'queue_stops'
   KEY_QUEUE_SCHEDULES = 'queue_schedules'
   KEY_STOPID_GRAPHID = 'stopid_graphid'
