@@ -129,7 +129,7 @@ module TileExportService
 
         # Platforms
         stop_platforms = stop.stop_platforms.to_a
-        stop_platforms << StopPlatform.new(stop.attributes) # station ssps
+        (stop_platforms << StopPlatform.new(stop.attributes)) if stop_platforms.empty? # station ssps
         stop_platforms.each do |stop_platform|
           node = make_node(stop_platform)
           node.graphid = TileUtils::GraphID.new(level: GRAPH_LEVEL, tile: @tile, index: tile.message.nodes.size).value
