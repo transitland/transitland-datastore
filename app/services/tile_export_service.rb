@@ -102,7 +102,8 @@ module TileExportService
         # Check if stop is inside tile
         stop_tile = TileUtils::GraphID.new(level: GRAPH_LEVEL, lon: stop.coordinates[0], lat: stop.coordinates[1]).tile
         if stop_tile != @tile
-          debug("skipping stop #{stop.id}: coordinates #{stop.coordinates.join(',')} map to tile #{stop_tile} outside of tile #{@tile}")
+          # debug("skipping stop #{stop.id}: coordinates #{stop.coordinates.join(',')} map to tile #{stop_tile} outside of tile #{@tile}")
+          next
         end
 
         # Station references
@@ -484,8 +485,7 @@ module TileExportService
     thread_count ||= 1
     tiles = Set.new(tiles)
     if tiles.empty?
-      feed_version_ids.each do |feed_version_id|
-        feed_version = FeedVersion.find(feed_version_id)
+      FeedVersion.where(id: feed_version_ids).includes(:feed).find_each do |feed_version|
         feed = feed_version.feed
         bbox = feed.geometry_bbox
         b = bbox.min_x, bbox.min_y, bbox.max_x, bbox.max_y
