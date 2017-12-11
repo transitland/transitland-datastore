@@ -518,6 +518,11 @@ module TileExportService
     puts "\tegresses: #{stop_egresses.map { |k,v| v.size }.sum}"
     puts "\tnodes: #{count_stops.size + count_egresses + count_platforms}"
     puts "\tstopid-graphid: #{count_platforms}"
+
+    # Clear
+    count_stops.clear
+    stop_platforms.clear
+    stop_egresses.clear
     # stopid_graphid = Hash[redis.hgetall('stopid_graphid').map { |k,v| [k.to_i, v.to_i] }]
     # expected_stops = Set.new
     # count_stops.each { |i| expected_stops += (stop_platforms[i].empty? ? [i].to_set : stop_platforms[i]) }
