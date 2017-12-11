@@ -485,13 +485,20 @@ module TileExportService
     thread_count ||= 1
     tiles = Set.new(tiles)
     if tiles.empty?
+      count = 0
+      total = feed_version_ids.size
       FeedVersion.where(id: feed_version_ids).includes(:feed).find_each do |feed_version|
         feed = feed_version.feed
-        bbox = feed.geometry_bbox
-        b = bbox.min_x, bbox.min_y, bbox.max_x, bbox.max_y
-        t = TileUtils::GraphID.bbox_to_level_tiles(*b).select { |a,b| a == 2}.map { |a,b| b }
-        tiles += t
-        puts "\tadded #{feed.onestop_id} #{feed_version.sha1}: #{t.size} tiles"
+        fvtiles = Set.new
+        Stop
+          .where(parent_stop: nil)
+          .where_imported_from_feed_version(feed_version)
+          .find_each do |stop|
+            fvtiles << TileUtils::GraphID.new(level: GRAPH_LEVEL, lon: stop.coordinates[0], lat: stop.coordinates[1]).tile
+        end
+        puts "\t(#{count}/#{total}) #{feed_version.feed.onestop_id} #{feed_version.sha1}: #{fvtiles.size} tiles"
+        tiles += fvtiles
+        count += 1
       end
     end
 
