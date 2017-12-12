@@ -9,6 +9,10 @@ tile = tileset.get_tile_by_graphid(TileUtils::GraphID.new(level: 2, tile: tileid
 
 tile.message.nodes.sort_by(&:onestop_id).each do |node|
   g = TileUtils::GraphID.new(value: node.graphid)
-  puts node.to_json
+  puts "node index #{g.index}: #{node.to_json}"
   puts "TILE MISMATCH: node #{g.tile} != tile #{tileid}" if g.tile != tileid
+end
+
+tile.message.routes.sort_by(&:onestop_id).each do |route|
+  puts route.to_json
 end
