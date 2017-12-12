@@ -16,3 +16,8 @@ end
 tile.message.routes.sort_by(&:onestop_id).each do |route|
   puts route.to_json
 end
+
+tile.message.shapes.each do |shape|
+  coords = TileUtils::Shape7.decode(shape.encoded_shape)
+  puts "shape_id: #{shape.shape_id} coords size: #{coords.size} first: #{coords.first} last: #{coords.last}"
+end
