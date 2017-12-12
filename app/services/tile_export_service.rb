@@ -116,7 +116,7 @@ module TileExportService
           node = make_node(stop_egress)
           node.graphid = TileUtils::GraphID.new(level: GRAPH_LEVEL, tile: @tile, index: tile.message.nodes.size).value
           node.prev_type_graphid = prev_type_graphid if prev_type_graphid
-          prev_type_graphid = node.graphid
+          prev_type_graphid ||= node.graphid
           tile.message.nodes << node
         end
 
@@ -133,8 +133,7 @@ module TileExportService
         stop_platforms.each do |stop_platform|
           node = make_node(stop_platform)
           node.graphid = TileUtils::GraphID.new(level: GRAPH_LEVEL, tile: @tile, index: tile.message.nodes.size).value
-          node.prev_type_graphid = prev_type_graphid if prev_type_graphid
-          prev_type_graphid = node.graphid
+          node.prev_type_graphid = prev_type_graphid if prev_type_graphid # station_id graphid
           @stopid_graphid[stop_platform.id] = node.graphid
           @graphid_stopid[node.graphid] = stop_platform.id
           tile.message.nodes << node
