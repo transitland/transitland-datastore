@@ -1,5 +1,5 @@
 task :tile_export, [:tilepath, :thread_count, :feed_onestop_id] => [:environment] do |t, args|
-  args.with_default(thread_count: 1, feed_onestop_id: nil)
+  args.with_defaults(thread_count: 1, feed_onestop_id: nil)
   fail Exception.new('tilepath required') unless args[:tilepath].presence
   feeds = nil
   if args[:feed_onestop_id]

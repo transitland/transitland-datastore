@@ -1,10 +1,11 @@
 module TileExportService
+  BBOX_PADDING = 0.1
   KEY_QUEUE_STOPS = 'queue_stops'
   KEY_QUEUE_SCHEDULES = 'queue_schedules'
   KEY_STOPID_GRAPHID = 'stopid_graphid'
   IMPORT_LEVEL = 4
   GRAPH_LEVEL = 2
-  STOP_PAIRS_TILE_LIMIT = 100_000
+  STOP_PAIRS_TILE_LIMIT = 500_000
 
   # kTransitEgress = 4,           // Transit egress
   # kTransitStation = 5,          // Transit station
@@ -59,9 +60,11 @@ module TileExportService
 
   class TileBuilder
     attr_accessor :tile
-    def initialize(tilepath, tile)
+    def initialize(tilepath, tile, feed_version_ids: nil)
       @tilepath = tilepath
       @tile = tile
+      # filters
+      @feed_version_ids = feed_version_ids || []
       # globally unique indexes
       @stopid_graphid ||= {}
       @graphid_stopid ||= {}
@@ -89,10 +92,19 @@ module TileExportService
       tileset = TileUtils::TileSet.new(@tilepath)
       tile = tileset.new_tile(GRAPH_LEVEL, @tile)
 
-      # .where_import_level(IMPORT_LEVEL)
-      Stop.where(parent_stop: nil).geometry_within_bbox(bbox_padded(tile.bbox)).includes(:stop_platforms, :stop_egresses).find_each do |stop|
+      Stop
+        .where_imported_from_feed_version(@feed_version_ids)
+        .where(parent_stop: nil)
+        .geometry_within_bbox(bbox_padded(tile.bbox))
+        .includes(:stop_platforms, :stop_egresses)
+        .find_each do |stop|
+
         # Check if stop is inside tile
-        next if TileUtils::GraphID.new(level: GRAPH_LEVEL, lon: stop.coordinates[0], lat: stop.coordinates[1]).tile != @tile
+        stop_tile = TileUtils::GraphID.new(level: GRAPH_LEVEL, lon: stop.coordinates[0], lat: stop.coordinates[1]).tile
+        if stop_tile != @tile
+          # debug("skipping stop #{stop.id}: coordinates #{stop.coordinates.join(',')} map to tile #{stop_tile} outside of tile #{@tile}")
+          next
+        end
 
         # Station references
         prev_type_graphid = nil
@@ -104,7 +116,7 @@ module TileExportService
           node = make_node(stop_egress)
           node.graphid = TileUtils::GraphID.new(level: GRAPH_LEVEL, tile: @tile, index: tile.message.nodes.size).value
           node.prev_type_graphid = prev_type_graphid if prev_type_graphid
-          prev_type_graphid = node.graphid
+          prev_type_graphid ||= node.graphid
           tile.message.nodes << node
         end
 
@@ -117,14 +129,13 @@ module TileExportService
 
         # Platforms
         stop_platforms = stop.stop_platforms.to_a
-        stop_platforms << StopPlatform.new(stop.attributes) # station ssps
+        (stop_platforms << StopPlatform.new(stop.attributes)) if stop_platforms.empty? # station ssps
         stop_platforms.each do |stop_platform|
           node = make_node(stop_platform)
           node.graphid = TileUtils::GraphID.new(level: GRAPH_LEVEL, tile: @tile, index: tile.message.nodes.size).value
-          node.prev_type_graphid = prev_type_graphid if prev_type_graphid
-          prev_type_graphid = node.graphid
-          @stopid_graphid[stop.id] = node.graphid
-          @graphid_stopid[node.graphid] = stop.id
+          node.prev_type_graphid = prev_type_graphid if prev_type_graphid # station_id graphid
+          @stopid_graphid[stop_platform.id] = node.graphid
+          @graphid_stopid[node.graphid] = stop_platform.id
           tile.message.nodes << node
         end
       end
@@ -138,12 +149,11 @@ module TileExportService
     end
 
     def build_schedules
-      # Get stop_ids and active_feed_version_ids
+      # Get stop_ids
       t = Time.now
       tileset = TileUtils::TileSet.new(@tilepath)
       base_tile = tileset.read_tile(GRAPH_LEVEL, @tile)
       stop_ids = base_tile.message.nodes.map { |node| @graphid_stopid[node.graphid] }.compact
-      active_feed_version_ids = FeedVersion.where_active.pluck(:id)
 
       # Build stop_pairs for each stop_id
       tile_ext = 0
@@ -152,9 +162,12 @@ module TileExportService
       errors = Hash.new(0)
       stop_ids.each do |stop_id|
         stop_pairs_stop_id_count = 0
-        ScheduleStopPair.where(origin_id: stop_id).includes(:origin, :destination, :operator).find_in_batches do |ssps|
-          # Evaluate where_active - faster than .where_active
-          ssps = ssps.select { |ssp| active_feed_version_ids.include?(ssp.feed_version_id) }
+        ScheduleStopPair
+          .where(origin_id: stop_id)
+          .includes(:origin, :destination, :operator)
+          .find_in_batches do |ssps|
+          # Evaluate by active feed version - faster than join or where in (?)
+          ssps = ssps.select { |ssp| @feed_version_ids.include?(ssp.feed_version_id) }
 
           # Get unvisited routes for this batch
           route_ids = ssps.map(&:route_id).select { |route_id| !@route_index.key?(route_id) }
@@ -185,10 +198,11 @@ module TileExportService
               stop_pairs_total += 1
             rescue TileValueError => e
               errors[e.class.name.to_sym] += 1
-            rescue TypeError => e
-              log("PBF TypeError! ssp #{ssp.id}: #{ssp.to_json}")
+              log("error: ssp #{ssp.id}: #{e}")
+            rescue StandardError => e
+              errors[e.class.name.to_sym] += 1
+              log("error: ssp #{ssp.id}: #{e}")
             end
-            # Fail on anything else
           end
 
           # Write supplement tile, start new tile
@@ -237,8 +251,8 @@ module TileExportService
     # bbox padding
     def bbox_padded(bbox)
       ymin, xmin, ymax, xmax = bbox
-      padding = 0.0
-      [ymin-padding, xmin, ymax+padding, xmax]
+      padding = BBOX_PADDING
+      [ymin-padding, xmin-padding, ymax+padding, xmax+padding]
     end
 
     # make entity methods
@@ -397,11 +411,11 @@ module TileExportService
     end
   end
 
-  def self.tile_build_stops(tilepath)
+  def self.tile_build_stops(tilepath, feed_version_ids: nil)
     redis = Redis.new
     while tile = redis.rpop(KEY_QUEUE_STOPS)
       tile = tile.to_i
-      builder = TileBuilder.new(tilepath, tile)
+      builder = TileBuilder.new(tilepath, tile, feed_version_ids: feed_version_ids)
       nodes_size = builder.build_stops
       if nodes_size > 0
         redis.rpush(KEY_QUEUE_SCHEDULES, tile)
@@ -413,22 +427,25 @@ module TileExportService
     end
   end
 
-  def self.tile_build_schedules(tilepath)
-    redis = Redis.new
+  def self.tile_build_schedules(tilepath, feed_version_ids: nil)
     # stopid_graphid
-    t2 = Time.now
     stopid_graphid = {}
     graphid_stopid = {}
-    redis.hgetall(KEY_STOPID_GRAPHID).each do |k,v|
-      k = k.to_i
-      v = v.to_i
-      stopid_graphid[k] = v
-      graphid_stopid[v] = k
+    redis = Redis.new
+    cursor = nil
+    while cursor != '0'
+      cursor, data = redis.hscan(KEY_STOPID_GRAPHID, cursor, count: 1_000)
+      data.each do |k,v|
+        k = k.to_i
+        v = v.to_i
+        stopid_graphid[k] = v
+        graphid_stopid[v] = k
+      end
     end
     # queue
     while tile = redis.rpop(KEY_QUEUE_SCHEDULES)
       tile = tile.to_i
-      builder = TileBuilder.new(tilepath, tile)
+      builder = TileBuilder.new(tilepath, tile, feed_version_ids: feed_version_ids)
       builder.instance_variable_set('@stopid_graphid', stopid_graphid)
       builder.instance_variable_set('@graphid_stopid', graphid_stopid)
       builder.build_schedules
@@ -437,7 +454,7 @@ module TileExportService
     end
   end
 
-  def self.export_tiles(tilepath, thread_count: nil, feeds: nil)
+  def self.export_tiles(tilepath, thread_count: nil, feeds: nil, feed_versions: nil, tiles: nil)
     # Debug
     # ActiveRecord::Base.logger = Logger.new(STDOUT)
     # ActiveRecord::Base.logger.level = Logger::DEBUG
@@ -452,37 +469,85 @@ module TileExportService
     EntityImportedFromFeed.connection
     ScheduleStopPair.connection
 
-    # Get tiles
-    puts "Feeds"
-    thread_count ||= 1
-    build_tiles = Set.new
-    feeds ||= Feed.where_active_feed_version_import_level(IMPORT_LEVEL)
-    feeds.each do |feed|
-      puts "\t#{feed.onestop_id}"
-      bbox = feed.geometry_bbox
-      b = bbox.min_x, bbox.min_y, bbox.max_x, bbox.max_y
-      TileUtils::GraphID.bbox_to_level_tiles(*b).select { |a,b| a == 2}.each { |a,b| build_tiles << b }
+    # Filter by feed/feed_version
+    feed_version_ids = []
+    if feed_versions
+      feed_version_ids = feed_versions.map(&:id)
+    elsif feeds
+      feed_version_ids = feeds.map(&:active_feed_version_id)
+    else
+      feed_version_ids = Feed.where_active_feed_version_import_level(IMPORT_LEVEL).pluck(:active_feed_version_id)
     end
 
-    puts "Tiles to build: #{build_tiles.size} with thread_count: #{thread_count}"
+    # Build bboxes
+    puts "Selecting tiles..."
+    count_stops = Set.new
+    stop_platforms = Hash.new { |h,k| h[k] = Set.new }
+    stop_egresses = Hash.new { |h,k| h[k] = Set.new }
+    tiles = Set.new(tiles)
+    if tiles.empty?
+      count = 1
+      total = feed_version_ids.size
+      FeedVersion.where(id: feed_version_ids).includes(:feed).find_each do |feed_version|
+        feed = feed_version.feed
+        fvtiles = Set.new
+        Stop.where_imported_from_feed_version(feed_version).find_each do |stop|
+            if stop.is_a?(StopPlatform)
+              stop_platforms[stop.parent_stop_id] << stop.id
+            elsif stop.is_a?(StopEgress)
+              stop_egresses[stop.parent_stop_id] << stop.id
+            else
+              count_stops << stop.id
+              fvtiles << TileUtils::GraphID.new(level: GRAPH_LEVEL, lon: stop.coordinates[0], lat: stop.coordinates[1]).tile
+            end
+        end
+        puts "\t(#{count}/#{total}) #{feed_version.feed.onestop_id} #{feed_version.sha1}: #{fvtiles.size} tiles"
+        tiles += fvtiles
+        count += 1
+      end
+    end
+
+    # TODO: Filter stop_platforms/stop_egresses by feed_version
+    count_egresses = count_stops.map { |i| stop_egresses[i].empty? ? 1 : stop_egresses[i].size }.sum
+    count_platforms = count_stops.map { |i| stop_platforms[i].empty? ? 1 : stop_platforms[i].size }.sum
+    puts "Tiles to build: #{tiles.size}"
+    puts "Expected:"
+    puts "\tstops: #{count_stops.size}"
+    puts "\tplatforms: #{stop_platforms.map { |k,v| v.size }.sum}"
+    puts "\tegresses: #{stop_egresses.map { |k,v| v.size }.sum}"
+    puts "\tnodes: #{count_stops.size + count_egresses + count_platforms}"
+    puts "\tstopid-graphid: #{count_platforms}"
+
+    # Clear
+    count_stops.clear
+    stop_platforms.clear
+    stop_egresses.clear
+    # stopid_graphid = Hash[redis.hgetall('stopid_graphid').map { |k,v| [k.to_i, v.to_i] }]
+    # expected_stops = Set.new
+    # count_stops.each { |i| expected_stops += (stop_platforms[i].empty? ? [i].to_set : stop_platforms[i]) }
+    # missing = stopid_graphid.keys.to_set - expected_stops
+
     # Setup queue
+    thread_count ||= 1
     redis = Redis.new
     redis.del(KEY_QUEUE_STOPS)
     redis.del(KEY_QUEUE_SCHEDULES)
     redis.del(KEY_STOPID_GRAPHID)
-    build_tiles.each_slice(1000) { |i| redis.rpush(KEY_QUEUE_STOPS, i) }
+    tiles.each_slice(1000) { |i| redis.rpush(KEY_QUEUE_STOPS, i) }
 
     # Build stops for each tile.
     puts "\n===== Stops =====\n"
     workers = (0...thread_count).map do
-      fork { tile_build_stops(tilepath) }
+      fork { tile_build_stops(tilepath, feed_version_ids: feed_version_ids) }
     end
     workers.each { |pid| Process.wait(pid) }
+
+    puts "\nStops finished. Schedule tile queue: #{redis.llen(KEY_QUEUE_SCHEDULES)} stopid-graphid mappings: #{redis.hlen(KEY_STOPID_GRAPHID)}"
 
     # Build schedule, routes, shapes for each tile.
     puts "\n===== Routes, Shapes, StopPairs =====\n"
     workers = (0...thread_count).map do
-      fork { tile_build_schedules(tilepath) }
+      fork { tile_build_schedules(tilepath, feed_version_ids: feed_version_ids) }
     end
     workers.each { |pid| Process.wait(pid) }
 
