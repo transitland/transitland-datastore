@@ -7,3 +7,4 @@ RUN gem install bundler -v 1.12.5
 ADD Gemfile /app/Gemfile
 ADD Gemfile.lock /app/Gemfile.lock
 RUN bundle install
+CMD bundle exec puma -C config/puma.rb
