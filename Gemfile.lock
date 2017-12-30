@@ -645,6 +645,7 @@ GEM
       binding_of_caller (>= 0.7)
       pry (>= 0.9.11)
     public_suffix (3.0.0)
+    puma (3.11.0)
     rack (1.6.8)
     rack-cors (1.0.2)
     rack-protection (1.5.3)
@@ -845,6 +846,7 @@ DEPENDENCIES
   pry-rails
   pry-rescue
   pry-stack_explorer
+  puma
   rack-cors
   rails (= 4.2.10)
   rails-erd
@@ -873,4 +875,4 @@ DEPENDENCIES
   whenever
 
 BUNDLED WITH
-   1.15.4
+   1.16.1

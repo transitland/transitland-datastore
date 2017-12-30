@@ -107,6 +107,7 @@ gem 'marginalia', group: [:development, :staging]
 
 # web server
 gem 'unicorn', group: [:staging, :production]
+gem 'puma'
 
 # profiling
 gem 'memory_profiler', group: [:test, :development]
