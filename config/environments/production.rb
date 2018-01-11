@@ -50,6 +50,10 @@ Rails.application.configure do
   config.logstasher.enabled = true
   Sidekiq.logger.formatter = Sidekiq::Logging::Json::Logger.new
 
+  if ENV["RAILS_LOG_TO_STDOUT"].present?
+    config.logger = ActiveSupport::TaggedLogging.new(Logger.new(STDOUT))
+  end
+
   # Prepend all log lines with the following tags.
   # config.log_tags = [ :subdomain, :uuid ]
 
