@@ -16,10 +16,10 @@ every 30.minutes do
   runner 'Stop.re_conflate_with_osm'
 end
 
-every 1.day, at: '2:00 pm' do
+every 1.day, at: '1:00 am' do
   rake 'feed:maintenance:extend_expired_feed_versions_cron'
 end
 
-every 1.day, at: '3:00 pm' do
+every 1.day, at: '2:00am' do
   rake 'feed:maintenance:enqueue_next_feed_versions_cron'
 end

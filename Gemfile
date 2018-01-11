@@ -42,6 +42,9 @@ gem 'json-schema'
 gem 'email_validator'
 gem 'tzinfo'
 
+# data export
+gem 'google-protobuf'
+
 # text matching
 gem 'text'
 

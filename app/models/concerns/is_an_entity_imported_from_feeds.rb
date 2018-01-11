@@ -13,18 +13,18 @@ module IsAnEntityImportedFromFeeds
         .distinct
     }
 
-    scope :where_imported_from_feed, -> (feed) {
+    scope :where_imported_from_feed, -> (feeds) {
       joins(:entities_imported_from_feed)
         .where(entities_imported_from_feed: {
-          feed_id: feed.id
+          feed_id: Array.wrap(feeds).map { |i| i.try(:id) || i }
         })
         .distinct
     }
 
-    scope :where_imported_from_feed_version, -> (feed_version) {
+    scope :where_imported_from_feed_version, -> (feed_versions) {
       joins(:entities_imported_from_feed)
         .where(entities_imported_from_feed: {
-          feed_version_id: feed_version.id
+          feed_version_id: Array.wrap(feed_versions).map { |i| i.try(:id) || i }
         })
         .distinct
     }
