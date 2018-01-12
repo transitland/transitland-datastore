@@ -29,7 +29,6 @@ gem 'redis-rack'
 gem 'sidekiq', '~> 5'
 gem 'sidekiq-unique-jobs', group: [:development, :staging, :production] # doesn't play well with test
 gem 'sidekiq-limit_fetch'
-gem 'whenever', require: false # to manage crontab
 gem "sidekiq-cron", "~> 0.6.3"
 
 # data model
