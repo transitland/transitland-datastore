@@ -532,7 +532,6 @@ GEM
     case_transform (0.2)
       activesupport
     choice (0.2.0)
-    chronic (0.10.2)
     coderay (1.1.2)
     concurrent-ruby (1.0.5)
     connection_pool (2.2.1)
@@ -557,6 +556,8 @@ GEM
       activesupport (>= 3.2)
     erubi (1.7.0)
     erubis (2.7.0)
+    et-orbi (1.0.8)
+      tzinfo
     excon (0.59.0)
     factory_girl (4.9.0)
       activesupport (>= 3.0.0)
@@ -751,6 +752,8 @@ GEM
     ruby-graphviz (1.2.3)
     ruby-progressbar (1.9.0)
     rubyzip (1.2.1)
+    rufus-scheduler (3.4.2)
+      et-orbi (~> 1.0)
     safe_yaml (1.0.4)
     sentry-raven (2.7.1)
       faraday (>= 0.7.6, < 1.0)
@@ -759,6 +762,9 @@ GEM
       connection_pool (~> 2.2, >= 2.2.0)
       rack-protection (>= 1.5.0)
       redis (>= 3.3.4, < 5)
+    sidekiq-cron (0.6.3)
+      rufus-scheduler (>= 3.3.0)
+      sidekiq (>= 4.2.1)
     sidekiq-limit_fetch (3.4.0)
       sidekiq (>= 4)
     sidekiq-logging-json (0.0.18)
@@ -807,8 +813,6 @@ GEM
       addressable (>= 2.3.6)
       crack (>= 0.3.2)
       hashdiff
-    whenever (0.9.7)
-      chronic (>= 0.6.3)
 
 PLATFORMS
   ruby
@@ -868,6 +872,7 @@ DEPENDENCIES
   ruby-progressbar
   sentry-raven
   sidekiq (~> 5)
+  sidekiq-cron (~> 0.6.3)
   sidekiq-limit_fetch
   sidekiq-logging-json
   sidekiq-unique-jobs
@@ -879,7 +884,6 @@ DEPENDENCIES
   unicorn
   vcr
   webmock
-  whenever
 
 BUNDLED WITH
    1.16.1
