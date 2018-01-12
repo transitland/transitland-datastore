@@ -81,7 +81,7 @@ module TransitlandDatastore
 
       # use Mandrill to send e-mail
       config.action_mailer.smtp_settings = {
-          address: "smtp.mandrillapp.com",
+          address: "smtp.sparkpostmail.com",
           port: 587,
           enable_starttls_auto: true,
           user_name: Figaro.env.mandrill_user_name,
