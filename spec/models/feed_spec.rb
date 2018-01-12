@@ -194,6 +194,17 @@ describe Feed do
     })
   end
 
+  context '.feed_versions' do
+    it 'orders by earliest_calendar_date' do
+      feed = create(:feed)
+      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: '2015-01-01')
+      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: '2016-01-01')
+      fv3 = create(:feed_version, feed: feed, earliest_calendar_date: '2017-01-01')
+      feed.reload
+      expect(feed.feed_versions).to match_array([fv3, fv2, fv1])
+    end
+  end
+
   context 'import status' do
     it 'handles never imported' do
       feed = create(:feed)
