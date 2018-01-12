@@ -1029,10 +1029,10 @@ describe Changeset do
         }
       ]
     })
-    allow(ConflateStopsWithOsmWorker).to receive(:perform_async) { true }
+    allow(StopConflateWorker).to receive(:perform_async) { true }
     # WARNING: we're expecting certain a ID in the database. This might
     # not be the case if the test suite is run in parallel.
-    expect(ConflateStopsWithOsmWorker).to receive(:perform_async).with([stop.id])
+    expect(StopConflateWorker).to receive(:perform_async).with([stop.id])
     changeset.apply!
   end
 end

@@ -1,4 +1,4 @@
-describe ConflateStopsWithOsmWorker do
+describe StopConflateWorker do
   before(:each) do
     @glen_park = create(:stop, geometry: 'POINT(-122.433416 37.732525)', name: 'Glen Park')
     @bosworth_diamond = create(:stop, geometry: 'POINT(-122.434011 37.733595)', name: 'Bosworth + Diamond')
@@ -51,7 +51,7 @@ describe ConflateStopsWithOsmWorker do
         ]
       }
     ])
-    worker = ConflateStopsWithOsmWorker.new
+    worker = StopConflateWorker.new
     worker.perform([@bosworth_diamond.id, @metro_embarcadero.id])
     expect(@bosworth_diamond.reload.osm_way_id).to eq(8917801)
     expect(@metro_embarcadero.reload.osm_way_id).to eq(8917802)

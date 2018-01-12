@@ -396,7 +396,7 @@ describe Stop do
       stop1 = create(:stop, last_conflated_at: 3.hours.ago)
       expect {
         Stop.re_conflate_with_osm(2.hours.ago)
-      }.to change(ConflateStopsWithOsmWorker.jobs, :size).by(1)
+      }.to change(StopConflateWorker.jobs, :size).by(1)
     end
 
     it 'handles case of stop returning a valid Tyr response, but no edges' do
