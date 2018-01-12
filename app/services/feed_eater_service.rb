@@ -28,7 +28,8 @@ class FeedEaterService
 
     # Create import record
     feed_version_import = feed_version.feed_version_imports.create(
-      import_level: import_level
+      import_level: import_level,
+      operators_in_feed: feed.operators_in_feed.map { |i| {gtfs_agency_id: i.gtfs_agency_id, feed_id: i.feed_id, feed_onestop_id: i.feed.onestop_id, operator_id: i.operator_id, operator_onestop_id: i.operator.onestop_id} }
     )
 
     # Import feed

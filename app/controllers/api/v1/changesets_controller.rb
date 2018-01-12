@@ -110,7 +110,7 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   private
 
   def query_params
-    {
+    super.merge({
       ids: {
         desc: "Filter by Changeset ID",
         type: "integer",
@@ -120,7 +120,7 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
         desc: "Applied Changesets",
         type: "boolean"
       }
-    }
+    })
   end
 
   def set_changeset

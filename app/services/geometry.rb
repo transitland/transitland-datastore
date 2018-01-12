@@ -38,7 +38,7 @@ module Geometry
     OUTLIER_THRESHOLD = 100 # meters
 
     def self.outlier_stop(stop, rsp)
-      stop_as_spherical = stop[:geometry]
+      stop_as_spherical = stop.geometry_centroid
       stop_as_cartesian = self.cartesian_cast(stop_as_spherical)
       line_geometry_as_cartesian = self.cartesian_cast(rsp[:geometry])
       self.outlier_stop_from_precomputed_geometries(stop_as_spherical, stop_as_cartesian, line_geometry_as_cartesian)
@@ -74,7 +74,7 @@ module Geometry
     def self.compute_cost_matrix(stops, route_line_as_cartesian)
       # where 'cost' is stops' distances to line segments
       cost_matrix = stops.map do |stop|
-        stop_as_cartesian = self.cartesian_cast(stop[:geometry])
+        stop_as_cartesian = self.cartesian_cast(stop.geometry_centroid)
         locators = route_line_as_cartesian.locators(stop_as_cartesian)
         locators.map{|locator| [locator, locator.distance_from_segment]}
       end
@@ -82,17 +82,17 @@ module Geometry
 
     def compute_matching_candidate_thresholds(stops)
       # average minimum distance from stop to line
-      mins = @cost_matrix.each_with_index.map{|locators_and_costs,i| stops[i][:geometry].distance(locators_and_costs.min_by{|lc| lc[1]}[0].interpolate_point(Stop::GEOFACTORY)) }
+      mins = @cost_matrix.each_with_index.map{|locators_and_costs,i| stops[i].geometry_centroid.distance(locators_and_costs.min_by{|lc| lc[1]}[0].interpolate_point(Stop::GEOFACTORY)) }
       y = mins.sum/mins.size.to_f
 
       thresholds = []
       stops.each_with_index do |stop, i|
         if i == 0
-          x = (stops[0][:geometry].distance(stops[1][:geometry]))/2.0
+          x = (stops[0].geometry_centroid.distance(stops[1].geometry_centroid))/2.0
         elsif i == stops.size - 1
-          x = (stops[-1][:geometry].distance(stops[-2][:geometry]))/2.0
+          x = (stops[-1].geometry_centroid.distance(stops[-2].geometry_centroid))/2.0
         else
-          x = (stops[i-1][:geometry].distance(stops[i][:geometry]) + stops[i][:geometry].distance(stops[i+1][:geometry]))/4.0
+          x = (stops[i-1].geometry_centroid.distance(stops[i].geometry_centroid) + stops[i].geometry_centroid.distance(stops[i+1].geometry_centroid))/4.0
         end
         thresholds << Math.sqrt(x**2 + y**2)
       end
@@ -111,7 +111,7 @@ module Geometry
         end
         distances = []
         matches = @cost_matrix[i].each_with_index.select do |locator_and_cost,j|
-          distance = stop[:geometry].distance(locator_and_cost[0].interpolate_point(RouteStopPattern::GEOFACTORY))
+          distance = stop.geometry_centroid.distance(locator_and_cost[0].interpolate_point(RouteStopPattern::GEOFACTORY))
           distances << distance
           j >= min_index && distance <= thresholds[i]
         end
@@ -194,7 +194,7 @@ module Geometry
       total_distance = 0.0
       stops = rsp.stop_pattern.map {|onestop_id| Stop.find_by_onestop_id!(onestop_id) } if stops.nil?
       stops.each_cons(2) do |stop1, stop2|
-        total_distance += stop1[:geometry].distance(stop2[:geometry])
+        total_distance += stop1.geometry_centroid.distance(stop2.geometry_centroid)
         rsp.stop_distances << total_distance
       end
       rsp.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
@@ -247,7 +247,7 @@ module Geometry
         if stop_index == stops.size - 1
           segment_matches[stop_index] = stop_seg_match
         else
-          equivalent_stops = stops[stop_index].onestop_id.eql?(stops[stop_index+1]) || stops[stop_index][:geometry].eql?(stops[stop_index+1][:geometry])
+          equivalent_stops = stops[stop_index].onestop_id.eql?(stops[stop_index+1]) || stops[stop_index].geometry_centroid.eql?(stops[stop_index+1].geometry_centroid)
           # consecutive stops match to same segment, but their positions on the segment are out of order.
           inverted = !stop_seg_match.nil? &&
             !segment_matches[stop_index+1].nil? &&
@@ -324,9 +324,9 @@ module Geometry
       @cost_matrix = self.class.compute_cost_matrix(stops, route_line_as_cartesian)
 
       skip_stops = []
-      skip_first_stop = assign_first_stop_distance(rsp, route_line_as_cartesian, stops[0][:geometry], self.class.cartesian_cast(stops[0][:geometry]))
+      skip_first_stop = assign_first_stop_distance(rsp, route_line_as_cartesian, stops[0].geometry_centroid, self.class.cartesian_cast(stops[0].geometry_centroid))
       skip_stops << 0 if skip_first_stop
-      skip_last_stop = self.class.stop_after_geometry(stops[-1][:geometry], self.class.cartesian_cast(stops[-1][:geometry]), route_line_as_cartesian)
+      skip_last_stop = self.class.stop_after_geometry(stops[-1].geometry_centroid, self.class.cartesian_cast(stops[-1].geometry_centroid), route_line_as_cartesian)
       skip_stops << stops.size - 1 if skip_last_stop
 
       best_possible_matching_segments_for_stops(route_line_as_cartesian, stops, skip_stops=skip_stops)
@@ -341,7 +341,7 @@ module Geometry
       end
       stops.each_with_index do |stop, i|
         next if skip_stops.include?(i)
-        current_stop_as_spherical = stop[:geometry]
+        current_stop_as_spherical = stop.geometry_centroid
         current_stop_as_cartesian = self.class.cartesian_cast(current_stop_as_spherical)
         locator = @cost_matrix[i][best_single_segment_match_for_stops[i]][0]
         rsp.stop_distances[i] = LineString.distance_along_line_to_nearest_point(route_line_as_cartesian,locator.interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326)),best_single_segment_match_for_stops[i])
@@ -404,7 +404,7 @@ module Geometry
             raise StandardError.new("Problem finding stop distance for Stop #{stop_onestop_id}, number #{i + 1} of RSP #{rsp.onestop_id} using shape_dist_traveled")
           else
             stop = tl_stops[i]
-            locators = route_line_as_cartesian.locators(self.cartesian_cast(stop[:geometry]))
+            locators = route_line_as_cartesian.locators(self.cartesian_cast(stop.geometry_centroid))
             seg_length = shape_distances_traveled[search_and_seg_index+1] - shape_distances_traveled[search_and_seg_index]
             seg_dist_ratio = seg_length > 0 ? (st.shape_dist_traveled.to_f - shape_distances_traveled[search_and_seg_index]) / seg_length : 0
             point_on_line = locators[search_and_seg_index].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326), seg_dist=seg_dist_ratio)

@@ -99,6 +99,14 @@ class Stop < BaseStop
     ]
   })
 
+
+  def update_parent_stop(changeset)
+    if self.parent_stop_onestop_id
+      parent_stop = Stop.find_by_onestop_id!(self.parent_stop_onestop_id)
+      self.update!(parent_stop: parent_stop)
+    end
+  end
+
   def update_stop_pattern_onestop_ids(old_onestop_ids, changeset)
     old_onestop_ids = Array.wrap(old_onestop_ids)
     RouteStopPattern.with_any_stops(old_onestop_ids).each do |rsp|
@@ -116,6 +124,7 @@ class Stop < BaseStop
   end
 
   def update_associations(changeset)
+    update_parent_stop(changeset)
     update_entity_imported_from_feeds(changeset)
     update_served_by(changeset)
     update_includes_stop_transfers(changeset)
@@ -186,9 +195,7 @@ class Stop < BaseStop
   # Issues
   has_many :issues, through: :entities_with_issues
 
-  def parent_stop
-    # Dummy relation
-  end
+  belongs_to :parent_stop, class_name: 'Stop'
 
   # Add service from an Operator or Route
   scope :served_by, -> (onestop_ids_and_models) {
@@ -264,7 +271,7 @@ class Stop < BaseStop
   end
 
   def geometry_for_centroid
-    self[:geometry_reversegeo] || self[:geometry]
+    read_attribute(:geometry_reversegeo) || read_attribute(:geometry)
   end
 
   def coordinates
@@ -287,7 +294,7 @@ class Stop < BaseStop
   def similarity(other)
     # TODO: instance method, compare against a second instance?
     # Inverse distance in km
-    score_geom = 1 / (self[:geometry].distance(other[:geometry]) / 1000.0 + 1)
+    score_geom = 1 / (self.geometry_centroid.distance(other.geometry_centroid) / 1000.0 + 1)
     # Levenshtein distance as ratio of name length
     score_text = 1 - (Text::Levenshtein.distance(self.name, other.name) / [self.name.size, other.name.size].max.to_f)
     # Weighted average
@@ -374,7 +381,7 @@ class Stop < BaseStop
   def generate_onestop_id
     fail Exception.new('geometry required') if geometry.nil?
     fail Exception.new('name required') if name.nil?
-    geohash = GeohashHelpers.encode(self[:geometry])
+    geohash = GeohashHelpers.encode(self.geometry_centroid)
     name = self.name.gsub(/[\>\<]/, '')
     onestop_id = OnestopId.handler_by_model(self.class).new(
       geohash: geohash,

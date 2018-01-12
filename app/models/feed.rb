@@ -22,6 +22,7 @@
 #  license_attribution_text           :text
 #  active_feed_version_id             :integer
 #  edited_attributes                  :string           default([]), is an Array
+#  name                               :string
 #
 # Indexes
 #
@@ -57,7 +58,23 @@ class Feed < BaseFeed
   include IsAnEntityWithIssues
   include IsAnEntityImportedFromFeeds
 
-  has_many :feed_versions, -> { order 'earliest_calendar_date DESC' }, dependent: :destroy, as: :feed
+  include CanBeSerializedToCsv
+  def self.csv_column_names
+    [
+      'Onestop ID',
+      'Name',
+      'URL'
+    ]
+  end
+  def csv_row_values
+    [
+      onestop_id,
+      name,
+      url
+    ]
+  end
+
+  has_many :feed_versions, -> { order 'earliest_calendar_date' }, dependent: :destroy, as: :feed
   has_many :feed_version_imports, -> { order 'created_at DESC' }, through: :feed_versions
   belongs_to :active_feed_version, class_name: 'FeedVersion'
 
@@ -148,6 +165,29 @@ class Feed < BaseFeed
     # WHERE fvi2.id IS NULL GROUP BY (fv.feed_id)
   }
 
+  def self.feed_version_update_statistics(feed)
+    fvs = feed.feed_versions.to_a
+    fvs_stats = fvs.select { |a| a.url && a.fetched_at && a.earliest_calendar_date && a.latest_calendar_date }.sort_by { |a| a.fetched_at }
+    result = {
+      feed_onestop_id: feed.onestop_id,
+      feed_versions_total: fvs.count,
+      feed_versions_filtered: fvs_stats.count,
+    }
+    return result if fvs_stats.size < 1
+    # Duration is a counted value; use float to report average.
+    result[:scheduled_service_duration_average] = (fvs_stats.map { |a| a.latest_calendar_date.to_date - a.earliest_calendar_date.to_date}.sum / fvs_stats.size).to_f
+
+    fvs_pairs = fvs_stats[0..-2].zip(fvs_stats[1..-1])
+    if fvs_pairs.size > 0
+      result[:feed_versions_filtered_sha1] = fvs_stats.map { |a| a.sha1 }
+      # The precision of fetched_at is 1 day; report as an int
+      result[:fetched_at_frequency] = (fvs_pairs.map { |a,b| b.fetched_at.to_date - a.fetched_at.to_date }.sum / fvs_pairs.size).to_i
+      # Duration is a counted value; use float to report average.
+      result[:scheduled_service_overlap_average] = (fvs_pairs.map { |a,b| a.latest_calendar_date.to_date - b.earliest_calendar_date.to_date }.sum / fvs_pairs.size).to_f
+    end
+    result
+  end
+
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
     kind_of_model_tracked: :onestop_entity,
@@ -159,7 +199,7 @@ class Feed < BaseFeed
   })
 
   def update_associations(changeset)
-    (self.includes_operators || []).each do |included_operator|
+    (self.includes_operators || []).uniq.each do |included_operator|
       operator = Operator.find_by!(onestop_id: included_operator[:operator_onestop_id])
       existing_relationship = OperatorInFeed.find_by(
         operator: operator,
@@ -186,7 +226,7 @@ class Feed < BaseFeed
         )
       end
     end
-    (self.does_not_include_operators || []).each do |not_included_operator|
+    (self.does_not_include_operators || []).uniq.each do |not_included_operator|
       operator = Operator.find_by!(onestop_id: not_included_operator[:operator_onestop_id])
       existing_relationship = OperatorInFeed.find_by(
         operator: operator,
@@ -205,21 +245,6 @@ class Feed < BaseFeed
       operator_in_feed.destroy_making_history(changeset: changeset)
     end
     return true
-  end
-
-  def find_next_feed_version(date)
-    # Find a feed_version where:
-    #   1. newer than active_feed_version
-    #   2. service begins on or later than active_feed_version
-    #   3. service begins on or before specified date
-    active_feed_version = self.active_feed_version
-    return unless active_feed_version
-    self.feed_versions
-      .where('created_at > ?', active_feed_version.created_at)
-      .where('earliest_calendar_date >= ?', active_feed_version.earliest_calendar_date)
-      .where('earliest_calendar_date <= ?', date)
-      .reorder(earliest_calendar_date: :desc, created_at: :desc)
-      .first
   end
 
   def activate_feed_version(feed_version_sha1, import_level)
@@ -256,6 +281,40 @@ class Feed < BaseFeed
       :in_progress
     else
       :unknown
+    end
+  end
+
+  STATUS_VALUES = ['active','replaced','unreachable','unpublished','outdated','broken', nil]
+  def status=(value)
+    value = value.to_s.presence
+    fail Exception.new("Invalid status: #{value}") unless STATUS_VALUES.include?(value)
+    tags['status'] = value
+  end
+
+  def status
+    tags['status'] || 'active'
+  end
+
+  IMPORT_POLICY_VALUES = ['manual','immediately','weekly','daily', nil]
+  def import_policy=(value)
+    value = value.to_s.presence
+    fail Exception.new("Invalid import_policy: #{value}") unless IMPORT_POLICY_VALUES.include?(value)
+    tags['import_policy'] = value
+  end
+
+  def import_policy
+    value = tags['import_policy']
+    if tags['manual_import'] == 'true'
+      value ||= 'manual'
+    end
+    value
+  end
+
+  def ssl_verify
+    if tags['ssl_verify'] == 'false'
+      return false
+    else
+      return true
     end
   end
 

@@ -1,8 +1,11 @@
 describe GTFSValidationService do
+  before(:each) {
+    allow(Figaro.env).to receive(:run_google_validator) { 'true' }
+    allow(Figaro.env).to receive(:run_conveyal_validator) { 'true' }
+  }
+
   context '.run_validators' do
     before(:each) {
-      allow(Figaro.env).to receive(:run_google_validator) { 'true' }
-      allow(Figaro.env).to receive(:run_conveyal_validator) { 'true' }
       allow(GTFSValidationService).to receive(:run_google_validator) { Tempfile.new(['test','.html']) }
       allow(GTFSValidationService).to receive(:run_conveyal_validator) { Tempfile.new(['test','.json']) }
     }

@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.2.9'
+gem 'rails', '4.2.10'
 
 # Transitland Datastore components
 path 'components' do
@@ -34,13 +34,16 @@ gem 'whenever', require: false # to manage crontab
 # data model
 gem 'squeel'
 gem 'enumerize'
-gem 'gtfs', github: 'transitland/gtfs', tag: '871f27f42ca6b4b5a643b541d14c9b8fc241bd68'
+gem 'gtfs', github: 'transitland/gtfs', tag: '900a28ea0067592b8529bdd5a43f31026f65ed52'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 gem 'json'
 gem 'json-schema'
 gem 'email_validator'
 gem 'tzinfo'
+
+# data export
+gem 'google-protobuf'
 
 # text matching
 gem 'text'
@@ -107,6 +110,7 @@ gem 'marginalia', group: [:development, :staging]
 
 # web server
 gem 'unicorn', group: [:staging, :production]
+gem 'puma'
 
 # profiling
 gem 'memory_profiler', group: [:test, :development]

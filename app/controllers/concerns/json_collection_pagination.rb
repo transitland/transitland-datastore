@@ -7,10 +7,10 @@ module JsonCollectionPagination
     per_page = sort_per_page
     offset = sort_offset
     include_total = sort_total
+    min_id = sort_min_id
     meta = {
       sort_key: sort_key,
       sort_order: sort_order,
-      offset: offset,
       per_page: per_page,
     }
     qps = params.permit(query_params.keys)
@@ -22,12 +22,20 @@ module JsonCollectionPagination
     # Setup prev/next links
     if ['false', '∞'].include?(per_page)
       data_on_page = collection.to_a
+    elsif min_id
+      # Get the current page of results, +1 to limit to check next page
+      data = collection.where('id > ?', min_id).limit(per_page+1).to_a
+      data_on_page = data[0...per_page]
+      meta[:sort_min_id] = min_id
+      (meta[:next] = url_for(qps.merge(meta).merge(sort_min_id: data_on_page.last.try(:id)))) if data.size > per_page
     else
       # Get the current page of results.
       #  Add +1 to limit to see if there is a next page.
       #  This will be dropped in the return.
       data = collection.offset(offset).limit(per_page+1).to_a
+      data_on_page = data[0...per_page]
       # Previous and next page
+      meta[:offset] = offset
       meta_prev = url_for(qps.merge(meta).merge({
         offset: (offset - per_page) >= 0 ? (offset - per_page) : 0,
       }))
@@ -36,8 +44,6 @@ module JsonCollectionPagination
       }))
       (meta[:prev] = meta_prev) if offset > 0
       (meta[:next] = meta_next) if data.size > per_page
-      # Slice data
-      data_on_page = data[0...per_page]
     end
 
     if include_total
@@ -66,12 +72,12 @@ module JsonCollectionPagination
 
   private
 
-  def query_params
-    {}
-  end
-
   def sort_key
     (params[:sort_key].presence || :id).to_sym
+  end
+
+  def sort_min_id
+    params[:sort_min_id].presence ? params[:sort_min_id].to_i : nil
   end
 
   def sort_order

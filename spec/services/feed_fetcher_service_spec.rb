@@ -4,6 +4,10 @@ describe FeedFetcherService do
   let (:example_url)              { 'http://localhost:8000/example.zip' }
   let (:example_nested_flat)      { 'http://localhost:8000/example_nested.zip#example_nested/example' }
   let (:example_nested_zip)       { 'http://localhost:8000/example_nested.zip#example_nested/nested/example.zip' }
+  let (:example_nested_unambiguous){'http://localhost:8000/example_nested_unambiguous.zip' }
+  let (:example_nested_ambiguous) { 'http://localhost:8000/example_nested_ambiguous.zip' }
+
+
   let (:example_sha1_raw)         { '2a7503435dcedeec8e61c2e705f6098e560e6bc6' }
   let (:example_nested_sha1_raw)  { '65d278fdd3f5a9fae775a283ef6ca2cb7b961add' }
 
@@ -12,25 +16,9 @@ describe FeedFetcherService do
     before(:each) do
       allow(FeedFetcherService).to receive(:fetch_and_return_feed_version) { true }
     end
-
-    it 'fetch_this_feed_now(feed)' do
-      FeedFetcherService.fetch_this_feed_now(caltrain_feed)
-    end
-
-    it 'fetch_these_feeds_now(feeds)' do
-      FeedFetcherService.fetch_these_feeds_now([caltrain_feed, vta_feed])
-    end
   end
 
   context 'asynchronously' do
-    it 'fetch_this_feed_async(feed)' do
-      # Sidekiq::Testing.fake! do
-        expect {
-          FeedFetcherService.fetch_this_feed_async(caltrain_feed)
-        }.to change(FeedFetcherWorker.jobs, :size).by(1)
-      # end
-    end
-
     it 'fetch_these_feeds_async(feeds)' do
       Sidekiq::Testing.fake! do
         expect {
@@ -67,6 +55,24 @@ describe FeedFetcherService do
         FeedFetcherService.fetch_and_return_feed_version(feed)
       end
       expect(feed.feed_versions.count).to eq 1
+    end
+
+    it 'fetches if status is active' do
+      feed = create(:feed_caltrain)
+      feed.status = 'active'
+      VCR.use_cassette('feed_fetch_caltrain') do
+        feed_version = FeedFetcherService.fetch_and_return_feed_version(feed)
+        expect(feed_version).to be_truthy
+      end
+    end
+
+    it 'skips fetch if status is not active' do
+      feed = create(:feed_caltrain)
+      feed.status = 'broken'
+      VCR.use_cassette('feed_fetch_caltrain') do
+        feed_version = FeedFetcherService.fetch_and_return_feed_version(feed)
+        expect(feed_version).to be_nil
+      end
     end
 
     it "does not create a duplicate, if remote file hasn't changed since last download" do
@@ -108,7 +114,7 @@ describe FeedFetcherService do
       expect(Issue.issues_of_entity(feed).count).to eq 0
     end
 
-    it 'creates GTFSValidationWorker job' do
+    it 'creates GTFSGoogleValidationWorker job' do
       allow(Figaro.env).to receive(:run_google_validator) { 'true' }
       feed = create(:feed_caltrain)
       Sidekiq::Testing.fake! do
@@ -116,7 +122,19 @@ describe FeedFetcherService do
           VCR.use_cassette('feed_fetch_caltrain') do
             FeedFetcherService.fetch_and_return_feed_version(feed)
           end
-        }.to change(GTFSValidationWorker.jobs, :size).by(1)
+        }.to change(GTFSGoogleValidationWorker.jobs, :size).by(1)
+      end
+    end
+
+    it 'creates GTFSConveyalValidationWorker job' do
+      allow(Figaro.env).to receive(:run_conveyal_validator) { 'true' }
+      feed = create(:feed_caltrain)
+      Sidekiq::Testing.fake! do
+        expect {
+          VCR.use_cassette('feed_fetch_caltrain') do
+            FeedFetcherService.fetch_and_return_feed_version(feed)
+          end
+        }.to change(GTFSConveyalValidationWorker.jobs, :size).by(1)
       end
     end
   end
@@ -136,7 +154,7 @@ describe FeedFetcherService do
       feed = create(:feed, url: example_url)
       feed_version = nil
       VCR.use_cassette('feed_fetch_example_local') do
-        feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
+        feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
         feed_version.save!
       end
       expect(feed_version.earliest_calendar_date).to eq Date.parse('2007-01-01')
@@ -147,7 +165,7 @@ describe FeedFetcherService do
       feed = create(:feed, url: example_url)
       feed_version = nil
       VCR.use_cassette('feed_fetch_example_local') do
-        feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
+        feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
         feed_version.save!
       end
       expect(feed_version.tags['feed_lang']).to eq 'en-US'
@@ -157,12 +175,38 @@ describe FeedFetcherService do
     end
   end
 
-  context '#fetch_and_normalize' do
+  context '#gtfs_minimal_validation' do
+    it 'raises exception when missing a required file' do
+      file = Rails.root.join('spec/support/example_gtfs_archives/example-missing-stops.zip')
+      expect {
+        gtfs = FeedFetcherService.fetch_gtfs(file: file)
+        FeedFetcherService.gtfs_minimal_validation(gtfs)
+      }.to raise_error(GTFS::InvalidSourceException)
+    end
+
+    it 'raises exception when a required file is empty' do
+      file = Rails.root.join('spec/support/example_gtfs_archives/example-empty-stops.zip')
+      gtfs = FeedFetcherService.fetch_gtfs(file: file)
+      expect {
+        FeedFetcherService.gtfs_minimal_validation(gtfs)
+      }.to raise_error(GTFS::InvalidSourceException)
+    end
+
+    it 'raises exception when calendar is empty' do
+      file = Rails.root.join('spec/support/example_gtfs_archives/example-empty-calendar.zip')
+      gtfs = FeedFetcherService.fetch_gtfs(file: file)
+      expect {
+        FeedFetcherService.gtfs_minimal_validation(gtfs)
+      }.to raise_error(GTFS::InvalidSourceException)
+    end
+  end
+
+  context '#fetch_normalize_validate_create' do
     it 'downloads feed' do
       feed = create(:feed, url: example_url)
       feed_version = nil
       VCR.use_cassette('feed_fetch_example_local') do
-        feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
+        feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
         feed_version.save!
       end
       expect(feed_version.sha1).to eq example_sha1_raw
@@ -173,7 +217,7 @@ describe FeedFetcherService do
       feed = create(:feed, url: example_url)
       feed_version = nil
       VCR.use_cassette('feed_fetch_example_local') do
-        feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
+        feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
         feed_version.save!
       end
       expect(feed_version.sha1).to be_truthy # eq example_sha1
@@ -184,7 +228,7 @@ describe FeedFetcherService do
       feed = create(:feed, url: example_nested_zip)
       feed_version = nil
       VCR.use_cassette('feed_fetch_nested') do
-        feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
+        feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
         feed_version.save!
       end
       expect(feed_version.sha1).to be_truthy # eq example_nested_sha1_zip
@@ -196,12 +240,34 @@ describe FeedFetcherService do
       feed = create(:feed, url: example_nested_flat)
       feed_version = nil
       VCR.use_cassette('feed_fetch_nested') do
-        feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
+        feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
         feed_version.save!
       end
       expect(feed_version.sha1).to be_truthy # eq example_nested_sha1_flat
       expect(feed_version.sha1_raw).to eq example_nested_sha1_raw
       expect(feed_version.fetched_at).to be_truthy
+    end
+
+    it 'auto_detect_root unambiguous' do
+      # Note: when root is auto-detected, a raw file is not created.
+      feed = create(:feed, url: example_nested_unambiguous)
+      feed_version = nil
+      VCR.use_cassette('example_nested_unambiguous') do
+        feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
+        feed_version.save!
+      end
+      expect(feed_version.sha1).to eq('ab14bc8689f27acbb9d0e3a0dbf7006da96734bc')
+      expect(feed_version.sha1_raw).to be_nil
+    end
+
+    it 'auto_detect_root ambiguous' do
+      feed = create(:feed, url: example_nested_ambiguous)
+      expect {
+        VCR.use_cassette('example_nested_ambiguous') do
+          feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
+          feed_version.save!
+        end
+      }.to raise_error(GTFS::AmbiguousZipException)
     end
 
     it 'normalizes consistent sha1' do
@@ -210,7 +276,7 @@ describe FeedFetcherService do
       feed_versions = []
       2.times.each do |i|
         VCR.use_cassette('feed_fetch_nested') do
-          feed_version = FeedFetcherService.fetch_and_normalize_feed_version(feed)
+          feed_version = FeedFetcherService.fetch_normalize_validate_create(feed, url: feed.url)
         end
         feed_versions << feed_version
         sleep 5

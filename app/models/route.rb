@@ -232,7 +232,7 @@ class Route < BaseRoute
     stops = self.serves || self.stops
     fail Exception.new('no Stop coordinates') if stops.empty?
     fail Exception.new('name required') if name.nil?
-    geohash = GeohashHelpers.fit(Stop::GEOFACTORY.collection(stops.map { |s| s[:geometry] }))
+    geohash = GeohashHelpers.fit(Stop::GEOFACTORY.collection(stops.map { |s| s.geometry_centroid }))
     onestop_id = OnestopId.handler_by_model(self.class).new(
       geohash: geohash,
       name: name

@@ -49,14 +49,26 @@ class Operator < BaseOperator
     [
       'Onestop ID',
       'Name',
-      'Website'
+      'Short Name',
+      'Country',
+      'State',
+      'Metro',
+      'Timezone',
+      'Website',
+      'Transitland Feed Registry URL'
     ]
   end
   def csv_row_values
     [
       onestop_id,
       name,
-      tags.try(:fetch, :agency_url, '')
+      short_name,
+      country,
+      state,
+      metro,
+      timezone,
+      tags.try(:fetch, :agency_url, nil),
+      "https://transit.land/feed-registry/operators/#{onestop_id}"
     ]
   end
 
@@ -78,6 +90,14 @@ class Operator < BaseOperator
       :website
     ]
   })
+
+  scope :with_feed, -> (feeds) {
+    joins(:operators_in_feed).where({operators_in_feed: {feed_id: Array.wrap(feeds)}})
+  }
+
+  scope :without_feed, -> {
+    joins('FULL OUTER JOIN current_operators_in_feed ON current_operators.id = current_operators_in_feed.operator_id WHERE current_operators_in_feed.id IS NULL')
+  }
 
   def update_associations(changeset)
     update_entity_imported_from_feeds(changeset)

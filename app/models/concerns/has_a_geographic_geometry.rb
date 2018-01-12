@@ -86,25 +86,32 @@ module HasAGeographicGeometry
     geometry(as: :wkt)
   end
 
+  def geometry_bbox
+    RGeo::Cartesian::BoundingBox.create_from_geometry(geometry(as: :wkt))
+  end
+
   def centroid_from_geometry(geom)
-    geom_proj = RGeo::Feature.cast(
-      geom,
-      factory: RGeo::Geographic.simple_mercator_factory.projection_factory,
-      project: true
-    )
     if geom.respond_to?(:lat) && geom.respond_to?(:lon)
       centroid = geom.dup
-    elsif geom_proj.respond_to?(:centroid)
-      centroid = geom_proj.centroid
     else
-      fail Exception.new("Cant create centroid: #{geom}")
+      # RGeo centroid only works in Mercator
+      geom_proj = RGeo::Feature.cast(
+        geom,
+        factory: RGeo::Geographic.simple_mercator_factory.projection_factory,
+        project: true
+      )
+      if geom_proj.respond_to?(:centroid)
+        # Project back
+        centroid = RGeo::Feature.cast(
+          geom_proj.centroid,
+          factory: GEOFACTORY,
+          project: true
+        )
+      else
+        fail Exception.new("Cant create centroid: #{geom}")
+      end
     end
-    # Project back
-    RGeo::Feature.cast(
-      centroid,
-      factory: GEOFACTORY,
-      project: true
-    )
+    centroid
   end
 
   def validate_geometry

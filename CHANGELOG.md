@@ -2,15 +2,154 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/72...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/79...HEAD)
 
 **Closed issues:**
 
-- SSP: Query by operator\_onestop\_id is slow [\#1138](https://github.com/transitland/transitland-datastore/issues/1138)
+- Station merging: all SSPs on platforms [\#1199](https://github.com/transitland/transitland-datastore/issues/1199)
 
 **Merged pull requests:**
 
+- Production release 79 [\#1198](https://github.com/transitland/transitland-datastore/pull/1198) ([irees](https://github.com/irees))
+
+## [79](https://github.com/transitland/transitland-datastore/tree/79) (2017-10-12)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/78...79)
+
+**Closed issues:**
+
+- Use gtfs auto\_detect\_root: true [\#1073](https://github.com/transitland/transitland-datastore/issues/1073)
+
+**Merged pull requests:**
+
+- Station SSPs [\#1200](https://github.com/transitland/transitland-datastore/pull/1200) ([irees](https://github.com/irees))
+- Production release 78 [\#1195](https://github.com/transitland/transitland-datastore/pull/1195) ([irees](https://github.com/irees))
+
+## [78](https://github.com/transitland/transitland-datastore/tree/78) (2017-10-03)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/77...78)
+
+**Implemented enhancements:**
+
+- Configurable SSL verify mode [\#1185](https://github.com/transitland/transitland-datastore/issues/1185)
+
+**Closed issues:**
+
+- sort\_by vs. sort\_key [\#1193](https://github.com/transitland/transitland-datastore/issues/1193)
+- Changesets: examine array uniqueness requirements [\#1059](https://github.com/transitland/transitland-datastore/issues/1059)
+
+**Merged pull requests:**
+
+- Add auto\_detect\_root to GTFS open [\#1197](https://github.com/transitland/transitland-datastore/pull/1197) ([irees](https://github.com/irees))
+- update misc. gems [\#1196](https://github.com/transitland/transitland-datastore/pull/1196) ([drewda](https://github.com/drewda))
+- Configurable SSL validation [\#1194](https://github.com/transitland/transitland-datastore/pull/1194) ([irees](https://github.com/irees))
+- Production release 77 [\#1178](https://github.com/transitland/transitland-datastore/pull/1178) ([irees](https://github.com/irees))
+
+## [77](https://github.com/transitland/transitland-datastore/tree/77) (2017-09-26)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/76...77)
+
+**Implemented enhancements:**
+
+- Feeds: import\_policy [\#1085](https://github.com/transitland/transitland-datastore/issues/1085)
+
+**Fixed bugs:**
+
+- Validation reports: file not found [\#1154](https://github.com/transitland/transitland-datastore/issues/1154)
+
+**Closed issues:**
+
+- FeedFetcher: Basic validation of new feeds [\#1191](https://github.com/transitland/transitland-datastore/issues/1191)
+- Feed Publication Metrics [\#1183](https://github.com/transitland/transitland-datastore/issues/1183)
+- Validation reports: timeout [\#1180](https://github.com/transitland/transitland-datastore/issues/1180)
+- Keyset pagination: check for result before generating next url [\#1176](https://github.com/transitland/transitland-datastore/issues/1176)
+
+**Merged pull requests:**
+
+- Feed update statistics fixes [\#1192](https://github.com/transitland/transitland-datastore/pull/1192) ([irees](https://github.com/irees))
+- Feed\#import\_policy also checks manual\_import tag [\#1190](https://github.com/transitland/transitland-datastore/pull/1190) ([irees](https://github.com/irees))
+- update gems [\#1189](https://github.com/transitland/transitland-datastore/pull/1189) ([drewda](https://github.com/drewda))
+- Improve FeedVersion creation [\#1188](https://github.com/transitland/transitland-datastore/pull/1188) ([irees](https://github.com/irees))
+- Feed import policy [\#1186](https://github.com/transitland/transitland-datastore/pull/1186) ([irees](https://github.com/irees))
+- Feed Publication Metrics [\#1184](https://github.com/transitland/transitland-datastore/pull/1184) ([irees](https://github.com/irees))
+- updating URLs in sample changesets [\#1182](https://github.com/transitland/transitland-datastore/pull/1182) ([drewda](https://github.com/drewda))
+- update misc. gems [\#1181](https://github.com/transitland/transitland-datastore/pull/1181) ([drewda](https://github.com/drewda))
+- Fix validator missing file and add validator timeouts [\#1179](https://github.com/transitland/transitland-datastore/pull/1179) ([irees](https://github.com/irees))
+- Production release 76 [\#1175](https://github.com/transitland/transitland-datastore/pull/1175) ([irees](https://github.com/irees))
+
+## [76](https://github.com/transitland/transitland-datastore/tree/76) (2017-08-28)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/75...76)
+
+**Merged pull requests:**
+
+- Check for result before next url [\#1177](https://github.com/transitland/transitland-datastore/pull/1177) ([irees](https://github.com/irees))
+- Production release 75 [\#1167](https://github.com/transitland/transitland-datastore/pull/1167) ([irees](https://github.com/irees))
+
+## [75](https://github.com/transitland/transitland-datastore/tree/75) (2017-08-22)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/74...75)
+
+**Closed issues:**
+
+- SSP controller: avoid expensive subqueries [\#1173](https://github.com/transitland/transitland-datastore/issues/1173)
+- Pagination: keyset [\#1170](https://github.com/transitland/transitland-datastore/issues/1170)
+- Next url: include apikey [\#1168](https://github.com/transitland/transitland-datastore/issues/1168)
+
+**Merged pull requests:**
+
+- Query params: apikey [\#1174](https://github.com/transitland/transitland-datastore/pull/1174) ([irees](https://github.com/irees))
+- SSP controller: avoid expensive subqueries [\#1172](https://github.com/transitland/transitland-datastore/pull/1172) ([irees](https://github.com/irees))
+- Implement keyset pagination [\#1171](https://github.com/transitland/transitland-datastore/pull/1171) ([irees](https://github.com/irees))
+- Update gems and annotations [\#1169](https://github.com/transitland/transitland-datastore/pull/1169) ([drewda](https://github.com/drewda))
+- Production release 74 [\#1157](https://github.com/transitland/transitland-datastore/pull/1157) ([irees](https://github.com/irees))
+
+## [74](https://github.com/transitland/transitland-datastore/tree/74) (2017-08-14)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/73...74)
+
+**Implemented enhancements:**
+
+- include more information/columns when requesting CSV from API endpoints [\#1164](https://github.com/transitland/transitland-datastore/issues/1164)
+
+**Closed issues:**
+
+- Relax JSON Schema array uniqueness requirements [\#1159](https://github.com/transitland/transitland-datastore/issues/1159)
+- Remove old SSPs [\#1156](https://github.com/transitland/transitland-datastore/issues/1156)
+- Stop becomes StopPlatform [\#1152](https://github.com/transitland/transitland-datastore/issues/1152)
+- Feeds: feed\_versions default ordering by service\_start\_date [\#1144](https://github.com/transitland/transitland-datastore/issues/1144)
+- Feed: Add a 'name' field [\#1131](https://github.com/transitland/transitland-datastore/issues/1131)
+- Query for Operators without Feeds [\#1130](https://github.com/transitland/transitland-datastore/issues/1130)
+
+**Merged pull requests:**
+
+- update misc. gems [\#1166](https://github.com/transitland/transitland-datastore/pull/1166) ([drewda](https://github.com/drewda))
+- CSV additions [\#1165](https://github.com/transitland/transitland-datastore/pull/1165) ([drewda](https://github.com/drewda))
+- SSP: Skip trip if interpolation issues [\#1163](https://github.com/transitland/transitland-datastore/pull/1163) ([irees](https://github.com/irees))
+- Feed: add name [\#1162](https://github.com/transitland/transitland-datastore/pull/1162) ([irees](https://github.com/irees))
+- Operators: with\_feed and without\_feed [\#1161](https://github.com/transitland/transitland-datastore/pull/1161) ([irees](https://github.com/irees))
+- Relax JSON Schema "uniqueItems" requirements [\#1160](https://github.com/transitland/transitland-datastore/pull/1160) ([irees](https://github.com/irees))
+- Feed: sort feed\_versions by earliest\_calendar\_date [\#1158](https://github.com/transitland/transitland-datastore/pull/1158) ([irees](https://github.com/irees))
+- Changeset: changeStopType action [\#1155](https://github.com/transitland/transitland-datastore/pull/1155) ([irees](https://github.com/irees))
+- Production release 73 [\#1140](https://github.com/transitland/transitland-datastore/pull/1140) ([irees](https://github.com/irees))
+
+## [73](https://github.com/transitland/transitland-datastore/tree/73) (2017-08-03)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/72...73)
+
+**Closed issues:**
+
+- RSP: Use stop centroids [\#1148](https://github.com/transitland/transitland-datastore/issues/1148)
+- Use 64 bit ID for SSP [\#1141](https://github.com/transitland/transitland-datastore/issues/1141)
+- SSP: Query by operator\_onestop\_id is slow [\#1138](https://github.com/transitland/transitland-datastore/issues/1138)
+- Polygons \(not just points\) for StopStation geometries [\#826](https://github.com/transitland/transitland-datastore/issues/826)
+- consistent precision for geometries [\#362](https://github.com/transitland/transitland-datastore/issues/362)
+
+**Merged pull requests:**
+
+- Gracefully handle references to missing stop or route [\#1153](https://github.com/transitland/transitland-datastore/pull/1153) ([irees](https://github.com/irees))
+- Stop: fallback to stop\_id if stop\_name is not present [\#1151](https://github.com/transitland/transitland-datastore/pull/1151) ([irees](https://github.com/irees))
+- Stop serializer: use geometry\_centroid not centroid [\#1150](https://github.com/transitland/transitland-datastore/pull/1150) ([irees](https://github.com/irees))
+- Include geometry\_reversegeo and centroid in Stop and Station serializers [\#1149](https://github.com/transitland/transitland-datastore/pull/1149) ([irees](https://github.com/irees))
+- RSP: Fixes for stops with polygon geometries [\#1147](https://github.com/transitland/transitland-datastore/pull/1147) ([irees](https://github.com/irees))
+- Tidy up: schema & annotation update [\#1146](https://github.com/transitland/transitland-datastore/pull/1146) ([irees](https://github.com/irees))
+- Cleanup: Alter SSP id to bigserial [\#1145](https://github.com/transitland/transitland-datastore/pull/1145) ([irees](https://github.com/irees))
+- update gems [\#1143](https://github.com/transitland/transitland-datastore/pull/1143) ([drewda](https://github.com/drewda))
 - Production release 72 [\#1128](https://github.com/transitland/transitland-datastore/pull/1128) ([irees](https://github.com/irees))
+- Geometry validation & station polygons [\#904](https://github.com/transitland/transitland-datastore/pull/904) ([irees](https://github.com/irees))
 
 ## [72](https://github.com/transitland/transitland-datastore/tree/72) (2017-07-20)
 [Full Changelog](https://github.com/transitland/transitland-datastore/compare/71...72)
@@ -21,7 +160,6 @@
 
 **Closed issues:**
 
-- No operators in feed issue: improve descriptive text [\#1132](https://github.com/transitland/transitland-datastore/issues/1132)
 - allow uploading of feed versions for an existing feed [\#1125](https://github.com/transitland/transitland-datastore/issues/1125)
 - Station hierarchy improvements [\#1066](https://github.com/transitland/transitland-datastore/issues/1066)
 - GTFS Station Egress: location\_type = 2 [\#643](https://github.com/transitland/transitland-datastore/issues/643)

@@ -7,6 +7,92 @@ describe FeedMaintenanceService do
     @feed_version.feed.update!(active_feed_version: @feed_version)
   end
 
+  context '.find_next_feed_version' do
+    let(:date) { DateTime.now }
+    let(:date_earliest) { date - 2.month }
+    let(:date_earlier) { date - 1.month }
+    let(:date_later) { date + 1.month }
+    let(:feed) { create(:feed) }
+
+    it 'import_policy default' do
+      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date_earliest, imported_at: date)
+      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier, created_at: date + 1.hour)
+      feed.import_policy = nil
+      feed.active_feed_version = fv1
+      feed.save!
+      expect(FeedMaintenanceService.find_next_feed_version(feed, date)).to eq(fv2)
+    end
+
+    it 'import_policy daily' do
+      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date_earliest, imported_at: date)
+      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier, created_at: date + 5.hour)
+      fv3 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier, created_at: date + 5.day)
+      feed.import_policy = 'daily'
+      feed.active_feed_version = fv1
+      feed.save!
+      expect(FeedMaintenanceService.find_next_feed_version(feed, date)).to eq(fv3)
+    end
+
+    it 'import_policy weekly' do
+      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date_earliest, imported_at: date)
+      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier, created_at: date + 5.hour)
+      fv3 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier, created_at: date + 5.day)
+      fv4 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier, created_at: date + 10.day)
+      feed.import_policy = 'weekly'
+      feed.active_feed_version = fv1
+      feed.save!
+      expect(FeedMaintenanceService.find_next_feed_version(feed, date)).to eq(fv4)
+    end
+
+    it 'returns the next_feed_version' do
+      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date_earliest)
+      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
+      feed.update!(active_feed_version: fv1)
+      expect(FeedMaintenanceService.find_next_feed_version(feed, date)).to eq(fv2)
+    end
+
+    it 'returns feed_version if same service range but newer than active_feed_version' do
+      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
+      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
+      feed.update!(active_feed_version: fv1)
+      expect(FeedMaintenanceService.find_next_feed_version(feed, date)).to eq(fv2)
+    end
+
+    it 'returns feed_version ignoring feed_versions that begin in the future' do
+      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date_earliest)
+      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
+      fv3 = create(:feed_version, feed: feed, earliest_calendar_date: date_later)
+      feed.update!(active_feed_version: fv1)
+      expect(FeedMaintenanceService.find_next_feed_version(feed, date)).to eq(fv2)
+    end
+
+    it 'returns most recently created feed_version if more than 1 result' do
+      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date_earliest)
+      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
+      fv3 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
+      feed.update!(active_feed_version: fv1)
+      expect(FeedMaintenanceService.find_next_feed_version(feed, date)).to eq(fv3)
+    end
+
+    it 'returns nil if no active_feed_version' do
+      expect(FeedMaintenanceService.find_next_feed_version(feed, DateTime.now)).to be_nil
+    end
+
+    it 'returns nil if active_feed_version is most recent' do
+      fv0 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
+      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date)
+      feed.update!(active_feed_version: fv1)
+      expect(FeedMaintenanceService.find_next_feed_version(feed, DateTime.now)).to be_nil
+    end
+
+    it 'returns nil if earliest_calendar_date is less than active_feed_version' do
+      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
+      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date_earliest)
+      feed.update!(active_feed_version: fv1)
+      expect(FeedMaintenanceService.find_next_feed_version(feed, date)).to be_nil
+    end
+  end
+
   context '.extend_expired_feed_version' do
     it 'extends a feed' do
       FeedMaintenanceService.extend_expired_feed_version(

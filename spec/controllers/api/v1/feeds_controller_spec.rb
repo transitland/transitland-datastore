@@ -15,6 +15,19 @@ describe Api::V1::FeedsController do
         })
       end
 
+      it '?name' do
+        feed1 = create(:feed, name: "test")
+        feed2 = create(:feed, name: "bar")
+        get :index, name: "bar"
+        expect_json_types({ feeds: :array })
+        expect_json({
+          feeds: -> (feeds) {
+            expect(feeds.size).to eq(1)
+            expect(feeds.first[:onestop_id]).to eq feed2.onestop_id
+          }
+        })
+      end
+
       it 'query: onestop_id' do
         create_list(:feed, 3)
         onestop_id = Feed.second.onestop_id
@@ -154,6 +167,29 @@ describe Api::V1::FeedsController do
 
   context 'GET fetch_info' do
     pending 'a spec in the future'
+  end
+
+  context 'GET feed_version_update_statistics' do
+    before(:each) do
+      @url = 'http://example.com/example.zip'
+      @feed = create(:feed)
+      @d = Date.parse('2015-01-01')
+      @fv1 = create(:feed_version, feed: @feed, url: @url, sha1: 'a', fetched_at: @d-30.day, earliest_calendar_date: @d-30.day, latest_calendar_date: @d-15.day)
+      @fv2 = create(:feed_version, feed: @feed, url: @url, sha1: 'b', fetched_at: @d-15.day, earliest_calendar_date: @d-20.day, latest_calendar_date: @d)
+      @fv3 = create(:feed_version, feed: @feed, url: @url, sha1: 'c', fetched_at: @d, earliest_calendar_date: @d-5.day, latest_calendar_date: @d+15.day)
+      @fv4 = create(:feed_version, feed: @feed, url: @url, sha1: 'd', fetched_at: @d+15.day, earliest_calendar_date: @d+10.day, latest_calendar_date: @d+30.day)
+    end
+
+    it 'returns feed update stats' do
+      get :feed_version_update_statistics, id: @feed.onestop_id
+      expect_json({
+        feed_onestop_id: @feed.onestop_id,
+        feed_versions_total: 4,
+        fetched_at_frequency: 15, # check it's a int not rational e.g. (7/4)
+        scheduled_service_overlap_average: 5.0, # float
+        scheduled_service_duration_average: 18.75 # float
+      })
+    end
   end
 
   context 'GET download_latest_feed_version' do

@@ -22,6 +22,7 @@
 #  license_attribution_text           :text
 #  active_feed_version_id             :integer
 #  edited_attributes                  :string           default([]), is an Array
+#  name                               :string
 #
 # Indexes
 #
@@ -443,59 +444,90 @@ describe Feed do
     end
   end
 
-  context '.find_next_feed_version' do
-    let(:date) { DateTime.now }
-    let(:date_earliest) { date - 2.month }
-    let(:date_earlier) { date - 1.month }
-    let(:date_later) { date + 1.month }
-    let(:feed) { create(:feed) }
-
-    it 'returns the next_feed_version' do
-      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date_earliest)
-      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
-      feed.update!(active_feed_version: fv1)
-      expect(feed.find_next_feed_version(date)).to eq(fv2)
+  context '.feed_version_update_statistics' do
+    before(:each) do
+      @url = 'http://example.com/example.zip'
+      @feed = create(:feed)
+      @d = Date.parse('2015-01-01')
+      @fv1 = create(:feed_version, feed: @feed, url: @url, sha1: 'a', fetched_at: @d-30.day, earliest_calendar_date: @d-30.day, latest_calendar_date: @d-15.day)
+      @fv2 = create(:feed_version, feed: @feed, url: @url, sha1: 'b', fetched_at: @d-15.day, earliest_calendar_date: @d-20.day, latest_calendar_date: @d)
+      @fv3 = create(:feed_version, feed: @feed, url: @url, sha1: 'c', fetched_at: @d, earliest_calendar_date: @d-5.day, latest_calendar_date: @d+15.day)
+      @fv4 = create(:feed_version, feed: @feed, url: @url, sha1: 'd', fetched_at: @d+15.day, earliest_calendar_date: @d+10.day, latest_calendar_date: @d+30.day)
     end
 
-    it 'returns feed_version if same service range but newer than active_feed_version' do
-      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
-      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
-      feed.update!(active_feed_version: fv1)
-      expect(feed.find_next_feed_version(date)).to eq(fv2)
+    it 'generates fetched_at frequency' do
+      pmf = Feed.feed_version_update_statistics(@feed)
+      expect(pmf[:feed_versions_total]).to eq(4)
+      expect(pmf[:feed_versions_filtered]).to eq(4)
+      expect(pmf[:feed_versions_filtered_sha1].size).to eq(4)
+      expect(pmf[:feed_versions_filtered_sha1]).to match_array(["a", "b", "c", "d"])
+      expect(pmf[:fetched_at_frequency]).to eq(15)
+      expect(pmf[:scheduled_service_overlap_average]).to eq(5.0)
+      expect(pmf[:scheduled_service_duration_average]).to eq(18.75)
     end
 
-    it 'returns feed_version ignoring feed_versions that begin in the future' do
-      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date_earliest)
-      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
-      fv3 = create(:feed_version, feed: feed, earliest_calendar_date: date_later)
-      feed.update!(active_feed_version: fv1)
-      expect(feed.find_next_feed_version(date)).to eq(fv2)
+    it 'excludes url is nil' do
+      @fv5 = create(:feed_version, feed: @feed, url: nil, sha1: 'e', fetched_at: @d+20.day, earliest_calendar_date: @d+15.day, latest_calendar_date: @d+60.day)
+      pmf = Feed.feed_version_update_statistics(@feed)
+      expect(pmf[:feed_versions_total]).to eq(5)
+      expect(pmf[:feed_versions_filtered]).to eq(4)
+      expect(pmf[:feed_versions_filtered_sha1].size).to eq(4)
     end
 
-    it 'returns most recently created feed_version if more than 1 result' do
-      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date_earliest)
-      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
-      fv3 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
-      feed.update!(active_feed_version: fv1)
-      expect(feed.find_next_feed_version(date)).to eq(fv3)
+    it 'works with 0 feed versions' do
+      FeedVersion.delete_all
+      pmf = Feed.feed_version_update_statistics(@feed)
+      expect(pmf[:feed_versions_total]).to eq(0)
+      expect(pmf[:feed_version_transitions]).to be_nil
+      expect(pmf[:fetched_at_frequency]).to be_nil
+      expect(pmf[:scheduled_service_overlap_average]).to be_nil
+      expect(pmf[:scheduled_service_duration_average]).to be_nil
     end
 
-    it 'returns nil if no active_feed_version' do
-      expect(feed.find_next_feed_version(DateTime.now)).to be_nil
+    it 'works with 1 feed versions' do
+      FeedVersion.where('id not in (?)', @fv1.id).delete_all
+      pmf = Feed.feed_version_update_statistics(@feed)
+      expect(pmf[:feed_versions_total]).to eq(1)
+      expect(pmf[:scheduled_service_duration_average]).to eq(15.0)
+      expect(pmf[:scheduled_service_overlap_average]).to be_nil
+      expect(pmf[:feed_version_transitions]).to be_nil
+      expect(pmf[:fetched_at_frequency]).to be_nil
+    end
+  end
+
+  context '#import_policy' do
+    it 'sets default import_policy' do
+      feed = create(:feed)
+      expect(feed.import_policy).to be_nil
     end
 
-    it 'returns nil if active_feed_version is most recent' do
-      fv0 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
-      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date)
-      feed.update!(active_feed_version: fv1)
-      expect(feed.find_next_feed_version(DateTime.now)).to be_nil
+    it 'sets only allowed values' do
+      feed = create(:feed)
+      expect{feed.import_policy = 'asdf'}.to raise_error
     end
 
-    it 'returns nil if earliest_calendar_date is less than active_feed_version' do
-      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: date_earlier)
-      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: date_earliest)
-      feed.update!(active_feed_version: fv1)
-      expect(feed.find_next_feed_version(date)).to be_nil
+    it 'sets import_policy' do
+      feed = create(:feed)
+      feed.import_policy = 'immediately'
+      expect(feed.import_policy).to eq('immediately')
+    end
+  end
+
+  context '#status' do
+    it 'sets default status' do
+      feed = create(:feed)
+      expect(feed.status).to eq 'active'
+    end
+
+    it 'sets only allowed values' do
+      feed = create(:feed)
+      expect{feed.status = 'asdf'}.to raise_error
+    end
+
+    it 'sets status' do
+      feed = create(:feed)
+      feed.status = 'replaced'
+      expect(feed.status).to eq('replaced')
     end
   end
 end

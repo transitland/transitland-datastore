@@ -31,7 +31,7 @@
           "action": "createUpdate",
           "feed": {
             "onestopId": "f-9q8-samtrans",
-            "url": "http://www.samtrans.com/Assets/GTFS/samtrans/SamTrans-GTFS.zip",
+            "url": "http://www.samtrans.com/AssetFactory.aspx?did=3191",
             "tags": {
               "downloadPageUrl": "http://www.samtrans.com/Developer/DLA-PP-SamTrans.html?IsSubmitted=True"
             },

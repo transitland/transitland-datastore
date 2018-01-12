@@ -28,7 +28,7 @@ class Api::V1::ActivityUpdatesController < Api::V1::BaseApiController
   private
 
   def query_params
-    {
+    super.merge({
       feed: {
         desc: "Filter by Feed",
         type: "onestop_id",
@@ -39,7 +39,7 @@ class Api::V1::ActivityUpdatesController < Api::V1::BaseApiController
         type: "integer",
         array: true
       }
-    }
+    })
   end
 
 end

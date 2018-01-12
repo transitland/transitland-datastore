@@ -311,7 +311,7 @@ class GTFSGraphImporter
         tl_entity ||= Stop.new
       end
       tl_entity.geometry = Stop::GEOFACTORY.point(*gtfs_entity.coordinates)
-      tl_entity.name = gtfs_entity.stop_name
+      tl_entity.name = gtfs_entity.stop_name.presence || gtfs_entity.id
       tl_entity.wheelchair_boarding = to_tfn(gtfs_entity.wheelchair_boarding)
       # Force station timezone, then try GTFS timezone, then try Operator timezone
       tl_entity.timezone = parent_stop.try(:timezone) || gtfs_entity.stop_timezone || operated_by.try(:timezone)

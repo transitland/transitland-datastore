@@ -57,14 +57,14 @@ describe HasAGeographicGeometry do
   context '.centroid_from_geometry' do
     it 'works for points' do
       s = create(:stop, geometry: geometry_point)
-      centroid = s.centroid_from_geometry(s[:geometry])
+      centroid = s.centroid_from_geometry(s.read_attribute(:geometry))
       expect(centroid.lat).to be_within(0.001).of(37.78991)
       expect(centroid.lon).to be_within(0.001).of(-122.39327)
     end
 
     it 'works for polygons' do
       s = create(:stop, geometry: geometry_polygon)
-      centroid = s.centroid_from_geometry(s[:geometry])
+      centroid = s.centroid_from_geometry(s.read_attribute(:geometry))
       expect(centroid.lat).to be_within(0.001).of(37.78989)
       expect(centroid.lon).to be_within(0.001).of(-122.39333)
     end
