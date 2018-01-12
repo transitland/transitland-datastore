@@ -1,0 +1,7 @@
+feed_fetcher:
+  cron: "*/1 * * * *"
+  class: "FeedFetcherCronWorker"
+
+stop_conflate:
+  cron: "*/1 * * * *"
+  class: "StopConflateCronWorker"
