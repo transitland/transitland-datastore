@@ -316,7 +316,7 @@ class Stop < BaseStop
       # worker wont' be able to find the stop in the database yet.
       # For stops created by changesets, see the end of the
       # Changeset.apply! method (app/model/changeset.rb:122)
-      ConflateStopsWithOsmWorker.perform_async([self.id])
+      StopConflateWorker.perform_async([self.id])
     end
   end
 
@@ -326,7 +326,7 @@ class Stop < BaseStop
         last_conflated_at = max_hours.hours.ago
       end
       Stop.last_conflated_before(last_conflated_at).ids.each_slice(1000) do |slice|
-        ConflateStopsWithOsmWorker.perform_async(slice)
+        StopConflateWorker.perform_async(slice)
       end
   end
 

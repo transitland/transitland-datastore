@@ -1,4 +1,4 @@
-class ConflateStopsWithOsmWorker
+class StopConflateWorker
   include Sidekiq::Worker
   sidekiq_options queue: :default,
                   retry: false
