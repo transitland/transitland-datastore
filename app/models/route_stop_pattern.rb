@@ -36,6 +36,9 @@ class RouteStopPattern < BaseRouteStopPattern
 
   COORDINATE_PRECISION = 5
 
+  # GTFS
+  has_many :gtfs_entities, class_name: GTFSTrip, foreign_key: :entity_id
+
   belongs_to :route
   has_many :schedule_stop_pairs
   validates :geometry, :stop_pattern, presence: true

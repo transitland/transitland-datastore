@@ -128,6 +128,9 @@ class Operator < BaseOperator
   after_initialize :set_default_values
   after_save :bust_aggregate_cache
 
+  # GTFS
+  has_many :gtfs_entities, class_name: GTFSAgency, foreign_key: :entity_id
+
   has_many :operators_in_feed
   has_many :feeds, through: :operators_in_feed
 
