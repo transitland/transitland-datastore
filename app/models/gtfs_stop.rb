@@ -34,6 +34,7 @@
 #
 
 class GTFSStop < ActiveRecord::Base
+  include HasAGeographicGeometry
   belongs_to :feed_version
   belongs_to :entity, class_name: 'Stop'
 end

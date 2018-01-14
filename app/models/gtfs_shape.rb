@@ -17,5 +17,6 @@
 #
 
 class GTFSShape < ActiveRecord::Base
+  include HasAGeographicGeometry
   belongs_to :feed_version
 end
