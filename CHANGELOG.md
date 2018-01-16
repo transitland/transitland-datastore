@@ -2,14 +2,41 @@
 
 ## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/79...HEAD)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/80...HEAD)
+
+**Merged pull requests:**
+
+- Production release 81 [\#1218](https://github.com/transitland/transitland-datastore/pull/1218) ([irees](https://github.com/irees))
+
+## [80](https://github.com/transitland/transitland-datastore/tree/80) (2018-01-13)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/79...80)
+
+**Implemented enhancements:**
+
+- Tile Export [\#1210](https://github.com/transitland/transitland-datastore/issues/1210)
 
 **Closed issues:**
 
+- OperatorsInFeed: Make copy in FeedVersionImport before import [\#1207](https://github.com/transitland/transitland-datastore/issues/1207)
+- Skip fetching for certain "status" tags [\#1204](https://github.com/transitland/transitland-datastore/issues/1204)
 - Station merging: all SSPs on platforms [\#1199](https://github.com/transitland/transitland-datastore/issues/1199)
 
 **Merged pull requests:**
 
+- Sidekiq cron [\#1219](https://github.com/transitland/transitland-datastore/pull/1219) ([irees](https://github.com/irees))
+- Feed version ordering [\#1217](https://github.com/transitland/transitland-datastore/pull/1217) ([irees](https://github.com/irees))
+- Docker improvements [\#1216](https://github.com/transitland/transitland-datastore/pull/1216) ([irees](https://github.com/irees))
+- Tile export debug 3 [\#1215](https://github.com/transitland/transitland-datastore/pull/1215) ([irees](https://github.com/irees))
+- Move enqueue feed versions to 6pm PST / 8pm CST / 2am GMT [\#1213](https://github.com/transitland/transitland-datastore/pull/1213) ([irees](https://github.com/irees))
+- Tile export - additional debugging [\#1212](https://github.com/transitland/transitland-datastore/pull/1212) ([irees](https://github.com/irees))
+- Tile export refinements [\#1211](https://github.com/transitland/transitland-datastore/pull/1211) ([irees](https://github.com/irees))
+- misc. gem updates [\#1209](https://github.com/transitland/transitland-datastore/pull/1209) ([drewda](https://github.com/drewda))
+- OperatorsInFeed: Make copy in FeedVersionImport before import [\#1208](https://github.com/transitland/transitland-datastore/pull/1208) ([irees](https://github.com/irees))
+- Feed status: skip fetching if not active [\#1206](https://github.com/transitland/transitland-datastore/pull/1206) ([irees](https://github.com/irees))
+- Debug: revert station ssp [\#1205](https://github.com/transitland/transitland-datastore/pull/1205) ([irees](https://github.com/irees))
+- update misc. gems [\#1203](https://github.com/transitland/transitland-datastore/pull/1203) ([drewda](https://github.com/drewda))
+- Production release 80 [\#1202](https://github.com/transitland/transitland-datastore/pull/1202) ([irees](https://github.com/irees))
+- Tile export [\#1201](https://github.com/transitland/transitland-datastore/pull/1201) ([irees](https://github.com/irees))
 - Production release 79 [\#1198](https://github.com/transitland/transitland-datastore/pull/1198) ([irees](https://github.com/irees))
 
 ## [79](https://github.com/transitland/transitland-datastore/tree/79) (2017-10-12)
