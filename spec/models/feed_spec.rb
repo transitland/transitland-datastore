@@ -194,6 +194,17 @@ describe Feed do
     })
   end
 
+  context '.feed_versions' do
+    it 'orders by earliest_calendar_date' do
+      feed = create(:feed)
+      fv1 = create(:feed_version, feed: feed, earliest_calendar_date: '2015-01-01')
+      fv2 = create(:feed_version, feed: feed, earliest_calendar_date: '2016-01-01')
+      fv3 = create(:feed_version, feed: feed, earliest_calendar_date: '2017-01-01')
+      feed.reload
+      expect(feed.feed_versions).to match_array([fv3, fv2, fv1])
+    end
+  end
+
   context 'import status' do
     it 'handles never imported' do
       feed = create(:feed)
@@ -490,10 +501,33 @@ describe Feed do
       expect(feed.import_policy).to be_nil
     end
 
+    it 'sets only allowed values' do
+      feed = create(:feed)
+      expect{feed.import_policy = 'asdf'}.to raise_error
+    end
+
     it 'sets import_policy' do
       feed = create(:feed)
       feed.import_policy = 'immediately'
       expect(feed.import_policy).to eq('immediately')
+    end
+  end
+
+  context '#status' do
+    it 'sets default status' do
+      feed = create(:feed)
+      expect(feed.status).to eq 'active'
+    end
+
+    it 'sets only allowed values' do
+      feed = create(:feed)
+      expect{feed.status = 'asdf'}.to raise_error
+    end
+
+    it 'sets status' do
+      feed = create(:feed)
+      feed.status = 'replaced'
+      expect(feed.status).to eq('replaced')
     end
   end
 end

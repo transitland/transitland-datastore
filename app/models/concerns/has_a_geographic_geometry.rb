@@ -86,6 +86,10 @@ module HasAGeographicGeometry
     geometry(as: :wkt)
   end
 
+  def geometry_bbox
+    RGeo::Cartesian::BoundingBox.create_from_geometry(geometry(as: :wkt))
+  end
+
   def centroid_from_geometry(geom)
     if geom.respond_to?(:lat) && geom.respond_to?(:lon)
       centroid = geom.dup

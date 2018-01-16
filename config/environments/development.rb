@@ -1,6 +1,7 @@
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
-  config.cache_store = :redis_store, 'redis://localhost:6379/0/cache', { expires_in: 90.minutes }
+  redis_url = Figaro.env.redis_url.presence || "redis://localhost:6379"
+  config.cache_store = :redis_store, "#{redis_url}/0/cache", { expires_in: 5.days }
 
   # In the development environment your application's code is reloaded on
   # every request. This slows down response time but is perfect for development

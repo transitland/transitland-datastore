@@ -311,7 +311,7 @@ class Changeset < ActiveRecord::Base
     if Figaro.env.auto_conflate_stops_with_osm.present? &&
        Figaro.env.auto_conflate_stops_with_osm == 'true' &&
        self.stops_created_or_updated.count > 0
-      ConflateStopsWithOsmWorker.perform_async(self.stops_created_or_updated.map(&:id))
+      StopConflateWorker.perform_async(self.stops_created_or_updated.map(&:id))
     end
     # ...and fetching any new feeds
     if Figaro.env.auto_fetch_feed_version.presence == 'true'

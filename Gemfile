@@ -29,7 +29,7 @@ gem 'redis-rack'
 gem 'sidekiq', '~> 5'
 gem 'sidekiq-unique-jobs', group: [:development, :staging, :production] # doesn't play well with test
 gem 'sidekiq-limit_fetch'
-gem 'whenever', require: false # to manage crontab
+gem "sidekiq-cron", "~> 0.6.3"
 
 # data model
 gem 'squeel'
@@ -41,6 +41,9 @@ gem 'json'
 gem 'json-schema'
 gem 'email_validator'
 gem 'tzinfo'
+
+# data export
+gem 'google-protobuf'
 
 # text matching
 gem 'text'
@@ -107,6 +110,7 @@ gem 'marginalia', group: [:development, :staging]
 
 # web server
 gem 'unicorn', group: [:staging, :production]
+gem 'puma'
 
 # profiling
 gem 'memory_profiler', group: [:test, :development]

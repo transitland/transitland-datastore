@@ -57,6 +57,24 @@ describe FeedFetcherService do
       expect(feed.feed_versions.count).to eq 1
     end
 
+    it 'fetches if status is active' do
+      feed = create(:feed_caltrain)
+      feed.status = 'active'
+      VCR.use_cassette('feed_fetch_caltrain') do
+        feed_version = FeedFetcherService.fetch_and_return_feed_version(feed)
+        expect(feed_version).to be_truthy
+      end
+    end
+
+    it 'skips fetch if status is not active' do
+      feed = create(:feed_caltrain)
+      feed.status = 'broken'
+      VCR.use_cassette('feed_fetch_caltrain') do
+        feed_version = FeedFetcherService.fetch_and_return_feed_version(feed)
+        expect(feed_version).to be_nil
+      end
+    end
+
     it "does not create a duplicate, if remote file hasn't changed since last download" do
       feed = create(:feed_caltrain)
       VCR.use_cassette('feed_fetch_caltrain') do
