@@ -122,7 +122,30 @@ class GTFSImporter
       trip_ids[trip.trip_id] = GTFSTrip.create!(params).id
     end
 
-    # Optional
+    # Optional files
+    # fare_attributes.txt
+    # fare_rules.txt
+    # feed_info.txt
+
+    # calendar_date.txt
+    if @gtfs.file_present?('calendar_dates.txt')
+    end
+
+    # calendar.txt
+    if @gtfs.file_present?('calendar.txt')
+    end
+
+    # frequency.txt
+    if @gtfs.file_present?('frequency.txt')
+    end
+
+    # transfers.txt
+    if @gtfs.file_present?('transfers.txt')
+    end
+
+    # Load stop times
+    trip_chunks = []
+    @gtfs.trip_chunks(1_000_000) { |trips| trip_chunks << trips.map(&:id) }
 
   end
 
