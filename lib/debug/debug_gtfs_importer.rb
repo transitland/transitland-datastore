@@ -13,20 +13,6 @@ def create_from_gtfs(feed_onestop_id, path)
     url: "http://transit.land/example.zip",
     geometry: "POINT(#{rand(-124.4..-90.1)} #{rand(28.1..50.0095)})"
   )
-  GTFS::Source.build(path).agencies.each { |agency|
-    osid = OIFS[agency.id] || OnestopId::OperatorOnestopId.new(
-      geohash: '123',
-      name: agency.id.presence || agency.name.presence || 'test'
-    ).to_s
-    operator = Operator.find_by_onestop_id(osid) || Operator.create!(
-      onestop_id: osid,
-      name: agency.agency_name,
-      timezone: agency.agency_timezone,
-      geometry: "POINT(#{rand(-124.4..-90.1)} #{rand(28.1..50.0095)})"
-    )
-    feed.operators_in_feed.find_or_create_by!(operator: operator, gtfs_agency_id: agency.id)
-  }
-  feed
 end
 
 # Check for feed_version
@@ -35,8 +21,8 @@ feed_version = FeedVersion.find_by(sha1: sha1)
 unless feed_version
   feed = Feed.find_by_onestop_id(feed_onestop_id) || create_from_gtfs(feed_onestop_id, path)
   feed_version = feed.feed_versions.create!(file: File.open(path))
+  feed_version.save!
 end
-feed_version.save!
 
 # Run GTFSGraph
 g = GTFSImporter.new(feed_version)
