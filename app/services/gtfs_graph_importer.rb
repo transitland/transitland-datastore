@@ -173,8 +173,7 @@ class GTFSGraphImporter
   end
 
   def ssp_schedule_async
-    @gtfs.trip_chunks(1_000_000) do |trips|
-      trip_ids = trips.map(&:id)
+    @gtfs.trip_id_chunks(1_000_000) do |trip_ids|
       yield trip_ids, nil, nil, nil, nil
     end
   end
