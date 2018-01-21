@@ -31,4 +31,7 @@
 
 class GTFSStopTime < ActiveRecord::Base
   belongs_to :feed_version
+  belongs_to :trip, class_name: 'GTFSTrip'
+  belongs_to :origin, class_name: 'GTFSStop'
+  belongs_to :destination, class_name: 'GTFSStop'
 end
