@@ -4,7 +4,6 @@ require 'sidekiq/testing'
 
 path = ARGV[0] || Rails.root.join('spec/support/example_gtfs_archives/f-9q9-caltrain.zip')
 feed_onestop_id = ARGV[1] || 'f-123-debug'
-import_level = (ARGV[2].presence || 1).to_i
 
 OIFS = {}
 
