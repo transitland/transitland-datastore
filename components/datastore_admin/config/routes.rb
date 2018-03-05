@@ -1,4 +1,5 @@
 require 'sidekiq/web'
+require 'sidekiq/cron/web'
 
 if Rails.env.production? || Rails.env.staging?
   Sidekiq::Web.set :session_secret, Rails.application.secrets[:secret_key_base]
