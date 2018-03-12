@@ -18,11 +18,12 @@ class FeedFetcherService
     Feed.where{
       (last_fetched_at == nil) | (last_fetched_at <= since)
     }.order(last_fetched_at: :asc).each { |feed| 
-      next if feed.policy != 'active'
-      break if batch.size > split
+      next if feed.status != 'active'
+      next if feed.import_policy == 'manual'
       batch << feed
+      break if batch.size >= split
     }
-    async_enqueue_and_return_workers(batch.compact)
+    async_enqueue_and_return_workers(batch)
   end
 
   def self.fetch_and_return_feed_version(feed)
