@@ -589,7 +589,7 @@ GEM
     formatador (0.2.5)
     globalid (0.4.1)
       activesupport (>= 4.2.0)
-    google-protobuf (3.4.1.1)
+    google-protobuf (3.5.1)
     hashdiff (0.3.7)
     http-cookie (1.0.3)
       domain_name (~> 0.5)

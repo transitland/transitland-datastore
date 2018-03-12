@@ -38,7 +38,7 @@ describe FeedFetcherService do
 
     it 'fetch_some_ready_feeds_async' do
       present_feeds = [caltrain_feed, vta_feed]
-      vta_feed.update(last_fetched_at: 48.hours.ago)
+      vta_feed.update(last_fetched_at: 1.hours.ago)
       Sidekiq::Testing.fake! do
         expect {
           FeedFetcherService.fetch_some_ready_feeds_async

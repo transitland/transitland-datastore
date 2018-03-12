@@ -14,10 +14,16 @@ class FeedFetcherService
   end
 
   def self.fetch_some_ready_feeds_async(since: REFETCH_WAIT.ago, split: SPLIT_REFETCH_INTO_GROUPS)
-    feed_groups = Feed.where{
+    batch = Set.new
+    Feed.where{
       (last_fetched_at == nil) | (last_fetched_at <= since)
-    }.order(last_fetched_at: :asc).in_groups(split)
-    async_enqueue_and_return_workers(feed_groups.first.compact) # only the first group
+    }.order(last_fetched_at: :asc).each { |feed| 
+      next if feed.status != 'active'
+      next if feed.import_policy == 'manual'
+      batch << feed
+      break if batch.size >= split
+    }
+    async_enqueue_and_return_workers(batch)
   end
 
   def self.fetch_and_return_feed_version(feed)
