@@ -1,2 +1,4 @@
 -e git+https://github.com/google/transitfeed.git@1d6425b3a4a0a789bb09d72a68b69f3d1dd7edc3#egg=transitfeed
+awscli
+ecs-deploy
 pytz
