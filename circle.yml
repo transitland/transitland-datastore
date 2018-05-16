@@ -3,15 +3,22 @@ jobs:
   rails-test-suite:
     docker:
       - image: circleci/ruby:2.3
+        environment:
+          RAILS_ENV: test
+          DATABASE_URL: postgresql://root@localhost/transitland_datastore_test
+      - image: circleci/postgres:9.6.2-alpine
+        environment:
+          POSTGRES_USER: root
+          POSTGRES_DB: transitland_datastore_test
     steps:
       - checkout
       - run: bundle install
       - run:
           name: Run tests
-          command: RAILS_ENV=test bundle exec rspec -r rspec_junit_formatter --format RspecJunitFormatter -o $CIRCLE_TEST_REPORTS/rspec/junit.xml
+          command: bundle exec rspec -r rspec_junit_formatter --format RspecJunitFormatter -o $CIRCLE_TEST_REPORTS/rspec/junit.xml
       # - run:
       #     name: Run profile
-      #     command: mkdir -p $CIRCLE_ARTIFACTS/profiling && RAILS_ENV=test bundle exec rake profile:import:nycdot[$CIRCLE_ARTIFACTS/profiling]
+      #     command: mkdir -p $CIRCLE_ARTIFACTS/profiling && bundle exec rake profile:import:nycdot[$CIRCLE_ARTIFACTS/profiling]
   build-container-image:
     machine: true
     steps:
