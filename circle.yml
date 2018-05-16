@@ -25,9 +25,7 @@ jobs:
             - vendor/bundle
       - run:
           name: Database setup
-          command: |
-            bundle exec rake db:create
-            bundle exec rake db:structure:load
+          command: bundle exec rake db:drop db:create db:structure:load
       - run:
           name: Run tests
           command: bundle exec rspec -r rspec_junit_formatter --format RspecJunitFormatter -o $CIRCLE_TEST_REPORTS/rspec/junit.xml
