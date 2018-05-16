@@ -28,7 +28,7 @@ jobs:
           command: bundle exec rake db:drop db:create db:schema:load
       - run:
           name: Run tests
-          command: bundle exec rspec -r rspec_junit_formatter --format RspecJunitFormatter -o $CIRCLE_TEST_REPORTS/rspec/junit.xml
+          command: bundle exec rake
       # - run:
       #     name: Run profile
       #     command: mkdir -p $CIRCLE_ARTIFACTS/profiling && bundle exec rake profile:import:nycdot[$CIRCLE_ARTIFACTS/profiling]
