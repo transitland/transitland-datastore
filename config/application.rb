@@ -77,17 +77,16 @@ module TransitlandDatastore
     elsif Rails.env.staging? || Rails.env.production?
       # Ignore bad email addresses and do not raise email delivery errors.
       # Set this to true and configure the email server for immediate delivery to raise delivery errors.
-      # config.action_mailer.raise_delivery_errors = false
+      config.action_mailer.raise_delivery_errors = false
 
-      # use Mandrill to send e-mail
       config.action_mailer.smtp_settings = {
-          address: "smtp.sparkpostmail.com",
-          port: 587,
+          address: Figaro.env.smtp_address,
+          port: Figaro.env.smtp_port.presence.to_i || 587,
           enable_starttls_auto: true,
-          user_name: Figaro.env.mandrill_user_name,
-          password: Figaro.env.mandrill_password,
+          user_name: Figaro.env.smtp_user_name,
+          password: Figaro.env.smtp_password,
           authentication: :plain,
-          domain: 'mapzen.com' # TODO: change to transit.land
+          domain: 'transitland.org'
         }
     end
   end

@@ -20,3 +20,7 @@ key | possible values | default | description
 `FEED_INFO_CACHE_EXPIRATION` | Any integer > 0 | 14400 seconds | Cache expiration time, in seconds, for FeedInfo results
 `AUTO_FETCH_FEED_VERSION` | `true`, `false` | `false` | Automatically run FeedFetch to create FeedVersion when a Feed is created
 `GTFS_GRAPH_VERSION` | `1`, `2` | `2` | Use legacy GTFSGraph by setting to 1. This option may be removed in the future.
+`SMTP_ADDRESS` | `smtp.sparkpostmail.com` | none | send email notifications using this SMTP service
+`SMTP_PORT` | 587 | none | port for SMTP service
+`SMTP_USER_NAME` | `SMTP_Injection` | none | user name for SMTP service
+`SMTP_PASSWORD` | your password | none | password for SMTP service
