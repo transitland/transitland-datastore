@@ -17,6 +17,9 @@ jobs:
             - transitland-datastore-{{ checksum "Gemfile.lock" }}
             - transitland-datastore-
       - run:
+          name: Install dependencies
+          command: apt-get install libgeos-dev libproj-dev
+      - run:
           name: Install bundle
           command: bundle check --path=vendor/bundle || bundle install --path=vendor/bundle --jobs 4 --retry 3
       - save_cache:
