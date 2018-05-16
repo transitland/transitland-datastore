@@ -1,8 +1,8 @@
 version: 2
 jobs:
-  test:
+  rails-test-suite:
     docker:
-      - image: circleci/ruby:2.3.1
+      - image: circleci/ruby:2.3
     steps:
       - checkout
       - run: bundle install
@@ -12,7 +12,7 @@ jobs:
       # - run:
       #     name: Run profile
       #     command: mkdir -p $CIRCLE_ARTIFACTS/profiling && RAILS_ENV=test bundle exec rake profile:import:nycdot[$CIRCLE_ARTIFACTS/profiling]
-  build:
+  build-container-image:
     machine: true
     steps:
       - setup_remote_docker
@@ -22,17 +22,17 @@ jobs:
       - run: docker push ${TRANSITLAND_AWS_ECR}/transitland-datastore:${CIRCLE_TAG}
 workflows:
   version: 2
-  un-tagged-build:
+  in-progress-development:
     jobs:
-      - test:
+      - rails-test-suite:
           filters:
             tags:
               ignore: /^v.*/
-  tagged-build:
+  ready-for-container-image:
     jobs:
-      - build:
+      - build-container-image:
           requires:
-            - test
+            - rails-test-suite
           filters:
             branches:
               ignore: /.*/
