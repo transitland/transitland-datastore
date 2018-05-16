@@ -36,5 +36,5 @@ workflows:
           filters:
             branches:
               ignore: /.*/
-	    tags:
-	      only: /^v.*/
+            tags:
+              only: /^v.*/
