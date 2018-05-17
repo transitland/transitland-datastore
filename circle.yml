@@ -45,14 +45,9 @@ jobs:
       - run: docker push ${TRANSITLAND_AWS_ECR}/transitland-datastore:${CIRCLE_TAG}
 workflows:
   version: 2
-  in-progress-development:
+  test-and-build-workflow:
     jobs:
-      - rails-test-suite:
-          filters:
-            tags:
-              ignore: /^v.*/
-  ready-for-container-image:
-    jobs:
+      - rails-test-suite
       - build-container-image:
           requires:
             - rails-test-suite
