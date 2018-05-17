@@ -2,7 +2,7 @@ version: 2
 jobs:
   rails-test-suite:
     docker:
-      - image: circleci/ruby:2.3-stretch
+      - image: ruby:2.3.1
         environment:
           RAILS_ENV: test
           DATABASE_URL: postgis://root@localhost/transitland_datastore_test
@@ -18,7 +18,7 @@ jobs:
             - transitland-datastore-
       - run:
           name: Install dependencies
-          command: sudo apt-get install libgeos-dev libproj-dev
+          command: sudo apt-get update -qq && sudo apt-get install -y libgeos-dev libproj-dev
       - run:
           name: Install bundle
           command: bundle check --path=vendor/bundle || bundle install --path=vendor/bundle --jobs 4 --retry 3
