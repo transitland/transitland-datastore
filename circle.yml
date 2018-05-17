@@ -2,7 +2,7 @@ version: 2
 jobs:
   rails-test-suite:
     docker:
-      - image: circleci/ruby:2.3
+      - image: circleci/ruby:2.3-stretch
         environment:
           RAILS_ENV: test
           DATABASE_URL: postgis://root@localhost/transitland_datastore_test
