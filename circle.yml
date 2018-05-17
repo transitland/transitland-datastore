@@ -1,9 +1,63 @@
-machine:
-  ruby:
-    version: 2.3.1
-
-test:
-  override:
-    - RAILS_ENV=test bundle exec rspec -r rspec_junit_formatter --format RspecJunitFormatter -o $CIRCLE_TEST_REPORTS/rspec/junit.xml
-    - mkdir -p $CIRCLE_ARTIFACTS/profiling
-    - RAILS_ENV=test bundle exec rake profile:import:nycdot[$CIRCLE_ARTIFACTS/profiling]
+version: 2
+jobs:
+  rails-test-suite:
+    docker:
+      - image: ruby:2.3.1
+        environment:
+          RAILS_ENV: test
+          DATABASE_URL: postgis://root@localhost/transitland_datastore_test
+      - image: mdillon/postgis:9.5
+        environment:
+          POSTGRES_USER: root
+          POSTGRES_DB: transitland_datastore_test
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - transitland-datastore-{{ checksum "Gemfile.lock" }}
+            - transitland-datastore-
+      - run:
+          name: Install dependencies
+          command: apt-get update -qq && apt-get install -y libgeos-dev libproj-dev
+      - run:
+          name: Install bundle
+          command: bundle check --path=vendor/bundle || bundle install --path=vendor/bundle --jobs 4 --retry 3
+      - save_cache:
+          key: transitland-datastore-{{ checksum "Gemfile.lock" }}
+          paths:
+            - vendor/bundle
+      - run:
+          name: Database setup
+          command: bundle exec rake db:drop db:create db:schema:load
+      - run:
+          name: Run tests
+          command: bundle exec rake
+      # - run:
+      #     name: Run profile
+      #     command: mkdir -p $CIRCLE_ARTIFACTS/profiling && bundle exec rake profile:import:nycdot[$CIRCLE_ARTIFACTS/profiling]
+  build-container-image:
+    machine: true
+    steps:
+      - setup_remote_docker
+      - checkout
+      - run: docker build -t transitland-datastore .
+      - run: docker tag transitland-datastore:${CIRCLE_TAG} ${TRANSITLAND_AWS_ECR}/transitland-datastore:${CIRCLE_TAG}
+      - run: docker push ${TRANSITLAND_AWS_ECR}/transitland-datastore:${CIRCLE_TAG}
+workflows:
+  version: 2
+  in-progress-development:
+    jobs:
+      - rails-test-suite:
+          filters:
+            tags:
+              ignore: /^v.*/
+  ready-for-container-image:
+    jobs:
+      - build-container-image:
+          requires:
+            - rails-test-suite
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^v.*/
