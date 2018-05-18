@@ -38,13 +38,12 @@ jobs:
   build-container-image:
     docker:
       - image: ubuntu:16.04
-        environment:
-          PATH: ~/.local/bin:$PATH
-          DOCKER_TAG: ${CIRCLE_TAG:-$CIRCLE_BRANCH}
     steps:
       - checkout
       - run: apt-get update -qq && apt-get install python-pip python-dev -y
       - run: pip install awscli --upgrade --user
+      - run: export PATH=~/.local/bin:${PATH}
+      - run: export DOCKER_TAG=${CIRCLE_TAG:-$CIRCLE_BRANCH}
       - setup_remote_docker
       - run: eval $(aws ecr get-login --no-include-email)
       - run: docker build -t transitland-datastore:${DOCKER_TAG} .
