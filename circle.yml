@@ -43,12 +43,11 @@ jobs:
       - run: sudo apt-get update -qq && sudo apt-get install python-pip python-dev -y
       - run: pip install awscli --upgrade --user
       - run: export PATH=~/.local/bin:${PATH}
-      - run: export DOCKER_TAG=${CIRCLE_TAG:-$CIRCLE_BRANCH}
       - setup_remote_docker
       - run: eval $(aws ecr get-login --no-include-email)
-      - run: docker build -t transitland-datastore:${DOCKER_TAG} .
-      - run: docker tag transitland-datastore:${DOCKER_TAG} ${TRANSITLAND_AWS_ECR}/transitland-datastore:${DOCKER_TAG}
-      - run: docker push ${TRANSITLAND_AWS_ECR}/transitland-datastore:${DOCKER_TAG}
+      - run: docker build -t transitland-datastore:${CIRCLE_TAG:-$CIRCLE_BRANCH} .
+      - run: docker tag transitland-datastore:${CIRCLE_TAG:-$CIRCLE_BRANCH} ${TRANSITLAND_AWS_ECR}/transitland-datastore:${CIRCLE_TAG:-$CIRCLE_BRANCH}
+      - run: docker push ${TRANSITLAND_AWS_ECR}/transitland-datastore:${CIRCLE_TAG:-$CIRCLE_BRANCH}
 workflows:
   version: 2
   test-and-build-workflow:
