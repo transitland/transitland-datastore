@@ -1,7 +1,7 @@
 FROM ruby:2.3.1
 
 # Install essentials
-RUN apt-get update -qq && apt-get install -y build-essential libpq-dev postgresql-client libgeos-dev
+RUN apt-get update -qq && apt-get install -y build-essential libpq-dev postgresql-client libgeos-dev openjdk-8-jdk python2
 
 # Setup /app
 RUN mkdir /app
