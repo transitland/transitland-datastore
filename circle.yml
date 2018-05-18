@@ -53,5 +53,6 @@ workflows:
   version: 2
   test-and-build-workflow:
     jobs:
-      - build-container-image:
+      - build-container-image
+      - rails-test-suite
 
