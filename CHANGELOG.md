@@ -1,11 +1,36 @@
 # Change Log
 
-## [Unreleased](https://github.com/transitland/transitland-datastore/tree/HEAD)
+## [v82](https://github.com/transitland/transitland-datastore/tree/v82) (2018-05-18)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/81...v82)
 
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/80...HEAD)
+**Fixed bugs:**
+
+- Net::SMTPFatalError: 550 5.7.1 Unconfigured Sending Domain \<mapzen.com\> [\#1231](https://github.com/transitland/transitland-datastore/issues/1231)
 
 **Merged pull requests:**
 
+- CircleCI: build container image on tag [\#1237](https://github.com/transitland/transitland-datastore/pull/1237) ([drewda](https://github.com/drewda))
+- CircleCI 2.0, continued again [\#1236](https://github.com/transitland/transitland-datastore/pull/1236) ([drewda](https://github.com/drewda))
+- CircleCI 2.0, continued [\#1235](https://github.com/transitland/transitland-datastore/pull/1235) ([drewda](https://github.com/drewda))
+- \[WIP\] Production release 82 [\#1234](https://github.com/transitland/transitland-datastore/pull/1234) ([drewda](https://github.com/drewda))
+- \[WIP\] CircleCI to build Docker image [\#1233](https://github.com/transitland/transitland-datastore/pull/1233) ([drewda](https://github.com/drewda))
+- configure SMTP settings through ENV vars [\#1232](https://github.com/transitland/transitland-datastore/pull/1232) ([drewda](https://github.com/drewda))
+- update gems [\#1230](https://github.com/transitland/transitland-datastore/pull/1230) ([drewda](https://github.com/drewda))
+- Send change\_payload created\_at and update\_at in API response. [\#1228](https://github.com/transitland/transitland-datastore/pull/1228) ([Rui-Santos](https://github.com/Rui-Santos))
+- update misc. gems [\#1227](https://github.com/transitland/transitland-datastore/pull/1227) ([drewda](https://github.com/drewda))
+- Production release [\#1224](https://github.com/transitland/transitland-datastore/pull/1224) ([irees](https://github.com/irees))
+
+## [81](https://github.com/transitland/transitland-datastore/tree/81) (2018-03-13)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/push...81)
+
+## [push](https://github.com/transitland/transitland-datastore/tree/push) (2018-03-13)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/80...push)
+
+**Merged pull requests:**
+
+- Update gems [\#1225](https://github.com/transitland/transitland-datastore/pull/1225) ([irees](https://github.com/irees))
+- Fix issue with FeedFetcher batches [\#1223](https://github.com/transitland/transitland-datastore/pull/1223) ([irees](https://github.com/irees))
+- AWS ECS Deploy [\#1220](https://github.com/transitland/transitland-datastore/pull/1220) ([irees](https://github.com/irees))
 - Production release 81 [\#1218](https://github.com/transitland/transitland-datastore/pull/1218) ([irees](https://github.com/irees))
 
 ## [80](https://github.com/transitland/transitland-datastore/tree/80) (2018-01-13)
