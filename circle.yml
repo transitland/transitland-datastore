@@ -54,7 +54,7 @@ workflows:
   test-and-build-workflow:
     jobs:
       - build-container-image
-      - rails-test-suite
+      - rails-test-suite:
           requires:
             - build-container-image
 
