@@ -42,10 +42,10 @@ jobs:
           PATH: ~/.local/bin:$PATH
           DOCKER_TAG: ${CIRCLE_TAG:-$CIRCLE_BRANCH}
     steps:
-      - setup_remote_docker
       - checkout
       - run: apt-get update -qq && apt-get install python-pip python-dev -y
       - run: pip install awscli --upgrade --user
+      - setup_remote_docker
       - run: eval $(aws ecr get-login --no-include-email)
       - run: docker build -t transitland-datastore:${DOCKER_TAG} .
       - run: docker tag transitland-datastore:${DOCKER_TAG} ${TRANSITLAND_AWS_ECR}/transitland-datastore:${DOCKER_TAG}
