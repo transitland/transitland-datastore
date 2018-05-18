@@ -51,8 +51,10 @@ workflows:
   version: 2
   test-and-build-workflow:
     jobs:
-      - build-container-image
-      - rails-test-suite:
+      - rails-test-suite
+      - build-container-image:
           requires:
-            - build-container-image
-
+            - rails-test-suite
+          filters:
+            tags:
+              only: /^v.*/
