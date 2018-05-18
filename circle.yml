@@ -37,7 +37,7 @@ jobs:
       #     command: mkdir -p $CIRCLE_ARTIFACTS/profiling && bundle exec rake profile:import:nycdot[$CIRCLE_ARTIFACTS/profiling]
   build-container-image:
     docker:
-      - image: circleci/16.04-curl-dind
+      - image: circleci/buildpack-deps:16.04-curl-dind
     steps:
       - checkout
       - run: apt-get update -qq && apt-get install python-pip python-dev -y
