@@ -1,6 +1,6 @@
 # Contributing
 
-Hello! Please read more about [participating in the Transitland project](https://transit.land/participate/). We welcome comments, questions, and contributions by GitHub issues or [e-mail](mailto:transitland@mapzen.com).
+Hello! Please read more about [participating in the Transitland project](https://transit.land/participate/). We welcome comments, questions, and contributions by GitHub issues or [e-mail](mailto:hello@transitland.org).
 
 ## Data import issues
 

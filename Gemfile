@@ -14,7 +14,7 @@ gem 'foreman', group: :development
 gem 'figaro'
 
 # data stores
-gem 'pg'
+gem 'pg', '~> 0.18'
 gem 'activerecord-postgis-adapter'
 gem 'activerecord-import'
 gem 'redis-rails'

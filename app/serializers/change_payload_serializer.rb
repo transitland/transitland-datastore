@@ -14,5 +14,9 @@
 #
 
 class ChangePayloadSerializer < ApplicationSerializer
-  attributes :id, :changeset_id, :payload
+  attributes :id,
+             :created_at,
+             :updated_at,
+             :changeset_id,
+             :payload
 end

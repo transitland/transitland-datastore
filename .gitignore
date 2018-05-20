@@ -44,3 +44,4 @@ virtualenv/
 
 # Ignore attachments
 public/uploads/*
+vendor
