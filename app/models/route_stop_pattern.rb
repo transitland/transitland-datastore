@@ -21,7 +21,7 @@
 #  c_rsp_cu_in_changeset                              (created_or_updated_in_changeset_id)
 #  index_current_route_stop_patterns_on_onestop_id    (onestop_id) UNIQUE
 #  index_current_route_stop_patterns_on_route_id      (route_id)
-#  index_current_route_stop_patterns_on_stop_pattern  (stop_pattern)
+#  index_current_route_stop_patterns_on_stop_pattern  (stop_pattern) USING gin
 #
 
 class BaseRouteStopPattern < ActiveRecord::Base
