@@ -4,10 +4,10 @@
 #
 #  id                :integer          not null, primary key
 #  fare_id           :string           not null
-#  price             :float
-#  currency_type     :string
-#  payment_method    :integer
-#  transfers         :integer
+#  price             :float            not null
+#  currency_type     :string           not null
+#  payment_method    :integer          not null
+#  transfers         :integer          not null
 #  transfer_duration :integer
 #  created_at        :datetime         not null
 #  updated_at        :datetime         not null

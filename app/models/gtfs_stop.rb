@@ -5,14 +5,14 @@
 #  id                  :integer          not null, primary key
 #  stop_id             :string           not null
 #  stop_code           :string
-#  stop_name           :string
+#  stop_name           :string           not null
 #  stop_desc           :string
 #  zone_id             :string
 #  stop_url            :string
 #  location_type       :integer
 #  stop_timezone       :string
 #  wheelchair_boarding :integer
-#  geometry            :geometry({:srid= point, 0
+#  geometry            :geometry({:srid= not null, point, 0
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
 #  feed_version_id     :integer          not null
@@ -30,6 +30,7 @@
 #  index_gtfs_stops_on_stop_desc          (stop_desc)
 #  index_gtfs_stops_on_stop_id            (stop_id)
 #  index_gtfs_stops_on_stop_name          (stop_name)
+#  index_gtfs_stops_on_zone_id            (zone_id)
 #  index_gtfs_stops_unique                (feed_version_id,stop_id) UNIQUE
 #
 

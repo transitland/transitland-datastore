@@ -4,10 +4,10 @@
 #
 #  id               :integer          not null, primary key
 #  route_id         :string           not null
-#  route_short_name :string
-#  route_long_name  :string
+#  route_short_name :string           not null
+#  route_long_name  :string           not null
 #  route_desc       :string
-#  route_type       :integer
+#  route_type       :integer          not null
 #  route_url        :string
 #  route_color      :string
 #  route_text_color :string
@@ -15,7 +15,7 @@
 #  updated_at       :datetime         not null
 #  feed_version_id  :integer          not null
 #  entity_id        :integer
-#  agency_id        :integer
+#  agency_id        :integer          not null
 #
 # Indexes
 #

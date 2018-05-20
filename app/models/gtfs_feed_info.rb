@@ -3,9 +3,9 @@
 # Table name: gtfs_feed_infos
 #
 #  id                  :integer          not null, primary key
-#  feed_publisher_name :string
-#  feed_publisher_url  :string
-#  feed_lang           :string
+#  feed_publisher_name :string           not null
+#  feed_publisher_url  :string           not null
+#  feed_lang           :string           not null
 #  feed_start_date     :date
 #  feed_end_date       :date
 #  feed_version_name   :string

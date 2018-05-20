@@ -5,7 +5,7 @@
 #  id              :integer          not null, primary key
 #  service_id      :string           not null
 #  date            :date             not null
-#  exception_type  :integer
+#  exception_type  :integer          not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  feed_version_id :integer          not null

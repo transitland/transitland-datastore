@@ -4,7 +4,7 @@
 #
 #  id              :integer          not null, primary key
 #  shape_id        :string           not null
-#  geometry        :geography({:srid linestring, 4326
+#  geometry        :geography({:srid not null, linestring, 4326
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  feed_version_id :integer          not null

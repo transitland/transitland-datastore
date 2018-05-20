@@ -3,13 +3,13 @@
 # Table name: gtfs_transfers
 #
 #  id                :integer          not null, primary key
-#  transfer_type     :integer
+#  transfer_type     :integer          not null
 #  min_transfer_time :integer
 #  created_at        :datetime         not null
 #  updated_at        :datetime         not null
 #  feed_version_id   :integer          not null
-#  from_stop_id      :integer
-#  to_stop_id        :integer
+#  from_stop_id      :integer          not null
+#  to_stop_id        :integer          not null
 #
 # Indexes
 #

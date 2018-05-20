@@ -4,15 +4,15 @@
 #
 #  id              :integer          not null, primary key
 #  service_id      :string           not null
-#  monday          :boolean
-#  tuesday         :boolean
-#  wednesday       :boolean
-#  thursday        :boolean
-#  friday          :boolean
-#  saturday        :boolean
-#  sunday          :boolean
-#  start_date      :date
-#  end_date        :date
+#  monday          :boolean          not null
+#  tuesday         :boolean          not null
+#  wednesday       :boolean          not null
+#  thursday        :boolean          not null
+#  friday          :boolean          not null
+#  saturday        :boolean          not null
+#  sunday          :boolean          not null
+#  start_date      :date             not null
+#  end_date        :date             not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  feed_version_id :integer          not null
