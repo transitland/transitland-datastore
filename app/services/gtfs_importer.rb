@@ -100,8 +100,8 @@ class GTFSImporter
       params = {}
       params[:feed_version_id] = @feed_version.id
       params[:route_id] = route.route_id
-      params[:route_short_name] = route.route_short_name
-      params[:route_long_name] = route.route_long_name
+      params[:route_short_name] = route.route_short_name || "" # spec
+      params[:route_long_name] = route.route_long_name || "" # spec
       params[:route_desc] = route.route_desc
       params[:route_type] = gtfs_int(route.route_type)
       params[:route_url] = route.route_url
@@ -240,5 +240,36 @@ class GTFSImporter
 
   def gtfs_boolean(value)
     to_int(value) == 1 ? true : false
+  end
+
+  def interpolate_stop_times(trip, stop_times, shape)
+    # SELECT 
+    #     st.trip_id AS trip_id,
+    #     gtfs_shapes.id AS shape_id,
+    #     st.stop_sequence,
+    #     round(st.shape_dist_traveled) AS shape_dist_traveled,
+    #     round(ST_Line_Locate_Point(
+    #         gtfs_shapes.geometry::geometry,
+    #         ST_ClosestPoint(gtfs_shapes.geometry::geometry, ST_SetSRID(origin.geometry, 4326))
+    #     ) * 125578.4) AS est_dist_traveled,
+    #     st.origin_id,
+    #     st.destination_id,
+    #     st.origin_departure_time,
+    #     st.destination_arrival_time
+    # FROM gtfs_stop_times AS st 
+    # INNER JOIN gtfs_trips ON st.trip_id = gtfs_trips.id 
+    # INNER JOIN gtfs_shapes ON gtfs_trips.shape_id = gtfs_shapes.id 
+    # INNER JOIN gtfs_stops AS origin ON st.origin_id = origin.id
+    # WHERE st.trip_id = 27957 
+    # ORDER BY stop_sequence ASC;
+    
+    # GTFSStopTime.where(trip: trip).joins(:gtfs_trip)
+    q = 'ST_Line_Locate_Point(gtfs_shapes.geometry::geometry, ST_ClosestPoint(gtfs_shapes.geometry::geometry, ST_SetSRID(gtfs_stops.geometry, 4326))) AS line_s'
+    trip = GTFSTrip.find(27957)
+    GTFSStopTime.where(trip: trip).joins(:shape, :origin).select([
+      q
+    ]).as_json
+
+
   end
 end

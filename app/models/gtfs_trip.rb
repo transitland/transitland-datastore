@@ -34,4 +34,5 @@
 class GTFSTrip < ActiveRecord::Base
   belongs_to :feed_version
   belongs_to :entity, class_name: 'RouteStopPattern'
+  belongs_to :shape, class_name: 'GTFSShape'
 end
