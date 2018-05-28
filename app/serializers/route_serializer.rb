@@ -22,7 +22,7 @@
 #
 #  c_route_cu_in_changeset                        (created_or_updated_in_changeset_id)
 #  index_current_routes_on_bikes_allowed          (bikes_allowed)
-#  index_current_routes_on_geometry               (geometry)
+#  index_current_routes_on_geometry               (geometry) USING gist
 #  index_current_routes_on_onestop_id             (onestop_id) UNIQUE
 #  index_current_routes_on_operator_id            (operator_id)
 #  index_current_routes_on_tags                   (tags)
