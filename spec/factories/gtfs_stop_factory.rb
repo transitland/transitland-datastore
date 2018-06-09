@@ -1,34 +1,37 @@
 # == Schema Information
 #
-# Table name: gtfs_trips
+# Table name: gtfs_stops
 #
-#  id                    :integer          not null, primary key
-#  service_id            :string           not null
-#  trip_id               :string           not null
-#  trip_headsign         :string
-#  trip_short_name       :string
-#  direction_id          :integer
-#  block_id              :string
-#  wheelchair_accessible :integer
-#  bikes_allowed         :integer
-#  created_at            :datetime         not null
-#  updated_at            :datetime         not null
-#  feed_version_id       :integer          not null
-#  entity_id             :integer
-#  route_id              :integer          not null
-#  shape_id              :integer
+#  id                  :integer          not null, primary key
+#  stop_id             :string           not null
+#  stop_code           :string
+#  stop_name           :string           not null
+#  stop_desc           :string
+#  zone_id             :string
+#  stop_url            :string
+#  location_type       :integer
+#  stop_timezone       :string
+#  wheelchair_boarding :integer
+#  geometry            :geometry({:srid= not null, point, 0
+#  created_at          :datetime         not null
+#  updated_at          :datetime         not null
+#  feed_version_id     :integer          not null
+#  entity_id           :integer
+#  parent_station_id   :integer
 #
 # Indexes
 #
-#  index_gtfs_trips_on_entity_id        (entity_id)
-#  index_gtfs_trips_on_feed_version_id  (feed_version_id)
-#  index_gtfs_trips_on_route_id         (route_id)
-#  index_gtfs_trips_on_service_id       (service_id)
-#  index_gtfs_trips_on_shape_id         (shape_id)
-#  index_gtfs_trips_on_trip_headsign    (trip_headsign)
-#  index_gtfs_trips_on_trip_id          (trip_id)
-#  index_gtfs_trips_on_trip_short_name  (trip_short_name)
-#  index_gtfs_trips_unique              (feed_version_id,trip_id) UNIQUE
+#  index_gtfs_stops_on_entity_id          (entity_id)
+#  index_gtfs_stops_on_feed_version_id    (feed_version_id)
+#  index_gtfs_stops_on_geometry           (geometry)
+#  index_gtfs_stops_on_location_type      (location_type)
+#  index_gtfs_stops_on_parent_station_id  (parent_station_id)
+#  index_gtfs_stops_on_stop_code          (stop_code)
+#  index_gtfs_stops_on_stop_desc          (stop_desc)
+#  index_gtfs_stops_on_stop_id            (stop_id)
+#  index_gtfs_stops_on_stop_name          (stop_name)
+#  index_gtfs_stops_on_zone_id            (zone_id)
+#  index_gtfs_stops_unique                (feed_version_id,stop_id) UNIQUE
 #
 
 FactoryGirl.define do
