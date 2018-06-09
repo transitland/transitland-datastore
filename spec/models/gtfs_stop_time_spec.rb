@@ -36,8 +36,6 @@
 RSpec.describe GTFSStopTime, type: :model do
     context 'interpolate_stop_times' do
       it 'test' do
-        fv = load_gtfs_fixture('gtfs_bart.json')
-        binding.pry
       end
     end
 end  
