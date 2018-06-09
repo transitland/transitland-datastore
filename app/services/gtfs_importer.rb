@@ -184,9 +184,9 @@ class GTFSImporter
       @gtfs.each_trip_stop_times(trip_id_chunk) do |trip_id, stop_times|
         log("stop_times: trip #{trip_id} stop_times #{stop_times.size}")
         trip_stop_times = []
-        stop_times[0...-1].each_index do |i|
+        stop_times.each_index do |i|
           origin = stop_times[i]
-          destination = stop_times[i+1]
+          destination = stop_times[i+1] # last stop is nil
           params = {}
           params[:feed_version_id] = @feed_version.id
           params[:stop_sequence] = gtfs_int(origin.stop_sequence)
@@ -194,15 +194,19 @@ class GTFSImporter
           params[:pickup_type] = gtfs_int(origin.pickup_type)
           params[:drop_off_type] = gtfs_int(origin.drop_off_type)
           params[:shape_dist_traveled] = gtfs_float(origin.shape_dist_traveled)
-          # params[:timepoint] = gtfs_int(origin.timepoint)
           params[:trip_id] = @trip_ids.fetch(origin.trip_id)
+          # params[:timepoint] = gtfs_int(origin.timepoint)
+          # where
           params[:origin_id] = @stop_ids.fetch(origin.stop_id)
-          params[:destination_id] = @stop_ids.fetch(destination.stop_id)
+          params[:origin_arrival_time] = gtfs_time(origin.arrival_time)
           params[:origin_departure_time] = gtfs_time(origin.departure_time)
-          params[:destination_arrival_time] = gtfs_time(destination.arrival_time)
+          # for convenience
+          params[:destination_id] = @stop_ids.fetch(destination.stop_id) if destination
+          params[:destination_arrival_time] = gtfs_time(destination.arrival_time) if destination
           trip_stop_times << GTFSStopTime.new(params)
         end
         # Validate
+        interpolate_stop_times(trip_stop_times)
         # next unless trip_stop_times.map(&:valid?).all?
         chunk_stop_times += trip_stop_times
         if chunk_stop_times.size > 1_000
@@ -242,34 +246,33 @@ class GTFSImporter
     to_int(value) == 1 ? true : false
   end
 
-  def interpolate_stop_times(trip, stop_times, shape)
-    # SELECT 
-    #     st.trip_id AS trip_id,
-    #     gtfs_shapes.id AS shape_id,
-    #     st.stop_sequence,
-    #     round(st.shape_dist_traveled) AS shape_dist_traveled,
-    #     round(ST_Line_Locate_Point(
-    #         gtfs_shapes.geometry::geometry,
-    #         ST_ClosestPoint(gtfs_shapes.geometry::geometry, ST_SetSRID(origin.geometry, 4326))
-    #     ) * 125578.4) AS est_dist_traveled,
-    #     st.origin_id,
-    #     st.destination_id,
-    #     st.origin_departure_time,
-    #     st.destination_arrival_time
-    # FROM gtfs_stop_times AS st 
-    # INNER JOIN gtfs_trips ON st.trip_id = gtfs_trips.id 
-    # INNER JOIN gtfs_shapes ON gtfs_trips.shape_id = gtfs_shapes.id 
-    # INNER JOIN gtfs_stops AS origin ON st.origin_id = origin.id
-    # WHERE st.trip_id = 27957 
-    # ORDER BY stop_sequence ASC;
-    
-    # GTFSStopTime.where(trip: trip).joins(:gtfs_trip)
-    q = 'ST_Line_Locate_Point(gtfs_shapes.geometry::geometry, ST_ClosestPoint(gtfs_shapes.geometry::geometry, ST_SetSRID(gtfs_stops.geometry, 4326))) AS line_s'
-    trip = GTFSTrip.find(27957)
-    GTFSStopTime.where(trip: trip).joins(:shape, :origin).select([
-      q
-    ]).as_json
+  SHAPE_STOP_DISTANCE={}
+  def interpolate_stop_times(stop_times)
+    return
+    shape_id = GTFSTrip.find(stop_times.first.trip_id).shape_id
+    origins = []
+    stop_times.each do |st|
+      origins << st.origin_id if SHAPE_STOP_DISTANCE[[st.origin_id, shape_id]].nil?
+    end
+    s = 'gtfs_stops.id, ST_LineLocatePoint(gtfs_shapes.geometry::geometry, ST_ClosestPoint(gtfs_shapes.geometry::geometry, ST_SetSRID(gtfs_stops.geometry, 4326))) AS line_s'
+    GTFSStop.where(id: origins).select(s).joins('INNER JOIN gtfs_shapes ON gtfs_shapes.id='+shape_id.to_s).each do |row|
+      SHAPE_STOP_DISTANCE[[row.id, shape_id]] = row.line_s
+    end
 
 
+    s = stop_times.size
+    i = 0
+    until i == s do
+      st1 = stop_times[i]
+      i += 1
+      j = i
+      ip = [st1]
+      until j == s do
+        st2 = stop_times[j]
+        j += 1
+        break if st2.origin_arrival_time
+        ip << st2        
+      end
+    end
   end
 end
