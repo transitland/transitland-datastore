@@ -557,15 +557,17 @@ ActiveRecord::Schema.define(version: 20180113021001) do
     t.integer  "feed_version_id",          null: false
     t.integer  "trip_id",                  null: false
     t.integer  "origin_id",                null: false
-    t.integer  "destination_id",           null: false
-    t.integer  "origin_departure_time",    null: false
-    t.integer  "destination_arrival_time", null: false
+    t.integer  "destination_id"
+    t.integer  "origin_arrival_time"
+    t.integer  "origin_departure_time"
+    t.integer  "destination_arrival_time"
   end
 
   add_index "gtfs_stop_times", ["destination_arrival_time"], name: "index_gtfs_stop_times_on_destination_arrival_time", using: :btree
   add_index "gtfs_stop_times", ["destination_id"], name: "index_gtfs_stop_times_on_destination_id", using: :btree
   add_index "gtfs_stop_times", ["feed_version_id", "trip_id", "stop_sequence"], name: "index_gtfs_stop_times_unique", unique: true, using: :btree
   add_index "gtfs_stop_times", ["feed_version_id"], name: "index_gtfs_stop_times_on_feed_version_id", using: :btree
+  add_index "gtfs_stop_times", ["origin_arrival_time"], name: "index_gtfs_stop_times_on_origin_arrival_time", using: :btree
   add_index "gtfs_stop_times", ["origin_departure_time"], name: "index_gtfs_stop_times_on_origin_departure_time", using: :btree
   add_index "gtfs_stop_times", ["origin_id"], name: "index_gtfs_stop_times_on_origin_id", using: :btree
   add_index "gtfs_stop_times", ["stop_headsign"], name: "index_gtfs_stop_times_on_stop_headsign", using: :btree

@@ -31,6 +31,7 @@
 #
 
 class GTFSRoute < ActiveRecord::Base
+  belongs_to :agency, class_name: 'GTFSAgency'
   belongs_to :feed_version
   belongs_to :entity, class_name: 'Route'
 end

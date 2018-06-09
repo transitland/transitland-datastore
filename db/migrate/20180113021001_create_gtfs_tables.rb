@@ -92,9 +92,10 @@ class CreateGTFSTables < ActiveRecord::Migration
       t.references :feed_version, index: true, null: false
       t.references :trip, references: :gtfs_trips, index: true, null: false
       t.references :origin, references: :gtfs_stops, index: true, null: false
-      t.references :destination, references: :gtfs_stops, index: true, null: false
-      t.integer :origin_departure_time, null: false, index: true
-      t.integer :destination_arrival_time, null: false, index: true
+      t.references :destination, references: :gtfs_stops, index: true # null: false
+      t.integer :origin_arrival_time, index: true # null: false
+      t.integer :origin_departure_time, index: true # null: false
+      t.integer :destination_arrival_time, index: true # null: false
     end
     add_index :gtfs_stop_times, [:feed_version_id, :trip_id, :stop_sequence], unique: true, name: 'index_gtfs_stop_times_unique'
 
@@ -204,6 +205,5 @@ class CreateGTFSTables < ActiveRecord::Migration
       t.references :feed_version, null: false #, index: true
     end
     add_index :gtfs_feed_infos, [:feed_version_id], unique: true, name: 'index_gtfs_feed_info_unique'
-
   end
 end
