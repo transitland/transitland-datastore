@@ -18,7 +18,7 @@ def create_gtfs_fixture(filename, feed_version, trips: nil)
         routes: routes.map { |e| e.slice(:id, :agency_id, :route_id, :route_short_name, :route_long_name, :route_desc, :route_type, :route_url, :route_color, :route_text_color) },
         shapes: shapes.map { |e| e.slice(:id, :shape_id, :geometry ) },
         trips: trips.map { |e| e.slice(:id, :shape_id, :route_id, :service_id, :trip_id, :trip_headsign, :trip_short_name, :direction_id, :block_id, :wheelchair_accessible, :bikes_allowed) },
-        stop_times: stop_times.map { |e| e.slice(:stop_sequence, :stop_headsign, :pickup_type, :drop_off_type, :shape_dist_traveled, :timepoint, :trip_id, :origin_id, :destination_id, :origin_arrival_time, :origin_departure_time, :destination_arrival_time) }
+        stop_times: stop_times.map { |e| e.slice(:stop_sequence, :stop_headsign, :pickup_type, :drop_off_type, :shape_dist_traveled, :timepoint, :trip_id, :stop_id, :destination_id, :arrival_time, :departure_time, :destination_arrival_time) }
     }
     File.open(filename, 'w') do |f|
         f.write(export.to_json)
@@ -71,7 +71,7 @@ def load_gtfs_fixture(filename)
         eid = e.delete('id')
         e['feed_version_id'] = fv.id
         e['trip_id'] = trip_map.fetch(e['trip_id'])
-        e['origin_id'] = stop_map.fetch(e['origin_id'])
+        e['stop_id'] = stop_map.fetch(e['stop_id'])
         # e['destination_id'] = stop_map.fetch(e['destination_id'])
         GTFSStopTime.new(**e.symbolize_keys).save!(validate: false)
     end

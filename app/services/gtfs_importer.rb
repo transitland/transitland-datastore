@@ -197,9 +197,9 @@ class GTFSImporter
           params[:trip_id] = @trip_ids.fetch(origin.trip_id)
           # params[:timepoint] = gtfs_int(origin.timepoint)
           # where
-          params[:origin_id] = @stop_ids.fetch(origin.stop_id)
-          params[:origin_arrival_time] = gtfs_time(origin.arrival_time)
-          params[:origin_departure_time] = gtfs_time(origin.departure_time)
+          params[:stop_id] = @stop_ids.fetch(origin.stop_id)
+          params[:arrival_time] = gtfs_time(origin.arrival_time)
+          params[:departure_time] = gtfs_time(origin.departure_time)
           # for convenience
           params[:destination_id] = @stop_ids.fetch(destination.stop_id) if destination
           params[:destination_arrival_time] = gtfs_time(destination.arrival_time) if destination
@@ -252,7 +252,7 @@ class GTFSImporter
     shape_id = GTFSTrip.find(stop_times.first.trip_id).shape_id
     origins = []
     stop_times.each do |st|
-      origins << st.origin_id if SHAPE_STOP_DISTANCE[[st.origin_id, shape_id]].nil?
+      origins << st.stop_id if SHAPE_STOP_DISTANCE[[st.stop_id, shape_id]].nil?
     end
     s = 'gtfs_stops.id, ST_LineLocatePoint(gtfs_shapes.geometry::geometry, ST_ClosestPoint(gtfs_shapes.geometry::geometry, ST_SetSRID(gtfs_stops.geometry, 4326))) AS line_s'
     GTFSStop.where(id: origins).select(s).joins('INNER JOIN gtfs_shapes ON gtfs_shapes.id='+shape_id.to_s).each do |row|
@@ -270,7 +270,7 @@ class GTFSImporter
       until j == s do
         st2 = stop_times[j]
         j += 1
-        break if st2.origin_arrival_time
+        break if st2.arrival_time
         ip << st2        
       end
     end

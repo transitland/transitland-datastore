@@ -91,10 +91,10 @@ class CreateGTFSTables < ActiveRecord::Migration
       t.timestamps null: false
       t.references :feed_version, index: true, null: false
       t.references :trip, references: :gtfs_trips, index: true, null: false
-      t.references :origin, references: :gtfs_stops, index: true, null: false
+      t.references :stop, references: :gtfs_stops, index: true, null: false
       t.references :destination, references: :gtfs_stops, index: true # null: false
-      t.integer :origin_arrival_time, index: true # null: false
-      t.integer :origin_departure_time, index: true # null: false
+      t.integer :arrival_time, index: true # null: false
+      t.integer :departure_time, index: true # null: false
       t.integer :destination_arrival_time, index: true # null: false
     end
     add_index :gtfs_stop_times, [:feed_version_id, :trip_id, :stop_sequence], unique: true, name: 'index_gtfs_stop_times_unique'
