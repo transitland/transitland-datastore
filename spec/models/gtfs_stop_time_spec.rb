@@ -36,8 +36,13 @@
 RSpec.describe GTFSStopTime, type: :model do
     context 'interpolate_stop_times' do
       it 'test' do
-        fv = load_gtfs_fixture('gtfs_bart.json')
-        binding.pry
+        fv = load_gtfs_fixture('gtfs_bart_limited.json')
+        trip = GTFSTrip.where(trip_id: '01SFO10').first
+        sts = GTFSStopTime.where(trip: trip).to_a.sort_by { |st| st.stop_sequence }
+        sts[1...sts.size-1].each { |st| st.origin_arrival_time = nil; st.origin_departure_time = nil }
+        sts[10].origin_arrival_time = 17000
+        sts[12].origin_arrival_time = 17100
+        GTFSStopTime.interpolate_stop_times(sts)
       end
     end
 end  
