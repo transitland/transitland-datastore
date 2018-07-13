@@ -18,5 +18,6 @@
 
 class GTFSShape < ActiveRecord::Base
   include HasAGeographicGeometry
+  has_many :trips, class_name: 'GTFSTrip', foreign_key: 'shape_id'
   belongs_to :feed_version
 end

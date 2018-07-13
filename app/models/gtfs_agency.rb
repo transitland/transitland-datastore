@@ -26,6 +26,7 @@
 #
 
 class GTFSAgency < ActiveRecord::Base
+  has_many :routes, class_name: 'GTFSRoute', foreign_key: 'agency_id'
   belongs_to :feed_version
   belongs_to :entity, class_name: 'Operator'
 end

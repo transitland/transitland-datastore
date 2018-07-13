@@ -36,6 +36,7 @@
 
 class GTFSStop < ActiveRecord::Base
   include HasAGeographicGeometry
+  has_many :stop_times, class_name: GTFSStopTime, foreign_key: "origin_id"
   belongs_to :feed_version
   belongs_to :entity, class_name: 'Stop'
 end

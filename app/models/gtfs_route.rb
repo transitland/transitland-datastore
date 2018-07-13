@@ -31,6 +31,7 @@
 #
 
 class GTFSRoute < ActiveRecord::Base
+  has_many :trips, class_name: GTFSTrip, foreign_key: "route_id"
   belongs_to :agency, class_name: 'GTFSAgency'
   belongs_to :feed_version
   belongs_to :entity, class_name: 'Route'
