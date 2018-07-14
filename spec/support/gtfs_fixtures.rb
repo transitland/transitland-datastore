@@ -72,7 +72,6 @@ def load_gtfs_fixture(filename)
         e['feed_version_id'] = fv.id
         e['trip_id'] = trip_map.fetch(e['trip_id'])
         e['stop_id'] = stop_map.fetch(e['stop_id'])
-        # e['destination_id'] = stop_map.fetch(e['destination_id'])
         GTFSStopTime.new(**e.symbolize_keys).save!(validate: false)
     end
 
