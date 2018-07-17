@@ -21,7 +21,7 @@ class TyrService
         costing: costing
       }
       req.params['json'] = JSON.dump(json_payload)
-      req.params['api_token'] = Figaro.env.tyr_auth_token
+      req.params['api_key'] = Figaro.env.tyr_auth_token
     end
 
     if response.body.blank?
