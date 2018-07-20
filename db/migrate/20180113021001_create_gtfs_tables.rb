@@ -30,7 +30,7 @@ class CreateGTFSTables < ActiveRecord::Migration
       t.string :stop_timezone
       t.integer :wheelchair_boarding
       #
-      t.st_point :geometry, null: false, index: true
+      t.st_point :geometry, null: false, geographic: true, index: true
       t.timestamps null: false
       t.references :feed_version, index: true, null: false
       t.references :entity, references: :current_stops, index: true
@@ -62,6 +62,7 @@ class CreateGTFSTables < ActiveRecord::Migration
       t.string :trip_id, index: true, null: false
       t.string :trip_headsign, index: true
       t.string :trip_short_name, index: true
+      t.boolean :generated, default: false, null: false, index: true
       t.integer :direction_id
       t.string :block_id
       # t.string :shape_id
@@ -93,8 +94,8 @@ class CreateGTFSTables < ActiveRecord::Migration
       t.references :trip, references: :gtfs_trips, index: true, null: false
       t.references :stop, references: :gtfs_stops, index: true, null: false
       t.references :destination, references: :gtfs_stops, index: true # null: false
-      t.integer :arrival_time, index: true # null: false
-      t.integer :departure_time, index: true # null: false
+      t.integer :arrival_time, index: true, null: false
+      t.integer :departure_time, index: true, null: false
       t.integer :destination_arrival_time, index: true # null: false
     end
     add_index :gtfs_stop_times, [:feed_version_id, :trip_id, :stop_sequence], unique: true, name: 'index_gtfs_stop_times_unique'

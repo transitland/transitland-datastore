@@ -12,7 +12,7 @@
 #  location_type       :integer
 #  stop_timezone       :string
 #  wheelchair_boarding :integer
-#  geometry            :geometry({:srid= not null, point, 0
+#  geometry            :geography({:srid not null, point, 4326
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
 #  feed_version_id     :integer          not null

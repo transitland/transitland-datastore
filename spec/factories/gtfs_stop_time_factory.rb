@@ -15,8 +15,8 @@
 #  trip_id                  :integer          not null
 #  stop_id                  :integer          not null
 #  destination_id           :integer
-#  arrival_time             :integer
-#  departure_time           :integer
+#  arrival_time             :integer          not null
+#  departure_time           :integer          not null
 #  destination_arrival_time :integer
 #
 # Indexes
