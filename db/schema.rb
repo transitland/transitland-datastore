@@ -489,6 +489,7 @@ ActiveRecord::Schema.define(version: 20180113021001) do
   end
 
   add_index "gtfs_feed_infos", ["feed_version_id"], name: "index_gtfs_feed_info_unique", unique: true, using: :btree
+  add_index "gtfs_feed_infos", ["feed_version_id"], name: "index_gtfs_feed_infos_on_feed_version_id", using: :btree
 
   create_table "gtfs_frequencies", force: :cascade do |t|
     t.integer  "start_time",      null: false
@@ -501,10 +502,7 @@ ActiveRecord::Schema.define(version: 20180113021001) do
     t.integer  "trip_id",         null: false
   end
 
-  add_index "gtfs_frequencies", ["end_time"], name: "index_gtfs_frequencies_on_end_time", using: :btree
   add_index "gtfs_frequencies", ["feed_version_id"], name: "index_gtfs_frequencies_on_feed_version_id", using: :btree
-  add_index "gtfs_frequencies", ["headway_secs"], name: "index_gtfs_frequencies_on_headway_secs", using: :btree
-  add_index "gtfs_frequencies", ["start_time"], name: "index_gtfs_frequencies_on_start_time", using: :btree
   add_index "gtfs_frequencies", ["trip_id"], name: "index_gtfs_frequencies_on_trip_id", using: :btree
 
   create_table "gtfs_routes", force: :cascade do |t|
@@ -534,32 +532,36 @@ ActiveRecord::Schema.define(version: 20180113021001) do
   add_index "gtfs_routes", ["route_type"], name: "index_gtfs_routes_on_route_type", using: :btree
 
   create_table "gtfs_shapes", force: :cascade do |t|
-    t.string    "shape_id",                                                                                     null: false
-    t.geography "geometry",        limit: {:srid=>4326, :type=>"line_string", :has_m=>true, :geographic=>true}, null: false
-    t.datetime  "created_at",                                                                                   null: false
-    t.datetime  "updated_at",                                                                                   null: false
-    t.integer   "feed_version_id",                                                                              null: false
+    t.string    "shape_id",                                                                                                     null: false
+    t.boolean   "generated",                                                                                    default: false, null: false
+    t.geography "geometry",        limit: {:srid=>4326, :type=>"line_string", :has_m=>true, :geographic=>true},                 null: false
+    t.datetime  "created_at",                                                                                                   null: false
+    t.datetime  "updated_at",                                                                                                   null: false
+    t.integer   "feed_version_id",                                                                                              null: false
   end
 
   add_index "gtfs_shapes", ["feed_version_id", "shape_id"], name: "index_gtfs_shapes_unique", unique: true, using: :btree
   add_index "gtfs_shapes", ["feed_version_id"], name: "index_gtfs_shapes_on_feed_version_id", using: :btree
+  add_index "gtfs_shapes", ["generated"], name: "index_gtfs_shapes_on_generated", using: :btree
+  add_index "gtfs_shapes", ["geometry"], name: "index_gtfs_shapes_on_geometry", using: :btree
   add_index "gtfs_shapes", ["shape_id"], name: "index_gtfs_shapes_on_shape_id", using: :btree
 
   create_table "gtfs_stop_times", id: :bigserial, force: :cascade do |t|
-    t.integer  "stop_sequence",            null: false
+    t.integer  "stop_sequence",                            null: false
     t.string   "stop_headsign"
     t.integer  "pickup_type"
     t.integer  "drop_off_type"
     t.float    "shape_dist_traveled"
     t.integer  "timepoint"
-    t.datetime "created_at",               null: false
-    t.datetime "updated_at",               null: false
-    t.integer  "feed_version_id",          null: false
-    t.integer  "trip_id",                  null: false
-    t.integer  "stop_id",                  null: false
+    t.boolean  "interpolated",             default: false, null: false
+    t.datetime "created_at",                               null: false
+    t.datetime "updated_at",                               null: false
+    t.integer  "feed_version_id",                          null: false
+    t.integer  "trip_id",                                  null: false
+    t.integer  "stop_id",                                  null: false
     t.integer  "destination_id"
-    t.integer  "arrival_time",             null: false
-    t.integer  "departure_time",           null: false
+    t.integer  "arrival_time",                             null: false
+    t.integer  "departure_time",                           null: false
     t.integer  "destination_arrival_time"
   end
 
@@ -569,9 +571,7 @@ ActiveRecord::Schema.define(version: 20180113021001) do
   add_index "gtfs_stop_times", ["destination_id"], name: "index_gtfs_stop_times_on_destination_id", using: :btree
   add_index "gtfs_stop_times", ["feed_version_id", "trip_id", "stop_sequence"], name: "index_gtfs_stop_times_unique", unique: true, using: :btree
   add_index "gtfs_stop_times", ["feed_version_id"], name: "index_gtfs_stop_times_on_feed_version_id", using: :btree
-  add_index "gtfs_stop_times", ["stop_headsign"], name: "index_gtfs_stop_times_on_stop_headsign", using: :btree
   add_index "gtfs_stop_times", ["stop_id"], name: "index_gtfs_stop_times_on_stop_id", using: :btree
-  add_index "gtfs_stop_times", ["stop_sequence"], name: "index_gtfs_stop_times_on_stop_sequence", using: :btree
   add_index "gtfs_stop_times", ["trip_id"], name: "index_gtfs_stop_times_on_trip_id", using: :btree
 
   create_table "gtfs_stops", force: :cascade do |t|
@@ -602,7 +602,6 @@ ActiveRecord::Schema.define(version: 20180113021001) do
   add_index "gtfs_stops", ["stop_desc"], name: "index_gtfs_stops_on_stop_desc", using: :btree
   add_index "gtfs_stops", ["stop_id"], name: "index_gtfs_stops_on_stop_id", using: :btree
   add_index "gtfs_stops", ["stop_name"], name: "index_gtfs_stops_on_stop_name", using: :btree
-  add_index "gtfs_stops", ["zone_id"], name: "index_gtfs_stops_on_zone_id", using: :btree
 
   create_table "gtfs_transfers", force: :cascade do |t|
     t.integer  "transfer_type",     null: false
@@ -616,32 +615,28 @@ ActiveRecord::Schema.define(version: 20180113021001) do
 
   add_index "gtfs_transfers", ["feed_version_id"], name: "index_gtfs_transfers_on_feed_version_id", using: :btree
   add_index "gtfs_transfers", ["from_stop_id"], name: "index_gtfs_transfers_on_from_stop_id", using: :btree
-  add_index "gtfs_transfers", ["min_transfer_time"], name: "index_gtfs_transfers_on_min_transfer_time", using: :btree
   add_index "gtfs_transfers", ["to_stop_id"], name: "index_gtfs_transfers_on_to_stop_id", using: :btree
-  add_index "gtfs_transfers", ["transfer_type"], name: "index_gtfs_transfers_on_transfer_type", using: :btree
 
   create_table "gtfs_trips", force: :cascade do |t|
-    t.string   "service_id",                            null: false
-    t.string   "trip_id",                               null: false
+    t.string   "service_id",            null: false
+    t.string   "trip_id",               null: false
     t.string   "trip_headsign"
     t.string   "trip_short_name"
-    t.boolean  "generated",             default: false, null: false
     t.integer  "direction_id"
     t.string   "block_id"
     t.integer  "wheelchair_accessible"
     t.integer  "bikes_allowed"
-    t.datetime "created_at",                            null: false
-    t.datetime "updated_at",                            null: false
-    t.integer  "feed_version_id",                       null: false
+    t.datetime "created_at",            null: false
+    t.datetime "updated_at",            null: false
+    t.integer  "feed_version_id",       null: false
     t.integer  "entity_id"
-    t.integer  "route_id",                              null: false
+    t.integer  "route_id",              null: false
     t.integer  "shape_id"
   end
 
   add_index "gtfs_trips", ["entity_id"], name: "index_gtfs_trips_on_entity_id", using: :btree
   add_index "gtfs_trips", ["feed_version_id", "trip_id"], name: "index_gtfs_trips_unique", unique: true, using: :btree
   add_index "gtfs_trips", ["feed_version_id"], name: "index_gtfs_trips_on_feed_version_id", using: :btree
-  add_index "gtfs_trips", ["generated"], name: "index_gtfs_trips_on_generated", using: :btree
   add_index "gtfs_trips", ["route_id"], name: "index_gtfs_trips_on_route_id", using: :btree
   add_index "gtfs_trips", ["service_id"], name: "index_gtfs_trips_on_service_id", using: :btree
   add_index "gtfs_trips", ["shape_id"], name: "index_gtfs_trips_on_shape_id", using: :btree

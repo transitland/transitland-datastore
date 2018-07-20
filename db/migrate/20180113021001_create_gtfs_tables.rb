@@ -23,7 +23,7 @@ class CreateGTFSTables < ActiveRecord::Migration
       t.string :stop_desc, index: true
       # t.float :stop_lat
       # t.float :stop_lon
-      t.string :zone_id, index: true
+      t.string :zone_id
       t.string :stop_url
       t.integer :location_type, index: true
       # t.string :parent_station
@@ -49,6 +49,8 @@ class CreateGTFSTables < ActiveRecord::Migration
       t.string :route_color
       t.string :route_text_color
       #
+      t.multi_line_string :geometry, geographic: true, index: true
+      t.multi_line_string :geometry_generated, geographic: true, index: true
       t.timestamps null: false
       t.references :feed_version, index: true, null: false
       t.references :entity, references: :current_routes, index: true
@@ -62,7 +64,6 @@ class CreateGTFSTables < ActiveRecord::Migration
       t.string :trip_id, index: true, null: false
       t.string :trip_headsign, index: true
       t.string :trip_short_name, index: true
-      t.boolean :generated, default: false, null: false, index: true
       t.integer :direction_id
       t.string :block_id
       # t.string :shape_id
@@ -82,13 +83,14 @@ class CreateGTFSTables < ActiveRecord::Migration
       # t.string :arrival_time
       # t.string :departure_time
       # t.string :stop_id
-      t.integer :stop_sequence, index: true, null: false
-      t.string :stop_headsign, index: true
+      t.integer :stop_sequence, null: false
+      t.string :stop_headsign
       t.integer :pickup_type
       t.integer :drop_off_type
       t.float :shape_dist_traveled
       t.integer :timepoint
       #
+      t.boolean :interpolated, default: false, null: false
       t.timestamps null: false
       t.references :feed_version, index: true, null: false
       t.references :trip, references: :gtfs_trips, index: true, null: false
@@ -162,7 +164,8 @@ class CreateGTFSTables < ActiveRecord::Migration
       # t.float :shape_pt_lon
       # t.integer :shape_pt_sequence
       # f.float :shape_dist_traveled
-      t.line_string :geometry, null: false, geographic: true, has_m: true
+      t.boolean :generated, default: false, null: false, index: true
+      t.line_string :geometry, null: false, geographic: true, has_m: true, index: true
       #
       t.timestamps null: false
       t.references :feed_version, index: true, null: false
@@ -171,9 +174,9 @@ class CreateGTFSTables < ActiveRecord::Migration
 
     create_table :gtfs_frequencies do |t|
       # t.string :trip_id
-      t.integer :start_time, null: false, index: true
-      t.integer :end_time, null: false, index: true
-      t.integer :headway_secs, null: false, index: true
+      t.integer :start_time, null: false
+      t.integer :end_time, null: false
+      t.integer :headway_secs, null: false
       t.integer :exact_times
       t.timestamps null: false
       #
@@ -185,8 +188,8 @@ class CreateGTFSTables < ActiveRecord::Migration
     create_table :gtfs_transfers do |t|
       # t.string :from_stop_id
       # t.string :to_stop_id
-      t.integer :transfer_type, null: false, index: true
-      t.integer :min_transfer_time, index: true
+      t.integer :transfer_type, null: false
+      t.integer :min_transfer_time
       #
       t.timestamps null: false
       t.references :feed_version, index: true, null: false
@@ -203,7 +206,7 @@ class CreateGTFSTables < ActiveRecord::Migration
       t.string :feed_version_name
       #
       t.timestamps null: false
-      t.references :feed_version, null: false #, index: true
+      t.references :feed_version, null: false, index: true
     end
     add_index :gtfs_feed_infos, [:feed_version_id], unique: true, name: 'index_gtfs_feed_info_unique'
   end
