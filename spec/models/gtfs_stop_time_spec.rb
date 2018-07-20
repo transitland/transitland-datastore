@@ -15,8 +15,8 @@
 #  trip_id                  :integer          not null
 #  stop_id                  :integer          not null
 #  destination_id           :integer
-#  arrival_time             :integer
-#  departure_time           :integer
+#  arrival_time             :integer          not null
+#  departure_time           :integer          not null
 #  destination_arrival_time :integer
 #
 # Indexes
@@ -43,13 +43,22 @@ RSpec.describe GTFSStopTime, type: :model do
     context 'interpolate_stop_times' do
       it 'test' do
         fv = load_gtfs_fixture('gtfs_bart_limited.json')
-        trip = GTFSTrip.where(trip_id: '01SFO10').first
-        sts = GTFSStopTime.where(trip: trip).to_a.sort_by { |st| st.stop_sequence }
-        sts[1...sts.size-1].each { |st| st.arrival_time = nil; st.departure_time = nil }
-        sts[10].arrival_time = 17000
-        sts[12].arrival_time = 17100
-        sts = GTFSStopTime.interpolate_stop_times(sts)
-        display_trip(sts)
+        # trip = GTFSTrip.where(trip_id: '01SFO10').first
+        GTFSTrip.where('').each do |trip|
+          sts = GTFSStopTime.where(trip: trip).to_a.sort_by { |st| st.stop_sequence }
+          times1 = sts.map(&:departure_time)
+
+          sts[1...sts.size-1].each { |st| st.arrival_time = nil; st.departure_time = nil }
+          ActiveRecord::Base.logger = Logger.new(STDOUT)
+          ActiveRecord::Base.logger.level = Logger::DEBUG
+          puts "shape_id: #{trip.shape_id}"
+          sts = GTFSStopTimeInterpolater.interpolate_stop_times(sts, trip.shape_id)
+
+          times2 = sts.map(&:departure_time)
+          times1.zip(times2).each do |a,b|
+            puts "#{a} - #{b} = #{a - b}"
+          end
+        end
       end
     end
 end  
