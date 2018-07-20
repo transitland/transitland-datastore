@@ -1,0 +1,3 @@
+class GTFSTripSerializer < GTFSEntitySerializer
+end
+  

@@ -1,0 +1,3 @@
+class GTFSShapeSerializer < GTFSEntitySerializer
+end
+  

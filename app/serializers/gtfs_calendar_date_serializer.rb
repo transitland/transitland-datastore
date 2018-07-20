@@ -1,0 +1,3 @@
+class GTFSCalendarDateSerializer < GTFSEntitySerializer
+end
+  

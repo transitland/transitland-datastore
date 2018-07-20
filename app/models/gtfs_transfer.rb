@@ -13,11 +13,9 @@
 #
 # Indexes
 #
-#  index_gtfs_transfers_on_feed_version_id    (feed_version_id)
-#  index_gtfs_transfers_on_from_stop_id       (from_stop_id)
-#  index_gtfs_transfers_on_min_transfer_time  (min_transfer_time)
-#  index_gtfs_transfers_on_to_stop_id         (to_stop_id)
-#  index_gtfs_transfers_on_transfer_type      (transfer_type)
+#  index_gtfs_transfers_on_feed_version_id  (feed_version_id)
+#  index_gtfs_transfers_on_from_stop_id     (from_stop_id)
+#  index_gtfs_transfers_on_to_stop_id       (to_stop_id)
 #
 
 class GTFSTransfer < ActiveRecord::Base

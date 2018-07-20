@@ -1,0 +1,3 @@
+class GTFSFeedInfoSerializer < GTFSEntitySerializer
+end
+  

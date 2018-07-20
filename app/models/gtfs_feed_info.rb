@@ -15,7 +15,8 @@
 #
 # Indexes
 #
-#  index_gtfs_feed_info_unique  (feed_version_id) UNIQUE
+#  index_gtfs_feed_info_unique               (feed_version_id) UNIQUE
+#  index_gtfs_feed_infos_on_feed_version_id  (feed_version_id)
 #
 
 class GTFSFeedInfo < ActiveRecord::Base

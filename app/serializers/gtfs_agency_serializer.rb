@@ -1,0 +1,3 @@
+class GTFSAgencySerializer < GTFSEntitySerializer
+end
+  

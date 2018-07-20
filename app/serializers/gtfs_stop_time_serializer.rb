@@ -1,0 +1,3 @@
+class GTFSStopTimeSerializer < GTFSEntitySerializer
+end
+  

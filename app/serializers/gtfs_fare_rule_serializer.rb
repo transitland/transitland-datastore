@@ -1,0 +1,3 @@
+class GTFSFareRuleSerializer < GTFSEntitySerializer
+end
+  

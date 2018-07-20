@@ -9,6 +9,7 @@
 #  drop_off_type            :integer
 #  shape_dist_traveled      :float
 #  timepoint                :integer
+#  interpolated             :boolean          default(FALSE), not null
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
 #  feed_version_id          :integer          not null
@@ -26,9 +27,7 @@
 #  index_gtfs_stop_times_on_destination_arrival_time  (destination_arrival_time)
 #  index_gtfs_stop_times_on_destination_id            (destination_id)
 #  index_gtfs_stop_times_on_feed_version_id           (feed_version_id)
-#  index_gtfs_stop_times_on_stop_headsign             (stop_headsign)
 #  index_gtfs_stop_times_on_stop_id                   (stop_id)
-#  index_gtfs_stop_times_on_stop_sequence             (stop_sequence)
 #  index_gtfs_stop_times_on_trip_id                   (trip_id)
 #  index_gtfs_stop_times_unique                       (feed_version_id,trip_id,stop_sequence) UNIQUE
 #

@@ -30,7 +30,6 @@
 #  index_gtfs_stops_on_stop_desc          (stop_desc)
 #  index_gtfs_stops_on_stop_id            (stop_id)
 #  index_gtfs_stops_on_stop_name          (stop_name)
-#  index_gtfs_stops_on_zone_id            (zone_id)
 #  index_gtfs_stops_unique                (feed_version_id,stop_id) UNIQUE
 #
 

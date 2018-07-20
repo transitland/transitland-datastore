@@ -16,6 +16,21 @@ Rails.application.routes.draw do
         end
         resources :change_payloads, only: [:index, :show, :create, :update, :destroy]
       end
+
+      resources :gtfs_agencies, only: [:index, :show]
+      resources :gtfs_calendar_dates, only: [:index, :show]
+      resources :gtfs_calendars, only: [:index, :show]
+      resources :gtfs_fare_attributes, only: [:index, :show]
+      resources :gtfs_fare_rules, only: [:index, :show]
+      resources :gtfs_feed_infos, only: [:index, :show]
+      resources :gtfs_frequencies, only: [:index, :show]
+      resources :gtfs_routes, only: [:index, :show]
+      resources :gtfs_shapes, only: [:index, :show]
+      resources :gtfs_stop_times, only: [:index, :show]
+      resources :gtfs_transfers, only: [:index, :show]
+      resources :gtfs_trips, only: [:index, :show]
+      resources :gtfs_stops, only: [:index, :show]
+
       resources :stops, only: [:index, :show]
       resources :stop_stations, only: [:index, :show]
       resources :operators, only: [:index, :show] do

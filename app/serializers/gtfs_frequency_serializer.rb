@@ -1,0 +1,3 @@
+class GTFSFrequencySerializer < GTFSEntitySerializer
+end
+  
