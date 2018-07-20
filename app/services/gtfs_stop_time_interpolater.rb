@@ -118,6 +118,7 @@ class GTFSStopTimeInterpolater
       debug("\ti_distance: #{i_distance} pct: #{pct} i_time: #{i_time}")
       st.arrival_time = i_time
       st.departure_time = i_time
+      st.interpolated = true
     end
     debug("\tc_distance: #{c_distance} c_time: #{c_time}")
     return true
@@ -138,6 +139,7 @@ class GTFSStopTimeInterpolater
       debug("\ti: #{i+1} pct: #{pct} i_time: #{i_time} ")
       st.arrival_time = i_time
       st.departure_time = i_time
+      st.interpolated = true
     end
     debug("\ti: #{stop_times.size-1} c_time: #{c_time}")
   end
