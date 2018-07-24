@@ -19,5 +19,6 @@
 #
 
 class GTFSFrequencySerializer < GTFSEntitySerializer
+    attributes :start_time, :end_time, :headway_secs, :exact_times, :trip_id
 end
   

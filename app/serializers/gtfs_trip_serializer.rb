@@ -32,5 +32,16 @@
 #
 
 class GTFSTripSerializer < GTFSEntitySerializer
+    attributes :service_id,
+                :trip_id,
+                :trip_headsign,
+                :trip_short_name,
+                :direction_id,
+                :block_id,
+                :wheelchair_accessible,
+                :bikes_allowed,
+                :route_id,
+                :shape_id
+
 end
   

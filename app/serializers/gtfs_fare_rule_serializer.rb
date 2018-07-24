@@ -22,5 +22,6 @@
 #
 
 class GTFSFareRuleSerializer < GTFSEntitySerializer
+    attributes :fare_id, :contains_id, :route_id, :origin_id, :destination_id
 end
   

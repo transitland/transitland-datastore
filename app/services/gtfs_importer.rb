@@ -90,7 +90,7 @@ class GTFSImporter
     time('feed_info') { import_feed_info }
     time('transfers') { import_transfers }
     time('fare_rules') { import_fare_rules }
-    time('fare_attribtes') { import_fare_attributes }
+    time('fare_attribtes') { import_fare_attributes(default_agency_id) }
     time('shapes') { import_shapes(shape_counter) }
     time('trips_and_stop_times') { import_trips_and_stop_times(trip_stop_counter) }
     # Done
@@ -127,9 +127,9 @@ class GTFSImporter
       params[:stop_desc] = stop.stop_desc
       params[:stop_url] = stop.stop_url
       params[:zone_id] = stop.zone_id
-      params[:location_type] = gtfs_int(stop.location_type)
+      params[:location_type] = gtfs_int(stop.location_type) || 0
       params[:stop_timezone] = stop.stop_timezone
-      params[:wheelchair_boarding] = gtfs_int(stop.wheelchair_boarding)
+      params[:wheelchair_boarding] = gtfs_int(stop.wheelchair_boarding) || 0
       params[:geometry] = f.point(
         gtfs_float(stop.stop_lon),
         gtfs_float(stop.stop_lat)
@@ -196,22 +196,74 @@ class GTFSImporter
 
   def import_frequency
     return unless @gtfs.file_present?('frequency.txt')
+    @gtfs.each_frequency do |e|
+      params = {}
+      params[:feed_version_id] = @feed_version.id
+      params[:start_time] = gtfs_int(e.start_time)
+      params[:end_time] = gtfs_int(e.end_time)
+      params[:headway_secs] = gtfs_int(e.headway_secs)
+      params[:exact_times] = gtfs_int(e.exact_times) || 0
+      params[:trip_id] = @trip_ids[e.trip_id]
+      GTFSFrequency.create!(params)
+    end
   end
 
   def import_transfers
     return unless @gtfs.file_present?('transfers.txt')
+    @gtfs.each_transfer do |e|
+      params = {}
+      params[:feed_version_id] = @feed_version.id
+      params[:transfer_type] = gtfs_int(e.transfer_type) || 0
+      params[:min_transfer_time] = gtfs_int(e.min_transfer_time)
+      params[:from_stop_id] = @stop_ids[e.from_stop_id]
+      params[:to_stop_id] = @stop_ids[e.to_stop_id]
+      GTFSTransfer.create!(params)
+    end
   end
 
   def import_feed_info
     return unless @gtfs.file_present?('feed_info.txt')
+    @gtfs.each_feed_info do |e|
+      params = {}
+      params[:feed_version_id] = @feed_version.id
+      params[:feed_publisher_name] = e.feed_publisher_name
+      params[:feed_publisher_url] = e.feed_publisher_url
+      params[:feed_lang] = e.feed_lang
+      params[:feed_start_date] = gtfs_date(e.feed_start_date)
+      params[:feed_end_date] = gtfs_date(e.feed_end_date)
+      # params[:feed_version_name] = e.feed_version_name
+      GTFSFeedInfo.create!(params)
+    end
   end
 
   def import_fare_rules
     return unless @gtfs.file_present?('fare_rules.txt')
+    @gtfs.each_fare_rule do |e|
+      params = {}
+      params[:feed_version_id] = @feed_version.id
+      params[:fare_id] = e.fare_id
+      params[:contains_id] = e.contains_id
+      params[:origin_id] = e.origin_id
+      params[:destination_id] = e.destination_id
+      params[:route_id] = @route_ids[e.route_id]
+      GTFSFareRule.create!(params)
+    end
   end
 
-  def import_fare_attributes
+  def import_fare_attributes(default_agency_id=nil)
     return unless @gtfs.file_present?('fare_attributes.txt')
+    @gtfs.each_fare_attribute do |e|
+      params = {}
+      params[:feed_version_id] = @feed_version.id
+      params[:fare_id] = e.fare_id
+      params[:price] = gtfs_float(e.price)
+      params[:currency_type] = e.currency_type
+      params[:payment_method] = gtfs_int(e.payment_method)
+      params[:transfers] = gtfs_int(e.transfers)
+      params[:transfer_duration] = gtfs_int(e.transfer_duration)
+      # params[:agency_id] = @agency_ids[e.agency_id] || default_agency_id
+      GTFSFareAttribute.create!(params)
+    end
   end
 
   def import_shapes(shape_counter=nil)
@@ -264,10 +316,10 @@ class GTFSImporter
       params[:feed_version_id] = @feed_version.id
       params[:stop_sequence] = gtfs_int(origin.stop_sequence)
       params[:stop_headsign] = origin.stop_headsign
-      params[:pickup_type] = gtfs_int(origin.pickup_type)
-      params[:drop_off_type] = gtfs_int(origin.drop_off_type)
+      params[:pickup_type] = gtfs_int(origin.pickup_type) || 0
+      params[:drop_off_type] = gtfs_int(origin.drop_off_type) || 0
       params[:shape_dist_traveled] = gtfs_float(origin.shape_dist_traveled)
-      params[:timepoint] = gtfs_int(origin.timepoint)
+      # params[:timepoint] = gtfs_int(origin.timepoint)
       # where
       params[:stop_id] = @stop_ids.fetch(origin.stop_id)
       params[:arrival_time] = gtfs_time(origin.arrival_time)
@@ -287,8 +339,8 @@ class GTFSImporter
     params[:trip_short_name] = trip.trip_short_name
     params[:direction_id] = gtfs_int(trip.direction_id)
     params[:block_id] = trip.block_id
-    params[:wheelchair_accessible] = gtfs_int(trip.wheelchair_accessible)
-    params[:bikes_allowed] = gtfs_int(trip.bikes_allowed)
+    params[:wheelchair_accessible] = gtfs_int(trip.wheelchair_accessible) || 0
+    params[:bikes_allowed] = gtfs_int(trip.bikes_allowed) || 0
     params[:route_id] = @route_ids.fetch(trip.route_id)
     # Generate a shape if one was not provided
     shape_id = @shape_ids[trip.shape_id]

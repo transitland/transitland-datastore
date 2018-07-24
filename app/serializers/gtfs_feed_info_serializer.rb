@@ -20,5 +20,6 @@
 #
 
 class GTFSFeedInfoSerializer < GTFSEntitySerializer
+    attributes :feed_publisher_name, :feed_publisher_url, :feed_lang, :feed_start_date, :feed_end_date, :feed_version_name
 end
   

@@ -40,13 +40,15 @@ class GTFSRouteSerializer < GTFSEntitySerializer
                 :route_long_name,
                 :route_desc,
                 :route_type,
+                :route_type_desc,
                 :route_url,
                 :route_color,
                 :route_text_color,
-                :agency_id
+                :agency_id,
+                :geometry_generated
                 # :route_sort_order
-    def geometry
-        {}
+
+    def route_type_desc
     end
 end
   

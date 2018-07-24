@@ -33,5 +33,30 @@
 #
 
 class GTFSStopTimeSerializer < GTFSEntitySerializer
+    attributes :stop_sequence, 
+                :stop_headsign, 
+                :pickup_type, 
+                :drop_off_type, 
+                :shape_dist_traveled, 
+                :timepoint, 
+                :interpolated, 
+                :trip_id, 
+                :stop_id, 
+                :destination_id,
+                :arrival_time,
+                :departure_time,
+                :destination_arrival_time
+
+    def arrival_time
+        GTFS::WideTime.new(object.arrival_time).to_s
+    end
+
+    def departure_time
+        GTFS::WideTime.new(object.departure_time).to_s
+    end
+
+    def destination_arrival_time
+        GTFS::WideTime.new(object.destination_arrival_time).to_s if object.destination_arrival_time
+    end
 end
   

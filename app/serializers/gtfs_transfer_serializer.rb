@@ -19,5 +19,9 @@
 #
 
 class GTFSTransferSerializer < GTFSEntitySerializer
+    attributes :transfer_type,
+                :min_transfer_time,
+                :from_stop_id,
+                :to_stop_id
 end
   

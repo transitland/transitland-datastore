@@ -20,5 +20,6 @@
 #
 
 class GTFSShapeSerializer < GTFSEntitySerializer
+    attributes :shape_id, :generated
 end
   

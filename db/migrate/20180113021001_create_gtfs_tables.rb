@@ -192,7 +192,7 @@ class CreateGTFSTables < ActiveRecord::Migration
     create_table :gtfs_transfers do |t|
       # t.string :from_stop_id
       # t.string :to_stop_id
-      t.integer :transfer_type, null: false
+      t.integer :transfer_type #, null: false
       t.integer :min_transfer_time
       #
       t.timestamps null: false

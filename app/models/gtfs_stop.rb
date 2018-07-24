@@ -39,4 +39,13 @@ class GTFSStop < ActiveRecord::Base
   has_many :gtfs_shapes
   belongs_to :feed_version
   belongs_to :entity, class_name: 'Stop'
+
+  def stop_lat
+    self[:geometry].lat
+  end
+
+  def stop_lon
+    self[:geometry].lon
+  end
+
 end
