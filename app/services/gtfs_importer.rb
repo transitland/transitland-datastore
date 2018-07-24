@@ -22,14 +22,17 @@ class GTFSImporter
     log('finding selected entities...')
     # list of agency_ids to import
     log('...agencies')
-    selected_agency_ids = Set.new # Set.new([@gtfs.agencies.first.id])
+    selected_agency_ids = Set.new
+    default_agency_id = nil
     @gtfs.each_agency do |e|
+      default_agency_id ||= e.id
       selected_agency_ids << e.id
     end
     # agency associated routes
     log('...routes')
     selected_route_ids = Set.new
     @gtfs.each_route do |e|
+      e.agency_id ||= default_agency_id
       next unless selected_agency_ids.include?(e.agency_id)
       selected_route_ids << e.id
     end
@@ -63,7 +66,7 @@ class GTFSImporter
         selected_service_ids << e.service_id
         selected_shape_ids << e.shape_id if e.shape_id
       else
-        selected_trip_ids.remove(e.id)
+        selected_trip_ids.delete(e.id)
       end
     end
     # shapes
@@ -216,7 +219,7 @@ class GTFSImporter
     # load shapes in chunks
     f = GTFSShape.geofactory
     yield_chunks(shape_counter, SHAPE_CHUNK_SIZE) do |shape_id_chunk|
-      log("processing shape_id_chunks: #{shape_id_chunk}")
+      log("processing shape_id_chunks: #{shape_id_chunk.size}")
       @gtfs.each_shape_line(shape_id_chunk) do |shape_line|
         log("shape_line: #{shape_line.shape_id} shapes #{shape_line.shapes.size}")
         params = {}
@@ -243,7 +246,7 @@ class GTFSImporter
     @stop_pattern_shape_ids = {} 
     # load stop_times in chunks
     yield_chunks(trip_stop_counter, STOP_TIME_CHUNK_SIZE) do |trip_id_chunk|
-      log("processing trip_id_chunks: #{trip_id_chunk}")
+      log("processing trip_id_chunks: #{trip_id_chunk.size}")
       @gtfs.each_trip_stop_times(trip_id_chunk) do |trip_id, stop_times|
         import_trip(@gtfs.trip(trip_id), stop_times)
       end
@@ -264,8 +267,7 @@ class GTFSImporter
       params[:pickup_type] = gtfs_int(origin.pickup_type)
       params[:drop_off_type] = gtfs_int(origin.drop_off_type)
       params[:shape_dist_traveled] = gtfs_float(origin.shape_dist_traveled)
-      # params[:trip_id] = @trip_ids.fetch(origin.trip_id)
-      # params[:timepoint] = gtfs_int(origin.timepoint)
+      params[:timepoint] = gtfs_int(origin.timepoint)
       # where
       params[:stop_id] = @stop_ids.fetch(origin.stop_id)
       params[:arrival_time] = gtfs_time(origin.arrival_time)
@@ -361,7 +363,7 @@ class GTFSImporter
 
   def gtfs_time(value)
     # handles nil and empty
-    GTFS::WideTime.parse(value).to_seconds
+    GTFS::WideTime.parse(value).try(:to_seconds)
   end
 
   def gtfs_date(value)
