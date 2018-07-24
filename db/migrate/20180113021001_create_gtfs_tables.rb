@@ -30,7 +30,8 @@ class CreateGTFSTables < ActiveRecord::Migration
       t.string :stop_timezone
       t.integer :wheelchair_boarding
       #
-      t.st_point :geometry, null: false, geographic: true, index: true
+      t.st_point :geometry, null: false, geographic: true
+      t.index :geometry, using: :gist
       t.timestamps null: false
       t.references :feed_version, index: true, null: false
       t.references :entity, references: :current_stops, index: true
@@ -49,8 +50,10 @@ class CreateGTFSTables < ActiveRecord::Migration
       t.string :route_color
       t.string :route_text_color
       #
-      t.multi_line_string :geometry, geographic: true, index: true
-      t.multi_line_string :geometry_generated, geographic: true, index: true
+      t.multi_line_string :geometry, geographic: true
+      t.multi_line_string :geometry_generated, geographic: true
+      t.index :geometry, using: :gist
+      t.index :geometry_generated, using: :gist
       t.timestamps null: false
       t.references :feed_version, index: true, null: false
       t.references :entity, references: :current_routes, index: true
@@ -165,7 +168,8 @@ class CreateGTFSTables < ActiveRecord::Migration
       # t.integer :shape_pt_sequence
       # f.float :shape_dist_traveled
       t.boolean :generated, default: false, null: false, index: true
-      t.line_string :geometry, null: false, geographic: true, has_m: true, index: true
+      t.line_string :geometry, null: false, geographic: true, has_m: true
+      t.index :geometry, using: :gist
       #
       t.timestamps null: false
       t.references :feed_version, index: true, null: false
