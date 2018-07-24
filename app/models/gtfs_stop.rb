@@ -23,7 +23,7 @@
 #
 #  index_gtfs_stops_on_entity_id          (entity_id)
 #  index_gtfs_stops_on_feed_version_id    (feed_version_id)
-#  index_gtfs_stops_on_geometry           (geometry)
+#  index_gtfs_stops_on_geometry           (geometry) USING gist
 #  index_gtfs_stops_on_location_type      (location_type)
 #  index_gtfs_stops_on_parent_station_id  (parent_station_id)
 #  index_gtfs_stops_on_stop_code          (stop_code)

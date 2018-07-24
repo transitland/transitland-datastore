@@ -14,7 +14,7 @@
 #
 #  index_gtfs_shapes_on_feed_version_id  (feed_version_id)
 #  index_gtfs_shapes_on_generated        (generated)
-#  index_gtfs_shapes_on_geometry         (geometry)
+#  index_gtfs_shapes_on_geometry         (geometry) USING gist
 #  index_gtfs_shapes_on_shape_id         (shape_id)
 #  index_gtfs_shapes_unique              (feed_version_id,shape_id) UNIQUE
 #
