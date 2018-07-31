@@ -451,7 +451,7 @@ ActiveRecord::Schema.define(version: 20180113021001) do
     t.datetime "created_at",        null: false
     t.datetime "updated_at",        null: false
     t.integer  "feed_version_id",   null: false
-    t.integer  "agency_id"
+    t.integer  "agency_id",         null: false
   end
 
   add_index "gtfs_fare_attributes", ["agency_id"], name: "index_gtfs_fare_attributes_on_agency_id", using: :btree
@@ -461,19 +461,17 @@ ActiveRecord::Schema.define(version: 20180113021001) do
 
   create_table "gtfs_fare_rules", force: :cascade do |t|
     t.string   "fare_id",         null: false
+    t.string   "origin_id"
+    t.string   "destination_id"
     t.string   "contains_id"
     t.datetime "created_at",      null: false
     t.datetime "updated_at",      null: false
     t.integer  "feed_version_id", null: false
     t.integer  "route_id"
-    t.integer  "origin_id"
-    t.integer  "destination_id"
   end
 
-  add_index "gtfs_fare_rules", ["destination_id"], name: "index_gtfs_fare_rules_on_destination_id", using: :btree
   add_index "gtfs_fare_rules", ["fare_id"], name: "index_gtfs_fare_rules_on_fare_id", using: :btree
   add_index "gtfs_fare_rules", ["feed_version_id"], name: "index_gtfs_fare_rules_on_feed_version_id", using: :btree
-  add_index "gtfs_fare_rules", ["origin_id"], name: "index_gtfs_fare_rules_on_origin_id", using: :btree
   add_index "gtfs_fare_rules", ["route_id"], name: "index_gtfs_fare_rules_on_route_id", using: :btree
 
   create_table "gtfs_feed_infos", force: :cascade do |t|
@@ -514,6 +512,7 @@ ActiveRecord::Schema.define(version: 20180113021001) do
     t.string    "route_url"
     t.string    "route_color"
     t.string    "route_text_color"
+    t.integer   "route_sort_order"
     t.geography "geometry",           limit: {:srid=>4326, :type=>"multi_line_string", :geographic=>true}
     t.geography "geometry_generated", limit: {:srid=>4326, :type=>"multi_line_string", :geographic=>true}
     t.datetime  "created_at",                                                                              null: false
@@ -551,6 +550,8 @@ ActiveRecord::Schema.define(version: 20180113021001) do
   add_index "gtfs_shapes", ["shape_id"], name: "index_gtfs_shapes_on_shape_id", using: :btree
 
   create_table "gtfs_stop_times", id: :bigserial, force: :cascade do |t|
+    t.integer  "arrival_time",                             null: false
+    t.integer  "departure_time",                           null: false
     t.integer  "stop_sequence",                            null: false
     t.string   "stop_headsign"
     t.integer  "pickup_type"
@@ -564,8 +565,6 @@ ActiveRecord::Schema.define(version: 20180113021001) do
     t.integer  "trip_id",                                  null: false
     t.integer  "stop_id",                                  null: false
     t.integer  "destination_id"
-    t.integer  "arrival_time",                             null: false
-    t.integer  "departure_time",                           null: false
     t.integer  "destination_arrival_time"
   end
 

@@ -49,6 +49,7 @@ class CreateGTFSTables < ActiveRecord::Migration
       t.string :route_url
       t.string :route_color
       t.string :route_text_color
+      t.integer :route_sort_order
       #
       t.multi_line_string :geometry, geographic: true
       t.multi_line_string :geometry_generated, geographic: true
@@ -83,8 +84,8 @@ class CreateGTFSTables < ActiveRecord::Migration
 
     create_table :gtfs_stop_times, id: :bigserial do |t|
       # t.string :trip_id
-      # t.string :arrival_time
-      # t.string :departure_time
+      t.integer :arrival_time, index: true, null: false
+      t.integer :departure_time, index: true, null: false
       # t.string :stop_id
       t.integer :stop_sequence, null: false
       t.string :stop_headsign
@@ -99,8 +100,6 @@ class CreateGTFSTables < ActiveRecord::Migration
       t.references :trip, references: :gtfs_trips, index: true, null: false
       t.references :stop, references: :gtfs_stops, index: true, null: false
       t.references :destination, references: :gtfs_stops, index: true # null: false
-      t.integer :arrival_time, index: true, null: false
-      t.integer :departure_time, index: true, null: false
       t.integer :destination_arrival_time, index: true # null: false
     end
     add_index :gtfs_stop_times, [:feed_version_id, :trip_id, :stop_sequence], unique: true, name: 'index_gtfs_stop_times_unique'
@@ -137,28 +136,26 @@ class CreateGTFSTables < ActiveRecord::Migration
       t.float :price, null: false
       t.string :currency_type, null: false
       t.integer :payment_method, null: false
-      t.integer :transfers #, null: false
+      t.integer :transfers # required in spec but null is a valid and meaningful value
       # t.string :agency_id
       t.integer :transfer_duration
       #
       t.timestamps null: false
       t.references :feed_version, index: true, null: false
-      t.references :agency, references: :gtfs_agencies, index: true
+      t.references :agency, null: false, references: :gtfs_agencies, index: true
     end
     add_index :gtfs_fare_attributes, [:feed_version_id, :fare_id], unique: true, name: 'index_gtfs_fare_attributes_unique'
 
     create_table :gtfs_fare_rules do |t|
       t.string :fare_id, index: true, null: false
       # t.string :route_id
-      # t.string :origin_id
-      # t.string :destination_id
+      t.string :origin_id # zones, not stops
+      t.string :destination_id # zones, not stops
       t.string :contains_id
       #
       t.timestamps null: false
       t.references :feed_version, index: true, null: false
       t.references :route, references: :gtfs_routes, index: true
-      t.references :origin, references: :gtfs_stops, index: true
-      t.references :destination, references: :gtfs_stops, index: true
     end
 
     create_table :gtfs_shapes do |t|

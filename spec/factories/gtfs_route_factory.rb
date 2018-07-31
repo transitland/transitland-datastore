@@ -11,6 +11,7 @@
 #  route_url          :string
 #  route_color        :string
 #  route_text_color   :string
+#  route_sort_order   :integer
 #  geometry           :geography({:srid multilinestring, 4326
 #  geometry_generated :geography({:srid multilinestring, 4326
 #  created_at         :datetime         not null
