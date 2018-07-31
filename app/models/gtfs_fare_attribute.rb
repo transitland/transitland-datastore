@@ -7,7 +7,7 @@
 #  price             :float            not null
 #  currency_type     :string           not null
 #  payment_method    :integer          not null
-#  transfers         :integer          not null
+#  transfers         :integer
 #  transfer_duration :integer
 #  created_at        :datetime         not null
 #  updated_at        :datetime         not null

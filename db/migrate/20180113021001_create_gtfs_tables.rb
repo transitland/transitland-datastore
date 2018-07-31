@@ -137,7 +137,7 @@ class CreateGTFSTables < ActiveRecord::Migration
       t.float :price, null: false
       t.string :currency_type, null: false
       t.integer :payment_method, null: false
-      t.integer :transfers, null: false
+      t.integer :transfers #, null: false
       # t.string :agency_id
       t.integer :transfer_duration
       #

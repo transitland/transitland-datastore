@@ -446,7 +446,7 @@ ActiveRecord::Schema.define(version: 20180113021001) do
     t.float    "price",             null: false
     t.string   "currency_type",     null: false
     t.integer  "payment_method",    null: false
-    t.integer  "transfers",         null: false
+    t.integer  "transfers"
     t.integer  "transfer_duration"
     t.datetime "created_at",        null: false
     t.datetime "updated_at",        null: false
@@ -608,7 +608,7 @@ ActiveRecord::Schema.define(version: 20180113021001) do
   add_index "gtfs_stops", ["stop_name"], name: "index_gtfs_stops_on_stop_name", using: :btree
 
   create_table "gtfs_transfers", force: :cascade do |t|
-    t.integer  "transfer_type",     null: false
+    t.integer  "transfer_type"
     t.integer  "min_transfer_time"
     t.datetime "created_at",        null: false
     t.datetime "updated_at",        null: false
