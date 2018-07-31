@@ -26,9 +26,10 @@ class GTFSImporter
     selected_agency_ids = Set.new
     default_agency_id = nil
     @gtfs.each_agency do |e|
-      default_agency_id ||= e.id
-      selected_agency_ids << e.id
+      default_agency_id ||= e.agency_id
+      selected_agency_ids << e.agency_id
     end
+    log("...default_agency_id: #{default_agency_id}")
     # agency associated routes
     log('...routes')
     selected_route_ids = Set.new
@@ -84,7 +85,7 @@ class GTFSImporter
     # Import
     time('agencies') { import_agencies(selected_agency_ids) }
     time('stops') { import_stops(selected_stop_ids) }
-    time('routes') { import_routes(selected_route_ids) }
+    time('routes') { import_routes(selected_route_ids, default_agency_id) }
     time('calendar') { import_calendar(selected_service_ids) }
     time('calendar_dates') { import_calendar_dates(selected_service_ids) }
     time('feed_info') { import_feed_info }
@@ -103,7 +104,7 @@ class GTFSImporter
       next if (selected_agency_ids && !selected_agency_ids.include?(agency.id))
       params = {}
       params[:feed_version_id] = @feed_version.id
-      params[:agency_id] = agency.agency_id
+      params[:agency_id] = agency.agency_id || "" # use empty string for null
       params[:agency_name] = agency.agency_name
       params[:agency_url] = agency.agency_url
       params[:agency_timezone] = agency.agency_timezone
@@ -111,7 +112,7 @@ class GTFSImporter
       params[:agency_phone] = agency.agency_phone
       params[:agency_fare_url] = agency.agency_fare_url
       params[:agency_email] = agency.agency_email
-      @agency_ids[agency.agency_id] = GTFSAgency.create!(params).id
+      create(GTFSAgency.new(params), agency.agency_id, @agency_ids)
     end
   end
 
@@ -135,18 +136,20 @@ class GTFSImporter
         gtfs_float(stop.stop_lon),
         gtfs_float(stop.stop_lat)
       )
-      @stop_ids[stop.stop_id] = GTFSStop.create!(params).id
+      create(GTFSStop.new(params), stop.stop_id, @stop_ids)
       parent_ids[stop.stop_id] = stop.parent_station if stop.parent_station.presence
     end
     # Link parent_stations
     parent_ids.each do |stop_id,parent_station|
-      GTFSStop.where(id: @stop_ids.fetch(stop_id)).update_all(parent_station_id: @stop_ids.fetch(parent_station))
+      next unless @stop_ids[stop_id] && @stop_ids[parent_station]
+      GTFSStop.where(id: @stop_ids[stop_id]).update_all(parent_station_id: @stop_ids[parent_station])
     end
   end
 
-  def import_routes(selected_route_ids=nil)
+  def import_routes(selected_route_ids=nil, default_agency_id=nil)
     @gtfs.each_route do |route|
       next if (selected_route_ids && !selected_route_ids.include?(route.id))
+      next unless @agency_ids[route.agency_id] || @agency_ids[default_agency_id]
       params = {}
       params[:feed_version_id] = @feed_version.id
       params[:route_id] = route.route_id
@@ -157,8 +160,8 @@ class GTFSImporter
       params[:route_url] = route.route_url
       params[:route_color] = route.route_color
       params[:route_text_color] = route.route_text_color
-      params[:agency_id] = @agency_ids.fetch(route.agency_id || @agency_ids.keys.first)
-      @route_ids[route.route_id] = GTFSRoute.create!(params).id
+      params[:agency_id] = @agency_ids[route.agency_id] || @agency_ids[default_agency_id]
+      create(GTFSRoute.new(params), route.route_id, @route_ids)
     end
   end
 
@@ -171,7 +174,7 @@ class GTFSImporter
       params[:service_id] = e.service_id
       params[:date] = gtfs_date(e.date)
       params[:exception_type] = gtfs_int(e.exception_type)
-      GTFSCalendarDate.create!(params)
+      create(GTFSCalendarDate.new(params))
     end
   end
   
@@ -191,7 +194,7 @@ class GTFSImporter
       params[:friday] = gtfs_boolean(e.friday)
       params[:saturday] = gtfs_boolean(e.saturday)
       params[:sunday] = gtfs_boolean(e.sunday)
-      GTFSCalendar.create!(params)
+      create(GTFSCalendar.new(params))
     end
   end
 
@@ -206,7 +209,7 @@ class GTFSImporter
       params[:headway_secs] = gtfs_int(e.headway_secs)
       params[:exact_times] = gtfs_int(e.exact_times) || 0
       params[:trip_id] = @trip_ids[e.trip_id]
-      GTFSFrequency.create!(params)
+      create(GTFSFrequency.new(params))
     end
   end
 
@@ -220,7 +223,7 @@ class GTFSImporter
       params[:min_transfer_time] = gtfs_int(e.min_transfer_time)
       params[:from_stop_id] = @stop_ids[e.from_stop_id]
       params[:to_stop_id] = @stop_ids[e.to_stop_id]
-      GTFSTransfer.create!(params)
+      create(GTFSTransfer.new(params))
     end
   end
 
@@ -234,8 +237,8 @@ class GTFSImporter
       params[:feed_lang] = e.feed_lang
       params[:feed_start_date] = gtfs_date(e.feed_start_date)
       params[:feed_end_date] = gtfs_date(e.feed_end_date)
-      # params[:feed_version_name] = e.feed_version_name
-      GTFSFeedInfo.create!(params)
+      params[:feed_version_name] = e.feed_version
+      create(GTFSFeedInfo.new(params))
     end
   end
 
@@ -250,13 +253,14 @@ class GTFSImporter
       params[:origin_id] = e.origin_id
       params[:destination_id] = e.destination_id
       params[:route_id] = @route_ids[e.route_id]
-      GTFSFareRule.create!(params)
+      create(GTFSFareRule.new(params))
     end
   end
 
   def import_fare_attributes(default_agency_id=nil)
     return unless @gtfs.file_present?('fare_attributes.txt')
     @gtfs.each_fare_attribute do |e|
+      next unless @agency_ids[e.agency_id] || @agency_ids[default_agency_id]
       params = {}
       params[:feed_version_id] = @feed_version.id
       params[:fare_id] = e.fare_id
@@ -265,8 +269,8 @@ class GTFSImporter
       params[:payment_method] = gtfs_int(e.payment_method)
       params[:transfers] = gtfs_int(e.transfers)
       params[:transfer_duration] = gtfs_int(e.transfer_duration)
-      # params[:agency_id] = @agency_ids[e.agency_id] || default_agency_id
-      GTFSFareAttribute.create!(params)
+      params[:agency_id] = @agency_ids[e.agency_id] || @agency_ids[default_agency_id]
+      create(GTFSFareAttribute.new(params))
     end
   end
 
@@ -290,7 +294,7 @@ class GTFSImporter
             )
           }
         )
-        @shape_ids[shape_line.shape_id] = GTFSShape.create!(params).id
+        create(GTFSShape.new(params), shape_line.shape_id, @shape_ids)
       end
     end
   end
@@ -310,12 +314,13 @@ class GTFSImporter
   end
 
   def import_trip(trip, stop_times)
-    log("stop_times: trip #{trip.id} stop_times #{stop_times.size}")
+    log("processing trip #{trip.id} stop_times #{stop_times.size}")
     # Create stop_times
     trip_stop_times = []
     stop_times.each_index do |i|
       origin = stop_times[i]
       destination = stop_times[i+1] # last stop is nil
+      next unless @stop_ids[origin.stop_id] && (destination.nil? || @stop_ids[destination.stop_id])
       params = {}
       params[:feed_version_id] = @feed_version.id
       params[:stop_sequence] = gtfs_int(origin.stop_sequence)
@@ -323,18 +328,19 @@ class GTFSImporter
       params[:pickup_type] = gtfs_int(origin.pickup_type) || 0
       params[:drop_off_type] = gtfs_int(origin.drop_off_type) || 0
       params[:shape_dist_traveled] = gtfs_float(origin.shape_dist_traveled)
-      # params[:timepoint] = gtfs_int(origin.timepoint)
+      params[:timepoint] = gtfs_int(origin.timepoint)
       # where
-      params[:stop_id] = @stop_ids.fetch(origin.stop_id)
+      params[:stop_id] = @stop_ids[origin.stop_id]
       params[:arrival_time] = gtfs_time(origin.arrival_time)
       params[:departure_time] = gtfs_time(origin.departure_time)
       # for convenience
-      params[:destination_id] = @stop_ids.fetch(destination.stop_id) if destination
+      params[:destination_id] = @stop_ids[destination.stop_id] if destination
       params[:destination_arrival_time] = gtfs_time(destination.arrival_time) if destination
       trip_stop_times << GTFSStopTime.new(params)
     end
-    # Create trip
     stop_pattern = trip_stop_times.map(&:stop_id)
+    # Create trip
+    return unless @route_ids[trip.route_id]
     params = {}
     params[:feed_version_id] = @feed_version.id
     params[:trip_id] = trip.trip_id
@@ -345,7 +351,7 @@ class GTFSImporter
     params[:block_id] = trip.block_id
     params[:wheelchair_accessible] = gtfs_int(trip.wheelchair_accessible) || 0
     params[:bikes_allowed] = gtfs_int(trip.bikes_allowed) || 0
-    params[:route_id] = @route_ids.fetch(trip.route_id)
+    params[:route_id] = @route_ids[trip.route_id]
     # Generate a shape if one was not provided
     shape_id = @shape_ids[trip.shape_id]
     if shape_id.nil?
@@ -354,18 +360,14 @@ class GTFSImporter
     end
     params[:shape_id] = shape_id
     # Save trip
-    new_trip = GTFSTrip.create!(params)
-    @trip_ids[trip.trip_id] = new_trip.id
+    new_trip = create(GTFSTrip.new(params), trip.trip_id, @trip_ids)
+    return unless new_trip
     # Assign trip_id to stop_times
     trip_stop_times.each { |i| i.trip_id = new_trip.id }
     # Interpolate stop_times
     GTFSStopTimeInterpolater.interpolate_stop_times(trip_stop_times, shape_id)
-    # Validate
-    if !trip_stop_times.map(&:valid?).all?
-      log("invalid stop_times!")
-    end
     # Save stop_times
-    import_chunk(trip_stop_times, 0)
+    create_chunk(trip_stop_times, 0)
   end
 
   def clean_start
@@ -386,14 +388,26 @@ class GTFSImporter
 
   private
 
-  def import_chunk(chunk, chunk_size=nil)
+  def create_chunk(chunk, chunk_size=nil)
     chunk_size = chunk_size || IMPORT_CHUNK_SIZE
     if chunk.size > chunk_size
-      log("... import #{chunk.size}")
+      log("   import #{chunk.size}")
       m = chunk.first.class.import(chunk)
       chunk = []
     end
     return chunk
+  end
+
+  def create(record, idid=nil, idmap=nil)
+    begin
+      record.save!
+      log("   saved: #{record.class.name} #{record.id}")
+    rescue ActiveRecord::RecordInvalid, ActiveRecord::StatementInvalid => e
+      log("   failed: #{record.class.name} #{record.as_json}")
+      return nil
+    end
+    idmap[idid] = record.id if idmap
+    record
   end
 
   def debug(msg)
@@ -407,7 +421,7 @@ class GTFSImporter
   def time(msg, &block)
     t = Time.now
     block.call
-    log("#{msg}: #{((Time.now-t)).round(2)}")
+    log("#{msg}: #{((Time.now-t)).round(2)}s")
   end
 
   def gtfs_int(value)
@@ -450,6 +464,11 @@ class GTFSImporter
   def create_shape_from_stop_pattern(stop_pattern)
     q = "SELECT ST_Force3DM(ST_MakeLine(geometry::geometry)) AS geometry FROM (SELECT geometry FROM gtfs_stops INNER JOIN (SELECT unnest,ordinality FROM unnest( ARRAY[#{stop_pattern.join(',')}] ) WITH ORDINALITY) AS unnest ON gtfs_stops.id = unnest ORDER BY ordinality) AS q"    
     geometry = ActiveRecord::Base.connection.exec_query(q).rows.first.first
-    GTFSShape.create!(shape_id: Random.rand, geometry: geometry, generated: true, feed_version: @feed_version)
+    params = {}
+    params[:feed_version_id] = @feed_version.id
+    params[:shape_id] = Random.rand
+    params[:geometry] = geometry
+    params[:generated] = true
+    create(GTFSShape.new(params))
   end
 end
