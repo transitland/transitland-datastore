@@ -14,6 +14,7 @@ class GTFSImporter
     @stop_ids = {}
     @route_ids = {}
     @shape_ids = {}
+    @trip_ids = {}
   end
 
   def import
@@ -86,13 +87,13 @@ class GTFSImporter
     time('routes') { import_routes(selected_route_ids) }
     time('calendar') { import_calendar(selected_service_ids) }
     time('calendar_dates') { import_calendar_dates(selected_service_ids) }
-    time('frequency') { import_frequency }
     time('feed_info') { import_feed_info }
-    time('transfers') { import_transfers }
     time('fare_rules') { import_fare_rules }
     time('fare_attribtes') { import_fare_attributes(default_agency_id) }
+    time('transfers') { import_transfers }
     time('shapes') { import_shapes(shape_counter) }
     time('trips_and_stop_times') { import_trips_and_stop_times(trip_stop_counter) }
+    time('frequency') { import_frequency }
     # Done
     log("total: #{((Time.now-t_import).round(2))}")
   end
@@ -197,6 +198,7 @@ class GTFSImporter
   def import_frequency
     return unless @gtfs.file_present?('frequency.txt')
     @gtfs.each_frequency do |e|
+      next unless @trip_ids[e.trip_id]
       params = {}
       params[:feed_version_id] = @feed_version.id
       params[:start_time] = gtfs_int(e.start_time)
@@ -211,6 +213,7 @@ class GTFSImporter
   def import_transfers
     return unless @gtfs.file_present?('transfers.txt')
     @gtfs.each_transfer do |e|
+      next unless @stop_ids[e.from_stop_id] && @stop_ids[e.to_stop_id]
       params = {}
       params[:feed_version_id] = @feed_version.id
       params[:transfer_type] = gtfs_int(e.transfer_type) || 0
@@ -239,6 +242,7 @@ class GTFSImporter
   def import_fare_rules
     return unless @gtfs.file_present?('fare_rules.txt')
     @gtfs.each_fare_rule do |e|
+      next unless @route_ids[e.route_id]
       params = {}
       params[:feed_version_id] = @feed_version.id
       params[:fare_id] = e.fare_id
@@ -351,6 +355,7 @@ class GTFSImporter
     params[:shape_id] = shape_id
     # Save trip
     new_trip = GTFSTrip.create!(params)
+    @trip_ids[trip.trip_id] = new_trip.id
     # Assign trip_id to stop_times
     trip_stop_times.each { |i| i.trip_id = new_trip.id }
     # Interpolate stop_times

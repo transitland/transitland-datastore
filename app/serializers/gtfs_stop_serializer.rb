@@ -45,6 +45,6 @@ class GTFSStopSerializer < GTFSEntitySerializer
                 :location_type,
                 :stop_timezone,
                 :wheelchair_boarding,
-                :parent_station_id,
+                :parent_station_id
 end
   
