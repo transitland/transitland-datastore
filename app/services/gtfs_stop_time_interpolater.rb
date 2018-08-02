@@ -92,7 +92,7 @@ class GTFSStopTimeInterpolater
   end
 
   def self.interpolate_gap_distance(stop_times, distances)
-    debug("trip: #{stop_times.first.trip_id} interpolate_gap_distance: #{stop_times.first.stop_sequence} -> #{stop_times.last.stop_sequence}")
+    # debug("trip: #{stop_times.first.trip_id} interpolate_gap_distance: #{stop_times.first.stop_sequence} -> #{stop_times.last.stop_sequence}")
     # open and close times
     o_time = stop_times.first.departure_time
     c_time = stop_times.last.arrival_time
@@ -109,38 +109,38 @@ class GTFSStopTimeInterpolater
       p_distance = i_distance
     end
     # interpolate on distance
-    debug("\tlength: #{c_distance - o_distance} duration: #{c_time - o_time}")
-    debug("\to_distance: #{o_distance} o_time: #{o_time}")
+    # debug("\tlength: #{c_distance - o_distance} duration: #{c_time - o_time}")
+    # debug("\to_distance: #{o_distance} o_time: #{o_time}")
     stop_times[1...-1].each do |st|
       i_distance = distances[st.stop_id]
       pct = (i_distance - o_distance) / (c_distance - o_distance)
       i_time = (c_time - o_time) * pct + o_time
-      debug("\ti_distance: #{i_distance} pct: #{pct} i_time: #{i_time}")
+      # debug("\ti_distance: #{i_distance} pct: #{pct} i_time: #{i_time}")
       st.arrival_time = i_time
       st.departure_time = i_time
-      st.interpolated = true
+      st.interpolated = 1
     end
-    debug("\tc_distance: #{c_distance} c_time: #{c_time}")
+    # debug("\tc_distance: #{c_distance} c_time: #{c_time}")
     return true
   end
 
   def self.interpolate_gap_linear(stop_times)
-    debug("trip: #{stop_times.first.trip_id} interpolate_gap_linear: #{stop_times.first.stop_sequence} -> #{stop_times.last.stop_sequence}")
+    # debug("trip: #{stop_times.first.trip_id} interpolate_gap_linear: #{stop_times.first.stop_sequence} -> #{stop_times.last.stop_sequence}")
     # open and close times
     o_time = stop_times.first.departure_time
     c_time = stop_times.last.arrival_time
     # interpolate on time
     p_time = o_time
-    debug("\tduration: #{c_time - o_time}")
-    debug("\ti: 0 o_time: #{o_time}")
+    # debug("\tduration: #{c_time - o_time}")
+    # debug("\ti: 0 o_time: #{o_time}")
     stop_times[1...-1].each_with_index do |st,i|
       pct = pct = (i+1) / (stop_times.size.to_f-1)
       i_time = (c_time - o_time) * pct + o_time
-      debug("\ti: #{i+1} pct: #{pct} i_time: #{i_time} ")
+      # debug("\ti: #{i+1} pct: #{pct} i_time: #{i_time} ")
       st.arrival_time = i_time
       st.departure_time = i_time
-      st.interpolated = true
+      st.interpolated = 2
     end
-    debug("\ti: #{stop_times.size-1} c_time: #{c_time}")
+    # debug("\ti: #{stop_times.size-1} c_time: #{c_time}")
   end
 end

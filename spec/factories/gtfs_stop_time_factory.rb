@@ -3,21 +3,21 @@
 # Table name: gtfs_stop_times
 #
 #  id                       :integer          not null, primary key
+#  arrival_time             :integer          not null
+#  departure_time           :integer          not null
 #  stop_sequence            :integer          not null
 #  stop_headsign            :string
 #  pickup_type              :integer
 #  drop_off_type            :integer
 #  shape_dist_traveled      :float
 #  timepoint                :integer
-#  interpolated             :boolean          default(FALSE), not null
+#  interpolated             :integer          default(0), not null
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
 #  feed_version_id          :integer          not null
 #  trip_id                  :integer          not null
 #  stop_id                  :integer          not null
 #  destination_id           :integer
-#  arrival_time             :integer          not null
-#  departure_time           :integer          not null
 #  destination_arrival_time :integer
 #
 # Indexes

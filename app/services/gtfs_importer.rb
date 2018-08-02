@@ -49,10 +49,12 @@ class GTFSImporter
     log('...stops')
     selected_stop_ids = Set.new
     trip_stop_counter = Hash.new { |h,k| h[k] = 0 }
+    stop_time_counter = 0
     @gtfs.each_stop_time do |e|
       next unless selected_trip_ids.include?(e.trip_id)
       selected_stop_ids << e.stop_id
       trip_stop_counter[e.trip_id] += 1
+      stop_time_counter += 1
     end
     # include stop parent_stations
     @gtfs.each_stop do |e|
@@ -97,6 +99,13 @@ class GTFSImporter
     time('frequency') { import_frequency }
     # Done
     log("total: #{((Time.now-t_import).round(2))}")
+    # Check
+    log("agencies expected: #{selected_agency_ids.size} imported: #{GTFSAgency.where(feed_version:@feed_version).count}")
+    log("stops expected: #{selected_stop_ids.size} imported: #{GTFSStop.where(feed_version:@feed_version).count}")
+    log("routes expected: #{selected_route_ids.size} imported: #{GTFSRoute.where(feed_version:@feed_version).count}")
+    log("shapes expected: #{selected_shape_ids.size} imported: #{GTFSShape.where(feed_version:@feed_version).count}")
+    log("trips expected: #{selected_trip_ids.size} imported: #{GTFSTrip.where(feed_version:@feed_version).count}")
+    log("stop_times expected: #{stop_time_counter} imported: #{GTFSStopTime.where(feed_version:@feed_version).count}")
   end
 
   def import_agencies(selected_agency_ids=nil)
@@ -281,7 +290,7 @@ class GTFSImporter
     yield_chunks(shape_counter, SHAPE_CHUNK_SIZE) do |shape_id_chunk|
       log("processing shape_id_chunks: #{shape_id_chunk.size}")
       @gtfs.each_shape_line(shape_id_chunk) do |shape_line|
-        log("shape_line: #{shape_line.shape_id} shapes #{shape_line.shapes.size}")
+        log("processing shape_line: #{shape_line.shape_id} shapes #{shape_line.shapes.size}")
         params = {}
         params[:feed_version_id] = @feed_version.id
         params[:shape_id] = shape_line.shape_id
@@ -314,7 +323,7 @@ class GTFSImporter
   end
 
   def import_trip(trip, stop_times)
-    log("processing trip #{trip.id} stop_times #{stop_times.size}")
+    log("processing trip: #{trip.id} stop_times #{stop_times.size}")
     # Create stop_times
     trip_stop_times = []
     stop_times.each_index do |i|
@@ -362,6 +371,7 @@ class GTFSImporter
     # Save trip
     new_trip = create(GTFSTrip.new(params), trip.trip_id, @trip_ids)
     return unless new_trip
+    return unless trip_stop_times.size > 0
     # Assign trip_id to stop_times
     trip_stop_times.each { |i| i.trip_id = new_trip.id }
     # Interpolate stop_times
@@ -388,22 +398,27 @@ class GTFSImporter
 
   private
 
-  def create_chunk(chunk, chunk_size=nil)
+  def create_chunk(chunk, chunk_size=nil, filter=false)
     chunk_size = chunk_size || IMPORT_CHUNK_SIZE
     if chunk.size > chunk_size
-      log("   import #{chunk.size}")
-      m = chunk.first.class.import(chunk)
+      chunk.each { |i| i.skip_association_validations = true }
+      chunk, invalid = chunk.partition(&:valid?)
+      invalid.each { |i| log("   invalid: #{i.class.name} #{i.to_json}"); puts i.errors.messages }  
+      # log("   import #{chunk.size}")
+      chunk.first.class.import(chunk) if chunk.size > 0
       chunk = []
     end
     return chunk
   end
 
   def create(record, idid=nil, idmap=nil)
+    # We already know all association id's are valid
+    record.skip_association_validations = true
     begin
       record.save!
-      log("   saved: #{record.class.name} #{record.id}")
+      # log("   saved: #{record.class.name} #{record.to_json}")
     rescue ActiveRecord::RecordInvalid, ActiveRecord::StatementInvalid => e
-      log("   failed: #{record.class.name} #{record.as_json}")
+      log("   failed: #{record.class.name} #{record.to_json}: #{record.errors}")
       return nil
     end
     idmap[idid] = record.id if idmap

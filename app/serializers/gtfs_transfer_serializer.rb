@@ -3,7 +3,7 @@
 # Table name: gtfs_transfers
 #
 #  id                :integer          not null, primary key
-#  transfer_type     :integer
+#  transfer_type     :integer          not null
 #  min_transfer_time :integer
 #  created_at        :datetime         not null
 #  updated_at        :datetime         not null

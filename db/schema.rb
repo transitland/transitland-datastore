@@ -550,20 +550,20 @@ ActiveRecord::Schema.define(version: 20180113021001) do
   add_index "gtfs_shapes", ["shape_id"], name: "index_gtfs_shapes_on_shape_id", using: :btree
 
   create_table "gtfs_stop_times", id: :bigserial, force: :cascade do |t|
-    t.integer  "arrival_time",                             null: false
-    t.integer  "departure_time",                           null: false
-    t.integer  "stop_sequence",                            null: false
+    t.integer  "arrival_time",                         null: false
+    t.integer  "departure_time",                       null: false
+    t.integer  "stop_sequence",                        null: false
     t.string   "stop_headsign"
     t.integer  "pickup_type"
     t.integer  "drop_off_type"
     t.float    "shape_dist_traveled"
     t.integer  "timepoint"
-    t.boolean  "interpolated",             default: false, null: false
-    t.datetime "created_at",                               null: false
-    t.datetime "updated_at",                               null: false
-    t.integer  "feed_version_id",                          null: false
-    t.integer  "trip_id",                                  null: false
-    t.integer  "stop_id",                                  null: false
+    t.integer  "interpolated",             default: 0, null: false
+    t.datetime "created_at",                           null: false
+    t.datetime "updated_at",                           null: false
+    t.integer  "feed_version_id",                      null: false
+    t.integer  "trip_id",                              null: false
+    t.integer  "stop_id",                              null: false
     t.integer  "destination_id"
     t.integer  "destination_arrival_time"
   end
@@ -607,7 +607,7 @@ ActiveRecord::Schema.define(version: 20180113021001) do
   add_index "gtfs_stops", ["stop_name"], name: "index_gtfs_stops_on_stop_name", using: :btree
 
   create_table "gtfs_transfers", force: :cascade do |t|
-    t.integer  "transfer_type"
+    t.integer  "transfer_type",     null: false
     t.integer  "min_transfer_time"
     t.datetime "created_at",        null: false
     t.datetime "updated_at",        null: false

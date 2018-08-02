@@ -94,7 +94,7 @@ class CreateGTFSTables < ActiveRecord::Migration
       t.float :shape_dist_traveled
       t.integer :timepoint
       #
-      t.boolean :interpolated, default: false, null: false
+      t.integer :interpolated, default: 0, null: false
       t.timestamps null: false
       t.references :feed_version, index: true, null: false
       t.references :trip, references: :gtfs_trips, index: true, null: false
@@ -189,7 +189,7 @@ class CreateGTFSTables < ActiveRecord::Migration
     create_table :gtfs_transfers do |t|
       # t.string :from_stop_id
       # t.string :to_stop_id
-      t.integer :transfer_type #, null: false
+      t.integer :transfer_type, null: false
       t.integer :min_transfer_time
       #
       t.timestamps null: false
