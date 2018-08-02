@@ -26,6 +26,7 @@
 #
 
 class GTFSAgency < ActiveRecord::Base
+  include GTFSEntity
   has_many :routes, class_name: 'GTFSRoute', foreign_key: 'agency_id'
   has_many :trips, through: :routes
   has_many :stops, -> { distinct }, through: :trips
@@ -33,4 +34,8 @@ class GTFSAgency < ActiveRecord::Base
   has_many :stop_times, through: :trips
   belongs_to :feed_version
   belongs_to :entity, class_name: 'Operator'
+  validates :feed_version, presence: true, unless: :skip_association_validations
+  validates :agency_name, presence: true
+  validates :agency_url, presence: true
+  validates :agency_timezone, presence: true
 end

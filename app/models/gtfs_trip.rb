@@ -32,12 +32,17 @@
 #
 
 class GTFSTrip < ActiveRecord::Base
+  include GTFSEntity
   has_many :stop_times, class_name: 'GTFSStopTime', foreign_key: 'trip_id'
   has_many :stops, -> { distinct }, through: :stop_times
   belongs_to :route, class_name: 'GTFSRoute'
   belongs_to :feed_version
   belongs_to :entity, class_name: 'RouteStopPattern'
   belongs_to :shape, class_name: 'GTFSShape'
+  validates :feed_version, presence: true, unless: :skip_association_validations
+  validates :route, presence: true, unless: :skip_association_validations
+  validates :service_id, presence: true
+  validates :trip_id, presence: true
 
   def geometry
     shape.geometry

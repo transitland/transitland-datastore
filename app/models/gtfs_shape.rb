@@ -20,7 +20,12 @@
 #
 
 class GTFSShape < ActiveRecord::Base
+  include GTFSEntity
   include HasAGeographicGeometry
   has_many :trips, class_name: 'GTFSTrip', foreign_key: 'shape_id'
   belongs_to :feed_version
+  validates :feed_version, presence: true, unless: :skip_association_validations
+  validates :shape_id, presence: true
+  validates :generated, inclusion: { in: [true, false] }
+  validates :geometry, presence: true
 end

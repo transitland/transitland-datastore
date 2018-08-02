@@ -19,5 +19,11 @@
 #
 
 class GTFSFrequency < ActiveRecord::Base
+  include GTFSEntity
   belongs_to :feed_version
+  belongs_to :trip, class_name: 'GTFSTrip'
+  validates :feed_version, presence: true, unless: :skip_association_validations
+  validates :start_time, presence: true
+  validates :end_time, presence: true
+  validates :headway_secs, presence: true  
 end

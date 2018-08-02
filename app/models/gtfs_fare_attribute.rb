@@ -23,5 +23,13 @@
 #
 
 class GTFSFareAttribute < ActiveRecord::Base
+  include GTFSEntity
   belongs_to :feed_version
+  belongs_to :agency, class_name: 'GTFSAgency'
+  validates :agency, presence: true, unless: :skip_association_validations
+  validates :feed_version, presence: true, unless: :skip_association_validations
+  validates :fare_id, presence: true
+  validates :price, presence: true
+  validates :currency_type, presence: true
+  validates :payment_method, presence: true
 end

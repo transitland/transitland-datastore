@@ -34,11 +34,16 @@
 #
 
 class GTFSStop < ActiveRecord::Base
+  include GTFSEntity
   include HasAGeographicGeometry
   has_many :stop_times, class_name: GTFSStopTime, foreign_key: "stop_id"
   has_many :gtfs_shapes
   belongs_to :feed_version
   belongs_to :entity, class_name: 'Stop'
+  validates :feed_version, presence: true, unless: :skip_association_validations
+  validates :stop_id, presence: true
+  validates :stop_name, presence: true
+  validates :geometry, presence: true
 
   def stop_lat
     self[:geometry].lat

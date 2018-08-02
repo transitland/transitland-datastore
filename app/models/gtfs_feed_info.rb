@@ -20,5 +20,10 @@
 #
 
 class GTFSFeedInfo < ActiveRecord::Base
+  include GTFSEntity
   belongs_to :feed_version
+  validates :feed_version, presence: true, unless: :skip_association_validations
+  validates :feed_publisher_name, presence: true
+  validates :feed_publisher_url, presence: true
+  validates :feed_lang, presence: true
 end

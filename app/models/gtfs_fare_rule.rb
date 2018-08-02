@@ -20,5 +20,9 @@
 #
 
 class GTFSFareRule < ActiveRecord::Base
+  include GTFSEntity
   belongs_to :feed_version
+  belongs_to :route, class_name: 'GTFSRoute'
+  validates :feed_version, presence: true, unless: :skip_association_validations
+  validates :fare_id, presence: true
 end

@@ -34,5 +34,9 @@
 #
 
 class GTFSCalendar < ActiveRecord::Base
+  include GTFSEntity
   belongs_to :feed_version
+  validates :feed_version, presence: true, unless: :skip_association_validations
+  validates :service_id, presence: true
+  validates :monday, :tuesday, :wednesday, :thursday, :friday, :saturday, :sunday, inclusion: { in: [true, false] }
 end

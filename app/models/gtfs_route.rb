@@ -36,8 +36,14 @@
 #
 
 class GTFSRoute < ActiveRecord::Base
+  include GTFSEntity
   has_many :trips, class_name: GTFSTrip, foreign_key: "route_id"
   belongs_to :agency, class_name: 'GTFSAgency'
   belongs_to :feed_version
   belongs_to :entity, class_name: 'Route'
+  validates :feed_version, presence: true, unless: :skip_association_validations
+  validates :agency, presence: true, unless: :skip_association_validations
+  validates :route_id, presence: true
+  validates :route_type, presence: true
+  validate { errors.add("route_short_name or route_long_name must be present") unless route_short_name.presence || route_long_name.presence }
 end
