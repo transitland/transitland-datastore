@@ -77,6 +77,12 @@ class Api::V1::GTFSEntityController < Api::V1::BaseApiController
       ActiveModel::Serializer.serializer_for(self.class.model)
     end
   
+    def paginated_json_collection(collection)
+      result = super
+      result[:root] = self.class.model.model_name.collection.sub('gtfs_','')
+      result
+    end
+
     def set_model
       @model = (self.class.model).find(params[:id])
     end
