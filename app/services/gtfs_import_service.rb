@@ -1,4 +1,4 @@
-class GTFSImporter
+class GTFSImportService
   SHAPE_CHUNK_SIZE = 1_000_000
   STOP_TIME_CHUNK_SIZE = 1_000_000
   IMPORT_CHUNK_SIZE = 1_000

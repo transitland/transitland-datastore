@@ -1,5 +1,5 @@
-# ActiveRecord::Base.logger = Logger.new(STDOUT)
-# ActiveRecord::Base.logger.level = Logger::DEBUG
+ActiveRecord::Base.logger = Logger.new(STDOUT)
+ActiveRecord::Base.logger.level = Logger::DEBUG
 require 'sidekiq/testing'
 
 path = ARGV[0] || Rails.root.join('spec/support/example_gtfs_archives/f-9q9-caltrain.zip')
@@ -25,6 +25,6 @@ unless feed_version
 end
 
 # Run GTFSGraph
-g = GTFSImporter.new(feed_version)
+g = GTFSImportService.new(feed_version)
 g.clean_start
 g.import

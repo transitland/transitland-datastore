@@ -35,6 +35,19 @@ class GTFSTrip < ActiveRecord::Base
   include GTFSEntity
   has_many :stop_times, class_name: 'GTFSStopTime', foreign_key: 'trip_id'
   has_many :stops, -> { distinct }, through: :stop_times
+  
+  def service
+    c = GTFSCalendar.find_by(feed_version_id: feed_version_id, service_id: service_id) || GTFSCalendar.new(feed_version_id: feed_version_id, service_id: service_id)
+    {
+      id: c.id,
+      service_id: c.service_id,
+      start_date: c.start_date,
+      end_date: c.end_date,
+      exceptions: c.exceptions.map { |e| {id: e.id, date: e.date, exception_type: e.exception_type } } 
+    }
+  end
+
+
   belongs_to :route, class_name: 'GTFSRoute'
   belongs_to :feed_version
   belongs_to :entity, class_name: 'RouteStopPattern'

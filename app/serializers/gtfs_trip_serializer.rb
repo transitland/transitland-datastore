@@ -42,6 +42,7 @@ class GTFSTripSerializer < GTFSEntitySerializer
                 :bikes_allowed,
                 :route_id,
                 :shape_id
-
+    
+    attribute :service
 end
   

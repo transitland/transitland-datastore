@@ -1,6 +1,8 @@
 class Api::V1::GTFSEntityController < Api::V1::BaseApiController
     include JsonCollectionPagination
     include AllowFiltering
+    PER_PAGE = 50
+    MAX_PER_PAGE = 1000
 
     def self.model
       fail Exception.new("Abstract method")
@@ -33,13 +35,17 @@ class Api::V1::GTFSEntityController < Api::V1::BaseApiController
       index_query_geometry
   
       # Imported From Feed
-      if params[:imported_from_feed].present?
-        @collection = @collection.where_imported_from_feed(Feed.find_by_onestop_id!(params[:imported_from_feed]))
+      params[:feed] ||= params[:imported_from_feed]
+      params[:feed_version] ||= params[:imported_from_feed_version]
+      params[:active] ||= params[:imported_from_active_feed_version]
+
+      if params[:feed].present?
+        @collection = @collection.where_imported_from_feed(Feed.find_by_onestop_id!(params[:feed]))
       end
-      if params[:imported_from_feed_version].present?
-        @collection = @collection.where_imported_from_feed_version(FeedVersion.find_by!(sha1: params[:imported_from_feed_version]))
+      if params[:feed_version].present?
+        @collection = @collection.where_imported_from_feed_version(FeedVersion.find_by!(sha1: params[:feed_version]))
       end
-      if params[:imported_from_active_feed_version].presence.eql?("true")
+      if params[:active].presence.eql?("true")
         @collection = @collection.where_imported_from_active_feed_version
       end
     end
@@ -57,7 +63,7 @@ class Api::V1::GTFSEntityController < Api::V1::BaseApiController
   
     def index_includes
       scope = render_scope
-      @collection = @collection.includes{[imported_from_feeds, imported_from_feed_versions]} if scope[:imported_from_feeds]
+      @collection = @collection.includes{[feed, feed_version]} if scope[:imported_from_feeds]
       @collection = @collection.includes(:issues) if scope[:issues]
     end
   
@@ -116,29 +122,29 @@ class Api::V1::GTFSEntityController < Api::V1::BaseApiController
           type: "string",
           array: true
         },
-        imported_from_feed: {
+        feed: {
             desc: "Imported from Feed",
             type: "onestop_id",
             array: true
         },
-        imported_from_feed_version: {
+        feed_version: {
             desc: "Imported from Feed Version",
             type: "sha1",
             array: true
         },
-        imported_from_active_feed_version: {
+        active: {
             desc: "Imported from the current active Feed Version",
             type: "boolean"
         },
         include: {
             desc: "Include values",
             type: "enum",
-            enum: ["geometry","imported_from_feeds"]
+            enum: ["geometry","feed"]
         },
         exclude: {
             desc: "Exclude values",
             type: "enum",
-            enum: ["geometry","imported_from_feeds"]
+            enum: ["geometry","feed"]
         }
       })
     end

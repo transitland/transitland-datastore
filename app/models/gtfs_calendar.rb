@@ -39,4 +39,5 @@ class GTFSCalendar < ActiveRecord::Base
   validates :feed_version, presence: true, unless: :skip_association_validations
   validates :service_id, presence: true
   validates :monday, :tuesday, :wednesday, :thursday, :friday, :saturday, :sunday, inclusion: { in: [true, false] }
+  has_many :exceptions, -> (c) { where("gtfs_calendar_dates.feed_version_id = :feed_version_id", feed_version_id: c.feed_version_id) }, class_name: 'GTFSCalendarDate', primary_key: 'service_id', foreign_key: :service_id
 end
