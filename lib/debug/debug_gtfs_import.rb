@@ -25,6 +25,4 @@ unless feed_version
 end
 
 # Run GTFSGraph
-g = GTFSImportService.new(feed_version)
-g.clean_start
-g.import
+GTFSImportWorker.new.perform(feed_version.sha1)

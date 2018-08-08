@@ -503,6 +503,19 @@ ActiveRecord::Schema.define(version: 20180113021001) do
   add_index "gtfs_frequencies", ["feed_version_id"], name: "index_gtfs_frequencies_on_feed_version_id", using: :btree
   add_index "gtfs_frequencies", ["trip_id"], name: "index_gtfs_frequencies_on_trip_id", using: :btree
 
+  create_table "gtfs_imports", force: :cascade do |t|
+    t.boolean  "succeeded"
+    t.text     "import_log"
+    t.text     "exception_log"
+    t.integer  "import_level"
+    t.datetime "created_at",      null: false
+    t.datetime "updated_at",      null: false
+    t.integer  "feed_version_id", null: false
+  end
+
+  add_index "gtfs_imports", ["feed_version_id"], name: "index_gtfs_imports_on_feed_version_id", using: :btree
+  add_index "gtfs_imports", ["succeeded"], name: "index_gtfs_imports_on_succeeded", using: :btree
+
   create_table "gtfs_routes", force: :cascade do |t|
     t.string    "route_id",                                                                                null: false
     t.string    "route_short_name",                                                                        null: false

@@ -152,7 +152,7 @@ describe ApplicationController do
           expect(changesets.map { |i| i[:id] }).to eq(@changeset_ids[0...10])
         },
         meta: {
-          per_page: '∞'
+          per_page: 'false'
         }
       })
     end

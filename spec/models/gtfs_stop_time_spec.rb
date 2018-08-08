@@ -51,7 +51,7 @@ RSpec.describe GTFSStopTime, type: :model do
           ActiveRecord::Base.logger = Logger.new(STDOUT)
           ActiveRecord::Base.logger.level = Logger::DEBUG
           puts "shape_id: #{trip.shape_id}"
-          sts = GTFSStopTimeInterpolater.interpolate_stop_times(sts, trip.shape_id)
+          sts = GTFSStopTimeService.interpolate_stop_times(sts, trip.shape_id)
 
           times2 = sts.map(&:departure_time)
           times1.zip(times2).each do |a,b|

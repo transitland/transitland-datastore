@@ -1,4 +1,4 @@
-class GTFSStopTimeInterpolater
+class GTFSStopTimeService
   def self.debug(msg)
     log(msg)
   end

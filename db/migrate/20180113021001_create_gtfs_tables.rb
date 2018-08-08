@@ -1,5 +1,14 @@
 class CreateGTFSTables < ActiveRecord::Migration
   def change
+    create_table :gtfs_imports do |t|
+      t.boolean :succeeded, index: true
+      t.text :import_log
+      t.text :exception_log
+      t.integer :import_level
+      t.timestamps null: false
+      t.references :feed_version, index: true, null: false
+    end
+
     create_table :gtfs_agencies do |t|
       t.string :agency_id, index: true
       t.string :agency_name, index: true, null: false

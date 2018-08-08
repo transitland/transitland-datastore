@@ -7,6 +7,7 @@ class GTFSImportService
   end
 
   def initialize(feed_version)
+    @log = []
     @feed_version = feed_version
     @gtfs = @feed_version.open_gtfs
     # mappings
@@ -15,6 +16,23 @@ class GTFSImportService
     @route_ids = {}
     @shape_ids = {}
     @trip_ids = {}
+  end
+
+  def import_with_log(import_level: 1)
+    feed_onestop_id = @feed_version.feed.onestop_id
+    gtfs_import = @feed_version.gtfs_imports.create!(import_level: import_level)
+    begin
+      import
+    rescue StandardError => e
+      exception_log = "\n#{e}\n#{e.backtrace}\n"
+      log(exception_log)
+      gtfs_import.update!(succeeded: false, exception_log: exception_log)
+    else
+      gtfs_import.update!(succeeded: true)
+    ensure
+      @feed_version.file.remove_any_local_cached_copies
+      gtfs_import.update!(import_log: import_log)
+    end
   end
 
   def import
@@ -375,7 +393,7 @@ class GTFSImportService
     # Assign trip_id to stop_times
     trip_stop_times.each { |i| i.trip_id = new_trip.id }
     # Interpolate stop_times
-    GTFSStopTimeInterpolater.interpolate_stop_times(trip_stop_times, shape_id)
+    GTFSStopTimeService.interpolate_stop_times(trip_stop_times, shape_id)
     # Save stop_times
     create_chunk(trip_stop_times, 0)
   end
@@ -425,12 +443,13 @@ class GTFSImportService
     record
   end
 
-  def debug(msg)
-    log(msg)
+  def log(msg)
+    @log << msg
+    puts msg
   end
 
-  def self.debug(msg)
-    log(msg)
+  def import_log
+    @log.join("\n")
   end
 
   def time(msg, &block)
