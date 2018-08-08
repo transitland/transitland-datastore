@@ -92,14 +92,15 @@ module TileExportService
       tileset = TileUtils::TileSet.new(@tilepath)
       tile = tileset.new_tile(GRAPH_LEVEL, @tile)
 
-      GTFSStop
-        .where(feed_version_id: @feed_version_ids)
-        .where(parent_station_id: nil)
+      Stop
+        .where_imported_from_feed_version(@feed_version_ids)
+        .where(parent_stop: nil)
         .geometry_within_bbox(bbox_padded(tile.bbox))
+        .includes(:stop_platforms, :stop_egresses)
         .find_each do |stop|
 
         # Check if stop is inside tile
-        stop_tile = TileUtils::GraphID.new(level: GRAPH_LEVEL, lon: stop.stop_lon, lat: stop.stop_lat).tile
+        stop_tile = TileUtils::GraphID.new(level: GRAPH_LEVEL, lon: stop.coordinates[0], lat: stop.coordinates[1]).tile
         if stop_tile != @tile
           # debug("skipping stop #{stop.id}: coordinates #{stop.coordinates.join(',')} map to tile #{stop_tile} outside of tile #{@tile}")
           next
@@ -109,10 +110,9 @@ module TileExportService
         prev_type_graphid = nil
 
         # Egresses
-        stop_egresses = [] # stop.stop_egresses.to_a
-        (stop_egresses << GTFSStop.new(stop.attributes)) if stop_egresses.empty? # generated egress
+        stop_egresses = stop.stop_egresses.to_a
+        stop_egresses << StopEgress.new(stop.attributes) if stop_egresses.empty? # generated egress
         stop_egresses.each do |stop_egress|
-          stop_egress.location_type = 3
           node = make_node(stop_egress)
           node.graphid = TileUtils::GraphID.new(level: GRAPH_LEVEL, tile: @tile, index: tile.message.nodes.size).value
           node.prev_type_graphid = prev_type_graphid if prev_type_graphid
@@ -121,7 +121,6 @@ module TileExportService
         end
 
         # Station
-        stop.location_type = 1
         node = make_node(stop)
         node.graphid = TileUtils::GraphID.new(level: GRAPH_LEVEL, tile: @tile, index: tile.message.nodes.size).value
         node.prev_type_graphid = prev_type_graphid if prev_type_graphid
@@ -129,10 +128,9 @@ module TileExportService
         tile.message.nodes << node
 
         # Platforms
-        stop_platforms = stop.children.to_a
-        (stop_platforms << GTFSStop.new(stop.attributes)) if stop_platforms.empty? 
+        stop_platforms = stop.stop_platforms.to_a
+        (stop_platforms << StopPlatform.new(stop.attributes)) if stop_platforms.empty? # station ssps
         stop_platforms.each do |stop_platform|
-          stop_platform.location_type = 2
           node = make_node(stop_platform)
           node.graphid = TileUtils::GraphID.new(level: GRAPH_LEVEL, tile: @tile, index: tile.message.nodes.size).value
           node.prev_type_graphid = prev_type_graphid if prev_type_graphid # station_id graphid
@@ -377,36 +375,36 @@ module TileExportService
     def make_node(stop)
       params = {}
       # float lon = 1;
-      params[:lon] = stop.stop_lon
+      params[:lon] = stop.coordinates[0]
       # float lat = 2;
-      params[:lat] = stop.stop_lat
+      params[:lat] = stop.coordinates[1]
       # uint32 type = 3;
-      params[:type] = stop.location_type + 3 # 5 # NODE_TYPES[stop.class.name.to_sym]
+      params[:type] = NODE_TYPES[stop.class.name.to_sym]
       # uint64 graphid = 4;
       # set in build_stops
       # uint64 prev_type_graphid = 5;
       # set in build_stops
       # string name = 6;
-      params[:name] = stop.stop_name
+      params[:name] = stop.name
       # string onestop_id = 7;
-      params[:onestop_id] = 's-123-test'
+      params[:onestop_id] = stop.onestop_id
       # uint64 osm_way_id = 8;
-      params[:osm_way_id] = 123 # stop.osm_way_id
+      params[:osm_way_id] = stop.osm_way_id
       # string timezone = 9;
-      params[:timezone] = stop.stop_timezone
+      params[:timezone] = stop.timezone
       # bool wheelchair_boarding = 10;
       params[:wheelchair_boarding] = true
       # bool generated = 11;
-      if stop.location_type == 2
-        params[:onestop_id] = "s-123-test>"
+      if stop.instance_of?(StopEgress) && !stop.persisted?
+        params[:onestop_id] = "#{stop.onestop_id}>"
         params[:generated] = true
       end
-      if stop.location_type == 3
-        params[:onestop_id] = "s-123-test<"
+      if stop.instance_of?(StopPlatform) && !stop.persisted?
+        params[:onestop_id] = "#{stop.onestop_id}<"
         # params[:generated] = true # not set for platforms
       end
       # uint32 traversability = 12;
-      if stop.location_type == 3
+      if stop.instance_of?(StopEgress)
         params[:traversability] = 3
       end
       Valhalla::Mjolnir::Transit::Node.new(params.compact)
@@ -461,16 +459,25 @@ module TileExportService
     # ActiveRecord::Base.logger = Logger.new(STDOUT)
     # ActiveRecord::Base.logger.level = Logger::DEBUG
 
+    # Avoid autoload issues in threads
+    Stop.connection
+    StopPlatform.connection
+    StopEgress.connection
+    Route.connection
+    Operator.connection
+    RouteStopPattern.connection
+    EntityImportedFromFeed.connection
+    ScheduleStopPair.connection
+
     # Filter by feed/feed_version
-    # feed_version_ids = []
-    # if feed_versions
-    #   feed_version_ids = feed_versions.map(&:id)
-    # elsif feeds
-    #   feed_version_ids = feeds.map(&:active_feed_version_id)
-    # else
-    #   feed_version_ids = Feed.where_active_feed_version_import_level(IMPORT_LEVEL).pluck(:active_feed_version_id)
-    # end
-    feed_version_ids = FeedVersion.pluck(:id)
+    feed_version_ids = []
+    if feed_versions
+      feed_version_ids = feed_versions.map(&:id)
+    elsif feeds
+      feed_version_ids = feeds.map(&:active_feed_version_id)
+    else
+      feed_version_ids = Feed.where_active_feed_version_import_level(IMPORT_LEVEL).pluck(:active_feed_version_id)
+    end
 
     # Build bboxes
     puts "Selecting tiles..."
@@ -484,13 +491,15 @@ module TileExportService
       FeedVersion.where(id: feed_version_ids).includes(:feed).find_each do |feed_version|
         feed = feed_version.feed
         fvtiles = Set.new
-        GTFSStop.where(feed_version: feed_version).find_each do |stop|
-          if stop.parent_station_id.nil?
-            count_stops << stop.id
-            fvtiles << TileUtils::GraphID.new(level: GRAPH_LEVEL, lon: stop.stop_lon, lat: stop.stop_lat).tile
-          else
-            stop_platforms[stop.parent_stop_id] << stop.id
-          end
+        Stop.where_imported_from_feed_version(feed_version).find_each do |stop|
+            if stop.is_a?(StopPlatform)
+              stop_platforms[stop.parent_stop_id] << stop.id
+            elsif stop.is_a?(StopEgress)
+              stop_egresses[stop.parent_stop_id] << stop.id
+            else
+              count_stops << stop.id
+              fvtiles << TileUtils::GraphID.new(level: GRAPH_LEVEL, lon: stop.coordinates[0], lat: stop.coordinates[1]).tile
+            end
         end
         puts "\t(#{count}/#{total}) #{feed_version.feed.onestop_id} #{feed_version.sha1}: #{fvtiles.size} tiles"
         tiles += fvtiles
@@ -508,6 +517,15 @@ module TileExportService
     puts "\tegresses: #{stop_egresses.map { |k,v| v.size }.sum}"
     puts "\tnodes: #{count_stops.size + count_egresses + count_platforms}"
     puts "\tstopid-graphid: #{count_platforms}"
+
+    # Clear
+    count_stops.clear
+    stop_platforms.clear
+    stop_egresses.clear
+    # stopid_graphid = Hash[redis.hgetall('stopid_graphid').map { |k,v| [k.to_i, v.to_i] }]
+    # expected_stops = Set.new
+    # count_stops.each { |i| expected_stops += (stop_platforms[i].empty? ? [i].to_set : stop_platforms[i]) }
+    # missing = stopid_graphid.keys.to_set - expected_stops
 
     # Setup queue
     thread_count ||= 1
@@ -527,11 +545,11 @@ module TileExportService
     puts "\nStops finished. Schedule tile queue: #{redis.llen(KEY_QUEUE_SCHEDULES)} stopid-graphid mappings: #{redis.hlen(KEY_STOPID_GRAPHID)}"
 
     # Build schedule, routes, shapes for each tile.
-    # puts "\n===== Routes, Shapes, StopPairs =====\n"
-    # workers = (0...thread_count).map do
-    #   fork { tile_build_schedules(tilepath, feed_version_ids: feed_version_ids) }
-    # end
-    # workers.each { |pid| Process.wait(pid) }
+    puts "\n===== Routes, Shapes, StopPairs =====\n"
+    workers = (0...thread_count).map do
+      fork { tile_build_schedules(tilepath, feed_version_ids: feed_version_ids) }
+    end
+    workers.each { |pid| Process.wait(pid) }
 
     puts "Done!"
   end
