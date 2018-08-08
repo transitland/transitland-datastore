@@ -15,7 +15,7 @@ class GeoJSONSerializer < ApplicationSerializer
   end
 
   def id
-    object.try(:onestop_id)
+    object.try(:onestop_id) || object.try(:id)
   end
 
   def geometry

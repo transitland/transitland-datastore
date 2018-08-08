@@ -35,7 +35,7 @@ gem 'rufus-scheduler', '~> 3.4.0' # fix sidekiq-cron issue
 # data model
 gem 'squeel'
 gem 'enumerize'
-gem 'gtfs', github: 'transitland/gtfs', tag: '900a28ea0067592b8529bdd5a43f31026f65ed52'
+gem 'gtfs', github: 'transitland/gtfs', tag: '35ece1267514479b8785fe644cc69dddbb25f758'
 gem 'rgeo-geojson'
 gem 'c_geohash', require: 'geohash'
 gem 'json'

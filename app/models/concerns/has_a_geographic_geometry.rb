@@ -3,6 +3,9 @@ module HasAGeographicGeometry
 
   included do
     GEOFACTORY ||= RGeo::Geographic.spherical_factory(srid: 4326)
+    def self.geofactory
+      self.column_for_attribute(:geometry).cast_type.spatial_factory
+    end
 
     validates :geometry, presence: true
 

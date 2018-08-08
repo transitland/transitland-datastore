@@ -31,12 +31,8 @@ class GTFSScheduleImporter
     @gtfs.trips
 
     # Lookup trips
-    if trip_ids
-      trips = trip_ids.map { |i| @gtfs.trip(i) }
-    else
-      trips = @gtfs.trips
-    end
-    info("Trips: #{trips.size}")
+    trip_ids = trip_ids || @gtfs.trips.map(&:trip_id)
+    info("Trips: #{trip_ids.size}")
 
     # Lookup frequencies.txt
     gtfs_frequencies = {}
@@ -46,7 +42,8 @@ class GTFSScheduleImporter
 
     # Import
     ssps = []
-    @gtfs.trip_stop_times(trips=trips, filter_empty=true) do |gtfs_trip, gtfs_stop_times|
+    @gtfs.each_trip_stop_times(trip_ids, true) do |gtfs_trip_id, gtfs_stop_times|
+      gtfs_trip = @gtfs.trip(gtfs_trip_id)
       # info("TRIP: #{gtfs_trip.id}")
       # Process frequencies
       (gtfs_frequencies[gtfs_trip.trip_id] || [nil]).each do |gtfs_frequency|

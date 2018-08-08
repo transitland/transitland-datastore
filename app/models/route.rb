@@ -120,6 +120,9 @@ class Route < BaseRoute
     return true
   end
 
+  # GTFS
+  has_many :gtfs_entities, class_name: GTFSRoute, foreign_key: :entity_id
+
   has_many :routes_serving_stop
   has_many :stops, through: :routes_serving_stop
   has_many :schedule_stop_pairs

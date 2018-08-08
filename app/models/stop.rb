@@ -179,6 +179,9 @@ class Stop < BaseStop
       .distinct
   }
 
+  # GTFS
+  has_many :gtfs_entities, class_name: GTFSStop, foreign_key: :entity_id
+
   # Station Hierarchy
   has_many :stop_egresses, class_name: 'StopEgress', foreign_key: :parent_stop_id
   has_many :stop_platforms, class_name: 'StopPlatform', foreign_key: :parent_stop_id
