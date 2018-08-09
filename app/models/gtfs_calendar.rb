@@ -40,4 +40,16 @@ class GTFSCalendar < ActiveRecord::Base
   validates :service_id, presence: true
   validates :monday, :tuesday, :wednesday, :thursday, :friday, :saturday, :sunday, inclusion: { in: [true, false] }
   has_many :exceptions, -> (c) { where("gtfs_calendar_dates.feed_version_id = :feed_version_id", feed_version_id: c.feed_version_id) }, class_name: 'GTFSCalendarDate', primary_key: 'service_id', foreign_key: :service_id
+
+  def service_added_dates
+    exceptions.map { |i| i.date if i.exception_type == 1 }.compact.uniq
+  end
+
+  def service_except_dates
+    exceptions.map { |i| i.date if i.exception_type == 2 }.compact.uniq
+  end
+
+  def service_days_of_week
+    [monday, tuesday, wednesday, thursday, friday, saturday, sunday]
+  end
 end
