@@ -1,4 +1,4 @@
-module TileExportService
+module TileExportServiceOld
   BBOX_PADDING = 0.1
   KEY_QUEUE_STOPS = 'queue_stops'
   KEY_QUEUE_SCHEDULES = 'queue_schedules'

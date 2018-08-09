@@ -344,25 +344,20 @@ class GTFSImportService
     log("processing trip: #{trip.id} stop_times #{stop_times.size}")
     # Create stop_times
     trip_stop_times = []
-    stop_times.each_index do |i|
-      origin = stop_times[i]
-      destination = stop_times[i+1] # last stop is nil
-      next unless @stop_ids[origin.stop_id] && (destination.nil? || @stop_ids[destination.stop_id])
+    stop_times.each do |stop_time|
+      next unless @stop_ids[stop_time.stop_id] 
       params = {}
       params[:feed_version_id] = @feed_version.id
-      params[:stop_sequence] = gtfs_int(origin.stop_sequence)
-      params[:stop_headsign] = origin.stop_headsign
-      params[:pickup_type] = gtfs_int(origin.pickup_type) || 0
-      params[:drop_off_type] = gtfs_int(origin.drop_off_type) || 0
-      params[:shape_dist_traveled] = gtfs_float(origin.shape_dist_traveled)
-      params[:timepoint] = gtfs_int(origin.timepoint)
+      params[:stop_sequence] = gtfs_int(stop_time.stop_sequence)
+      params[:stop_headsign] = stop_time.stop_headsign
+      params[:pickup_type] = gtfs_int(stop_time.pickup_type) || 0
+      params[:drop_off_type] = gtfs_int(stop_time.drop_off_type) || 0
+      params[:shape_dist_traveled] = gtfs_float(stop_time.shape_dist_traveled)
+      params[:timepoint] = gtfs_int(stop_time.timepoint)
       # where
-      params[:stop_id] = @stop_ids[origin.stop_id]
-      params[:arrival_time] = gtfs_time(origin.arrival_time)
-      params[:departure_time] = gtfs_time(origin.departure_time)
-      # for convenience
-      params[:destination_id] = @stop_ids[destination.stop_id] if destination
-      params[:destination_arrival_time] = gtfs_time(destination.arrival_time) if destination
+      params[:stop_id] = @stop_ids[stop_time.stop_id]
+      params[:arrival_time] = gtfs_time(stop_time.arrival_time)
+      params[:departure_time] = gtfs_time(stop_time.departure_time)
       trip_stop_times << GTFSStopTime.new(params)
     end
     stop_pattern = trip_stop_times.map(&:stop_id)
@@ -394,6 +389,13 @@ class GTFSImportService
     trip_stop_times.each { |i| i.trip_id = new_trip.id }
     # Interpolate stop_times
     GTFSStopTimeService.interpolate_stop_times(trip_stop_times, shape_id)
+    # Set destinations...
+    stop_times.each_index do |i|
+      origin = stop_times[i]
+      destination = stop_times[i+1] # last stop is nil      
+      origin.destination_id = @stop_ids[destination.stop_id] if destination
+      origin.destination_arrival_time = gtfs_time(destination.arrival_time) if destination
+    end
     # Save stop_times
     create_chunk(trip_stop_times, 0)
   end
