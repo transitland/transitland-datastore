@@ -73,7 +73,6 @@ module TileExportService
       # tile unique indexes
       @route_index = {}
       @shape_index = {}
-      @services = {}
     end
 
     def log(msg)
@@ -97,6 +96,7 @@ module TileExportService
         .where(feed_version_id: @feed_version_ids)
         .where(parent_station_id: nil)
         .geometry_within_bbox(bbox_padded(tile.bbox))
+        .includes(:children)
         .find_each do |stop|
 
         # Check if stop is inside tile
@@ -151,22 +151,14 @@ module TileExportService
       return nodes_size
     end
 
-    def get_service(trip)
-      key = [trip.feed_version_id, trip.service_id]
-      return @services[key] if @services.key?(key)
-      calendar = GTFSCalendar.find_by(feed_version_id: trip.feed_version_id, service_id: trip.service_id) || GTFSCalendar.new(feed_version_id: trip.feed_version_id, service_id: trip.service_id)
-      calendar.start_date ||= calendar.service_added_dates.min
-      calendar.end_date ||= calendar.service_added_dates.max
-      @services[key] = calendar
-      return calendar
-    end
-
     def build_schedules
       # Get stop_ids
       t = Time.now
       tileset = TileUtils::TileSet.new(@tilepath)
       base_tile = tileset.read_tile(GRAPH_LEVEL, @tile)
       stop_ids = base_tile.message.nodes.map { |node| @graphid_stopid[node.graphid] }.compact
+      trips = {}
+      calendars = {}
 
       # Build stop_pairs for each stop_id
       tile_ext = 0
@@ -178,50 +170,73 @@ module TileExportService
         stop_pairs_stop_id_count = 0
         GTFSStopTime
           .where(stop_id: stop_id)
-          .includes(:trip)
           .find_in_batches do |ssps|
-
-          # Evaluate by active feed version - faster than join or where in (?)
-          ssps = ssps.select { |ssp| @feed_version_ids.include?(ssp.feed_version_id) }
 
           # Skip the last stop_time in a trip
           ssps = ssps.select(&:destination_id)
 
-          # Get unvisited routes for this batch
-          route_ids = ssps.map { |ssp| ssp.trip.route_id }.select { |route_id| !@route_index.key?(route_id) }.uniq
-          ssps.each { |ssp| @route_index[ssp.trip.route_id] ||= nil } # set as visited
-          GTFSRoute.where(id: route_ids).find_each do |route| # get unvisited
-            @route_index[route.id] = base_tile.message.routes.size
-            debug("route: #{route.id} -> #{@route_index[route.id]}")
-            base_tile.message.routes << make_route(route)
+          # Cache: Get unseen trips
+          trip_ids = ssps.map(&:trip_id).select { |t| !trips.key?(t) }
+          GTFSTrip.find(trip_ids).each do |t|
+            trips[t.id] = t
+          end
+          ssps.each { |ssp| ssp.trip = trips[ssp.trip_id] }
+
+          # Cache: Get unseen calendars and calendar_dates
+          ssps.each do |ssp|
+            # if we don't have the calendar cached, find the calendar or create an empty one
+            args = {feed_version_id: ssp.trip.feed_version_id, service_id: ssp.trip.service_id}
+            key = [ssp.trip.feed_version_id, ssp.trip.service_id]
+            calendar = calendars[key]
+            if calendar.nil?
+              calendar = GTFSCalendar.find_by(args) # || GTFSCalendar.new(args)
+            end
+            calendar.start_date ||= calendar.service_added_dates.min
+            calendar.end_date ||= calendar.service_added_dates.max
+            ssp.trip.calendar = calendar
+            calendars[key] = calendar
           end
 
-          # Get unseen rsps for this batch
-          rsp_ids = ssps.map { |ssp| ssp.trip.shape_id }.select { |rsp_id| !@shape_index.key?(rsp_id) }.uniq
+          # Get unvisited routes for this batch, add to tile
+          route_ids = ssps.map { |ssp| ssp.trip.route_id }.select { |route_id| !@route_index.key?(route_id) }.uniq
+          ssps.each { |ssp| @route_index[ssp.trip.route_id] ||= nil } # set as visited
+          if route_ids.size > 0
+            GTFSRoute.where(id: route_ids).find_each do |route| # get unvisited
+              @route_index[route.id] = base_tile.message.routes.size
+              debug("route: #{route.id} -> #{@route_index[route.id]}")
+              base_tile.message.routes << make_route(route)
+            end
+          end
+
+          # Get unseen shapes for this batch, add to tile
+          shape_ids = ssps.map { |ssp| ssp.trip.shape_id }.select { |shape_id| !@shape_index.key?(shape_id) }.uniq
           ssps.each { |ssp| @shape_index[ssp.trip.shape_id] ||= nil } # set as visited
-          GTFSShape.where(id: rsp_ids).find_each do |rsp|
-            shape = make_shape(rsp)
-            shape.shape_id = base_tile.message.shapes.size + 1
-            @shape_index[rsp.id] = shape.shape_id
-            debug("shape: #{rsp.id} -> #{@shape_index[rsp.id]}")
-            base_tile.message.shapes << shape
+          if shape_ids.size > 0
+            GTFSShape.where(id: shape_ids).find_each do |shape|
+              pshape = make_shape(shape)
+              pshape.shape_id = base_tile.message.shapes.size + 1
+              @shape_index[shape.id] = pshape.shape_id
+              debug("shape: #{shape.id} -> #{@shape_index[shape.id]}")
+              base_tile.message.shapes << pshape
+            end
           end
 
           # Process each ssp
           ssps.each do |ssp|
             # process ssp and count errors
             begin
-              stop_pairs_tile.message.stop_pairs << make_stop_pair(ssp)
-              stop_pairs_stop_id_count += 1
-              stop_pairs_total += 1
+              i = make_stop_pair(ssp)
             rescue TileValueError => e
               errors[e.class.name.to_sym] += 1
               log("error: ssp #{ssp.id}: #{e}")
             rescue StandardError => e
-              binding.pry
               errors[e.class.name.to_sym] += 1
               log("error: ssp #{ssp.id}: #{e}")
             end
+            next unless i
+            stop_pairs_tile.message.stop_pairs << i
+            stop_pairs_stop_id_count += 1
+            stop_pairs_total += 1
           end
 
           # Write supplement tile, start new tile
@@ -281,7 +296,7 @@ module TileExportService
       #   skip if bad time information
       #   add < and > to onestop_ids
       trip = ssp.trip
-      calendar = get_service(trip)
+      calendar = ssp.trip.calendar
       destination_graphid = @stopid_graphid[ssp.destination_id]
       origin_graphid = @stopid_graphid[ssp.stop_id]
       route_index = @route_index[trip.route_id]
@@ -292,7 +307,7 @@ module TileExportService
       fail MissingGraphIDError.new("missing origin_graphid for stop #{ssp.stop_id}") unless origin_graphid
       fail MissingGraphIDError.new("missing destination_graphid for stop #{ssp.destination_id}") unless destination_graphid
       fail MissingRouteError.new("missing route_index for route #{trip.route_id}") unless route_index
-      fail MissingShapeError.new("missing shape for rsp #{trip.shape_id}") unless shape_id
+      fail MissingShapeError.new("missing shape for shape #{trip.shape_id}") unless shape_id
       fail InvalidTimeError.new("origin_departure_time #{ssp.departure_time} > destination_arrival_time #{ssp.destination_arrival_time}") if ssp.departure_time > ssp.destination_arrival_time
 
       # Make SSP
@@ -340,16 +355,16 @@ module TileExportService
       # float destination_dist_traveled = 22;
       # params[:destination_dist_traveled] = nil #  ssp.destination_dist_traveled if ssp.destination_dist_traveled
       # TODO: frequencies
-      puts params
+      # puts params
       Valhalla::Mjolnir::Transit::StopPair.new(params)
     end
 
-    def make_shape(rsp)
+    def make_shape(shape)
       params = {}
       # uint32 shape_id = 1;
       # bytes encoded_shape = 2;
       #   reverse coordinates
-      reversed = rsp.geometry[:coordinates].map { |a,b| [b,a] }
+      reversed = shape.geometry[:coordinates].map { |a,b| [b,a] }
       params[:encoded_shape] = TileUtils::Shape7.encode(reversed)
       Valhalla::Mjolnir::Transit::Shape.new(params)
     end
@@ -477,7 +492,7 @@ module TileExportService
     # else
     #   feed_version_ids = Feed.where_active_feed_version_import_level(IMPORT_LEVEL).pluck(:active_feed_version_id)
     # end
-    feed_version_ids = FeedVersion.pluck(:id)
+    feed_version_ids = [3] # FeedVersion.pluck(:id)
 
     # Build bboxes
     puts "Selecting tiles..."
