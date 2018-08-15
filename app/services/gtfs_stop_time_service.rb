@@ -228,35 +228,27 @@ class GTFSStopTimeService
   end
 
   def self.get_linear_stop_distances(trip_pattern, distances=nil)
-    distances ||= {}
-    return distances unless trip_pattern.size > 0
     trip_pattern = trip_pattern.map(&:to_i)
+    t1 = trip_pattern[0..-2]
+    t2 = trip_pattern[1..-1]
     s = <<-EOF
-      WITH 
-      gtfs_stops AS (
-        SELECT id, geometry::geometry 
-        FROM gtfs_stops 
-        INNER JOIN (
-          SELECT unnest, ordinality 
-          FROM unnest( ARRAY[#{trip_pattern.join(',')}] ) WITH ORDINALITY
-        ) as unnest 
-        ON gtfs_stops.id = unnest 
-        ORDER BY ordinality
-      ),
-      shapes AS (
-        SELECT ST_Length(ST_MakeLine(geometry)::geography) AS shape_length, ST_MakeLine(geometry) AS geometry FROM gtfs_stops
-      )
       SELECT 
-        gtfs_stops.id,
-        shapes.shape_length, 
-        ST_LineLocatePoint(shapes.geometry::geometry, gtfs_stops.geometry::geometry) AS shape_percent 
-      FROM gtfs_stops
-      INNER JOIN shapes ON true 
+        o.id AS id,
+        o.seg_id AS seg_id, 
+        ST_Length(ST_MakeLine(o.geometry::geometry, d.geometry::geometry)::geography) AS seg_length
+      FROM
+        (SELECT stop_name,seg_id,id,geometry FROM gtfs_stops, unnest(array[#{t1.join(',')}]) WITH ORDINALITY AS t(unnest,seg_id) where id = unnest) o, 
+        (SELECT stop_name,seg_id,id,geometry FROM gtfs_stops, unnest(array[#{t2.join(',')}]) WITH ORDINALITY AS t(unnest,seg_id) where id = unnest) d 
+      WHERE o.seg_id = d.seg_id ORDER BY o.seg_id
     EOF
+    cache = {}
+    d = 0.0
     GTFSStop.find_by_sql(s.squish).each do |row|
-      distances[nil] ||= row.shape_length
-      distances[row.id] = row.shape_percent
+      puts row.to_json
+      d += row['seg_length']
+      cache[row['id']] = [0.0, d]
     end
-    return distances    
+    puts trip_pattern.map { |i| cache[i] }
+    return cache
   end
 end
