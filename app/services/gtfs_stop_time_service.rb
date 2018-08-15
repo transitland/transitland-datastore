@@ -70,72 +70,6 @@ class GTFSStopTimeService
     return stop_times
   end
 
-  def self.get_linear_stop_distances(trip_pattern, distances=nil)
-    distances ||= {}
-    return distances unless trip_pattern.size > 0
-    trip_pattern = trip_pattern.map(&:to_i)
-    # Raw SQL, but difficult to get cte's otherwise.
-    s = <<-EOF
-      WITH 
-      gtfs_stops AS (
-        SELECT id, geometry::geometry 
-        FROM gtfs_stops 
-        INNER JOIN (
-          SELECT unnest, ordinality 
-          FROM unnest( ARRAY[#{trip_pattern.join(',')}] ) WITH ORDINALITY
-        ) as unnest 
-        ON gtfs_stops.id = unnest 
-        ORDER BY ordinality
-      ),
-      shapes AS (
-        SELECT ST_Length(ST_MakeLine(geometry)::geography) AS shape_length, ST_MakeLine(geometry) AS geometry FROM gtfs_stops
-      )
-      SELECT 
-        gtfs_stops.id,
-        shapes.shape_length, 
-        ST_LineLocatePoint(shapes.geometry::geometry, gtfs_stops.geometry::geometry) AS shape_percent 
-      FROM gtfs_stops
-      INNER JOIN shapes ON true 
-    EOF
-    GTFSStop.find_by_sql(s.squish).each do |row|
-      distances[nil] ||= row.shape_length
-      distances[row.id] = row.shape_percent
-    end
-    return distances    
-  end
-
-  def self.get_shape_stop_distances(trip_pattern, shape_id, distances=nil)
-    # Calculate line percent from closest point to stop
-    distances ||= {}
-    return distances unless trip_pattern.size > 0
-    shape_id = shape_id.to_i
-    trip_pattern = trip_pattern.map(&:to_i)
-    # Raw SQL, as above.
-    s = <<-EOF
-      WITH 
-      shapes AS (
-        SELECT 
-          gtfs_shapes.id, 
-          gtfs_shapes.geometry, 
-          ST_Length(gtfs_shapes.geometry) as shape_length 
-        FROM gtfs_shapes 
-        WHERE gtfs_shapes.id = #{shape_id}
-      ) 
-      SELECT 
-      gtfs_stops.id,
-      shapes.shape_length, 
-        ST_LineLocatePoint(shapes.geometry::geometry, gtfs_stops.geometry::geometry) AS shape_percent 
-      FROM gtfs_stops 
-      INNER JOIN shapes ON true 
-      WHERE gtfs_stops.id IN (#{trip_pattern.join(',')});
-    EOF
-    GTFSStop.find_by_sql(s.squish).each do |row|
-      distances[nil] ||= row.shape_length
-      distances[row.id] = row.shape_percent
-    end
-    return distances
-  end
-
   def self.interpolate_time(stop_times)
     o_distance = stop_times.first.shape_dist_traveled
     c_distance = stop_times.last.shape_dist_traveled
@@ -201,4 +135,159 @@ class GTFSStopTimeService
     end
     return gaps
   end  
+
+  def self.get_shape_stop_segments(trip_pattern, shape_id, cache=nil, maxdistance=200, segments=100)
+    # Calculate line percent from closest point to stop
+    cache ||= {}
+    trip_pattern = trip_pattern.select { |i| !cache.key?(i) }
+    return cache unless trip_pattern.size > 0
+    shape_id = shape_id.to_i
+    trip_pattern = trip_pattern.map(&:to_i)
+    maxdistance = maxdistance.to_i
+    segments = segments.to_i
+    # a: get the shape, as geometry
+    # linesubs: break shape into 100 segments, as geography
+    # segs: get cumulative line distance, including the current segment
+    # gtfs_stops: get stops
+    # gtfs_stops_segs: find distance between each stop and each segment
+    s = <<-EOF
+      WITH
+      a AS ( 
+          SELECT 
+              gtfs_shapes.id, 
+              gtfs_shapes.geometry::geometry as geometry,
+              ST_Length(gtfs_shapes.geometry) as shape_length
+          FROM gtfs_shapes WHERE id = #{shape_id}
+      ),
+      linesubs AS ( 
+          SELECT 
+              i AS seg_id,
+              ST_LineSubstring(a.geometry, (i::float)/#{segments},(i+1::float)/#{segments})::geography AS shape,
+              shape_length
+          FROM a, GENERATE_SERIES(0,#{segments-1}) AS i
+      ),
+      segs AS ( 
+          SELECT 
+              seg_id,
+              shape,
+              shape_length,
+              ST_Length(shape) as seg_length,
+              sum(ST_Length(shape)) OVER (ORDER BY seg_id) AS seg_length_sum
+          FROM linesubs
+      ),
+      gtfs_stops AS ( 
+          SELECT 
+              gtfs_stops.id, 
+              gtfs_stops.geometry
+          FROM gtfs_stops 
+          WHERE gtfs_stops.id IN (#{trip_pattern.join(',')})
+      ),
+      gtfs_stops_segs AS ( 
+          SELECT
+              gtfs_stops.id,
+              seg_id,
+              segs.seg_length,
+              segs.shape_length as shape_length,
+              (segs.seg_length_sum - segs.seg_length) AS seg_length_sum,
+              ST_LineLocatePoint(segs.shape::geometry, gtfs_stops.geometry::geometry) AS seg_percent,
+              ST_Distance(segs.shape, gtfs_stops.geometry) AS seg_distance
+          FROM gtfs_stops
+          INNER JOIN segs ON true
+      )
+      SELECT
+        *
+      FROM gtfs_stops_segs
+      WHERE seg_distance < #{maxdistance}
+    EOF
+    # s = s.squish
+    trip_pattern.each { |i| cache[i] ||= [] }
+    GTFSStop.find_by_sql(s).each do |row|
+      puts row.to_json
+      cache[row['id']] << [row['seg_distance'], row['seg_percent'], row['seg_length'], row['seg_length_sum']]
+    end
+    return cache    
+    # Get the closest segment, weighted by how far it advances shape_dist_traveled
+    # shape_dist_traveled = 0.0
+    # trip_pattern.each do |i|
+    #   a = cache[i] || []
+    #   scored = a.map do |seg_distance, seg_percent, seg_length, seg_length_sum|        
+    #     dist = (seg_length * seg_percent + seg_length_sum) - shape_dist_traveled
+    #     score = dist / seg_distance
+    #     [score, dist]
+    #   end
+    #   s = scored.select { |_,seg_distance| seg_distance >= shape_dist_traveled }.sort.last
+    #   if s
+    #     puts "#{i} -> #{s[1]}"
+    #   else
+    #     puts "#{i} -> no result"
+    #   end
+    # end
+    # return cache
+  end
+
+  def self.get_linear_stop_distances(trip_pattern, distances=nil)
+    distances ||= {}
+    return distances unless trip_pattern.size > 0
+    trip_pattern = trip_pattern.map(&:to_i)
+    # Raw SQL, but difficult to get cte's otherwise.
+    s = <<-EOF
+      WITH 
+      gtfs_stops AS (
+        SELECT id, geometry::geometry 
+        FROM gtfs_stops 
+        INNER JOIN (
+          SELECT unnest, ordinality 
+          FROM unnest( ARRAY[#{trip_pattern.join(',')}] ) WITH ORDINALITY
+        ) as unnest 
+        ON gtfs_stops.id = unnest 
+        ORDER BY ordinality
+      ),
+      shapes AS (
+        SELECT ST_Length(ST_MakeLine(geometry)::geography) AS shape_length, ST_MakeLine(geometry) AS geometry FROM gtfs_stops
+      )
+      SELECT 
+        gtfs_stops.id,
+        shapes.shape_length, 
+        ST_LineLocatePoint(shapes.geometry::geometry, gtfs_stops.geometry::geometry) AS shape_percent 
+      FROM gtfs_stops
+      INNER JOIN shapes ON true 
+    EOF
+    GTFSStop.find_by_sql(s.squish).each do |row|
+      distances[nil] ||= row.shape_length
+      distances[row.id] = row.shape_percent
+    end
+    return distances    
+  end
+
+  def self.get_shape_stop_distances(trip_pattern, shape_id, distances=nil)
+    # Calculate line percent from closest point to stop
+    distances ||= {}
+    return distances unless trip_pattern.size > 0
+    shape_id = shape_id.to_i
+    trip_pattern = trip_pattern.map(&:to_i)
+    # Raw SQL, as above.
+    s = <<-EOF
+      WITH 
+      shapes AS (
+        SELECT 
+          gtfs_shapes.id, 
+          gtfs_shapes.geometry, 
+          ST_Length(gtfs_shapes.geometry) as shape_length 
+        FROM gtfs_shapes 
+        WHERE gtfs_shapes.id = #{shape_id}
+      ) 
+      SELECT 
+        gtfs_stops.id,
+        shapes.shape_length, 
+        ST_LineLocatePoint(shapes.geometry::geometry, gtfs_stops.geometry::geometry) AS shape_percent 
+      FROM gtfs_stops 
+      INNER JOIN shapes ON true 
+      WHERE gtfs_stops.id IN (#{trip_pattern.join(',')});
+    EOF
+    GTFSStop.find_by_sql(s.squish).each do |row|
+      distances[nil] ||= row.shape_length
+      distances[row.id] = row.shape_percent
+    end
+    return distances
+  end
 end
