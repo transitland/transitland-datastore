@@ -146,73 +146,67 @@ class GTFSStopTimeService
     trip_pattern = trip_pattern.map(&:to_i)
     maxdistance = maxdistance.to_i
     segments = segments.to_i
-    # a: get the shape, as geometry
-    # linesubs: break shape into 100 segments, as geography
+    # linesubs: break shape into segments, as geography
     # segs: get cumulative line distance, including the current segment
     # gtfs_stops: get stops
     # gtfs_stops_segs: find distance between each stop and each segment
+    # filter by stop distance from line < maxdistance
     s = <<-EOF
       WITH
-      a AS ( 
-          SELECT 
-              gtfs_shapes.id, 
-              gtfs_shapes.geometry::geometry as geometry,
-              ST_Length(gtfs_shapes.geometry) as shape_length
-          FROM gtfs_shapes WHERE id = #{shape_id}
-      ),
       linesubs AS ( 
           SELECT 
               i AS seg_id,
-              ST_LineSubstring(a.geometry, i/#{segments}::float,(i+1)/#{segments}::float)::geography AS shape
-          FROM a, GENERATE_SERIES(0,#{segments-1}) AS i
+              ST_LineSubstring(gtfs_shapes.geometry::geometry, i/#{segments}::float,(i+1)/#{segments}::float)::geography AS shape
+          FROM gtfs_shapes, GENERATE_SERIES(0,#{segments-1}) AS i
+          WHERE id = #{shape_id}
       ),
       segs AS ( 
           SELECT 
               seg_id,
               shape,
-              ST_Length(shape::geography) as seg_length,
-              sum(ST_Length(shape::geography)) OVER (ORDER BY seg_id) AS seg_length_sum
-          FROM linesubs ORDER BY seg_id
-      ),
-      gtfs_stops AS ( 
-          SELECT 
-              gtfs_stops.id, 
-              gtfs_stops.geometry
-          FROM gtfs_stops 
-          WHERE gtfs_stops.id IN (#{trip_pattern.join(',')})
+              ST_Length(shape) as seg_length,
+              sum(ST_Length(shape)) OVER (ORDER BY seg_id) AS seg_length_sum
+          FROM linesubs
       ),
       gtfs_stops_segs AS ( 
           SELECT
               gtfs_stops.id,
-              gtfs_stops.geometry,
               seg_id,
-              ST_Distance(segs.shape, gtfs_stops.geometry, false) AS seg_distance,
-              ST_ShortestLine(segs.shape::geometry, gtfs_stops.geometry::geometry) AS seg_shortest
+              ST_ShortestLine(segs.shape::geometry, gtfs_stops.geometry::geometry) AS seg_shortest,
+              ST_Length(ST_ShortestLine(segs.shape::geometry, gtfs_stops.geometry::geometry)::geography) AS seg_distance
           FROM gtfs_stops
           INNER JOIN segs ON true
+          WHERE gtfs_stops.id IN (#{trip_pattern.join(',')})
       )
       SELECT
         id, 
-        ST_Length(seg_shortest::geography, false) AS seg_distance,
         seg_id,
-        segs.seg_length_sum - segs.seg_length + ST_Length(ST_LineSubstring(segs.shape::geometry, 0.0, ST_LineLocatePoint(segs.shape::geometry, gtfs_stops_segs.geometry::geometry))::geography) as seg_traveled
-      FROM gtfs_stops_segs INNER JOIN segs USING(seg_id)
+        seg_distance,
+        ST_AsGeoJSON(seg_shortest) AS seg_shortest_geojson,
+        ST_Length(
+          ST_LineSubstring(
+            segs.shape::geometry, 
+            0.0, 
+            ST_LineLocatePoint(
+              segs.shape::geometry, 
+              ST_PointN(seg_shortest, 1)
+            )
+          )::geography
+        ) + segs.seg_length_sum - segs.seg_length AS seg_traveled
+      FROM gtfs_stops_segs INNER JOIN segs USING(seg_id) 
       WHERE seg_distance < #{maxdistance}
     EOF
     s = s.squish
     trip_pattern.each { |i| cache[i] ||= [] }
+    features = []
     GTFSStop.find_by_sql(s).each do |row|
       puts row.to_json
       cache[row['id']] << [row['seg_distance'], row['seg_traveled']]
+      features << {type: 'Feature', properties: {"stroke" => "#ff0018", "stroke-width": 4}, geometry: JSON.parse(row['seg_shortest_geojson'])} 
     end
-    trip_pattern.each do |i|
-      puts "#{i} -> #{cache[i].sort.first}"
-    end
-    
-    
-
-
-
+    GTFSStop.find(trip_pattern).each { |s| features << {type: 'Feature', properties: {}, geometry: s.geometry(as: :geojson) }}
+    features << {type: 'Feature', properties: {"stroke-width": 4, "stroke" => "#0000ff"}, geometry: GTFSShape.find(shape_id).geometry(as: :geojson)}
+    puts ({type: "FeatureCollection", features: features}).to_json
     return cache    
     # Get the closest segment, weighted by how far it advances shape_dist_traveled
     # shape_dist_traveled = 0.0
