@@ -146,6 +146,13 @@ class ScheduleStopPair < BaseScheduleStopPair
     where("(service_start_date <= ? AND service_end_date >= ?) AND (true = service_days_of_week[?] OR ? = ANY(service_added_dates)) AND NOT (? = ANY(service_except_dates))", date, date, date.cwday, date, date)
   }
 
+  scope :where_service_on_dates, -> (dates) { 
+    dates = Array.wrap(dates).map { |d| d.is_a?(Date) ? d : Date.parse(d) }
+    cwdays = [false]*7
+    dates.each { |d| cwdays[d.cwday] = true }
+    where("service_start_date <= ? AND service_end_date >= ? AND ( (SELECT COUNT(*) FROM UNNEST(ARRAY[?]::boolean[], service_days_of_week) AS t(a,b) WHERE a AND b) > 0 OR ARRAY[?]::date[] && service_added_dates) AND NOT ARRAY[?]::date[] <@ service_except_dates", dates.max, dates.min, cwdays, dates, dates)
+  }
+
   scope :where_origin_departure_between, -> (time1, time2) {
     time1 = (GTFS::WideTime.parse(time1) || '00:00:00').to_s
     time2 = (GTFS::WideTime.parse(time2) || '99:59:59').to_s
