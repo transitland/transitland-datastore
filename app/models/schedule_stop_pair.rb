@@ -146,13 +146,6 @@ class ScheduleStopPair < BaseScheduleStopPair
     where("(service_start_date <= ? AND service_end_date >= ?) AND (true = service_days_of_week[?] OR ? = ANY(service_added_dates)) AND NOT (? = ANY(service_except_dates))", date, date, date.cwday, date, date)
   }
 
-  scope :where_service_on_dates, -> (dates) { 
-    dates = Array.wrap(dates).map { |d| d.is_a?(Date) ? d : Date.parse(d) }
-    cwdays = [false]*7
-    dates.each { |d| cwdays[d.cwday] = true }
-    where("service_start_date <= ? AND service_end_date >= ? AND ( (SELECT COUNT(*) FROM UNNEST(ARRAY[?]::boolean[], service_days_of_week) AS t(a,b) WHERE a AND b) > 0 OR ARRAY[?]::date[] && service_added_dates) AND NOT ARRAY[?]::date[] <@ service_except_dates", dates.max, dates.min, cwdays, dates, dates)
-  }
-
   scope :where_origin_departure_between, -> (time1, time2) {
     time1 = (GTFS::WideTime.parse(time1) || '00:00:00').to_s
     time2 = (GTFS::WideTime.parse(time2) || '99:59:59').to_s
@@ -247,6 +240,27 @@ class ScheduleStopPair < BaseScheduleStopPair
 
   def frequency_end_time=(value)
     super(GTFS::WideTime.parse(value))
+  end
+
+  def expand_frequency
+    return [self] unless frequency_start_time && frequency_end_time && frequency_headway_seconds
+    o_a = GTFS::WideTime.parse(origin_arrival_time).to_seconds
+    o_d = GTFS::WideTime.parse(origin_departure_time).to_seconds
+    d_a = GTFS::WideTime.parse(destination_arrival_time).to_seconds
+    d_d = GTFS::WideTime.parse(destination_departure_time).to_seconds
+    e = GTFS::WideTime.parse(frequency_end_time).to_seconds
+    t = 0
+    ret = []
+    while (o_a + t) <= e      
+      a = self.dup
+      a.origin_arrival_time = GTFS::WideTime.new(o_a + t).to_s
+      a.origin_departure_time = GTFS::WideTime.new(o_d + t).to_s
+      a.destination_arrival_time = GTFS::WideTime.new(d_a + t).to_s
+      a.destination_departure_time = GTFS::WideTime.new(d_d + t).to_s
+      ret << a
+      t += frequency_headway_seconds
+    end
+    ret
   end
 
   # Tracked by changeset
