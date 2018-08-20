@@ -179,6 +179,33 @@ class Stop < BaseStop
       .distinct
   }
 
+  # Headways
+  def median(ary)
+    mid = ary.length / 2
+    sorted = ary.sort
+    ary.length.odd? ? sorted[mid] : 0.5 * (sorted[mid] + sorted[mid - 1])
+  end
+
+  def headways(dates, origin_departure_time)
+    period = origin_departure_time.map { |i| GTFS::WideTime.parse(i).to_seconds }
+    trips_out
+      .group_by(&:destination_id)
+      .map { |dest,ssps|
+        b = dates.map { |date| 
+          h = ssps
+            .select { |i| i.service_on_date?(date) }
+            .map(&:expand_frequency)
+            .flatten
+            .map { |i| GTFS::WideTime.parse(i.origin_departure_time).to_seconds }
+            .select { |i| period[0] <= i && i <= period[1] }
+            .sort
+          # puts [dest, h.inspect]
+          h[0..-2].zip(h[1..-1]).map { |i,j| j - i }
+        }.flatten
+        [Stop.find(dest).onestop_id, median(b).to_i]
+      }
+  end
+
   # GTFS
   has_many :gtfs_entities, class_name: GTFSStop, foreign_key: :entity_id
 
