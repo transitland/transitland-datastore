@@ -189,7 +189,8 @@ class Stop < BaseStop
   def headways(dates, origin_departure_time)
     period = origin_departure_time.map { |i| GTFS::WideTime.parse(i).to_seconds }
     trips_out
-      .group_by(&:destination_id)
+      .includes(:destination)
+      .group_by(&:destination)
       .map { |dest,ssps|
         b = dates.map { |date| 
           h = ssps
@@ -202,8 +203,8 @@ class Stop < BaseStop
           # puts [dest, h.inspect]
           h[0..-2].zip(h[1..-1]).map { |i,j| j - i }
         }.flatten
-        [Stop.find(dest).onestop_id, median(b).to_i]
-      }
+        [dest.onestop_id, median(b).to_i]
+      }.to_h
   end
 
   # GTFS

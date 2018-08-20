@@ -3,6 +3,17 @@ class Api::V1::StopsController < Api::V1::CurrentEntityController
     Stop
   end
 
+  def headways
+    set_model
+    dates = (params[:dates] || "").split(",")
+    between = (params[:origin_departure_between] || "").split(",")
+    fail Exception.new('Requires at least one date') unless dates.size > 0
+    (between = [between.first, '1000:00']) if between.size == 1
+    (between = ['00:00', '1000:00']) if between.size == 0
+    between = between[0..2]
+    render :json => @model.headways(dates, between)
+  end
+
   private
 
   def index_query
