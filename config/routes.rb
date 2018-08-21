@@ -33,20 +33,22 @@ Rails.application.routes.draw do
         resources :stops, controller: 'gtfs_stops', only: [:index, :show]
       end
 
+      resources :routes, only: [:index, :show] do
+        member do
+          get 'headways'
+        end
+      end
       resources :stops, only: [:index, :show] do
         member do
           get 'headways'
         end
       end
-
-
       resources :stop_stations, only: [:index, :show]
       resources :operators, only: [:index, :show] do
         collection do
           get 'aggregate'
         end
       end
-      resources :routes, only: [:index, :show]
       resources :route_stop_patterns, only: [:index, :show]
       resources :schedule_stop_pairs, only: [:index]
       resources :feeds, only: [:index, :show] do
