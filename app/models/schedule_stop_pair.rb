@@ -242,6 +242,27 @@ class ScheduleStopPair < BaseScheduleStopPair
     super(GTFS::WideTime.parse(value))
   end
 
+  def expand_frequency
+    return [self] unless frequency_start_time && frequency_end_time && frequency_headway_seconds
+    o_a = GTFS::WideTime.parse(origin_arrival_time).to_seconds
+    o_d = GTFS::WideTime.parse(origin_departure_time).to_seconds
+    d_a = GTFS::WideTime.parse(destination_arrival_time).to_seconds
+    d_d = GTFS::WideTime.parse(destination_departure_time).to_seconds
+    e = GTFS::WideTime.parse(frequency_end_time).to_seconds
+    t = 0
+    ret = []
+    while (o_a + t) <= e      
+      a = self.dup
+      a.origin_arrival_time = GTFS::WideTime.new(o_a + t).to_s
+      a.origin_departure_time = GTFS::WideTime.new(o_d + t).to_s
+      a.destination_arrival_time = GTFS::WideTime.new(d_a + t).to_s
+      a.destination_departure_time = GTFS::WideTime.new(d_d + t).to_s
+      ret << a
+      t += frequency_headway_seconds
+    end
+    ret
+  end
+
   # Tracked by changeset
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
