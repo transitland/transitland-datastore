@@ -230,6 +230,38 @@ class Route < BaseRoute
     )
   end
 
+  def median(ary)
+    return nil if ary.size == 0
+    mid = ary.length / 2
+    sorted = ary.sort
+    ary.length.odd? ? sorted[mid].to_f : 0.5 * (sorted[mid] + sorted[mid - 1])
+  end
+
+  def headways(dates, origin_departure_between)
+    period = origin_departure_between.map { |i| GTFS::WideTime.parse(i).to_seconds }
+    headways = Hash.new { |h,k| h[k] = [] }
+    dates.each do |date|
+      stops = Hash.new { |h,k| h[k] = [] }
+      # .select just values we need?
+      ScheduleStopPair
+        .where(route_id: id)
+        .where_service_on_date(date)
+        .includes([:origin, :destination])
+        .each do |ssp|
+          ssp.expand_frequency.each do |ssp|
+            t = GTFS::WideTime.parse(ssp.origin_arrival_time).to_seconds
+            key = [ssp.origin.onestop_id, ssp.destination.onestop_id]
+            (stops[key] << t) if period[0] <= t && t <= period[1]
+          end
+      end
+      stops.map do |k,v|
+        v = v.sort
+        headways[k] += v[0..-2].zip(v[1..-1]).map { |a,b| b - a }.select { |i| i > 0 }
+      end
+    end
+    headways.map { |k,v| [k, median(v) ]}.to_h
+  end
+
   ##### FromGTFS ####
   def generate_onestop_id
     stops = self.serves || self.stops

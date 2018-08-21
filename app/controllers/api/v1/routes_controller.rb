@@ -3,6 +3,19 @@ class Api::V1::RoutesController < Api::V1::CurrentEntityController
     Route
   end
 
+  def headways
+    set_model
+    dates = (params[:dates] || "").split(",")
+    between = (params[:origin_departure_between] || "").split(",")
+    fail Exception.new('Requires at least one date') unless dates.size > 0
+    (between = [between.first, '1000:00']) if between.size == 1
+    (between = ['00:00', '1000:00']) if between.size == 0
+    between = between[0..2]
+    result = @model.headways(dates, between).map { |k,v| [k.join(':'), v] }.to_h
+    puts result
+    render :json => result
+  end
+
   private
 
   def index_query
