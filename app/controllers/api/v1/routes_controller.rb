@@ -11,9 +11,7 @@ class Api::V1::RoutesController < Api::V1::CurrentEntityController
     (between = [between.first, '1000:00']) if between.size == 1
     (between = ['00:00', '1000:00']) if between.size == 0
     between = between[0..2]
-    result = @model.headways(dates, between).map { |k,v| [k.join(':'), v] }.to_h
-    puts result
-    render :json => result
+    render :json => @model.headways(dates, *between).map { |k,v| [k.join(':'), v] }.to_h
   end
 
   private
