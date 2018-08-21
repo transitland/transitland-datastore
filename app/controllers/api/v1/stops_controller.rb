@@ -11,7 +11,7 @@ class Api::V1::StopsController < Api::V1::CurrentEntityController
     (between = [between.first, '1000:00']) if between.size == 1
     (between = ['00:00', '1000:00']) if between.size == 0
     between = between[0..2]
-    render :json => @model.headways(dates, between)
+    render :json => @model.headways(dates, between[0], between[1])
   end
 
   private

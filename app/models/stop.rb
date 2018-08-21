@@ -187,8 +187,9 @@ class Stop < BaseStop
     ary.length.odd? ? sorted[mid].to_f : 0.5 * (sorted[mid] + sorted[mid - 1])
   end
 
-  def headways(dates, origin_departure_between)
-    period = origin_departure_between.map { |i| GTFS::WideTime.parse(i).to_seconds }
+  def headways(dates, departure_start=nil, departure_end=nil)
+    departure_start = GTFS::WideTime.parse(departure_start || '00:00').to_seconds
+    departure_end = GTFS::WideTime.parse(departure_end || '1000:00').to_seconds
     trips_out
       .includes(:destination)
       .group_by(&:destination)
@@ -199,9 +200,9 @@ class Stop < BaseStop
             .map(&:expand_frequency)
             .flatten
             .map { |i| GTFS::WideTime.parse(i.origin_departure_time).to_seconds }
-            .select { |i| period[0] <= i && i <= period[1] }
+            .select { |i| departure_start <= i && i <= departure_end }
             .sort
-          h[0..-2].zip(h[1..-1]).map { |i,j| j - i }
+          h[0..-2].zip(h[1..-1] || []).map { |i,j| j - i }
         }.flatten
         [dest.onestop_id, median(b)]
       }.to_h
