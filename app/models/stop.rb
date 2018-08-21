@@ -205,7 +205,7 @@ class Stop < BaseStop
           h[0..-2].zip(h[1..-1] || []).map { |i,j| j - i }
         }.flatten
         [dest.onestop_id, median(b)]
-      }.to_h
+      }.select { |k,v| v }.to_h
   end
 
   # GTFS

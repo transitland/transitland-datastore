@@ -260,7 +260,7 @@ class Route < BaseRoute
       end
     end
     sids = Stop.select([:id, :onestop_id]).where(id: headways.keys.flatten).map { |s| [s.id, s.onestop_id] }.to_h
-    headways.map { |k,v| [k.map { |i| sids[i] }, median(v) ]}.to_h
+    headways.map { |k,v| [k.map { |i| sids[i] }, median(v) ]}.select { |k,v| v }.to_h
   end
 
   ##### FromGTFS ####
