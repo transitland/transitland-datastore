@@ -16,14 +16,39 @@ Rails.application.routes.draw do
         end
         resources :change_payloads, only: [:index, :show, :create, :update, :destroy]
       end
-      resources :stops, only: [:index, :show]
+    
+      scope 'gtfs' do
+        resources :agencies, controller: 'gtfs_agencies', only: [:index, :show]
+        resources :calendar_dates, controller: 'gtfs_calendar_dates', only: [:index, :show]
+        resources :calendars, controller: 'gtfs_calendars', only: [:index, :show]
+        resources :fare_attributes, controller: 'gtfs_fare_attributes', only: [:index, :show]
+        resources :fare_rules, controller: 'gtfs_fare_rules', only: [:index, :show]
+        resources :feed_infos, controller: 'gtfs_feed_infos', only: [:index, :show]
+        resources :frequencies, controller: 'gtfs_frequencies', only: [:index, :show]
+        resources :routes, controller: 'gtfs_routes', only: [:index, :show]
+        resources :shapes, controller: 'gtfs_shapes', only: [:index, :show]
+        resources :stop_times, controller: 'gtfs_stop_times', only: [:index, :show]
+        resources :transfers, controller: 'gtfs_transfers', only: [:index, :show]
+        resources :trips, controller: 'gtfs_trips', only: [:index, :show]
+        resources :stops, controller: 'gtfs_stops', only: [:index, :show]
+      end
+
+      resources :routes, only: [:index, :show] do
+        member do
+          get 'headways'
+        end
+      end
+      resources :stops, only: [:index, :show] do
+        member do
+          get 'headways'
+        end
+      end
       resources :stop_stations, only: [:index, :show]
       resources :operators, only: [:index, :show] do
         collection do
           get 'aggregate'
         end
       end
-      resources :routes, only: [:index, :show]
       resources :route_stop_patterns, only: [:index, :show]
       resources :schedule_stop_pairs, only: [:index]
       resources :feeds, only: [:index, :show] do

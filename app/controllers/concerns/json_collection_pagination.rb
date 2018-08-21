@@ -1,5 +1,6 @@
 module JsonCollectionPagination
   extend ActiveSupport::Concern
+  MAX_PER_PAGE = nil
   PER_PAGE ||= 50
 
   def paginated_collection(collection)
@@ -96,13 +97,14 @@ module JsonCollectionPagination
 
   def sort_per_page
     # per_page magic values: false, ∞
-    per_page = params[:per_page].presence.to_s
-    if ['false', '∞'].include?(per_page)
-      per_page
+    per_page = params[:per_page].presence
+    if per_page == 'false' || per_page == '∞'
+      per_page = self.class::MAX_PER_PAGE || 'false'
     else
-      # class default
-      (per_page.presence || self.class::PER_PAGE).to_i
+      per_page = (per_page || self.class::PER_PAGE).to_i
+      per_page = [per_page, (self.class::MAX_PER_PAGE || per_page)].min
     end
+    per_page
   end
 
   def sort_total

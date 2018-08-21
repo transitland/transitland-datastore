@@ -179,6 +179,38 @@ class Stop < BaseStop
       .distinct
   }
 
+  # Headways
+  def median(ary)
+    return nil if ary.size == 0
+    mid = ary.length / 2
+    sorted = ary.sort
+    ary.length.odd? ? sorted[mid].to_f : 0.5 * (sorted[mid] + sorted[mid - 1])
+  end
+
+  def headways(dates, departure_start=nil, departure_end=nil)
+    departure_start = GTFS::WideTime.parse(departure_start || '00:00').to_seconds
+    departure_end = GTFS::WideTime.parse(departure_end || '1000:00').to_seconds
+    trips_out
+      .includes(:destination)
+      .group_by(&:destination)
+      .map { |dest,ssps|
+        b = dates.map { |date| 
+          h = ssps
+            .select { |i| i.service_on_date?(date) }
+            .map(&:expand_frequency)
+            .flatten
+            .map { |i| GTFS::WideTime.parse(i.origin_departure_time).to_seconds }
+            .select { |i| departure_start <= i && i <= departure_end }
+            .sort
+          h[0..-2].zip(h[1..-1] || []).map { |i,j| j - i }
+        }.flatten
+        [dest.onestop_id, median(b)]
+      }.select { |k,v| v }.to_h
+  end
+
+  # GTFS
+  has_many :gtfs_entities, class_name: GTFSStop, foreign_key: :entity_id
+
   # Station Hierarchy
   has_many :stop_egresses, class_name: 'StopEgress', foreign_key: :parent_stop_id
   has_many :stop_platforms, class_name: 'StopPlatform', foreign_key: :parent_stop_id
