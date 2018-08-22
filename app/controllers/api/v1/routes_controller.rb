@@ -7,11 +7,11 @@ class Api::V1::RoutesController < Api::V1::CurrentEntityController
     set_model
     dates = (params[:dates] || "").split(",")
     between = (params[:origin_departure_between] || "").split(",")
-    fail Exception.new('Requires at least one date') unless dates.size > 0
-    (between = [between.first, '1000:00']) if between.size == 1
-    (between = ['00:00', '1000:00']) if between.size == 0
-    between = between[0..2]
-    render :json => @model.headways(dates, between[0], between[1]).map { |k,v| [k.join(':'), v] }.to_h
+    departure_span = params[:departure_span].presence || '00:00'
+    h = params[:headway_percentile].presence    
+    headway_percentile = h ? h.to_f : nil
+    # dates, w, departure_start=nil, departure_end=nil, departure_span=nil, headway_percentile=0.5
+    render :json => ScheduleStopPair.headways(dates, {route_id: @model.id}, between[0], between[1], departure_span, headway_percentile).map { |k,v| [k.join(':'), v] }.to_h
   end
 
   private

@@ -7,11 +7,10 @@ class Api::V1::StopsController < Api::V1::CurrentEntityController
     set_model
     dates = (params[:dates] || "").split(",")
     between = (params[:origin_departure_between] || "").split(",")
-    fail Exception.new('Requires at least one date') unless dates.size > 0
-    (between = [between.first, '1000:00']) if between.size == 1
-    (between = ['00:00', '1000:00']) if between.size == 0
-    between = between[0..2]
-    render :json => @model.headways(dates, between[0], between[1])
+    departure_span = params[:departure_span].presence
+    h = params[:headway_percentile].presence    
+    headway_percentile = h ? h.to_f : nil
+    render :json => ScheduleStopPair.headways(dates, {origin_id: @model.id}, between[0], between[1], departure_span, headway_percentile).map { |k,v| [k.join(':'), v] }.to_h
   end
 
   private
