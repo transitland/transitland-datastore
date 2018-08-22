@@ -230,14 +230,14 @@ class Route < BaseRoute
     )
   end
 
-  def median(ary)
-    return nil if ary.size == 0
-    mid = ary.length / 2
-    sorted = ary.sort
-    ary.length.odd? ? sorted[mid].to_f : 0.5 * (sorted[mid] + sorted[mid - 1])
+  def percentile(values, percentile)
+    values_sorted = values.sort
+    k = (percentile*(values_sorted.length-1)+1).floor - 1
+    f = (percentile*(values_sorted.length-1)+1).modulo(1)
+    return values_sorted[k] + (f * (values_sorted[k+1] - values_sorted[k]))
   end
 
-  def headways(dates, departure_start=nil, departure_end=nil)
+  def headways(dates, departure_start=nil, departure_end=nil, departure_window_threshold=0.0, headway_percentile=0.5)
     departure_start = GTFS::WideTime.parse(departure_start || '00:00').to_seconds
     departure_end = GTFS::WideTime.parse(departure_end || '1000:00').to_seconds
     headways = Hash.new { |h,k| h[k] = [] }
@@ -254,13 +254,14 @@ class Route < BaseRoute
             (stops[key] << t) if departure_start <= t && t <= departure_end
           end
       end
-      stops.map do |k,v|
+      stops.each do |k,v|
         v = v.sort
+        next unless (v.last - v.first) > (departure_end - departure_start) * departure_window_threshold
         headways[k] += v[0..-2].zip(v[1..-1] || []).map { |a,b| b - a }.select { |i| i > 0 }
       end
     end
     sids = Stop.select([:id, :onestop_id]).where(id: headways.keys.flatten).map { |s| [s.id, s.onestop_id] }.to_h
-    headways.map { |k,v| [k.map { |i| sids[i] }, median(v) ]}.select { |k,v| v }.to_h
+    headways.map { |k,v| [k.map { |i| sids[i] }, percentile(v, headway_percentile) ]}.select { |k,v| v }.to_h
   end
 
   ##### FromGTFS ####
