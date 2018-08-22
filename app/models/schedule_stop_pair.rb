@@ -263,6 +263,45 @@ class ScheduleStopPair < BaseScheduleStopPair
     ret
   end
 
+  def self.percentile(values, percentile)
+    return values[0]
+    values_sorted = values.sort
+    k = (percentile*(values_sorted.length-1)+1).floor - 1
+    f = (percentile*(values_sorted.length-1)+1).modulo(1)
+    return values_sorted[k] + (f * (values_sorted[k+1] - values_sorted[k]))
+  end
+
+  def self.headways(dates, w, departure_start=nil, departure_end=nil, departure_span=nil, headway_percentile=0.5)
+    dates = Array.wrap(dates)
+    fail Exception.new('must supply at least one date') unless dates.size > 0
+    departure_start = GTFS::WideTime.parse(departure_start || '00:00').to_seconds
+    departure_end = GTFS::WideTime.parse(departure_end || '1000:00').to_seconds
+    departure_span = GTFS::WideTime.parse(departure_span).try(:to_seconds) || 0
+    headways = Hash.new { |h,k| h[k] = [] }
+    dates.each do |date|
+      stop_pairs = Hash.new { |h,k| h[k] = [] }
+      ScheduleStopPair
+        .where(w)
+        .where_service_on_date(date)
+        .select([:id, :origin_id, :destination_id, :origin_arrival_time, :origin_departure_time, :destination_arrival_time, :destination_departure_time, :frequency_start_time, :frequency_end_time, :frequency_headway_seconds])
+        .find_each do |ssp|
+          ssp.expand_frequency.each do |ssp|
+            t = GTFS::WideTime.parse(ssp.origin_arrival_time).to_seconds
+            key = [ssp.origin_id, ssp.destination_id]
+            stop_pairs[key] << t
+          end
+      end
+      stop_pairs.each do |k,v|
+        v = v.sort
+        next unless (v.last - v.first) > departure_span
+        v = v.select { |i| departure_start <= i && i <= departure_end }
+        headways[k] += v[0..-2].zip(v[1..-1] || []).map { |a,b| b - a }.select { |i| i > 0 }
+      end
+    end
+    sids = Stop.select([:id, :onestop_id]).where(id: headways.keys.flatten).map { |s| [s.id, s.onestop_id] }.to_h
+    headways.map { |k,v| [k.map { |i| sids[i] }, percentile(v, headway_percentile) ]}.select { |k,v| v }.to_h
+  end
+
   # Tracked by changeset
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
