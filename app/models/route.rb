@@ -230,40 +230,6 @@ class Route < BaseRoute
     )
   end
 
-  def percentile(values, percentile)
-    values_sorted = values.sort
-    k = (percentile*(values_sorted.length-1)+1).floor - 1
-    f = (percentile*(values_sorted.length-1)+1).modulo(1)
-    return values_sorted[k] + (f * (values_sorted[k+1] - values_sorted[k]))
-  end
-
-  def headways(dates, departure_start=nil, departure_end=nil, departure_window_threshold=0.0, headway_percentile=0.5)
-    departure_start = GTFS::WideTime.parse(departure_start || '00:00').to_seconds
-    departure_end = GTFS::WideTime.parse(departure_end || '1000:00').to_seconds
-    headways = Hash.new { |h,k| h[k] = [] }
-    dates.each do |date|
-      stops = Hash.new { |h,k| h[k] = [] }
-      ScheduleStopPair
-        .where(route_id: id)
-        .where_service_on_date(date)
-        .select([:id, :origin_id, :destination_id, :origin_arrival_time, :frequency_start_time, :frequency_end_time, :frequency_headway_seconds])
-        .find_each do |ssp|
-          ssp.expand_frequency.each do |ssp|
-            t = GTFS::WideTime.parse(ssp.origin_arrival_time).to_seconds
-            key = [ssp.origin_id, ssp.destination_id]
-            (stops[key] << t) if departure_start <= t && t <= departure_end
-          end
-      end
-      stops.each do |k,v|
-        v = v.sort
-        next unless (v.last - v.first) > (departure_end - departure_start) * departure_window_threshold
-        headways[k] += v[0..-2].zip(v[1..-1] || []).map { |a,b| b - a }.select { |i| i > 0 }
-      end
-    end
-    sids = Stop.select([:id, :onestop_id]).where(id: headways.keys.flatten).map { |s| [s.id, s.onestop_id] }.to_h
-    headways.map { |k,v| [k.map { |i| sids[i] }, percentile(v, headway_percentile) ]}.select { |k,v| v }.to_h
-  end
-
   ##### FromGTFS ####
   def generate_onestop_id
     stops = self.serves || self.stops
