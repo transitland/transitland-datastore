@@ -59,7 +59,7 @@ workflows:
           requires:
             - rails-test-suite
           filters:
-            tags:
-              only: /^v.*/
+            # tags:
+            #   only: /^v.*/
             branches:
               ignore: /.*/
