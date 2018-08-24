@@ -266,6 +266,7 @@ class ScheduleStopPair < BaseScheduleStopPair
   def self.percentile(values, percentile)
     values_sorted = values.sort
     return nil if values.empty?
+    return values.last if values.size == 1
     return values.last if percentile == 1.0
     k = (percentile*(values_sorted.length-1)+1).floor - 1
     f = (percentile*(values_sorted.length-1)+1).modulo(1)
