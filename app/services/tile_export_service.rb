@@ -11,9 +11,9 @@ module TileExportService
   # kTransitStation = 5,          // Transit station
   # kMultiUseTransitPlatform = 6, // Multi-use transit platform (rail and bus)
   NODE_TYPES = {
-    2 => 4,
-    1 => 5,
-    0 => 6
+    StopEgress: 4,
+    Stop: 5,
+    StopPlatform: 6
   }
 
   VT = Valhalla::Mjolnir::Transit::VehicleType
@@ -92,15 +92,15 @@ module TileExportService
       tileset = TileUtils::TileSet.new(@tilepath)
       tile = tileset.new_tile(GRAPH_LEVEL, @tile)
 
-      GTFSStop
-        .where(feed_version_id: @feed_version_ids)
-        .where(parent_station_id: nil)
+      Stop
+        .where_imported_from_feed_version(@feed_version_ids)
+        .where(parent_stop: nil)
         .geometry_within_bbox(bbox_padded(tile.bbox))
-        .includes(:children)
+        .includes(:stop_platforms, :stop_egresses)
         .find_each do |stop|
 
         # Check if stop is inside tile
-        stop_tile = TileUtils::GraphID.new(level: GRAPH_LEVEL, lon: stop.stop_lon, lat: stop.stop_lat).tile
+        stop_tile = TileUtils::GraphID.new(level: GRAPH_LEVEL, lon: stop.coordinates[0], lat: stop.coordinates[1]).tile
         if stop_tile != @tile
           # debug("skipping stop #{stop.id}: coordinates #{stop.coordinates.join(',')} map to tile #{stop_tile} outside of tile #{@tile}")
           next
@@ -110,10 +110,9 @@ module TileExportService
         prev_type_graphid = nil
 
         # Egresses
-        stop_egresses = [] # stop.stop_egresses.to_a
-        (stop_egresses << GTFSStop.new(stop.attributes)) if stop_egresses.empty? # generated egress
+        stop_egresses = stop.stop_egresses.to_a
+        stop_egresses << StopEgress.new(stop.attributes) if stop_egresses.empty? # generated egress
         stop_egresses.each do |stop_egress|
-          stop_egress.location_type = 2
           node = make_node(stop_egress)
           node.graphid = TileUtils::GraphID.new(level: GRAPH_LEVEL, tile: @tile, index: tile.message.nodes.size).value
           node.prev_type_graphid = prev_type_graphid if prev_type_graphid
@@ -122,7 +121,6 @@ module TileExportService
         end
 
         # Station
-        stop.location_type = 1
         node = make_node(stop)
         node.graphid = TileUtils::GraphID.new(level: GRAPH_LEVEL, tile: @tile, index: tile.message.nodes.size).value
         node.prev_type_graphid = prev_type_graphid if prev_type_graphid
@@ -130,10 +128,9 @@ module TileExportService
         tile.message.nodes << node
 
         # Platforms
-        stop_platforms = stop.children.to_a
-        (stop_platforms << GTFSStop.new(stop.attributes)) if stop_platforms.empty? 
+        stop_platforms = stop.stop_platforms.to_a
+        (stop_platforms << StopPlatform.new(stop.attributes)) if stop_platforms.empty? # station ssps
         stop_platforms.each do |stop_platform|
-          stop_platform.location_type = 0
           node = make_node(stop_platform)
           node.graphid = TileUtils::GraphID.new(level: GRAPH_LEVEL, tile: @tile, index: tile.message.nodes.size).value
           node.prev_type_graphid = prev_type_graphid if prev_type_graphid # station_id graphid
@@ -157,8 +154,6 @@ module TileExportService
       tileset = TileUtils::TileSet.new(@tilepath)
       base_tile = tileset.read_tile(GRAPH_LEVEL, @tile)
       stop_ids = base_tile.message.nodes.map { |node| @graphid_stopid[node.graphid] }.compact
-      trips = {}
-      calendars = {}
 
       # Build stop_pairs for each stop_id
       tile_ext = 0
@@ -166,66 +161,41 @@ module TileExportService
       stop_pairs_total = 0
       errors = Hash.new(0)
       stop_ids.each do |stop_id|
-        puts "stop_id: #{stop_id}"
         stop_pairs_stop_id_count = 0
-        GTFSStopTime
-          .where(stop_id: stop_id)
+        ScheduleStopPair
+          .where(origin_id: stop_id)
+          .includes(:origin, :destination, :operator)
           .find_in_batches do |ssps|
+          # Evaluate by active feed version - faster than join or where in (?)
+          ssps = ssps.select { |ssp| @feed_version_ids.include?(ssp.feed_version_id) }
 
-          # Skip the last stop_time in a trip
-          ssps = ssps.select(&:destination_id)
-
-          # Cache: Get unseen trips
-          trip_ids = ssps.map(&:trip_id).select { |t| !trips.key?(t) }
-          GTFSTrip.find(trip_ids).each do |t|
-            trips[t.id] = t
-          end
-          ssps.each { |ssp| ssp.trip = trips[ssp.trip_id] }
-
-          # Cache: Get unseen calendars and calendar_dates
-          ssps.each do |ssp|
-            # if we don't have the calendar cached, find the calendar or create an empty one
-            args = {feed_version_id: ssp.trip.feed_version_id, service_id: ssp.trip.service_id}
-            key = [ssp.trip.feed_version_id, ssp.trip.service_id]
-            calendar = calendars[key]
-            if calendar.nil?
-              calendar = GTFSCalendar.find_by(args) # || GTFSCalendar.new(args)
-            end
-            calendar.start_date ||= calendar.service_added_dates.min
-            calendar.end_date ||= calendar.service_added_dates.max
-            ssp.trip.calendar = calendar
-            calendars[key] = calendar
+          # Get unvisited routes for this batch
+          route_ids = ssps.map(&:route_id).select { |route_id| !@route_index.key?(route_id) }
+          ssps.each { |ssp| @route_index[ssp.route_id] ||= nil } # set as visited
+          Route.where(id: route_ids).find_each do |route| # get unvisited
+            @route_index[route.id] = base_tile.message.routes.size
+            debug("route: #{route.id} -> #{@route_index[route.id]}")
+            base_tile.message.routes << make_route(route)
           end
 
-          # Get unvisited routes for this batch, add to tile
-          route_ids = ssps.map { |ssp| ssp.trip.route_id }.select { |route_id| !@route_index.key?(route_id) }.uniq
-          ssps.each { |ssp| @route_index[ssp.trip.route_id] ||= nil } # set as visited
-          if route_ids.size > 0
-            GTFSRoute.where(id: route_ids).find_each do |route| # get unvisited
-              @route_index[route.id] = base_tile.message.routes.size
-              debug("route: #{route.id} -> #{@route_index[route.id]}")
-              base_tile.message.routes << make_route(route)
-            end
-          end
-
-          # Get unseen shapes for this batch, add to tile
-          shape_ids = ssps.map { |ssp| ssp.trip.shape_id }.select { |shape_id| !@shape_index.key?(shape_id) }.uniq
-          ssps.each { |ssp| @shape_index[ssp.trip.shape_id] ||= nil } # set as visited
-          if shape_ids.size > 0
-            GTFSShape.where(id: shape_ids).find_each do |shape|
-              pshape = make_shape(shape)
-              pshape.shape_id = base_tile.message.shapes.size + 1
-              @shape_index[shape.id] = pshape.shape_id
-              debug("shape: #{shape.id} -> #{@shape_index[shape.id]}")
-              base_tile.message.shapes << pshape
-            end
+          # Get unseen rsps for this batch
+          rsp_ids = ssps.map(&:route_stop_pattern_id).select { |rsp_id| !@shape_index.key?(rsp_id) }
+          ssps.each { |ssp| @shape_index[ssp.route_stop_pattern_id] ||= nil } # set as visited
+          RouteStopPattern.where(id: rsp_ids).find_each do |rsp|
+            shape = make_shape(rsp)
+            shape.shape_id = base_tile.message.shapes.size + 1
+            @shape_index[rsp.id] = shape.shape_id
+            debug("shape: #{rsp.id} -> #{@shape_index[rsp.id]}")
+            base_tile.message.shapes << shape
           end
 
           # Process each ssp
           ssps.each do |ssp|
             # process ssp and count errors
             begin
-              i = make_stop_pair(ssp)
+              stop_pairs_tile.message.stop_pairs << make_stop_pair(ssp)
+              stop_pairs_stop_id_count += 1
+              stop_pairs_total += 1
             rescue TileValueError => e
               errors[e.class.name.to_sym] += 1
               log("error: ssp #{ssp.id}: #{e}")
@@ -233,10 +203,6 @@ module TileExportService
               errors[e.class.name.to_sym] += 1
               log("error: ssp #{ssp.id}: #{e}")
             end
-            next unless i
-            stop_pairs_tile.message.stop_pairs << i
-            stop_pairs_stop_id_count += 1
-            stop_pairs_total += 1
           end
 
           # Write supplement tile, start new tile
@@ -295,76 +261,86 @@ module TileExportService
       #   skip if origin_departure_time < frequency_start_time
       #   skip if bad time information
       #   add < and > to onestop_ids
-      trip = ssp.trip
-      calendar = ssp.trip.calendar
       destination_graphid = @stopid_graphid[ssp.destination_id]
-      origin_graphid = @stopid_graphid[ssp.stop_id]
-      route_index = @route_index[trip.route_id]
-      shape_id = @shape_index[trip.shape_id]
-
-      fail InvalidTimeError.new("missing calendar for trip #{trip.trip_id}") unless calendar
+      origin_graphid = @stopid_graphid[ssp.origin_id]
       fail OriginEqualsDestinationError.new("origin_graphid #{origin_graphid} == destination_graphid #{destination_graphid}") if origin_graphid == destination_graphid
-      fail MissingGraphIDError.new("missing origin_graphid for stop #{ssp.stop_id}") unless origin_graphid
+      fail MissingGraphIDError.new("missing origin_graphid for stop #{ssp.origin_id}") unless origin_graphid
       fail MissingGraphIDError.new("missing destination_graphid for stop #{ssp.destination_id}") unless destination_graphid
-      fail MissingRouteError.new("missing route_index for route #{trip.route_id}") unless route_index
-      fail MissingShapeError.new("missing shape for shape #{trip.shape_id}") unless shape_id
-      fail InvalidTimeError.new("origin_departure_time #{ssp.departure_time} > destination_arrival_time #{ssp.destination_arrival_time}") if ssp.departure_time > ssp.destination_arrival_time
+
+      route_index = @route_index[ssp.route_id]
+      fail MissingRouteError.new("missing route_index for route #{ssp.route_id}") unless route_index
+
+      shape_id = @shape_index[ssp.route_stop_pattern_id]
+      fail MissingShapeError.new("missing shape for rsp #{ssp.route_stop_pattern_id}") unless shape_id
+
+      trip_id = @trip_index.check(ssp.trip)
+      fail MissingTripError.new("missing trip_id for trip #{ssp.trip}") unless trip_id
+
+      destination_arrival_time = seconds_since_midnight(ssp.destination_arrival_time)
+      origin_departure_time = seconds_since_midnight(ssp.origin_departure_time)
+      fail InvalidTimeError.new("origin_departure_time #{origin_departure_time} > destination_arrival_time #{destination_arrival_time}") if origin_departure_time > destination_arrival_time
+
+      block_id = @block_index.check(ssp.block_id)
 
       # Make SSP
       params = {}
       # bool bikes_allowed = 1;
-      (params[:bikes_allowed] = true) if trip.bikes_allowed == 1
       # uint32 block_id = 2;
-      (params[:block_id] = @block_index.check(trip.block_id)) if trip.block_id
+      # params[:block_id] = block_id
       # uint32 destination_arrival_time = 3;
-      params[:destination_arrival_time] = ssp.destination_arrival_time
+      params[:destination_arrival_time] = destination_arrival_time
       # uint64 destination_graphid = 4;
       params[:destination_graphid] = destination_graphid
       # string destination_onestop_id = 5;
-      # params[:destination_onestop_id] = nil # TODO
+      params[:destination_onestop_id] = ssp.destination.onestop_id
       # string operated_by_onestop_id = 6;
-      # params[:operated_by_onestop_id] = nil # TODO
+      params[:operated_by_onestop_id] = ssp.operator.onestop_id
       # uint32 origin_departure_time = 7;
-      params[:origin_departure_time] = ssp.departure_time
+      params[:origin_departure_time] = origin_departure_time
       # uint64 origin_graphid = 8;
       params[:origin_graphid] = origin_graphid
       # string origin_onestop_id = 9;
-      # params[:origin_onestop_id] = nil # TODO
+      params[:origin_onestop_id] = ssp.origin.onestop_id
       # uint32 route_index = 10;
       params[:route_index] = route_index
       # repeated uint32 service_added_dates = 11;
-      params[:service_added_dates] = calendar.service_added_dates.map(&:jd)
+      params[:service_added_dates] = ssp.service_added_dates.map(&:jd)
       # repeated bool service_days_of_week = 12;
-      params[:service_days_of_week] = calendar.service_days_of_week
+      params[:service_days_of_week] = ssp.service_days_of_week
       # uint32 service_end_date = 13;
-      params[:service_end_date] = calendar.end_date.jd
+      params[:service_end_date] = ssp.service_end_date.jd
       # repeated uint32 service_except_dates = 14;
-      params[:service_except_dates] = calendar.service_except_dates.map(&:jd)
+      params[:service_except_dates] = ssp.service_except_dates.map(&:jd)
       # uint32 service_start_date = 15;
-      params[:service_start_date] = calendar.start_date.jd
+      params[:service_start_date] = ssp.service_start_date.jd
       # string trip_headsign = 16;
-      params[:trip_headsign] = ssp.stop_headsign || trip.trip_headsign
+      params[:trip_headsign] = ssp.trip_headsign
       # uint32 trip_id = 17;
-      params[:trip_id] = @trip_index.check(trip.id)
+      params[:trip_id] = trip_id
       # bool wheelchair_accessible = 18;
-      (params[:wheelchair_accessible] = true) if trip.wheelchair_accessible == 1
+      params[:wheelchair_accessible] = true # !!(ssp.wheelchair_accessible)
       # uint32 shape_id = 20;
       params[:shape_id] = shape_id
       # float origin_dist_traveled = 21;
-      (params[:origin_dist_traveled] = ssp.shape_dist_traveled) if ssp.shape_dist_traveled
+      params[:origin_dist_traveled] = ssp.origin_dist_traveled if ssp.origin_dist_traveled
       # float destination_dist_traveled = 22;
-      # params[:destination_dist_traveled] = nil #  ssp.destination_dist_traveled if ssp.destination_dist_traveled
-      # TODO: frequencies
-      # puts params
+      params[:destination_dist_traveled] = ssp.destination_dist_traveled if ssp.destination_dist_traveled
+      if ssp.frequency_headway_seconds
+        # protobuf doesn't define frequency_start_time
+        # uint32 frequency_end_time = 23;
+        params[:frequency_end_time] = seconds_since_midnight(ssp.frequency_end_time)
+        # uint32 frequency_headway_seconds = 24;
+        params[:frequency_headway_seconds] = ssp.frequency_headway_seconds
+      end
       Valhalla::Mjolnir::Transit::StopPair.new(params)
     end
 
-    def make_shape(shape)
+    def make_shape(rsp)
       params = {}
       # uint32 shape_id = 1;
       # bytes encoded_shape = 2;
       #   reverse coordinates
-      reversed = shape.geometry[:coordinates].map { |a,b| [b,a] }
+      reversed = rsp.geometry[:coordinates].map { |a,b| [b,a] }
       params[:encoded_shape] = TileUtils::Shape7.encode(reversed)
       Valhalla::Mjolnir::Transit::Shape.new(params)
     end
@@ -376,60 +352,60 @@ module TileExportService
       # string name = 1;
       params[:name] = route.name
       # string onestop_id = 2;
-      # params[:onestop_id] = nil # TODO
+      params[:onestop_id] = route.onestop_id
       # string operated_by_name = 3;
-      params[:operated_by_name] = route.agency.agency_name
+      params[:operated_by_name] = route.operator.name
       # string operated_by_onestop_id = 4;
-      # params[:operated_by_onestop_id] = nil # TODO
+      params[:operated_by_onestop_id] = route.operator.onestop_id
       # string operated_by_website = 5;
-      params[:operated_by_website] = route.agency.agency_url
+      params[:operated_by_website] = route.operator.website
       # uint32 route_color = 6;
-      params[:route_color] = color_to_int(route.route_color || 'FFFFFF')
+      params[:route_color] = color_to_int(route.color || 'FFFFFF')
       # string route_desc = 7;
-      params[:route_desc] = route.route_desc
+      params[:route_desc] = route.tags["route_desc"]
       # string route_long_name = 8;
-      params[:route_long_name] = route.route_long_name
+      params[:route_long_name] = route.tags["route_long_name"] || route.name
       # uint32 route_text_color = 9;
-      params[:route_text_color] = color_to_int(route.route_text_color)
+      params[:route_text_color] = color_to_int(route.tags["route_text_color"])
       # VehicleType vehicle_type = 10;
-      params[:vehicle_type] = VT::Bus # TODO
+      params[:vehicle_type] = VEHICLE_TYPES[route.vehicle_type.to_sym] || VT::Bus
       Valhalla::Mjolnir::Transit::Route.new(params.compact)
     end
 
     def make_node(stop)
       params = {}
       # float lon = 1;
-      params[:lon] = stop.stop_lon
+      params[:lon] = stop.coordinates[0]
       # float lat = 2;
-      params[:lat] = stop.stop_lat
+      params[:lat] = stop.coordinates[1]
       # uint32 type = 3;
-      params[:type] = NODE_TYPES[stop.location_type]
+      params[:type] = NODE_TYPES[stop.class.name.to_sym]
       # uint64 graphid = 4;
       # set in build_stops
       # uint64 prev_type_graphid = 5;
       # set in build_stops
       # string name = 6;
-      params[:name] = stop.stop_name
+      params[:name] = stop.name
       # string onestop_id = 7;
-      # params[:onestop_id] = nil # TODO
+      params[:onestop_id] = stop.onestop_id
       # uint64 osm_way_id = 8;
-      # params[:osm_way_id] = nil # TODO
+      params[:osm_way_id] = stop.osm_way_id
       # string timezone = 9;
-      params[:timezone] = stop.stop_timezone || 'America/Los_Angeles'
+      params[:timezone] = stop.timezone
       # bool wheelchair_boarding = 10;
       params[:wheelchair_boarding] = true
       # bool generated = 11;
-      if stop.location_type == 2
-        # params[:onestop_id] = "#{onestop_id}>"
+      if stop.instance_of?(StopEgress) && !stop.persisted?
+        params[:onestop_id] = "#{stop.onestop_id}>"
         params[:generated] = true
       end
-      if stop.location_type == 0
-        # params[:onestop_id] = "#{onestop_id}<"
+      if stop.instance_of?(StopPlatform) && !stop.persisted?
+        params[:onestop_id] = "#{stop.onestop_id}<"
         # params[:generated] = true # not set for platforms
       end
       # uint32 traversability = 12;
-      if stop.location_type == 2 # TODO: check
-        params[:traversability] = 3 
+      if stop.instance_of?(StopEgress)
+        params[:traversability] = 3
       end
       Valhalla::Mjolnir::Transit::Node.new(params.compact)
     end
@@ -480,19 +456,28 @@ module TileExportService
 
   def self.export_tiles(tilepath, thread_count: nil, feeds: nil, feed_versions: nil, tiles: nil)
     # Debug
-    ActiveRecord::Base.logger = Logger.new(STDOUT)
-    ActiveRecord::Base.logger.level = Logger::DEBUG
+    # ActiveRecord::Base.logger = Logger.new(STDOUT)
+    # ActiveRecord::Base.logger.level = Logger::DEBUG
+
+    # Avoid autoload issues in threads
+    Stop.connection
+    StopPlatform.connection
+    StopEgress.connection
+    Route.connection
+    Operator.connection
+    RouteStopPattern.connection
+    EntityImportedFromFeed.connection
+    ScheduleStopPair.connection
 
     # Filter by feed/feed_version
-    # feed_version_ids = []
-    # if feed_versions
-    #   feed_version_ids = feed_versions.map(&:id)
-    # elsif feeds
-    #   feed_version_ids = feeds.map(&:active_feed_version_id)
-    # else
-    #   feed_version_ids = Feed.where_active_feed_version_import_level(IMPORT_LEVEL).pluck(:active_feed_version_id)
-    # end
-    feed_version_ids = [3] # FeedVersion.pluck(:id)
+    feed_version_ids = []
+    if feed_versions
+      feed_version_ids = feed_versions.map(&:id)
+    elsif feeds
+      feed_version_ids = feeds.map(&:active_feed_version_id)
+    else
+      feed_version_ids = Feed.where_active_feed_version_import_level(IMPORT_LEVEL).pluck(:active_feed_version_id)
+    end
 
     # Build bboxes
     puts "Selecting tiles..."
@@ -506,13 +491,15 @@ module TileExportService
       FeedVersion.where(id: feed_version_ids).includes(:feed).find_each do |feed_version|
         feed = feed_version.feed
         fvtiles = Set.new
-        GTFSStop.where(feed_version: feed_version).find_each do |stop|
-          if stop.parent_station_id.nil?
-            count_stops << stop.id
-            fvtiles << TileUtils::GraphID.new(level: GRAPH_LEVEL, lon: stop.stop_lon, lat: stop.stop_lat).tile
-          else
-            stop_platforms[stop.parent_station_id] << stop.id
-          end
+        Stop.where_imported_from_feed_version(feed_version).find_each do |stop|
+            if stop.is_a?(StopPlatform)
+              stop_platforms[stop.parent_stop_id] << stop.id
+            elsif stop.is_a?(StopEgress)
+              stop_egresses[stop.parent_stop_id] << stop.id
+            else
+              count_stops << stop.id
+              fvtiles << TileUtils::GraphID.new(level: GRAPH_LEVEL, lon: stop.coordinates[0], lat: stop.coordinates[1]).tile
+            end
         end
         puts "\t(#{count}/#{total}) #{feed_version.feed.onestop_id} #{feed_version.sha1}: #{fvtiles.size} tiles"
         tiles += fvtiles
@@ -530,6 +517,15 @@ module TileExportService
     puts "\tegresses: #{stop_egresses.map { |k,v| v.size }.sum}"
     puts "\tnodes: #{count_stops.size + count_egresses + count_platforms}"
     puts "\tstopid-graphid: #{count_platforms}"
+
+    # Clear
+    count_stops.clear
+    stop_platforms.clear
+    stop_egresses.clear
+    # stopid_graphid = Hash[redis.hgetall('stopid_graphid').map { |k,v| [k.to_i, v.to_i] }]
+    # expected_stops = Set.new
+    # count_stops.each { |i| expected_stops += (stop_platforms[i].empty? ? [i].to_set : stop_platforms[i]) }
+    # missing = stopid_graphid.keys.to_set - expected_stops
 
     # Setup queue
     thread_count ||= 1
