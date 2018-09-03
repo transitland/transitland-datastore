@@ -302,10 +302,14 @@ module Geometry
     def calculate_distances(rsp, stops=nil)
       # This algorithm borrows heavily, with modifications and adaptions, from OpenTripPlanner's approach seen at:
       # https://github.com/opentripplanner/OpenTripPlanner/blob/31e712d42668c251181ec50ad951be9909c3b3a7/src/main/java/org/opentripplanner/routing/edgetype/factory/GTFSPatternHopFactory.java#L610
+      # It utilizes the backtracking algorithmic technique, but only after applying a heuristic filter
+      # to reduce segment match possibilities.
       # First we compute reasonable segment matching possibilities for each stop based on a threshold.
       # Then, through a recursive call on each stop, we test the stop's segment possibilities in sorted order (of distance from the line)
       # until we find a list of all stop distances along the line that are in increasing order.
-      # Ultimately, it's still a greedy heuristic algorithm, so accuracy is not guaranteed.
+      # Accuracy is not guaranteed. There are theoretical cases where, even after the heuristic filter has been applied,
+      # the backtracking technique returns a local optimum, rather than the global. 
+
 
       # It may be worthwhile to consider the problem defined and solved algorithmically in:
       # http://www.sciencedirect.com/science/article/pii/0012365X9500325Q
