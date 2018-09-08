@@ -207,18 +207,16 @@ module Geometry
       stops[stop_index..-1].each_with_index do |stop, i|
         if skip_stops.include?(stop_index+i)
           stack.push([stop_index+i,nil])
+        elsif @stop_segment_matching_candidates[stop_index+i].nil?
+          stack.push([stop_index+i,nil])
         else
-          if @stop_segment_matching_candidates[stop_index+i].nil?
+          next_seg_indexes = @stop_segment_matching_candidates[stop_index+i].reject{|locator_and_cost,index| index < min_seg_index }
+          if next_seg_indexes.empty?
             stack.push([stop_index+i,nil])
           else
-            next_seg_indexes = @stop_segment_matching_candidates[stop_index+i].reject{|locator_and_cost,index| index < min_seg_index }
-            if next_seg_indexes.empty?
-              stack.push([stop_index+i,nil])
-            else
-              seg_index = next_seg_indexes[0][1]
-              stack.push([stop_index+i,seg_index])
-              min_seg_index = seg_index
-            end
+            seg_index = next_seg_indexes[0][1]
+            stack.push([stop_index+i,seg_index])
+            min_seg_index = seg_index
           end
         end
       end
@@ -246,23 +244,21 @@ module Geometry
 
         if stop_index == stops.size - 1
           segment_matches[stop_index] = stop_seg_match
-        else
-          if !valid_segment_choice?(stops, skip_stops, stop_index, segment_matches, stop_seg_match)
-            push_back = @stop_segment_matching_candidates[stop_index].nil?
-            unless push_back
-              index_of_seg_index = @stop_segment_matching_candidates[stop_index].map{|locator_and_cost,seg_index| seg_index }.index(stop_seg_match)
-              push_back = index_of_seg_index.nil? || @stop_segment_matching_candidates[stop_index][index_of_seg_index+1].nil?
-            end
-            if push_back
-              segment_matches[stop_index] = nil
-            else
-              min_seg_index = @stop_segment_matching_candidates[stop_index][index_of_seg_index+1][1]
-              stack.push([stop_index,min_seg_index])
-              forward_matches(stops, stop_index + 1, min_seg_index, stack, skip_stops=skip_stops)
-            end
-          else
-            segment_matches[stop_index] = stop_seg_match
+        elsif !valid_segment_choice?(stops, skip_stops, stop_index, segment_matches, stop_seg_match)
+          push_back = @stop_segment_matching_candidates[stop_index].nil?
+          unless push_back
+            index_of_seg_index = @stop_segment_matching_candidates[stop_index].map{|locator_and_cost,seg_index| seg_index }.index(stop_seg_match)
+            push_back = index_of_seg_index.nil? || @stop_segment_matching_candidates[stop_index][index_of_seg_index+1].nil?
           end
+          if push_back
+            segment_matches[stop_index] = nil
+          else
+            min_seg_index = @stop_segment_matching_candidates[stop_index][index_of_seg_index+1][1]
+            stack.push([stop_index,min_seg_index])
+            forward_matches(stops, stop_index + 1, min_seg_index, stack, skip_stops=skip_stops)
+          end
+        else
+          segment_matches[stop_index] = stop_seg_match
         end
       end # end while loop
 
