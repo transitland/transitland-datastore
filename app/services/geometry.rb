@@ -132,14 +132,6 @@ module Geometry
       end
     end
 
-    def resolve_inverted_matches(stop_index, max_seg_match)
-      candidates = @stop_segment_matching_candidates[stop_index].reject{|s| s[1] > max_seg_match }.product(@stop_segment_matching_candidates[stop_index+1].reject{|s| s[1] > max_seg_match }).reject do |m1,m2|
-        m1[1] > m2[1] || (m1[1] == m2[1] && m1[0][0].distance_on_segment > m2[0][0].distance_on_segment )
-      end
-      result = candidates.min_by{|m1,m2| m1[0][1] + m2[0][1] }
-      result.map{|m| m[1] } unless result.nil?
-    end
-
     def assign_first_stop_distance(rsp, route_line_as_cartesian, first_stop_as_spherical, first_stop_as_cartesian)
       # compare the second stop's closest segment point to the first. If the first stop's point
       # is after the second, then it has to be set to 0.0 because the line geometry
@@ -232,6 +224,14 @@ module Geometry
       end
     end
 
+    def valid_segment_choice?(stops, skip_stops, stop_index, segment_matches, stop_seg_match)
+      # equivalent_stops = stops[stop_index].onestop_id.eql?(stops[stop_index+1]) or stops[stop_index].geometry_centroid.eql?(stops[stop_index+1].geometry_centroid)
+      stop_seg_match &&
+        segment_matches[stop_index+1..-1].each_with_index.all? do |m,j|
+          !m.nil? || skip_stops.include?(stop_index+1+j)
+        end
+    end
+
     def matching_segments(stops, skip_stops=[])
 
       stack = []
@@ -247,50 +247,26 @@ module Geometry
         if stop_index == stops.size - 1
           segment_matches[stop_index] = stop_seg_match
         else
-          equivalent_stops = stops[stop_index].onestop_id.eql?(stops[stop_index+1]) || stops[stop_index].geometry_centroid.eql?(stops[stop_index+1].geometry_centroid)
-          # consecutive stops match to same segment, but their positions on the segment are out of order.
-          inverted = !stop_seg_match.nil? &&
-            !segment_matches[stop_index+1].nil? &&
-            stop_seg_match == segment_matches[stop_index+1] &&
-            @stop_segment_matching_candidates[stop_index].detect{|s| s[1] == stop_seg_match}[0][0].distance_on_segment > @stop_segment_matching_candidates[stop_index+1].detect{|s| s[1] == segment_matches[stop_index+1]}[0][0].distance_on_segment
-          valid = stop_seg_match &&
-                  segment_matches[stop_index+1..-1].each_with_index.all?{|m,j| !m.nil? || skip_stops.include?(stop_index+1+j) } &&
-                  (skip_stops.include?(stop_index+1) || (!inverted || equivalent_stops || segment_matches[stop_index+1] > stop_seg_match))
-          if !valid
-            if inverted
-              if stop_index + 2 < stops.size
-                max_seg_index = segment_matches[stop_index+2..-1].detect{|m| !m.nil? } || Float::INFINITY
-                m = resolve_inverted_matches(stop_index, max_seg_index)
-              else
-                m = resolve_inverted_matches(stop_index, Float::INFINITY)
-              end
-              if m.nil?
-                segment_matches[stop_index+1] = nil
-                segment_matches[stop_index] = nil
-              else
-                segment_matches[stop_index+1] = m[1]
-                segment_matches[stop_index] = m[0]
-              end
+          if !valid_segment_choice?(stops, skip_stops, stop_index, segment_matches, stop_seg_match)
+            push_back = @stop_segment_matching_candidates[stop_index].nil?
+            unless push_back
+              index_of_seg_index = @stop_segment_matching_candidates[stop_index].map{|locator_and_cost,seg_index| seg_index }.index(stop_seg_match)
+              push_back = index_of_seg_index.nil? || @stop_segment_matching_candidates[stop_index][index_of_seg_index+1].nil?
+            end
+            if push_back
+              segment_matches[stop_index] = nil
             else
-              push_back = @stop_segment_matching_candidates[stop_index].nil?
-              unless push_back
-                index_of_seg_index = @stop_segment_matching_candidates[stop_index].map{|locator_and_cost,seg_index| seg_index }.index(stop_seg_match)
-                push_back = index_of_seg_index.nil? || @stop_segment_matching_candidates[stop_index][index_of_seg_index+1].nil?
-              end
-              if push_back
-                segment_matches[stop_index] = nil
-              else
-                min_seg_index = @stop_segment_matching_candidates[stop_index][index_of_seg_index+1][1]
-                stack.push([stop_index,min_seg_index])
-                forward_matches(stops, stop_index + 1, min_seg_index, stack, skip_stops=skip_stops)
-              end
+              min_seg_index = @stop_segment_matching_candidates[stop_index][index_of_seg_index+1][1]
+              stack.push([stop_index,min_seg_index])
+              forward_matches(stops, stop_index + 1, min_seg_index, stack, skip_stops=skip_stops)
             end
           else
             segment_matches[stop_index] = stop_seg_match
           end
         end
-      end # end loop
-      return segment_matches
+      end # end while loop
+
+      segment_matches
     end
 
     def matches_invalid?(best_single_segment_match_for_stops, skip_stops)
@@ -308,7 +284,7 @@ module Geometry
       # Then, through a recursive call on each stop, we test the stop's segment possibilities in sorted order (of distance from the line)
       # until we find a list of all stop distances along the line that are in increasing order.
       # Accuracy is not guaranteed. There are theoretical cases where, even after the heuristic filter has been applied,
-      # the backtracking technique returns a local optimum, rather than the global. 
+      # the backtracking technique returns a local optimum, rather than the global.
 
 
       # It may be worthwhile to consider the problem defined and solved algorithmically in:
