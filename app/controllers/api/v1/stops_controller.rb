@@ -5,12 +5,29 @@ class Api::V1::StopsController < Api::V1::CurrentEntityController
 
   def headways
     set_model
-    dates = (params[:dates] || "").split(",")
-    between = (params[:origin_departure_between] || "").split(",")
-    departure_span = params[:departure_span].presence
+    render :json => stop_headways(@model)
+  end
+
+  def stop_headways(stop)
+    # headway_* query parameters
+    dates = (params[:headway_dates] || "").split(",")
+    between = (params[:headway_departure_between] || "").split(",")
+    departure_span = params[:headway_span].presence
     h = params[:headway_percentile].presence    
-    headway_percentile = h ? h.to_f : nil
-    render :json => ScheduleStopPair.headways(dates, {origin_id: @model.id}, between[0], between[1], departure_span, headway_percentile).map { |k,v| [k.join(':'), v] }.to_h
+    headway_percentile = h ? h.to_f : 0.5
+    begin
+      ScheduleStopPair.headways({
+        dates: dates, 
+        q: {origin_id: stop.id}, 
+        departure_start: between[0], 
+        departure_end: between[1], 
+        departure_span: departure_span, 
+        headway_percentile: headway_percentile
+      }).map { |k,v| [k.join(':'), v] }.to_h
+    rescue StandardError => e
+      puts "stop_headways error: #{e}"
+      nil
+    end
   end
 
   private
@@ -49,6 +66,14 @@ class Api::V1::StopsController < Api::V1::CurrentEntityController
     result[:root] = :stops
     result[:each_serializer] = StopSerializer
     result
+  end
+
+  def render_scope
+    scope = super
+    [:headway_dates, :headway_percentile, :headway_departure_between, :headway_span].each { |k| scope[k] = params[k] }
+    puts "scope:"
+    puts scope
+    scope
   end
 
   def query_params

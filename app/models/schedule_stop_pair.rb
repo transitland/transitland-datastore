@@ -264,6 +264,7 @@ class ScheduleStopPair < BaseScheduleStopPair
   end
 
   def self.percentile(values, percentile)
+    percentile ||= 0.5
     values_sorted = values.sort
     return nil if values.empty?
     return values.last if values.size == 1
@@ -273,7 +274,7 @@ class ScheduleStopPair < BaseScheduleStopPair
     return values_sorted[k] + (f * (values_sorted[k+1] - values_sorted[k]))
   end
 
-  def self.headways(dates, w, departure_start=nil, departure_end=nil, departure_span=nil, headway_percentile=0.5)
+  def self.headways(dates: [], q: {}, departure_start: nil, departure_end: nil, departure_span: nil, headway_percentile: 0.5)
     dates = Array.wrap(dates)
     fail Exception.new('must supply at least one date') unless dates.size > 0
     departure_start = GTFS::WideTime.parse(departure_start || '00:00').to_seconds
@@ -283,7 +284,7 @@ class ScheduleStopPair < BaseScheduleStopPair
     dates.each do |date|
       stop_pairs = Hash.new { |h,k| h[k] = [] }
       ScheduleStopPair
-        .where(w)
+        .where(q)
         .where_service_on_date(date)
         .select([:id, :origin_id, :destination_id, :origin_arrival_time, :origin_departure_time, :destination_arrival_time, :destination_departure_time, :frequency_start_time, :frequency_end_time, :frequency_headway_seconds])
         .find_each do |ssp|

@@ -43,6 +43,7 @@ class StopSerializer < CurrentEntitySerializer
 
   attribute :geometry_reversegeo, if: :include_geometry?
   attribute :geometry_centroid, if: :include_geometry?
+  attribute :headways, if: :include_headways?
 
   has_many :operators_serving_stop
   has_many :routes_serving_stop
@@ -54,4 +55,32 @@ class StopSerializer < CurrentEntitySerializer
   def geometry_centroid
     RGeo::GeoJSON.encode(object.geometry_centroid)
   end
+
+  def include_headways?
+    scope[:headway_dates]
+  end
+
+  def headways
+    # headway_* query parameters
+    dates = (scope[:headway_dates] || "").split(",")
+    between = (scope[:headway_departure_between] || "").split(",")
+    departure_span = scope[:headway_span].presence
+    h = scope[:headway_percentile].presence    
+    headway_percentile = h ? h.to_f : 0.5
+    begin
+      ScheduleStopPair.headways({
+        dates: dates, 
+        q: {origin_id: object.id}, 
+        departure_start: between[0], 
+        departure_end: between[1], 
+        departure_span: departure_span, 
+        headway_percentile: headway_percentile
+      }).map { |k,v| [k.join(':'), v] }.to_h
+    rescue StandardError => e
+      puts "stop_headways error: #{e}"
+      nil
+    end
+  end
+
+
 end
