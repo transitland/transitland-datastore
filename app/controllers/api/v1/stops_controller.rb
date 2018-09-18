@@ -5,7 +5,7 @@ class Api::V1::StopsController < Api::V1::CurrentEntityController
 
   def headways
     set_model
-    render :json => stop_headways([@model])
+    render :json => stop_headways([@model]).map { |k,v| [k.join(':'), v] }.to_h
   end
 
   def stop_headways(stops)
@@ -23,7 +23,7 @@ class Api::V1::StopsController < Api::V1::CurrentEntityController
         departure_end: between[1], 
         departure_span: departure_span, 
         headway_percentile: headway_percentile
-      }).map { |k,v| [k.join(':'), v] }.to_h
+      })
     rescue StandardError => e
       puts "stop_headways error: #{e}"
       nil
@@ -70,8 +70,8 @@ class Api::V1::StopsController < Api::V1::CurrentEntityController
 
   def render_scope
     scope = super
-    if params[:headway_dates].present?
-      scope[:headways] = stop_headways(@collection)
+    if scope[:headways]
+      scope[:headways_data] = stop_headways(@collection)
     end
     scope
   end
