@@ -61,6 +61,11 @@ class StopSerializer < CurrentEntitySerializer
   end
 
   def headways
-    return scope[:headways]
+    h = scope[:headways_data] || {}
+    h = h.select { |k,v| k[0] == object.onestop_id }
+    h = h.map { |k,v| [k.join(':'), v] }.to_h
+    h[:min] = h.values.min
+    h[:max] = h.values.max
+    h
   end
 end
