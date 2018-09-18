@@ -57,30 +57,10 @@ class StopSerializer < CurrentEntitySerializer
   end
 
   def include_headways?
-    scope[:headway_dates]
+    !scope[:headways].nil?
   end
 
   def headways
-    # headway_* query parameters
-    dates = (scope[:headway_dates] || "").split(",")
-    between = (scope[:headway_departure_between] || "").split(",")
-    departure_span = scope[:headway_span].presence
-    h = scope[:headway_percentile].presence    
-    headway_percentile = h ? h.to_f : 0.5
-    begin
-      ScheduleStopPair.headways({
-        dates: dates, 
-        q: {origin_id: object.id}, 
-        departure_start: between[0], 
-        departure_end: between[1], 
-        departure_span: departure_span, 
-        headway_percentile: headway_percentile
-      }).map { |k,v| [k.join(':'), v] }.to_h
-    rescue StandardError => e
-      puts "stop_headways error: #{e}"
-      nil
-    end
+    return scope[:headways]
   end
-
-
 end

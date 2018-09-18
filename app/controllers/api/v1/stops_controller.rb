@@ -5,10 +5,10 @@ class Api::V1::StopsController < Api::V1::CurrentEntityController
 
   def headways
     set_model
-    render :json => stop_headways(@model)
+    render :json => stop_headways([@model])
   end
 
-  def stop_headways(stop)
+  def stop_headways(stops)
     # headway_* query parameters
     dates = (params[:headway_dates] || "").split(",")
     between = (params[:headway_departure_between] || "").split(",")
@@ -18,7 +18,7 @@ class Api::V1::StopsController < Api::V1::CurrentEntityController
     begin
       ScheduleStopPair.headways({
         dates: dates, 
-        q: {origin_id: stop.id}, 
+        q: {origin_id: stops.map(&:id)}, 
         departure_start: between[0], 
         departure_end: between[1], 
         departure_span: departure_span, 
@@ -70,9 +70,9 @@ class Api::V1::StopsController < Api::V1::CurrentEntityController
 
   def render_scope
     scope = super
-    [:headway_dates, :headway_percentile, :headway_departure_between, :headway_span].each { |k| scope[k] = params[k] }
-    puts "scope:"
-    puts scope
+    if params[:headway_dates].present?
+      scope[:headways] = stop_headways(@collection)
+    end
     scope
   end
 
