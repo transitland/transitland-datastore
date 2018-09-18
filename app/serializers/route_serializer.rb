@@ -42,6 +42,8 @@ class RouteSerializer < CurrentEntitySerializer
              :bikes_allowed,
              :route_stop_patterns_by_onestop_id
 
+  attribute :headways, if: :include_headways?
+
   def operated_by_onestop_id
     object.operator.try(:onestop_id)
   end
@@ -56,5 +58,16 @@ class RouteSerializer < CurrentEntitySerializer
 
   def route_stop_patterns_by_onestop_id
     object.route_stop_patterns.map(&:onestop_id)
+  end
+
+  def include_headways?
+    !scope[:headways].nil?
+  end
+
+  def headways
+    h = scope[:headways_data] || {}
+    h = h.select { |k,v| k[0] == object.onestop_id }
+    h = h.map { |k,v| [k.join(':'), v] }.to_h
+    h
   end
 end
