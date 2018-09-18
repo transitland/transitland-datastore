@@ -61,7 +61,7 @@ class RouteSerializer < CurrentEntitySerializer
   end
 
   def include_headways?
-    !scope[:headways].nil?
+    !!scope && !scope[:headways].nil?
   end
 
   def headways
