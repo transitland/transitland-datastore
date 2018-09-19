@@ -2,7 +2,7 @@
 http_interactions:
 - request:
     method: get
-    uri: https://valhalla.mapzen.com/locate?api_token=fakeapikey&json=%7B%22locations%22:%5B%7B%22lat%22:37.775692,%22lon%22:-122.413601%7D%5D,%22costing%22:%22transit%22%7D
+    uri: https://valhalla.mapzen.com/locate?api_key=fakeapikey&json=%7B%22locations%22:%5B%7B%22lat%22:37.775692,%22lon%22:-122.413601%7D%5D,%22costing%22:%22transit%22%7D
     body:
       encoding: US-ASCII
       string: ''
