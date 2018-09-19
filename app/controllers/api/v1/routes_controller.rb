@@ -89,13 +89,25 @@ class Api::V1::RoutesController < Api::V1::CurrentEntityController
     end
   end
 
-  def render_scope
-    scope = super
+  def paginated_json_collection(collection)
+    page = super
+    page[:scope] = scope = render_scope
+    data = page[:json]
     if scope[:headways]
-      scope[:headways_data] = route_headways(@collection)
+      scope[:headways_data] = route_headways(data)
     end
-    scope
-  end  
+    page
+  end
+  
+  def paginated_geojson_collection(collection)
+    page = super
+    page[:scope] = scope = render_scope
+    data = page[:json]
+    if scope[:headways]
+      scope[:headways_data] = route_headways(data)
+    end
+    page
+  end
 
   def query_params
     super.merge({
