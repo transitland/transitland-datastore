@@ -11,8 +11,8 @@ class Api::V1::CurrentEntityController < Api::V1::BaseApiController
     index_query
     index_includes
     respond_to do |format|
-      format.json { render paginated_json_collection(@collection).merge({ scope: render_scope, each_serializer: render_serializer }) }
-      format.geojson { render paginated_geojson_collection(@collection).merge({ scope: render_scope }) }
+      format.json { render paginated_json_collection(@collection) }
+      format.geojson { render paginated_geojson_collection(@collection) }
       format.csv { return_downloadable_csv(@collection, self.class.model.name.underscore.pluralize) }
     end
   end
@@ -26,6 +26,19 @@ class Api::V1::CurrentEntityController < Api::V1::BaseApiController
   end
 
   private
+
+  def paginated_json_collection(collection)
+    page = super
+    page[:scope] = render_scope
+    page[:each_serializer] = render_serializer
+    page
+  end
+
+  def paginated_geojson_collection(collection)
+    page = super
+    page[:scope] = render_scope
+    page
+  end
 
   def index_query
     # Entity
