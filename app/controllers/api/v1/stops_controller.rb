@@ -14,7 +14,7 @@ class Api::V1::StopsController < Api::V1::CurrentEntityController
     # headway_* query parameters
     dates = (params[:headway_dates] || "").split(",")
     between = (params[:headway_departure_between] || "").split(",")
-    departure_span = params[:headway_span].presence
+    departure_span = params[:headway_departure_span].presence
     h = params[:headway_percentile].presence    
     headway_percentile = h ? h.to_f : 0.5
     headways = {}
@@ -120,7 +120,7 @@ class Api::V1::StopsController < Api::V1::CurrentEntityController
         desc: "Percentile to use for headway calculation",
         type: "float"
       },
-      headway_span: {
+      headway_departure_span: {
         desc: "Minimum daily service span for headway calculation",
         type: "string"
       }  
