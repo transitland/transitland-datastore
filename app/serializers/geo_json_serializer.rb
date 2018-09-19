@@ -4,7 +4,7 @@ class GeoJSONSerializer < ApplicationSerializer
   def properties
     ActiveModel::Serializer
       .serializer_for(object)
-      .new(object)
+      .new(object, scope: scope)
       .as_json
       .except(:geometry)
       .merge({title: object.try(:onestop_id)})
