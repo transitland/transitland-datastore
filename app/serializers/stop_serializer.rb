@@ -43,6 +43,7 @@ class StopSerializer < CurrentEntitySerializer
 
   attribute :geometry_reversegeo, if: :include_geometry?
   attribute :geometry_centroid, if: :include_geometry?
+  attribute :headways, if: :include_headways?
 
   has_many :operators_serving_stop
   has_many :routes_serving_stop
@@ -53,5 +54,16 @@ class StopSerializer < CurrentEntitySerializer
 
   def geometry_centroid
     RGeo::GeoJSON.encode(object.geometry_centroid)
+  end
+
+  def include_headways?
+    !!scope && !scope[:headways].nil?
+  end
+
+  def headways
+    h = scope[:headways_data] || {}
+    h = h.select { |k,v| k[0] == object.onestop_id }
+    h = h.map { |k,v| [k.join(':'), v] }.to_h
+    h
   end
 end

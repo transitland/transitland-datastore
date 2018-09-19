@@ -264,6 +264,7 @@ class ScheduleStopPair < BaseScheduleStopPair
   end
 
   def self.percentile(values, percentile)
+    percentile ||= 0.5
     values_sorted = values.sort
     return nil if values.empty?
     return values.last if values.size == 1
@@ -273,7 +274,8 @@ class ScheduleStopPair < BaseScheduleStopPair
     return values_sorted[k] + (f * (values_sorted[k+1] - values_sorted[k]))
   end
 
-  def self.headways(dates, w, departure_start=nil, departure_end=nil, departure_span=nil, headway_percentile=0.5)
+  def self.headways(dates: [], q: {}, departure_start: nil, departure_end: nil, departure_span: nil, headway_percentile: 0.5, key: nil)
+    key ||= [:origin_id, :destination_id]
     dates = Array.wrap(dates)
     fail Exception.new('must supply at least one date') unless dates.size > 0
     departure_start = GTFS::WideTime.parse(departure_start || '00:00').to_seconds
@@ -283,14 +285,14 @@ class ScheduleStopPair < BaseScheduleStopPair
     dates.each do |date|
       stop_pairs = Hash.new { |h,k| h[k] = [] }
       ScheduleStopPair
-        .where(w)
+        .where(q)
         .where_service_on_date(date)
-        .select([:id, :origin_id, :destination_id, :origin_arrival_time, :origin_departure_time, :destination_arrival_time, :destination_departure_time, :frequency_start_time, :frequency_end_time, :frequency_headway_seconds])
+        .select([:id, :route_id, :origin_id, :destination_id, :origin_arrival_time, :origin_departure_time, :destination_arrival_time, :destination_departure_time, :frequency_start_time, :frequency_end_time, :frequency_headway_seconds])
         .find_each do |ssp|
           ssp.expand_frequency.each do |ssp|
             t = GTFS::WideTime.parse(ssp.origin_arrival_time).to_seconds
-            key = [ssp.origin_id, ssp.destination_id]
-            stop_pairs[key] << t
+            k = key.map { |i| ssp[i] } # [ssp.origin_id, ssp.destination_id]
+            stop_pairs[k] << t
           end
       end
       stop_pairs.each do |k,v|
@@ -300,8 +302,7 @@ class ScheduleStopPair < BaseScheduleStopPair
         headways[k] += v[0..-2].zip(v[1..-1] || []).map { |a,b| b - a }.select { |i| i > 0 }
       end
     end
-    sids = Stop.select([:id, :onestop_id]).where(id: headways.keys.flatten).map { |s| [s.id, s.onestop_id] }.to_h
-    headways.map { |k,v| [k.map { |i| sids[i] }, percentile(v, headway_percentile) ]}.select { |k,v| v }.to_h
+    headways.map { |k,v| [k, percentile(v, headway_percentile) ]}.select { |k,v| v }.to_h
   end
 
   # Tracked by changeset

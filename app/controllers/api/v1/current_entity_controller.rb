@@ -103,6 +103,10 @@ class Api::V1::CurrentEntityController < Api::V1::BaseApiController
   def query_params
     # Allowed query parameters - and documentation
     super.merge({
+      format: {
+        desc: "Response format",
+        type: "string"
+      },
       onestop_id: {
         desc: "Onestop ID",
         type: "onestop_id",
