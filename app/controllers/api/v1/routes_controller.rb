@@ -14,7 +14,7 @@ class Api::V1::RoutesController < Api::V1::CurrentEntityController
     # headway_* query parameters
     dates = (params[:headway_dates] || "").split(",")
     between = (params[:headway_departure_between] || "").split(",")
-    departure_span = params[:headway_span].presence
+    departure_span = params[:headway_departure_span].presence
     h = params[:headway_percentile].presence    
     headway_percentile = h ? h.to_f : 0.5
     headways = {}
@@ -89,13 +89,25 @@ class Api::V1::RoutesController < Api::V1::CurrentEntityController
     end
   end
 
-  def render_scope
-    scope = super
+  def paginated_json_collection(collection)
+    page = super
+    page[:scope] = scope = render_scope
+    data = page[:json]
     if scope[:headways]
-      scope[:headways_data] = route_headways(@collection)
+      scope[:headways_data] = route_headways(data)
     end
-    scope
-  end  
+    page
+  end
+  
+  def paginated_geojson_collection(collection)
+    page = super
+    page[:scope] = scope = render_scope
+    data = page[:json]
+    if scope[:headways]
+      scope[:headways_data] = route_headways(data)
+    end
+    page
+  end
 
   def query_params
     super.merge({
@@ -149,7 +161,7 @@ class Api::V1::RoutesController < Api::V1::CurrentEntityController
         desc: "Percentile to use for headway calculation",
         type: "float"
       },
-      headway_span: {
+      headway_departure_span: {
         desc: "Minimum daily service span for headway calculation",
         type: "string"
       }

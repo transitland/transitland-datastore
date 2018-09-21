@@ -24,3 +24,4 @@ key | possible values | default | description
 `SMTP_PORT` | 587 | none | port for SMTP service
 `SMTP_USER_NAME` | `SMTP_Injection` | none | user name for SMTP service
 `SMTP_PASSWORD` | your password | none | password for SMTP service
+`PG_TIMEOUT` | timein milliseconds | `120000` | Postgres will kill any query that lasts longer than this value. [See also Postgres docs](https://www.postgresql.org/docs/9.3/static/runtime-config-client.html#GUC-STATEMENT-TIMEOUT)
