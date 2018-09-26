@@ -88,7 +88,7 @@ describe RouteStopPattern do
       shape_points = []
       rsp = RouteStopPattern.create_from_gtfs(trip, 'r-9q9j-bullet', sp, stop_times, trip_stop_points, shape_points)
       expect(rsp.geometry[:coordinates]).to eq [[-122.40181, 37.70667],[-122.40181, 37.70667]]
-      expect(Geometry::EnhancedOTPDistances.new.calculate_distances(rsp)).to eq [0.0,0.0]
+      expect(Geometry::MetaDistances.new(rsp).calculate_distances).to eq [0.0,0.0]
     end
 
     it 'sets geometry_source based on GTFS ShapeLine' do

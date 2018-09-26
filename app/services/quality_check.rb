@@ -175,7 +175,7 @@ class QualityCheck::GeometryQualityCheck < QualityCheck
   end
 
   def stop_rsp_distance_gap(stop, rsp)
-    if Geometry::OutlierStop.outlier_stop(stop, rsp)
+    if Geometry::OutlierStop.new(stop, rsp).outlier_stop?
       issue = Issue.new(created_by_changeset: self.changeset,
                         issue_type: 'stop_rsp_distance_gap',
                         details: "Stop #{stop.onestop_id} and RouteStopPattern #{rsp.onestop_id} too far apart.")
