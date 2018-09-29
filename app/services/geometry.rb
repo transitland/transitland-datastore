@@ -394,11 +394,13 @@ module Geometry
 
   class MetaDistances < DistanceCalculation
     def stop_before_geometry(line_geometry_as_cartesian, stop_as_cartesian)
-      line_geometry_as_cartesian.before?(stop_as_cartesian) || OutlierStop.outlier_stop?(line_geometry_as_cartesian, stop_as_cartesian)
+      line_geometry_as_cartesian.before?(stop_as_cartesian) ||
+      OutlierStop.outlier_stop?(line_geometry_as_cartesian, stop_as_cartesian)
     end
 
     def stop_after_geometry(line_geometry_as_cartesian, stop_as_cartesian)
-      line_geometry_as_cartesian.after?(stop_as_cartesian) || OutlierStop.outlier_stop?(line_geometry_as_cartesian, stop_as_cartesian)
+      line_geometry_as_cartesian.after?(stop_as_cartesian) ||
+      OutlierStop.outlier_stop?(line_geometry_as_cartesian, stop_as_cartesian)
     end
 
     def assign_first_stop_distance(route_line_as_cartesian, first_stop_as_cartesian)
@@ -454,54 +456,61 @@ module Geometry
       end
 
       if !self.class.line_complex?(@route_line_as_cartesian)
-        # compute_skip_stops
-        @rsp.stop_distances = fallback_distances
+        compute_skip_stops
+        stop_distances = fallback_distances
+        return @rsp.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
+      end
+
+      begin
+        @route_line_as_cartesian = self.class.pulverize_line(@route_line_as_cartesian)
+        @stop_locators = self.class.stop_locators(@cartesian_stops, @route_line_as_cartesian)
+        compute_skip_stops
+
+        distance_calculator = Geometry::EnhancedOTPDistances.new(
+          @rsp,
+          @stops,
+          route_line_as_cartesian: @route_line_as_cartesian
+        )
+        stop_distances = distance_calculator.calculate_distances(@skip_stops)
+
+        prepare_stop_distances(
+          stop_distances,
+          distance_calculator.best_single_segment_match_for_stops
+        )
+
+        if distance_calculator.invalid?
+          # something is wrong, so we'll fake distances by using the closest match. It should throw distance quality issues later on.
+          @rsp.stop_distances = self.class.fallback_distances(@route_line_as_cartesian, @cartesian_stops, @stop_locators)
+        end
+
         @rsp.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
-      else
-        # begin
-          @route_line_as_cartesian = self.class.pulverize_line(@route_line_as_cartesian)
-          @stop_locators = self.class.stop_locators(@cartesian_stops, @route_line_as_cartesian)
-          compute_skip_stops
 
-          distance_calculator = Geometry::EnhancedOTPDistances.new(
-            @rsp,
-            @stops,
-            route_line_as_cartesian: @route_line_as_cartesian
-          )
-          stop_distances = distance_calculator.calculate_distances(@skip_stops)
+      rescue => e
+        log("Could not calculate distances for Route Stop Pattern: #{@rsp.onestop_id}. Error: #{e}")
+        Geometry::DistanceCalculation.new(@rsp, @stops).fallback_distances
+      end
+    end
 
-          @rsp.stop_distances.each_with_index do |distance, i|
-            if @skip_stops.include?(i)
-              if i == 0
-                @rsp.stop_distances[i] = assign_first_stop_distance(@route_line_as_cartesian, @cartesian_stops[i])
-              elsif i == @rsp.stop_distances.size - 1
-                @rsp.stop_distances[i] = assign_last_stop_distance(
-                  @route_line_as_cartesian,
-                  distance_calculator.best_single_segment_match_for_stops[i]
-                )
-              else
-                # interpolate between the previous and next stop distances
-                @rsp.stop_distances[i] = (
-                  @rsp.stop_distances[i-1] +
-                  (@rsp.stop_distances[i+1..-1].detect{|d| !d.nil?} || @route_line_length)
-                ).fdiv(2)
-              end
-            else
-              @rsp.stop_distances[i] = stop_distances[i]
-            end
+    def prepare_stop_distances(computed_distances, computed_segment_matches)
+      @rsp.stop_distances.each_with_index do |distance, i|
+        if @skip_stops.include?(i)
+          if i == 0
+            @rsp.stop_distances[i] = assign_first_stop_distance(@route_line_as_cartesian, @cartesian_stops[i])
+          elsif i == @rsp.stop_distances.size - 1
+            @rsp.stop_distances[i] = assign_last_stop_distance(
+              @route_line_as_cartesian,
+              computed_segment_matches[i]
+            )
+          else
+            # interpolate between the previous and next stop distances
+            @rsp.stop_distances[i] = (
+              @rsp.stop_distances[i-1] +
+              (@rsp.stop_distances[i+1..-1].detect{|d| !d.nil?} || @route_line_length)
+            ).fdiv(2)
           end
-
-          if distance_calculator.invalid?
-            # something is wrong, so we'll fake distances by using the closest match. It should throw distance quality issues later on.
-            @rsp.stop_distances = self.class.fallback_distances(@route_line_as_cartesian, @cartesian_stops, @stop_locators)
-          end
-
-          @rsp.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
-
-        # rescue => e
-        #   log("Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}. Error: #{e}")
-        #   Geometry::DistanceCalculation.new(rsp, stops).fallback_distances
-        # end
+        else
+          @rsp.stop_distances[i] = computed_distances[i]
+        end
       end
     end
 
