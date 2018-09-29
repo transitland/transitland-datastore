@@ -107,8 +107,8 @@ describe Geometry do
 
     it '#straight_line_distances' do
       expect(@rsp.stop_distances).to match_array([])
-      Geometry::DistanceCalculation.straight_line_distances(
-        @rsp.stops.map { |stop| stop.geometry_centroid }
+      @rsp.stop_distances = Geometry::DistanceCalculation.straight_line_distances(
+        @rsp.stop_pattern.map{ |onestop_id| Stop.find_by_onestop_id!(onestop_id).geometry_centroid }
       )
       expect(@rsp.stop_distances).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(12617.9),
