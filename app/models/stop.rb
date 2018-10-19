@@ -331,7 +331,7 @@ class Stop < BaseStop
       if max_stops_to_reconflate.nil?
         max_stops_to_reconflate = Float(Figaro.env.max_stops_to_reconflate.presence || 10_000)
       end
-      Stop.last_conflated_before(last_conflated_at).take(max_stops_to_reconflate).ids.each_slice(1_000) do |slice|
+      Stop.last_conflated_before(last_conflated_at).limit(max_stops_to_reconflate).ids.each_slice(1_000) do |slice|
         StopConflateWorker.perform_async(slice)
       end
   end
