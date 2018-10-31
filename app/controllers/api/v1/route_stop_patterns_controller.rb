@@ -29,7 +29,7 @@ class Api::V1::RouteStopPatternsController < Api::V1::CurrentEntityController
         headway_percentile: headway_percentile
       })
     rescue StandardError => e
-      nil
+      return {}
     end
     sids = Stop.select([:id, :onestop_id]).where(id: headways.keys.map { |k| k[1..-1] }.flatten.sort.uniq ).map { |s| [s.id, s.onestop_id] }.to_h
     rids = rsps.map { |i| [i.id, i.onestop_id] }.to_h
