@@ -16,7 +16,7 @@ class Api::V1::FeedVersionImportsController < Api::V1::BaseApiController
 
     if params[:feed_version_sha1].present?
       feed_version_sha1s = params[:feed_version_sha1].split(',')
-      @feed_versions = @feed_versions.where(feed_version: FeedVersion.where(sha1: feed_version_sha1s))
+      @feed_versions = @feed_version_imports.where(feed_version: FeedVersion.where(sha1: feed_version_sha1s))
     end
 
     respond_to do |format|

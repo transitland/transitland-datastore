@@ -287,7 +287,7 @@ class ScheduleStopPair < BaseScheduleStopPair
       ScheduleStopPair
         .where(q)
         .where_service_on_date(date)
-        .select([:id, :route_id, :origin_id, :destination_id, :origin_arrival_time, :origin_departure_time, :destination_arrival_time, :destination_departure_time, :frequency_start_time, :frequency_end_time, :frequency_headway_seconds])
+        .select([:id, :route_id, :route_stop_pattern_id, :origin_id, :destination_id, :origin_arrival_time, :origin_departure_time, :destination_arrival_time, :destination_departure_time, :frequency_start_time, :frequency_end_time, :frequency_headway_seconds])
         .find_each do |ssp|
           ssp.expand_frequency.each do |ssp|
             t = GTFS::WideTime.parse(ssp.origin_arrival_time).to_seconds

@@ -49,7 +49,11 @@ Rails.application.routes.draw do
           get 'aggregate'
         end
       end
-      resources :route_stop_patterns, only: [:index, :show]
+      resources :route_stop_patterns, only: [:index, :show] do
+        member do
+          get 'headways'
+        end
+      end
       resources :schedule_stop_pairs, only: [:index]
       resources :feeds, only: [:index, :show] do
         member do

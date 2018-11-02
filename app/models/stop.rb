@@ -323,12 +323,15 @@ class Stop < BaseStop
     end
   end
 
-  def self.re_conflate_with_osm(last_conflated_at=nil)
+  def self.re_conflate_with_osm(last_conflated_at = nil, max_stops_to_reconflate = nil)
       if last_conflated_at.nil?
         max_hours = Float(Figaro.env.max_hours_since_last_conflate.presence || 84)
         last_conflated_at = max_hours.hours.ago
       end
-      Stop.last_conflated_before(last_conflated_at).ids.each_slice(1000) do |slice|
+      if max_stops_to_reconflate.nil?
+        max_stops_to_reconflate = Float(Figaro.env.max_stops_to_reconflate.presence || 10_000)
+      end
+      Stop.last_conflated_before(last_conflated_at).limit(max_stops_to_reconflate).ids.each_slice(1_000) do |slice|
         StopConflateWorker.perform_async(slice)
       end
   end
