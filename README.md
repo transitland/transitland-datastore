@@ -1,5 +1,4 @@
 [![Circle CI](https://circleci.com/gh/transitland/transitland-datastore.png?style=badge)](https://circleci.com/gh/transitland/transitland-datastore)
-[![Dependency Status](https://gemnasium.com/transitland/transitland-datastore.svg)](https://gemnasium.com/transitland/transitland-datastore)
 
 # Transitland Datastore
 
