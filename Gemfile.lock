@@ -9,6 +9,13 @@ GIT
       rcsv
       rubyzip (~> 1.1)
 
+GIT
+  remote: git@github.com:doublestranded/opap_wc
+  revision: 6cedcc54381d896c2dcf8cff4fa7fdca10715af4
+  branch: master
+  specs:
+    opap_wc (0.1.0)
+
 PATH
   remote: components
   specs:
@@ -1075,6 +1082,7 @@ DEPENDENCIES
   marginalia (= 1.5.0)
   memory_profiler
   oj
+  opap_wc!
   pg (~> 0.18)
   pghero
   pry-byebug
@@ -1111,4 +1119,4 @@ DEPENDENCIES
   webmock
 
 BUNDLED WITH
-   1.16.6
+   1.17.1

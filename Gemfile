@@ -115,3 +115,6 @@ gem 'puma'
 
 # profiling
 gem 'memory_profiler', group: [:test, :development]
+
+# algorithms
+gem 'opap_wc', git: 'git@github.com:doublestranded/opap_wc', branch: 'master'

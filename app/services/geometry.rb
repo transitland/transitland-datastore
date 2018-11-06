@@ -59,7 +59,9 @@ module Geometry
 
     DISTANCE_PRECISION = 1
 
-    attr_accessor :stop_segment_matching_candidates, :stop_locators
+    attr_accessor :stop_segment_matching_candidates,
+                  :stop_locators,
+                  :best_single_segment_match_for_stops
 
     def initialize(rsp, stops=nil, route_line_as_cartesian: nil)
       if stops.nil?
@@ -91,8 +93,17 @@ module Geometry
       end
     end
 
+    def self.cost_matrix(cartesian_stops, route_line_as_cartesian)
+      self.stop_locators(cartesian_stops, route_line_as_cartesian)
+        .map { |locator_with_distances| locator_with_distances.map{ |l| l[1] } }
+    end
+
     def fallback_distances
-      self.class.fallback_distances(@route_line_as_cartesian, @cartesian_stops, @stop_locators)
+      self.class.fallback_distances(
+        @route_line_as_cartesian,
+        @cartesian_stops,
+        @stop_locators
+      )
     end
 
     def self.fallback_distances(route_line_as_cartesian, cartesian_stops, stop_locators=nil)
@@ -227,7 +238,6 @@ module Geometry
     attr_accessor :stack_calls,
                   :stack_call_limit,
                   :skip_stops,
-                  :best_single_segment_match_for_stops
 
     def compute_stack_call_limit(num_stops)
       # prevent runaway loops from bad data or any lurking bugs that would slow down imports
@@ -255,7 +265,6 @@ module Geometry
     end
 
     def valid_segment_choice?(stops, skip_stops, stop_index, segment_matches, stop_seg_match)
-      # equivalent_stops = stops[stop_index].onestop_id.eql?(stops[stop_index+1]) or stops[stop_index].geometry_centroid.eql?(stops[stop_index+1].geometry_centroid)
       stop_seg_match &&
         segment_matches[stop_index+1..-1].each_with_index.all? do |m,j|
           !m.nil? || skip_stops.include?(stop_index+1+j)
@@ -390,6 +399,25 @@ module Geometry
     end
   end
 
+  class DynamicOpapWcAlgorithm < DistanceCalculation
+    def calculate_distances(skip_stops=[])
+      distance_calculator = OpapWc::DynamicAlgorithm.new(
+        self.class.cost_matrix(@cartesian_stops, @route_line_as_cartesian),
+        costs: true
+      )
+      cost, assigments = distance_calculator.compute
+      @best_single_segment_match_for_stops = assigments
+      assigments.each_with_index.map do |t, i|
+        locator = @stop_locators[i][t][0]
+        LineString.distance_along_line_to_nearest_point(
+          @route_line_as_cartesian,
+          locator.interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326)),
+          t
+        )
+      end
+    end
+  end
+
   class MetaDistances < DistanceCalculation
     def stop_before_geometry(line_geometry_as_cartesian, stop_as_cartesian)
       line_geometry_as_cartesian.before?(stop_as_cartesian) ||
@@ -459,12 +487,17 @@ module Geometry
         return @rsp.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
       end
 
-      begin
+      # begin
         @route_line_as_cartesian = self.class.pulverize_line(@route_line_as_cartesian)
         @stop_locators = self.class.stop_locators(@cartesian_stops, @route_line_as_cartesian)
         compute_skip_stops
 
-        distance_calculator = Geometry::EnhancedOTPDistances.new(
+        # distance_calculator = Geometry::EnhancedOTPDistances.new(
+        #   @rsp,
+        #   @stops,
+        #   route_line_as_cartesian: @route_line_as_cartesian
+        # )
+        distance_calculator = Geometry::DynamicOpapWcAlgorithm.new(
           @rsp,
           @stops,
           route_line_as_cartesian: @route_line_as_cartesian
