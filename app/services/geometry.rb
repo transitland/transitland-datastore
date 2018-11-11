@@ -237,7 +237,7 @@ module Geometry
 
     attr_accessor :stack_calls,
                   :stack_call_limit,
-                  :skip_stops,
+                  :skip_stops
 
     def compute_stack_call_limit(num_stops)
       # prevent runaway loops from bad data or any lurking bugs that would slow down imports
@@ -401,8 +401,16 @@ module Geometry
 
   class DynamicOpapWcAlgorithm < DistanceCalculation
     def calculate_distances(skip_stops=[])
+      @skip_stops = skip_stops
+      stops = @cartesian_stops.values_at(*(0...@cartesian_stops.size).to_a - @skip_stops)
+
+      cost_matrix = self.class.cost_matrix(
+        @cartesian_stops,
+        @route_line_as_cartesian
+      )
+
       distance_calculator = OpapWc::DynamicAlgorithm.new(
-        self.class.cost_matrix(@cartesian_stops, @route_line_as_cartesian),
+        cost_matrix,
         costs: true
       )
       cost, assigments = distance_calculator.compute
@@ -491,12 +499,6 @@ module Geometry
         @route_line_as_cartesian = self.class.pulverize_line(@route_line_as_cartesian)
         @stop_locators = self.class.stop_locators(@cartesian_stops, @route_line_as_cartesian)
         compute_skip_stops
-
-        # distance_calculator = Geometry::EnhancedOTPDistances.new(
-        #   @rsp,
-        #   @stops,
-        #   route_line_as_cartesian: @route_line_as_cartesian
-        # )
         distance_calculator = Geometry::DynamicOpapWcAlgorithm.new(
           @rsp,
           @stops,
@@ -511,7 +513,11 @@ module Geometry
 
         if distance_calculator.invalid?
           # something is wrong, so we'll fake distances by using the closest match. It should throw distance quality issues later on.
-          @rsp.stop_distances = self.class.fallback_distances(@route_line_as_cartesian, @cartesian_stops, @stop_locators)
+          @rsp.stop_distances = self.class.fallback_distances(
+            @route_line_as_cartesian,
+            @cartesian_stops,
+            @stop_locators
+          )
         end
 
         @rsp.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
