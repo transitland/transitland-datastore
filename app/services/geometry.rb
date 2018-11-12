@@ -205,6 +205,22 @@ module Geometry
         @stop_segment_matching_candidates[i] = matches.sort_by{|locator_and_cost,j| locator_and_cost[1]}
       end
     end
+
+    def invalid?
+      matches_invalid?
+    end
+
+    private
+
+    def matches_invalid?
+      @best_single_segment_match_for_stops.nil? ||
+      @best_single_segment_match_for_stops.each_with_index.any? do |b, i|
+        b.nil? && !@skip_stops.include?(i)
+      end ||
+      @best_single_segment_match_for_stops.each_cons(2).any? do |m1, m2|
+        m1.nil? && m2.nil? && @best_single_segment_match_for_stops.size != 2
+      end
+    end
   end
 
   class EnhancedOTPDistances < DistanceCalculation
@@ -319,22 +335,6 @@ module Geometry
         )
       end
       stop_distances
-    end
-
-    def invalid?
-      matches_invalid?
-    end
-
-    private
-
-    def matches_invalid?
-      @best_single_segment_match_for_stops.nil? ||
-      @best_single_segment_match_for_stops.each_with_index.any? do |b, i|
-        b.nil? && !@skip_stops.include?(i)
-      end ||
-      @best_single_segment_match_for_stops.each_cons(2).any? do |m1, m2|
-        m1.nil? && m2.nil? && @best_single_segment_match_for_stops.size != 2
-      end
     end
   end
 
