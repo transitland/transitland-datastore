@@ -484,10 +484,9 @@ module Geometry
         end
 
         @rsp.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
-
       rescue => e
         log("Could not calculate distances for Route Stop Pattern: #{@rsp.onestop_id}. Error: #{e}")
-        Geometry::DistanceCalculation.new(@rsp, @stops).fallback_distances
+        @rsp.stop_distances = Geometry::DistanceCalculation.new(@rsp, @stops).fallback_distances
       end
     end
 
