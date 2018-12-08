@@ -1,5 +1,9 @@
 describe Geometry do
 
+  def match_array_within(arr, e)
+    match_array(arr.map{|v| a_value_within(e).of(v) })
+  end
+
   let(:stop_1) { create(:stop,
     onestop_id: "s-9q8yw8y448-bayshorecaltrainstation",
     geometry: Stop::GEOFACTORY.point(-122.401811, 37.706675).to_s
@@ -106,7 +110,7 @@ describe Geometry do
 
     it 'no distance issues with RSPs generated from trip stop points' do
       feed, feed_version = load_feed(feed_version_name: :feed_version_seattle_childrens, import_level: 1)
-      expect(RouteStopPattern.find_by_onestop_id!('r-c23p1-sch~gold-10c68e-2ef1dd').stop_distances).to match_array([a_value_within(0.1).of(0.0), a_value_within(0.1).of(2070.3), a_value_within(0.1).of(4140.7)])
+      expect(RouteStopPattern.find_by_onestop_id!('r-c23p1-sch~gold-10c68e-2ef1dd').stop_distances).to match_array_within([0.0, 2070.3, 4140.7], 0.1)
       expect(Issue.where(issue_type: 'distance_calculation_inaccurate').size).to eq 0
     end
 
@@ -115,9 +119,7 @@ describe Geometry do
       @rsp.stop_distances = Geometry::DistanceCalculation.straight_line_distances(
         @rsp.stop_pattern.map{ |onestop_id| Stop.find_by_onestop_id!(onestop_id).geometry_centroid }
       )
-      expect(@rsp.stop_distances).to match_array([a_value_within(0.1).of(0.0),
-                                                              a_value_within(0.1).of(12617.9),
-                                                              a_value_within(0.1).of(17001.5)])
+      expect(@rsp.stop_distances).to match_array_within([0.0,12617.9,17001.5], 0.1)
     end
 
     it 'stores distances in stop_distances attribute' do
@@ -126,9 +128,7 @@ describe Geometry do
     end
 
     it 'can calculate distances when the geometry and stop coordinates are equal' do
-      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array([a_value_within(0.1).of(0.0),
-                                                              a_value_within(0.1).of(12617.9271),
-                                                              a_value_within(0.1).of(17001.5107)])
+      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array_within([0.0,12617.9271,17001.5107], 0.1)
     end
 
     it 'can calculate distances when coordinates are repeated' do
@@ -149,10 +149,7 @@ describe Geometry do
                            stop_b.onestop_id,
                            midpoint.onestop_id,
                            stop_c.onestop_id]
-      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array([a_value_within(0.1).of(0.0),
-                                                              a_value_within(0.1).of(12617.9271),
-                                                              a_value_within(0.1).of(14809.7189),
-                                                              a_value_within(0.1).of(17001.5107)])
+      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array_within([0.0,12617.9271,14809.7189,17001.5107], 0.1)
     end
 
     it 'can calculate distances when a stop is between two geometry coordinates but not on a segment' do
@@ -219,10 +216,7 @@ describe Geometry do
         onestop_id: "s-9q9hwp6epk-before~geometry",
         geometry: Stop::GEOFACTORY.point(-121.5, 37.30).to_s
       ).onestop_id)
-      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array([a_value_within(0.1).of(0.0),
-                                                       a_value_within(0.1).of(0.0),
-                                                       a_value_within(0.1).of(12617.9),
-                                                       a_value_within(0.1).of(17001.5)])
+      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array_within([0.0,0.0,12617.9,17001.5], 0.1)
     end
 
     it 'calculates the distance of the last stop to be the length of the line geometry if it is after the last point of the geometry' do
@@ -233,10 +227,7 @@ describe Geometry do
       @rsp.geometry = Geometry::LineString.line_string(@rsp.geometry[:coordinates] << [-122.09, 37.401])
       distances = Geometry::MetaDistances.new(@rsp).calculate_distances
       expect(distances[3]).to be_within(0.1).of(@rsp[:geometry].length)
-      expect(distances).to match_array([a_value_within(0.1).of(0.0),
-                                                       a_value_within(0.1).of(12617.9),
-                                                       a_value_within(0.1).of(17001.5),
-                                                       a_value_within(0.1).of(18447.4)])
+      expect(distances).to match_array_within([0.0,12617.9,17001.5,18447.4], 0.1)
     end
 
     it 'can continue distance calculation when a stop is an outlier' do
@@ -248,10 +239,7 @@ describe Geometry do
                            stop_b.onestop_id,
                            outlier.onestop_id,
                            stop_c.onestop_id]
-      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array([a_value_within(0.1).of(0.0),
-                                                              a_value_within(0.1).of(12617.9271),
-                                                              a_value_within(0.1).of(14809.7),
-                                                              a_value_within(0.1).of(17001.5107)])
+      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array_within([0.0,12617.9271,14809.7,17001.5107], 0.1)
     end
 
     it 'assign a fallback distance value equal to the geometry length to the last stop if it is an outlier' do
@@ -260,10 +248,7 @@ describe Geometry do
         geometry: Stop::GEOFACTORY.point(-121.5, 37.3).to_s
       )
       @rsp.stop_pattern << last_stop_outlier.onestop_id
-      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array([a_value_within(0.1).of(0.0),
-                                                              a_value_within(0.1).of(12617.9271),
-                                                              a_value_within(0.1).of(17001.5107),
-                                                              a_value_within(0.1).of(17001.5107)])
+      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array_within([0.0,12617.9271,17001.5107,17001.5107], 0.1)
     end
 
     it 'can calculate distances when two consecutive stop points are identical' do
@@ -275,10 +260,7 @@ describe Geometry do
                            stop_b.onestop_id,
                            identical.onestop_id,
                            stop_c.onestop_id]
-      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array([a_value_within(0.1).of(0.0),
-                                                              a_value_within(0.1).of(12617.9271),
-                                                              a_value_within(0.1).of(12617.9271),
-                                                              a_value_within(0.1).of(17001.5107)])
+      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array_within([0.0,12617.9271,12617.9271,17001.5107], 0.1)
     end
 
     it 'can readjust distances when stops match to the same segment out of order' do
@@ -294,9 +276,7 @@ describe Geometry do
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.65))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.401811, 37.706675))
       stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.38, 37.78))
-      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array([a_value_within(0.1).of(0.0),
-                                                              a_value_within(0.1).of(6350.2),
-                                                              a_value_within(0.1).of(14129.7)])
+      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array_within([0.0,6350.2,14129.7], 0.1)
     end
 
     it 'accurately calculates distances if the last stop is close to the line and is not an after? stop' do
@@ -305,9 +285,7 @@ describe Geometry do
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.65))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.401811, 37.706675))
       stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.3975, 37.741))
-      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array([a_value_within(0.1).of(0.0),
-                                                              a_value_within(0.1).of(6350.2),
-                                                              a_value_within(0.1).of(10192.9)])
+      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array_within([0.0,6350.2,10192.9], 0.1)
     end
 
     it 'assigns the length of the geometry to the last stop distance when the last and penultimate are out of order' do
@@ -334,9 +312,7 @@ describe Geometry do
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.69))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.394935, 37.776348))
       stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.39, 37.84))
-      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array([a_value_within(0.1).of(0.0),
-                                                              a_value_within(0.1).of(7779.5),
-                                                              a_value_within(0.1).of(14878.5)])
+      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array_within([0.0,7779.5,14878.5], 0.1)
     end
 
     it 'accurately calculates distances if the first stop is close to the line and not a before? stop' do
@@ -345,9 +321,7 @@ describe Geometry do
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.40182, 37.7067))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.394935, 37.776348))
       stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.39, 37.84))
-      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array([a_value_within(0.1).of(2.7),
-                                                              a_value_within(0.1).of(7779.5),
-                                                              a_value_within(0.1).of(14878.5)])
+      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array_within([2.7,7779.5,14878.5], 0.1)
     end
 
     it 'accurately calculates distances if the first stop is an outlier stop, but matches to line before second stop' do
@@ -404,6 +378,7 @@ describe Geometry do
     it 'handles alleghany stop distances' do
       # Complex RSP shape revisits set of stops whose closest match is on second visit
       feed, feed_version = load_feed(feed_version_name: :feed_version_alleghany, import_level: 1)
+
       # Algorithm has minor discrepancy with optimal value.
       expect(RouteStopPattern.first.stop_distances).to match_array([0.0, 1564.3, 2948.4, 7916.3, 15691.7, 21963.3, 28515.8, 34874.6, 35537.6, a_value_within(2.0).of(37510.9), 38152.8, 39011.8, 40017.6, 41943.4, 51008.5, 57260.7, 64464.1, 70759.1])
     end
