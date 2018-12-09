@@ -125,7 +125,7 @@ module Geometry
       cartesian_line.is_closed? || !cartesian_line.is_simple?
     end
 
-    def self.pulverize_line(cartesian_line, e=0.001)
+    def self.pulverize_line(cartesian_line, e=0.0005)
       # ensures line has no segments with length greater than e
       new_points = cartesian_line._segments.map do |segment|
         if segment.length > e
@@ -347,9 +347,8 @@ module Geometry
           (st1.shape_dist_traveled.to_f >= st2.shape_dist_traveled.to_f && !st1.stop_id.eql?(st2.stop_id)) ||
           st1.shape_dist_traveled.to_f > shape_distances_traveled[-1].to_f
         }
-      else
-        return false
       end
+      return false
     end
 
     def self.gtfs_shape_dist_traveled(rsp, stop_times, tl_stops, shape_distances_traveled)

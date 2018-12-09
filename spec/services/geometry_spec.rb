@@ -361,7 +361,7 @@ describe Geometry do
 
     it 'handles case of stop slightly out of order with previous, and identical matching segments. readjusts distances.' do
       feed, feed_version = load_feed(feed_version_name: :feed_version_hdpt_sun_trip, import_level: 1)
-      expect(RouteStopPattern.first.stop_distances).to match_array([35.9,295.3,747.8,1061.6,1652.3,1946.8,4168.1,4616.7,4994.4,5547.6,5573.1,6063.4,6282.9,6524.0,6682.7,6775.9,6961.1,7505.6,8912.2,9572.1,10265.7,11055.5,11547.6,11822.3,12294.7,12653.7,13071.7,13371.8,13862.3,14025.0,14184.7,15050.8,15923.9,16247.5,16636.5])
+      expect(RouteStopPattern.first.stop_distances).to match_array([35.9,295.3,747.8,1061.6,1652.3,1946.8,4168.1,4616.7,4994.4,5533.2,5542.4,6063.4,6282.9,6524.0,6682.7,6775.9,6961.1,7505.6,8912.2,9572.1,10265.7,11055.5,11547.6,11822.3,12294.7,12653.7,13071.7,13371.8,13862.3,14025.0,14184.7,15050.8,15923.9,16247.5,16636.5])
       expect(Issue.where(issue_type: 'distance_calculation_inaccurate').count).to eq 0
     end
 
