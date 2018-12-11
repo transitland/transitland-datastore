@@ -385,7 +385,7 @@ describe Geometry do
 
     xit 'attempts a readjustment if stops are out of order' do
       feed, feed_version = load_feed(feed_version_name: :feed_version_ttc_34398377, import_level: 1)
-      expect(Geometry::MetaDistances.new(RouteStopPattern.first).calculate_distances[0..1]).to match_array([40.0, 52.4])
+      expect(Geometry::MetaDistances.new(RouteStopPattern.first).calculate_distances[0..1]).to match_array([29.2, 29.2])
     end
   end
 
