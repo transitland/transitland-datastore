@@ -495,7 +495,7 @@ module Geometry
         return @rsp.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
       end
 
-      # begin
+      begin
         @route_line_as_cartesian = self.class.pulverize_line(@route_line_as_cartesian)
         @stop_locators = self.class.stop_locators(@cartesian_stops, @route_line_as_cartesian)
         compute_skip_stops
