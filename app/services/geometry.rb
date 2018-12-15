@@ -47,7 +47,6 @@ module Geometry
     OUTLIER_THRESHOLD = 100 # meters
 
     def self.outlier_stop?(line_geometry_as_cartesian, stop_as_cartesian)
-      # TODO: pass in spherical?
       closest_point_as_cartesian = line_geometry_as_cartesian.closest_point(stop_as_cartesian)
       closest_point_as_spherical = RGeo::Feature.cast(closest_point_as_cartesian, RouteStopPattern::GEOFACTORY)
       stop_as_spherical = RGeo::Feature.cast(stop_as_cartesian, RouteStopPattern::GEOFACTORY)
@@ -515,6 +514,9 @@ module Geometry
     def compute_skip_stops
       @skip_stops = []
       @skip_stops << 0 if stop_before_geometry(@route_line_as_cartesian, @cartesian_stops[0])
+      @cartesian_stops[1...-1].each_with_index do |cartesian_stop, i|
+        @skip_stops << i + 1 if OutlierStop.outlier_stop?(@route_line_as_cartesian, cartesian_stop)
+      end
       @skip_stops << @cartesian_stops.size - 1 if stop_after_geometry(@route_line_as_cartesian, @cartesian_stops[-1])
     end
   end
