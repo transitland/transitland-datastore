@@ -288,7 +288,7 @@ describe Geometry do
       expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array_within([0.0,6350.2,10192.9], 0.1)
     end
 
-    it 'assigns the length of the geometry to the last stop distance when the last and penultimate are out of order' do
+    xit 'assigns the length of the geometry to the last stop distance when the last and penultimate are out of order' do
       feed, feed_version = load_feed(feed_version_name: :feed_version_ttc_34360409, import_level: 1)
       rsp = RouteStopPattern.first
       # set the penultimate stop coordinate to the last point of the line
