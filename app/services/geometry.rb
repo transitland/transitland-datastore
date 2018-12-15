@@ -124,7 +124,7 @@ module Geometry
       cartesian_line.is_closed? || !cartesian_line.is_simple?
     end
 
-    def self.pulverize_line(cartesian_line, e=0.0005)
+    def self.pulverize_line(cartesian_line, e=0.001)
       # ensures line has no segments with length greater than e
       new_points = cartesian_line._segments.map do |segment|
         if segment.length > e
