@@ -119,11 +119,6 @@ module Geometry
       stop_distances
     end
 
-    def self.line_complex?(cartesian_line)
-      return true
-      cartesian_line.is_closed? || !cartesian_line.is_simple?
-    end
-
     def self.pulverize_line(cartesian_line, e=0.001)
       # ensures line has no segments with length greater than e
       new_points = cartesian_line._segments.map do |segment|
@@ -325,7 +320,7 @@ module Geometry
       @best_single_segment_match_for_stops = matching_segments(@cartesian_stops, @skip_stops)
 
       @cartesian_stops.each_with_index do |stop, i|
-        next if @skip_stops.include?(i)
+        next if @skip_stops.include?(i) || @best_single_segment_match_for_stops[i].nil?
         locator = @stop_locators[i][@best_single_segment_match_for_stops[i]][0]
         stop_distances[i] = LineString.distance_along_line_to_nearest_point(
           @route_line_as_cartesian,
@@ -451,12 +446,6 @@ module Geometry
       if @stops.map(&:onestop_id).uniq.size == 1
         @rsp.stop_distances = Array.new(@stops.size).map{|i| 0.0}
         return @rsp.stop_distances
-      end
-
-      if !self.class.line_complex?(@route_line_as_cartesian)
-        compute_skip_stops
-        stop_distances = fallback_distances
-        return @rsp.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
       end
 
       begin
