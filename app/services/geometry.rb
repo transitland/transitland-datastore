@@ -385,7 +385,10 @@ module Geometry
     end
   end
 
-  class MetaDistances < DistanceCalculation
+  class TLDistances < DistanceCalculation
+    # This is where Transitland applies rules on how to handle
+    # outliers, which core algorithm to use, how to round, etc.
+
     def stop_before_geometry(line_geometry_as_cartesian, stop_as_cartesian)
       line_geometry_as_cartesian.before?(stop_as_cartesian) ||
       OutlierStop.outlier_stop?(line_geometry_as_cartesian, stop_as_cartesian)

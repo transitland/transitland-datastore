@@ -470,7 +470,7 @@ describe FeedEaterService do
         # here we take advantage of the fact that there can be slight, allowable discrepancies between shape_dist_traveled and our algorithm.
         # It's possible the shape_dist_traveled given for the stop doesn't match the distance computed for the closest point
         # just want to make sure we're using the shape_dist_traveled ultimately
-        expect(RouteStopPattern.find_by_onestop_id!(rsp.onestop_id).stop_distances).not_to match_array(Geometry::MetaDistances.new(rsp).calculate_distances)
+        expect(RouteStopPattern.find_by_onestop_id!(rsp.onestop_id).stop_distances).not_to match_array(Geometry::TLDistances.new(rsp).calculate_distances)
       end
     end
 

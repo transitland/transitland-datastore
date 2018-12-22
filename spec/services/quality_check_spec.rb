@@ -29,7 +29,7 @@ describe QualityCheck::GeometryQualityCheck do
           stop1 = create(:stop, geometry: 'POINT(-116.81797 36.88108)')
           stop2 = create(:stop, geometry: 'POINT(-117.133162 36.425288)')
           route_stop_pattern = create(:route_stop_pattern, stop_pattern: [stop1.onestop_id, stop2.onestop_id], geometry: 'LINESTRING (-117.13316 36.42529, -116.81797 36.88108)')
-          route_stop_pattern.update_column(:stop_distances, Geometry::MetaDistances.new(route_stop_pattern).calculate_distances)
+          route_stop_pattern.update_column(:stop_distances, Geometry::TLDistances.new(route_stop_pattern).calculate_distances)
           changeset = create(:changeset)
           changeset.create_change_payloads([route_stop_pattern])
           # we'll ignore the typical issue cycle within changeset.apply! so we can directly test GeometryQualityCheck
