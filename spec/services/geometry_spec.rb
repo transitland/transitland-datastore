@@ -325,7 +325,7 @@ describe Geometry do
     end
 
     it 'accurately calculates distances if the first stop is an outlier stop, but matches to line before second stop' do
-      # in essence, the first stop can a "before?" stop, but can match to the inside of a line.
+      # in essence, the first stop can be a "before?" stop, but can match to the inside of a line.
       feed_cta, feed_version_cta = load_feed(feed_version_name: :feed_version_cta_476113351107, import_level: 1)
       feed_trenitalia, feed_version_trenitalia = load_feed(feed_version_name: :feed_version_trenitalia_56808573, import_level: 1)
       expect(Geometry::TLDistances.new(feed_cta.imported_route_stop_patterns.first).calculate_distances[0..1]).to match_array([0.0,29.8])
