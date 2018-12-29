@@ -57,71 +57,62 @@ module Geometry
   class DistanceCalculation
     extend Lib
 
-    DISTANCE_PRECISION = 1
-
     attr_accessor :stop_segment_matching_candidates, :stop_locators
 
-    def initialize(rsp, stops=nil, route_line_as_cartesian: nil)
-      if stops.nil?
-        @stops = rsp.stop_pattern.map do |onestop_id|
-          Stop.find_by_onestop_id!(onestop_id)
-        end
-      else
-        @stops = stops
-      end
-      @rsp = rsp
-      @route_line_length = rsp[:geometry].length
+    def initialize(spherical_shape, spherical_stop_points, cartesian_shape: nil)
+      @shape_length = spherical_shape.length
 
-      @rsp.stop_distances = Array.new(@stops.size)
-      @route_line_as_cartesian = route_line_as_cartesian || self.class.cartesian_cast(rsp[:geometry])
+      @distances = Array.new(spherical_stop_points.size)
+      @cartesian_shape = cartesian_shape || self.class.cartesian_cast(spherical_shape)
+      @pulverized_shape = nil
 
-      @cartesian_stops = @stops.map do |stop|
-        self.class.cartesian_cast(stop.geometry_centroid)
+      @cartesian_stop_points = spherical_stop_points.map do |point|
+        self.class.cartesian_cast(point)
       end
 
-      @spherical_stops = @stops.map { |stop| stop.geometry_centroid }
+      @spherical_stop_points = spherical_stop_points
 
-      @stop_locators = self.class.stop_locators(@cartesian_stops, @route_line_as_cartesian)
+      @stop_locators = self.class.stop_locators(@cartesian_stop_points, @cartesian_shape)
     end
 
-    def self.stop_locators(cartesian_stops, route_line_as_cartesian)
-      cartesian_stops.map do |cartesian_stop|
-        locators = route_line_as_cartesian.locators(cartesian_stop)
+    def self.stop_locators(cartesian_stop_points, cartesian_shape)
+      cartesian_stop_points.map do |point|
+        locators = cartesian_shape.locators(point)
         locators.map{|locator| [locator, locator.distance_from_segment]}
       end
     end
 
     def fallback_distances
-      self.class.fallback_distances(@route_line_as_cartesian, @cartesian_stops, @stop_locators)
+      self.class.fallback_distances(@cartesian_shape, @cartesian_stop_points, @stop_locators)
     end
 
-    def self.fallback_distances(route_line_as_cartesian, cartesian_stops, stop_locators=nil)
+    def self.fallback_distances(cartesian_shape, cartesian_stop_points, stop_locators=nil)
       if stop_locators.nil?
-        stop_locators = self.class.stop_locators(cartesian_stops, route_line_as_cartesian)
+        stop_locators = self.class.stop_locators(cartesian_stop_points, cartesian_shape)
       end
 
       # a naive assigment of stops to closest segment.
       stop_locators.map do |m|
         locator_and_cost, i = m.each_with_index.min_by{|locator_and_cost,i| locator_and_cost[1] }
         closest_point = locator_and_cost[0].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326))
-        LineString.distance_along_line_to_nearest_point(route_line_as_cartesian,closest_point,i)
+        LineString.distance_along_line_to_nearest_point(cartesian_shape, closest_point, i)
       end
     end
 
-    def self.straight_line_distances(spherical_stops)
+    def self.straight_line_distances(spherical_stop_points)
       # stop distances on straight lines from stop to stop
       stop_distances = [0.0]
       total_distance = 0.0
-      spherical_stops.each_cons(2) do |stop1, stop2|
+      spherical_stop_points.each_cons(2) do |stop1, stop2|
         total_distance += stop1.distance(stop2)
         stop_distances << total_distance
       end
       stop_distances
     end
 
-    def self.pulverize_line(cartesian_line, e=0.001)
+    def self.pulverize_shape(cartesian_shape, e=0.001)
       # ensures line has no segments with length greater than e
-      new_points = cartesian_line._segments.map do |segment|
+      new_points = cartesian_shape._segments.map do |segment|
         if segment.length > e
           num_new_points = segment.length.fdiv(e).floor
           sub_l = segment.length.fdiv(num_new_points + 1)
@@ -141,45 +132,53 @@ module Geometry
         end
       end.flatten
 
-      return cartesian_line if new_points.size == cartesian_line.points.size
+      return cartesian_shape if new_points.size == cartesian_shape.points.size
 
       self.cartesian_cast(RouteStopPattern::GEOFACTORY.line_string(new_points))
+    end
+
+    def pulverize_shape(e=0.001)
+      @pulverized_shape = self.class.pulverize_shape(@cartesian_shape, e)
+      @stop_locators = self.class.stop_locators(@cartesian_stop_points, @pulverized_shape)
     end
 
     def compute_matching_candidate_thresholds
       # average minimum distance from stop to line
       mins = @stop_locators.each_with_index.map do |locators_and_costs,i|
-        @spherical_stops[i].distance(locators_and_costs.min_by{|lc| lc[1]}[0].interpolate_point(Stop::GEOFACTORY))
+        @spherical_stop_points[i].distance(locators_and_costs.min_by{|lc| lc[1]}[0].interpolate_point(Stop::GEOFACTORY))
       end
       y = mins.sum.fdiv(mins.size)
 
       thresholds = []
-      @spherical_stops.each_with_index do |stop, i|
+      @spherical_stop_points.each_with_index do |stop, i|
         if i == 0
-          x = (@spherical_stops[0].distance(@spherical_stops[1]))/2.0
-        elsif i == @spherical_stops.size - 1
-          x = (@spherical_stops[-1].distance(@spherical_stops[-2]))/2.0
+          x = (@spherical_stop_points[0].distance(@spherical_stop_points[1]))/2.0
+        elsif i == @spherical_stop_points.size - 1
+          x = (@spherical_stop_points[-1].distance(@spherical_stop_points[-2]))/2.0
         else
-          x = (@spherical_stops[i-1].distance(@spherical_stops[i]) + @spherical_stops[i].distance(@spherical_stops[i+1]))/4.0
+          x = (
+            @spherical_stop_points[i-1].distance(@spherical_stop_points[i]) +
+            @spherical_stop_points[i].distance(@spherical_stop_points[i+1])
+          ).fdiv(4.0)
         end
         thresholds << Math.sqrt(x**2 + y**2)
       end
       thresholds
     end
 
-    def best_possible_matching_segments_for_stops(route_line_as_cartesian, spherical_stops)
+    def best_possible_matching_segments_for_stops(cartesian_shape, spherical_stop_points)
       # prune segment matches per stop that are impossible
       @stop_segment_matching_candidates = []
       thresholds = compute_matching_candidate_thresholds
       min_index = 0
-      spherical_stops.each_with_index.map do |stop, i|
+      spherical_stop_points.each_with_index.map do |point, i|
         if @skip_stops.include?(i)
           @stop_segment_matching_candidates[i] = nil
           next
         end
         distances = []
         matches = @stop_locators[i].each_with_index.select do |locator_and_cost,j|
-          distance = stop.distance(locator_and_cost[0].interpolate_point(RouteStopPattern::GEOFACTORY))
+          distance = point.distance(locator_and_cost[0].interpolate_point(RouteStopPattern::GEOFACTORY))
           distances << distance
           j >= min_index && distance <= thresholds[i]
         end
@@ -230,8 +229,8 @@ module Geometry
       @stack_call_limit = 3.0*num_stops*k**num_stops
     end
 
-    def forward_matches(cartesian_stops, stop_index, min_seg_index, stack, skip_stops=[])
-      cartesian_stops[stop_index..-1].each_with_index do |stop, i|
+    def forward_matches(cartesian_stop_points, stop_index, min_seg_index, stack, skip_stops=[])
+      cartesian_stop_points[stop_index..-1].each_with_index do |point, i|
         if skip_stops.include?(stop_index+i)
           stack.push([stop_index+i,nil])
         elsif @stop_segment_matching_candidates[stop_index+i].nil?
@@ -249,8 +248,7 @@ module Geometry
       end
     end
 
-    def valid_segment_choice?(stops, skip_stops, stop_index, segment_matches, stop_seg_match)
-      # equivalent_stops = stops[stop_index].onestop_id.eql?(stops[stop_index+1]) or stops[stop_index].geometry_centroid.eql?(stops[stop_index+1].geometry_centroid)
+    def valid_segment_choice?(skip_stops, stop_index, segment_matches, stop_seg_match)
       stop_seg_match &&
         segment_matches[stop_index+1..-1].each_with_index.all? do |m,j|
           !m.nil? || skip_stops.include?(stop_index+1+j)
@@ -260,11 +258,11 @@ module Geometry
         end
     end
 
-    def matching_segments(cartesian_stops, skip_stops=[])
+    def matching_segments(cartesian_stop_points, skip_stops=[])
 
       stack = []
-      segment_matches = Array.new(cartesian_stops.size)
-      forward_matches(cartesian_stops, 0, 0, stack, skip_stops=skip_stops)
+      segment_matches = Array.new(cartesian_stop_points.size)
+      forward_matches(cartesian_stop_points, 0, 0, stack, skip_stops=skip_stops)
 
       while stack.any?
         stop_index, stop_seg_match = stack.pop
@@ -272,9 +270,9 @@ module Geometry
         @stack_calls += 1
         next if skip_stops.include?(stop_index)
 
-        if stop_index == cartesian_stops.size - 1
+        if stop_index == cartesian_stop_points.size - 1
           segment_matches[stop_index] = stop_seg_match
-        elsif !valid_segment_choice?(cartesian_stops, skip_stops, stop_index, segment_matches, stop_seg_match)
+        elsif !valid_segment_choice?(skip_stops, stop_index, segment_matches, stop_seg_match)
           push_back = @stop_segment_matching_candidates[stop_index].nil?
           unless push_back
             index_of_seg_index = @stop_segment_matching_candidates[stop_index].map{|locator_and_cost,seg_index| seg_index }.index(stop_seg_match)
@@ -284,8 +282,8 @@ module Geometry
             segment_matches[stop_index] = nil
           else
             min_seg_index = @stop_segment_matching_candidates[stop_index][index_of_seg_index+1][1]
-            stack.push([stop_index,min_seg_index])
-            forward_matches(cartesian_stops, stop_index + 1, min_seg_index, stack, skip_stops=skip_stops)
+            stack.push([stop_index, min_seg_index])
+            forward_matches(cartesian_stop_points, stop_index + 1, min_seg_index, stack, skip_stops=skip_stops)
           end
         else
           segment_matches[stop_index] = stop_seg_match
@@ -313,26 +311,31 @@ module Geometry
 
       @skip_stops = skip_stops
 
-      stop_distances = Array.new(@cartesian_stops.size)
-      best_possible_matching_segments_for_stops(@route_line_as_cartesian, @spherical_stops)
+      @stop_distances = Array.new(@cartesian_stop_points.size)
+      pulverize_shape
+      best_possible_matching_segments_for_stops(@pulverized_shape, @spherical_stop_points)
       @stack_calls = 0
-      compute_stack_call_limit(@cartesian_stops.size)
-      @best_single_segment_match_for_stops = matching_segments(@cartesian_stops, @skip_stops)
+      compute_stack_call_limit(@cartesian_stop_points.size)
+      @best_single_segment_match_for_stops = matching_segments(@cartesian_stop_points, @skip_stops)
 
-      @cartesian_stops.each_with_index do |stop, i|
+      @cartesian_stop_points.each_with_index do |point, i|
         next if @skip_stops.include?(i) || @best_single_segment_match_for_stops[i].nil?
         locator = @stop_locators[i][@best_single_segment_match_for_stops[i]][0]
-        stop_distances[i] = LineString.distance_along_line_to_nearest_point(
-          @route_line_as_cartesian,
+        @stop_distances[i] = LineString.distance_along_line_to_nearest_point(
+          @pulverized_shape,
           locator.interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326)),
           @best_single_segment_match_for_stops[i]
         )
       end
-      stop_distances
+      @stop_distances
     end
   end
 
-  class GTFSShapeDistanceTraveled < DistanceCalculation
+  class GTFSShapeDistanceTraveled
+    extend Lib
+
+    DISTANCE_PRECISION = 1
+
     def self.validate_shape_dist_traveled(stop_times, shape_distances_traveled)
       if (stop_times.all?{ |st| st.shape_dist_traveled.present? } && shape_distances_traveled.all?(&:present?))
         # checking for any out-of-order distance values,
@@ -385,21 +388,54 @@ module Geometry
     end
   end
 
-  class TLDistances < DistanceCalculation
+  class TLDistances
     # This is where Transitland applies rules on how to handle
     # outliers, which core algorithm to use, how to round, etc.
 
-    def stop_before_geometry(line_geometry_as_cartesian, stop_as_cartesian)
-      line_geometry_as_cartesian.before?(stop_as_cartesian) ||
-      OutlierStop.outlier_stop?(line_geometry_as_cartesian, stop_as_cartesian)
+    extend Lib
+
+    DISTANCE_PRECISION = 1
+
+    def initialize(rsp, stops=nil)
+      if stops.nil?
+        @stops = rsp.stops
+      else
+        @stops = stops
+      end
+      @rsp = rsp
+
+      @rsp.stop_distances = Array.new(@stops.size)
+
+      @route_line_length = @rsp[:geometry].length
+
+      @cartesian_shape = self.class.cartesian_cast(@rsp[:geometry])
+
+      @spherical_stop_points = @stops.map { |stop| stop.geometry_centroid }
+
+      @cartesian_stop_points = @spherical_stop_points.map do |point|
+        self.class.cartesian_cast(point)
+      end
+
+      @distance_calculator = Geometry::EnhancedOTPDistances.new(
+        @rsp[:geometry],
+        @spherical_stop_points,
+        cartesian_shape: @cartesian_shape
+      )
+
+      @stop_locators = @distance_calculator.stop_locators
     end
 
-    def stop_after_geometry(line_geometry_as_cartesian, stop_as_cartesian)
-      line_geometry_as_cartesian.after?(stop_as_cartesian) ||
-      OutlierStop.outlier_stop?(line_geometry_as_cartesian, stop_as_cartesian)
+    def stop_before_geometry?(stop_as_cartesian)
+      @cartesian_shape.before?(stop_as_cartesian) ||
+      OutlierStop.outlier_stop?(@cartesian_shape, stop_as_cartesian)
     end
 
-    def assign_first_stop_distance(route_line_as_cartesian, first_stop_as_cartesian)
+    def stop_after_geometry?(stop_as_cartesian)
+      @cartesian_shape.after?(stop_as_cartesian) ||
+      OutlierStop.outlier_stop?(@cartesian_shape, stop_as_cartesian)
+    end
+
+    def assign_first_stop_distance(cartesian_shape)
       # compare the second stop's closest segment point to the first. If the first stop's point
       # is after the second, then it has to be set to 0.0 because the line geometry
       # is likely to be too short by not starting at or near the first stop.
@@ -411,7 +447,7 @@ module Geometry
         ((first_stop_seg_match == second_stop_seg_match) &&
           (first_stop_locator_and_index[0][0].distance_on_segment < second_stop_locator_and_index[0][0].distance_on_segment))
         return LineString.distance_along_line_to_nearest_point(
-          route_line_as_cartesian,
+          cartesian_shape,
           first_stop_locator_and_index[0][0].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326)),
           first_stop_locator_and_index[1]
         )
@@ -420,7 +456,7 @@ module Geometry
       end
     end
 
-    def assign_last_stop_distance(route_line_as_cartesian, penultimate_match)
+    def assign_last_stop_distance(cartesian_shape, penultimate_match)
       # compare the last stop's closest segment point to the penultimate. If the last stop's point
       # is before the penultimate, then it has to be set to the length of the line geometry, as the line
       # is likely to be too short by not coming up to the last stop.
@@ -436,7 +472,7 @@ module Geometry
           (last_stop_locator_and_index[1] == penultimate_match) &&
           (last_stop_locator_and_index[0][0].distance_on_segment > @stop_locators[-2][penultimate_match][0].distance_on_segment)
           return LineString.distance_along_line_to_nearest_point(
-            route_line_as_cartesian,
+            cartesian_shape,
             last_stop_locator_and_index[0][0].interpolate_point(RGeo::Cartesian::Factory.new(srid: 4326)),
             last_stop_locator_and_index[1])
         else
@@ -452,31 +488,24 @@ module Geometry
       end
 
       begin
-        @route_line_as_cartesian = self.class.pulverize_line(@route_line_as_cartesian)
-        @stop_locators = self.class.stop_locators(@cartesian_stops, @route_line_as_cartesian)
         compute_skip_stops
 
-        distance_calculator = Geometry::EnhancedOTPDistances.new(
-          @rsp,
-          @stops,
-          route_line_as_cartesian: @route_line_as_cartesian
-        )
-        stop_distances = distance_calculator.calculate_distances(@skip_stops)
+        stop_distances = @distance_calculator.calculate_distances(@skip_stops)
 
         prepare_stop_distances(
           stop_distances,
-          distance_calculator.best_single_segment_match_for_stops
+          @distance_calculator.best_single_segment_match_for_stops
         )
 
-        if distance_calculator.invalid?
+        if @distance_calculator.invalid?
           # something is wrong, so we'll fake distances by using the closest match. It should throw distance quality issues later on.
-          @rsp.stop_distances = self.class.fallback_distances(@route_line_as_cartesian, @cartesian_stops, @stop_locators)
+          @rsp.stop_distances = Geometry::DistanceCalculation.new(@rsp[:geometry], @spherical_stop_points).fallback_distances
         end
 
         @rsp.stop_distances.map!{ |distance| distance.round(DISTANCE_PRECISION) }
       rescue => e
         log("Could not calculate distances for Route Stop Pattern: #{@rsp.onestop_id}. Error: #{e}")
-        @rsp.stop_distances = Geometry::DistanceCalculation.new(@rsp, @stops).fallback_distances
+        @rsp.stop_distances = Geometry::DistanceCalculation.new(@rsp[:geometry], @spherical_stop_points).fallback_distances
       end
     end
 
@@ -484,10 +513,10 @@ module Geometry
       @rsp.stop_distances.each_with_index do |distance, i|
         if @skip_stops.include?(i)
           if i == 0
-            @rsp.stop_distances[i] = assign_first_stop_distance(@route_line_as_cartesian, @cartesian_stops[i])
+            @rsp.stop_distances[i] = assign_first_stop_distance(@cartesian_shape)
           elsif i == @rsp.stop_distances.size - 1
             @rsp.stop_distances[i] = assign_last_stop_distance(
-              @route_line_as_cartesian,
+              @cartesian_shape,
               computed_segment_matches[i]
             )
           else
@@ -505,11 +534,11 @@ module Geometry
 
     def compute_skip_stops
       @skip_stops = []
-      @skip_stops << 0 if stop_before_geometry(@route_line_as_cartesian, @cartesian_stops[0])
-      @cartesian_stops[1...-1].each_with_index do |cartesian_stop, i|
-        @skip_stops << i + 1 if OutlierStop.outlier_stop?(@route_line_as_cartesian, cartesian_stop)
+      @skip_stops << 0 if stop_before_geometry?(@cartesian_stop_points[0])
+      @cartesian_stop_points[1...-1].each_with_index do |point, i|
+        @skip_stops << i + 1 if OutlierStop.outlier_stop?(@cartesian_shape, point)
       end
-      @skip_stops << @cartesian_stops.size - 1 if stop_after_geometry(@route_line_as_cartesian, @cartesian_stops[-1])
+      @skip_stops << @cartesian_stop_points.size - 1 if stop_after_geometry?(@cartesian_stop_points[-1])
     end
   end
 end
