@@ -123,17 +123,17 @@ describe Geometry do
     end
 
     it 'stores distances in stop_distances attribute' do
-      Geometry::MetaDistances.new(@rsp).calculate_distances
+      Geometry::TLDistances.new(@rsp).calculate_distances
       expect(@rsp.stop_distances.count).to eq 3
     end
 
     it 'can calculate distances when the geometry and stop coordinates are equal' do
-      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array_within([0.0,12617.9271,17001.5107], 0.1)
+      expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array_within([0.0,12617.9271,17001.5107], 0.1)
     end
 
     it 'can calculate distances when coordinates are repeated' do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_mtanyctbusstatenisland_trip_YU_S6_Weekday_030000_MISC_112, import_level: 1)
-      distances = Geometry::MetaDistances.new(@feed.imported_route_stop_patterns[0]).calculate_distances
+      distances = Geometry::TLDistances.new(@feed.imported_route_stop_patterns[0]).calculate_distances
       # expect all distances to be increasing
       expect(distances[1..-1].each_with_index.map { |v, i| v > distances[i] }.all?).to be true
     end
@@ -149,7 +149,7 @@ describe Geometry do
                            stop_b.onestop_id,
                            midpoint.onestop_id,
                            stop_c.onestop_id]
-      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array_within([0.0,12617.9271,14809.7189,17001.5107], 0.1)
+      expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array_within([0.0,12617.9271,14809.7189,17001.5107], 0.1)
     end
 
     it 'can calculate distances when a stop is between two geometry coordinates but not on a segment' do
@@ -161,7 +161,7 @@ describe Geometry do
                            stop_b.onestop_id,
                            p_offset.onestop_id,
                            stop_c.onestop_id]
-      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array([a_value_within(0.1).of(0.0),
+      expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(12617.9271),
                                                               a_value_within(0.5).of(14809.7189),
                                                               a_value_within(0.1).of(17001.5107)])
@@ -169,27 +169,27 @@ describe Geometry do
 
     it 'accurately calculates the distances of nyc staten island ferry 2-stop routes with before/after stops' do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_nycdotsiferry, import_level: 1)
-      expect(Geometry::MetaDistances.new(@feed.imported_route_stop_patterns[0]).calculate_distances).to match_array([0.0, 8138.0])
-      expect(Geometry::MetaDistances.new(@feed.imported_route_stop_patterns[1]).calculate_distances).to match_array([3.2, 8141.2])
+      expect(Geometry::TLDistances.new(@feed.imported_route_stop_patterns[0]).calculate_distances).to match_array([0.0, 8138.0])
+      expect(Geometry::TLDistances.new(@feed.imported_route_stop_patterns[1]).calculate_distances).to match_array([3.2, 8141.2])
     end
 
     it 'accurately calculates the distances of a route with stops along the line that traversed over itself in the opposite direction' do
       # see https://transit.land/documentation/datastore/rome_01_part_1.png
       # and https://transit.land/documentation/datastore/rome_01_part_2.png
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_rome, import_level: 1)
-      expect(Geometry::MetaDistances.new(@feed.imported_route_stop_patterns[0]).calculate_distances).to match_array([0.6,639.6,817.5,1034.9,1250.2,1424.2,1793.5,1929.2,2162.2,2429.9,2579.6,2735.3,3022.6,3217.8,3407.3,3646.6,3804.4,3969.1,4128.3,4302.6,4482.1,4586.9,4869.5,5242.7,5510.4,5695.6,5871.4,6112.9,6269.6,6334.1,6528.8,6715.4,6863.0,7140.2,7689.8])
+      expect(Geometry::TLDistances.new(@feed.imported_route_stop_patterns[0]).calculate_distances).to match_array([0.6,639.6,817.5,1034.9,1250.2,1424.2,1793.5,1929.2,2162.2,2429.9,2579.6,2735.3,3022.6,3217.8,3407.3,3646.6,3804.4,3969.1,4128.3,4302.6,4482.1,4586.9,4869.5,5242.7,5510.4,5695.6,5871.4,6112.9,6269.6,6334.1,6528.8,6715.4,6863.0,7140.2,7689.8])
     end
 
     it 'accurately calculates the distances of a route with stops along the line that traversed over itself in the opposite direction, but closest match was segment in opposite direction' do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta_1965654, import_level: 1)
-      expect(Geometry::MetaDistances.new(@feed.imported_route_stop_patterns[0]).calculate_distances).to match_array([0.0,1490.8,1818.6,2478.0,2928.5,3167.2,3584.7,4079.4,4360.6,4784.1,4970.5,5168.1,5340.5,5599.0,6023.2,6483.9,6770.0,7469.3])
+      expect(Geometry::TLDistances.new(@feed.imported_route_stop_patterns[0]).calculate_distances).to match_array([0.0,1490.8,1818.6,2478.0,2928.5,3167.2,3584.7,4079.4,4360.6,4784.1,4970.5,5168.1,5340.5,5599.0,6023.2,6483.9,6770.0,7469.3])
     end
 
     it 'calculates the first stop distance correctly' do
       # from sfmta route 54 and for regression. case where first stop is not a 'before' stop
       # see https://transit.land/documentation/datastore/first_stop_correct_distance.png
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_sfmta_6720619, import_level: 1)
-      distances = Geometry::MetaDistances.new(@feed.imported_route_stop_patterns[0]).calculate_distances
+      distances = Geometry::TLDistances.new(@feed.imported_route_stop_patterns[0]).calculate_distances
       expect(distances[0]).to be_within(0.1).of(201.1)
     end
 
@@ -197,7 +197,7 @@ describe Geometry do
       # from f-9q9-vta, r-9q9k-66.
       # see https://transit.land/documentation/datastore/repeated_stop_vta_66.png
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta_1930705, import_level: 1)
-      distances = Geometry::MetaDistances.new(@feed.imported_route_stop_patterns[0]).calculate_distances
+      distances = Geometry::TLDistances.new(@feed.imported_route_stop_patterns[0]).calculate_distances
       expect(distances[77]).to be > distances[75]
     end
 
@@ -207,7 +207,7 @@ describe Geometry do
       # and https://transit.land/documentation/datastore/previous_segment_2_sfmta_n~owl.png
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_sfmta_6731593, import_level: 1)
       tricky_rsp = @feed.imported_route_stop_patterns[0]
-      distances = Geometry::MetaDistances.new(tricky_rsp).calculate_distances
+      distances = Geometry::TLDistances.new(tricky_rsp).calculate_distances
       expect(distances[-1]).to be > distances[-2]
     end
 
@@ -216,7 +216,7 @@ describe Geometry do
         onestop_id: "s-9q9hwp6epk-before~geometry",
         geometry: Stop::GEOFACTORY.point(-121.5, 37.30).to_s
       ).onestop_id)
-      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array_within([0.0,0.0,12617.9,17001.5], 0.1)
+      expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array_within([0.0,0.0,12617.9,17001.5], 0.1)
     end
 
     it 'calculates the distance of the last stop to be the length of the line geometry if it is after the last point of the geometry' do
@@ -225,7 +225,7 @@ describe Geometry do
        geometry: Stop::GEOFACTORY.point(-122.1, 37.41).to_s
       ).onestop_id
       @rsp.geometry = Geometry::LineString.line_string(@rsp.geometry[:coordinates] << [-122.09, 37.401])
-      distances = Geometry::MetaDistances.new(@rsp).calculate_distances
+      distances = Geometry::TLDistances.new(@rsp).calculate_distances
       expect(distances[3]).to be_within(0.1).of(@rsp[:geometry].length)
       expect(distances).to match_array_within([0.0,12617.9,17001.5,18447.4], 0.1)
     end
@@ -239,7 +239,7 @@ describe Geometry do
                            stop_b.onestop_id,
                            outlier.onestop_id,
                            stop_c.onestop_id]
-      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array_within([0.0,12617.9271,14809.7,17001.5107], 0.1)
+      expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array_within([0.0,12617.9271,14809.7,17001.5107], 0.1)
     end
 
     it 'assign a fallback distance value equal to the geometry length to the last stop if it is an outlier' do
@@ -248,7 +248,7 @@ describe Geometry do
         geometry: Stop::GEOFACTORY.point(-121.5, 37.3).to_s
       )
       @rsp.stop_pattern << last_stop_outlier.onestop_id
-      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array_within([0.0,12617.9271,17001.5107,17001.5107], 0.1)
+      expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array_within([0.0,12617.9271,17001.5107,17001.5107], 0.1)
     end
 
     it 'can calculate distances when two consecutive stop points are identical' do
@@ -260,12 +260,12 @@ describe Geometry do
                            stop_b.onestop_id,
                            identical.onestop_id,
                            stop_c.onestop_id]
-      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array_within([0.0,12617.9271,12617.9271,17001.5107], 0.1)
+      expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array_within([0.0,12617.9271,12617.9271,17001.5107], 0.1)
     end
 
     it 'can readjust distances when stops match to the same segment out of order' do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_sfmta_7310245, import_level: 1)
-      distances = Geometry::MetaDistances.new(@feed.imported_route_stop_patterns[0]).calculate_distances
+      distances = Geometry::TLDistances.new(@feed.imported_route_stop_patterns[0]).calculate_distances
       # expect all distances to be increasing
       expect(distances[1..-1].each_with_index.map { |v, i| v > distances[i] }.all?).to be true
     end
@@ -276,7 +276,7 @@ describe Geometry do
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.65))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.401811, 37.706675))
       stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.38, 37.78))
-      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array_within([0.0,6350.2,14129.7], 0.1)
+      expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array_within([0.0,6350.2,14129.7], 0.1)
     end
 
     it 'accurately calculates distances if the last stop is close to the line and is not an after? stop' do
@@ -285,7 +285,7 @@ describe Geometry do
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.65))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.401811, 37.706675))
       stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.3975, 37.741))
-      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array_within([0.0,6350.2,10192.9], 0.1)
+      expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array_within([0.0,6350.2,10192.9], 0.1)
     end
 
     xit 'assigns the length of the geometry to the last stop distance when the last and penultimate are out of order' do
@@ -293,7 +293,7 @@ describe Geometry do
       rsp = RouteStopPattern.first
       # set the penultimate stop coordinate to the last point of the line
       Stop.find_by_onestop_id!(rsp.stop_pattern[rsp.stop_pattern.size - 2]).update_column(:geometry, Stop::GEOFACTORY.point(*rsp[:geometry].coordinates.last))
-      expect(Geometry::MetaDistances.new(rsp).calculate_distances[rsp.stop_pattern.size-2..rsp.stop_pattern.size-1]).to eq [950.0, 950.0]
+      expect(Geometry::TLDistances.new(rsp).calculate_distances[rsp.stop_pattern.size-2..rsp.stop_pattern.size-1]).to eq [950.0, 950.0]
     end
 
     it 'sets the last stop distance to the length of the line geometry if it is > 100m from the line and less than distance of previous stop' do
@@ -303,7 +303,7 @@ describe Geometry do
       Stop.find_by_onestop_id!(rsp.stop_pattern[rsp.stop_pattern.size - 2]).update_column(:geometry, Stop::GEOFACTORY.point(-79.53941, 43.7388))
       # moving the last stop to be an outlier, but with a distance less than the previous stop
       Stop.find_by_onestop_id!(rsp.stop_pattern[-1]).update_column(:geometry, Stop::GEOFACTORY.point(-79.535, 43.73898))
-      expect(Geometry::MetaDistances.new(rsp).calculate_distances[rsp.stop_pattern.size-2..rsp.stop_pattern.size-1]).to eq [929.9, 950.0]
+      expect(Geometry::TLDistances.new(rsp).calculate_distances[rsp.stop_pattern.size-2..rsp.stop_pattern.size-1]).to eq [929.9, 950.0]
     end
 
     it 'accurately calculates distances if the first stop is a before? stop' do
@@ -312,7 +312,7 @@ describe Geometry do
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.69))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.394935, 37.776348))
       stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.39, 37.84))
-      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array_within([0.0,7779.5,14878.5], 0.1)
+      expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array_within([0.0,7779.5,14878.5], 0.1)
     end
 
     it 'accurately calculates distances if the first stop is close to the line and not a before? stop' do
@@ -321,15 +321,15 @@ describe Geometry do
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.40182, 37.7067))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.394935, 37.776348))
       stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.39, 37.84))
-      expect(Geometry::MetaDistances.new(@rsp).calculate_distances).to match_array_within([2.7,7779.5,14878.5], 0.1)
+      expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array_within([2.7,7779.5,14878.5], 0.1)
     end
 
     it 'accurately calculates distances if the first stop is an outlier stop, but matches to line before second stop' do
-      # in essence, the first stop can a "before?" stop, but can match to the inside of a line.
+      # in essence, the first stop can be a "before?" stop, but can match to the inside of a line.
       feed_cta, feed_version_cta = load_feed(feed_version_name: :feed_version_cta_476113351107, import_level: 1)
       feed_trenitalia, feed_version_trenitalia = load_feed(feed_version_name: :feed_version_trenitalia_56808573, import_level: 1)
-      expect(Geometry::MetaDistances.new(feed_cta.imported_route_stop_patterns.first).calculate_distances[0..1]).to match_array([0.0,29.8])
-      expect(Geometry::MetaDistances.new(feed_trenitalia.imported_route_stop_patterns.first).calculate_distances[0..1]).to match_array([6547.6, 8079.6])
+      expect(Geometry::TLDistances.new(feed_cta.imported_route_stop_patterns.first).calculate_distances[0..1]).to match_array([0.0,29.8])
+      expect(Geometry::TLDistances.new(feed_trenitalia.imported_route_stop_patterns.first).calculate_distances[0..1]).to match_array([6547.6, 8079.6])
     end
 
     it 'appropriately handles tricky case where 3rd stop would match to the first segment point' do
@@ -385,7 +385,7 @@ describe Geometry do
 
     xit 'attempts a readjustment if stops are out of order' do
       feed, feed_version = load_feed(feed_version_name: :feed_version_ttc_34398377, import_level: 1)
-      expect(Geometry::MetaDistances.new(RouteStopPattern.first).calculate_distances[0..1]).to match_array([29.2, 29.2])
+      expect(Geometry::TLDistances.new(RouteStopPattern.first).calculate_distances[0..1]).to match_array([29.2, 29.2])
     end
   end
 

@@ -391,7 +391,7 @@ class GTFSGraphImporter
         # edited rsps will probably have a shape
       rsp.stop_distances = Geometry::DistanceCalculation.straight_line_distances(stops.map(&:geometry_centroid))
     else
-      Geometry::MetaDistances.new(rsp, stops).calculate_distances
+      Geometry::TLDistances.new(rsp, stops).calculate_distances
     end
     rsp.stop_distances
   end
