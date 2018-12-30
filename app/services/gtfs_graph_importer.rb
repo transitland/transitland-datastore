@@ -388,7 +388,7 @@ class GTFSGraphImporter
       # assume stop_times' and shapes' shape_dist_traveled are in the same units (a condition required by GTFS). TODO: validate that.
       Geometry::GTFSShapeDistanceTraveled::gtfs_shape_dist_traveled(rsp, stop_times, stops, shape_distances_traveled)
     elsif (rsp.geometry_source.to_sym.eql?(:trip_stop_points) && rsp.edited_attributes.empty?)
-        # edited rsps will probably have a shape
+        # edited rsps will probably have a shape, so skip those here
       rsp.stop_distances = Geometry::DistanceCalculation.straight_line_distances(stops.map(&:geometry_centroid))
     else
       Geometry::TLDistances.new(rsp, stops).calculate_distances
