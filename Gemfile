@@ -115,6 +115,7 @@ gem 'puma'
 
 # profiling
 gem 'memory_profiler', group: [:test, :development]
+gem 'ruby-prof', group: [:development]
 
 # algorithms
-gem 'opap_wc', git: 'git@github.com:doublestranded/opap_wc', branch: 'master'
+gem 'n_opa', git: 'git@github.com:doublestranded/n_opa', branch: 'master'

@@ -129,8 +129,9 @@ module Geometry
           Array.new(num_new_points) do |i|
             dy = sub_l*(1+i)*prop_y
             dx = sub_l*(1+i)*prop_x
-            self.cartesian_cast(
-              RouteStopPattern::GEOFACTORY.point(segment.s.x + dx, segment.s.y + dy)
+            RGeo::Cartesian::Factory.new(srid: 4326).point(
+              segment.s.x + dx,
+              segment.s.y + dy
             )
           end +
           [segment.e]
@@ -141,7 +142,7 @@ module Geometry
 
       return cartesian_shape if new_points.size == cartesian_shape.points.size
 
-      self.cartesian_cast(RouteStopPattern::GEOFACTORY.line_string(new_points))
+      RGeo::Cartesian::Factory.new(srid: 4326).line_string(new_points)
     end
 
     def pulverize_shape(e=0.001)
@@ -257,7 +258,7 @@ module Geometry
     end
   end
 
-  class DynamicOpapWcAlgorithm < DistanceCalculation
+  class DynamicNOpaAlgorithm < DistanceCalculation
     def calculate_distances(skip_stops=[])
       @skip_stops = skip_stops
       computable_stop_positions = (0...@cartesian_stop_points.size).to_a - @skip_stops
@@ -270,7 +271,7 @@ module Geometry
         cartesian_shape
       )
 
-      distance_calculator = OpapWc::DynamicAlgorithm.new(
+      distance_calculator = NOpa::DynamicAlgorithm.new(
         cost_matrix,
         costs: true
       )
@@ -381,7 +382,7 @@ module Geometry
         return @rsp.stop_distances
       end
 
-      @distance_calculator = Geometry::DynamicOpapWcAlgorithm.new(
+      @distance_calculator = Geometry::DynamicNOpaAlgorithm.new(
         @rsp[:geometry],
         @spherical_stop_points,
         cartesian_shape: @cartesian_shape

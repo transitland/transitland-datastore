@@ -10,11 +10,11 @@ GIT
       rubyzip (~> 1.1)
 
 GIT
-  remote: git@github.com:doublestranded/opap_wc
-  revision: 6cedcc54381d896c2dcf8cff4fa7fdca10715af4
+  remote: git@github.com:doublestranded/n_opa
+  revision: 460eb01aa4996aa1b8267b0387f322502a34e067
   branch: master
   specs:
-    opap_wc (0.1.0)
+    n_opa (0.1.0)
 
 PATH
   remote: components
@@ -981,6 +981,7 @@ GEM
       builder (< 4)
       rspec-core (>= 2, < 4, != 2.12.0)
     ruby-graphviz (1.2.4)
+    ruby-prof (0.17.0)
     ruby-progressbar (1.10.0)
     rubyzip (1.2.2)
     rufus-scheduler (3.4.2)
@@ -1081,8 +1082,8 @@ DEPENDENCIES
   logstasher
   marginalia (= 1.5.0)
   memory_profiler
+  n_opa!
   oj
-  opap_wc!
   pg (~> 0.18)
   pghero
   pry-byebug
@@ -1101,6 +1102,7 @@ DEPENDENCIES
   rspec-rails
   rspec-sidekiq
   rspec_junit_formatter (= 0.2.2)
+  ruby-prof
   ruby-progressbar
   rufus-scheduler (~> 3.4.0)
   sentry-raven
