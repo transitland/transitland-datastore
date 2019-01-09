@@ -1,7 +1,119 @@
 # Change Log
 
+## [v88](https://github.com/transitland/transitland-datastore/tree/v88) (2018-11-02)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/v87...v88)
+
+**Closed issues:**
+
+- Operators not returned in bounding box query [\#1256](https://github.com/transitland/transitland-datastore/issues/1256)
+
+**Merged pull requests:**
+
+- Production release 88 [\#1266](https://github.com/transitland/transitland-datastore/pull/1266) ([irees](https://github.com/irees))
+- misc gem updates [\#1265](https://github.com/transitland/transitland-datastore/pull/1265) ([drewda](https://github.com/drewda))
+- route\_stop\_patterns/headways [\#1264](https://github.com/transitland/transitland-datastore/pull/1264) ([irees](https://github.com/irees))
+- Fix /api/v1/feed\_version\_imports?feed\_version\_sha1= [\#1262](https://github.com/transitland/transitland-datastore/pull/1262) ([irees](https://github.com/irees))
+- when reconflating stops, limit to 10,000 at a time [\#1260](https://github.com/transitland/transitland-datastore/pull/1260) ([drewda](https://github.com/drewda))
+- misc. gem updates [\#1258](https://github.com/transitland/transitland-datastore/pull/1258) ([drewda](https://github.com/drewda))
+- upgrade to Ruby 2.3.8 [\#1257](https://github.com/transitland/transitland-datastore/pull/1257) ([drewda](https://github.com/drewda))
+- Production relase 87 [\#1253](https://github.com/transitland/transitland-datastore/pull/1253) ([irees](https://github.com/irees))
+
+## [v87](https://github.com/transitland/transitland-datastore/tree/v87) (2018-09-21)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/v86...v87)
+
+**Merged pull requests:**
+
+- misc. gem updates [\#1251](https://github.com/transitland/transitland-datastore/pull/1251) ([drewda](https://github.com/drewda))
+- Postgres timeout should be configurable [\#1250](https://github.com/transitland/transitland-datastore/pull/1250) ([drewda](https://github.com/drewda))
+- Run headways after data has been paginated [\#1249](https://github.com/transitland/transitland-datastore/pull/1249) ([irees](https://github.com/irees))
+- Production release 86 [\#1248](https://github.com/transitland/transitland-datastore/pull/1248) ([irees](https://github.com/irees))
+
+## [v86](https://github.com/transitland/transitland-datastore/tree/v86) (2018-09-19)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/v85.2-rc1...v86)
+
+**Merged pull requests:**
+
+- Inline headway responses [\#1247](https://github.com/transitland/transitland-datastore/pull/1247) ([irees](https://github.com/irees))
+
+## [v85.2-rc1](https://github.com/transitland/transitland-datastore/tree/v85.2-rc1) (2018-08-22)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/v85.2-rc2...v85.2-rc1)
+
+## [v85.2-rc2](https://github.com/transitland/transitland-datastore/tree/v85.2-rc2) (2018-08-22)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/v85.1...v85.2-rc2)
+
+**Merged pull requests:**
+
+- Production release 85.1 [\#1245](https://github.com/transitland/transitland-datastore/pull/1245) ([irees](https://github.com/irees))
+
+## [v85.1](https://github.com/transitland/transitland-datastore/tree/v85.1) (2018-08-22)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/v85...v85.1)
+
+**Merged pull requests:**
+
+- Stop frequency analysis followup [\#1244](https://github.com/transitland/transitland-datastore/pull/1244) ([irees](https://github.com/irees))
+
+## [v85](https://github.com/transitland/transitland-datastore/tree/v85) (2018-08-21)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/v84.1...v85)
+
+**Merged pull requests:**
+
+- Production release 85 [\#1243](https://github.com/transitland/transitland-datastore/pull/1243) ([irees](https://github.com/irees))
+- Headway analysis [\#1242](https://github.com/transitland/transitland-datastore/pull/1242) ([irees](https://github.com/irees))
+- GTFS entities [\#1222](https://github.com/transitland/transitland-datastore/pull/1222) ([irees](https://github.com/irees))
+
+## [v84.1](https://github.com/transitland/transitland-datastore/tree/v84.1) (2018-07-17)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/v84...v84.1)
+
+## [v84](https://github.com/transitland/transitland-datastore/tree/v84) (2018-07-17)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/v83.1...v84)
+
+**Merged pull requests:**
+
+- Production release 84 [\#1239](https://github.com/transitland/transitland-datastore/pull/1239) ([irees](https://github.com/irees))
+
+## [v83.1](https://github.com/transitland/transitland-datastore/tree/v83.1) (2018-05-28)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/v83...v83.1)
+
+## [v83](https://github.com/transitland/transitland-datastore/tree/v83) (2018-05-25)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/v82...v83)
+
+**Merged pull requests:**
+
+- Downgrade rufus-scheduler [\#1238](https://github.com/transitland/transitland-datastore/pull/1238) ([irees](https://github.com/irees))
+
 ## [v82](https://github.com/transitland/transitland-datastore/tree/v82) (2018-05-18)
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/81...v82)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/v82-rc8...v82)
+
+**Merged pull requests:**
+
+- CircleCI: build container image on tag [\#1237](https://github.com/transitland/transitland-datastore/pull/1237) ([drewda](https://github.com/drewda))
+- CircleCI 2.0, continued again [\#1236](https://github.com/transitland/transitland-datastore/pull/1236) ([drewda](https://github.com/drewda))
+- \[WIP\] Production release 82 [\#1234](https://github.com/transitland/transitland-datastore/pull/1234) ([drewda](https://github.com/drewda))
+
+## [v82-rc8](https://github.com/transitland/transitland-datastore/tree/v82-rc8) (2018-05-17)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/v82-rc7...v82-rc8)
+
+## [v82-rc7](https://github.com/transitland/transitland-datastore/tree/v82-rc7) (2018-05-17)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/v82-rc6...v82-rc7)
+
+## [v82-rc6](https://github.com/transitland/transitland-datastore/tree/v82-rc6) (2018-05-17)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/v82-rc5...v82-rc6)
+
+## [v82-rc5](https://github.com/transitland/transitland-datastore/tree/v82-rc5) (2018-05-17)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/v82-rc4...v82-rc5)
+
+## [v82-rc4](https://github.com/transitland/transitland-datastore/tree/v82-rc4) (2018-05-17)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/v82-rc3...v82-rc4)
+
+## [v82-rc3](https://github.com/transitland/transitland-datastore/tree/v82-rc3) (2018-05-17)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/v82-rc1...v82-rc3)
+
+**Merged pull requests:**
+
+- CircleCI 2.0, continued [\#1235](https://github.com/transitland/transitland-datastore/pull/1235) ([drewda](https://github.com/drewda))
+
+## [v82-rc1](https://github.com/transitland/transitland-datastore/tree/v82-rc1) (2018-05-17)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/81...v82-rc1)
 
 **Fixed bugs:**
 
@@ -9,10 +121,6 @@
 
 **Merged pull requests:**
 
-- CircleCI: build container image on tag [\#1237](https://github.com/transitland/transitland-datastore/pull/1237) ([drewda](https://github.com/drewda))
-- CircleCI 2.0, continued again [\#1236](https://github.com/transitland/transitland-datastore/pull/1236) ([drewda](https://github.com/drewda))
-- CircleCI 2.0, continued [\#1235](https://github.com/transitland/transitland-datastore/pull/1235) ([drewda](https://github.com/drewda))
-- \[WIP\] Production release 82 [\#1234](https://github.com/transitland/transitland-datastore/pull/1234) ([drewda](https://github.com/drewda))
 - \[WIP\] CircleCI to build Docker image [\#1233](https://github.com/transitland/transitland-datastore/pull/1233) ([drewda](https://github.com/drewda))
 - configure SMTP settings through ENV vars [\#1232](https://github.com/transitland/transitland-datastore/pull/1232) ([drewda](https://github.com/drewda))
 - update gems [\#1230](https://github.com/transitland/transitland-datastore/pull/1230) ([drewda](https://github.com/drewda))
@@ -21,10 +129,7 @@
 - Production release [\#1224](https://github.com/transitland/transitland-datastore/pull/1224) ([irees](https://github.com/irees))
 
 ## [81](https://github.com/transitland/transitland-datastore/tree/81) (2018-03-13)
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/push...81)
-
-## [push](https://github.com/transitland/transitland-datastore/tree/push) (2018-03-13)
-[Full Changelog](https://github.com/transitland/transitland-datastore/compare/80...push)
+[Full Changelog](https://github.com/transitland/transitland-datastore/compare/80...81)
 
 **Merged pull requests:**
 

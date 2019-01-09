@@ -3,7 +3,38 @@ class Api::V1::RoutesController < Api::V1::CurrentEntityController
     Route
   end
 
+  def headways
+    set_model
+    render :json => route_headways([@model]).map { |k,v| [k.join(':'), v] }.to_h
+  end
+
   private
+
+  def route_headways(routes)
+    # headway_* query parameters
+    dates = (params[:headway_dates] || "").split(",")
+    between = (params[:headway_departure_between] || "").split(",")
+    departure_span = params[:headway_departure_span].presence
+    h = params[:headway_percentile].presence    
+    headway_percentile = h ? h.to_f : 0.5
+    headways = {}
+    begin
+      headways = ScheduleStopPair.headways({
+        dates: dates, 
+        key: [:route_id, :origin_id, :destination_id],
+        q: {route_id: routes.map(&:id)}, 
+        departure_start: between[0], 
+        departure_end: between[1], 
+        departure_span: departure_span, 
+        headway_percentile: headway_percentile
+      })
+    rescue StandardError => e
+      nil
+    end
+    sids = Stop.select([:id, :onestop_id]).where(id: headways.keys.map { |k| k[1..-1] }.flatten.sort.uniq ).map { |s| [s.id, s.onestop_id] }.to_h
+    rids = routes.map { |i| [i.id, i.onestop_id] }.to_h
+    headways.map { |k,v| [[rids[k[0]],sids[k[1]],sids[k[2]]], v]}.to_h
+  end
 
   def index_query
     super
@@ -58,6 +89,26 @@ class Api::V1::RoutesController < Api::V1::CurrentEntityController
     end
   end
 
+  def paginated_json_collection(collection)
+    page = super
+    page[:scope] = scope = render_scope
+    data = page[:json]
+    if scope[:headways]
+      scope[:headways_data] = route_headways(data)
+    end
+    page
+  end
+  
+  def paginated_geojson_collection(collection)
+    page = super
+    page[:scope] = scope = render_scope
+    data = page[:json]
+    if scope[:headways]
+      scope[:headways_data] = route_headways(data)
+    end
+    page
+  end
+
   def query_params
     super.merge({
       operated_by: {
@@ -95,6 +146,24 @@ class Api::V1::RoutesController < Api::V1::CurrentEntityController
       bikes_allowed: {
         desc: "Bikes allowed",
         format: "boolean"
+      },
+      headway_dates: {
+        desc: "Dates for headway calculation",
+        type: "string",
+        array: true
+      },
+      headway_departure_between: {
+        desc: "Origin departure times for headway calculation",
+        type: "string",
+        array: true
+      },
+      headway_percentile: {
+        desc: "Percentile to use for headway calculation",
+        type: "float"
+      },
+      headway_departure_span: {
+        desc: "Minimum daily service span for headway calculation",
+        type: "string"
       }
     })
   end

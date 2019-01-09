@@ -3,7 +3,38 @@ class Api::V1::StopsController < Api::V1::CurrentEntityController
     Stop
   end
 
+  def headways
+    set_model
+    render :json => stop_headways([@model]).map { |k,v| [k.join(':'), v] }.to_h
+  end
+
   private
+
+  def stop_headways(stops)
+    # headway_* query parameters
+    dates = (params[:headway_dates] || "").split(",")
+    between = (params[:headway_departure_between] || "").split(",")
+    departure_span = params[:headway_departure_span].presence
+    h = params[:headway_percentile].presence    
+    headway_percentile = h ? h.to_f : 0.5
+    headways = {}
+    begin
+      headways = ScheduleStopPair.headways({
+        dates: dates, 
+        key: [:origin_id, :destination_id],
+        q: {origin_id: stops.map(&:id)}, 
+        departure_start: between[0], 
+        departure_end: between[1], 
+        departure_span: departure_span, 
+        headway_percentile: headway_percentile
+      })
+    rescue StandardError => e
+      puts "stop_headways error: #{e}"
+      nil
+    end
+    sids = Stop.select([:id, :onestop_id]).where(id: headways.keys.flatten.sort.uniq ).map { |s| [s.id, s.onestop_id] }.to_h
+    headways.map { |k,v| [[sids[k[0]], sids[k[1]]], v]}.to_h
+  end
 
   def index_query
     super
@@ -35,10 +66,25 @@ class Api::V1::StopsController < Api::V1::CurrentEntityController
   end
 
   def paginated_json_collection(collection)
-    result = super
-    result[:root] = :stops
-    result[:each_serializer] = StopSerializer
-    result
+    page = super
+    page[:root] = :stops
+    page[:each_serializer] = StopSerializer    
+    page[:scope] = scope = render_scope
+    data = page[:json]
+    if scope[:headways]
+      scope[:headways_data] = stop_headways(data)
+    end
+    page
+  end
+  
+  def paginated_geojson_collection(collection)
+    page = super
+    page[:scope] = scope = render_scope
+    data = page[:json]
+    if scope[:headways]
+      scope[:headways_data] = stop_headways(data)
+    end
+    page
   end
 
   def query_params
@@ -59,7 +105,25 @@ class Api::V1::StopsController < Api::V1::CurrentEntityController
       wheelchair_boarding: {
         desc: "Wheelchair boarding",
         type: "boolean"
-      }
+      },
+      headway_dates: {
+        desc: "Dates for headway calculation",
+        type: "string",
+        array: true
+      },
+      headway_departure_between: {
+        desc: "Origin departure times for headway calculation",
+        type: "string",
+        array: true
+      },
+      headway_percentile: {
+        desc: "Percentile to use for headway calculation",
+        type: "float"
+      },
+      headway_departure_span: {
+        desc: "Minimum daily service span for headway calculation",
+        type: "string"
+      }  
     })
   end
 end

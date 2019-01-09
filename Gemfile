@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.2.10'
+gem 'rails', '4.2.11'
 
 # Transitland Datastore components
 path 'components' do
@@ -107,7 +107,7 @@ gem 'ruby-progressbar'
 # database query performance monitoring/analysis
 gem 'bullet', group: :development
 gem 'pghero', group: [:development, :staging, :production] # mounted at /admin/postgres
-gem 'marginalia', group: [:development, :staging]
+gem 'marginalia', '1.5.0', group: [:development, :staging] # NOTE: 1.6.0 doesn't compile
 
 # web server
 gem 'unicorn', group: [:staging, :production]

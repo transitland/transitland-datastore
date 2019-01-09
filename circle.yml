@@ -60,6 +60,6 @@ workflows:
             - rails-test-suite
           filters:
             tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
+              only: /.*/
+            # branches:
+            #   ignore: /.*/

@@ -242,6 +242,69 @@ class ScheduleStopPair < BaseScheduleStopPair
     super(GTFS::WideTime.parse(value))
   end
 
+  def expand_frequency
+    return [self] unless frequency_start_time && frequency_end_time && frequency_headway_seconds
+    o_a = GTFS::WideTime.parse(origin_arrival_time).to_seconds
+    o_d = GTFS::WideTime.parse(origin_departure_time).to_seconds
+    d_a = GTFS::WideTime.parse(destination_arrival_time).to_seconds
+    d_d = GTFS::WideTime.parse(destination_departure_time).to_seconds
+    e = GTFS::WideTime.parse(frequency_end_time).to_seconds
+    t = 0
+    ret = []
+    while (o_a + t) <= e      
+      a = self.dup
+      a.origin_arrival_time = GTFS::WideTime.new(o_a + t).to_s
+      a.origin_departure_time = GTFS::WideTime.new(o_d + t).to_s
+      a.destination_arrival_time = GTFS::WideTime.new(d_a + t).to_s
+      a.destination_departure_time = GTFS::WideTime.new(d_d + t).to_s
+      ret << a
+      t += frequency_headway_seconds
+    end
+    ret
+  end
+
+  def self.percentile(values, percentile)
+    percentile ||= 0.5
+    values_sorted = values.sort
+    return nil if values.empty?
+    return values.last if values.size == 1
+    return values.last if percentile == 1.0
+    k = (percentile*(values_sorted.length-1)+1).floor - 1
+    f = (percentile*(values_sorted.length-1)+1).modulo(1)
+    return values_sorted[k] + (f * (values_sorted[k+1] - values_sorted[k]))
+  end
+
+  def self.headways(dates: [], q: {}, departure_start: nil, departure_end: nil, departure_span: nil, headway_percentile: 0.5, key: nil)
+    key ||= [:origin_id, :destination_id]
+    dates = Array.wrap(dates)
+    fail Exception.new('must supply at least one date') unless dates.size > 0
+    departure_start = GTFS::WideTime.parse(departure_start || '00:00').to_seconds
+    departure_end = GTFS::WideTime.parse(departure_end || '1000:00').to_seconds
+    departure_span = GTFS::WideTime.parse(departure_span).try(:to_seconds) || 0
+    headways = Hash.new { |h,k| h[k] = [] }
+    dates.each do |date|
+      stop_pairs = Hash.new { |h,k| h[k] = [] }
+      ScheduleStopPair
+        .where(q)
+        .where_service_on_date(date)
+        .select([:id, :route_id, :route_stop_pattern_id, :origin_id, :destination_id, :origin_arrival_time, :origin_departure_time, :destination_arrival_time, :destination_departure_time, :frequency_start_time, :frequency_end_time, :frequency_headway_seconds])
+        .find_each do |ssp|
+          ssp.expand_frequency.each do |ssp|
+            t = GTFS::WideTime.parse(ssp.origin_arrival_time).to_seconds
+            k = key.map { |i| ssp[i] } # [ssp.origin_id, ssp.destination_id]
+            stop_pairs[k] << t
+          end
+      end
+      stop_pairs.each do |k,v|
+        v = v.sort
+        next unless (v.last - v.first) > departure_span
+        v = v.select { |i| departure_start <= i && i <= departure_end }
+        headways[k] += v[0..-2].zip(v[1..-1] || []).map { |a,b| b - a }.select { |i| i > 0 }
+      end
+    end
+    headways.map { |k,v| [k, percentile(v, headway_percentile) ]}.select { |k,v| v }.to_h
+  end
+
   # Tracked by changeset
   include CurrentTrackedByChangeset
   current_tracked_by_changeset({
