@@ -115,7 +115,6 @@ gem 'puma'
 
 # profiling
 gem 'memory_profiler', group: [:test, :development]
-gem 'ruby-prof', group: [:development]
 
 # algorithms
-gem 'n_opa', git: 'git@github.com:doublestranded/n_opa', branch: 'master'
+gem 'n_opa', github: 'doublestranded/n_opa', branch: 'master'

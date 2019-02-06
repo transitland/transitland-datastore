@@ -1,4 +1,11 @@
 GIT
+  remote: git://github.com/doublestranded/n_opa.git
+  revision: c6b73816066eeb4dc12f6da7eda7d91954d5b394
+  branch: master
+  specs:
+    n_opa (0.1.0)
+
+GIT
   remote: git://github.com/transitland/gtfs.git
   revision: 35ece1267514479b8785fe644cc69dddbb25f758
   tag: 35ece1267514479b8785fe644cc69dddbb25f758
@@ -8,13 +15,6 @@ GIT
       rake
       rcsv
       rubyzip (~> 1.1)
-
-GIT
-  remote: git@github.com:doublestranded/n_opa
-  revision: 460eb01aa4996aa1b8267b0387f322502a34e067
-  branch: master
-  specs:
-    n_opa (0.1.0)
 
 PATH
   remote: components
@@ -981,7 +981,6 @@ GEM
       builder (< 4)
       rspec-core (>= 2, < 4, != 2.12.0)
     ruby-graphviz (1.2.4)
-    ruby-prof (0.17.0)
     ruby-progressbar (1.10.0)
     rubyzip (1.2.2)
     rufus-scheduler (3.4.2)
@@ -1102,7 +1101,6 @@ DEPENDENCIES
   rspec-rails
   rspec-sidekiq
   rspec_junit_formatter (= 0.2.2)
-  ruby-prof
   ruby-progressbar
   rufus-scheduler (~> 3.4.0)
   sentry-raven
