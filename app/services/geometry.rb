@@ -304,12 +304,13 @@ module Geometry
     DISTANCE_PRECISION = 1
 
     def initialize(rsp, stops=nil)
+      @rsp = rsp
+
       if stops.nil?
-        @stops = rsp.stops
+        @stops = Stop.find_by_sql("SELECT s.onestop_id, s.geometry FROM current_stops s JOIN unnest( ARRAY[#{@rsp.stop_pattern.map{|s| "'#{s}'"}.join(',')}] ) WITH ORDINALITY t(id, ord) ON t.id=s.onestop_id ORDER BY t.ord")
       else
         @stops = stops
       end
-      @rsp = rsp
 
       @rsp.stop_distances = Array.new(@stops.size)
 

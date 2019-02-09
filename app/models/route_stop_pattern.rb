@@ -122,10 +122,6 @@ class RouteStopPattern < BaseRouteStopPattern
     end
   end
 
-  def stops
-    @stops ||= Stop.find_by_sql("SELECT s.* FROM current_stops s JOIN unnest( ARRAY[#{stop_pattern.map{|s| "'#{s}'"}.join(',')}] ) WITH ORDINALITY t(id, ord) ON t.id=s.onestop_id ORDER BY t.ord")
-  end
-
   ##### FromGTFS ####
   def generate_onestop_id
     route = self.traversed_by.present? ? self.traversed_by : self.route
