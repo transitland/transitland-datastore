@@ -148,6 +148,7 @@ module Geometry
     def pulverize_shape(e=0.001)
       @pulverized_shape = self.class.pulverize_shape(@cartesian_shape, e)
       @stop_locators = self.class.stop_locators(@cartesian_stop_points, @pulverized_shape)
+      [@stop_locators, @pulverized_shape]
     end
 
     def first_pass(skip_stops=[])
@@ -377,7 +378,7 @@ module Geometry
       end
     end
 
-    def calculate_distances
+    def calculate_distances(try_first_pass: false)
       if @stops.map(&:onestop_id).uniq.size == 1
         @rsp.stop_distances = Array.new(@stops.size).map{|i| 0.0}
         return @rsp.stop_distances
@@ -393,7 +394,9 @@ module Geometry
 
       compute_skip_stops
 
-      if !@distance_calculator.complex?(@skip_stops)
+      if try_first_pass && !@distance_calculator.complex?(@skip_stops)
+        # the first pass heuristic looks for the condition where each stop already matches
+        # to a segment that maintains distance order. It may not be optimal.
         prepare_stop_distances(
           @distance_calculator.first_pass_distances(@skip_stops),
           @distance_calculator.first_pass.map{ |l| l[1] unless l.nil? }
@@ -403,8 +406,8 @@ module Geometry
 
       begin
         compute_skip_stops
-        @distance_calculator.pulverize_shape
-        @stop_locators = @distance_calculator.stop_locators
+        @stop_locators, @cartesian_shape = @distance_calculator.pulverize_shape
+
         stop_distances = @distance_calculator.calculate_distances(@skip_stops)
 
         prepare_stop_distances(
