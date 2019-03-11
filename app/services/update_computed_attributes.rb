@@ -84,7 +84,7 @@ class UpdateComputedAttributes::GeometryUpdateComputedAttributes < UpdateCompute
         rsp.update_making_history(changeset: @changeset, new_attrs: { stop_distances: stop_distances })
       rescue StandardError
         log "Could not calculate distances for Route Stop Pattern: #{rsp.onestop_id}"
-        rsp.update_making_history(changeset: @changeset, new_attrs: { stop_distances: Geometry::DistanceCalculation.new(rsp[:geometry], rsp.stops).fallback_distances })
+        rsp.update_making_history(changeset: @changeset, new_attrs: { stop_distances: Geometry::TLDistances.new(rsp).fallback_distances })
       end
 
       rsp.ordered_ssp_trip_chunks { |trip_chunk|

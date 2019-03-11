@@ -307,11 +307,7 @@ module Geometry
     def initialize(rsp, stops=nil)
       @rsp = rsp
 
-      if stops.nil?
-        @stops = Stop.find_by_sql("SELECT s.onestop_id, s.geometry FROM current_stops s JOIN unnest( ARRAY[#{@rsp.stop_pattern.map{|s| "'#{s}'"}.join(',')}] ) WITH ORDINALITY t(id, ord) ON t.id=s.onestop_id ORDER BY t.ord")
-      else
-        @stops = stops
-      end
+      @stops = stops || Stop.find_by_sql("SELECT s.onestop_id, s.geometry FROM current_stops s JOIN unnest( ARRAY[#{@rsp.stop_pattern.map{|s| "'#{s}'"}.join(',')}] ) WITH ORDINALITY t(id, ord) ON t.id=s.onestop_id ORDER BY t.ord")
 
       @rsp.stop_distances = Array.new(@stops.size)
 
@@ -324,6 +320,14 @@ module Geometry
       @cartesian_stop_points = @spherical_stop_points.map do |point|
         self.class.cartesian_cast(point)
       end
+    end
+
+    def fallback_distances
+      DistanceCalculation.new(
+        @rsp[:geometry],
+        @spherical_stop_points,
+        cartesian_shape: @cartesian_shape
+      ).fallback_distances
     end
 
     def stop_before_geometry?(stop_as_cartesian)
