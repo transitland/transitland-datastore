@@ -354,7 +354,7 @@ module Geometry
         nearest_index
       )
 
-      if closest_dist > (computed_distances[1..-1].detect{|d| !d.nil?} || @route_line_length)
+      if closest_dist > (computed_distances[1..-1].to_a.detect{|d| !d.nil?} || @route_line_length)
         0.0
       else
         closest_dist
@@ -412,7 +412,10 @@ module Geometry
         compute_skip_stops
         @stop_locators, @cartesian_shape = @distance_calculator.pulverize_shape
 
-        stop_distances = @distance_calculator.calculate_distances(@skip_stops)
+        stop_distances = []
+        unless @skip_stops.size == @rsp.stop_pattern.size
+          stop_distances = @distance_calculator.calculate_distances(@skip_stops)
+        end
 
         prepare_stop_distances(
           stop_distances,
@@ -440,11 +443,17 @@ module Geometry
           elsif i == @rsp.stop_distances.size - 1
             @rsp.stop_distances[i] = assign_last_stop_distance
           else
-            # interpolate between the previous and next stop distances
-            @rsp.stop_distances[i] = (
-              @rsp.stop_distances[i-1] +
-              (computed_distances[i+1..-1].detect{|d| !d.nil?} || @route_line_length)
-            ).fdiv(2)
+            # interpolate between the previous and next non-nil stop distance before
+            # the last stop. there could be multiple consecutive nil values
+            next_val = computed_distances[i+1..-1].to_a.each_with_index.detect{|d, j| !d.nil?}
+
+            next_nil_size = next_val.nil? ? @rsp.stop_pattern.size - i : next_val.last + 1
+            next_dist = next_val.try(:first) || @route_line_length
+            dist_div = (next_dist - @rsp.stop_distances[i-1]).fdiv(next_nil_size + 1)
+
+            1.upto(next_nil_size) do |j|
+              @rsp.stop_distances[i-1+j] = @rsp.stop_distances[i-1] + j * dist_div
+            end
           end
         else
           @rsp.stop_distances[i] = computed_distances[i]

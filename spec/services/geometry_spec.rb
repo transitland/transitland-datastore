@@ -24,6 +24,11 @@ describe Geometry do
     onestop_id: "s-9q9hwp6epk-mountainviewcaltrainstation",
     geometry: Stop::GEOFACTORY.point(-122.076327, 37.393879).to_s
   )}
+  let(:geom) {
+    Geometry::LineString.line_string([stop_a.geometry[:coordinates],
+                                          stop_b.geometry[:coordinates],
+                                          stop_c.geometry[:coordinates]])
+  }
   let(:route_onestop_id) { 'r-9q9j-bullet' }
 
   context 'distance calculation' do
@@ -31,17 +36,14 @@ describe Geometry do
       @sp = [stop_a.onestop_id,
              stop_b.onestop_id,
              stop_c.onestop_id]
-      @geom = Geometry::LineString.line_string([stop_a.geometry[:coordinates],
-                                            stop_b.geometry[:coordinates],
-                                            stop_c.geometry[:coordinates]])
       @rsp = RouteStopPattern.new(
         stop_pattern: @sp,
-        geometry: @geom
+        geometry: geom
       )
       @rsp.route = Route.new(onestop_id: route_onestop_id)
       @rsp.onestop_id = OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: route_onestop_id,
                                                              stop_pattern: @sp,
-                                                             geometry_coords: @geom.coordinates).to_s
+                                                             geometry_coords: geom.coordinates).to_s
       @trip = GTFS::Trip.new(trip_id: 'test', shape_id: 'test')
     end
 
@@ -105,6 +107,19 @@ describe Geometry do
         feed_cta, feed_version_cta = load_feed(feed_version_name: :feed_version_cta_476113351107, import_level: 1)
         expect(Issue.where(issue_type: 'distance_calculation_inaccurate').count).to eq 0
         expect(RouteStopPattern.first.geometry_source).to eq "shapes_txt"
+      end
+    end
+
+    context 'when all stops are outliers' do
+      let(:geom) {
+        Geometry::LineString.line_string([stop_a.geometry[:coordinates].collect{|c| c + 0.01},
+                                              stop_b.geometry[:coordinates].collect{|c| c + 0.01},
+                                              stop_c.geometry[:coordinates].collect{|c| c + 0.01}])
+      }
+
+      it 'calculates distances' do
+        expect(Sidekiq::Logging.logger).to_not receive(:info).with(/Could not calculate distances/)
+        expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array([530.1, 13186.7, 16999.6])
       end
     end
 
