@@ -23,6 +23,7 @@
 #  active_feed_version_id             :integer
 #  edited_attributes                  :string           default([]), is an Array
 #  name                               :string
+#  type                               :string           default("Feed"), not null
 #
 # Indexes
 #

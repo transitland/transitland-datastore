@@ -48,6 +48,10 @@ class BaseFeed < ActiveRecord::Base
   attr_accessor :includes_operators, :does_not_include_operators
 end
 
+# class RealtimeFeed < BaseFeed
+#   self.table_name_prefix = 'current_'
+# end
+
 class Feed < BaseFeed
   self.table_name_prefix = 'current_'
 
