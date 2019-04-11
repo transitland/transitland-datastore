@@ -63,6 +63,7 @@ ActiveRecord::Schema.define(version: 20190411214421) do
     t.integer   "active_feed_version_id"
     t.string    "edited_attributes",                                                                              default: [], array: true
     t.string    "name"
+    t.string    "type"
   end
 
   add_index "current_feeds", ["active_feed_version_id"], name: "index_current_feeds_on_active_feed_version_id", using: :btree
@@ -694,6 +695,7 @@ ActiveRecord::Schema.define(version: 20190411214421) do
     t.string    "edited_attributes",                                                                              default: [], array: true
     t.string    "action"
     t.string    "name"
+    t.string    "type"
   end
 
   add_index "old_feeds", ["active_feed_version_id"], name: "index_old_feeds_on_active_feed_version_id", using: :btree

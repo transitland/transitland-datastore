@@ -48,13 +48,12 @@ class BaseFeed < ActiveRecord::Base
   attr_accessor :includes_operators, :does_not_include_operators
 end
 
-# class RealtimeFeed < BaseFeed
-#   self.table_name = 'current_feeds'
-# end
+class RealtimeFeed < BaseFeed
+  self.table_name = 'current_feeds'
+end
 
 class Feed < BaseFeed
-  # self.table_name = 'current_feeds'
-  self.table_name_prefix = 'current_'
+  self.table_name = 'current_feeds'
 
   include HasAOnestopId
   include HasTags
@@ -339,9 +338,9 @@ end
 
 class OldFeed < BaseFeed
   include OldTrackedByChangeset
-  has_many :old_operators_in_feed, source_type: 'Feed'
+  has_many :old_operators_in_feed, as: :feed
   has_many :operators, through: :old_operators_in_feed, source_type: 'Feed'
 end
 
-# class OldRealtimeFeed < OldFeed
-# end
+class OldRealtimeFeed < OldFeed
+end
