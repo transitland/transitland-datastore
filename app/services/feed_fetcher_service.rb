@@ -9,7 +9,7 @@ class FeedFetcherService
   end
 
   def self.fetch_all_feeds_async
-    feeds = Feed.where('')
+    feeds = Feed.where(type: nil)
     async_enqueue_and_return_workers(feeds)
   end
 
@@ -27,6 +27,8 @@ class FeedFetcherService
   end
 
   def self.fetch_and_return_feed_version(feed)
+    # Only fetch static gtfs
+    return if feed.feed_format != 'gtfs'
     # Check fetch policy
     fetch_policy = feed.status
     if fetch_policy != 'active'

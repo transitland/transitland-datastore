@@ -66,7 +66,6 @@ class Feed < BaseFeed
   end
 
   extend Enumerize
-  enumerize :feed_format, in: [:gtfs]
   enumerize :license_use_without_attribution, in: [:yes, :no, :unknown]
   enumerize :license_create_derived_product, in: [:yes, :no, :unknown]
   enumerize :license_redistribute, in: [:yes, :no, :unknown]
@@ -190,6 +189,10 @@ class Feed < BaseFeed
     if self.urls.length == 0 
       errors.add(:urls, "at least one url is required")
     end
+  end
+
+  def feed_format
+    'gtfs'
   end
 
   def self.feed_version_update_statistics(feed)
@@ -363,7 +366,6 @@ class Feed < BaseFeed
   def set_default_values
     if self.new_record?
       self.tags ||= {}
-      self.feed_format ||= 'gtfs'
       self.license_use_without_attribution ||= 'unknown'
       self.license_create_derived_product ||= 'unknown'
       self.license_redistribute ||= 'unknown'
@@ -393,6 +395,11 @@ class GTFSRealtimeFeed < Feed
 
   def url=(value)
   end
+
+  def feed_format
+    'gtfs-rt'
+  end
+
 end
 
 class OldFeed < ActiveRecord::Base

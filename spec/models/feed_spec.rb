@@ -549,7 +549,7 @@ describe Feed do
           {
             action: 'createUpdate',
             gtfsRealtimeFeed: {
-              onestopId: 'f-123-debug',
+              onestopId: 'f-debug',
               urls: {
                 'realtime_alerts': 'http://example.com/test.zip',
               },
@@ -571,7 +571,7 @@ describe Feed do
     end
 
     it 'can be created from a changeset' do
-      osid = 'f-123-debug'
+      osid = 'f-debug'
       url = 'http://example.com/test.zip'
       @changeset1.apply!
       a = Feed.find_by_onestop_id(osid)
@@ -585,7 +585,7 @@ describe Feed do
           {
             action: 'createUpdate',
             gtfsRealtimeFeed: {
-              onestopId: 'f-123-debug',
+              onestopId: 'f-debug',
               urls: {
                 'realtime_vehicle_positions': "http://example.com/"
               }
