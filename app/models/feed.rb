@@ -168,28 +168,29 @@ class Feed < BaseFeed
     # WHERE fvi2.id IS NULL GROUP BY (fv.feed_id)
   }
 
+
+  # "static_current": { "type": "string" },
+  # "static_historic": { "type": "string" },
+  # "static_planned": { "type": "string" },
+  # "static_hypothetical": { "type": "string" },
+  # "realtime_vehicle_positions": { "type": "string" },
+  # "realtime_trip_updates": { "type": "string" },
+  # "realtime_alerts": { "type": "string" }
+  def valid_url_types
+    ['static_current', 'static_historic', 'static_planned', 'static_hypothetical']
+  end
+
   def validate_urls
+    vt = self.valid_url_types
+    self.urls ||= {}    
     self.urls.each do |k,v|
-      errors.add(:urls, "invalid url") unless v =~ URI.regexp
+      errors.add(:urls, "invalid url type: #{k}") unless vt.include?(k)
+      errors.add(:urls, "invalid url: #{v}") unless v =~ URI.regexp
     end
-    if self.urls["current_static"].nil? 
-      errors.add(:urls, "current_static url required")
+    if self.urls.length == 0 
+      errors.add(:urls, "at least one url is required")
     end
   end
-
-  def url
-    return {} if self.urls.nil?
-    return self.urls["current_static"]
-  end
-
-  def url=(value)
-    if self.urls.nil?
-      self.urls = {}
-    end
-    return if value.nil? # required for changesets to work, assign_attributes is unordered
-    self.urls["current_static"] = value
-  end
-
 
   def self.feed_version_update_statistics(feed)
     fvs = feed.feed_versions.to_a
@@ -336,6 +337,19 @@ class Feed < BaseFeed
     value
   end
 
+  def url
+    return {} if self.urls.nil?
+    return self.urls["static_current"]
+  end
+
+  def url=(value)
+    if self.urls.nil?
+      self.urls = {}
+    end
+    return if value.nil? # required for changesets to work, assign_attributes is unordered
+    self.urls["static_current"] = value
+  end
+
   def ssl_verify
     if tags['ssl_verify'] == 'false'
       return false
@@ -361,6 +375,24 @@ class GTFSStaticFeed < Feed
 end
 
 class GTFSRealtimeFeed < Feed
+  current_tracked_by_changeset({
+    kind_of_model_tracked: :onestop_entity,
+    virtual_attributes: [
+      :includes_operators,
+      :does_not_include_operators
+    ],
+    protected_attributes: []
+  })
+  
+  # "realtime_vehicle_positions": { "type": "string" },
+  # "realtime_trip_updates": { "type": "string" },
+  # "realtime_alerts": { "type": "string" }
+  def valid_url_types
+    ['realtime_vehicle_positions', 'realtime_trip_updates', 'realtime_alerts']
+  end
+
+  def url=(value)
+  end
 end
 
 class OldFeed < ActiveRecord::Base
@@ -370,5 +402,5 @@ class OldFeed < ActiveRecord::Base
   has_many :operators, through: :old_operators_in_feed, source_type: 'Feed'
 end
 
-class OldRealtimeFeed < OldFeed
+class OldGTFSRealtimeFeed < OldFeed
 end

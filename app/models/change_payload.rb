@@ -23,6 +23,7 @@ class ChangePayload < ActiveRecord::Base
 
   ENTITY_TYPES = {
     feed: Feed,
+    gtfs_realtime_feed: GTFSRealtimeFeed,
     stop: Stop,
     stop_platform: StopPlatform,
     stop_egress: StopEgress,

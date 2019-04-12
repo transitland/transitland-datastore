@@ -533,4 +533,68 @@ describe Feed do
       expect(feed.status).to eq('replaced')
     end
   end
+
+  context 'GTFSRealtimeFeed' do
+    before(:each) do
+      @changeset1 = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            operator: {
+              onestopId: 'o-9q9-caltrain',
+              name: 'Caltrain',
+              geometry: { type: "Polygon", coordinates:[[[-121.56649700000001,37.00360599999999],[-122.23195700000001,37.48541199999998],[-122.38653400000001,37.600005999999965],[-122.412018,37.63110599999998],[-122.39432299999996,37.77643899999997],[-121.65072100000002,37.12908099999998],[-121.61080899999999,37.085774999999984],[-121.56649700000001,37.00360599999999]]]}
+            }
+          },
+          {
+            action: 'createUpdate',
+            gtfsRealtimeFeed: {
+              onestopId: 'f-123-debug',
+              urls: {
+                'realtime_alerts': 'http://example.com/test.zip',
+              },
+              licenseUrl: 'http://www.caltrain.com/developer/Developer_License_Agreement_and_Privacy_Policy.html',
+              licenseUseWithoutAttribution: 'yes',
+              licenseCreateDerivedProduct: 'yes',
+              licenseRedistribute: 'yes',
+              includesOperators: [
+                {
+                  operatorOnestopId: 'o-9q9-caltrain',
+                  gtfsAgencyId: 'caltrain-ca-us'
+                }
+              ],
+              geometry: { type: "Polygon", coordinates:[[[-121.56649700000001,37.00360599999999],[-122.23195700000001,37.48541199999998],[-122.38653400000001,37.600005999999965],[-122.412018,37.63110599999998],[-122.39432299999996,37.77643899999997],[-121.65072100000002,37.12908099999998],[-121.61080899999999,37.085774999999984],[-121.56649700000001,37.00360599999999]]]}
+            }
+          }
+        ]
+      })
+    end
+
+    it 'can be created from a changeset' do
+      osid = 'f-123-debug'
+      url = 'http://example.com/test.zip'
+      @changeset1.apply!
+      a = Feed.find_by_onestop_id(osid)
+      expect(a.type).to eq('GTFSRealtimeFeed')
+      expect(a.urls['realtime_alerts']).to eq(url)
+    end
+    
+    it 'accepts valid url types' do
+      changeset2 = create(:changeset, payload: {
+        changes: [
+          {
+            action: 'createUpdate',
+            gtfsRealtimeFeed: {
+              onestopId: 'f-123-debug',
+              urls: {
+                'realtime_vehicle_positions': "http://example.com/"
+              }
+            }
+          }
+        ]
+      })
+      @changeset1.apply!
+      changeset2.apply!
+    end
+  end
 end

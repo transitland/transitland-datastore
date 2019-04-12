@@ -93,10 +93,10 @@ module OnestopId
     MODEL = Feed
   end
 
-  # class RealtimeFeedOnestopId < OnestopIdBase
-  #   PREFIX = :f
-  #   MODEL = RealtimeFeed
-  # end
+  class GTFSRealtimeFeedOnestopId < OnestopIdBase
+    PREFIX = :f
+    MODEL = GTFSRealtimeFeed
+  end
 
   class StopOnestopId < OnestopIdBase
     PREFIX = :s
