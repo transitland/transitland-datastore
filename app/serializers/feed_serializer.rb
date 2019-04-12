@@ -23,7 +23,9 @@
 #  active_feed_version_id             :integer
 #  edited_attributes                  :string           default([]), is an Array
 #  name                               :string
-#  type                               :string           default("Feed"), not null
+#  type                               :string
+#  authorization                      :hstore
+#  urls                               :hstore
 #
 # Indexes
 #
@@ -51,7 +53,9 @@ class FeedSerializer < CurrentEntitySerializer
              :feed_versions,
              :active_feed_version,
              :import_level_of_active_feed_version,
-             :changesets_imported_from_this_feed
+             :changesets_imported_from_this_feed,
+             :urls,
+             :authorization
 
   has_many :operators_in_feed
 

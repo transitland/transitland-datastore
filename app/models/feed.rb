@@ -23,6 +23,9 @@
 #  active_feed_version_id             :integer
 #  edited_attributes                  :string           default([]), is an Array
 #  name                               :string
+#  type                               :string
+#  authorization                      :hstore
+#  urls                               :hstore
 #
 # Indexes
 #
@@ -34,22 +37,6 @@
 
 class BaseFeed < ActiveRecord::Base
   self.abstract_class = true
-
-  extend Enumerize
-  enumerize :feed_format, in: [:gtfs]
-  enumerize :license_use_without_attribution, in: [:yes, :no, :unknown]
-  enumerize :license_create_derived_product, in: [:yes, :no, :unknown]
-  enumerize :license_redistribute, in: [:yes, :no, :unknown]
-
-  validates :url, presence: true
-  validates :url, format: { with: URI.regexp }, if: Proc.new { |feed| feed.url.present? }
-  validates :license_url, format: { with: URI.regexp }, if: Proc.new { |feed| feed.license_url.present? }
-
-  attr_accessor :includes_operators, :does_not_include_operators
-end
-
-class RealtimeFeed < BaseFeed
-  self.table_name = 'current_feeds'
 end
 
 class Feed < BaseFeed
@@ -77,6 +64,17 @@ class Feed < BaseFeed
       url
     ]
   end
+
+  extend Enumerize
+  enumerize :feed_format, in: [:gtfs]
+  enumerize :license_use_without_attribution, in: [:yes, :no, :unknown]
+  enumerize :license_create_derived_product, in: [:yes, :no, :unknown]
+  enumerize :license_redistribute, in: [:yes, :no, :unknown]
+  
+  attr_accessor :includes_operators, :does_not_include_operators
+
+  validates :license_url, format: { with: URI.regexp }, if: Proc.new { |feed| feed.license_url.present? }
+  validate :validate_urls
 
   has_many :feed_versions, -> { order 'earliest_calendar_date' }, dependent: :destroy, as: :feed
   has_many :feed_version_imports, -> { order 'created_at DESC' }, through: :feed_versions
@@ -169,6 +167,29 @@ class Feed < BaseFeed
     # )
     # WHERE fvi2.id IS NULL GROUP BY (fv.feed_id)
   }
+
+  def validate_urls
+    self.urls.each do |k,v|
+      errors.add(:urls, "invalid url") unless v =~ URI.regexp
+    end
+    if self.urls["current_static"].nil? 
+      errors.add(:urls, "current_static url required")
+    end
+  end
+
+  def url
+    return {} if self.urls.nil?
+    return self.urls["current_static"]
+  end
+
+  def url=(value)
+    if self.urls.nil?
+      self.urls = {}
+    end
+    return if value.nil? # required for changesets to work, assign_attributes is unordered
+    self.urls["current_static"] = value
+  end
+
 
   def self.feed_version_update_statistics(feed)
     fvs = feed.feed_versions.to_a
@@ -336,7 +357,14 @@ class Feed < BaseFeed
   end
 end
 
-class OldFeed < BaseFeed
+class GTFSStaticFeed < Feed
+end
+
+class GTFSRealtimeFeed < Feed
+end
+
+class OldFeed < ActiveRecord::Base
+  self.table_name = 'old_feeds'
   include OldTrackedByChangeset
   has_many :old_operators_in_feed, as: :feed
   has_many :operators, through: :old_operators_in_feed, source_type: 'Feed'
