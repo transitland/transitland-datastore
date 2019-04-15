@@ -30,9 +30,11 @@
 # Indexes
 #
 #  index_current_feeds_on_active_feed_version_id              (active_feed_version_id)
+#  index_current_feeds_on_authorization                       (authorization)
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
 #  index_current_feeds_on_geometry                            (geometry) USING gist
 #  index_current_feeds_on_onestop_id                          (onestop_id) UNIQUE
+#  index_current_feeds_on_urls                                (urls)
 #
 
 require 'sidekiq/testing'
