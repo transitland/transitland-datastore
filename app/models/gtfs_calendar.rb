@@ -4,13 +4,13 @@
 #
 #  id              :integer          not null, primary key
 #  service_id      :string           not null
-#  monday          :boolean          not null
-#  tuesday         :boolean          not null
-#  wednesday       :boolean          not null
-#  thursday        :boolean          not null
-#  friday          :boolean          not null
-#  saturday        :boolean          not null
-#  sunday          :boolean          not null
+#  monday          :integer          not null
+#  tuesday         :integer          not null
+#  wednesday       :integer          not null
+#  thursday        :integer          not null
+#  friday          :integer          not null
+#  saturday        :integer          not null
+#  sunday          :integer          not null
 #  start_date      :date             not null
 #  end_date        :date             not null
 #  created_at      :datetime         not null

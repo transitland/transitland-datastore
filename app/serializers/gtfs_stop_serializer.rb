@@ -16,13 +16,11 @@
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
 #  feed_version_id     :integer          not null
-#  entity_id           :integer
 #  parent_station      :integer
 #  level_id            :string
 #
 # Indexes
 #
-#  index_gtfs_stops_on_entity_id        (entity_id)
 #  index_gtfs_stops_on_feed_version_id  (feed_version_id)
 #  index_gtfs_stops_on_geometry         (geometry) USING gist
 #  index_gtfs_stops_on_location_type    (location_type)

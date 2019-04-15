@@ -1062,25 +1062,25 @@
 <text text-anchor="start" x="353" y="-1443" font-family="ArialMT" font-size="10.00" fill="#000000">end_date </text>
 <text text-anchor="start" x="397.4873" y="-1443" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">date ∗</text>
 <text text-anchor="start" x="353" y="-1430" font-family="ArialMT" font-size="10.00" fill="#000000">friday </text>
-<text text-anchor="start" x="380.2314" y="-1430" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">boolean ∗</text>
+<text text-anchor="start" x="380.2314" y="-1430" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
 <text text-anchor="start" x="353" y="-1417" font-family="ArialMT" font-size="10.00" fill="#000000">generated </text>
 <text text-anchor="start" x="400.8174" y="-1417" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">boolean</text>
 <text text-anchor="start" x="353" y="-1404" font-family="ArialMT" font-size="10.00" fill="#000000">monday </text>
-<text text-anchor="start" x="391.3545" y="-1404" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">boolean ∗</text>
+<text text-anchor="start" x="391.3545" y="-1404" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
 <text text-anchor="start" x="353" y="-1391" font-family="ArialMT" font-size="10.00" fill="#000000">saturday </text>
-<text text-anchor="start" x="394.1328" y="-1391" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">boolean ∗</text>
+<text text-anchor="start" x="394.1328" y="-1391" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
 <text text-anchor="start" x="353" y="-1378" font-family="ArialMT" font-size="10.00" fill="#000000">service_id </text>
 <text text-anchor="start" x="400.7979" y="-1378" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗</text>
 <text text-anchor="start" x="353" y="-1365" font-family="ArialMT" font-size="10.00" fill="#000000">start_date </text>
 <text text-anchor="start" x="400.251" y="-1365" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">date ∗</text>
 <text text-anchor="start" x="353" y="-1352" font-family="ArialMT" font-size="10.00" fill="#000000">sunday </text>
-<text text-anchor="start" x="388.0244" y="-1352" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">boolean ∗</text>
+<text text-anchor="start" x="388.0244" y="-1352" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
 <text text-anchor="start" x="353" y="-1339" font-family="ArialMT" font-size="10.00" fill="#000000">thursday </text>
-<text text-anchor="start" x="394.1328" y="-1339" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">boolean ∗</text>
+<text text-anchor="start" x="394.1328" y="-1339" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
 <text text-anchor="start" x="353" y="-1326" font-family="ArialMT" font-size="10.00" fill="#000000">tuesday </text>
-<text text-anchor="start" x="390.8027" y="-1326" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">boolean ∗</text>
+<text text-anchor="start" x="390.8027" y="-1326" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
 <text text-anchor="start" x="353" y="-1313" font-family="ArialMT" font-size="10.00" fill="#000000">wednesday </text>
-<text text-anchor="start" x="406.3691" y="-1313" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">boolean ∗</text>
+<text text-anchor="start" x="406.3691" y="-1313" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
 </g>
 <!-- m_FeedVersion&#45;&gt;m_GTFSCalendar -->
 <g id="edge78" class="edge">
@@ -1099,7 +1099,7 @@
 <text text-anchor="start" x="353" y="-1019.5" font-family="ArialMT" font-size="10.00" fill="#000000">exception_type </text>
 <text text-anchor="start" x="423.0488" y="-1019.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
 <text text-anchor="start" x="353" y="-1006.5" font-family="ArialMT" font-size="10.00" fill="#000000">service_id </text>
-<text text-anchor="start" x="400.7979" y="-1006.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗</text>
+<text text-anchor="start" x="400.7979" y="-1006.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
 </g>
 <!-- m_FeedVersion&#45;&gt;m_GTFSCalendarDate -->
 <g id="edge81" class="edge">
@@ -1144,7 +1144,7 @@
 <text text-anchor="start" x="762" y="-479.5" font-family="ArialMT" font-size="10.00" fill="#000000">destination_id </text>
 <text text-anchor="start" x="826.4922" y="-479.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
 <text text-anchor="start" x="762" y="-466.5" font-family="ArialMT" font-size="10.00" fill="#000000">fare_id </text>
-<text text-anchor="start" x="795.3545" y="-466.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗</text>
+<text text-anchor="start" x="795.3545" y="-466.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
 <text text-anchor="start" x="762" y="-453.5" font-family="ArialMT" font-size="10.00" fill="#000000">origin_id </text>
 <text text-anchor="start" x="802.5811" y="-453.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
 </g>
@@ -1359,7 +1359,7 @@
 <text text-anchor="start" x="936" y="-492.5" font-family="ArialMT" font-size="10.00" fill="#000000">direction_id </text>
 <text text-anchor="start" x="989.9209" y="-492.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer</text>
 <text text-anchor="start" x="936" y="-479.5" font-family="ArialMT" font-size="10.00" fill="#000000">service_id </text>
-<text text-anchor="start" x="983.7979" y="-479.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗</text>
+<text text-anchor="start" x="983.7979" y="-479.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
 <text text-anchor="start" x="936" y="-466.5" font-family="ArialMT" font-size="10.00" fill="#000000">stop_pattern_id </text>
 <text text-anchor="start" x="1007.7188" y="-466.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer</text>
 <text text-anchor="start" x="936" y="-453.5" font-family="ArialMT" font-size="10.00" fill="#000000">trip_headsign </text>
