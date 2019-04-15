@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180113021001) do
+ActiveRecord::Schema.define(version: 20190411214421) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -63,12 +63,17 @@ ActiveRecord::Schema.define(version: 20180113021001) do
     t.integer   "active_feed_version_id"
     t.string    "edited_attributes",                                                                              default: [], array: true
     t.string    "name"
+    t.string    "type"
+    t.hstore    "authorization"
+    t.hstore    "urls"
   end
 
   add_index "current_feeds", ["active_feed_version_id"], name: "index_current_feeds_on_active_feed_version_id", using: :btree
+  add_index "current_feeds", ["authorization"], name: "index_current_feeds_on_authorization", using: :btree
   add_index "current_feeds", ["created_or_updated_in_changeset_id"], name: "index_current_feeds_on_created_or_updated_in_changeset_id", using: :btree
   add_index "current_feeds", ["geometry"], name: "index_current_feeds_on_geometry", using: :gist
   add_index "current_feeds", ["onestop_id"], name: "index_current_feeds_on_onestop_id", unique: true, using: :btree
+  add_index "current_feeds", ["urls"], name: "index_current_feeds_on_urls", using: :btree
 
   create_table "current_operators", force: :cascade do |t|
     t.string    "name"
@@ -694,6 +699,9 @@ ActiveRecord::Schema.define(version: 20180113021001) do
     t.string    "edited_attributes",                                                                              default: [], array: true
     t.string    "action"
     t.string    "name"
+    t.string    "type"
+    t.hstore    "authorization"
+    t.hstore    "urls"
   end
 
   add_index "old_feeds", ["active_feed_version_id"], name: "index_old_feeds_on_active_feed_version_id", using: :btree

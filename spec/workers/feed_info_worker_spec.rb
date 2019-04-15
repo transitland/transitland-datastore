@@ -41,7 +41,7 @@ describe FeedInfoWorker do
   end
 
   it 'fails with bad host' do
-    url = 'http://test.example.com/gtfs.zip'
+    url = 'http://abc.def/gtfs.zip'
     cachekey = 'test'
     Rails.cache.delete(cachekey)
     VCR.use_cassette('feed_fetch_bad_host') do
