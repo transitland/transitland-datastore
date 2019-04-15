@@ -12,6 +12,7 @@
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
 #  feed_version_id     :integer          not null
+#  feed_version        :string
 #
 # Indexes
 #

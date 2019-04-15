@@ -7,12 +7,12 @@
 #  price             :float            not null
 #  currency_type     :string           not null
 #  payment_method    :integer          not null
-#  transfers         :integer
 #  transfer_duration :integer
 #  created_at        :datetime         not null
 #  updated_at        :datetime         not null
 #  feed_version_id   :integer          not null
 #  agency_id         :integer          not null
+#  transfers         :string
 #
 # Indexes
 #

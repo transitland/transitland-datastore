@@ -17,20 +17,21 @@
 #  updated_at          :datetime         not null
 #  feed_version_id     :integer          not null
 #  entity_id           :integer
-#  parent_station_id   :integer
+#  parent_station      :integer
+#  level_id            :string
 #
 # Indexes
 #
-#  index_gtfs_stops_on_entity_id          (entity_id)
-#  index_gtfs_stops_on_feed_version_id    (feed_version_id)
-#  index_gtfs_stops_on_geometry           (geometry) USING gist
-#  index_gtfs_stops_on_location_type      (location_type)
-#  index_gtfs_stops_on_parent_station_id  (parent_station_id)
-#  index_gtfs_stops_on_stop_code          (stop_code)
-#  index_gtfs_stops_on_stop_desc          (stop_desc)
-#  index_gtfs_stops_on_stop_id            (stop_id)
-#  index_gtfs_stops_on_stop_name          (stop_name)
-#  index_gtfs_stops_unique                (feed_version_id,stop_id) UNIQUE
+#  index_gtfs_stops_on_entity_id        (entity_id)
+#  index_gtfs_stops_on_feed_version_id  (feed_version_id)
+#  index_gtfs_stops_on_geometry         (geometry) USING gist
+#  index_gtfs_stops_on_location_type    (location_type)
+#  index_gtfs_stops_on_parent_station   (parent_station)
+#  index_gtfs_stops_on_stop_code        (stop_code)
+#  index_gtfs_stops_on_stop_desc        (stop_desc)
+#  index_gtfs_stops_on_stop_id          (stop_id)
+#  index_gtfs_stops_on_stop_name        (stop_name)
+#  index_gtfs_stops_unique              (feed_version_id,stop_id) UNIQUE
 #
 
 class GTFSStop < ActiveRecord::Base

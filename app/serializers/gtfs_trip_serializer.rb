@@ -17,6 +17,7 @@
 #  entity_id             :integer
 #  route_id              :integer          not null
 #  shape_id              :integer
+#  stop_pattern_id       :integer
 #
 # Indexes
 #

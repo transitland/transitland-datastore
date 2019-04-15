@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180113021001) do
+ActiveRecord::Schema.define(version: 20190415014530) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -426,6 +426,7 @@ ActiveRecord::Schema.define(version: 20180113021001) do
     t.datetime "created_at",      null: false
     t.datetime "updated_at",      null: false
     t.integer  "feed_version_id", null: false
+    t.boolean  "generated"
   end
 
   add_index "gtfs_calendars", ["end_date"], name: "index_gtfs_calendars_on_end_date", using: :btree
@@ -446,12 +447,12 @@ ActiveRecord::Schema.define(version: 20180113021001) do
     t.float    "price",             null: false
     t.string   "currency_type",     null: false
     t.integer  "payment_method",    null: false
-    t.integer  "transfers"
     t.integer  "transfer_duration"
     t.datetime "created_at",        null: false
     t.datetime "updated_at",        null: false
     t.integer  "feed_version_id",   null: false
     t.integer  "agency_id",         null: false
+    t.string   "transfers"
   end
 
   add_index "gtfs_fare_attributes", ["agency_id"], name: "index_gtfs_fare_attributes_on_agency_id", using: :btree
@@ -484,6 +485,7 @@ ActiveRecord::Schema.define(version: 20180113021001) do
     t.datetime "created_at",          null: false
     t.datetime "updated_at",          null: false
     t.integer  "feed_version_id",     null: false
+    t.string   "feed_version"
   end
 
   add_index "gtfs_feed_infos", ["feed_version_id"], name: "index_gtfs_feed_info_unique", unique: true, using: :btree
@@ -605,7 +607,8 @@ ActiveRecord::Schema.define(version: 20180113021001) do
     t.datetime  "updated_at",                                                                      null: false
     t.integer   "feed_version_id",                                                                 null: false
     t.integer   "entity_id"
-    t.integer   "parent_station_id"
+    t.integer   "parent_station"
+    t.string    "level_id"
   end
 
   add_index "gtfs_stops", ["entity_id"], name: "index_gtfs_stops_on_entity_id", using: :btree
@@ -613,7 +616,7 @@ ActiveRecord::Schema.define(version: 20180113021001) do
   add_index "gtfs_stops", ["feed_version_id"], name: "index_gtfs_stops_on_feed_version_id", using: :btree
   add_index "gtfs_stops", ["geometry"], name: "index_gtfs_stops_on_geometry", using: :gist
   add_index "gtfs_stops", ["location_type"], name: "index_gtfs_stops_on_location_type", using: :btree
-  add_index "gtfs_stops", ["parent_station_id"], name: "index_gtfs_stops_on_parent_station_id", using: :btree
+  add_index "gtfs_stops", ["parent_station"], name: "index_gtfs_stops_on_parent_station", using: :btree
   add_index "gtfs_stops", ["stop_code"], name: "index_gtfs_stops_on_stop_code", using: :btree
   add_index "gtfs_stops", ["stop_desc"], name: "index_gtfs_stops_on_stop_desc", using: :btree
   add_index "gtfs_stops", ["stop_id"], name: "index_gtfs_stops_on_stop_id", using: :btree
@@ -648,6 +651,7 @@ ActiveRecord::Schema.define(version: 20180113021001) do
     t.integer  "entity_id"
     t.integer  "route_id",              null: false
     t.integer  "shape_id"
+    t.integer  "stop_pattern_id"
   end
 
   add_index "gtfs_trips", ["entity_id"], name: "index_gtfs_trips_on_entity_id", using: :btree
