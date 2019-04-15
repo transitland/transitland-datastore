@@ -88,7 +88,8 @@ describe Geometry do
 
       it 'properly calculates distances when 2 stops match to same segment' do
         feed, feed_version = load_feed(feed_version_name: :feed_version_wmata_48587, import_level: 1)
-        expect(RouteStopPattern.first.stop_distances).to match_array([0.0, 155.2, 863.5, 1794.1, 2913.2, 3187.8, 3733.7, 3918.1, 4762.5])
+        vexpect = [0.0, 155.2, 863.5, 1794.1, 2913.2, 3187.8, 3733.7, 3918.1, 4762.5]
+        RouteStopPattern.first.stop_distances.zip(vexpect).each { |a,b| expect(a).to be_within(5.0).of(b)}
       end
 
       it 'discards shape_dist_traveled that results in distance issues' do
