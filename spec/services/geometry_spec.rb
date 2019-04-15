@@ -363,7 +363,8 @@ describe Geometry do
 
     it 'can calculate distances for a closed loop shape where first and last stops are near each other' do
       feed, feed_version = load_feed(feed_version_name: :feed_version_grand_river_1426033, import_level: 1)
-      expect(RouteStopPattern.first.stop_distances).to match_array([0.8,617.8,939.8,1381.0,1720.3,2000.4,2248.0,2515.1,2894.5,3387.2,3696.6,4018.7,4156.4,4534.9,5060.1,5357.4,5977.3,6496.3,7200.5,7362.6,7678.2,8230.4,8818.6,9169.3,9921.2,10113.3,10278.6,10650.2,11044.9,11172.1,11644.4,12022.2,12465.0,12798.3,13324.0,13557.6,13854.5,14470.1,14717.5,15156.8,15615.4,15754.6,16004.2,16451.2,16992.8,17267.9,17507.5,17783.6,18193.5,18394.9,18809.7,19061.2,19319.6,19500.8,19920.9,20517.5])
+      vexpect = [0.8,617.8,939.8,1381.0,1720.3,2000.4,2248.0,2515.1,2894.5,3387.2,3696.6,4018.7,4156.4,4534.9,5060.1,5357.4,5977.3,6496.3,7200.5,7362.6,7678.2,8230.4,8818.6,9169.3,9921.2,10113.3,10278.6,10650.2,11044.9,11172.1,11644.4,12022.2,12465.0,12798.3,13324.0,13557.6,13854.5,14470.1,14717.5,15156.8,15615.4,15754.6,16004.2,16451.2,16992.8,17267.9,17507.5,17783.6,18193.5,18394.9,18809.7,19061.2,19319.6,19500.8,19920.9,20517.5]
+      RouteStopPattern.first.stop_distances.zip(vexpect).each { |a,b| expect(a).to be_within(1.0).of(b)}
       expect(Issue.where(issue_type: 'distance_calculation_inaccurate').count).to eq 0
     end
 
@@ -374,13 +375,15 @@ describe Geometry do
 
     it 'handles case where first stop is not close to the line except towards the end' do
       feed, feed_version = load_feed(feed_version_name: :feed_version_hdpt_shop_trip, import_level: 1)
-      expect(RouteStopPattern.first.stop_distances).to match_array([91.2,357.2,811.5,1130.7,1716.7,1981.3,2909.3,3029.7,3364.5,3639.4,4179.9,6054.3,6506.2,6886.6,7440.9,7476.3,7968.8,8182.2,8433.0,8589.9,8709.7,8895.6,9444.7,9790.9,10485.9,11178.0,11963.4,12467.3,12733.2,13208.4,13518.9])
+      vexpect = [91.2,357.2,811.5,1130.7,1716.7,1981.3,2909.3,3029.7,3364.5,3639.4,4179.9,6054.3,6506.2,6886.6,7440.9,7476.3,7968.8,8182.2,8433.0,8589.9,8709.7,8895.6,9444.7,9790.9,10485.9,11178.0,11963.4,12467.3,12733.2,13208.4,13518.9]
+      RouteStopPattern.first.stop_distances.zip(vexpect).each { |a,b| expect(a).to be_within(1.0).of(b)}
       expect(Issue.where(issue_type: 'distance_calculation_inaccurate').count).to eq 0
     end
 
     it 'handles case of stop slightly out of order with previous, and identical matching segments. readjusts distances.' do
       feed, feed_version = load_feed(feed_version_name: :feed_version_hdpt_sun_trip, import_level: 1)
-      expect(RouteStopPattern.first.stop_distances).to match_array([35.9,295.3,747.8,1061.6,1652.3,1946.8,4168.1,4616.7,4994.4,5547.6,5573.1,6063.4,6282.9,6524.0,6682.7,6775.9,6961.1,7505.6,8912.2,9572.1,10265.7,11055.5,11547.6,11822.3,12294.7,12653.7,13071.7,13371.8,13862.3,14025.0,14184.7,15050.8,15923.9,16247.5,16636.5])
+      vexpect = [35.9,295.3,747.8,1061.6,1652.3,1946.8,4168.1,4616.7,4994.4,5547.6,5573.1,6063.4,6282.9,6524.0,6682.7,6775.9,6961.1,7505.6,8912.2,9572.1,10265.7,11055.5,11547.6,11822.3,12294.7,12653.7,13071.7,13371.8,13862.3,14025.0,14184.7,15050.8,15923.9,16247.5,16636.5]
+      RouteStopPattern.first.stop_distances.zip(vexpect).each { |a,b| expect(a).to be_within(1.0).of(b)}
       expect(Issue.where(issue_type: 'distance_calculation_inaccurate').count).to eq 0
     end
 
@@ -398,7 +401,8 @@ describe Geometry do
       # Complex RSP shape revisits set of stops whose closest match is on second visit
       feed, feed_version = load_feed(feed_version_name: :feed_version_alleghany, import_level: 1)
       # Algorithm has minor discrepancy with optimal value.
-      expect(RouteStopPattern.first.stop_distances).to match_array([0.0, 1564.3, 2948.4, 7916.3, 15691.7, 21963.3, 28515.8, 34874.6, 35537.6, a_value_within(2.0).of(37510.9), 38152.8, 39011.8, 40017.6, 41943.4, 51008.5, 57260.7, 64464.1, 70759.1])
+      vexpect = [0.0, 1564.3, 2948.4, 7916.3, 15691.7, 21963.3, 28515.8, 34874.6, 35537.6, a_value_within(2.0).of(37510.9), 38152.8, 39011.8, 40017.6, 41943.4, 51008.5, 57260.7, 64464.1, 70759.1]
+      RouteStopPattern.first.stop_distances.zip(vexpect).each { |a,b| expect(a).to be_within(1.0).of(b)}
     end
 
     it 'attempts a readjustment if stops are out of order' do
