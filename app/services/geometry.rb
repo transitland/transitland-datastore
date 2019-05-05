@@ -394,13 +394,14 @@ module Geometry
         cartesian_shape: @cartesian_shape
       )
 
-      @stop_locators = @distance_calculator.stop_locators
-
-      compute_skip_stops
-
       if try_first_pass && !@distance_calculator.complex?(@skip_stops)
         # the first pass heuristic looks for the condition where each stop already matches
         # to a segment that maintains distance order. It may not be optimal.
+
+        @stop_locators = @distance_calculator.stop_locators
+
+        compute_skip_stops
+
         prepare_stop_distances(
           @distance_calculator.first_pass_distances(@skip_stops),
           @distance_calculator.first_pass.map{ |l| l[1] unless l.nil? }
