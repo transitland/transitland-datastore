@@ -1,9 +1,8 @@
 GIT
   remote: git://github.com/doublestranded/n_opa.git
-  revision: c6b73816066eeb4dc12f6da7eda7d91954d5b394
-  branch: master
+  revision: dd478a5c93f7c265f8408f5d6a9793d708bb576d
   specs:
-    n_opa (0.1.0)
+    n_opa (0.1.1)
 
 GIT
   remote: git://github.com/transitland/gtfs.git
@@ -1081,7 +1080,7 @@ DEPENDENCIES
   logstasher
   marginalia (= 1.5.0)
   memory_profiler
-  n_opa!
+  n_opa (>= 0.1.1)!
   oj
   pg (~> 0.18)
   pghero
