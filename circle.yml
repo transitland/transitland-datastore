@@ -2,7 +2,7 @@ version: 2
 jobs:
   rails-test-suite:
     docker:
-      - image: ruby:2.3.1
+      - image: ruby:2.5.3
         environment:
           RAILS_ENV: test
           DATABASE_URL: postgis://root@localhost/transitland_datastore_test
