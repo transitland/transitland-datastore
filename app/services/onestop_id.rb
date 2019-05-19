@@ -93,6 +93,32 @@ module OnestopId
     MODEL = Feed
   end
 
+  class GTFSRealtimeFeedOnestopId < OnestopIdBase
+    NUM_COMPONENTS = 2
+    PREFIX = :f
+    MODEL = GTFSRealtimeFeed
+    def initialize(string: nil, name: nil)
+      if string && string.length > 0
+        name = string.split(COMPONENT_SEPARATOR)[-1]
+      end
+      @name = name
+    end
+      
+    def to_s
+      [
+        self.class::PREFIX,
+        @name
+      ].join(COMPONENT_SEPARATOR)[0...self.class::MAX_LENGTH]
+    end
+
+    def validate
+      errors = []
+      errors << 'invalid name' unless @name.present?
+      errors << 'invalid name' unless validate_name(@name)
+      return (errors.size == 0), errors
+    end
+  end
+
   class StopOnestopId < OnestopIdBase
     PREFIX = :s
     MODEL = Stop

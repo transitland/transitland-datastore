@@ -87,7 +87,12 @@ describe RouteStopPattern do
       trip_stop_points = [[-122.401811, 37.706675],[-122.401811, 37.706675]]
       shape_points = []
       rsp = RouteStopPattern.create_from_gtfs(trip, 'r-9q9j-bullet', sp, stop_times, trip_stop_points, shape_points)
-      expect(rsp.geometry[:coordinates]).to eq [[-122.40181, 37.70667],[-122.40181, 37.70667]]
+      vexpect = [[-122.40181, 37.70667],[-122.40181, 37.70667]]
+      rsp.geometry[:coordinates].zip(vexpect).each do |a,b|
+        expect(a[0]).to be_within(0.001).of(b[0])
+        expect(a[1]).to be_within(0.001).of(b[1])
+      end
+      # expect(rsp.geometry[:coordinates]).to eq
       expect(Geometry::TLDistances.new(rsp).calculate_distances).to eq [0.0,0.0]
     end
 

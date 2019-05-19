@@ -41,7 +41,6 @@ class Api::V1::FeedsController < Api::V1::CurrentEntityController
   def index_query
     super
     @collection = AllowFiltering.by_attribute_array(@collection, params, :name)
-    @collection = AllowFiltering.by_attribute_array(@collection, params, :url, case_sensitive: true)
     @collection = AllowFiltering.by_attribute_since(@collection, params, :last_imported_since, :last_imported_at)
     if params[:latest_fetch_exception].present?
       @collection = @collection.where_latest_fetch_exception(AllowFiltering.to_boolean(params[:latest_fetch_exception]))
@@ -60,6 +59,10 @@ class Api::V1::FeedsController < Api::V1::CurrentEntityController
     end
     if params[:latest_feed_version_import_status].present?
       @collection = @collection.where_latest_feed_version_import_status(AllowFiltering.to_boolean(params[:latest_feed_version_import_status]))
+    end
+    if params[:url].present?
+      urls = params[:url]
+      @collection = @collection.where("#{Feed.table_name}.urls -> 'static_current' IN (?)", urls)
     end
   end
 

@@ -19,6 +19,14 @@
             }
           },
           {
+            "required": ["gtfsRealtimeFeed"],
+            "properties": {
+              "feed": {
+                "$ref": "./feed.json"
+              }
+            }
+          },
+          {
             "required": ["stop"],
             "properties": {
               "stop": {
