@@ -1134,7 +1134,7 @@ DEPENDENCIES
   logstasher
   marginalia (= 1.5.0)
   memory_profiler
-  n_opa (>= 0.1.1)!
+  n_opa!
   oj
   pg (~> 0.18)
   pghero
