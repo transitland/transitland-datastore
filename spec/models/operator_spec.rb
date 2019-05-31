@@ -39,11 +39,15 @@ describe Operator do
     operator.stops << create(:stop, geometry: { type: "Point", coordinates: [-73.88031005859375, 40.865756786006806] })
     convex_hull_coordinates = operator.recompute_convex_hull_around_stops[:coordinates]
     rounded_convex_hull_coordinates = convex_hull_coordinates.first.map {|a| a.map { |b| b.round(4) } }
-    expect(rounded_convex_hull_coordinates).to match_array([[-73.8794, 40.8658],
-                                                   [-73.8803, 40.8651],
-                                                   [-73.8812, 40.8658],
-                                                   [-73.8803, 40.8664],
-                                                   [-73.8794, 40.8658]])
+    expect(rounded_convex_hull_coordinates).to match_array(
+      [
+        [-73.8806, 40.8658],
+        [-73.8803, 40.8655],
+        [-73.8803, 40.8661],
+        [-73.88, 40.8658],
+        [-73.88, 40.8658]
+      ]
+    )
   end
 
   it 'can compute a buffered polygon convex hull around only 2 stops' do

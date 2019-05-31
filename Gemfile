@@ -118,3 +118,6 @@ gem 'memory_profiler', group: [:test, :development]
 
 # algorithms
 gem 'n_opa', '>=0.1.1', github: 'doublestranded/n_opa'
+
+
+gem "rgeo", "~> 0.6.0"

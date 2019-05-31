@@ -1150,6 +1150,7 @@ DEPENDENCIES
   redis-actionpack
   redis-rack
   redis-rails
+  rgeo (~> 0.6.0)
   rgeo-geojson
   rspec-rails
   rspec-sidekiq
