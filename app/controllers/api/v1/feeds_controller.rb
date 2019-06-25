@@ -21,6 +21,35 @@ class Api::V1::FeedsController < Api::V1::CurrentEntityController
     end
   end
 
+  def dmfr
+    render json: {
+      "$schema": "https://dmfr.transit.land/json-schema/dmfr.schema.json",
+      feeds: Feed.where('').includes('operators').map { |feed|
+        feed_json = {
+          spec: feed.feed_format,
+          id: feed.onestop_id,
+          urls: feed.urls,
+          license: {
+            spdx_identifier: nil,
+            url: feed.license_url,
+            use_without_attribution: feed.license_use_without_attribution,
+            create_derived_product: feed.license_create_derived_product,
+            redistribute: feed.license_redistribute,
+            attribution_text: feed.license_attribution_text
+          }
+        }
+        if feed.operators.count == 1
+          feed_json[:feed_namespace_id] = feed.operators.first.onestop_id
+        end
+        if feed.feed_format == 'gtfs-rt'
+          feed_json[:associated_feeds] = [] # TODO!!!!!
+        end
+        feed_json
+      },
+      license_spdx_identifier: "CC0-1.0"
+    }
+  end
+
   def download_latest_feed_version
     set_model
     feed_version = @model.feed_versions.order(fetched_at: :desc).first!
