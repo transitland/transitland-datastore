@@ -23,6 +23,7 @@ class ChangePayload < ActiveRecord::Base
 
   ENTITY_TYPES = {
     feed: Feed,
+    gtfs_realtime_feed: GTFSRealtimeFeed,
     stop: Stop,
     stop_platform: StopPlatform,
     stop_egress: StopEgress,
@@ -45,6 +46,9 @@ class ChangePayload < ActiveRecord::Base
   })
   JSON::Validator.register_format_validator('feed-onestop-id', -> (onestop_id) {
     onestop_id_format_proc.call(onestop_id, 'feed')
+  })
+  JSON::Validator.register_format_validator('gtfs-realtime-feed-onestop-id', -> (onestop_id) {
+    onestop_id_format_proc.call(onestop_id, 'gtfs_realtime_feed')
   })
   JSON::Validator.register_format_validator('route-onestop-id', -> (onestop_id) {
     onestop_id_format_proc.call(onestop_id, 'route')

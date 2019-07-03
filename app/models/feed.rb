@@ -23,33 +23,26 @@
 #  active_feed_version_id             :integer
 #  edited_attributes                  :string           default([]), is an Array
 #  name                               :string
+#  type                               :string
+#  authorization                      :hstore
+#  urls                               :hstore
 #
 # Indexes
 #
 #  index_current_feeds_on_active_feed_version_id              (active_feed_version_id)
+#  index_current_feeds_on_authorization                       (authorization)
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
 #  index_current_feeds_on_geometry                            (geometry) USING gist
 #  index_current_feeds_on_onestop_id                          (onestop_id) UNIQUE
+#  index_current_feeds_on_urls                                (urls)
 #
 
 class BaseFeed < ActiveRecord::Base
   self.abstract_class = true
-
-  extend Enumerize
-  enumerize :feed_format, in: [:gtfs]
-  enumerize :license_use_without_attribution, in: [:yes, :no, :unknown]
-  enumerize :license_create_derived_product, in: [:yes, :no, :unknown]
-  enumerize :license_redistribute, in: [:yes, :no, :unknown]
-
-  validates :url, presence: true
-  validates :url, format: { with: URI.regexp }, if: Proc.new { |feed| feed.url.present? }
-  validates :license_url, format: { with: URI.regexp }, if: Proc.new { |feed| feed.license_url.present? }
-
-  attr_accessor :includes_operators, :does_not_include_operators
 end
 
 class Feed < BaseFeed
-  self.table_name_prefix = 'current_'
+  self.table_name = 'current_feeds'
 
   include HasAOnestopId
   include HasTags
@@ -73,6 +66,16 @@ class Feed < BaseFeed
       url
     ]
   end
+
+  extend Enumerize
+  enumerize :license_use_without_attribution, in: [:yes, :no, :unknown]
+  enumerize :license_create_derived_product, in: [:yes, :no, :unknown]
+  enumerize :license_redistribute, in: [:yes, :no, :unknown]
+  
+  attr_accessor :includes_operators, :does_not_include_operators
+
+  validates :license_url, format: { with: URI.regexp }, if: Proc.new { |feed| feed.license_url.present? }
+  validate :validate_urls
 
   has_many :feed_versions, -> { order 'earliest_calendar_date' }, dependent: :destroy, as: :feed
   has_many :feed_version_imports, -> { order 'created_at DESC' }, through: :feed_versions
@@ -165,6 +168,34 @@ class Feed < BaseFeed
     # )
     # WHERE fvi2.id IS NULL GROUP BY (fv.feed_id)
   }
+
+
+  # "static_current": { "type": "string" },
+  # "static_historic": { "type": "string" },
+  # "static_planned": { "type": "string" },
+  # "static_hypothetical": { "type": "string" },
+  # "realtime_vehicle_positions": { "type": "string" },
+  # "realtime_trip_updates": { "type": "string" },
+  # "realtime_alerts": { "type": "string" }
+  def valid_url_types
+    ['static_current', 'static_historic', 'static_planned', 'static_hypothetical']
+  end
+
+  def validate_urls
+    vt = self.valid_url_types
+    self.urls ||= {}    
+    self.urls.each do |k,v|
+      errors.add(:urls, "invalid url type: #{k}") unless vt.include?(k)
+      errors.add(:urls, "invalid url: #{v}") unless v =~ URI.regexp
+    end
+    if self.urls.length == 0 
+      errors.add(:urls, "at least one url is required")
+    end
+  end
+
+  def feed_format
+    'gtfs'
+  end
 
   def self.feed_version_update_statistics(feed)
     fvs = feed.feed_versions.to_a
@@ -311,6 +342,19 @@ class Feed < BaseFeed
     value
   end
 
+  def url
+    return {} if self.urls.nil?
+    return self.urls["static_current"]
+  end
+
+  def url=(value)
+    if self.urls.nil?
+      self.urls = {}
+    end
+    return if value.nil? # required for changesets to work, assign_attributes is unordered
+    self.urls["static_current"] = value
+  end
+
   def ssl_verify
     if tags['ssl_verify'] == 'false'
       return false
@@ -324,7 +368,6 @@ class Feed < BaseFeed
   def set_default_values
     if self.new_record?
       self.tags ||= {}
-      self.feed_format ||= 'gtfs'
       self.license_use_without_attribution ||= 'unknown'
       self.license_create_derived_product ||= 'unknown'
       self.license_redistribute ||= 'unknown'
@@ -332,9 +375,41 @@ class Feed < BaseFeed
   end
 end
 
-class OldFeed < BaseFeed
-  include OldTrackedByChangeset
+class GTFSStaticFeed < Feed
+end
 
+class GTFSRealtimeFeed < Feed
+  current_tracked_by_changeset({
+    kind_of_model_tracked: :onestop_entity,
+    virtual_attributes: [
+      :includes_operators,
+      :does_not_include_operators
+    ],
+    protected_attributes: []
+  })
+  
+  # "realtime_vehicle_positions": { "type": "string" },
+  # "realtime_trip_updates": { "type": "string" },
+  # "realtime_alerts": { "type": "string" }
+  def valid_url_types
+    ['realtime_vehicle_positions', 'realtime_trip_updates', 'realtime_alerts']
+  end
+
+  def url=(value)
+  end
+
+  def feed_format
+    'gtfs-rt'
+  end
+
+end
+
+class OldFeed < ActiveRecord::Base
+  self.table_name = 'old_feeds'
+  include OldTrackedByChangeset
   has_many :old_operators_in_feed, as: :feed
   has_many :operators, through: :old_operators_in_feed, source_type: 'Feed'
+end
+
+class OldGTFSRealtimeFeed < OldFeed
 end
