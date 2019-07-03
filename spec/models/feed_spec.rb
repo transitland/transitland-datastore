@@ -26,6 +26,12 @@
 #  type                               :string
 #  authorization                      :hstore
 #  urls                               :hstore
+#  deleted_at                         :datetime
+#  license                            :hstore
+#  other_ids                          :hstore
+#  associated_feeds                   :string           is an Array
+#  languages                          :string           is an Array
+#  feed_namespace_id                  :string
 #
 # Indexes
 #

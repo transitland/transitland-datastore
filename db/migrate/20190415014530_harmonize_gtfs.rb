@@ -1,12 +1,23 @@
 class HarmonizeGTFS < ActiveRecord::Migration
   def change
+    add_column :feed_versions, :deleted_at, :datetime
+
+    ["old", "current"].each { |a| 
+      add_column "#{a}_feeds", :deleted_at, :datetime
+      add_column "#{a}_feeds", :license, :hstore
+      add_column "#{a}_feeds", :other_ids, :hstore
+      add_column "#{a}_feeds", :associated_feeds, :string, array: true
+      add_column "#{a}_feeds", :languages, :string, array: true
+      add_column "#{a}_feeds", :feed_namespace_id, :string
+    }
+    ###########
     rename_column :gtfs_stops, :parent_station_id, :parent_station
     add_column :gtfs_stops, :level_id, :string
     add_column :gtfs_trips, :stop_pattern_id, :int
     add_column :gtfs_calendars, :generated, :bool
     add_column :gtfs_feed_infos, :feed_version, :string
     remove_column :gtfs_fare_attributes, :transfers
-    add_column :gtfs_fare_attributes, :transfers, :string
+    add_column :gtfs_fare_attributes, :transfers, :integer
 
     remove_column :gtfs_agencies, :entity_id
     remove_column :gtfs_stops, :entity_id

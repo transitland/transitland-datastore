@@ -12,7 +12,7 @@
 #  updated_at        :datetime         not null
 #  feed_version_id   :integer          not null
 #  agency_id         :integer          not null
-#  transfers         :string
+#  transfers         :integer
 #
 # Indexes
 #

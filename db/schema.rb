@@ -66,6 +66,12 @@ ActiveRecord::Schema.define(version: 20190415014530) do
     t.string    "type"
     t.hstore    "authorization"
     t.hstore    "urls"
+    t.datetime  "deleted_at"
+    t.hstore    "license"
+    t.hstore    "other_ids"
+    t.string    "associated_feeds",                                                                                            array: true
+    t.string    "languages",                                                                                                   array: true
+    t.string    "feed_namespace_id"
   end
 
   add_index "current_feeds", ["active_feed_version_id"], name: "index_current_feeds_on_active_feed_version_id", using: :btree
@@ -375,6 +381,7 @@ ActiveRecord::Schema.define(version: 20190415014530) do
     t.string   "sha1_raw"
     t.string   "md5_raw"
     t.string   "file_feedvalidator"
+    t.datetime "deleted_at"
   end
 
   add_index "feed_versions", ["earliest_calendar_date"], name: "index_feed_versions_on_earliest_calendar_date", using: :btree
@@ -454,7 +461,7 @@ ActiveRecord::Schema.define(version: 20190415014530) do
     t.datetime "updated_at",        null: false
     t.integer  "feed_version_id",   null: false
     t.integer  "agency_id",         null: false
-    t.string   "transfers"
+    t.integer  "transfers"
   end
 
   add_index "gtfs_fare_attributes", ["agency_id"], name: "index_gtfs_fare_attributes_on_agency_id", using: :btree
@@ -697,6 +704,12 @@ ActiveRecord::Schema.define(version: 20190415014530) do
     t.string    "type"
     t.hstore    "authorization"
     t.hstore    "urls"
+    t.datetime  "deleted_at"
+    t.hstore    "license"
+    t.hstore    "other_ids"
+    t.string    "associated_feeds",                                                                                            array: true
+    t.string    "languages",                                                                                                   array: true
+    t.string    "feed_namespace_id"
   end
 
   add_index "old_feeds", ["active_feed_version_id"], name: "index_old_feeds_on_active_feed_version_id", using: :btree
@@ -994,6 +1007,8 @@ ActiveRecord::Schema.define(version: 20190415014530) do
   add_foreign_key "gtfs_fare_rules", "feed_versions"
   add_foreign_key "gtfs_fare_rules", "gtfs_fare_attributes", column: "fare_id"
   add_foreign_key "gtfs_feed_infos", "feed_versions"
+  add_foreign_key "gtfs_frequencies", "feed_versions"
+  add_foreign_key "gtfs_frequencies", "gtfs_trips", column: "trip_id"
   add_foreign_key "gtfs_routes", "feed_versions"
   add_foreign_key "gtfs_routes", "gtfs_agencies", column: "agency_id"
   add_foreign_key "gtfs_stop_times", "feed_versions"
