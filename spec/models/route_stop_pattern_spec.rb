@@ -92,8 +92,8 @@ describe RouteStopPattern do
         expect(a[0]).to be_within(0.001).of(b[0])
         expect(a[1]).to be_within(0.001).of(b[1])
       end
-      # expect(rsp.geometry[:coordinates]).to eq 
-      expect(Geometry::EnhancedOTPDistances.new.calculate_distances(rsp)).to eq [0.0,0.0]
+      # expect(rsp.geometry[:coordinates]).to eq
+      expect(Geometry::TLDistances.new(rsp).calculate_distances).to eq [0.0,0.0]
     end
 
     it 'sets geometry_source based on GTFS ShapeLine' do

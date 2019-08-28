@@ -1,4 +1,4 @@
-FROM ruby:2.3.8
+FROM ruby:2.5.3
 
 # Install essentials
 RUN apt-get update -qq && apt-get install -y build-essential libpq-dev postgresql-client libgeos-dev
@@ -8,7 +8,7 @@ RUN mkdir /app
 WORKDIR /app
 
 # Install bundler
-RUN gem install bundler -v 1.16.1
+RUN gem install bundler -v 1.16.5
 
 # Install gems
 COPY components /app/components

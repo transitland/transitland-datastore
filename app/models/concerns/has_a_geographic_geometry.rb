@@ -23,11 +23,12 @@ module HasAGeographicGeometry
       projected_geometries = entities.map { |e| e.geometry(as: :wkt, projected: true)}
       geometry_collection = RGeo::Geographic.simple_mercator_factory.projection_factory.collection(projected_geometries)
       convex_hull = geometry_collection.convex_hull
-      if (geometry_collection.size < 3)
-        # 100 is in units of degrees Lat/Lon
-        # Might be worthwhile to consider options
-        # to turn this off or change magnitude.
-        convex_hull = convex_hull.buffer(100)
+      if (geometry_collection.size == 1)
+        # In units of degrees Lat/Lon
+        point = entities.first.send(:read_attribute, :geometry)
+        convex_hull = buffer(point, 0.0003)
+      elsif (geometry_collection.size == 2)
+        convex_hull = convex_hull.buffer(0.0003)
       end
 
       if projected == false
@@ -43,6 +44,18 @@ module HasAGeographicGeometry
       when :geojson
         return RGeo::GeoJSON.encode(convex_hull).try(:symbolize_keys)
       end
+    end
+
+    def self.buffer(point, distance)
+      # TODO: update rgeo so this can be removed
+      factory = RGeo::Geographic.spherical_factory(srid: 4326)
+      point_count = 4
+      angle = -::Math::PI * 2.0 / point_count
+      points = (0...point_count).map do |i|
+        r = angle * i
+        factory.point(point.x + distance * Math.cos(r), point.y + distance * Math.sin(r))
+      end
+      factory.polygon(factory.linear_ring(points))
     end
   end
 

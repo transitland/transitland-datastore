@@ -115,3 +115,9 @@ gem 'puma'
 
 # profiling
 gem 'memory_profiler', group: [:test, :development]
+
+# algorithms
+gem 'n_opa', github: 'doublestranded/n_opa'
+
+
+gem "rgeo", "~> 0.6.0"

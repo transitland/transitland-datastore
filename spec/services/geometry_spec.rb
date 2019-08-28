@@ -1,5 +1,9 @@
 describe Geometry do
 
+  def match_array_within(arr, e)
+    match_array(arr.map{|v| a_value_within(e).of(v) })
+  end
+
   let(:stop_1) { create(:stop,
     onestop_id: "s-9q8yw8y448-bayshorecaltrainstation",
     geometry: Stop::GEOFACTORY.point(-122.401811, 37.706675).to_s
@@ -20,6 +24,11 @@ describe Geometry do
     onestop_id: "s-9q9hwp6epk-mountainviewcaltrainstation",
     geometry: Stop::GEOFACTORY.point(-122.076327, 37.393879).to_s
   )}
+  let(:geom) {
+    Geometry::LineString.line_string([stop_a.geometry[:coordinates],
+                                          stop_b.geometry[:coordinates],
+                                          stop_c.geometry[:coordinates]])
+  }
   let(:route_onestop_id) { 'r-9q9j-bullet' }
 
   context 'distance calculation' do
@@ -27,17 +36,14 @@ describe Geometry do
       @sp = [stop_a.onestop_id,
              stop_b.onestop_id,
              stop_c.onestop_id]
-      @geom = Geometry::LineString.line_string([stop_a.geometry[:coordinates],
-                                            stop_b.geometry[:coordinates],
-                                            stop_c.geometry[:coordinates]])
       @rsp = RouteStopPattern.new(
         stop_pattern: @sp,
-        geometry: @geom
+        geometry: geom
       )
       @rsp.route = Route.new(onestop_id: route_onestop_id)
       @rsp.onestop_id = OnestopId::RouteStopPatternOnestopId.new(route_onestop_id: route_onestop_id,
                                                              stop_pattern: @sp,
-                                                             geometry_coords: @geom.coordinates).to_s
+                                                             geometry_coords: geom.coordinates).to_s
       @trip = GTFS::Trip.new(trip_id: 'test', shape_id: 'test')
     end
 
@@ -64,7 +70,12 @@ describe Geometry do
         trip = gtfs.trips.detect{|trip| trip.id == trip_ids.first}
         trip_stop_times = []
         gtfs.each_trip_stop_times(trip_ids=[trip.trip_id]){ |trip_id, stop_times| trip_stop_times = stop_times }
-        expect(Geometry::GTFSShapeDistanceTraveled.gtfs_shape_dist_traveled(rsp, trip_stop_times, tl_stops, gtfs.shape_line(trip.shape_id).shape_dist_traveled)).to match_array([0.0, 1166.3, 2507.7, 4313.8])
+        expect(Geometry::GTFSShapeDistanceTraveled.gtfs_shape_dist_traveled(
+          rsp,
+          trip_stop_times,
+          tl_stops,
+          gtfs.shape_line(trip.shape_id).shape_dist_traveled
+        )).to match_array([0.0, 1166.3, 2507.7, 4313.8])
       end
 
 
@@ -100,34 +111,45 @@ describe Geometry do
       end
     end
 
+    context 'when all stops are outliers' do
+      let(:geom) {
+        Geometry::LineString.line_string([stop_a.geometry[:coordinates].collect{|c| c + 0.01},
+                                              stop_b.geometry[:coordinates].collect{|c| c + 0.01},
+                                              stop_c.geometry[:coordinates].collect{|c| c + 0.01}])
+      }
+
+      it 'calculates distances' do
+        expect(Sidekiq::Logging.logger).to_not receive(:info).with(/Could not calculate distances/)
+        expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array([0.0, 8499.8, 16999.7])
+      end
+    end
+
     it 'no distance issues with RSPs generated from trip stop points' do
       feed, feed_version = load_feed(feed_version_name: :feed_version_seattle_childrens, import_level: 1)
-      expect(RouteStopPattern.find_by_onestop_id!('r-c23p1-sch~gold-10c68e-2ef1dd').stop_distances).to match_array([a_value_within(0.1).of(0.0), a_value_within(0.1).of(2070.3), a_value_within(0.1).of(4140.7)])
+      expect(RouteStopPattern.find_by_onestop_id!('r-c23p1-sch~gold-10c68e-2ef1dd').stop_distances).to match_array_within([0.0, 2070.3, 4140.7], 0.1)
       expect(Issue.where(issue_type: 'distance_calculation_inaccurate').size).to eq 0
     end
 
     it '#straight_line_distances' do
       expect(@rsp.stop_distances).to match_array([])
-      Geometry::DistanceCalculation.straight_line_distances(@rsp)
-      expect(@rsp.stop_distances).to match_array([a_value_within(0.1).of(0.0),
-                                                              a_value_within(0.1).of(12617.9),
-                                                              a_value_within(0.1).of(17001.5)])
+      @rsp.stop_distances = Geometry::DistanceCalculation.straight_line_distances(
+        @rsp.stop_pattern.map{ |onestop_id| Stop.find_by_onestop_id!(onestop_id).geometry_centroid }
+      )
+      expect(@rsp.stop_distances).to match_array_within([0.0,12617.9,17001.5], 0.1)
     end
 
     it 'stores distances in stop_distances attribute' do
-      Geometry::EnhancedOTPDistances.new.calculate_distances(@rsp)
+      Geometry::TLDistances.new(@rsp).calculate_distances
       expect(@rsp.stop_distances.count).to eq 3
     end
 
     it 'can calculate distances when the geometry and stop coordinates are equal' do
-      expect(Geometry::EnhancedOTPDistances.new.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
-                                                              a_value_within(0.1).of(12617.9271),
-                                                              a_value_within(0.1).of(17001.5107)])
+      expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array_within([0.0,12617.9271,17001.5107], 0.1)
     end
 
     it 'can calculate distances when coordinates are repeated' do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_mtanyctbusstatenisland_trip_YU_S6_Weekday_030000_MISC_112, import_level: 1)
-      distances = Geometry::EnhancedOTPDistances.new.calculate_distances(@feed.imported_route_stop_patterns[0])
+      distances = Geometry::TLDistances.new(@feed.imported_route_stop_patterns[0]).calculate_distances
       # expect all distances to be increasing
       expect(distances[1..-1].each_with_index.map { |v, i| v > distances[i] }.all?).to be true
     end
@@ -143,10 +165,7 @@ describe Geometry do
                            stop_b.onestop_id,
                            midpoint.onestop_id,
                            stop_c.onestop_id]
-      expect(Geometry::EnhancedOTPDistances.new.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
-                                                              a_value_within(0.1).of(12617.9271),
-                                                              a_value_within(0.1).of(14809.7189),
-                                                              a_value_within(0.1).of(17001.5107)])
+      expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array_within([0.0,12617.9271,14809.7189,17001.5107], 0.1)
     end
 
     it 'can calculate distances when a stop is between two geometry coordinates but not on a segment' do
@@ -158,7 +177,7 @@ describe Geometry do
                            stop_b.onestop_id,
                            p_offset.onestop_id,
                            stop_c.onestop_id]
-      expect(Geometry::EnhancedOTPDistances.new.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
+      expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array([a_value_within(0.1).of(0.0),
                                                               a_value_within(0.1).of(12617.9271),
                                                               a_value_within(0.5).of(14809.7189),
                                                               a_value_within(0.1).of(17001.5107)])
@@ -166,27 +185,27 @@ describe Geometry do
 
     it 'accurately calculates the distances of nyc staten island ferry 2-stop routes with before/after stops' do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_nycdotsiferry, import_level: 1)
-      expect(Geometry::EnhancedOTPDistances.new.calculate_distances(@feed.imported_route_stop_patterns[0])).to match_array([0.0, 8138.0])
-      expect(Geometry::EnhancedOTPDistances.new.calculate_distances(@feed.imported_route_stop_patterns[1])).to match_array([3.2, 8141.2])
+      expect(Geometry::TLDistances.new(@feed.imported_route_stop_patterns[0]).calculate_distances).to match_array([0.0, 8138.0])
+      expect(Geometry::TLDistances.new(@feed.imported_route_stop_patterns[1]).calculate_distances).to match_array([3.2, 8141.2])
     end
 
     it 'accurately calculates the distances of a route with stops along the line that traversed over itself in the opposite direction' do
       # see https://transit.land/documentation/datastore/rome_01_part_1.png
       # and https://transit.land/documentation/datastore/rome_01_part_2.png
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_rome, import_level: 1)
-      expect(Geometry::EnhancedOTPDistances.new.calculate_distances(@feed.imported_route_stop_patterns[0])).to match_array([0.6,639.6,817.5,1034.9,1250.2,1424.2,1793.5,1929.2,2162.2,2429.9,2579.6,2735.3,3022.6,3217.8,3407.3,3646.6,3804.4,3969.1,4128.3,4302.6,4482.1,4586.9,4869.5,5242.7,5510.4,5695.6,5871.4,6112.9,6269.6,6334.1,6528.8,6715.4,6863.0,7140.2,7689.8])
+      expect(Geometry::TLDistances.new(@feed.imported_route_stop_patterns[0]).calculate_distances).to match_array_within([0.6,639.6,817.5,1034.9,1250.2,1424.2,1793.5,1929.2,2162.2,2429.9,2579.6,2735.3,3022.6,3217.8,3407.3,3646.6,3804.4,3969.1,4128.3,4302.6,4482.1,4586.9,4869.5,5242.7,5510.4,5695.6,5871.4,6112.7,6269.6,6334.1,6528.8,6715.4,6863.0,7140.2,7689.8], 0.1)
     end
 
     it 'accurately calculates the distances of a route with stops along the line that traversed over itself in the opposite direction, but closest match was segment in opposite direction' do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta_1965654, import_level: 1)
-      expect(Geometry::EnhancedOTPDistances.new.calculate_distances(@feed.imported_route_stop_patterns[0])).to match_array([0.0,1490.8,1818.6,2478.0,2928.5,3167.2,3584.7,4079.4,4360.6,4784.1,4970.5,5168.1,5340.5,5599.0,6023.2,6483.9,6770.0,7469.3])
+      expect(Geometry::TLDistances.new(@feed.imported_route_stop_patterns[0]).calculate_distances).to match_array([0.0,1490.8,1818.6,2478.0,2928.5,3167.2,3584.7,4079.4,4360.6,4784.1,4970.5,5168.1,5340.5,5599.0,6023.2,6483.9,6770.0,7469.3])
     end
 
     it 'calculates the first stop distance correctly' do
       # from sfmta route 54 and for regression. case where first stop is not a 'before' stop
       # see https://transit.land/documentation/datastore/first_stop_correct_distance.png
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_sfmta_6720619, import_level: 1)
-      distances = Geometry::EnhancedOTPDistances.new.calculate_distances(@feed.imported_route_stop_patterns[0])
+      distances = Geometry::TLDistances.new(@feed.imported_route_stop_patterns[0]).calculate_distances
       expect(distances[0]).to be_within(0.1).of(201.1)
     end
 
@@ -194,7 +213,7 @@ describe Geometry do
       # from f-9q9-vta, r-9q9k-66.
       # see https://transit.land/documentation/datastore/repeated_stop_vta_66.png
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_vta_1930705, import_level: 1)
-      distances = Geometry::EnhancedOTPDistances.new.calculate_distances(@feed.imported_route_stop_patterns[0])
+      distances = Geometry::TLDistances.new(@feed.imported_route_stop_patterns[0]).calculate_distances
       expect(distances[77]).to be > distances[75]
     end
 
@@ -204,7 +223,7 @@ describe Geometry do
       # and https://transit.land/documentation/datastore/previous_segment_2_sfmta_n~owl.png
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_sfmta_6731593, import_level: 1)
       tricky_rsp = @feed.imported_route_stop_patterns[0]
-      distances = Geometry::EnhancedOTPDistances.new.calculate_distances(tricky_rsp)
+      distances = Geometry::TLDistances.new(tricky_rsp).calculate_distances
       expect(distances[-1]).to be > distances[-2]
     end
 
@@ -213,10 +232,7 @@ describe Geometry do
         onestop_id: "s-9q9hwp6epk-before~geometry",
         geometry: Stop::GEOFACTORY.point(-121.5, 37.30).to_s
       ).onestop_id)
-      expect(Geometry::EnhancedOTPDistances.new.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
-                                                       a_value_within(0.1).of(0.0),
-                                                       a_value_within(0.1).of(12617.9),
-                                                       a_value_within(0.1).of(17001.5)])
+      expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array_within([0.0,0.0,12617.9,17001.5], 0.1)
     end
 
     it 'calculates the distance of the last stop to be the length of the line geometry if it is after the last point of the geometry' do
@@ -225,12 +241,9 @@ describe Geometry do
        geometry: Stop::GEOFACTORY.point(-122.1, 37.41).to_s
       ).onestop_id
       @rsp.geometry = Geometry::LineString.line_string(@rsp.geometry[:coordinates] << [-122.09, 37.401])
-      distances = Geometry::EnhancedOTPDistances.new.calculate_distances(@rsp)
+      distances = Geometry::TLDistances.new(@rsp).calculate_distances
       expect(distances[3]).to be_within(0.1).of(@rsp[:geometry].length)
-      expect(distances).to match_array([a_value_within(0.1).of(0.0),
-                                                       a_value_within(0.1).of(12617.9),
-                                                       a_value_within(0.1).of(17001.5),
-                                                       a_value_within(0.1).of(18447.4)])
+      expect(distances).to match_array_within([0.0,12617.9,17001.5,18447.4], 0.1)
     end
 
     it 'can continue distance calculation when a stop is an outlier' do
@@ -242,10 +255,7 @@ describe Geometry do
                            stop_b.onestop_id,
                            outlier.onestop_id,
                            stop_c.onestop_id]
-      expect(Geometry::EnhancedOTPDistances.new.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
-                                                              a_value_within(0.1).of(12617.9271),
-                                                              a_value_within(0.1).of(14809.7),
-                                                              a_value_within(0.1).of(17001.5107)])
+      expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array_within([0.0,12617.9271,14809.7,17001.5107], 0.1)
     end
 
     it 'assign a fallback distance value equal to the geometry length to the last stop if it is an outlier' do
@@ -254,10 +264,7 @@ describe Geometry do
         geometry: Stop::GEOFACTORY.point(-121.5, 37.3).to_s
       )
       @rsp.stop_pattern << last_stop_outlier.onestop_id
-      expect(Geometry::EnhancedOTPDistances.new.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
-                                                              a_value_within(0.1).of(12617.9271),
-                                                              a_value_within(0.1).of(17001.5107),
-                                                              a_value_within(0.1).of(17001.5107)])
+      expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array_within([0.0,12617.9271,17001.5107,17001.5107], 0.1)
     end
 
     it 'can calculate distances when two consecutive stop points are identical' do
@@ -269,15 +276,12 @@ describe Geometry do
                            stop_b.onestop_id,
                            identical.onestop_id,
                            stop_c.onestop_id]
-      expect(Geometry::EnhancedOTPDistances.new.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
-                                                              a_value_within(0.1).of(12617.9271),
-                                                              a_value_within(0.1).of(12617.9271),
-                                                              a_value_within(0.1).of(17001.5107)])
+      expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array_within([0.0,12617.9271,12617.9271,17001.5107], 0.1)
     end
 
     it 'can readjust distances when stops match to the same segment out of order' do
       @feed, @feed_version = load_feed(feed_version_name: :feed_version_sfmta_7310245, import_level: 1)
-      distances = Geometry::EnhancedOTPDistances.new.calculate_distances(@feed.imported_route_stop_patterns[0])
+      distances = Geometry::TLDistances.new(@feed.imported_route_stop_patterns[0]).calculate_distances
       # expect all distances to be increasing
       expect(distances[1..-1].each_with_index.map { |v, i| v > distances[i] }.all?).to be true
     end
@@ -288,9 +292,7 @@ describe Geometry do
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.65))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.401811, 37.706675))
       stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.38, 37.78))
-      expect(Geometry::EnhancedOTPDistances.new.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
-                                                              a_value_within(0.1).of(6350.2),
-                                                              a_value_within(0.1).of(14129.7)])
+      expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array_within([0.0,6350.2,14129.7], 0.1)
     end
 
     it 'accurately calculates distances if the last stop is close to the line and is not an after? stop' do
@@ -299,17 +301,7 @@ describe Geometry do
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.65))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.401811, 37.706675))
       stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.3975, 37.741))
-      expect(Geometry::EnhancedOTPDistances.new.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
-                                                              a_value_within(0.1).of(6350.2),
-                                                              a_value_within(0.1).of(10192.9)])
-    end
-
-    it 'assigns the length of the geometry to the last stop distance when the last and penultimate are out of order' do
-      feed, feed_version = load_feed(feed_version_name: :feed_version_ttc_34360409, import_level: 1)
-      rsp = RouteStopPattern.first
-      # set the penultimate stop coordinate to the last point of the line
-      Stop.find_by_onestop_id!(rsp.stop_pattern[rsp.stop_pattern.size - 2]).update_column(:geometry, Stop::GEOFACTORY.point(*rsp[:geometry].coordinates.last))
-      expect(Geometry::EnhancedOTPDistances.new.calculate_distances(rsp)[rsp.stop_pattern.size-2..rsp.stop_pattern.size-1]).to eq [950.0, 950.0]
+      expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array_within([0.0,6350.2,10192.9], 0.1)
     end
 
     it 'sets the last stop distance to the length of the line geometry if it is > 100m from the line and less than distance of previous stop' do
@@ -319,7 +311,7 @@ describe Geometry do
       Stop.find_by_onestop_id!(rsp.stop_pattern[rsp.stop_pattern.size - 2]).update_column(:geometry, Stop::GEOFACTORY.point(-79.53941, 43.7388))
       # moving the last stop to be an outlier, but with a distance less than the previous stop
       Stop.find_by_onestop_id!(rsp.stop_pattern[-1]).update_column(:geometry, Stop::GEOFACTORY.point(-79.535, 43.73898))
-      expect(Geometry::EnhancedOTPDistances.new.calculate_distances(rsp)[rsp.stop_pattern.size-2..rsp.stop_pattern.size-1]).to eq [929.9, 950.0]
+      expect(Geometry::TLDistances.new(rsp).calculate_distances[rsp.stop_pattern.size-2..rsp.stop_pattern.size-1]).to eq [929.9, 950.0]
     end
 
     it 'accurately calculates distances if the first stop is a before? stop' do
@@ -328,9 +320,7 @@ describe Geometry do
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.41, 37.69))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.394935, 37.776348))
       stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.39, 37.84))
-      expect(Geometry::EnhancedOTPDistances.new.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(0.0),
-                                                              a_value_within(0.1).of(7779.5),
-                                                              a_value_within(0.1).of(14878.5)])
+      expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array_within([0.0,7779.5,14878.5], 0.1)
     end
 
     it 'accurately calculates distances if the first stop is close to the line and not a before? stop' do
@@ -339,17 +329,15 @@ describe Geometry do
       stop_a.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.40182, 37.7067))
       stop_b.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.394935, 37.776348))
       stop_c.update_column(:geometry, RouteStopPattern::GEOFACTORY.point(-122.39, 37.84))
-      expect(Geometry::EnhancedOTPDistances.new.calculate_distances(@rsp)).to match_array([a_value_within(0.1).of(2.7),
-                                                              a_value_within(0.1).of(7779.5),
-                                                              a_value_within(0.1).of(14878.5)])
+      expect(Geometry::TLDistances.new(@rsp).calculate_distances).to match_array_within([2.7,7779.5,14878.5], 0.1)
     end
 
     it 'accurately calculates distances if the first stop is an outlier stop, but matches to line before second stop' do
-      # in essence, the first stop can a "before?" stop, but can match to the inside of a line.
+      # in essence, the first stop can be a "before?" stop, but can match to the inside of a line.
       feed_cta, feed_version_cta = load_feed(feed_version_name: :feed_version_cta_476113351107, import_level: 1)
       feed_trenitalia, feed_version_trenitalia = load_feed(feed_version_name: :feed_version_trenitalia_56808573, import_level: 1)
-      expect(Geometry::EnhancedOTPDistances.new.calculate_distances(feed_cta.imported_route_stop_patterns.first)[0..1]).to match_array([0.0,29.8])
-      expect(Geometry::EnhancedOTPDistances.new.calculate_distances(feed_trenitalia.imported_route_stop_patterns.first)[0..1]).to match_array([6547.6, 8079.6])
+      expect(Geometry::TLDistances.new(feed_cta.imported_route_stop_patterns.first).calculate_distances[0..1]).to match_array([0.0,29.8])
+      expect(Geometry::TLDistances.new(feed_trenitalia.imported_route_stop_patterns.first).calculate_distances[0..1]).to match_array([0.0, 8079.6])
     end
 
     it 'appropriately handles tricky case where 3rd stop would match to the first segment point' do
@@ -376,16 +364,16 @@ describe Geometry do
 
     it 'handles case where first stop is not close to the line except towards the end' do
       feed, feed_version = load_feed(feed_version_name: :feed_version_hdpt_shop_trip, import_level: 1)
-      vexpect = [91.2,357.2,811.5,1130.7,1716.7,1981.3,2909.3,3029.7,3364.5,3639.4,4179.9,6054.3,6506.2,6886.6,7440.9,7476.3,7968.8,8182.2,8433.0,8589.9,8709.7,8895.6,9444.7,9790.9,10485.9,11178.0,11963.4,12467.3,12733.2,13208.4,13518.9]
-      RouteStopPattern.first.stop_distances.zip(vexpect).each { |a,b| expect(a).to be_within(1.0).of(b)}
-      expect(Issue.where(issue_type: 'distance_calculation_inaccurate').count).to eq 0
+      vexpect = [91.2,357.2,811.5,1130.7,1716.7,1981.3,2909.3,3029.7,3364.5,3639.4,4179.9,6054.3,6506.2,6886.6,7440.9,7440.9,7970.8,8182.2,8433.0,8589.9,8709.7,8894.2,9444.7,9790.9,10485.9,11178.0,11962.3,12467.3,12733.2,13208.4,13518.9]
+      Geometry::TLDistances.new(RouteStopPattern.first).calculate_distances.zip(vexpect).each { |a,b| expect(a).to be_within(1.0).of(b)}
     end
 
-    it 'handles case of stop slightly out of order with previous, and identical matching segments. readjusts distances.' do
+    it 'slightly out of order consecutive stops matching to the same part of the line will be assigned equal values' do
+      # TODO: may need finer segment granularity for better distance accuracy stop indices 9,10
       feed, feed_version = load_feed(feed_version_name: :feed_version_hdpt_sun_trip, import_level: 1)
-      vexpect = [35.9,295.3,747.8,1061.6,1652.3,1946.8,4168.1,4616.7,4994.4,5547.6,5573.1,6063.4,6282.9,6524.0,6682.7,6775.9,6961.1,7505.6,8912.2,9572.1,10265.7,11055.5,11547.6,11822.3,12294.7,12653.7,13071.7,13371.8,13862.3,14025.0,14184.7,15050.8,15923.9,16247.5,16636.5]
-      RouteStopPattern.first.stop_distances.zip(vexpect).each { |a,b| expect(a).to be_within(1.0).of(b)}
-      expect(Issue.where(issue_type: 'distance_calculation_inaccurate').count).to eq 0
+      vexpect = [35.9,295.3,747.8,1061.6,1652.3,1946.8,4168.1,4616.7,4994.4,5546.5,5546.5,6063.4,6282.9,6524.0,6682.7,6775.9,6961.1,7505.6,8912.2,9572.1,10265.7,11057.6,11547.6,11822.3,12294.7,12653.7,13071.7,13371.8,13862.3,14025.0,14184.7,15050.8,15923.9,16247.5,16636.5]
+      Geometry::TLDistances.new(RouteStopPattern.first).calculate_distances.zip(vexpect).each { |a,b| expect(a).to be_within(1.0).of(b)}
+      expect(Issue.where(issue_type: 'distance_calculation_inaccurate').count).to eq 1
     end
 
     it 'calculates distances for line with segments having distances of 0.0 m' do
@@ -403,12 +391,7 @@ describe Geometry do
       feed, feed_version = load_feed(feed_version_name: :feed_version_alleghany, import_level: 1)
       # Algorithm has minor discrepancy with optimal value.
       vexpect = [0.0, 1564.3, 2948.4, 7916.3, 15691.7, 21963.3, 28515.8, 34874.6, 35537.6, 37510.9, 38152.8, 39011.8, 40017.6, 41943.4, 51008.5, 57260.7, 64464.1, 70759.1]
-      RouteStopPattern.first.stop_distances.zip(vexpect).each { |a,b| expect(a).to be_within(5.0).of(b)}
-    end
-
-    it 'attempts a readjustment if stops are out of order' do
-      feed, feed_version = load_feed(feed_version_name: :feed_version_ttc_34398377, import_level: 1)
-      expect(Geometry::EnhancedOTPDistances.new.calculate_distances(RouteStopPattern.first)[0..1]).to match_array([40.0, 52.4])
+      Geometry::TLDistances.new(RouteStopPattern.first).calculate_distances.zip(vexpect).each { |a,b| expect(a).to be_within(5.0).of(b)}
     end
   end
 
@@ -435,7 +418,7 @@ describe Geometry do
         geometry: Stop::GEOFACTORY.point(-122.3975, 37.741).to_s
       )
       @rsp.stop_pattern = [@sp[0],test_stop.onestop_id,@sp[1]]
-      expect(Geometry::OutlierStop.outlier_stop(test_stop, @rsp)).to be false
+      expect(Geometry::OutlierStop.new(test_stop, @rsp).outlier_stop?).to be false
     end
 
     it 'returns true when the stop is greater than 100 meters of the closest point on the line' do
@@ -445,7 +428,7 @@ describe Geometry do
         geometry: Stop::GEOFACTORY.point(-122.3968, 37.7405).to_s
       )
       @rsp.stop_pattern = [@sp[0],test_stop.onestop_id,@sp[1]]
-      expect(Geometry::OutlierStop.outlier_stop(test_stop, @rsp)).to be true
+      expect(Geometry::OutlierStop.new(test_stop, @rsp).outlier_stop?).to be true
     end
   end
 end
