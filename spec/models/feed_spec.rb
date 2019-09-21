@@ -3,9 +3,9 @@
 # Table name: current_feeds
 #
 #  id                                 :integer          not null, primary key
-#  onestop_id                         :string
-#  url                                :string
-#  feed_format                        :string
+#  onestop_id                         :string           not null
+#  url                                :string           not null
+#  feed_format                        :string           not null
 #  tags                               :hstore
 #  last_fetched_at                    :datetime
 #  last_imported_at                   :datetime
@@ -14,24 +14,26 @@
 #  license_use_without_attribution    :string
 #  license_create_derived_product     :string
 #  license_redistribute               :string
-#  version                            :integer
-#  created_at                         :datetime
-#  updated_at                         :datetime
+#  version                            :integer          not null
+#  created_at                         :datetime         not null
+#  updated_at                         :datetime         not null
 #  created_or_updated_in_changeset_id :integer
 #  geometry                           :geography({:srid geometry, 4326
 #  license_attribution_text           :text
 #  active_feed_version_id             :integer
 #  edited_attributes                  :string           default([]), is an Array
 #  name                               :string
-#  type                               :string
+#  type                               :string           not null
 #  authorization                      :hstore
 #  urls                               :hstore
+#  last_successful_fetch_at           :datetime
+#  last_fetch_error                   :string           not null
 #  deleted_at                         :datetime
 #  license                            :hstore
 #  other_ids                          :hstore
 #  associated_feeds                   :string           is an Array
 #  languages                          :string           is an Array
-#  feed_namespace_id                  :string
+#  feed_namespace_id                  :string           not null
 #
 # Indexes
 #

@@ -4,7 +4,7 @@
 #
 #  id                :integer          not null, primary key
 #  transfer_type     :integer          not null
-#  min_transfer_time :integer
+#  min_transfer_time :integer          not null
 #  created_at        :datetime         not null
 #  updated_at        :datetime         not null
 #  feed_version_id   :integer          not null

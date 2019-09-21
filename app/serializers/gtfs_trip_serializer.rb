@@ -4,19 +4,19 @@
 #
 #  id                    :integer          not null, primary key
 #  trip_id               :string           not null
-#  trip_headsign         :string
-#  trip_short_name       :string
-#  direction_id          :integer
-#  block_id              :string
-#  wheelchair_accessible :integer
-#  bikes_allowed         :integer
+#  trip_headsign         :string           not null
+#  trip_short_name       :string           not null
+#  direction_id          :integer          not null
+#  block_id              :string           not null
+#  wheelchair_accessible :integer          not null
+#  bikes_allowed         :integer          not null
 #  created_at            :datetime         not null
 #  updated_at            :datetime         not null
 #  feed_version_id       :integer          not null
 #  route_id              :integer          not null
 #  shape_id              :integer
-#  stop_pattern_id       :integer
-#  service_id            :integer
+#  stop_pattern_id       :integer          not null
+#  service_id            :integer          not null
 #
 # Indexes
 #

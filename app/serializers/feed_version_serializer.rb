@@ -3,23 +3,21 @@
 # Table name: feed_versions
 #
 #  id                     :integer          not null, primary key
-#  feed_id                :integer
-#  feed_type              :string
-#  file                   :string
-#  earliest_calendar_date :date
-#  latest_calendar_date   :date
-#  sha1                   :string
-#  md5                    :string
+#  feed_id                :integer          not null
+#  feed_type              :string           not null
+#  file                   :string           not null
+#  earliest_calendar_date :date             not null
+#  latest_calendar_date   :date             not null
+#  sha1                   :string           not null
 #  tags                   :hstore
-#  fetched_at             :datetime
+#  fetched_at             :datetime         not null
 #  imported_at            :datetime
-#  created_at             :datetime
-#  updated_at             :datetime
-#  import_level           :integer          default(0)
-#  url                    :string
+#  created_at             :datetime         not null
+#  updated_at             :datetime         not null
+#  import_level           :integer          default(0), not null
+#  url                    :string           not null
 #  file_raw               :string
 #  sha1_raw               :string
-#  md5_raw                :string
 #  file_feedvalidator     :string
 #  deleted_at             :datetime
 #

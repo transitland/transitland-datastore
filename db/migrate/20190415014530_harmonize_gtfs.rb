@@ -3,6 +3,8 @@ class HarmonizeGTFS < ActiveRecord::Migration
     add_column :feed_versions, :deleted_at, :datetime
 
     ["old", "current"].each { |a| 
+      add_column "#{a}_feeds", :last_successful_fetch_at, :datetime
+      add_column "#{a}_feeds", :last_fetch_error, :string
       add_column "#{a}_feeds", :deleted_at, :datetime
       add_column "#{a}_feeds", :license, :hstore
       add_column "#{a}_feeds", :other_ids, :hstore
@@ -10,7 +12,8 @@ class HarmonizeGTFS < ActiveRecord::Migration
       add_column "#{a}_feeds", :languages, :string, array: true
       add_column "#{a}_feeds", :feed_namespace_id, :string
     }
-    ###########
+
+        ###########
     rename_column :gtfs_stops, :parent_station_id, :parent_station
     add_column :gtfs_stops, :level_id, :string
     add_column :gtfs_trips, :stop_pattern_id, :int
@@ -79,6 +82,101 @@ class HarmonizeGTFS < ActiveRecord::Migration
 
     add_foreign_key :gtfs_frequencies, :feed_versions
     add_foreign_key :gtfs_frequencies, :gtfs_trips, column: :trip_id
+
+    ############
+    # make more GTFS related columns NOT NULL to make life easier
+    change_column_null :gtfs_agencies, :agency_id, false
+    change_column_null :gtfs_agencies, :agency_lang, false
+    change_column_null :gtfs_agencies, :agency_phone, false
+    change_column_null :gtfs_agencies, :agency_fare_url, false
+    change_column_null :gtfs_agencies, :agency_email, false
+
+    change_column_null :gtfs_calendar_dates, :service_id, false
+
+    change_column_null :gtfs_calendars, :generated, false
+
+    change_column_null :gtfs_fare_attributes, :transfer_duration, false
+    change_column_null :gtfs_fare_attributes, :transfers, false
+    change_column_null :gtfs_fare_attributes, :agency_id, true
+
+    change_column_null :gtfs_fare_rules, :origin_id, false
+    change_column_null :gtfs_fare_rules, :destination_id, false
+    change_column_null :gtfs_fare_rules, :contains_id, false
+    # route_id?
+    # fare_id?
+
+    change_column_null :gtfs_feed_infos, :feed_version_name, false, default: ""
+    remove_column :gtfs_feed_infos, :feed_version
+    # change_column_null :gtfs_feed_infos, :feed_start_date, false
+    # change_column_null :gtfs_feed_infos, :feed_end_date, false
+
+    change_column_null :gtfs_frequencies, :exact_times, false
+
+    change_column_null :gtfs_imports, :succeeded, false
+    change_column_null :gtfs_imports, :import_log, false
+    change_column_null :gtfs_imports, :exception_log, false
+    change_column_null :gtfs_imports, :import_level, false
+
+    change_column_null :gtfs_routes, :route_url, false
+    change_column_null :gtfs_routes, :route_desc, false
+    change_column_null :gtfs_routes, :route_color, false
+    change_column_null :gtfs_routes, :route_text_color, false
+    change_column_null :gtfs_routes, :route_sort_order, false
+    remove_column :gtfs_routes, :geometry
+    remove_column :gtfs_routes, :geometry_generated
+    
+    change_column_null :gtfs_stop_times, :stop_headsign, false
+    change_column_null :gtfs_stop_times, :pickup_type, false
+    change_column_null :gtfs_stop_times, :drop_off_type, false
+    change_column_null :gtfs_stop_times, :shape_dist_traveled, false
+    change_column_null :gtfs_stop_times, :timepoint, false
+    remove_column :gtfs_stop_times, :destination_id
+    remove_column :gtfs_stop_times, :destination_arrival_time
+
+    change_column_null :gtfs_stops, :stop_code, false
+    change_column_null :gtfs_stops, :stop_desc, false
+    change_column_null :gtfs_stops, :zone_id, false
+    change_column_null :gtfs_stops, :stop_url, false
+    change_column_null :gtfs_stops, :location_type, false
+    change_column_null :gtfs_stops, :stop_timezone, false
+    change_column_null :gtfs_stops, :wheelchair_boarding, false
+    change_column_null :gtfs_stops, :level_id, false
+
+    change_column_null :gtfs_transfers, :min_transfer_time, false
+
+    change_column_null :gtfs_trips, :trip_headsign, false
+    change_column_null :gtfs_trips, :trip_short_name, false
+    change_column_null :gtfs_trips, :direction_id, false
+    change_column_null :gtfs_trips, :block_id, false
+    change_column_null :gtfs_trips, :wheelchair_accessible, false
+    change_column_null :gtfs_trips, :bikes_allowed, false
+    change_column_null :gtfs_trips, :stop_pattern_id, false
+    change_column_null :gtfs_trips, :service_id, false    
+    change_column_null :gtfs_trips, :shape_id, true
+
+    change_column_null :feed_versions, :feed_id, false
+    change_column_null :feed_versions, :feed_type, false, default: "gtfs"
+    change_column_null :feed_versions, :file, false, default: ""
+    change_column_null :feed_versions, :earliest_calendar_date, false
+    change_column_null :feed_versions, :latest_calendar_date, false
+    change_column_null :feed_versions, :sha1, false, default: ""
+    change_column_null :feed_versions, :fetched_at, false
+    change_column_null :feed_versions, :created_at, false
+    change_column_null :feed_versions, :updated_at, false
+    change_column_null :feed_versions, :import_level, false, default: 0
+    change_column_null :feed_versions, :url, false, default: ""
+    remove_column :feed_versions, :md5
+    remove_column :feed_versions, :md5_raw
+
+    change_column_null :current_feeds, :feed_namespace_id, false, default: ""
+    change_column_null :current_feeds, :last_fetch_error, false, default: ""
+    change_column_null :current_feeds, :type, false, default: ""
+    change_column_null :current_feeds, :created_at, false
+    change_column_null :current_feeds, :updated_at, false
+    change_column_null :current_feeds, :feed_format, false, default: "gtfs"
+    change_column_null :current_feeds, :url, false, default: ""
+    change_column_null :current_feeds, :onestop_id, false, default: ""
+    change_column_null :current_feeds, :version, false, default: 0
 
   end
 end

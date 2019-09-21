@@ -16,7 +16,7 @@
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  feed_version_id :integer          not null
-#  generated       :boolean
+#  generated       :boolean          not null
 #
 # Indexes
 #

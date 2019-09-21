@@ -4,20 +4,20 @@
 #
 #  id                  :integer          not null, primary key
 #  stop_id             :string           not null
-#  stop_code           :string
+#  stop_code           :string           not null
 #  stop_name           :string           not null
-#  stop_desc           :string
-#  zone_id             :string
-#  stop_url            :string
-#  location_type       :integer
-#  stop_timezone       :string
-#  wheelchair_boarding :integer
+#  stop_desc           :string           not null
+#  zone_id             :string           not null
+#  stop_url            :string           not null
+#  location_type       :integer          not null
+#  stop_timezone       :string           not null
+#  wheelchair_boarding :integer          not null
 #  geometry            :geography({:srid not null, point, 4326
 #  created_at          :datetime         not null
 #  updated_at          :datetime         not null
 #  feed_version_id     :integer          not null
 #  parent_station      :integer
-#  level_id            :string
+#  level_id            :string           not null
 #
 # Indexes
 #

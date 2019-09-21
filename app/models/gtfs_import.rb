@@ -3,10 +3,10 @@
 # Table name: gtfs_imports
 #
 #  id              :integer          not null, primary key
-#  succeeded       :boolean
-#  import_log      :text
-#  exception_log   :text
-#  import_level    :integer
+#  succeeded       :boolean          not null
+#  import_log      :text             not null
+#  exception_log   :text             not null
+#  import_level    :integer          not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  feed_version_id :integer          not null

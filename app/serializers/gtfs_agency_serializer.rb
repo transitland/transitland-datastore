@@ -3,14 +3,14 @@
 # Table name: gtfs_agencies
 #
 #  id              :integer          not null, primary key
-#  agency_id       :string
+#  agency_id       :string           not null
 #  agency_name     :string           not null
 #  agency_url      :string           not null
 #  agency_timezone :string           not null
-#  agency_lang     :string
-#  agency_phone    :string
-#  agency_fare_url :string
-#  agency_email    :string
+#  agency_lang     :string           not null
+#  agency_phone    :string           not null
+#  agency_fare_url :string           not null
+#  agency_email    :string           not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  feed_version_id :integer          not null
