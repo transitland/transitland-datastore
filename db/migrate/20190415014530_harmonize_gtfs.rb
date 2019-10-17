@@ -6,14 +6,14 @@ class HarmonizeGTFS < ActiveRecord::Migration
       add_column "#{a}_feeds", :last_successful_fetch_at, :datetime
       add_column "#{a}_feeds", :last_fetch_error, :string
       add_column "#{a}_feeds", :deleted_at, :datetime
-      add_column "#{a}_feeds", :license, :hstore
-      add_column "#{a}_feeds", :other_ids, :hstore
-      add_column "#{a}_feeds", :associated_feeds, :string, array: true
-      add_column "#{a}_feeds", :languages, :string, array: true
+      add_column "#{a}_feeds", :license, :jsonb
+      add_column "#{a}_feeds", :other_ids, :jsonb
+      add_column "#{a}_feeds", :associated_feeds, :jsonb
+      add_column "#{a}_feeds", :languages, :jsonb
       add_column "#{a}_feeds", :feed_namespace_id, :string
     }
 
-        ###########
+    ###########
     rename_column :gtfs_stops, :parent_station_id, :parent_station
     add_column :gtfs_stops, :level_id, :string
     add_column :gtfs_trips, :stop_pattern_id, :int

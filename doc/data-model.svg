@@ -45,7 +45,7 @@
 <text text-anchor="start" x="1530.4639" y="-2296.2" font-family="Arial BoldMT" font-size="11.00" fill="#000000">Feed</text>
 <polyline fill="none" stroke="#000000" points="1454,-2290.5 1636,-2290.5 "/>
 <text text-anchor="start" x="1461" y="-2277.5" font-family="ArialMT" font-size="10.00" fill="#000000">associated_feeds </text>
-<text text-anchor="start" x="1541.6104" y="-2277.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
+<text text-anchor="start" x="1541.6104" y="-2277.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">jsonb</text>
 <text text-anchor="start" x="1461" y="-2264.5" font-family="ArialMT" font-size="10.00" fill="#000000">authorization </text>
 <text text-anchor="start" x="1521.0391" y="-2264.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">hstore</text>
 <text text-anchor="start" x="1461" y="-2251.5" font-family="ArialMT" font-size="10.00" fill="#000000">deleted_at </text>
@@ -59,7 +59,7 @@
 <text text-anchor="start" x="1461" y="-2199.5" font-family="ArialMT" font-size="10.00" fill="#000000">geometry </text>
 <text text-anchor="start" x="1505.4629" y="-2199.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">geography ∗</text>
 <text text-anchor="start" x="1461" y="-2186.5" font-family="ArialMT" font-size="10.00" fill="#000000">languages </text>
-<text text-anchor="start" x="1509.9307" y="-2186.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
+<text text-anchor="start" x="1509.9307" y="-2186.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">jsonb</text>
 <text text-anchor="start" x="1461" y="-2173.5" font-family="ArialMT" font-size="10.00" fill="#000000">last_fetch_error </text>
 <text text-anchor="start" x="1533.2559" y="-2173.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗</text>
 <text text-anchor="start" x="1461" y="-2160.5" font-family="ArialMT" font-size="10.00" fill="#000000">last_fetched_at </text>
@@ -69,7 +69,7 @@
 <text text-anchor="start" x="1461" y="-2134.5" font-family="ArialMT" font-size="10.00" fill="#000000">last_successful_fetch_at </text>
 <text text-anchor="start" x="1572.7285" y="-2134.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">datetime</text>
 <text text-anchor="start" x="1461" y="-2121.5" font-family="ArialMT" font-size="10.00" fill="#000000">license </text>
-<text text-anchor="start" x="1494.9063" y="-2121.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">hstore</text>
+<text text-anchor="start" x="1494.9063" y="-2121.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">jsonb</text>
 <text text-anchor="start" x="1461" y="-2108.5" font-family="ArialMT" font-size="10.00" fill="#000000">license_attribution_text </text>
 <text text-anchor="start" x="1566.0635" y="-2108.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">text</text>
 <text text-anchor="start" x="1460.5054" y="-2095.5" font-family="ArialMT" font-size="10.00" fill="#000000">license_create_derived_product </text>
@@ -87,7 +87,7 @@
 <text text-anchor="start" x="1461" y="-2017.5" font-family="ArialMT" font-size="10.00" fill="#000000">onestop_id </text>
 <text text-anchor="start" x="1512.709" y="-2017.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗ U</text>
 <text text-anchor="start" x="1461" y="-2004.5" font-family="ArialMT" font-size="10.00" fill="#000000">other_ids </text>
-<text text-anchor="start" x="1504.916" y="-2004.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">hstore</text>
+<text text-anchor="start" x="1504.916" y="-2004.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">jsonb</text>
 <text text-anchor="start" x="1461" y="-1991.5" font-family="ArialMT" font-size="10.00" fill="#000000">tags </text>
 <text text-anchor="start" x="1482.6797" y="-1991.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">hstore</text>
 <text text-anchor="start" x="1461" y="-1978.5" font-family="ArialMT" font-size="10.00" fill="#000000">url </text>
@@ -134,7 +134,7 @@
 <text text-anchor="start" x="1068" y="-1860.5" font-family="ArialMT" font-size="10.00" fill="#000000">active_feed_version_id </text>
 <text text-anchor="start" x="1173.0684" y="-1860.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer</text>
 <text text-anchor="start" x="1068" y="-1847.5" font-family="ArialMT" font-size="10.00" fill="#000000">associated_feeds </text>
-<text text-anchor="start" x="1148.6104" y="-1847.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
+<text text-anchor="start" x="1148.6104" y="-1847.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">jsonb</text>
 <text text-anchor="start" x="1068" y="-1834.5" font-family="ArialMT" font-size="10.00" fill="#000000">authorization </text>
 <text text-anchor="start" x="1128.0391" y="-1834.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">hstore</text>
 <text text-anchor="start" x="1068" y="-1821.5" font-family="ArialMT" font-size="10.00" fill="#000000">deleted_at </text>
@@ -148,7 +148,7 @@
 <text text-anchor="start" x="1068" y="-1769.5" font-family="ArialMT" font-size="10.00" fill="#000000">geometry </text>
 <text text-anchor="start" x="1112.4629" y="-1769.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">geography</text>
 <text text-anchor="start" x="1068" y="-1756.5" font-family="ArialMT" font-size="10.00" fill="#000000">languages </text>
-<text text-anchor="start" x="1116.9307" y="-1756.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
+<text text-anchor="start" x="1116.9307" y="-1756.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">jsonb</text>
 <text text-anchor="start" x="1068" y="-1743.5" font-family="ArialMT" font-size="10.00" fill="#000000">last_fetch_error </text>
 <text text-anchor="start" x="1140.2559" y="-1743.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
 <text text-anchor="start" x="1068" y="-1730.5" font-family="ArialMT" font-size="10.00" fill="#000000">last_fetched_at </text>
@@ -158,7 +158,7 @@
 <text text-anchor="start" x="1068" y="-1704.5" font-family="ArialMT" font-size="10.00" fill="#000000">last_successful_fetch_at </text>
 <text text-anchor="start" x="1179.7285" y="-1704.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">datetime</text>
 <text text-anchor="start" x="1068" y="-1691.5" font-family="ArialMT" font-size="10.00" fill="#000000">license </text>
-<text text-anchor="start" x="1101.9063" y="-1691.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">hstore</text>
+<text text-anchor="start" x="1101.9063" y="-1691.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">jsonb</text>
 <text text-anchor="start" x="1068" y="-1678.5" font-family="ArialMT" font-size="10.00" fill="#000000">license_attribution_text </text>
 <text text-anchor="start" x="1173.0635" y="-1678.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">text</text>
 <text text-anchor="start" x="1067.5054" y="-1665.5" font-family="ArialMT" font-size="10.00" fill="#000000">license_create_derived_product </text>
@@ -176,7 +176,7 @@
 <text text-anchor="start" x="1068" y="-1587.5" font-family="ArialMT" font-size="10.00" fill="#000000">onestop_id </text>
 <text text-anchor="start" x="1119.709" y="-1587.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
 <text text-anchor="start" x="1068" y="-1574.5" font-family="ArialMT" font-size="10.00" fill="#000000">other_ids </text>
-<text text-anchor="start" x="1111.916" y="-1574.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">hstore</text>
+<text text-anchor="start" x="1111.916" y="-1574.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">jsonb</text>
 <text text-anchor="start" x="1068" y="-1561.5" font-family="ArialMT" font-size="10.00" fill="#000000">tags </text>
 <text text-anchor="start" x="1089.6797" y="-1561.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">hstore</text>
 <text text-anchor="start" x="1068" y="-1548.5" font-family="ArialMT" font-size="10.00" fill="#000000">url </text>

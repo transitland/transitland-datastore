@@ -29,10 +29,10 @@
 #  last_successful_fetch_at           :datetime
 #  last_fetch_error                   :string           not null
 #  deleted_at                         :datetime
-#  license                            :hstore
-#  other_ids                          :hstore
-#  associated_feeds                   :string           is an Array
-#  languages                          :string           is an Array
+#  license                            :jsonb
+#  other_ids                          :jsonb
+#  associated_feeds                   :jsonb
+#  languages                          :jsonb
 #  feed_namespace_id                  :string           not null
 #
 # Indexes

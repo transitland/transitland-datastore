@@ -69,10 +69,10 @@ ActiveRecord::Schema.define(version: 20190415014530) do
     t.datetime  "last_successful_fetch_at"
     t.string    "last_fetch_error",                                                                                            null: false
     t.datetime  "deleted_at"
-    t.hstore    "license"
-    t.hstore    "other_ids"
-    t.string    "associated_feeds",                                                                                                         array: true
-    t.string    "languages",                                                                                                                array: true
+    t.jsonb     "license"
+    t.jsonb     "other_ids"
+    t.jsonb     "associated_feeds"
+    t.jsonb     "languages"
     t.string    "feed_namespace_id",                                                                                           null: false
   end
 
@@ -698,10 +698,10 @@ ActiveRecord::Schema.define(version: 20190415014530) do
     t.datetime  "last_successful_fetch_at"
     t.string    "last_fetch_error"
     t.datetime  "deleted_at"
-    t.hstore    "license"
-    t.hstore    "other_ids"
-    t.string    "associated_feeds",                                                                                            array: true
-    t.string    "languages",                                                                                                   array: true
+    t.jsonb     "license"
+    t.jsonb     "other_ids"
+    t.jsonb     "associated_feeds"
+    t.jsonb     "languages"
     t.string    "feed_namespace_id"
   end
 
