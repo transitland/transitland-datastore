@@ -40,16 +40,16 @@ class GTFSImportService
     t_parse = Time.now
     log('finding selected entities...')
     # list of agency_ids to import
-    log('...agencies')
+    log('    agencies')
     selected_agency_ids = Set.new
     default_agency_id = nil
     @gtfs.each_agency do |e|
       default_agency_id ||= e.agency_id
       selected_agency_ids << e.agency_id
     end
-    log("...default_agency_id: #{default_agency_id}")
+    log("    default_agency_id: #{default_agency_id}")
     # agency associated routes
-    log('...routes')
+    log('    routes')
     selected_route_ids = Set.new
     @gtfs.each_route do |e|
       e.agency_id ||= default_agency_id
@@ -57,14 +57,14 @@ class GTFSImportService
       selected_route_ids << e.id
     end
     # trips associated with selected routes
-    log('...trips')
+    log('    trips')
     selected_trip_ids = Set.new
     @gtfs.each_trip do |e|
       next unless selected_route_ids.include?(e.route_id)
       selected_trip_ids << e.id
     end
     # stops associated with selected trips, and trip counter for pruning
-    log('...stops')
+    log('    stops')
     selected_stop_ids = Set.new
     trip_stop_counter = Hash.new { |h,k| h[k] = 0 }
     stop_time_counter = 0
@@ -80,7 +80,7 @@ class GTFSImportService
       selected_stop_ids << e.parent_station if e.parent_station
     end
     # pass through trips again for services and shapes
-    log('...services, pruning trips')
+    log('    services, pruning trips')
     selected_service_ids = Set.new
     selected_shape_ids = Set.new
     @gtfs.each_trip do |e|
@@ -92,7 +92,7 @@ class GTFSImportService
       end
     end
     # shapes
-    log('...shapes')
+    log('    shapes')
     shape_counter = Hash.new { |h,k| h[k] = 0 }
     if @gtfs.file_present?('shapes.txt')
       @gtfs.each_shape do |e|
@@ -101,7 +101,7 @@ class GTFSImportService
       end
     end
     # Fares and transfers
-    log("...time: #{((Time.now-t_parse).round(2))}")
+    log("    time: #{((Time.now-t_parse).round(2))}")
     # Import
     time('agencies') { import_agencies(selected_agency_ids) }
     time('stops') { import_stops(selected_stop_ids) }
@@ -304,69 +304,69 @@ class GTFSImportService
   def import_shapes(shape_counter=nil)
     return unless @gtfs.file_present?('shapes.txt')
     # load shapes in chunks
-    f = GTFSShape.geofactory
     yield_chunks(shape_counter, SHAPE_CHUNK_SIZE) do |shape_id_chunk|
-      log("processing shape_id_chunks: #{shape_id_chunk.size}")
+      log("processing shape_id_chunks: #{shape_id_chunk.size} shape_lines")
       @gtfs.each_shape_line(shape_id_chunk) do |shape_line|
-        log("processing shape_line: #{shape_line.shape_id} shapes #{shape_line.shapes.size}")
-        params = {}
-        params[:feed_version_id] = @feed_version.id
-        params[:shape_id] = shape_line.shape_id
-        params[:geometry] = f.line_string(
-          shape_line.shapes.map { |s|
-            f.point(
-              gtfs_float(s.shape_pt_lon),
-              gtfs_float(s.shape_pt_lat),
-              gtfs_float(s.shape_dist_traveled)
-            )
-          }
-        )
-        create(GTFSShape.new(params), shape_line.shape_id, @shape_ids)
+        time("    shape_line #{shape_line.shape_id} shapes #{shape_line.shapes.size}") { import_shape_line(shape_line) }
       end
     end
   end
 
+  def import_shape_line(shape_line)
+    f = GTFSShape.geofactory
+    params = {}
+    params[:feed_version_id] = @feed_version.id
+    params[:shape_id] = shape_line.shape_id
+    params[:geometry] = f.line_string(
+      shape_line.shapes.map { |s|
+        f.point(
+          gtfs_float(s.shape_pt_lon),
+          gtfs_float(s.shape_pt_lat),
+          gtfs_float(s.shape_dist_traveled)
+        )
+      }
+    )
+    create(GTFSShape.new(params), shape_line.shape_id, @shape_ids)
+end
+
   def import_trips_and_stop_times(trip_stop_counter=nil)
-    # load trips
+    # Load trips
     @gtfs.trips 
-    # stop_pattern shape_ids
+    # Stop_pattern shape_ids
     @stop_pattern_shape_ids = {} 
-    # load stop_times in chunks
+    # Cache distances by shape_id
+    @distances = {}
+    # Load stop_times in chunks
     yield_chunks(trip_stop_counter, STOP_TIME_CHUNK_SIZE) do |trip_id_chunk|
-      log("processing trip_id_chunks: #{trip_id_chunk.size}")
+      log("processing trip_id_chunks: #{trip_id_chunk.size} trips")
       @gtfs.each_trip_stop_times(trip_id_chunk) do |trip_id, stop_times|
-        import_trip(@gtfs.trip(trip_id), stop_times)
+        time("    trip #{trip_id} stop_times #{stop_times.size}") { import_trip(@gtfs.trip(trip_id), stop_times) }
       end
     end
   end
 
   def import_trip(trip, stop_times)
-    log("processing trip: #{trip.id} stop_times #{stop_times.size}")
     # Create stop_times
     trip_stop_times = []
-    stop_times.each_index do |i|
-      origin = stop_times[i]
-      destination = stop_times[i+1] # last stop is nil
-      next unless @stop_ids[origin.stop_id] && (destination.nil? || @stop_ids[destination.stop_id])
+    stop_times.each do |stop_time|
+      next unless @stop_ids[stop_time.stop_id] 
       params = {}
       params[:feed_version_id] = @feed_version.id
-      params[:stop_sequence] = gtfs_int(origin.stop_sequence)
-      params[:stop_headsign] = origin.stop_headsign
-      params[:pickup_type] = gtfs_int(origin.pickup_type) || 0
-      params[:drop_off_type] = gtfs_int(origin.drop_off_type) || 0
-      params[:shape_dist_traveled] = gtfs_float(origin.shape_dist_traveled)
-      params[:timepoint] = gtfs_int(origin.timepoint)
-      # where
-      params[:stop_id] = @stop_ids[origin.stop_id]
-      params[:arrival_time] = gtfs_time(origin.arrival_time)
-      params[:departure_time] = gtfs_time(origin.departure_time)
-      # for convenience
-      params[:destination_id] = @stop_ids[destination.stop_id] if destination
-      params[:destination_arrival_time] = gtfs_time(destination.arrival_time) if destination
+      params[:stop_sequence] = gtfs_int(stop_time.stop_sequence)
+      params[:stop_headsign] = stop_time.stop_headsign
+      params[:pickup_type] = gtfs_int(stop_time.pickup_type) || 0
+      params[:drop_off_type] = gtfs_int(stop_time.drop_off_type) || 0
+      params[:shape_dist_traveled] = gtfs_float(stop_time.shape_dist_traveled)
+      params[:timepoint] = gtfs_int(stop_time.timepoint)
+      params[:stop_id] = @stop_ids[stop_time.stop_id]
+      params[:arrival_time] = gtfs_time(stop_time.arrival_time)
+      params[:departure_time] = gtfs_time(stop_time.departure_time)
       trip_stop_times << GTFSStopTime.new(params)
     end
+    trip_stop_times = trip_stop_times.sort_by(&:stop_sequence)
     stop_pattern = trip_stop_times.map(&:stop_id)
     # Create trip
+    return unless trip_stop_times.size > 1
     return unless @route_ids[trip.route_id]
     params = {}
     params[:feed_version_id] = @feed_version.id
@@ -389,11 +389,18 @@ class GTFSImportService
     # Save trip
     new_trip = create(GTFSTrip.new(params), trip.trip_id, @trip_ids)
     return unless new_trip
-    return unless trip_stop_times.size > 0
+    # Interpolate stop_times
+    # TODO: interpolate & validate before saving trip?? rescue exception?
+    d = @distances[shape_id] || {}
+    @distances[shape_id] = d
+    GTFSStopTimeService.interpolate_stop_times(trip_stop_times, shape_id, distances=d)
     # Assign trip_id to stop_times
     trip_stop_times.each { |i| i.trip_id = new_trip.id }
-    # Interpolate stop_times
-    GTFSStopTimeService.interpolate_stop_times(trip_stop_times, shape_id)
+    # Set destinations
+    trip_stop_times[0..-2].zip(trip_stop_times[1..-1]).each do |o,d|
+      o.destination_id = d.stop_id
+      o.destination_arrival_time = d.arrival_time
+    end
     # Save stop_times
     create_chunk(trip_stop_times, 0)
   end
@@ -421,8 +428,7 @@ class GTFSImportService
     if chunk.size > chunk_size
       chunk.each { |i| i.skip_association_validations = true }
       chunk, invalid = chunk.partition(&:valid?)
-      invalid.each { |i| log("   invalid: #{i.class.name} #{i.to_json}"); puts i.errors.messages }  
-      # log("   import #{chunk.size}")
+      invalid.each { |i| log("    invalid: #{i.class.name} #{i.to_json}"); puts i.errors.messages }  
       chunk.first.class.import(chunk) if chunk.size > 0
       chunk = []
     end
@@ -436,7 +442,7 @@ class GTFSImportService
       record.save!
       # log("   saved: #{record.class.name} #{record.to_json}")
     rescue ActiveRecord::RecordInvalid, ActiveRecord::StatementInvalid => e
-      log("   failed: #{record.class.name} #{record.to_json}: #{record.errors}")
+      log("    failed: #{record.class.name} #{record.to_json}: #{record.errors}")
       return nil
     end
     idmap[idid] = record.id if idmap
@@ -455,7 +461,7 @@ class GTFSImportService
   def time(msg, &block)
     t = Time.now
     block.call
-    log("#{msg}: #{((Time.now-t)).round(2)}s")
+    log("#{msg}: #{((Time.now-t)).round(4)}s")
   end
 
   def gtfs_int(value)

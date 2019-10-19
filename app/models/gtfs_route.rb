@@ -46,4 +46,9 @@ class GTFSRoute < ActiveRecord::Base
   validates :route_id, presence: true
   validates :route_type, presence: true
   validate { errors.add("route_short_name or route_long_name must be present") unless route_short_name.presence || route_long_name.presence }
+
+  def name
+    route_short_name.presence || route_long_name.presence
+  end
+
 end

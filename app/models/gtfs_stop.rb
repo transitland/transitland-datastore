@@ -38,6 +38,7 @@ class GTFSStop < ActiveRecord::Base
   include HasAGeographicGeometry
   has_many :stop_times, class_name: GTFSStopTime, foreign_key: "stop_id"
   has_many :gtfs_shapes
+  has_many :children, class_name: GTFSStop, foreign_key: "parent_station_id"
   belongs_to :feed_version
   belongs_to :entity, class_name: 'Stop'
   validates :feed_version, presence: true, unless: :skip_association_validations
