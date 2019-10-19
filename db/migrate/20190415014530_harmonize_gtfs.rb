@@ -1,17 +1,61 @@
+def change_null_default(table, col, nullable, default)
+  if !default.nil?
+    change_column_default table, col, default
+  end
+  change_column_null table, col, nullable
+end
+
+
 class HarmonizeGTFS < ActiveRecord::Migration
   def change
-    add_column :feed_versions, :deleted_at, :datetime
-
     ["old", "current"].each { |a| 
+      change_column "#{a}_feeds", :urls, 'JSONB USING hstore_to_json(urls)', default: {}
+      change_column "#{a}_feeds", :authorization, 'JSONB USING hstore_to_json("authorization")', default: {}
+      rename_column "#{a}_feeds", :feed_format, :spec
+      rename_column "#{a}_feeds", :authorization, :auth
+
       add_column "#{a}_feeds", :last_successful_fetch_at, :datetime
-      add_column "#{a}_feeds", :last_fetch_error, :string
       add_column "#{a}_feeds", :deleted_at, :datetime
-      add_column "#{a}_feeds", :license, :jsonb
-      add_column "#{a}_feeds", :other_ids, :jsonb
-      add_column "#{a}_feeds", :associated_feeds, :jsonb
-      add_column "#{a}_feeds", :languages, :jsonb
-      add_column "#{a}_feeds", :feed_namespace_id, :string
+
+      add_column "#{a}_feeds", :last_fetch_error, :string, null: false
+      add_column "#{a}_feeds", :license, :jsonb, default: {}, null: false
+      add_column "#{a}_feeds", :other_ids, :jsonb, default: {}, null: false
+      add_column "#{a}_feeds", :associated_feeds, :jsonb, default: {}, null: false
+      add_column "#{a}_feeds", :languages, :jsonb, default: {}, null: false
+      add_column "#{a}_feeds", :feed_namespace_id, :string, null: false
+
+      change_null_default("#{a}_feeds", :onestop_id, false, nil)
+      change_null_default("#{a}_feeds", :created_at, false, nil)
+      change_null_default("#{a}_feeds", :updated_at, false, nil)
+      change_null_default("#{a}_feeds", :feed_namespace_id, false, "")
+      change_null_default("#{a}_feeds", :spec, false, "gtfs")
+      change_null_default("#{a}_feeds", :url, false, nil)
+      change_null_default("#{a}_feeds", :urls, false, {})
+      change_null_default("#{a}_feeds", :auth, false, {})
+      change_null_default("#{a}_feeds", :license, false, {})
+      change_null_default("#{a}_feeds", :associated_feeds, false, {})
+      change_null_default("#{a}_feeds", :languages, false, {})
+      change_null_default("#{a}_feeds", :other_ids, false, {})
+      # change_column_null :current_feeds, :version, false, default: 0
+      # change_column_null :current_feeds, :last_fetch_error, false, default: ""
+      # change_column_null :current_feeds, :type, false, default: ""
     }
+
+    add_column :feed_versions, :deleted_at, :datetime
+    change_column_null :feed_versions, :feed_id, false
+    change_column_null :feed_versions, :feed_type, false, default: "gtfs"
+    change_column_null :feed_versions, :file, false, default: ""
+    change_column_null :feed_versions, :earliest_calendar_date, false
+    change_column_null :feed_versions, :latest_calendar_date, false
+    change_column_null :feed_versions, :sha1, false, default: ""
+    change_column_null :feed_versions, :fetched_at, false
+    change_column_null :feed_versions, :created_at, false
+    change_column_null :feed_versions, :updated_at, false
+    change_column_null :feed_versions, :import_level, false, default: 0
+    change_column_null :feed_versions, :url, false, default: ""
+    remove_column :feed_versions, :md5
+    remove_column :feed_versions, :md5_raw
+
 
     ###########
     rename_column :gtfs_stops, :parent_station_id, :parent_station
@@ -153,30 +197,5 @@ class HarmonizeGTFS < ActiveRecord::Migration
     change_column_null :gtfs_trips, :stop_pattern_id, false
     change_column_null :gtfs_trips, :service_id, false    
     change_column_null :gtfs_trips, :shape_id, true
-
-    change_column_null :feed_versions, :feed_id, false
-    change_column_null :feed_versions, :feed_type, false, default: "gtfs"
-    change_column_null :feed_versions, :file, false, default: ""
-    change_column_null :feed_versions, :earliest_calendar_date, false
-    change_column_null :feed_versions, :latest_calendar_date, false
-    change_column_null :feed_versions, :sha1, false, default: ""
-    change_column_null :feed_versions, :fetched_at, false
-    change_column_null :feed_versions, :created_at, false
-    change_column_null :feed_versions, :updated_at, false
-    change_column_null :feed_versions, :import_level, false, default: 0
-    change_column_null :feed_versions, :url, false, default: ""
-    remove_column :feed_versions, :md5
-    remove_column :feed_versions, :md5_raw
-
-    change_column_null :current_feeds, :feed_namespace_id, false, default: ""
-    change_column_null :current_feeds, :last_fetch_error, false, default: ""
-    change_column_null :current_feeds, :type, false, default: ""
-    change_column_null :current_feeds, :created_at, false
-    change_column_null :current_feeds, :updated_at, false
-    change_column_null :current_feeds, :feed_format, false, default: "gtfs"
-    change_column_null :current_feeds, :url, false, default: ""
-    change_column_null :current_feeds, :onestop_id, false, default: ""
-    change_column_null :current_feeds, :version, false, default: 0
-
   end
 end

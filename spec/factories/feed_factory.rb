@@ -5,7 +5,7 @@
 #  id                                 :integer          not null, primary key
 #  onestop_id                         :string           not null
 #  url                                :string           not null
-#  feed_format                        :string           not null
+#  spec                               :string           default("gtfs"), not null
 #  tags                               :hstore
 #  last_fetched_at                    :datetime
 #  last_imported_at                   :datetime
@@ -14,7 +14,7 @@
 #  license_use_without_attribution    :string
 #  license_create_derived_product     :string
 #  license_redistribute               :string
-#  version                            :integer          not null
+#  version                            :integer
 #  created_at                         :datetime         not null
 #  updated_at                         :datetime         not null
 #  created_or_updated_in_changeset_id :integer
@@ -23,22 +23,22 @@
 #  active_feed_version_id             :integer
 #  edited_attributes                  :string           default([]), is an Array
 #  name                               :string
-#  type                               :string           not null
-#  authorization                      :hstore
-#  urls                               :hstore
+#  type                               :string
+#  auth                               :jsonb            not null
+#  urls                               :jsonb            not null
 #  last_successful_fetch_at           :datetime
-#  last_fetch_error                   :string           not null
 #  deleted_at                         :datetime
-#  license                            :jsonb
-#  other_ids                          :jsonb
-#  associated_feeds                   :jsonb
-#  languages                          :jsonb
-#  feed_namespace_id                  :string           not null
+#  last_fetch_error                   :string           not null
+#  license                            :jsonb            not null
+#  other_ids                          :jsonb            not null
+#  associated_feeds                   :jsonb            not null
+#  languages                          :jsonb            not null
+#  feed_namespace_id                  :string           default(""), not null
 #
 # Indexes
 #
 #  index_current_feeds_on_active_feed_version_id              (active_feed_version_id)
-#  index_current_feeds_on_authorization                       (authorization)
+#  index_current_feeds_on_auth                                (auth)
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
 #  index_current_feeds_on_geometry                            (geometry) USING gist
 #  index_current_feeds_on_onestop_id                          (onestop_id) UNIQUE

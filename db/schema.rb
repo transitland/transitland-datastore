@@ -43,9 +43,9 @@ ActiveRecord::Schema.define(version: 20190415014530) do
   add_index "changesets", ["user_id"], name: "index_changesets_on_user_id", using: :btree
 
   create_table "current_feeds", force: :cascade do |t|
-    t.string    "onestop_id",                                                                                                  null: false
-    t.string    "url",                                                                                                         null: false
-    t.string    "feed_format",                                                                                                 null: false
+    t.string    "onestop_id",                                                                                                      null: false
+    t.string    "url",                                                                                                             null: false
+    t.string    "spec",                                                                                           default: "gtfs", null: false
     t.hstore    "tags"
     t.datetime  "last_fetched_at"
     t.datetime  "last_imported_at"
@@ -54,30 +54,30 @@ ActiveRecord::Schema.define(version: 20190415014530) do
     t.string    "license_use_without_attribution"
     t.string    "license_create_derived_product"
     t.string    "license_redistribute"
-    t.integer   "version",                                                                                                     null: false
-    t.datetime  "created_at",                                                                                                  null: false
-    t.datetime  "updated_at",                                                                                                  null: false
+    t.integer   "version"
+    t.datetime  "created_at",                                                                                                      null: false
+    t.datetime  "updated_at",                                                                                                      null: false
     t.integer   "created_or_updated_in_changeset_id"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.text      "license_attribution_text"
     t.integer   "active_feed_version_id"
-    t.string    "edited_attributes",                                                                              default: [],              array: true
+    t.string    "edited_attributes",                                                                              default: [],                  array: true
     t.string    "name"
-    t.string    "type",                                                                                                        null: false
-    t.hstore    "authorization"
-    t.hstore    "urls"
+    t.string    "type"
+    t.jsonb     "auth",                                                                                           default: {},     null: false
+    t.jsonb     "urls",                                                                                           default: {},     null: false
     t.datetime  "last_successful_fetch_at"
-    t.string    "last_fetch_error",                                                                                            null: false
     t.datetime  "deleted_at"
-    t.jsonb     "license"
-    t.jsonb     "other_ids"
-    t.jsonb     "associated_feeds"
-    t.jsonb     "languages"
-    t.string    "feed_namespace_id",                                                                                           null: false
+    t.string    "last_fetch_error",                                                                                                null: false
+    t.jsonb     "license",                                                                                        default: {},     null: false
+    t.jsonb     "other_ids",                                                                                      default: {},     null: false
+    t.jsonb     "associated_feeds",                                                                               default: {},     null: false
+    t.jsonb     "languages",                                                                                      default: {},     null: false
+    t.string    "feed_namespace_id",                                                                              default: "",     null: false
   end
 
   add_index "current_feeds", ["active_feed_version_id"], name: "index_current_feeds_on_active_feed_version_id", using: :btree
-  add_index "current_feeds", ["authorization"], name: "index_current_feeds_on_authorization", using: :btree
+  add_index "current_feeds", ["auth"], name: "index_current_feeds_on_auth", using: :btree
   add_index "current_feeds", ["created_or_updated_in_changeset_id"], name: "index_current_feeds_on_created_or_updated_in_changeset_id", using: :btree
   add_index "current_feeds", ["geometry"], name: "index_current_feeds_on_geometry", using: :gist
   add_index "current_feeds", ["onestop_id"], name: "index_current_feeds_on_onestop_id", unique: true, using: :btree
@@ -669,9 +669,9 @@ ActiveRecord::Schema.define(version: 20190415014530) do
   end
 
   create_table "old_feeds", force: :cascade do |t|
-    t.string    "onestop_id"
-    t.string    "url"
-    t.string    "feed_format"
+    t.string    "onestop_id",                                                                                                      null: false
+    t.string    "url",                                                                                                             null: false
+    t.string    "spec",                                                                                           default: "gtfs", null: false
     t.hstore    "tags"
     t.datetime  "last_fetched_at"
     t.datetime  "last_imported_at"
@@ -681,28 +681,28 @@ ActiveRecord::Schema.define(version: 20190415014530) do
     t.string    "license_create_derived_product"
     t.string    "license_redistribute"
     t.integer   "version"
-    t.datetime  "created_at"
-    t.datetime  "updated_at"
+    t.datetime  "created_at",                                                                                                      null: false
+    t.datetime  "updated_at",                                                                                                      null: false
     t.integer   "current_id"
     t.integer   "created_or_updated_in_changeset_id"
     t.integer   "destroyed_in_changeset_id"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.text      "license_attribution_text"
     t.integer   "active_feed_version_id"
-    t.string    "edited_attributes",                                                                              default: [], array: true
+    t.string    "edited_attributes",                                                                              default: [],                  array: true
     t.string    "action"
     t.string    "name"
     t.string    "type"
-    t.hstore    "authorization"
-    t.hstore    "urls"
+    t.jsonb     "auth",                                                                                           default: {},     null: false
+    t.jsonb     "urls",                                                                                           default: {},     null: false
     t.datetime  "last_successful_fetch_at"
-    t.string    "last_fetch_error"
     t.datetime  "deleted_at"
-    t.jsonb     "license"
-    t.jsonb     "other_ids"
-    t.jsonb     "associated_feeds"
-    t.jsonb     "languages"
-    t.string    "feed_namespace_id"
+    t.string    "last_fetch_error",                                                                                                null: false
+    t.jsonb     "license",                                                                                        default: {},     null: false
+    t.jsonb     "other_ids",                                                                                      default: {},     null: false
+    t.jsonb     "associated_feeds",                                                                               default: {},     null: false
+    t.jsonb     "languages",                                                                                      default: {},     null: false
+    t.string    "feed_namespace_id",                                                                              default: "",     null: false
   end
 
   add_index "old_feeds", ["active_feed_version_id"], name: "index_old_feeds_on_active_feed_version_id", using: :btree
