@@ -16,7 +16,7 @@ Rails.application.routes.draw do
         end
         resources :change_payloads, only: [:index, :show, :create, :update, :destroy]
       end
-    
+
       scope 'gtfs' do
         resources :agencies, controller: 'gtfs_agencies', only: [:index, :show]
         resources :calendar_dates, controller: 'gtfs_calendar_dates', only: [:index, :show]
@@ -62,6 +62,7 @@ Rails.application.routes.draw do
         end
         collection do
           post 'fetch_info'
+          get 'dmfr'
         end
       end
       resources :feed_versions, only: [:index, :show, :create, :update]
