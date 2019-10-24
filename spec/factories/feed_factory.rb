@@ -3,34 +3,36 @@
 # Table name: current_feeds
 #
 #  id                                 :integer          not null, primary key
-#  onestop_id                         :string
+#  onestop_id                         :string           not null
 #  url                                :string
-#  feed_format                        :string
+#  spec                               :string           default("gtfs"), not null
 #  tags                               :hstore
 #  last_fetched_at                    :datetime
 #  last_imported_at                   :datetime
-#  license_name                       :string
-#  license_url                        :string
-#  license_use_without_attribution    :string
-#  license_create_derived_product     :string
-#  license_redistribute               :string
 #  version                            :integer
-#  created_at                         :datetime
-#  updated_at                         :datetime
+#  created_at                         :datetime         not null
+#  updated_at                         :datetime         not null
 #  created_or_updated_in_changeset_id :integer
 #  geometry                           :geography({:srid geometry, 4326
-#  license_attribution_text           :text
 #  active_feed_version_id             :integer
 #  edited_attributes                  :string           default([]), is an Array
 #  name                               :string
 #  type                               :string
-#  authorization                      :hstore
-#  urls                               :hstore
+#  auth                               :jsonb            not null
+#  urls                               :jsonb            not null
+#  deleted_at                         :datetime
+#  last_successful_fetch_at           :datetime
+#  last_fetch_error                   :string           default(""), not null
+#  license                            :jsonb            not null
+#  other_ids                          :jsonb            not null
+#  associated_feeds                   :jsonb            not null
+#  languages                          :jsonb            not null
+#  feed_namespace_id                  :string           default(""), not null
 #
 # Indexes
 #
 #  index_current_feeds_on_active_feed_version_id              (active_feed_version_id)
-#  index_current_feeds_on_authorization                       (authorization)
+#  index_current_feeds_on_auth                                (auth)
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
 #  index_current_feeds_on_geometry                            (geometry) USING gist
 #  index_current_feeds_on_onestop_id                          (onestop_id) UNIQUE

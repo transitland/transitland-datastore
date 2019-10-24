@@ -3,24 +3,23 @@
 # Table name: gtfs_trips
 #
 #  id                    :integer          not null, primary key
-#  service_id            :string           not null
 #  trip_id               :string           not null
-#  trip_headsign         :string
-#  trip_short_name       :string
-#  direction_id          :integer
-#  block_id              :string
-#  wheelchair_accessible :integer
-#  bikes_allowed         :integer
+#  trip_headsign         :string           not null
+#  trip_short_name       :string           not null
+#  direction_id          :integer          not null
+#  block_id              :string           not null
+#  wheelchair_accessible :integer          not null
+#  bikes_allowed         :integer          not null
 #  created_at            :datetime         not null
 #  updated_at            :datetime         not null
 #  feed_version_id       :integer          not null
-#  entity_id             :integer
 #  route_id              :integer          not null
 #  shape_id              :integer
+#  stop_pattern_id       :integer          not null
+#  service_id            :integer          not null
 #
 # Indexes
 #
-#  index_gtfs_trips_on_entity_id        (entity_id)
 #  index_gtfs_trips_on_feed_version_id  (feed_version_id)
 #  index_gtfs_trips_on_route_id         (route_id)
 #  index_gtfs_trips_on_service_id       (service_id)

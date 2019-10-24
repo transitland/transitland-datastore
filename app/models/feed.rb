@@ -3,34 +3,36 @@
 # Table name: current_feeds
 #
 #  id                                 :integer          not null, primary key
-#  onestop_id                         :string
+#  onestop_id                         :string           not null
 #  url                                :string
-#  feed_format                        :string
+#  spec                               :string           default("gtfs"), not null
 #  tags                               :hstore
 #  last_fetched_at                    :datetime
 #  last_imported_at                   :datetime
-#  license_name                       :string
-#  license_url                        :string
-#  license_use_without_attribution    :string
-#  license_create_derived_product     :string
-#  license_redistribute               :string
 #  version                            :integer
-#  created_at                         :datetime
-#  updated_at                         :datetime
+#  created_at                         :datetime         not null
+#  updated_at                         :datetime         not null
 #  created_or_updated_in_changeset_id :integer
 #  geometry                           :geography({:srid geometry, 4326
-#  license_attribution_text           :text
 #  active_feed_version_id             :integer
 #  edited_attributes                  :string           default([]), is an Array
 #  name                               :string
 #  type                               :string
-#  authorization                      :hstore
-#  urls                               :hstore
+#  auth                               :jsonb            not null
+#  urls                               :jsonb            not null
+#  deleted_at                         :datetime
+#  last_successful_fetch_at           :datetime
+#  last_fetch_error                   :string           default(""), not null
+#  license                            :jsonb            not null
+#  other_ids                          :jsonb            not null
+#  associated_feeds                   :jsonb            not null
+#  languages                          :jsonb            not null
+#  feed_namespace_id                  :string           default(""), not null
 #
 # Indexes
 #
 #  index_current_feeds_on_active_feed_version_id              (active_feed_version_id)
-#  index_current_feeds_on_authorization                       (authorization)
+#  index_current_feeds_on_auth                                (auth)
 #  index_current_feeds_on_created_or_updated_in_changeset_id  (created_or_updated_in_changeset_id)
 #  index_current_feeds_on_geometry                            (geometry) USING gist
 #  index_current_feeds_on_onestop_id                          (onestop_id) UNIQUE
@@ -199,7 +201,7 @@ class Feed < BaseFeed
 
   def self.feed_version_update_statistics(feed)
     fvs = feed.feed_versions.to_a
-    fvs_stats = fvs.select { |a| a.url && a.fetched_at && a.earliest_calendar_date && a.latest_calendar_date }.sort_by { |a| a.fetched_at }
+    fvs_stats = fvs.select { |a| a.url.presence && a.fetched_at && a.earliest_calendar_date && a.latest_calendar_date }.sort_by { |a| a.fetched_at }
     result = {
       feed_onestop_id: feed.onestop_id,
       feed_versions_total: fvs.count,
@@ -303,13 +305,13 @@ class Feed < BaseFeed
   end
 
   def import_status
-    if self.last_imported_at.blank? && self.feed_version_imports.count == 0
+    if self.feed_version_imports.count == 0
       :never_imported
     elsif self.feed_version_imports.first.success == false
       :most_recent_failed
     elsif self.feed_version_imports.first.success == true
       :most_recent_succeeded
-    elsif self.feed_version_imports.first.success == nil
+    elsif self.feed_version_imports.first.success == nil || self.last_imported_at.blank?
       :in_progress
     else
       :unknown
@@ -343,7 +345,7 @@ class Feed < BaseFeed
   end
 
   def url
-    return {} if self.urls.nil?
+    return "" if self.urls.nil?
     return self.urls["static_current"]
   end
 
@@ -363,11 +365,68 @@ class Feed < BaseFeed
     end
   end
 
+  # dmfr backwards compat
+
+  def license_name
+    (self.license || {})["spdx_identifier"].presence
+  end
+
+  def license_url
+    (self.license || {})["url"].presence
+  end
+
+  def license_use_without_attribution
+    (self.license || {})["use_without_attribution"].presence || "unknown"
+  end
+
+  def license_create_derived_product
+    (self.license || {})["create_derived_product"].presence || "unknown"
+  end
+
+  def license_redistribute
+    (self.license || {})["redistribution_allowed"].presence || "unknown"
+  end
+
+  def license_attribution_text
+    (self.license || {})["attribution_text"].presence
+  end
+
+  def license_name=(value)
+    self.license ||= {}
+    self.license["spdx_identifier"] = value
+  end
+
+  def license_url=(value)
+    self.license ||= {}
+    self.license["url"] = value
+  end
+
+  def license_use_without_attribution=(value)
+    self.license ||= {}
+    self.license["use_without_attribution"] = value
+  end
+
+  def license_create_derived_product=(value)
+    self.license ||= {}
+    self.license["create_derived_product"] = value
+  end
+
+  def license_redistribute=(value)
+    self.license ||= {}
+    self.license["redistribution_allowed"] = value
+  end
+
+  def license_attribution_text=(value)
+    self.license ||= {}
+    self.license["attribution_text"] = value
+  end
+
   private
 
   def set_default_values
     if self.new_record?
       self.tags ||= {}
+      self.license ||= {}
       self.license_use_without_attribution ||= 'unknown'
       self.license_create_derived_product ||= 'unknown'
       self.license_redistribute ||= 'unknown'

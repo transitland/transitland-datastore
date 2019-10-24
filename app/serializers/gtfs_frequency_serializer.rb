@@ -6,7 +6,7 @@
 #  start_time      :integer          not null
 #  end_time        :integer          not null
 #  headway_secs    :integer          not null
-#  exact_times     :integer
+#  exact_times     :integer          not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  feed_version_id :integer          not null

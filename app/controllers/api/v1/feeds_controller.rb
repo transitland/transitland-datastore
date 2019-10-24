@@ -98,7 +98,7 @@ class Api::V1::FeedsController < Api::V1::CurrentEntityController
     end
     if params[:url].present?
       urls = params[:url]
-      @collection = @collection.where("#{Feed.table_name}.urls -> 'static_current' IN (?)", urls)
+      @collection = @collection.where("#{Feed.table_name}.urls->>'static_current' IN (?)", urls)
     end
   end
 

@@ -3,14 +3,14 @@
 # Table name: gtfs_fare_rules
 #
 #  id              :integer          not null, primary key
-#  fare_id         :string           not null
-#  origin_id       :string
-#  destination_id  :string
-#  contains_id     :string
+#  origin_id       :string           not null
+#  destination_id  :string           not null
+#  contains_id     :string           not null
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  feed_version_id :integer          not null
 #  route_id        :integer
+#  fare_id         :integer
 #
 # Indexes
 #
