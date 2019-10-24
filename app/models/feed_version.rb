@@ -9,6 +9,7 @@
 #  earliest_calendar_date :date             not null
 #  latest_calendar_date   :date             not null
 #  sha1                   :string           not null
+#  md5                    :string
 #  tags                   :hstore
 #  fetched_at             :datetime         not null
 #  imported_at            :datetime
@@ -18,6 +19,7 @@
 #  url                    :string           not null
 #  file_raw               :string
 #  sha1_raw               :string
+#  md5_raw                :string
 #  file_feedvalidator     :string
 #  deleted_at             :datetime
 #

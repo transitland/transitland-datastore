@@ -4,8 +4,8 @@
 #
 #  id                                 :integer          not null, primary key
 #  onestop_id                         :string           not null
-#  url                                :string           not null
-#  spec                               :string           default("gtfs"), not null
+#  url                                :string
+#  spec                               :string           not null
 #  tags                               :hstore
 #  last_fetched_at                    :datetime
 #  last_imported_at                   :datetime
@@ -26,14 +26,14 @@
 #  type                               :string
 #  auth                               :jsonb            not null
 #  urls                               :jsonb            not null
-#  last_successful_fetch_at           :datetime
 #  deleted_at                         :datetime
+#  last_successful_fetch_at           :datetime
 #  last_fetch_error                   :string           not null
 #  license                            :jsonb            not null
 #  other_ids                          :jsonb            not null
 #  associated_feeds                   :jsonb            not null
 #  languages                          :jsonb            not null
-#  feed_namespace_id                  :string           default(""), not null
+#  feed_namespace_id                  :string           not null
 #
 # Indexes
 #
