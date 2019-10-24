@@ -882,7 +882,7 @@ GEM
       nokogiri (>= 1.5.9)
     mail (2.7.1)
       mini_mime (>= 0.1.1)
-    marginalia (1.5.0)
+    marginalia (1.8.0)
       actionpack (>= 2.3)
       activerecord (>= 2.3)
     memory_profiler (0.9.12)
