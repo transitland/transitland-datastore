@@ -5,7 +5,7 @@
 #  id                                 :integer          not null, primary key
 #  onestop_id                         :string           not null
 #  url                                :string
-#  spec                               :string           not null
+#  spec                               :string           default("gtfs"), not null
 #  tags                               :hstore
 #  last_fetched_at                    :datetime
 #  last_imported_at                   :datetime
@@ -28,12 +28,12 @@
 #  urls                               :jsonb            not null
 #  deleted_at                         :datetime
 #  last_successful_fetch_at           :datetime
-#  last_fetch_error                   :string           not null
+#  last_fetch_error                   :string           default(""), not null
 #  license                            :jsonb            not null
 #  other_ids                          :jsonb            not null
 #  associated_feeds                   :jsonb            not null
 #  languages                          :jsonb            not null
-#  feed_namespace_id                  :string           not null
+#  feed_namespace_id                  :string           default(""), not null
 #
 # Indexes
 #
@@ -479,8 +479,8 @@ describe Feed do
       expect(pmf[:scheduled_service_duration_average]).to eq(18.75)
     end
 
-    it 'excludes url is nil' do
-      @fv5 = create(:feed_version, feed: @feed, url: nil, sha1: 'e', fetched_at: @d+20.day, earliest_calendar_date: @d+15.day, latest_calendar_date: @d+60.day)
+    it 'excludes url is empty' do
+      @fv5 = create(:feed_version, feed: @feed, url: "", sha1: 'e', fetched_at: @d+20.day, earliest_calendar_date: @d+15.day, latest_calendar_date: @d+60.day)
       pmf = Feed.feed_version_update_statistics(@feed)
       expect(pmf[:feed_versions_total]).to eq(5)
       expect(pmf[:feed_versions_filtered]).to eq(4)

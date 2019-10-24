@@ -10,7 +10,7 @@
 #  created_at      :datetime         not null
 #  updated_at      :datetime         not null
 #  feed_version_id :integer          not null
-#  in_progress     :boolean          not null
+#  in_progress     :boolean          default(FALSE), not null
 #
 # Indexes
 #

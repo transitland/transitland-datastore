@@ -4,8 +4,8 @@
 #
 #  id                     :integer          not null, primary key
 #  feed_id                :integer          not null
-#  feed_type              :string           not null
-#  file                   :string           not null
+#  feed_type              :string           default("gtfs"), not null
+#  file                   :string           default(""), not null
 #  earliest_calendar_date :date             not null
 #  latest_calendar_date   :date             not null
 #  sha1                   :string           not null
@@ -16,7 +16,7 @@
 #  created_at             :datetime         not null
 #  updated_at             :datetime         not null
 #  import_level           :integer          default(0), not null
-#  url                    :string           not null
+#  url                    :string           default(""), not null
 #  file_raw               :string
 #  sha1_raw               :string
 #  md5_raw                :string

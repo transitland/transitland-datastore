@@ -5,7 +5,7 @@
 #  id                                 :integer          not null, primary key
 #  onestop_id                         :string           not null
 #  url                                :string
-#  spec                               :string           not null
+#  spec                               :string           default("gtfs"), not null
 #  tags                               :hstore
 #  last_fetched_at                    :datetime
 #  last_imported_at                   :datetime
@@ -28,12 +28,12 @@
 #  urls                               :jsonb            not null
 #  deleted_at                         :datetime
 #  last_successful_fetch_at           :datetime
-#  last_fetch_error                   :string           not null
+#  last_fetch_error                   :string           default(""), not null
 #  license                            :jsonb            not null
 #  other_ids                          :jsonb            not null
 #  associated_feeds                   :jsonb            not null
 #  languages                          :jsonb            not null
-#  feed_namespace_id                  :string           not null
+#  feed_namespace_id                  :string           default(""), not null
 #
 # Indexes
 #
@@ -207,7 +207,7 @@ class Feed < BaseFeed
 
   def self.feed_version_update_statistics(feed)
     fvs = feed.feed_versions.to_a
-    fvs_stats = fvs.select { |a| a.url && a.fetched_at && a.earliest_calendar_date && a.latest_calendar_date }.sort_by { |a| a.fetched_at }
+    fvs_stats = fvs.select { |a| a.url.presence && a.fetched_at && a.earliest_calendar_date && a.latest_calendar_date }.sort_by { |a| a.fetched_at }
     result = {
       feed_onestop_id: feed.onestop_id,
       feed_versions_total: fvs.count,
@@ -351,7 +351,7 @@ class Feed < BaseFeed
   end
 
   def url
-    return {} if self.urls.nil?
+    return "" if self.urls.nil?
     return self.urls["static_current"]
   end
 
