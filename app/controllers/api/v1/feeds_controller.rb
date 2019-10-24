@@ -29,17 +29,7 @@ class Api::V1::FeedsController < Api::V1::CurrentEntityController
           spec: feed.feed_format,
           id: feed.onestop_id,
           urls: feed.urls,
-          license: {
-            spdx_identifier: nil,
-            url: feed.license_url,
-            use_without_attribution: feed.license_use_without_attribution,
-            create_derived_product: feed.license_create_derived_product,
-            redistribute: feed.license_redistribute,
-            commercial_use_allowed: nil,
-            share_alike_optional: nil,
-            attribution_text: feed.license_attribution_text,
-            attribution_instructions: nil
-          }
+          license: feed.license
         }
         if feed.authorization.present?
           feed_json[:authorization] = feed.authorization.to_json
