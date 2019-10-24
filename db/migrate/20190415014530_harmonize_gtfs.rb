@@ -14,9 +14,8 @@ class HarmonizeGTFS < ActiveRecord::Migration
       rename_column "#{a}_feeds", :feed_format, :spec
       rename_column "#{a}_feeds", :authorization, :auth
 
-      add_column "#{a}_feeds", :last_successful_fetch_at, :datetime
       add_column "#{a}_feeds", :deleted_at, :datetime
-
+      add_column "#{a}_feeds", :last_successful_fetch_at, :datetime
       add_column "#{a}_feeds", :last_fetch_error, :string, null: false
       add_column "#{a}_feeds", :license, :jsonb, default: {}, null: false
       add_column "#{a}_feeds", :other_ids, :jsonb, default: {}, null: false
@@ -53,9 +52,13 @@ class HarmonizeGTFS < ActiveRecord::Migration
     change_column_null :feed_versions, :updated_at, false
     change_column_null :feed_versions, :import_level, false, default: 0
     change_column_null :feed_versions, :url, false, default: ""
-    remove_column :feed_versions, :md5
-    remove_column :feed_versions, :md5_raw
+    # remove_column :feed_versions, :md5
+    # remove_column :feed_versions, :md5_raw
 
+    add_column :feed_version_imports, :in_progress, :bool, null: false, default: false
+    remove_index :feed_version_imports, :feed_version_id
+    add_index :feed_version_imports, :feed_version_id, unique: true
+    add_foreign_key :feed_version_imports, :feed_versions
 
     ###########
     rename_column :gtfs_stops, :parent_station_id, :parent_station
@@ -107,7 +110,7 @@ class HarmonizeGTFS < ActiveRecord::Migration
     add_foreign_key :gtfs_routes, :gtfs_agencies, column: :agency_id
 
     add_foreign_key :gtfs_stops, :feed_versions
-    # add_foreng_key :gtfs_stops, :gtfs_stops
+    # add_foreign_key :gtfs_stops, :gtfs_stops
 
     add_foreign_key :gtfs_stop_times, :feed_versions
     add_foreign_key :gtfs_stop_times, :gtfs_stops, column: :stop_id
