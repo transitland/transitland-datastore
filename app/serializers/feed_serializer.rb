@@ -9,17 +9,11 @@
 #  tags                               :hstore
 #  last_fetched_at                    :datetime
 #  last_imported_at                   :datetime
-#  license_name                       :string
-#  license_url                        :string
-#  license_use_without_attribution    :string
-#  license_create_derived_product     :string
-#  license_redistribute               :string
 #  version                            :integer
 #  created_at                         :datetime         not null
 #  updated_at                         :datetime         not null
 #  created_or_updated_in_changeset_id :integer
 #  geometry                           :geography({:srid geometry, 4326
-#  license_attribution_text           :text
 #  active_feed_version_id             :integer
 #  edited_attributes                  :string           default([]), is an Array
 #  name                               :string
@@ -48,13 +42,8 @@
 class FeedSerializer < CurrentEntitySerializer
   attributes :name,
              :url,
+             :feed_format,
              :spec,
-             :license_name,
-             :license_url,
-             :license_use_without_attribution,
-             :license_create_derived_product,
-             :license_redistribute,
-             :license_attribution_text,
              :last_fetched_at,
              :last_imported_at,
              :import_status,
@@ -65,9 +54,22 @@ class FeedSerializer < CurrentEntitySerializer
              :import_level_of_active_feed_version,
              :changesets_imported_from_this_feed,
              :type,
+             # dmfr
              :urls,
              :auth,
-             :license
+             :license,
+             :other_ids,
+             :associated_feeds,
+             :languages,
+             :feed_namespace_id,
+             # accessors
+             :license_name,
+             :license_url,
+             :license_use_without_attribution,
+             :license_create_derived_product,
+             :license_redistribute,
+             :license_attribution_text
+
 
   has_many :operators_in_feed
 
@@ -77,6 +79,10 @@ class FeedSerializer < CurrentEntitySerializer
 
   def feed_versions_count
     object.feed_versions.count
+  end
+
+  def feed_format
+    return object.spec
   end
 
   def feed_versions_url

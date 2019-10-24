@@ -38,6 +38,29 @@ class HarmonizeGTFS < ActiveRecord::Migration
       change_null "#{a}_feeds", :other_ids, false, {}
     }
 
+    Feed.where('').find_each do |feed|
+      license = {
+        spdx_identifier: feed.attributes["license_name"],
+        url: feed.attributes["license_url"],
+        use_without_attribution: feed.attributes["license_use_without_attribution"],
+        create_derived_product: feed.attributes["license_create_derived_product"],
+        redistributionn_allowed: feed.attributes["license_redistribute"],
+        attribution_test: feed.attributes["license_attribution_text"]  
+      }.compact
+      feed.update_attribute("license", license)
+    end
+
+    ["old", "current"].each { |a| 
+      remove_column "#{a}_feeds", :license_name
+      remove_column "#{a}_feeds", :license_url
+      remove_column "#{a}_feeds", :license_use_without_attribution
+      remove_column "#{a}_feeds", :license_create_derived_product
+      remove_column "#{a}_feeds", :license_redistribute
+      remove_column "#{a}_feeds", :license_attribution_text
+    }
+
+    ##################
+
     # add cols
     add_column :feed_versions, :deleted_at, :datetime
     # without defaults

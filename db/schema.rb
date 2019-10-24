@@ -50,17 +50,11 @@ ActiveRecord::Schema.define(version: 20190415014530) do
     t.hstore    "tags"
     t.datetime  "last_fetched_at"
     t.datetime  "last_imported_at"
-    t.string    "license_name"
-    t.string    "license_url"
-    t.string    "license_use_without_attribution"
-    t.string    "license_create_derived_product"
-    t.string    "license_redistribute"
     t.integer   "version"
     t.datetime  "created_at",                                                                                                      null: false
     t.datetime  "updated_at",                                                                                                      null: false
     t.integer   "created_or_updated_in_changeset_id"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
-    t.text      "license_attribution_text"
     t.integer   "active_feed_version_id"
     t.string    "edited_attributes",                                                                              default: [],                  array: true
     t.string    "name"
@@ -679,11 +673,6 @@ ActiveRecord::Schema.define(version: 20190415014530) do
     t.hstore    "tags"
     t.datetime  "last_fetched_at"
     t.datetime  "last_imported_at"
-    t.string    "license_name"
-    t.string    "license_url"
-    t.string    "license_use_without_attribution"
-    t.string    "license_create_derived_product"
-    t.string    "license_redistribute"
     t.integer   "version"
     t.datetime  "created_at",                                                                                                      null: false
     t.datetime  "updated_at",                                                                                                      null: false
@@ -691,7 +680,6 @@ ActiveRecord::Schema.define(version: 20190415014530) do
     t.integer   "created_or_updated_in_changeset_id"
     t.integer   "destroyed_in_changeset_id"
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
-    t.text      "license_attribution_text"
     t.integer   "active_feed_version_id"
     t.string    "edited_attributes",                                                                              default: [],                  array: true
     t.string    "action"

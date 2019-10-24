@@ -9,17 +9,11 @@
 #  tags                               :hstore
 #  last_fetched_at                    :datetime
 #  last_imported_at                   :datetime
-#  license_name                       :string
-#  license_url                        :string
-#  license_use_without_attribution    :string
-#  license_create_derived_product     :string
-#  license_redistribute               :string
 #  version                            :integer
 #  created_at                         :datetime         not null
 #  updated_at                         :datetime         not null
 #  created_or_updated_in_changeset_id :integer
 #  geometry                           :geography({:srid geometry, 4326
-#  license_attribution_text           :text
 #  active_feed_version_id             :integer
 #  edited_attributes                  :string           default([]), is an Array
 #  name                               :string
