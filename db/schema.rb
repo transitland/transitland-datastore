@@ -349,9 +349,10 @@ ActiveRecord::Schema.define(version: 20190415014530) do
     t.text     "validation_report"
     t.integer  "import_level"
     t.json     "operators_in_feed"
+    t.boolean  "in_progress",       default: false, null: false
   end
 
-  add_index "feed_version_imports", ["feed_version_id"], name: "index_feed_version_imports_on_feed_version_id", using: :btree
+  add_index "feed_version_imports", ["feed_version_id"], name: "index_feed_version_imports_on_feed_version_id", unique: true, using: :btree
 
   create_table "feed_version_infos", force: :cascade do |t|
     t.string   "type"
@@ -992,6 +993,7 @@ ActiveRecord::Schema.define(version: 20190415014530) do
   add_index "users", ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true, using: :btree
 
   add_foreign_key "change_payloads", "changesets"
+  add_foreign_key "feed_version_imports", "feed_versions"
   add_foreign_key "gtfs_agencies", "feed_versions"
   add_foreign_key "gtfs_calendar_dates", "feed_versions"
   add_foreign_key "gtfs_calendar_dates", "gtfs_calendars", column: "service_id"

@@ -12,10 +12,11 @@
 #  validation_report :text
 #  import_level      :integer
 #  operators_in_feed :json
+#  in_progress       :boolean          default(FALSE), not null
 #
 # Indexes
 #
-#  index_feed_version_imports_on_feed_version_id  (feed_version_id)
+#  index_feed_version_imports_on_feed_version_id  (feed_version_id) UNIQUE
 #
 
 describe FeedVersionImport do
