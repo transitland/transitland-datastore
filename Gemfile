@@ -107,7 +107,7 @@ gem 'ruby-progressbar'
 # database query performance monitoring/analysis
 gem 'bullet', group: :development
 gem 'pghero', group: [:development, :staging, :production] # mounted at /admin/postgres
-gem 'marginalia', '1.5.0', group: [:development, :staging] # NOTE: 1.6.0 doesn't compile
+gem 'marginalia', group: [:development, :staging]
 
 # web server
 gem 'unicorn', group: [:staging, :production]

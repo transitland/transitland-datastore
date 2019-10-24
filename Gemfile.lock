@@ -1118,7 +1118,7 @@ DEPENDENCIES
   json-schema
   jwt
   logstasher
-  marginalia (= 1.5.0)
+  marginalia
   memory_profiler
   oj
   pg (~> 0.18)
