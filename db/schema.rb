@@ -11,13 +11,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20190415014530) do
+ActiveRecord::Schema.define(version: 20191024200203) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
-  enable_extension "hstore"
-  enable_extension "pg_stat_statements"
   enable_extension "postgis"
+  enable_extension "hstore"
 
   create_table "change_payloads", force: :cascade do |t|
     t.json     "payload"
@@ -162,9 +161,9 @@ ActiveRecord::Schema.define(version: 20190415014530) do
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.integer   "vehicle_type"
     t.string    "color"
+    t.string    "edited_attributes",                                                                              default: [],        array: true
     t.string    "wheelchair_accessible",                                                                          default: "unknown"
     t.string    "bikes_allowed",                                                                                  default: "unknown"
-    t.string    "edited_attributes",                                                                              default: [],        array: true
   end
 
   add_index "current_routes", ["bikes_allowed"], name: "index_current_routes_on_bikes_allowed", using: :btree
@@ -236,20 +235,20 @@ ActiveRecord::Schema.define(version: 20190415014530) do
     t.integer  "frequency_headway_seconds"
   end
 
-  add_index "current_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "current_schedule_stop_pairs64_created_or_updated_in_changes_idx", using: :btree
-  add_index "current_schedule_stop_pairs", ["destination_id"], name: "current_schedule_stop_pairs64_destination_id_idx", using: :btree
-  add_index "current_schedule_stop_pairs", ["feed_id", "id"], name: "current_schedule_stop_pairs64_feed_id_id_idx", using: :btree
-  add_index "current_schedule_stop_pairs", ["feed_version_id", "id"], name: "current_schedule_stop_pairs64_feed_version_id_id_idx", using: :btree
-  add_index "current_schedule_stop_pairs", ["frequency_type"], name: "current_schedule_stop_pairs64_frequency_type_idx", using: :btree
-  add_index "current_schedule_stop_pairs", ["operator_id", "id"], name: "current_schedule_stop_pairs64_operator_id_id_idx", using: :btree
-  add_index "current_schedule_stop_pairs", ["origin_departure_time"], name: "current_schedule_stop_pairs64_origin_departure_time_idx", using: :btree
-  add_index "current_schedule_stop_pairs", ["origin_id"], name: "current_schedule_stop_pairs64_origin_id_idx", using: :btree
-  add_index "current_schedule_stop_pairs", ["route_id"], name: "current_schedule_stop_pairs64_route_id_idx", using: :btree
-  add_index "current_schedule_stop_pairs", ["route_stop_pattern_id"], name: "current_schedule_stop_pairs64_route_stop_pattern_id_idx", using: :btree
-  add_index "current_schedule_stop_pairs", ["service_end_date"], name: "current_schedule_stop_pairs64_service_end_date_idx", using: :btree
-  add_index "current_schedule_stop_pairs", ["service_start_date"], name: "current_schedule_stop_pairs64_service_start_date_idx", using: :btree
-  add_index "current_schedule_stop_pairs", ["trip"], name: "current_schedule_stop_pairs64_trip_idx", using: :btree
-  add_index "current_schedule_stop_pairs", ["updated_at"], name: "current_schedule_stop_pairs64_updated_at_idx", using: :btree
+  add_index "current_schedule_stop_pairs", ["created_or_updated_in_changeset_id"], name: "c_ssp_cu_in_changeset", using: :btree
+  add_index "current_schedule_stop_pairs", ["destination_id"], name: "c_ssp_destination", using: :btree
+  add_index "current_schedule_stop_pairs", ["feed_id", "id"], name: "index_current_schedule_stop_pairs_on_feed_id_and_id", using: :btree
+  add_index "current_schedule_stop_pairs", ["feed_version_id", "id"], name: "index_current_schedule_stop_pairs_on_feed_version_id_and_id", using: :btree
+  add_index "current_schedule_stop_pairs", ["frequency_type"], name: "index_current_schedule_stop_pairs_on_frequency_type", using: :btree
+  add_index "current_schedule_stop_pairs", ["operator_id", "id"], name: "index_current_schedule_stop_pairs_on_operator_id_and_id", using: :btree
+  add_index "current_schedule_stop_pairs", ["origin_departure_time"], name: "index_current_schedule_stop_pairs_on_origin_departure_time", using: :btree
+  add_index "current_schedule_stop_pairs", ["origin_id"], name: "c_ssp_origin", using: :btree
+  add_index "current_schedule_stop_pairs", ["route_id"], name: "c_ssp_route", using: :btree
+  add_index "current_schedule_stop_pairs", ["route_stop_pattern_id"], name: "index_current_schedule_stop_pairs_on_route_stop_pattern_id", using: :btree
+  add_index "current_schedule_stop_pairs", ["service_end_date"], name: "c_ssp_service_end_date", using: :btree
+  add_index "current_schedule_stop_pairs", ["service_start_date"], name: "c_ssp_service_start_date", using: :btree
+  add_index "current_schedule_stop_pairs", ["trip"], name: "c_ssp_trip", using: :btree
+  add_index "current_schedule_stop_pairs", ["updated_at"], name: "index_current_schedule_stop_pairs_on_updated_at", using: :btree
 
   create_table "current_stop_transfers", force: :cascade do |t|
     t.string   "transfer_type"
@@ -283,8 +282,8 @@ ActiveRecord::Schema.define(version: 20190415014530) do
     t.string    "type"
     t.integer   "parent_stop_id"
     t.integer   "osm_way_id"
-    t.boolean   "wheelchair_boarding"
     t.string    "edited_attributes",                                                                              default: [], array: true
+    t.boolean   "wheelchair_boarding"
     t.integer   "directionality"
     t.geography "geometry_reversegeo",                limit: {:srid=>4326, :type=>"st_point", :geographic=>true}
   end
@@ -335,7 +334,7 @@ ActiveRecord::Schema.define(version: 20190415014530) do
   add_index "feed_schedule_imports", ["feed_version_import_id"], name: "index_feed_schedule_imports_on_feed_version_import_id", using: :btree
 
   create_table "feed_version_gtfs_imports", force: :cascade do |t|
-    t.boolean  "succeeded",                       null: false
+    t.boolean  "success",                         null: false
     t.text     "import_log",                      null: false
     t.text     "exception_log",                   null: false
     t.integer  "import_level",                    null: false
@@ -343,10 +342,13 @@ ActiveRecord::Schema.define(version: 20190415014530) do
     t.datetime "updated_at",                      null: false
     t.integer  "feed_version_id",                 null: false
     t.boolean  "in_progress",     default: false, null: false
+    t.jsonb    "error_count"
+    t.jsonb    "warning_count"
+    t.jsonb    "entity_count"
   end
 
   add_index "feed_version_gtfs_imports", ["feed_version_id"], name: "index_feed_version_gtfs_imports_on_feed_version_id", unique: true, using: :btree
-  add_index "feed_version_gtfs_imports", ["succeeded"], name: "index_feed_version_gtfs_imports_on_succeeded", using: :btree
+  add_index "feed_version_gtfs_imports", ["success"], name: "index_feed_version_gtfs_imports_on_success", using: :btree
 
   create_table "feed_version_imports", force: :cascade do |t|
     t.integer  "feed_version_id"
@@ -809,9 +811,9 @@ ActiveRecord::Schema.define(version: 20190415014530) do
     t.geography "geometry",                           limit: {:srid=>4326, :type=>"geometry", :geographic=>true}
     t.integer   "vehicle_type"
     t.string    "color"
+    t.string    "edited_attributes",                                                                              default: [],        array: true
     t.string    "wheelchair_accessible",                                                                          default: "unknown"
     t.string    "bikes_allowed",                                                                                  default: "unknown"
-    t.string    "edited_attributes",                                                                              default: [],        array: true
     t.string    "action"
   end
 
@@ -947,8 +949,8 @@ ActiveRecord::Schema.define(version: 20190415014530) do
     t.string    "type"
     t.integer   "parent_stop_id"
     t.integer   "osm_way_id"
-    t.boolean   "wheelchair_boarding"
     t.string    "edited_attributes",                                                                              default: [], array: true
+    t.boolean   "wheelchair_boarding"
     t.string    "action"
     t.integer   "directionality"
     t.geography "geometry_reversegeo",                limit: {:srid=>4326, :type=>"st_point", :geographic=>true}
