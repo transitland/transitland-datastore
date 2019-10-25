@@ -911,25 +911,31 @@
 <!-- m_GTFSImport -->
 <g id="node17" class="node">
 <title>m_GTFSImport</title>
-<path fill="none" stroke="#000000" d="M822,-1329.5C822,-1329.5 942,-1329.5 942,-1329.5 948,-1329.5 954,-1335.5 954,-1341.5 954,-1341.5 954,-1411.5 954,-1411.5 954,-1417.5 948,-1423.5 942,-1423.5 942,-1423.5 822,-1423.5 822,-1423.5 816,-1423.5 810,-1417.5 810,-1411.5 810,-1411.5 810,-1341.5 810,-1341.5 810,-1335.5 816,-1329.5 822,-1329.5"/>
-<text text-anchor="start" x="849.7473" y="-1410.2" font-family="Arial BoldMT" font-size="11.00" fill="#000000">GTFSImport</text>
-<polyline fill="none" stroke="#000000" points="810,-1404.5 954,-1404.5 "/>
-<text text-anchor="start" x="817" y="-1391" font-family="ArialMT" font-size="10.00" fill="#000000">exception_log </text>
-<text text-anchor="start" x="881.4922" y="-1391" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">text ∗</text>
-<text text-anchor="start" x="817" y="-1378" font-family="ArialMT" font-size="10.00" fill="#000000">import_level </text>
-<text text-anchor="start" x="873.6895" y="-1378" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
-<text text-anchor="start" x="817" y="-1365" font-family="ArialMT" font-size="10.00" fill="#000000">import_log </text>
-<text text-anchor="start" x="866.4678" y="-1365" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">text ∗</text>
-<text text-anchor="start" x="817" y="-1352" font-family="ArialMT" font-size="10.00" fill="#000000">in_progress </text>
-<text text-anchor="start" x="872.0293" y="-1352" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">boolean ∗</text>
-<text text-anchor="start" x="817" y="-1339" font-family="ArialMT" font-size="10.00" fill="#000000">succeeded </text>
-<text text-anchor="start" x="868.1475" y="-1339" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">boolean ∗</text>
+<path fill="none" stroke="#000000" d="M822,-1310C822,-1310 942,-1310 942,-1310 948,-1310 954,-1316 954,-1322 954,-1322 954,-1431 954,-1431 954,-1437 948,-1443 942,-1443 942,-1443 822,-1443 822,-1443 816,-1443 810,-1437 810,-1431 810,-1431 810,-1322 810,-1322 810,-1316 816,-1310 822,-1310"/>
+<text text-anchor="start" x="849.7473" y="-1429.7" font-family="Arial BoldMT" font-size="11.00" fill="#000000">GTFSImport</text>
+<polyline fill="none" stroke="#000000" points="810,-1424 954,-1424 "/>
+<text text-anchor="start" x="817" y="-1411" font-family="ArialMT" font-size="10.00" fill="#000000">entity_count </text>
+<text text-anchor="start" x="873.7041" y="-1411" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">jsonb</text>
+<text text-anchor="start" x="817" y="-1398" font-family="ArialMT" font-size="10.00" fill="#000000">error_count </text>
+<text text-anchor="start" x="870.916" y="-1398" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">jsonb</text>
+<text text-anchor="start" x="817" y="-1385" font-family="ArialMT" font-size="10.00" fill="#000000">exception_log </text>
+<text text-anchor="start" x="881.4922" y="-1385" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">text ∗</text>
+<text text-anchor="start" x="817" y="-1372" font-family="ArialMT" font-size="10.00" fill="#000000">import_level </text>
+<text text-anchor="start" x="873.6895" y="-1372" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
+<text text-anchor="start" x="817" y="-1359" font-family="ArialMT" font-size="10.00" fill="#000000">import_log </text>
+<text text-anchor="start" x="866.4678" y="-1359" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">text ∗</text>
+<text text-anchor="start" x="817" y="-1346" font-family="ArialMT" font-size="10.00" fill="#000000">in_progress </text>
+<text text-anchor="start" x="872.0293" y="-1346" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">boolean ∗</text>
+<text text-anchor="start" x="817" y="-1333" font-family="ArialMT" font-size="10.00" fill="#000000">success </text>
+<text text-anchor="start" x="855.9014" y="-1333" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">boolean ∗</text>
+<text text-anchor="start" x="817" y="-1320" font-family="ArialMT" font-size="10.00" fill="#000000">warning_count </text>
+<text text-anchor="start" x="884.8223" y="-1320" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">jsonb</text>
 </g>
 <!-- m_Feed&#45;&gt;m_GTFSImport -->
 <g id="edge111" class="edge">
 <title>m_Feed&#45;&gt;m_GTFSImport</title>
-<path fill="none" stroke="#000000" stroke-dasharray="1,5" d="M1471.9048,-1888.2039C1460.7706,-1868.6229 1450.3308,-1848.1479 1442,-1828 1386.8834,-1694.7015 1476.8067,-1606.6964 1368,-1512 1302.0135,-1454.5707 1054.6661,-1514.2621 976,-1476 954.5872,-1465.5851 935.536,-1448.08 920.2781,-1430.6305"/>
-<polygon fill="#000000" stroke="#000000" points="922.6277,-1428.5307 914.4058,-1423.7012 917.8214,-1432.6039 922.6277,-1428.5307"/>
+<path fill="none" stroke="#000000" stroke-dasharray="1,5" d="M1471.9048,-1888.2039C1460.7706,-1868.6229 1450.3308,-1848.1479 1442,-1828 1386.8834,-1694.7015 1476.8067,-1606.6964 1368,-1512 1302.0135,-1454.5707 1054.6661,-1514.2621 976,-1476 962.4232,-1469.3964 949.7959,-1459.9425 938.4828,-1449.4596"/>
+<polygon fill="#000000" stroke="#000000" points="940.6406,-1447.1644 931.9765,-1443.1823 936.2664,-1451.6982 940.6406,-1447.1644"/>
 </g>
 <!-- m_Feed&#45;&gt;m_OldFeed -->
 <g id="edge5" class="edge">
@@ -1223,8 +1229,8 @@
 <!-- m_FeedVersion&#45;&gt;m_GTFSImport -->
 <g id="edge75" class="edge">
 <title>m_FeedVersion&#45;&gt;m_GTFSImport</title>
-<path fill="none" stroke="#000000" d="M847.4236,-1551.4683C855.5277,-1510.4589 864.2356,-1466.3942 870.8852,-1432.7448"/>
-<polygon fill="#000000" stroke="#000000" points="874.0493,-1432.9813 872.7039,-1423.5414 867.8688,-1431.7599 874.0493,-1432.9813"/>
+<path fill="none" stroke="#000000" d="M847.4236,-1551.4683C854.0338,-1518.0184 861.0457,-1482.5358 867.0147,-1452.3306"/>
+<polygon fill="#000000" stroke="#000000" points="870.1775,-1452.5741 868.8321,-1443.1341 863.997,-1451.3526 870.1775,-1452.5741"/>
 </g>
 <!-- m_GTFSRoute -->
 <g id="node18" class="node">

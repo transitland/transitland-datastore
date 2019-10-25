@@ -48,20 +48,20 @@
 #
 # Indexes
 #
-#  current_schedule_stop_pairs64_created_or_updated_in_changes_idx  (created_or_updated_in_changeset_id)
-#  current_schedule_stop_pairs64_destination_id_idx                 (destination_id)
-#  current_schedule_stop_pairs64_feed_id_id_idx                     (feed_id,id)
-#  current_schedule_stop_pairs64_feed_version_id_id_idx             (feed_version_id,id)
-#  current_schedule_stop_pairs64_frequency_type_idx                 (frequency_type)
-#  current_schedule_stop_pairs64_operator_id_id_idx                 (operator_id,id)
-#  current_schedule_stop_pairs64_origin_departure_time_idx          (origin_departure_time)
-#  current_schedule_stop_pairs64_origin_id_idx                      (origin_id)
-#  current_schedule_stop_pairs64_route_id_idx                       (route_id)
-#  current_schedule_stop_pairs64_route_stop_pattern_id_idx          (route_stop_pattern_id)
-#  current_schedule_stop_pairs64_service_end_date_idx               (service_end_date)
-#  current_schedule_stop_pairs64_service_start_date_idx             (service_start_date)
-#  current_schedule_stop_pairs64_trip_idx                           (trip)
-#  current_schedule_stop_pairs64_updated_at_idx                     (updated_at)
+#  c_ssp_cu_in_changeset                                        (created_or_updated_in_changeset_id)
+#  c_ssp_destination                                            (destination_id)
+#  c_ssp_origin                                                 (origin_id)
+#  c_ssp_route                                                  (route_id)
+#  c_ssp_service_end_date                                       (service_end_date)
+#  c_ssp_service_start_date                                     (service_start_date)
+#  c_ssp_trip                                                   (trip)
+#  index_current_schedule_stop_pairs_on_feed_id_and_id          (feed_id,id)
+#  index_current_schedule_stop_pairs_on_feed_version_id_and_id  (feed_version_id,id)
+#  index_current_schedule_stop_pairs_on_frequency_type          (frequency_type)
+#  index_current_schedule_stop_pairs_on_operator_id_and_id      (operator_id,id)
+#  index_current_schedule_stop_pairs_on_origin_departure_time   (origin_departure_time)
+#  index_current_schedule_stop_pairs_on_route_stop_pattern_id   (route_stop_pattern_id)
+#  index_current_schedule_stop_pairs_on_updated_at              (updated_at)
 #
 
 RSpec.describe ScheduleStopPair, type: :model do
