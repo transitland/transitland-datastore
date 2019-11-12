@@ -840,41 +840,43 @@
 <!-- m_FeedVersion -->
 <g id="node7" class="node">
 <title>m_FeedVersion</title>
-<path fill="none" stroke="#000000" d="M764,-1551.5C764,-1551.5 884,-1551.5 884,-1551.5 890,-1551.5 896,-1557.5 896,-1563.5 896,-1563.5 896,-1776.5 896,-1776.5 896,-1782.5 890,-1788.5 884,-1788.5 884,-1788.5 764,-1788.5 764,-1788.5 758,-1788.5 752,-1782.5 752,-1776.5 752,-1776.5 752,-1563.5 752,-1563.5 752,-1557.5 758,-1551.5 764,-1551.5"/>
-<text text-anchor="start" x="791.1162" y="-1775.2" font-family="Arial BoldMT" font-size="11.00" fill="#000000">FeedVersion</text>
-<polyline fill="none" stroke="#000000" points="752,-1769.5 896,-1769.5 "/>
-<text text-anchor="start" x="759" y="-1756.5" font-family="ArialMT" font-size="10.00" fill="#000000">deleted_at </text>
-<text text-anchor="start" x="808.4873" y="-1756.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">datetime</text>
-<text text-anchor="start" x="759" y="-1743.5" font-family="ArialMT" font-size="10.00" fill="#000000">earliest_calendar_date </text>
-<text text-anchor="start" x="862.96" y="-1743.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">date ∗</text>
-<text text-anchor="start" x="759" y="-1730.5" font-family="ArialMT" font-size="10.00" fill="#000000">feed_type </text>
-<text text-anchor="start" x="805.7041" y="-1730.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗</text>
-<text text-anchor="start" x="759" y="-1717.5" font-family="ArialMT" font-size="10.00" fill="#000000">fetched_at </text>
-<text text-anchor="start" x="808.4824" y="-1717.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">datetime ∗</text>
-<text text-anchor="start" x="759" y="-1704.5" font-family="ArialMT" font-size="10.00" fill="#000000">file </text>
-<text text-anchor="start" x="774.5615" y="-1704.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗</text>
-<text text-anchor="start" x="759" y="-1691.5" font-family="ArialMT" font-size="10.00" fill="#000000">file_feedvalidator </text>
-<text text-anchor="start" x="837.3838" y="-1691.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
-<text text-anchor="start" x="759" y="-1678.5" font-family="ArialMT" font-size="10.00" fill="#000000">file_raw </text>
-<text text-anchor="start" x="796.2363" y="-1678.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
-<text text-anchor="start" x="759" y="-1665.5" font-family="ArialMT" font-size="10.00" fill="#000000">import_level </text>
-<text text-anchor="start" x="815.6895" y="-1665.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
-<text text-anchor="start" x="759" y="-1652.5" font-family="ArialMT" font-size="10.00" fill="#000000">imported_at </text>
-<text text-anchor="start" x="814.5859" y="-1652.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">datetime</text>
-<text text-anchor="start" x="759" y="-1639.5" font-family="ArialMT" font-size="10.00" fill="#000000">latest_calendar_date </text>
-<text text-anchor="start" x="854.625" y="-1639.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">date ∗</text>
-<text text-anchor="start" x="759" y="-1626.5" font-family="ArialMT" font-size="10.00" fill="#000000">md5 </text>
-<text text-anchor="start" x="781.2314" y="-1626.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
-<text text-anchor="start" x="759" y="-1613.5" font-family="ArialMT" font-size="10.00" fill="#000000">md5_raw </text>
-<text text-anchor="start" x="802.9063" y="-1613.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
-<text text-anchor="start" x="759" y="-1600.5" font-family="ArialMT" font-size="10.00" fill="#000000">sha1 </text>
-<text text-anchor="start" x="783.4629" y="-1600.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗ U</text>
-<text text-anchor="start" x="759" y="-1587.5" font-family="ArialMT" font-size="10.00" fill="#000000">sha1_raw </text>
-<text text-anchor="start" x="805.1377" y="-1587.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
-<text text-anchor="start" x="759" y="-1574.5" font-family="ArialMT" font-size="10.00" fill="#000000">tags </text>
-<text text-anchor="start" x="780.6797" y="-1574.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">hstore</text>
-<text text-anchor="start" x="759" y="-1561.5" font-family="ArialMT" font-size="10.00" fill="#000000">url </text>
-<text text-anchor="start" x="772.8916" y="-1561.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗</text>
+<path fill="none" stroke="#000000" d="M764,-1545C764,-1545 884,-1545 884,-1545 890,-1545 896,-1551 896,-1557 896,-1557 896,-1783 896,-1783 896,-1789 890,-1795 884,-1795 884,-1795 764,-1795 764,-1795 758,-1795 752,-1789 752,-1783 752,-1783 752,-1557 752,-1557 752,-1551 758,-1545 764,-1545"/>
+<text text-anchor="start" x="791.1162" y="-1781.7" font-family="Arial BoldMT" font-size="11.00" fill="#000000">FeedVersion</text>
+<polyline fill="none" stroke="#000000" points="752,-1776 896,-1776 "/>
+<text text-anchor="start" x="759" y="-1762.5" font-family="ArialMT" font-size="10.00" fill="#000000">deleted_at </text>
+<text text-anchor="start" x="808.4873" y="-1762.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">datetime</text>
+<text text-anchor="start" x="759" y="-1749.5" font-family="ArialMT" font-size="10.00" fill="#000000">earliest_calendar_date </text>
+<text text-anchor="start" x="862.96" y="-1749.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">date ∗</text>
+<text text-anchor="start" x="759" y="-1736.5" font-family="ArialMT" font-size="10.00" fill="#000000">feed_type </text>
+<text text-anchor="start" x="805.7041" y="-1736.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗</text>
+<text text-anchor="start" x="759" y="-1723.5" font-family="ArialMT" font-size="10.00" fill="#000000">fetched_at </text>
+<text text-anchor="start" x="808.4824" y="-1723.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">datetime ∗</text>
+<text text-anchor="start" x="759" y="-1710.5" font-family="ArialMT" font-size="10.00" fill="#000000">file </text>
+<text text-anchor="start" x="774.5615" y="-1710.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗</text>
+<text text-anchor="start" x="759" y="-1697.5" font-family="ArialMT" font-size="10.00" fill="#000000">file_feedvalidator </text>
+<text text-anchor="start" x="837.3838" y="-1697.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
+<text text-anchor="start" x="759" y="-1684.5" font-family="ArialMT" font-size="10.00" fill="#000000">file_raw </text>
+<text text-anchor="start" x="796.2363" y="-1684.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
+<text text-anchor="start" x="759" y="-1671.5" font-family="ArialMT" font-size="10.00" fill="#000000">import_level </text>
+<text text-anchor="start" x="815.6895" y="-1671.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
+<text text-anchor="start" x="759" y="-1658.5" font-family="ArialMT" font-size="10.00" fill="#000000">imported_at </text>
+<text text-anchor="start" x="814.5859" y="-1658.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">datetime</text>
+<text text-anchor="start" x="759" y="-1645.5" font-family="ArialMT" font-size="10.00" fill="#000000">latest_calendar_date </text>
+<text text-anchor="start" x="854.625" y="-1645.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">date ∗</text>
+<text text-anchor="start" x="759" y="-1632.5" font-family="ArialMT" font-size="10.00" fill="#000000">md5 </text>
+<text text-anchor="start" x="781.2314" y="-1632.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
+<text text-anchor="start" x="759" y="-1619.5" font-family="ArialMT" font-size="10.00" fill="#000000">md5_raw </text>
+<text text-anchor="start" x="802.9063" y="-1619.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
+<text text-anchor="start" x="759" y="-1606.5" font-family="ArialMT" font-size="10.00" fill="#000000">sha1 </text>
+<text text-anchor="start" x="783.4629" y="-1606.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗ U</text>
+<text text-anchor="start" x="759" y="-1593.5" font-family="ArialMT" font-size="10.00" fill="#000000">sha1_dir </text>
+<text text-anchor="start" x="800.1377" y="-1593.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
+<text text-anchor="start" x="759" y="-1580.5" font-family="ArialMT" font-size="10.00" fill="#000000">sha1_raw </text>
+<text text-anchor="start" x="805.1377" y="-1580.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string</text>
+<text text-anchor="start" x="759" y="-1567.5" font-family="ArialMT" font-size="10.00" fill="#000000">tags </text>
+<text text-anchor="start" x="780.6797" y="-1567.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">hstore</text>
+<text text-anchor="start" x="759" y="-1554.5" font-family="ArialMT" font-size="10.00" fill="#000000">url </text>
+<text text-anchor="start" x="772.8916" y="-1554.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗</text>
 </g>
 <!-- m_Feed&#45;&gt;m_FeedVersion -->
 <g id="edge72" class="edge">
@@ -1156,7 +1158,7 @@
 <!-- m_FeedVersion&#45;&gt;m_GTFSFareAttribute -->
 <g id="edge87" class="edge">
 <title>m_FeedVersion&#45;&gt;m_GTFSFareAttribute</title>
-<path fill="none" stroke="#000000" d="M774.5211,-1551.3696C747.23,-1465.0212 730.4603,-1350.7524 795,-1277 874.4342,-1186.227 969.1503,-1315.5189 1064,-1241 1113.1696,-1202.3698 1134.5945,-1132.1127 1143.903,-1080.7517"/>
+<path fill="none" stroke="#000000" d="M772.5406,-1544.9914C746.4591,-1459.4616 732.0372,-1348.9504 795,-1277 874.4342,-1186.227 969.1503,-1315.5189 1064,-1241 1113.1696,-1202.3698 1134.5945,-1132.1127 1143.903,-1080.7517"/>
 <polygon fill="#000000" stroke="#000000" points="1147.036,-1081.1185 1145.452,-1071.7157 1140.8265,-1080.054 1147.036,-1081.1185"/>
 </g>
 <!-- m_GTFSFareRule -->
@@ -1202,8 +1204,8 @@
 <!-- m_FeedVersion&#45;&gt;m_GTFSFeedInfo -->
 <g id="edge93" class="edge">
 <title>m_FeedVersion&#45;&gt;m_GTFSFeedInfo</title>
-<path fill="none" stroke="#000000" d="M753.7291,-1551.4683C730.7742,-1512.7484 706.2045,-1471.3048 686.7419,-1438.4756"/>
-<polygon fill="#000000" stroke="#000000" points="689.2073,-1436.4571 681.908,-1430.3217 683.788,-1439.6699 689.2073,-1436.4571"/>
+<path fill="none" stroke="#000000" d="M751.9715,-1548.5037C729.4762,-1510.559 705.604,-1470.2918 686.617,-1438.2649"/>
+<polygon fill="#000000" stroke="#000000" points="689.1982,-1436.4418 681.8989,-1430.3064 683.7789,-1439.6546 689.1982,-1436.4418"/>
 </g>
 <!-- m_GTFSFrequency -->
 <g id="node16" class="node">
@@ -1229,8 +1231,8 @@
 <!-- m_FeedVersion&#45;&gt;m_GTFSImport -->
 <g id="edge75" class="edge">
 <title>m_FeedVersion&#45;&gt;m_GTFSImport</title>
-<path fill="none" stroke="#000000" d="M847.4236,-1551.4683C854.0338,-1518.0184 861.0457,-1482.5358 867.0147,-1452.3306"/>
-<polygon fill="#000000" stroke="#000000" points="870.1775,-1452.5741 868.8321,-1443.1341 863.997,-1451.3526 870.1775,-1452.5741"/>
+<path fill="none" stroke="#000000" d="M848.7655,-1544.6782C854.9888,-1513.1861 861.478,-1480.3484 867.0533,-1452.1355"/>
+<polygon fill="#000000" stroke="#000000" points="870.1752,-1452.5855 868.8298,-1443.1456 863.9947,-1451.3641 870.1752,-1452.5855"/>
 </g>
 <!-- m_GTFSRoute -->
 <g id="node18" class="node">

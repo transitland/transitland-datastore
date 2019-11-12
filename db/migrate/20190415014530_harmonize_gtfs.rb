@@ -63,6 +63,7 @@ class HarmonizeGTFS < ActiveRecord::Migration
 
     # add cols
     add_column :feed_versions, :deleted_at, :datetime
+    add_column :feed_versions, :sha1_dir, :string
     # without defaults
     change_null :feed_versions, :feed_id, false
     change_null :feed_versions, :earliest_calendar_date, false

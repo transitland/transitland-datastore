@@ -395,6 +395,7 @@ ActiveRecord::Schema.define(version: 20191024200203) do
     t.string   "md5_raw"
     t.string   "file_feedvalidator"
     t.datetime "deleted_at"
+    t.string   "sha1_dir"
   end
 
   add_index "feed_versions", ["earliest_calendar_date"], name: "index_feed_versions_on_earliest_calendar_date", using: :btree
