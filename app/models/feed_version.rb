@@ -22,6 +22,7 @@
 #  md5_raw                :string
 #  file_feedvalidator     :string
 #  deleted_at             :datetime
+#  sha1_dir               :string
 #
 # Indexes
 #

@@ -67,7 +67,6 @@ class HarmonizeGTFS < ActiveRecord::Migration
     change_null :feed_versions, :feed_id, false
     change_null :feed_versions, :earliest_calendar_date, false
     change_null :feed_versions, :latest_calendar_date, false
-    change_null :feed_versions, :sha1, false
     change_null :feed_versions, :fetched_at, false
     change_null :feed_versions, :created_at, false
     change_null :feed_versions, :updated_at, false
