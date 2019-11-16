@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191112235334) do
+ActiveRecord::Schema.define(version: 20191114075430) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -332,6 +332,25 @@ ActiveRecord::Schema.define(version: 20191112235334) do
   end
 
   add_index "feed_schedule_imports", ["feed_version_import_id"], name: "index_feed_schedule_imports_on_feed_version_import_id", using: :btree
+
+  create_table "feed_states", force: :cascade do |t|
+    t.integer   "feed_id",                                                                                                null: false
+    t.integer   "feed_version_id"
+    t.datetime  "last_fetched_at"
+    t.datetime  "last_successful_fetch_at"
+    t.datetime  "last_imported_at"
+    t.string    "last_fetch_error",                                                                       default: "",    null: false
+    t.boolean   "realtime_enabled",                                                                       default: false, null: false
+    t.integer   "priority"
+    t.geography "geometry",                 limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}
+    t.json      "tags"
+    t.datetime  "created_at"
+    t.datetime  "updated_at"
+  end
+
+  add_index "feed_states", ["feed_id"], name: "index_feed_states_on_feed_id", unique: true, using: :btree
+  add_index "feed_states", ["feed_version_id"], name: "index_feed_states_on_feed_version_id", unique: true, using: :btree
+  add_index "feed_states", ["priority"], name: "index_feed_states_on_priority", unique: true, using: :btree
 
   create_table "feed_version_gtfs_imports", force: :cascade do |t|
     t.boolean  "success",                         null: false
@@ -987,6 +1006,8 @@ ActiveRecord::Schema.define(version: 20191112235334) do
   add_index "users", ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true, using: :btree
 
   add_foreign_key "change_payloads", "changesets"
+  add_foreign_key "feed_states", "current_feeds", column: "feed_id"
+  add_foreign_key "feed_states", "feed_versions"
   add_foreign_key "feed_version_gtfs_imports", "feed_versions"
   add_foreign_key "gtfs_agencies", "feed_versions"
   add_foreign_key "gtfs_calendar_dates", "feed_versions"
