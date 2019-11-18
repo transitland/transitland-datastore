@@ -17,5 +17,8 @@ class FeedStates < ActiveRecord::Migration
     add_index :feed_states, :feed_id, unique: true
     add_index :feed_states, :feed_version_id, unique: true
     add_index :feed_states, :feed_priority, unique: true
+
+    add_foreign_key :feed_versions, :current_feeds, column: :feed_id
+
   end
 end
