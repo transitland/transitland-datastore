@@ -338,19 +338,18 @@ ActiveRecord::Schema.define(version: 20191114075430) do
     t.integer   "feed_version_id"
     t.datetime  "last_fetched_at"
     t.datetime  "last_successful_fetch_at"
-    t.datetime  "last_imported_at"
     t.string    "last_fetch_error",                                                                       default: "",    null: false
-    t.boolean   "realtime_enabled",                                                                       default: false, null: false
-    t.integer   "priority"
+    t.boolean   "feed_realtime_enabled",                                                                  default: false, null: false
+    t.integer   "feed_priority"
     t.geography "geometry",                 limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}
     t.json      "tags"
-    t.datetime  "created_at"
-    t.datetime  "updated_at"
+    t.datetime  "created_at",                                                                                             null: false
+    t.datetime  "updated_at",                                                                                             null: false
   end
 
   add_index "feed_states", ["feed_id"], name: "index_feed_states_on_feed_id", unique: true, using: :btree
+  add_index "feed_states", ["feed_priority"], name: "index_feed_states_on_feed_priority", unique: true, using: :btree
   add_index "feed_states", ["feed_version_id"], name: "index_feed_states_on_feed_version_id", unique: true, using: :btree
-  add_index "feed_states", ["priority"], name: "index_feed_states_on_priority", unique: true, using: :btree
 
   create_table "feed_version_gtfs_imports", force: :cascade do |t|
     t.boolean  "success",                         null: false
@@ -1009,6 +1008,7 @@ ActiveRecord::Schema.define(version: 20191114075430) do
   add_foreign_key "feed_states", "current_feeds", column: "feed_id"
   add_foreign_key "feed_states", "feed_versions"
   add_foreign_key "feed_version_gtfs_imports", "feed_versions"
+  add_foreign_key "feed_versions", "current_feeds", column: "feed_id"
   add_foreign_key "gtfs_agencies", "feed_versions"
   add_foreign_key "gtfs_calendar_dates", "feed_versions"
   add_foreign_key "gtfs_calendar_dates", "gtfs_calendars", column: "service_id"
