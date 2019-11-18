@@ -28,6 +28,7 @@
 #  associated_feeds                   :jsonb            not null
 #  languages                          :jsonb            not null
 #  feed_namespace_id                  :string           default(""), not null
+#  file                               :string           default(""), not null
 #
 # Indexes
 #

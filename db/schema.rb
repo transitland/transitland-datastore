@@ -68,6 +68,7 @@ ActiveRecord::Schema.define(version: 20191114075430) do
     t.jsonb     "associated_feeds",                                                                               default: {},     null: false
     t.jsonb     "languages",                                                                                      default: {},     null: false
     t.string    "feed_namespace_id",                                                                              default: "",     null: false
+    t.string    "file",                                                                                           default: "",     null: false
   end
 
   add_index "current_feeds", ["active_feed_version_id"], name: "index_current_feeds_on_active_feed_version_id", using: :btree
@@ -716,6 +717,7 @@ ActiveRecord::Schema.define(version: 20191114075430) do
     t.jsonb     "associated_feeds",                                                                               default: {},     null: false
     t.jsonb     "languages",                                                                                      default: {},     null: false
     t.string    "feed_namespace_id",                                                                              default: "",     null: false
+    t.string    "file"
   end
 
   add_index "old_feeds", ["active_feed_version_id"], name: "index_old_feeds_on_active_feed_version_id", using: :btree

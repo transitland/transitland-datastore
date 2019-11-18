@@ -20,5 +20,8 @@ class FeedStates < ActiveRecord::Migration
 
     add_foreign_key :feed_versions, :current_feeds, column: :feed_id
 
+    add_column :current_feeds, :file, :string, null: false, default: ""
+    add_column :old_feeds, :file, :string
+
   end
 end
