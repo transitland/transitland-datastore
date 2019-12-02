@@ -20,7 +20,6 @@
 #
 # Indexes
 #
-#  index_gtfs_trips_on_feed_version_id  (feed_version_id)
 #  index_gtfs_trips_on_route_id         (route_id)
 #  index_gtfs_trips_on_service_id       (service_id)
 #  index_gtfs_trips_on_shape_id         (shape_id)

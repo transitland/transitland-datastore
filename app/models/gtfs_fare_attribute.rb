@@ -16,10 +16,9 @@
 #
 # Indexes
 #
-#  index_gtfs_fare_attributes_on_agency_id        (agency_id)
-#  index_gtfs_fare_attributes_on_fare_id          (fare_id)
-#  index_gtfs_fare_attributes_on_feed_version_id  (feed_version_id)
-#  index_gtfs_fare_attributes_unique              (feed_version_id,fare_id) UNIQUE
+#  index_gtfs_fare_attributes_on_agency_id  (agency_id)
+#  index_gtfs_fare_attributes_on_fare_id    (fare_id)
+#  index_gtfs_fare_attributes_unique        (feed_version_id,fare_id) UNIQUE
 #
 
 class GTFSFareAttribute < ActiveRecord::Base
