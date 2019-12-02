@@ -430,17 +430,16 @@ ActiveRecord::Schema.define(version: 20191202033016) do
   add_index "feed_schedule_imports", ["feed_version_import_id"], name: "index_feed_schedule_imports_on_feed_version_import_id", using: :btree
 
   create_table "feed_states", id: :bigserial, force: :cascade do |t|
-    t.integer   "feed_id",                  limit: 8,                                                                     null: false
-    t.integer   "feed_version_id",          limit: 8
-    t.datetime  "last_fetched_at"
-    t.datetime  "last_successful_fetch_at"
-    t.string    "last_fetch_error",                                                                       default: "",    null: false
-    t.boolean   "feed_realtime_enabled",                                                                  default: false, null: false
-    t.integer   "feed_priority"
-    t.geography "geometry",                 limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}
-    t.json      "tags"
-    t.datetime  "created_at",                                                                                             null: false
-    t.datetime  "updated_at",                                                                                             null: false
+    t.integer  "feed_id",                  limit: 8,                 null: false
+    t.integer  "feed_version_id",          limit: 8
+    t.datetime "last_fetched_at"
+    t.datetime "last_successful_fetch_at"
+    t.string   "last_fetch_error",                   default: "",    null: false
+    t.boolean  "feed_realtime_enabled",              default: false, null: false
+    t.integer  "feed_priority"
+    t.json     "tags"
+    t.datetime "created_at",                                         null: false
+    t.datetime "updated_at",                                         null: false
   end
 
   add_index "feed_states", ["feed_id"], name: "index_feed_states_on_feed_id", unique: true, using: :btree
@@ -1082,16 +1081,16 @@ ActiveRecord::Schema.define(version: 20191202033016) do
   add_index "old_stops", ["wheelchair_boarding"], name: "index_old_stops_on_wheelchair_boarding", using: :btree
 
   create_table "route_geometries", id: false, force: :cascade do |t|
-    t.integer   "route_id",        limit: 8,                                                     null: false
-    t.integer   "feed_version_id", limit: 8,                                                     null: false
-    t.integer   "shape_id",        limit: 8,                                                     null: false
-    t.integer   "direction_id",                                                                  null: false
-    t.boolean   "generated",                                                                     null: false
-    t.geography "geometry",        limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}, null: false
-    t.geography "geometry_z14",    limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}, null: false
-    t.geography "geometry_z10",    limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}, null: false
-    t.geography "geometry_z6",     limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}, null: false
-    t.geography "centroid",        limit: {:srid=>4326, :type=>"st_point", :geographic=>true},   null: false
+    t.integer   "route_id",        limit: 8,                                                      null: false
+    t.integer   "feed_version_id", limit: 8,                                                      null: false
+    t.integer   "shape_id",        limit: 8,                                                      null: false
+    t.integer   "direction_id",                                                                   null: false
+    t.boolean   "generated",                                                                      null: false
+    t.geography "geometry",        limit: {:srid=>4326, :type=>"line_string", :geographic=>true}, null: false
+    t.geography "geometry_z14",    limit: {:srid=>4326, :type=>"line_string", :geographic=>true}, null: false
+    t.geography "geometry_z10",    limit: {:srid=>4326, :type=>"line_string", :geographic=>true}, null: false
+    t.geography "geometry_z6",     limit: {:srid=>4326, :type=>"line_string", :geographic=>true}, null: false
+    t.geography "centroid",        limit: {:srid=>4326, :type=>"st_point", :geographic=>true},    null: false
   end
 
   add_index "route_geometries", ["centroid"], name: "index_route_geometries_on_centroid", using: :gist

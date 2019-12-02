@@ -1021,27 +1021,25 @@
 <!-- m_FeedState -->
 <g id="node7" class="node">
 <title>m_FeedState</title>
-<path fill="none" stroke="#000000" d="M1996,-2347.5C1996,-2347.5 2136,-2347.5 2136,-2347.5 2142,-2347.5 2148,-2353.5 2148,-2359.5 2148,-2359.5 2148,-2481.5 2148,-2481.5 2148,-2487.5 2142,-2493.5 2136,-2493.5 2136,-2493.5 1996,-2493.5 1996,-2493.5 1990,-2493.5 1984,-2487.5 1984,-2481.5 1984,-2481.5 1984,-2359.5 1984,-2359.5 1984,-2353.5 1990,-2347.5 1996,-2347.5"/>
-<text text-anchor="start" x="2038.6216" y="-2480.2" font-family="Arial BoldMT" font-size="11.00" fill="#000000">FeedState</text>
-<polyline fill="none" stroke="#000000" points="1984,-2474.5 2148,-2474.5 "/>
-<text text-anchor="start" x="1991" y="-2461" font-family="ArialMT" font-size="10.00" fill="#000000">feed_id </text>
-<text text-anchor="start" x="2026.5859" y="-2461" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer (8) ∗</text>
-<text text-anchor="start" x="1991" y="-2448" font-family="ArialMT" font-size="10.00" fill="#000000">feed_priority </text>
-<text text-anchor="start" x="2048.8076" y="-2448" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer</text>
-<text text-anchor="start" x="1991" y="-2435" font-family="ArialMT" font-size="10.00" fill="#000000">feed_realtime_enabled </text>
-<text text-anchor="start" x="2095.5215" y="-2435" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">boolean ∗</text>
-<text text-anchor="start" x="1991" y="-2422" font-family="ArialMT" font-size="10.00" fill="#000000">feed_version_id </text>
-<text text-anchor="start" x="2064.3838" y="-2422" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer (8)</text>
-<text text-anchor="start" x="1991" y="-2409" font-family="ArialMT" font-size="10.00" fill="#000000">geometry </text>
-<text text-anchor="start" x="2035.4629" y="-2409" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">geography</text>
-<text text-anchor="start" x="1991" y="-2396" font-family="ArialMT" font-size="10.00" fill="#000000">last_fetch_error </text>
-<text text-anchor="start" x="2063.2559" y="-2396" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗</text>
-<text text-anchor="start" x="1991" y="-2383" font-family="ArialMT" font-size="10.00" fill="#000000">last_fetched_at </text>
-<text text-anchor="start" x="2061.6055" y="-2383" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">datetime</text>
-<text text-anchor="start" x="1990.9585" y="-2370" font-family="ArialMT" font-size="10.00" fill="#000000">last_successful_fetch_at </text>
-<text text-anchor="start" x="2102.687" y="-2370" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">datetime</text>
-<text text-anchor="start" x="1991" y="-2357" font-family="ArialMT" font-size="10.00" fill="#000000">tags </text>
-<text text-anchor="start" x="2012.6797" y="-2357" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">json</text>
+<path fill="none" stroke="#000000" d="M1996,-2354C1996,-2354 2136,-2354 2136,-2354 2142,-2354 2148,-2360 2148,-2366 2148,-2366 2148,-2475 2148,-2475 2148,-2481 2142,-2487 2136,-2487 2136,-2487 1996,-2487 1996,-2487 1990,-2487 1984,-2481 1984,-2475 1984,-2475 1984,-2366 1984,-2366 1984,-2360 1990,-2354 1996,-2354"/>
+<text text-anchor="start" x="2038.6216" y="-2473.7" font-family="Arial BoldMT" font-size="11.00" fill="#000000">FeedState</text>
+<polyline fill="none" stroke="#000000" points="1984,-2468 2148,-2468 "/>
+<text text-anchor="start" x="1991" y="-2455" font-family="ArialMT" font-size="10.00" fill="#000000">feed_id </text>
+<text text-anchor="start" x="2026.5859" y="-2455" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer (8) ∗</text>
+<text text-anchor="start" x="1991" y="-2442" font-family="ArialMT" font-size="10.00" fill="#000000">feed_priority </text>
+<text text-anchor="start" x="2048.8076" y="-2442" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer</text>
+<text text-anchor="start" x="1991" y="-2429" font-family="ArialMT" font-size="10.00" fill="#000000">feed_realtime_enabled </text>
+<text text-anchor="start" x="2095.5215" y="-2429" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">boolean ∗</text>
+<text text-anchor="start" x="1991" y="-2416" font-family="ArialMT" font-size="10.00" fill="#000000">feed_version_id </text>
+<text text-anchor="start" x="2064.3838" y="-2416" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer (8)</text>
+<text text-anchor="start" x="1991" y="-2403" font-family="ArialMT" font-size="10.00" fill="#000000">last_fetch_error </text>
+<text text-anchor="start" x="2063.2559" y="-2403" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗</text>
+<text text-anchor="start" x="1991" y="-2390" font-family="ArialMT" font-size="10.00" fill="#000000">last_fetched_at </text>
+<text text-anchor="start" x="2061.6055" y="-2390" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">datetime</text>
+<text text-anchor="start" x="1990.9585" y="-2377" font-family="ArialMT" font-size="10.00" fill="#000000">last_successful_fetch_at </text>
+<text text-anchor="start" x="2102.687" y="-2377" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">datetime</text>
+<text text-anchor="start" x="1991" y="-2364" font-family="ArialMT" font-size="10.00" fill="#000000">tags </text>
+<text text-anchor="start" x="2012.6797" y="-2364" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">json</text>
 </g>
 <!-- m_FeedVersion&#45;&gt;m_Changeset -->
 <g id="edge53" class="edge">

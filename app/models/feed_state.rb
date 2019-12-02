@@ -10,7 +10,6 @@
 #  last_fetch_error         :string           default(""), not null
 #  feed_realtime_enabled    :boolean          default(FALSE), not null
 #  feed_priority            :integer
-#  geometry                 :geography({:srid polygon, 4326
 #  tags                     :json
 #  created_at               :datetime         not null
 #  updated_at               :datetime         not null
