@@ -37,9 +37,9 @@ class AddPathways < ActiveRecord::Migration
 
     #####
 
-    change_column_null :gtfs_stops, :level_id, false
+    change_column_null :gtfs_stops, :level_id, true
     change_column :gtfs_stops, :level_id, :bigint, using: 'null'
-    change_column_null :active_stops, :level_id, false
+    change_column_null :active_stops, :level_id, true
     change_column :active_stops, :level_id, :bigint, using: 'null'
 
     add_foreign_key "gtfs_stops", "gtfs_levels", column: "level_id"

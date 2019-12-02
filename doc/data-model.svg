@@ -1317,7 +1317,7 @@
 <text text-anchor="start" x="1223" y="-1430" font-family="ArialMT" font-size="10.00" fill="#000000">geometry </text>
 <text text-anchor="start" x="1267.4629" y="-1430" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">geography ∗</text>
 <text text-anchor="start" x="1223" y="-1417" font-family="ArialMT" font-size="10.00" fill="#000000">level_id </text>
-<text text-anchor="start" x="1259.6895" y="-1417" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer (8) ∗</text>
+<text text-anchor="start" x="1259.6895" y="-1417" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer (8)</text>
 <text text-anchor="start" x="1223" y="-1404" font-family="ArialMT" font-size="10.00" fill="#000000">location_type </text>
 <text text-anchor="start" x="1284.709" y="-1404" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
 <text text-anchor="start" x="1223" y="-1391" font-family="ArialMT" font-size="10.00" fill="#000000">parent_station </text>

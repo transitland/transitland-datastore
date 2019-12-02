@@ -90,7 +90,7 @@ ActiveRecord::Schema.define(version: 20191202060535) do
     t.geography "geometry",            limit: {:srid=>4326, :type=>"st_point", :geographic=>true}, null: false
     t.datetime  "created_at",                                                                      null: false
     t.datetime  "updated_at",                                                                      null: false
-    t.integer   "level_id",            limit: 8,                                                   null: false
+    t.integer   "level_id",            limit: 8
   end
 
   add_index "active_stops", ["feed_version_id"], name: "index_active_stops_on_feed_version_id", using: :btree
@@ -757,7 +757,7 @@ ActiveRecord::Schema.define(version: 20191202060535) do
     t.datetime  "updated_at",                                                                      null: false
     t.integer   "feed_version_id",     limit: 8,                                                   null: false
     t.integer   "parent_station",      limit: 8
-    t.integer   "level_id",            limit: 8,                                                   null: false
+    t.integer   "level_id",            limit: 8
   end
 
   add_index "gtfs_stops", ["feed_version_id", "stop_id"], name: "index_gtfs_stops_unique", unique: true, using: :btree
