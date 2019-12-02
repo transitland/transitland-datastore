@@ -148,10 +148,10 @@ class ActiveEntities < ActiveRecord::Migration
       t.bigint "shape_id", null: false
       t.integer "direction_id", null: false
       t.boolean "generated", null: false
-      t.geography "geometry",            limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}, null: false
-      t.geography "geometry_z14",            limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}, null: false
-      t.geography "geometry_z10",            limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}, null: false
-      t.geography "geometry_z6",            limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}, null: false
+      t.geography "geometry",            limit: {:srid=>4326, :type=>"line_string", :geographic=>true}, null: false
+      t.geography "geometry_z14",            limit: {:srid=>4326, :type=>"line_string", :geographic=>true}, null: false
+      t.geography "geometry_z10",            limit: {:srid=>4326, :type=>"line_string", :geographic=>true}, null: false
+      t.geography "geometry_z6",            limit: {:srid=>4326, :type=>"line_string", :geographic=>true}, null: false
       t.geography "centroid",            limit: {:srid=>4326, :type=>"st_point", :geographic=>true}, null: false
     end
     add_index "route_geometries", ["route_id","direction_id"], name: "index_route_geometries_unique", unique: true, using: :btree
@@ -183,6 +183,11 @@ class ActiveEntities < ActiveRecord::Migration
     # covering indexes
     add_index :gtfs_routes, ["feed_version_id", "id", "agency_id"], name: "index_gtfs_routes_on_feed_version_id_agency_id", using: :btree
     add_index :gtfs_stop_times, ["feed_version_id", "trip_id", "stop_id"], name: "index_gtfs_stop_times_on_feed_version_id_trip_id_stop_id", using: :btree
+
+    ####
+
+    remove_column :feed_states, :geometry
+
 
   end
 end

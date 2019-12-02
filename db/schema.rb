@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191202033016) do
+ActiveRecord::Schema.define(version: 20191202060535) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -90,7 +90,7 @@ ActiveRecord::Schema.define(version: 20191202033016) do
     t.geography "geometry",            limit: {:srid=>4326, :type=>"st_point", :geographic=>true}, null: false
     t.datetime  "created_at",                                                                      null: false
     t.datetime  "updated_at",                                                                      null: false
-    t.string    "level_id",                                                                        null: false
+    t.integer   "level_id",            limit: 8
   end
 
   add_index "active_stops", ["feed_version_id"], name: "index_active_stops_on_feed_version_id", using: :btree
@@ -430,17 +430,16 @@ ActiveRecord::Schema.define(version: 20191202033016) do
   add_index "feed_schedule_imports", ["feed_version_import_id"], name: "index_feed_schedule_imports_on_feed_version_import_id", using: :btree
 
   create_table "feed_states", id: :bigserial, force: :cascade do |t|
-    t.integer   "feed_id",                  limit: 8,                                                                     null: false
-    t.integer   "feed_version_id",          limit: 8
-    t.datetime  "last_fetched_at"
-    t.datetime  "last_successful_fetch_at"
-    t.string    "last_fetch_error",                                                                       default: "",    null: false
-    t.boolean   "feed_realtime_enabled",                                                                  default: false, null: false
-    t.integer   "feed_priority"
-    t.geography "geometry",                 limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}
-    t.json      "tags"
-    t.datetime  "created_at",                                                                                             null: false
-    t.datetime  "updated_at",                                                                                             null: false
+    t.integer  "feed_id",                  limit: 8,                 null: false
+    t.integer  "feed_version_id",          limit: 8
+    t.datetime "last_fetched_at"
+    t.datetime "last_successful_fetch_at"
+    t.string   "last_fetch_error",                   default: "",    null: false
+    t.boolean  "feed_realtime_enabled",              default: false, null: false
+    t.integer  "feed_priority"
+    t.json     "tags"
+    t.datetime "created_at",                                         null: false
+    t.datetime "updated_at",                                         null: false
   end
 
   add_index "feed_states", ["feed_id"], name: "index_feed_states_on_feed_id", unique: true, using: :btree
@@ -647,6 +646,41 @@ ActiveRecord::Schema.define(version: 20191202033016) do
   add_index "gtfs_frequencies", ["feed_version_id"], name: "index_gtfs_frequencies_on_feed_version_id", using: :btree
   add_index "gtfs_frequencies", ["trip_id"], name: "index_gtfs_frequencies_on_trip_id", using: :btree
 
+  create_table "gtfs_levels", id: :bigserial, force: :cascade do |t|
+    t.integer  "feed_version_id", limit: 8, null: false
+    t.string   "level_id",                  null: false
+    t.float    "level_index",               null: false
+    t.string   "level_name",                null: false
+    t.datetime "created_at",                null: false
+    t.datetime "updated_at",                null: false
+  end
+
+  add_index "gtfs_levels", ["feed_version_id", "level_id"], name: "index_gtfs_levels_unique", unique: true, using: :btree
+  add_index "gtfs_levels", ["level_id"], name: "index_gtfs_pathways_on_level_id", using: :btree
+
+  create_table "gtfs_pathways", id: :bigserial, force: :cascade do |t|
+    t.integer  "feed_version_id",       limit: 8, null: false
+    t.string   "pathway_id",                      null: false
+    t.integer  "from_stop_id",          limit: 8, null: false
+    t.integer  "to_stop_id",            limit: 8, null: false
+    t.integer  "pathway_mode",                    null: false
+    t.integer  "is_bidirectional",                null: false
+    t.float    "length",                          null: false
+    t.integer  "traversal_time",                  null: false
+    t.integer  "stair_count",                     null: false
+    t.float    "max_slope",                       null: false
+    t.float    "min_width",                       null: false
+    t.string   "signposted_as",                   null: false
+    t.string   "reverse_signposted_as",           null: false
+    t.datetime "created_at",                      null: false
+    t.datetime "updated_at",                      null: false
+  end
+
+  add_index "gtfs_pathways", ["feed_version_id", "pathway_id"], name: "index_gtfs_pathways_unique", unique: true, using: :btree
+  add_index "gtfs_pathways", ["from_stop_id"], name: "index_gtfs_pathways_on_from_stop_id", using: :btree
+  add_index "gtfs_pathways", ["pathway_id"], name: "index_gtfs_pathways_on_pathway_id", using: :btree
+  add_index "gtfs_pathways", ["to_stop_id"], name: "index_gtfs_pathways_on_to_stop_id", using: :btree
+
   create_table "gtfs_routes", id: :bigserial, force: :cascade do |t|
     t.string   "route_id",                   null: false
     t.string   "route_short_name",           null: false
@@ -723,7 +757,7 @@ ActiveRecord::Schema.define(version: 20191202033016) do
     t.datetime  "updated_at",                                                                      null: false
     t.integer   "feed_version_id",     limit: 8,                                                   null: false
     t.integer   "parent_station",      limit: 8
-    t.string    "level_id",                                                                        null: false
+    t.integer   "level_id",            limit: 8
   end
 
   add_index "gtfs_stops", ["feed_version_id", "stop_id"], name: "index_gtfs_stops_unique", unique: true, using: :btree
@@ -1082,16 +1116,16 @@ ActiveRecord::Schema.define(version: 20191202033016) do
   add_index "old_stops", ["wheelchair_boarding"], name: "index_old_stops_on_wheelchair_boarding", using: :btree
 
   create_table "route_geometries", id: false, force: :cascade do |t|
-    t.integer   "route_id",        limit: 8,                                                     null: false
-    t.integer   "feed_version_id", limit: 8,                                                     null: false
-    t.integer   "shape_id",        limit: 8,                                                     null: false
-    t.integer   "direction_id",                                                                  null: false
-    t.boolean   "generated",                                                                     null: false
-    t.geography "geometry",        limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}, null: false
-    t.geography "geometry_z14",    limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}, null: false
-    t.geography "geometry_z10",    limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}, null: false
-    t.geography "geometry_z6",     limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}, null: false
-    t.geography "centroid",        limit: {:srid=>4326, :type=>"st_point", :geographic=>true},   null: false
+    t.integer   "route_id",        limit: 8,                                                      null: false
+    t.integer   "feed_version_id", limit: 8,                                                      null: false
+    t.integer   "shape_id",        limit: 8,                                                      null: false
+    t.integer   "direction_id",                                                                   null: false
+    t.boolean   "generated",                                                                      null: false
+    t.geography "geometry",        limit: {:srid=>4326, :type=>"line_string", :geographic=>true}, null: false
+    t.geography "geometry_z14",    limit: {:srid=>4326, :type=>"line_string", :geographic=>true}, null: false
+    t.geography "geometry_z10",    limit: {:srid=>4326, :type=>"line_string", :geographic=>true}, null: false
+    t.geography "geometry_z6",     limit: {:srid=>4326, :type=>"line_string", :geographic=>true}, null: false
+    t.geography "centroid",        limit: {:srid=>4326, :type=>"st_point", :geographic=>true},    null: false
   end
 
   add_index "route_geometries", ["centroid"], name: "index_route_geometries_on_centroid", using: :gist
@@ -1139,6 +1173,7 @@ ActiveRecord::Schema.define(version: 20191202033016) do
   add_foreign_key "active_routes", "gtfs_agencies", column: "agency_id"
   add_foreign_key "active_routes", "gtfs_routes", column: "id"
   add_foreign_key "active_stops", "feed_versions"
+  add_foreign_key "active_stops", "gtfs_levels", column: "level_id"
   add_foreign_key "active_stops", "gtfs_stops", column: "id"
   add_foreign_key "active_stops", "gtfs_stops", column: "parent_station"
   add_foreign_key "agency_geometries", "feed_versions"
@@ -1161,12 +1196,17 @@ ActiveRecord::Schema.define(version: 20191202033016) do
   add_foreign_key "gtfs_feed_infos", "feed_versions"
   add_foreign_key "gtfs_frequencies", "feed_versions"
   add_foreign_key "gtfs_frequencies", "gtfs_trips", column: "trip_id"
+  add_foreign_key "gtfs_levels", "feed_versions"
+  add_foreign_key "gtfs_pathways", "feed_versions"
+  add_foreign_key "gtfs_pathways", "gtfs_stops", column: "from_stop_id"
+  add_foreign_key "gtfs_pathways", "gtfs_stops", column: "to_stop_id"
   add_foreign_key "gtfs_routes", "feed_versions"
   add_foreign_key "gtfs_routes", "gtfs_agencies", column: "agency_id"
   add_foreign_key "gtfs_stop_times", "feed_versions"
   add_foreign_key "gtfs_stop_times", "gtfs_stops", column: "stop_id"
   add_foreign_key "gtfs_stop_times", "gtfs_trips", column: "trip_id"
   add_foreign_key "gtfs_stops", "feed_versions"
+  add_foreign_key "gtfs_stops", "gtfs_levels", column: "level_id"
   add_foreign_key "gtfs_stops", "gtfs_stops", column: "parent_station"
   add_foreign_key "gtfs_transfers", "feed_versions"
   add_foreign_key "gtfs_transfers", "gtfs_stops", column: "from_stop_id"
