@@ -1,7 +1,6 @@
 class ActiveEntities < ActiveRecord::Migration
   def change
 
-    
     ########
 
     create_table :active_stops, id: false do |t|
@@ -143,7 +142,7 @@ class ActiveEntities < ActiveRecord::Migration
 
     ###
 
-    create_table "route_geometries" do |t|
+    create_table "route_geometries", id: false do |t|
       t.bigint "route_id", null: false
       t.bigint "feed_version_id", null: false
       t.bigint "shape_id", null: false
