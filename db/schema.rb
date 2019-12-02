@@ -11,12 +11,107 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191114075430) do
+ActiveRecord::Schema.define(version: 20191202033016) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "postgis"
   enable_extension "hstore"
+
+  create_table "active_agencies", id: false, force: :cascade do |t|
+    t.integer   "id",              limit: 8,                                                     null: false
+    t.integer   "feed_version_id", limit: 8,                                                     null: false
+    t.string    "agency_id",                                                                     null: false
+    t.string    "agency_name",                                                                   null: false
+    t.string    "agency_url",                                                                    null: false
+    t.string    "agency_timezone",                                                               null: false
+    t.string    "agency_lang",                                                                   null: false
+    t.string    "agency_phone",                                                                  null: false
+    t.string    "agency_fare_url",                                                               null: false
+    t.string    "agency_email",                                                                  null: false
+    t.datetime  "created_at",                                                                    null: false
+    t.datetime  "updated_at",                                                                    null: false
+    t.geography "geometry",        limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}
+    t.geography "centroid",        limit: {:srid=>4326, :type=>"st_point", :geographic=>true}
+  end
+
+  add_index "active_agencies", ["agency_id"], name: "index_active_agencies_on_agency_id", using: :btree
+  add_index "active_agencies", ["agency_name"], name: "index_active_agencies_on_agency_name", using: :btree
+  add_index "active_agencies", ["centroid"], name: "index_active_agencies_on_centroid", using: :gist
+  add_index "active_agencies", ["feed_version_id"], name: "index_active_agencies_on_feed_version_id", using: :btree
+  add_index "active_agencies", ["geometry"], name: "index_active_agencies_on_geometry", using: :gist
+  add_index "active_agencies", ["id"], name: "index_active_agencies_unique", unique: true, using: :btree
+
+  create_table "active_routes", id: false, force: :cascade do |t|
+    t.integer   "id",               limit: 8,                                                      null: false
+    t.integer   "feed_version_id",  limit: 8,                                                      null: false
+    t.integer   "agency_id",        limit: 8,                                                      null: false
+    t.string    "route_id",                                                                        null: false
+    t.string    "route_short_name",                                                                null: false
+    t.string    "route_long_name",                                                                 null: false
+    t.string    "route_desc",                                                                      null: false
+    t.integer   "route_type",                                                                      null: false
+    t.string    "route_url",                                                                       null: false
+    t.string    "route_color",                                                                     null: false
+    t.string    "route_text_color",                                                                null: false
+    t.integer   "route_sort_order",                                                                null: false
+    t.datetime  "created_at",                                                                      null: false
+    t.datetime  "updated_at",                                                                      null: false
+    t.geography "geometry",         limit: {:srid=>4326, :type=>"line_string", :geographic=>true}
+    t.geography "geometry_z14",     limit: {:srid=>4326, :type=>"line_string", :geographic=>true}
+    t.geography "geometry_z10",     limit: {:srid=>4326, :type=>"line_string", :geographic=>true}
+    t.geography "geometry_z6",      limit: {:srid=>4326, :type=>"line_string", :geographic=>true}
+    t.geography "centroid",         limit: {:srid=>4326, :type=>"st_point", :geographic=>true}
+  end
+
+  add_index "active_routes", ["agency_id"], name: "index_active_routes_on_agency_id", using: :btree
+  add_index "active_routes", ["centroid"], name: "index_active_routes_on_centroid", using: :gist
+  add_index "active_routes", ["feed_version_id"], name: "index_active_routes_on_feed_version_id", using: :btree
+  add_index "active_routes", ["geometry"], name: "index_active_routes_on_geometry", using: :gist
+  add_index "active_routes", ["id"], name: "index_active_routes_unique", unique: true, using: :btree
+  add_index "active_routes", ["route_id"], name: "index_active_routes_on_route_id", using: :btree
+  add_index "active_routes", ["route_long_name"], name: "index_active_routes_on_route_long_name", using: :btree
+  add_index "active_routes", ["route_short_name"], name: "index_active_routes_on_route_short_name", using: :btree
+  add_index "active_routes", ["route_type"], name: "index_active_routes_on_route_type", using: :btree
+
+  create_table "active_stops", id: false, force: :cascade do |t|
+    t.integer   "id",                  limit: 8,                                                   null: false
+    t.integer   "feed_version_id",     limit: 8,                                                   null: false
+    t.integer   "parent_station",      limit: 8
+    t.string    "stop_id",                                                                         null: false
+    t.string    "stop_code",                                                                       null: false
+    t.string    "stop_name",                                                                       null: false
+    t.string    "stop_desc",                                                                       null: false
+    t.string    "zone_id",                                                                         null: false
+    t.string    "stop_url",                                                                        null: false
+    t.integer   "location_type",                                                                   null: false
+    t.string    "stop_timezone",                                                                   null: false
+    t.integer   "wheelchair_boarding",                                                             null: false
+    t.geography "geometry",            limit: {:srid=>4326, :type=>"st_point", :geographic=>true}, null: false
+    t.datetime  "created_at",                                                                      null: false
+    t.datetime  "updated_at",                                                                      null: false
+    t.string    "level_id",                                                                        null: false
+  end
+
+  add_index "active_stops", ["feed_version_id"], name: "index_active_stops_on_feed_version_id", using: :btree
+  add_index "active_stops", ["geometry"], name: "index_active_stops_on_geometry", using: :gist
+  add_index "active_stops", ["id"], name: "index_active_stops_unique", unique: true, using: :btree
+  add_index "active_stops", ["location_type"], name: "index_active_stops_on_location_type", using: :btree
+  add_index "active_stops", ["parent_station"], name: "index_active_stops_on_parent_station", using: :btree
+  add_index "active_stops", ["stop_id"], name: "index_active_stops_on_stop_id", using: :btree
+  add_index "active_stops", ["stop_name"], name: "index_active_stops_on_stop_name", using: :btree
+
+  create_table "agency_geometries", id: false, force: :cascade do |t|
+    t.integer   "agency_id",       limit: 8,                                                     null: false
+    t.integer   "feed_version_id", limit: 8,                                                     null: false
+    t.geography "geometry",        limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}
+    t.geography "centroid",        limit: {:srid=>4326, :type=>"st_point", :geographic=>true}
+  end
+
+  add_index "agency_geometries", ["agency_id"], name: "index_agency_geometries_unique", unique: true, using: :btree
+  add_index "agency_geometries", ["centroid"], name: "index_agency_geometries_on_centroid", using: :gist
+  add_index "agency_geometries", ["feed_version_id"], name: "index_agency_geometries_on_feed_version_id", using: :btree
+  add_index "agency_geometries", ["geometry"], name: "index_agency_geometries_on_geometry", using: :gist
 
   create_table "change_payloads", force: :cascade do |t|
     t.json     "payload"
@@ -42,7 +137,7 @@ ActiveRecord::Schema.define(version: 20191114075430) do
   add_index "changesets", ["feed_version_id"], name: "index_changesets_on_feed_version_id", using: :btree
   add_index "changesets", ["user_id"], name: "index_changesets_on_user_id", using: :btree
 
-  create_table "current_feeds", force: :cascade do |t|
+  create_table "current_feeds", id: :bigserial, force: :cascade do |t|
     t.string    "onestop_id",                                                                                                      null: false
     t.string    "url"
     t.string    "spec",                                                                                           default: "gtfs", null: false
@@ -334,9 +429,9 @@ ActiveRecord::Schema.define(version: 20191114075430) do
 
   add_index "feed_schedule_imports", ["feed_version_import_id"], name: "index_feed_schedule_imports_on_feed_version_import_id", using: :btree
 
-  create_table "feed_states", force: :cascade do |t|
-    t.integer   "feed_id",                                                                                                null: false
-    t.integer   "feed_version_id"
+  create_table "feed_states", id: :bigserial, force: :cascade do |t|
+    t.integer   "feed_id",                  limit: 8,                                                                     null: false
+    t.integer   "feed_version_id",          limit: 8
     t.datetime  "last_fetched_at"
     t.datetime  "last_successful_fetch_at"
     t.string    "last_fetch_error",                                                                       default: "",    null: false
@@ -352,15 +447,25 @@ ActiveRecord::Schema.define(version: 20191114075430) do
   add_index "feed_states", ["feed_priority"], name: "index_feed_states_on_feed_priority", unique: true, using: :btree
   add_index "feed_states", ["feed_version_id"], name: "index_feed_states_on_feed_version_id", unique: true, using: :btree
 
-  create_table "feed_version_gtfs_imports", force: :cascade do |t|
-    t.boolean  "success",                         null: false
-    t.text     "import_log",                      null: false
-    t.text     "exception_log",                   null: false
-    t.integer  "import_level",                    null: false
-    t.datetime "created_at",                      null: false
-    t.datetime "updated_at",                      null: false
-    t.integer  "feed_version_id",                 null: false
-    t.boolean  "in_progress",     default: false, null: false
+  create_table "feed_version_geometries", id: false, force: :cascade do |t|
+    t.integer   "feed_version_id", limit: 8,                                                     null: false
+    t.geography "geometry",        limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}
+    t.geography "centroid",        limit: {:srid=>4326, :type=>"st_point", :geographic=>true}
+  end
+
+  add_index "feed_version_geometries", ["centroid"], name: "index_feed_version_geometries_on_centroid", using: :gist
+  add_index "feed_version_geometries", ["feed_version_id"], name: "index_feed_version_geometries_unique", unique: true, using: :btree
+  add_index "feed_version_geometries", ["geometry"], name: "index_feed_version_geometries_on_geometry", using: :gist
+
+  create_table "feed_version_gtfs_imports", id: :bigserial, force: :cascade do |t|
+    t.boolean  "success",                                   null: false
+    t.text     "import_log",                                null: false
+    t.text     "exception_log",                             null: false
+    t.integer  "import_level",                              null: false
+    t.datetime "created_at",                                null: false
+    t.datetime "updated_at",                                null: false
+    t.integer  "feed_version_id", limit: 8,                 null: false
+    t.boolean  "in_progress",               default: false, null: false
     t.jsonb    "error_count"
     t.jsonb    "warning_count"
     t.jsonb    "entity_count"
@@ -394,21 +499,21 @@ ActiveRecord::Schema.define(version: 20191114075430) do
   add_index "feed_version_infos", ["feed_version_id", "type"], name: "index_feed_version_infos_on_feed_version_id_and_type", unique: true, using: :btree
   add_index "feed_version_infos", ["feed_version_id"], name: "index_feed_version_infos_on_feed_version_id", using: :btree
 
-  create_table "feed_versions", force: :cascade do |t|
-    t.integer  "feed_id",                                 null: false
-    t.string   "feed_type",              default: "gtfs", null: false
-    t.string   "file",                   default: "",     null: false
-    t.date     "earliest_calendar_date",                  null: false
-    t.date     "latest_calendar_date",                    null: false
-    t.string   "sha1",                                    null: false
+  create_table "feed_versions", id: :bigserial, force: :cascade do |t|
+    t.integer  "feed_id",                limit: 8,                  null: false
+    t.string   "feed_type",                        default: "gtfs", null: false
+    t.string   "file",                             default: "",     null: false
+    t.date     "earliest_calendar_date",                            null: false
+    t.date     "latest_calendar_date",                              null: false
+    t.string   "sha1",                                              null: false
     t.string   "md5"
     t.hstore   "tags"
-    t.datetime "fetched_at",                              null: false
+    t.datetime "fetched_at",                                        null: false
     t.datetime "imported_at"
-    t.datetime "created_at",                              null: false
-    t.datetime "updated_at",                              null: false
-    t.integer  "import_level",           default: 0,      null: false
-    t.string   "url",                    default: "",     null: false
+    t.datetime "created_at",                                        null: false
+    t.datetime "updated_at",                                        null: false
+    t.integer  "import_level",                     default: 0,      null: false
+    t.string   "url",                              default: "",     null: false
     t.string   "file_raw"
     t.string   "sha1_raw"
     t.string   "md5_raw"
@@ -421,32 +526,31 @@ ActiveRecord::Schema.define(version: 20191114075430) do
   add_index "feed_versions", ["feed_type", "feed_id"], name: "index_feed_versions_on_feed_type_and_feed_id", using: :btree
   add_index "feed_versions", ["latest_calendar_date"], name: "index_feed_versions_on_latest_calendar_date", using: :btree
 
-  create_table "gtfs_agencies", force: :cascade do |t|
-    t.string   "agency_id",       null: false
-    t.string   "agency_name",     null: false
-    t.string   "agency_url",      null: false
-    t.string   "agency_timezone", null: false
-    t.string   "agency_lang",     null: false
-    t.string   "agency_phone",    null: false
-    t.string   "agency_fare_url", null: false
-    t.string   "agency_email",    null: false
-    t.datetime "created_at",      null: false
-    t.datetime "updated_at",      null: false
-    t.integer  "feed_version_id", null: false
+  create_table "gtfs_agencies", id: :bigserial, force: :cascade do |t|
+    t.string   "agency_id",                 null: false
+    t.string   "agency_name",               null: false
+    t.string   "agency_url",                null: false
+    t.string   "agency_timezone",           null: false
+    t.string   "agency_lang",               null: false
+    t.string   "agency_phone",              null: false
+    t.string   "agency_fare_url",           null: false
+    t.string   "agency_email",              null: false
+    t.datetime "created_at",                null: false
+    t.datetime "updated_at",                null: false
+    t.integer  "feed_version_id", limit: 8, null: false
   end
 
   add_index "gtfs_agencies", ["agency_id"], name: "index_gtfs_agencies_on_agency_id", using: :btree
   add_index "gtfs_agencies", ["agency_name"], name: "index_gtfs_agencies_on_agency_name", using: :btree
   add_index "gtfs_agencies", ["feed_version_id", "agency_id"], name: "index_gtfs_agencies_unique", unique: true, using: :btree
-  add_index "gtfs_agencies", ["feed_version_id"], name: "index_gtfs_agencies_on_feed_version_id", using: :btree
 
-  create_table "gtfs_calendar_dates", force: :cascade do |t|
-    t.date     "date",            null: false
-    t.integer  "exception_type",  null: false
-    t.datetime "created_at",      null: false
-    t.datetime "updated_at",      null: false
-    t.integer  "feed_version_id", null: false
-    t.integer  "service_id",      null: false
+  create_table "gtfs_calendar_dates", id: :bigserial, force: :cascade do |t|
+    t.date     "date",                      null: false
+    t.integer  "exception_type",            null: false
+    t.datetime "created_at",                null: false
+    t.datetime "updated_at",                null: false
+    t.integer  "feed_version_id", limit: 8, null: false
+    t.integer  "service_id",      limit: 8, null: false
   end
 
   add_index "gtfs_calendar_dates", ["date"], name: "index_gtfs_calendar_dates_on_date", using: :btree
@@ -454,26 +558,25 @@ ActiveRecord::Schema.define(version: 20191114075430) do
   add_index "gtfs_calendar_dates", ["feed_version_id"], name: "index_gtfs_calendar_dates_on_feed_version_id", using: :btree
   add_index "gtfs_calendar_dates", ["service_id"], name: "index_gtfs_calendar_dates_on_service_id", using: :btree
 
-  create_table "gtfs_calendars", force: :cascade do |t|
-    t.string   "service_id",      null: false
-    t.integer  "monday",          null: false
-    t.integer  "tuesday",         null: false
-    t.integer  "wednesday",       null: false
-    t.integer  "thursday",        null: false
-    t.integer  "friday",          null: false
-    t.integer  "saturday",        null: false
-    t.integer  "sunday",          null: false
-    t.date     "start_date",      null: false
-    t.date     "end_date",        null: false
-    t.datetime "created_at",      null: false
-    t.datetime "updated_at",      null: false
-    t.integer  "feed_version_id", null: false
-    t.boolean  "generated",       null: false
+  create_table "gtfs_calendars", id: :bigserial, force: :cascade do |t|
+    t.string   "service_id",                null: false
+    t.integer  "monday",                    null: false
+    t.integer  "tuesday",                   null: false
+    t.integer  "wednesday",                 null: false
+    t.integer  "thursday",                  null: false
+    t.integer  "friday",                    null: false
+    t.integer  "saturday",                  null: false
+    t.integer  "sunday",                    null: false
+    t.date     "start_date",                null: false
+    t.date     "end_date",                  null: false
+    t.datetime "created_at",                null: false
+    t.datetime "updated_at",                null: false
+    t.integer  "feed_version_id", limit: 8, null: false
+    t.boolean  "generated",                 null: false
   end
 
   add_index "gtfs_calendars", ["end_date"], name: "index_gtfs_calendars_on_end_date", using: :btree
   add_index "gtfs_calendars", ["feed_version_id", "service_id"], name: "index_gtfs_calendars_on_feed_version_id_and_service_id", unique: true, using: :btree
-  add_index "gtfs_calendars", ["feed_version_id"], name: "index_gtfs_calendars_on_feed_version_id", using: :btree
   add_index "gtfs_calendars", ["friday"], name: "index_gtfs_calendars_on_friday", using: :btree
   add_index "gtfs_calendars", ["monday"], name: "index_gtfs_calendars_on_monday", using: :btree
   add_index "gtfs_calendars", ["saturday"], name: "index_gtfs_calendars_on_saturday", using: :btree
@@ -484,133 +587,128 @@ ActiveRecord::Schema.define(version: 20191114075430) do
   add_index "gtfs_calendars", ["tuesday"], name: "index_gtfs_calendars_on_tuesday", using: :btree
   add_index "gtfs_calendars", ["wednesday"], name: "index_gtfs_calendars_on_wednesday", using: :btree
 
-  create_table "gtfs_fare_attributes", force: :cascade do |t|
-    t.string   "fare_id",           null: false
-    t.float    "price",             null: false
-    t.string   "currency_type",     null: false
-    t.integer  "payment_method",    null: false
-    t.integer  "transfer_duration", null: false
-    t.datetime "created_at",        null: false
-    t.datetime "updated_at",        null: false
-    t.integer  "feed_version_id",   null: false
-    t.integer  "agency_id"
-    t.integer  "transfers",         null: false
+  create_table "gtfs_fare_attributes", id: :bigserial, force: :cascade do |t|
+    t.string   "fare_id",                     null: false
+    t.float    "price",                       null: false
+    t.string   "currency_type",               null: false
+    t.integer  "payment_method",              null: false
+    t.integer  "transfer_duration",           null: false
+    t.datetime "created_at",                  null: false
+    t.datetime "updated_at",                  null: false
+    t.integer  "feed_version_id",   limit: 8, null: false
+    t.integer  "agency_id",         limit: 8
+    t.integer  "transfers",                   null: false
   end
 
   add_index "gtfs_fare_attributes", ["agency_id"], name: "index_gtfs_fare_attributes_on_agency_id", using: :btree
   add_index "gtfs_fare_attributes", ["fare_id"], name: "index_gtfs_fare_attributes_on_fare_id", using: :btree
   add_index "gtfs_fare_attributes", ["feed_version_id", "fare_id"], name: "index_gtfs_fare_attributes_unique", unique: true, using: :btree
-  add_index "gtfs_fare_attributes", ["feed_version_id"], name: "index_gtfs_fare_attributes_on_feed_version_id", using: :btree
 
-  create_table "gtfs_fare_rules", force: :cascade do |t|
-    t.string   "origin_id",       null: false
-    t.string   "destination_id",  null: false
-    t.string   "contains_id",     null: false
-    t.datetime "created_at",      null: false
-    t.datetime "updated_at",      null: false
-    t.integer  "feed_version_id", null: false
-    t.integer  "route_id"
-    t.integer  "fare_id"
+  create_table "gtfs_fare_rules", id: :bigserial, force: :cascade do |t|
+    t.string   "origin_id",                 null: false
+    t.string   "destination_id",            null: false
+    t.string   "contains_id",               null: false
+    t.datetime "created_at",                null: false
+    t.datetime "updated_at",                null: false
+    t.integer  "feed_version_id", limit: 8, null: false
+    t.integer  "route_id",        limit: 8
+    t.integer  "fare_id",         limit: 8
   end
 
   add_index "gtfs_fare_rules", ["fare_id"], name: "index_gtfs_fare_rules_on_fare_id", using: :btree
   add_index "gtfs_fare_rules", ["feed_version_id"], name: "index_gtfs_fare_rules_on_feed_version_id", using: :btree
   add_index "gtfs_fare_rules", ["route_id"], name: "index_gtfs_fare_rules_on_route_id", using: :btree
 
-  create_table "gtfs_feed_infos", force: :cascade do |t|
-    t.string   "feed_publisher_name", null: false
-    t.string   "feed_publisher_url",  null: false
-    t.string   "feed_lang",           null: false
+  create_table "gtfs_feed_infos", id: :bigserial, force: :cascade do |t|
+    t.string   "feed_publisher_name",           null: false
+    t.string   "feed_publisher_url",            null: false
+    t.string   "feed_lang",                     null: false
     t.date     "feed_start_date"
     t.date     "feed_end_date"
-    t.string   "feed_version_name",   null: false
-    t.datetime "created_at",          null: false
-    t.datetime "updated_at",          null: false
-    t.integer  "feed_version_id",     null: false
+    t.string   "feed_version_name",             null: false
+    t.datetime "created_at",                    null: false
+    t.datetime "updated_at",                    null: false
+    t.integer  "feed_version_id",     limit: 8, null: false
   end
 
   add_index "gtfs_feed_infos", ["feed_version_id"], name: "index_gtfs_feed_info_unique", unique: true, using: :btree
-  add_index "gtfs_feed_infos", ["feed_version_id"], name: "index_gtfs_feed_infos_on_feed_version_id", using: :btree
 
-  create_table "gtfs_frequencies", force: :cascade do |t|
-    t.integer  "start_time",      null: false
-    t.integer  "end_time",        null: false
-    t.integer  "headway_secs",    null: false
-    t.integer  "exact_times",     null: false
-    t.datetime "created_at",      null: false
-    t.datetime "updated_at",      null: false
-    t.integer  "feed_version_id", null: false
-    t.integer  "trip_id",         null: false
+  create_table "gtfs_frequencies", id: :bigserial, force: :cascade do |t|
+    t.integer  "start_time",                null: false
+    t.integer  "end_time",                  null: false
+    t.integer  "headway_secs",              null: false
+    t.integer  "exact_times",               null: false
+    t.datetime "created_at",                null: false
+    t.datetime "updated_at",                null: false
+    t.integer  "feed_version_id", limit: 8, null: false
+    t.integer  "trip_id",         limit: 8, null: false
   end
 
   add_index "gtfs_frequencies", ["feed_version_id"], name: "index_gtfs_frequencies_on_feed_version_id", using: :btree
   add_index "gtfs_frequencies", ["trip_id"], name: "index_gtfs_frequencies_on_trip_id", using: :btree
 
-  create_table "gtfs_routes", force: :cascade do |t|
-    t.string   "route_id",         null: false
-    t.string   "route_short_name", null: false
-    t.string   "route_long_name",  null: false
-    t.string   "route_desc",       null: false
-    t.integer  "route_type",       null: false
-    t.string   "route_url",        null: false
-    t.string   "route_color",      null: false
-    t.string   "route_text_color", null: false
-    t.integer  "route_sort_order", null: false
-    t.datetime "created_at",       null: false
-    t.datetime "updated_at",       null: false
-    t.integer  "feed_version_id",  null: false
-    t.integer  "agency_id",        null: false
+  create_table "gtfs_routes", id: :bigserial, force: :cascade do |t|
+    t.string   "route_id",                   null: false
+    t.string   "route_short_name",           null: false
+    t.string   "route_long_name",            null: false
+    t.string   "route_desc",                 null: false
+    t.integer  "route_type",                 null: false
+    t.string   "route_url",                  null: false
+    t.string   "route_color",                null: false
+    t.string   "route_text_color",           null: false
+    t.integer  "route_sort_order",           null: false
+    t.datetime "created_at",                 null: false
+    t.datetime "updated_at",                 null: false
+    t.integer  "feed_version_id",  limit: 8, null: false
+    t.integer  "agency_id",        limit: 8, null: false
   end
 
   add_index "gtfs_routes", ["agency_id"], name: "index_gtfs_routes_on_agency_id", using: :btree
+  add_index "gtfs_routes", ["feed_version_id", "id", "agency_id"], name: "index_gtfs_routes_on_feed_version_id_agency_id", using: :btree
   add_index "gtfs_routes", ["feed_version_id", "route_id"], name: "index_gtfs_routes_unique", unique: true, using: :btree
-  add_index "gtfs_routes", ["feed_version_id"], name: "index_gtfs_routes_on_feed_version_id", using: :btree
   add_index "gtfs_routes", ["route_desc"], name: "index_gtfs_routes_on_route_desc", using: :btree
   add_index "gtfs_routes", ["route_id"], name: "index_gtfs_routes_on_route_id", using: :btree
   add_index "gtfs_routes", ["route_long_name"], name: "index_gtfs_routes_on_route_long_name", using: :btree
   add_index "gtfs_routes", ["route_short_name"], name: "index_gtfs_routes_on_route_short_name", using: :btree
   add_index "gtfs_routes", ["route_type"], name: "index_gtfs_routes_on_route_type", using: :btree
 
-  create_table "gtfs_shapes", force: :cascade do |t|
+  create_table "gtfs_shapes", id: :bigserial, force: :cascade do |t|
     t.string    "shape_id",                                                                                                     null: false
     t.boolean   "generated",                                                                                    default: false, null: false
     t.geography "geometry",        limit: {:srid=>4326, :type=>"line_string", :has_m=>true, :geographic=>true},                 null: false
     t.datetime  "created_at",                                                                                                   null: false
     t.datetime  "updated_at",                                                                                                   null: false
-    t.integer   "feed_version_id",                                                                                              null: false
+    t.integer   "feed_version_id", limit: 8,                                                                                    null: false
   end
 
   add_index "gtfs_shapes", ["feed_version_id", "shape_id"], name: "index_gtfs_shapes_unique", unique: true, using: :btree
-  add_index "gtfs_shapes", ["feed_version_id"], name: "index_gtfs_shapes_on_feed_version_id", using: :btree
   add_index "gtfs_shapes", ["generated"], name: "index_gtfs_shapes_on_generated", using: :btree
   add_index "gtfs_shapes", ["geometry"], name: "index_gtfs_shapes_on_geometry", using: :gist
   add_index "gtfs_shapes", ["shape_id"], name: "index_gtfs_shapes_on_shape_id", using: :btree
 
   create_table "gtfs_stop_times", id: :bigserial, force: :cascade do |t|
-    t.integer  "arrival_time",                    null: false
-    t.integer  "departure_time",                  null: false
-    t.integer  "stop_sequence",                   null: false
-    t.string   "stop_headsign",                   null: false
-    t.integer  "pickup_type",                     null: false
-    t.integer  "drop_off_type",                   null: false
-    t.float    "shape_dist_traveled",             null: false
-    t.integer  "timepoint",                       null: false
-    t.integer  "interpolated",        default: 0, null: false
-    t.datetime "created_at",                      null: false
-    t.datetime "updated_at",                      null: false
-    t.integer  "feed_version_id",                 null: false
-    t.integer  "trip_id",                         null: false
-    t.integer  "stop_id",                         null: false
+    t.integer  "arrival_time",                              null: false
+    t.integer  "departure_time",                            null: false
+    t.integer  "stop_sequence",                             null: false
+    t.string   "stop_headsign",                             null: false
+    t.integer  "pickup_type",                               null: false
+    t.integer  "drop_off_type",                             null: false
+    t.float    "shape_dist_traveled",                       null: false
+    t.integer  "timepoint",                                 null: false
+    t.integer  "interpolated",                  default: 0, null: false
+    t.datetime "created_at",                                null: false
+    t.datetime "updated_at",                                null: false
+    t.integer  "feed_version_id",     limit: 8,             null: false
+    t.integer  "trip_id",             limit: 8,             null: false
+    t.integer  "stop_id",             limit: 8,             null: false
   end
 
-  add_index "gtfs_stop_times", ["arrival_time"], name: "index_gtfs_stop_times_on_arrival_time", using: :btree
-  add_index "gtfs_stop_times", ["departure_time"], name: "index_gtfs_stop_times_on_departure_time", using: :btree
+  add_index "gtfs_stop_times", ["feed_version_id", "trip_id", "stop_id"], name: "index_gtfs_stop_times_on_feed_version_id_trip_id_stop_id", using: :btree
   add_index "gtfs_stop_times", ["feed_version_id", "trip_id", "stop_sequence"], name: "index_gtfs_stop_times_unique", unique: true, using: :btree
-  add_index "gtfs_stop_times", ["feed_version_id"], name: "index_gtfs_stop_times_on_feed_version_id", using: :btree
   add_index "gtfs_stop_times", ["stop_id"], name: "index_gtfs_stop_times_on_stop_id", using: :btree
   add_index "gtfs_stop_times", ["trip_id"], name: "index_gtfs_stop_times_on_trip_id", using: :btree
 
-  create_table "gtfs_stops", force: :cascade do |t|
+  create_table "gtfs_stops", id: :bigserial, force: :cascade do |t|
     t.string    "stop_id",                                                                         null: false
     t.string    "stop_code",                                                                       null: false
     t.string    "stop_name",                                                                       null: false
@@ -623,13 +721,12 @@ ActiveRecord::Schema.define(version: 20191114075430) do
     t.geography "geometry",            limit: {:srid=>4326, :type=>"st_point", :geographic=>true}, null: false
     t.datetime  "created_at",                                                                      null: false
     t.datetime  "updated_at",                                                                      null: false
-    t.integer   "feed_version_id",                                                                 null: false
-    t.integer   "parent_station"
+    t.integer   "feed_version_id",     limit: 8,                                                   null: false
+    t.integer   "parent_station",      limit: 8
     t.string    "level_id",                                                                        null: false
   end
 
   add_index "gtfs_stops", ["feed_version_id", "stop_id"], name: "index_gtfs_stops_unique", unique: true, using: :btree
-  add_index "gtfs_stops", ["feed_version_id"], name: "index_gtfs_stops_on_feed_version_id", using: :btree
   add_index "gtfs_stops", ["geometry"], name: "index_gtfs_stops_on_geometry", using: :gist
   add_index "gtfs_stops", ["location_type"], name: "index_gtfs_stops_on_location_type", using: :btree
   add_index "gtfs_stops", ["parent_station"], name: "index_gtfs_stops_on_parent_station", using: :btree
@@ -638,39 +735,38 @@ ActiveRecord::Schema.define(version: 20191114075430) do
   add_index "gtfs_stops", ["stop_id"], name: "index_gtfs_stops_on_stop_id", using: :btree
   add_index "gtfs_stops", ["stop_name"], name: "index_gtfs_stops_on_stop_name", using: :btree
 
-  create_table "gtfs_transfers", force: :cascade do |t|
-    t.integer  "transfer_type",     null: false
-    t.integer  "min_transfer_time", null: false
-    t.datetime "created_at",        null: false
-    t.datetime "updated_at",        null: false
-    t.integer  "feed_version_id",   null: false
-    t.integer  "from_stop_id",      null: false
-    t.integer  "to_stop_id",        null: false
+  create_table "gtfs_transfers", id: :bigserial, force: :cascade do |t|
+    t.integer  "transfer_type",               null: false
+    t.integer  "min_transfer_time",           null: false
+    t.datetime "created_at",                  null: false
+    t.datetime "updated_at",                  null: false
+    t.integer  "feed_version_id",   limit: 8, null: false
+    t.integer  "from_stop_id",      limit: 8, null: false
+    t.integer  "to_stop_id",        limit: 8, null: false
   end
 
   add_index "gtfs_transfers", ["feed_version_id"], name: "index_gtfs_transfers_on_feed_version_id", using: :btree
   add_index "gtfs_transfers", ["from_stop_id"], name: "index_gtfs_transfers_on_from_stop_id", using: :btree
   add_index "gtfs_transfers", ["to_stop_id"], name: "index_gtfs_transfers_on_to_stop_id", using: :btree
 
-  create_table "gtfs_trips", force: :cascade do |t|
-    t.string   "trip_id",               null: false
-    t.string   "trip_headsign",         null: false
-    t.string   "trip_short_name",       null: false
-    t.integer  "direction_id",          null: false
-    t.string   "block_id",              null: false
-    t.integer  "wheelchair_accessible", null: false
-    t.integer  "bikes_allowed",         null: false
-    t.datetime "created_at",            null: false
-    t.datetime "updated_at",            null: false
-    t.integer  "feed_version_id",       null: false
-    t.integer  "route_id",              null: false
-    t.integer  "shape_id"
-    t.integer  "stop_pattern_id",       null: false
-    t.integer  "service_id",            null: false
+  create_table "gtfs_trips", id: :bigserial, force: :cascade do |t|
+    t.string   "trip_id",                         null: false
+    t.string   "trip_headsign",                   null: false
+    t.string   "trip_short_name",                 null: false
+    t.integer  "direction_id",                    null: false
+    t.string   "block_id",                        null: false
+    t.integer  "wheelchair_accessible",           null: false
+    t.integer  "bikes_allowed",                   null: false
+    t.datetime "created_at",                      null: false
+    t.datetime "updated_at",                      null: false
+    t.integer  "feed_version_id",       limit: 8, null: false
+    t.integer  "route_id",              limit: 8, null: false
+    t.integer  "shape_id",              limit: 8
+    t.integer  "stop_pattern_id",                 null: false
+    t.integer  "service_id",            limit: 8, null: false
   end
 
   add_index "gtfs_trips", ["feed_version_id", "trip_id"], name: "index_gtfs_trips_unique", unique: true, using: :btree
-  add_index "gtfs_trips", ["feed_version_id"], name: "index_gtfs_trips_on_feed_version_id", using: :btree
   add_index "gtfs_trips", ["route_id"], name: "index_gtfs_trips_on_route_id", using: :btree
   add_index "gtfs_trips", ["service_id"], name: "index_gtfs_trips_on_service_id", using: :btree
   add_index "gtfs_trips", ["shape_id"], name: "index_gtfs_trips_on_shape_id", using: :btree
@@ -985,6 +1081,37 @@ ActiveRecord::Schema.define(version: 20191114075430) do
   add_index "old_stops", ["parent_stop_id"], name: "index_old_stops_on_parent_stop_id", using: :btree
   add_index "old_stops", ["wheelchair_boarding"], name: "index_old_stops_on_wheelchair_boarding", using: :btree
 
+  create_table "route_geometries", id: false, force: :cascade do |t|
+    t.integer   "route_id",        limit: 8,                                                     null: false
+    t.integer   "feed_version_id", limit: 8,                                                     null: false
+    t.integer   "shape_id",        limit: 8,                                                     null: false
+    t.integer   "direction_id",                                                                  null: false
+    t.boolean   "generated",                                                                     null: false
+    t.geography "geometry",        limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}, null: false
+    t.geography "geometry_z14",    limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}, null: false
+    t.geography "geometry_z10",    limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}, null: false
+    t.geography "geometry_z6",     limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}, null: false
+    t.geography "centroid",        limit: {:srid=>4326, :type=>"st_point", :geographic=>true},   null: false
+  end
+
+  add_index "route_geometries", ["centroid"], name: "index_route_geometries_on_centroid", using: :gist
+  add_index "route_geometries", ["feed_version_id"], name: "index_route_geometries_on_feed_version_id", using: :btree
+  add_index "route_geometries", ["geometry"], name: "index_route_geometries_on_geometry", using: :gist
+  add_index "route_geometries", ["route_id", "direction_id"], name: "index_route_geometries_unique", unique: true, using: :btree
+  add_index "route_geometries", ["shape_id"], name: "index_route_geometries_on_shape_id", using: :btree
+
+  create_table "route_stops", id: false, force: :cascade do |t|
+    t.integer "feed_version_id", limit: 8, null: false
+    t.integer "agency_id",       limit: 8, null: false
+    t.integer "route_id",        limit: 8, null: false
+    t.integer "stop_id",         limit: 8, null: false
+  end
+
+  add_index "route_stops", ["agency_id"], name: "index_route_stops_on_agency_id", using: :btree
+  add_index "route_stops", ["feed_version_id"], name: "index_route_stops_on_feed_version_id", using: :btree
+  add_index "route_stops", ["route_id"], name: "index_route_stops_on_route_id", using: :btree
+  add_index "route_stops", ["stop_id"], name: "index_route_stops_on_stop_id", using: :btree
+
   create_table "users", force: :cascade do |t|
     t.string   "email",                                  null: false
     t.string   "name"
@@ -1006,9 +1133,20 @@ ActiveRecord::Schema.define(version: 20191114075430) do
   add_index "users", ["email"], name: "index_users_on_email", unique: true, using: :btree
   add_index "users", ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true, using: :btree
 
+  add_foreign_key "active_agencies", "feed_versions"
+  add_foreign_key "active_agencies", "gtfs_agencies", column: "id"
+  add_foreign_key "active_routes", "feed_versions"
+  add_foreign_key "active_routes", "gtfs_agencies", column: "agency_id"
+  add_foreign_key "active_routes", "gtfs_routes", column: "id"
+  add_foreign_key "active_stops", "feed_versions"
+  add_foreign_key "active_stops", "gtfs_stops", column: "id"
+  add_foreign_key "active_stops", "gtfs_stops", column: "parent_station"
+  add_foreign_key "agency_geometries", "feed_versions"
+  add_foreign_key "agency_geometries", "gtfs_agencies", column: "agency_id"
   add_foreign_key "change_payloads", "changesets"
   add_foreign_key "feed_states", "current_feeds", column: "feed_id"
   add_foreign_key "feed_states", "feed_versions"
+  add_foreign_key "feed_version_geometries", "feed_versions"
   add_foreign_key "feed_version_gtfs_imports", "feed_versions"
   add_foreign_key "feed_versions", "current_feeds", column: "feed_id"
   add_foreign_key "gtfs_agencies", "feed_versions"
@@ -1016,8 +1154,10 @@ ActiveRecord::Schema.define(version: 20191114075430) do
   add_foreign_key "gtfs_calendar_dates", "gtfs_calendars", column: "service_id"
   add_foreign_key "gtfs_calendars", "feed_versions"
   add_foreign_key "gtfs_fare_attributes", "feed_versions"
+  add_foreign_key "gtfs_fare_attributes", "gtfs_agencies", column: "agency_id"
   add_foreign_key "gtfs_fare_rules", "feed_versions"
   add_foreign_key "gtfs_fare_rules", "gtfs_fare_attributes", column: "fare_id"
+  add_foreign_key "gtfs_fare_rules", "gtfs_routes", column: "route_id"
   add_foreign_key "gtfs_feed_infos", "feed_versions"
   add_foreign_key "gtfs_frequencies", "feed_versions"
   add_foreign_key "gtfs_frequencies", "gtfs_trips", column: "trip_id"
@@ -1027,10 +1167,19 @@ ActiveRecord::Schema.define(version: 20191114075430) do
   add_foreign_key "gtfs_stop_times", "gtfs_stops", column: "stop_id"
   add_foreign_key "gtfs_stop_times", "gtfs_trips", column: "trip_id"
   add_foreign_key "gtfs_stops", "feed_versions"
+  add_foreign_key "gtfs_stops", "gtfs_stops", column: "parent_station"
   add_foreign_key "gtfs_transfers", "feed_versions"
   add_foreign_key "gtfs_transfers", "gtfs_stops", column: "from_stop_id"
   add_foreign_key "gtfs_transfers", "gtfs_stops", column: "to_stop_id"
   add_foreign_key "gtfs_trips", "feed_versions"
   add_foreign_key "gtfs_trips", "gtfs_calendars", column: "service_id"
   add_foreign_key "gtfs_trips", "gtfs_routes", column: "route_id"
+  add_foreign_key "gtfs_trips", "gtfs_shapes", column: "shape_id"
+  add_foreign_key "route_geometries", "feed_versions"
+  add_foreign_key "route_geometries", "gtfs_routes", column: "route_id"
+  add_foreign_key "route_geometries", "gtfs_shapes", column: "shape_id"
+  add_foreign_key "route_stops", "feed_versions"
+  add_foreign_key "route_stops", "gtfs_agencies", column: "agency_id"
+  add_foreign_key "route_stops", "gtfs_routes", column: "route_id"
+  add_foreign_key "route_stops", "gtfs_stops", column: "stop_id"
 end

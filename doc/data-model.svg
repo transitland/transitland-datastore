@@ -1025,13 +1025,13 @@
 <text text-anchor="start" x="2038.6216" y="-2480.2" font-family="Arial BoldMT" font-size="11.00" fill="#000000">FeedState</text>
 <polyline fill="none" stroke="#000000" points="1984,-2474.5 2148,-2474.5 "/>
 <text text-anchor="start" x="1991" y="-2461" font-family="ArialMT" font-size="10.00" fill="#000000">feed_id </text>
-<text text-anchor="start" x="2026.5859" y="-2461" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
+<text text-anchor="start" x="2026.5859" y="-2461" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer (8) ∗</text>
 <text text-anchor="start" x="1991" y="-2448" font-family="ArialMT" font-size="10.00" fill="#000000">feed_priority </text>
 <text text-anchor="start" x="2048.8076" y="-2448" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer</text>
 <text text-anchor="start" x="1991" y="-2435" font-family="ArialMT" font-size="10.00" fill="#000000">feed_realtime_enabled </text>
 <text text-anchor="start" x="2095.5215" y="-2435" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">boolean ∗</text>
 <text text-anchor="start" x="1991" y="-2422" font-family="ArialMT" font-size="10.00" fill="#000000">feed_version_id </text>
-<text text-anchor="start" x="2064.3838" y="-2422" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer</text>
+<text text-anchor="start" x="2064.3838" y="-2422" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer (8)</text>
 <text text-anchor="start" x="1991" y="-2409" font-family="ArialMT" font-size="10.00" fill="#000000">geometry </text>
 <text text-anchor="start" x="2035.4629" y="-2409" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">geography</text>
 <text text-anchor="start" x="1991" y="-2396" font-family="ArialMT" font-size="10.00" fill="#000000">last_fetch_error </text>
@@ -1156,7 +1156,7 @@
 <text text-anchor="start" x="353" y="-1006.5" font-family="ArialMT" font-size="10.00" fill="#000000">exception_type </text>
 <text text-anchor="start" x="423.0488" y="-1006.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
 <text text-anchor="start" x="353" y="-993.5" font-family="ArialMT" font-size="10.00" fill="#000000">service_id </text>
-<text text-anchor="start" x="400.7979" y="-993.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
+<text text-anchor="start" x="400.7979" y="-993.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer (8) ∗</text>
 </g>
 <!-- m_FeedVersion&#45;&gt;m_GTFSCalendarDate -->
 <g id="edge85" class="edge">
@@ -1201,7 +1201,7 @@
 <text text-anchor="start" x="762" y="-466.5" font-family="ArialMT" font-size="10.00" fill="#000000">destination_id </text>
 <text text-anchor="start" x="826.4922" y="-466.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗</text>
 <text text-anchor="start" x="762" y="-453.5" font-family="ArialMT" font-size="10.00" fill="#000000">fare_id </text>
-<text text-anchor="start" x="795.3545" y="-453.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
+<text text-anchor="start" x="795.3545" y="-453.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer (8) ∗</text>
 <text text-anchor="start" x="762" y="-440.5" font-family="ArialMT" font-size="10.00" fill="#000000">origin_id </text>
 <text text-anchor="start" x="802.5811" y="-440.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗</text>
 </g>
@@ -1323,7 +1323,7 @@
 <text text-anchor="start" x="1223" y="-1404" font-family="ArialMT" font-size="10.00" fill="#000000">location_type </text>
 <text text-anchor="start" x="1284.709" y="-1404" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
 <text text-anchor="start" x="1223" y="-1391" font-family="ArialMT" font-size="10.00" fill="#000000">parent_station </text>
-<text text-anchor="start" x="1289.1572" y="-1391" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer</text>
+<text text-anchor="start" x="1289.1572" y="-1391" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer (8)</text>
 <text text-anchor="start" x="1223" y="-1378" font-family="ArialMT" font-size="10.00" fill="#000000">stop_code </text>
 <text text-anchor="start" x="1271.9258" y="-1378" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">string ∗</text>
 <text text-anchor="start" x="1223" y="-1365" font-family="ArialMT" font-size="10.00" fill="#000000">stop_desc </text>
@@ -1408,7 +1408,7 @@
 <text text-anchor="start" x="936" y="-479.5" font-family="ArialMT" font-size="10.00" fill="#000000">direction_id </text>
 <text text-anchor="start" x="989.9209" y="-479.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
 <text text-anchor="start" x="936" y="-466.5" font-family="ArialMT" font-size="10.00" fill="#000000">service_id </text>
-<text text-anchor="start" x="983.7979" y="-466.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
+<text text-anchor="start" x="983.7979" y="-466.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer (8) ∗</text>
 <text text-anchor="start" x="936" y="-453.5" font-family="ArialMT" font-size="10.00" fill="#000000">stop_pattern_id </text>
 <text text-anchor="start" x="1007.7188" y="-453.5" font-family="Arial ItalicMT" font-size="10.00" fill="#999999">integer ∗</text>
 <text text-anchor="start" x="936" y="-440.5" font-family="ArialMT" font-size="10.00" fill="#000000">trip_headsign </text>

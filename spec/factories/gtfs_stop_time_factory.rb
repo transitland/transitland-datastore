@@ -20,12 +20,10 @@
 #
 # Indexes
 #
-#  index_gtfs_stop_times_on_arrival_time     (arrival_time)
-#  index_gtfs_stop_times_on_departure_time   (departure_time)
-#  index_gtfs_stop_times_on_feed_version_id  (feed_version_id)
-#  index_gtfs_stop_times_on_stop_id          (stop_id)
-#  index_gtfs_stop_times_on_trip_id          (trip_id)
-#  index_gtfs_stop_times_unique              (feed_version_id,trip_id,stop_sequence) UNIQUE
+#  index_gtfs_stop_times_on_feed_version_id_trip_id_stop_id  (feed_version_id,trip_id,stop_id)
+#  index_gtfs_stop_times_on_stop_id                          (stop_id)
+#  index_gtfs_stop_times_on_trip_id                          (trip_id)
+#  index_gtfs_stop_times_unique                              (feed_version_id,trip_id,stop_sequence) UNIQUE
 #
 
 FactoryGirl.define do

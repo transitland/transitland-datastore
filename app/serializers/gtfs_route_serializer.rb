@@ -19,14 +19,14 @@
 #
 # Indexes
 #
-#  index_gtfs_routes_on_agency_id         (agency_id)
-#  index_gtfs_routes_on_feed_version_id   (feed_version_id)
-#  index_gtfs_routes_on_route_desc        (route_desc)
-#  index_gtfs_routes_on_route_id          (route_id)
-#  index_gtfs_routes_on_route_long_name   (route_long_name)
-#  index_gtfs_routes_on_route_short_name  (route_short_name)
-#  index_gtfs_routes_on_route_type        (route_type)
-#  index_gtfs_routes_unique               (feed_version_id,route_id) UNIQUE
+#  index_gtfs_routes_on_agency_id                  (agency_id)
+#  index_gtfs_routes_on_feed_version_id_agency_id  (feed_version_id,id,agency_id)
+#  index_gtfs_routes_on_route_desc                 (route_desc)
+#  index_gtfs_routes_on_route_id                   (route_id)
+#  index_gtfs_routes_on_route_long_name            (route_long_name)
+#  index_gtfs_routes_on_route_short_name           (route_short_name)
+#  index_gtfs_routes_on_route_type                 (route_type)
+#  index_gtfs_routes_unique                        (feed_version_id,route_id) UNIQUE
 #
 
 class GTFSRouteSerializer < GTFSEntitySerializer

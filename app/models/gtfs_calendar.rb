@@ -21,7 +21,6 @@
 # Indexes
 #
 #  index_gtfs_calendars_on_end_date                        (end_date)
-#  index_gtfs_calendars_on_feed_version_id                 (feed_version_id)
 #  index_gtfs_calendars_on_feed_version_id_and_service_id  (feed_version_id,service_id) UNIQUE
 #  index_gtfs_calendars_on_friday                          (friday)
 #  index_gtfs_calendars_on_monday                          (monday)

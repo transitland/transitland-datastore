@@ -17,10 +17,9 @@
 #
 # Indexes
 #
-#  index_gtfs_agencies_on_agency_id        (agency_id)
-#  index_gtfs_agencies_on_agency_name      (agency_name)
-#  index_gtfs_agencies_on_feed_version_id  (feed_version_id)
-#  index_gtfs_agencies_unique              (feed_version_id,agency_id) UNIQUE
+#  index_gtfs_agencies_on_agency_id    (agency_id)
+#  index_gtfs_agencies_on_agency_name  (agency_name)
+#  index_gtfs_agencies_unique          (feed_version_id,agency_id) UNIQUE
 #
 
 class GTFSAgencySerializer < GTFSEntitySerializer
