@@ -2,18 +2,23 @@
 #
 # Table name: feed_version_gtfs_imports
 #
-#  id              :integer          not null, primary key
-#  success         :boolean          not null
-#  import_log      :text             not null
-#  exception_log   :text             not null
-#  import_level    :integer          not null
-#  created_at      :datetime         not null
-#  updated_at      :datetime         not null
-#  feed_version_id :integer          not null
-#  in_progress     :boolean          default(FALSE), not null
-#  error_count     :jsonb
-#  warning_count   :jsonb
-#  entity_count    :jsonb
+#  id                           :integer          not null, primary key
+#  success                      :boolean          not null
+#  import_log                   :text             not null
+#  exception_log                :text             not null
+#  import_level                 :integer          not null
+#  created_at                   :datetime         not null
+#  updated_at                   :datetime         not null
+#  feed_version_id              :integer          not null
+#  in_progress                  :boolean          default(FALSE), not null
+#  skip_entity_error_count      :jsonb
+#  warning_count                :jsonb
+#  entity_count                 :jsonb
+#  generated_count              :jsonb
+#  skip_entity_reference_count  :jsonb
+#  skip_entity_filter_count     :jsonb
+#  skip_entity_marked_count     :jsonb
+#  interpolated_stop_time_count :integer
 #
 # Indexes
 #

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20191202060535) do
+ActiveRecord::Schema.define(version: 20200103093414) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -457,17 +457,22 @@ ActiveRecord::Schema.define(version: 20191202060535) do
   add_index "feed_version_geometries", ["geometry"], name: "index_feed_version_geometries_on_geometry", using: :gist
 
   create_table "feed_version_gtfs_imports", id: :bigserial, force: :cascade do |t|
-    t.boolean  "success",                                   null: false
-    t.text     "import_log",                                null: false
-    t.text     "exception_log",                             null: false
-    t.integer  "import_level",                              null: false
-    t.datetime "created_at",                                null: false
-    t.datetime "updated_at",                                null: false
-    t.integer  "feed_version_id", limit: 8,                 null: false
-    t.boolean  "in_progress",               default: false, null: false
-    t.jsonb    "error_count"
+    t.boolean  "success",                                                null: false
+    t.text     "import_log",                                             null: false
+    t.text     "exception_log",                                          null: false
+    t.integer  "import_level",                                           null: false
+    t.datetime "created_at",                                             null: false
+    t.datetime "updated_at",                                             null: false
+    t.integer  "feed_version_id",              limit: 8,                 null: false
+    t.boolean  "in_progress",                            default: false, null: false
+    t.jsonb    "skip_entity_error_count"
     t.jsonb    "warning_count"
     t.jsonb    "entity_count"
+    t.jsonb    "generated_count"
+    t.jsonb    "skip_entity_reference_count"
+    t.jsonb    "skip_entity_filter_count"
+    t.jsonb    "skip_entity_marked_count"
+    t.integer  "interpolated_stop_time_count"
   end
 
   add_index "feed_version_gtfs_imports", ["feed_version_id"], name: "index_feed_version_gtfs_imports_on_feed_version_id", unique: true, using: :btree
