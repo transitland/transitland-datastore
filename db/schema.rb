@@ -11,95 +11,12 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20200103093414) do
+ActiveRecord::Schema.define(version: 20200131063713) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "postgis"
   enable_extension "hstore"
-
-  create_table "active_agencies", id: false, force: :cascade do |t|
-    t.integer   "id",              limit: 8,                                                     null: false
-    t.integer   "feed_version_id", limit: 8,                                                     null: false
-    t.string    "agency_id",                                                                     null: false
-    t.string    "agency_name",                                                                   null: false
-    t.string    "agency_url",                                                                    null: false
-    t.string    "agency_timezone",                                                               null: false
-    t.string    "agency_lang",                                                                   null: false
-    t.string    "agency_phone",                                                                  null: false
-    t.string    "agency_fare_url",                                                               null: false
-    t.string    "agency_email",                                                                  null: false
-    t.datetime  "created_at",                                                                    null: false
-    t.datetime  "updated_at",                                                                    null: false
-    t.geography "geometry",        limit: {:srid=>4326, :type=>"st_polygon", :geographic=>true}
-    t.geography "centroid",        limit: {:srid=>4326, :type=>"st_point", :geographic=>true}
-  end
-
-  add_index "active_agencies", ["agency_id"], name: "index_active_agencies_on_agency_id", using: :btree
-  add_index "active_agencies", ["agency_name"], name: "index_active_agencies_on_agency_name", using: :btree
-  add_index "active_agencies", ["centroid"], name: "index_active_agencies_on_centroid", using: :gist
-  add_index "active_agencies", ["feed_version_id"], name: "index_active_agencies_on_feed_version_id", using: :btree
-  add_index "active_agencies", ["geometry"], name: "index_active_agencies_on_geometry", using: :gist
-  add_index "active_agencies", ["id"], name: "index_active_agencies_unique", unique: true, using: :btree
-
-  create_table "active_routes", id: false, force: :cascade do |t|
-    t.integer   "id",               limit: 8,                                                      null: false
-    t.integer   "feed_version_id",  limit: 8,                                                      null: false
-    t.integer   "agency_id",        limit: 8,                                                      null: false
-    t.string    "route_id",                                                                        null: false
-    t.string    "route_short_name",                                                                null: false
-    t.string    "route_long_name",                                                                 null: false
-    t.string    "route_desc",                                                                      null: false
-    t.integer   "route_type",                                                                      null: false
-    t.string    "route_url",                                                                       null: false
-    t.string    "route_color",                                                                     null: false
-    t.string    "route_text_color",                                                                null: false
-    t.integer   "route_sort_order",                                                                null: false
-    t.datetime  "created_at",                                                                      null: false
-    t.datetime  "updated_at",                                                                      null: false
-    t.geography "geometry",         limit: {:srid=>4326, :type=>"line_string", :geographic=>true}
-    t.geography "geometry_z14",     limit: {:srid=>4326, :type=>"line_string", :geographic=>true}
-    t.geography "geometry_z10",     limit: {:srid=>4326, :type=>"line_string", :geographic=>true}
-    t.geography "geometry_z6",      limit: {:srid=>4326, :type=>"line_string", :geographic=>true}
-    t.geography "centroid",         limit: {:srid=>4326, :type=>"st_point", :geographic=>true}
-  end
-
-  add_index "active_routes", ["agency_id"], name: "index_active_routes_on_agency_id", using: :btree
-  add_index "active_routes", ["centroid"], name: "index_active_routes_on_centroid", using: :gist
-  add_index "active_routes", ["feed_version_id"], name: "index_active_routes_on_feed_version_id", using: :btree
-  add_index "active_routes", ["geometry"], name: "index_active_routes_on_geometry", using: :gist
-  add_index "active_routes", ["id"], name: "index_active_routes_unique", unique: true, using: :btree
-  add_index "active_routes", ["route_id"], name: "index_active_routes_on_route_id", using: :btree
-  add_index "active_routes", ["route_long_name"], name: "index_active_routes_on_route_long_name", using: :btree
-  add_index "active_routes", ["route_short_name"], name: "index_active_routes_on_route_short_name", using: :btree
-  add_index "active_routes", ["route_type"], name: "index_active_routes_on_route_type", using: :btree
-
-  create_table "active_stops", id: false, force: :cascade do |t|
-    t.integer   "id",                  limit: 8,                                                   null: false
-    t.integer   "feed_version_id",     limit: 8,                                                   null: false
-    t.integer   "parent_station",      limit: 8
-    t.string    "stop_id",                                                                         null: false
-    t.string    "stop_code",                                                                       null: false
-    t.string    "stop_name",                                                                       null: false
-    t.string    "stop_desc",                                                                       null: false
-    t.string    "zone_id",                                                                         null: false
-    t.string    "stop_url",                                                                        null: false
-    t.integer   "location_type",                                                                   null: false
-    t.string    "stop_timezone",                                                                   null: false
-    t.integer   "wheelchair_boarding",                                                             null: false
-    t.geography "geometry",            limit: {:srid=>4326, :type=>"st_point", :geographic=>true}, null: false
-    t.datetime  "created_at",                                                                      null: false
-    t.datetime  "updated_at",                                                                      null: false
-    t.integer   "level_id",            limit: 8
-  end
-
-  add_index "active_stops", ["feed_version_id"], name: "index_active_stops_on_feed_version_id", using: :btree
-  add_index "active_stops", ["geometry"], name: "index_active_stops_on_geometry", using: :gist
-  add_index "active_stops", ["id"], name: "index_active_stops_unique", unique: true, using: :btree
-  add_index "active_stops", ["location_type"], name: "index_active_stops_on_location_type", using: :btree
-  add_index "active_stops", ["parent_station"], name: "index_active_stops_on_parent_station", using: :btree
-  add_index "active_stops", ["stop_id"], name: "index_active_stops_on_stop_id", using: :btree
-  add_index "active_stops", ["stop_name"], name: "index_active_stops_on_stop_name", using: :btree
 
   create_table "agency_geometries", id: false, force: :cascade do |t|
     t.integer   "agency_id",       limit: 8,                                                     null: false
@@ -112,6 +29,19 @@ ActiveRecord::Schema.define(version: 20200103093414) do
   add_index "agency_geometries", ["centroid"], name: "index_agency_geometries_on_centroid", using: :gist
   add_index "agency_geometries", ["feed_version_id"], name: "index_agency_geometries_on_feed_version_id", using: :btree
   add_index "agency_geometries", ["geometry"], name: "index_agency_geometries_on_geometry", using: :gist
+
+  create_table "agency_places", id: :bigserial, force: :cascade do |t|
+    t.integer "feed_version_id", limit: 8, null: false
+    t.integer "agency_id",       limit: 8, null: false
+    t.integer "count",                     null: false
+    t.float   "rank",                      null: false
+    t.string  "name"
+    t.string  "adm1name",                  null: false
+    t.string  "adm0name",                  null: false
+  end
+
+  add_index "agency_places", ["agency_id"], name: "agency_places_agency_id_idx", using: :btree
+  add_index "agency_places", ["feed_version_id"], name: "agency_places_feed_version_id_idx", using: :btree
 
   create_table "change_payloads", force: :cascade do |t|
     t.json     "payload"
@@ -1139,6 +1069,18 @@ ActiveRecord::Schema.define(version: 20200103093414) do
   add_index "route_geometries", ["route_id", "direction_id"], name: "index_route_geometries_unique", unique: true, using: :btree
   add_index "route_geometries", ["shape_id"], name: "index_route_geometries_on_shape_id", using: :btree
 
+  create_table "route_headways", id: :bigserial, force: :cascade do |t|
+    t.integer "feed_version_id",  limit: 8, null: false
+    t.integer "route_id",         limit: 8, null: false
+    t.integer "selected_stop_id", limit: 8, null: false
+    t.integer "service_id",       limit: 8, null: false
+    t.integer "direction_id"
+    t.integer "headway_secs"
+  end
+
+  add_index "route_headways", ["feed_version_id"], name: "route_headways_feed_version_id_idx", using: :btree
+  add_index "route_headways", ["route_id"], name: "route_headways_route_id_idx", unique: true, using: :btree
+
   create_table "route_stops", id: false, force: :cascade do |t|
     t.integer "feed_version_id", limit: 8, null: false
     t.integer "agency_id",       limit: 8, null: false
@@ -1172,17 +1114,10 @@ ActiveRecord::Schema.define(version: 20200103093414) do
   add_index "users", ["email"], name: "index_users_on_email", unique: true, using: :btree
   add_index "users", ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true, using: :btree
 
-  add_foreign_key "active_agencies", "feed_versions"
-  add_foreign_key "active_agencies", "gtfs_agencies", column: "id"
-  add_foreign_key "active_routes", "feed_versions"
-  add_foreign_key "active_routes", "gtfs_agencies", column: "agency_id"
-  add_foreign_key "active_routes", "gtfs_routes", column: "id"
-  add_foreign_key "active_stops", "feed_versions"
-  add_foreign_key "active_stops", "gtfs_levels", column: "level_id"
-  add_foreign_key "active_stops", "gtfs_stops", column: "id"
-  add_foreign_key "active_stops", "gtfs_stops", column: "parent_station"
   add_foreign_key "agency_geometries", "feed_versions"
   add_foreign_key "agency_geometries", "gtfs_agencies", column: "agency_id"
+  add_foreign_key "agency_places", "feed_versions"
+  add_foreign_key "agency_places", "gtfs_agencies", column: "agency_id"
   add_foreign_key "change_payloads", "changesets"
   add_foreign_key "feed_states", "current_feeds", column: "feed_id"
   add_foreign_key "feed_states", "feed_versions"
@@ -1207,6 +1142,7 @@ ActiveRecord::Schema.define(version: 20200103093414) do
   add_foreign_key "gtfs_pathways", "gtfs_stops", column: "to_stop_id"
   add_foreign_key "gtfs_routes", "feed_versions"
   add_foreign_key "gtfs_routes", "gtfs_agencies", column: "agency_id"
+  add_foreign_key "gtfs_shapes", "feed_versions"
   add_foreign_key "gtfs_stop_times", "feed_versions"
   add_foreign_key "gtfs_stop_times", "gtfs_stops", column: "stop_id"
   add_foreign_key "gtfs_stop_times", "gtfs_trips", column: "trip_id"
@@ -1223,6 +1159,10 @@ ActiveRecord::Schema.define(version: 20200103093414) do
   add_foreign_key "route_geometries", "feed_versions"
   add_foreign_key "route_geometries", "gtfs_routes", column: "route_id"
   add_foreign_key "route_geometries", "gtfs_shapes", column: "shape_id"
+  add_foreign_key "route_headways", "feed_versions"
+  add_foreign_key "route_headways", "gtfs_calendars", column: "service_id"
+  add_foreign_key "route_headways", "gtfs_routes", column: "route_id"
+  add_foreign_key "route_headways", "gtfs_stops", column: "selected_stop_id"
   add_foreign_key "route_stops", "feed_versions"
   add_foreign_key "route_stops", "gtfs_agencies", column: "agency_id"
   add_foreign_key "route_stops", "gtfs_routes", column: "route_id"
