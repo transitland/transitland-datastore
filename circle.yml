@@ -28,7 +28,7 @@ jobs:
             - vendor/bundle
       - run:
           name: Database setup
-          command: bundle exec rake db:drop db:create db:schema:load
+          command: bundle exec rake db:drop db:create db:structure:load
       - run:
           name: Run tests
           command: bundle exec rake
