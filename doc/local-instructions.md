@@ -28,7 +28,7 @@ These are instructions for how to run the Datastore application and its associat
 
   ````
   bundle exec rake db:create
-  bundle exec rake db:setup
+  bundle exec rake db:structure:load
   ````
 
 4. Start the server and background queue: `bundle exec foreman start`
