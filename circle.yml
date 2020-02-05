@@ -18,7 +18,7 @@ jobs:
             - transitland-datastore-
       - run:
           name: Install dependencies
-          command: apt-get update -qq && apt-get install -y libgeos-dev libproj-dev
+          command: apt-get update -qq && apt-get install -y libgeos-dev libproj-dev postgresql-client
       - run:
           name: Install bundle
           command: bundle check --path=vendor/bundle || bundle install --path=vendor/bundle --jobs 4 --retry 3
