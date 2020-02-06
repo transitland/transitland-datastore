@@ -59,6 +59,10 @@ module TransitlandDatastore
     # https://github.com/carrierwaveuploader/carrierwave/issues/1576
     config.active_record.raise_in_transactional_callbacks = true
 
+    # Rails now uses structure.sql file
+    config.active_record.schema_format = :sql
+    config.active_record.migration_error = false
+
     # e-mail
     config.action_mailer.default_url_options = base_url_options
     if Rails.env.development?
