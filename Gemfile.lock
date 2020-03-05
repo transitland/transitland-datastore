@@ -921,7 +921,7 @@ GEM
       pry (>= 0.9.11)
     public_suffix (3.0.3)
     puma (3.12.0)
-    rack (1.6.11)
+    rack (1.6.12)
     rack-cors (1.0.6)
       rack (>= 1.6.0)
     rack-protection (1.5.5)
