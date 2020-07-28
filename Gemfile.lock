@@ -1079,7 +1079,6 @@ GEM
       domain_name (~> 0.5)
     i18n (0.9.5)
       concurrent-ruby (~> 1.0)
-    interception (0.5)
     ipaddress (0.8.3)
     jmespath (1.4.0)
     json (2.3.1)
@@ -1102,7 +1101,6 @@ GEM
       actionpack (>= 2.3)
       activerecord (>= 2.3)
     memory_profiler (0.9.14)
-    method_source (1.0.0)
     mime-types (3.3.1)
       mime-types-data (~> 3.2015)
     mime-types-data (3.2020.0512)
@@ -1122,20 +1120,6 @@ GEM
       activerecord
     polyamorous (1.1.0)
       activerecord (>= 3.0)
-    pry (0.13.1)
-      coderay (~> 1.1)
-      method_source (~> 1.0)
-    pry-byebug (3.7.0)
-      byebug (~> 11.0)
-      pry (~> 0.10)
-    pry-rails (0.3.9)
-      pry (>= 0.10.4)
-    pry-rescue (1.5.2)
-      interception (>= 0.5)
-      pry (>= 0.12.0)
-    pry-stack_explorer (0.4.11)
-      binding_of_caller (~> 0.7)
-      pry (~> 0.13)
     public_suffix (4.0.5)
     puma (4.3.5)
       nio4r (~> 2.0)
@@ -1343,10 +1327,6 @@ DEPENDENCIES
   oj
   pg (~> 0.18)
   pghero
-  pry-byebug
-  pry-rails
-  pry-rescue
-  pry-stack_explorer
   puma
   rack-cors
   rails (= 4.2.11.3)
