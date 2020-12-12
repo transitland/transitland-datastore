@@ -30,7 +30,7 @@
 
 class BaseOperator < ActiveRecord::Base
   self.abstract_class = true
-  attr_accessor :serves, :does_not_serve
+  attr_accessor :serves, :does_not_serve, :associated_feeds, :deleted_at
   validates :website, format: { with: URI.regexp }, if: Proc.new { |operator| operator.website.present? }
 end
 

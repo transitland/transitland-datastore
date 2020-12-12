@@ -313,7 +313,7 @@ class GTFSGraphImporter
       tl_entity.name = gtfs_entity.stop_name.presence || gtfs_entity.id
       tl_entity.wheelchair_boarding = to_tfn(gtfs_entity.wheelchair_boarding)
       # Force station timezone, then try GTFS timezone, then try Operator timezone
-      tl_entity.timezone = parent_stop.try(:timezone) || gtfs_entity.stop_timezone || operated_by.try(:timezone)
+      tl_entity.timezone = parent_stop.try(:timezone) || gtfs_entity.stop_timezone || operated_by.try(:timezone) || 'America/Los_Angeles'
       tl_entity.tags = {
         stop_desc: gtfs_entity.stop_desc,
         stop_url: gtfs_entity.stop_url,

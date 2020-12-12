@@ -5,6 +5,12 @@
   "required": ["onestopId"],
   "additionalProperties": false,
   "properties": {
+    "associatedFeeds": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
     "onestopId": {
       "type": "string",
       "format": "operator-onestop-id"
