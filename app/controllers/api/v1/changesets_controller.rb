@@ -7,7 +7,7 @@ class Api::V1::ChangesetsController < Api::V1::BaseApiController
   before_action :set_changeset, only: [:show, :update, :check, :apply, :apply_async, :revert, :destroy]
 
   def index
-    @changesets = Changeset.where('').include{[
+    @changesets = Changeset.where('').includes{[
       imported_from_feed,
       imported_from_feed_version,
       feeds_created_or_updated,

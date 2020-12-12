@@ -40,6 +40,7 @@ describe FeedInfoWorker do
     expect(cachedata[:errors].first[:response_code]).to eq('404')
   end
 
+  # this can fail on certain ISPs
   it 'fails with bad host' do
     url = 'http://abc.def/gtfs.zip'
     cachekey = 'test'

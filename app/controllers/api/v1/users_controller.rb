@@ -7,7 +7,7 @@ class Api::V1::UsersController < Api::V1::BaseApiController
   before_action :set_user, only: [:show, :update, :destroy]
 
   def index
-    @users = User.where('').include{changesets}
+    @users = User.where('').includes{changesets}
 
     @users = AllowFiltering.by_primary_key_ids(@users, params)
 

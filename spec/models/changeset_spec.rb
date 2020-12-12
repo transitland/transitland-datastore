@@ -717,11 +717,19 @@ describe Changeset do
       })
       changeset.apply!
       convex_hull_coordinates = Operator.find_by_onestop_id!(operator.onestop_id).geometry[:coordinates].first.map {|a| a.map { |b| b.round(4) } }
-      expect(convex_hull_coordinates).to match_array([[-122.5009, 37.9],
-                                                      [-122.5, 37.8993],
-                                                      [-122.5, 37.9007],
-                                                      [-122.4991, 37.9],
-                                                      [-122.4991, 37.9]])
+      expect_coordinates = [
+        [-122.5009, 37.9],
+        [-122.5, 37.8993],
+        [-122.5, 37.9007],
+        [-122.4991, 37.9],
+        [-122.4991, 37.9]
+      ]
+      convex_hull_coordinates.zip(expect_coordinates).each { |a,b|
+        expect(a[0]).to be_within(0.01).of(b[0])
+        expect(a[1]).to be_within(0.01).of(b[1])
+      }
+  
+
     end
 
     it 'recomputes route geometry on route stop pattern geometries update changeset' do
