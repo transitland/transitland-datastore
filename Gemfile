@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'rails', '4.2.11.1'
+gem 'rails', '4.2.11.3'
 
 # Transitland Datastore components
 path 'components' do
@@ -69,10 +69,6 @@ gem 'carrierwave', '~>1.1.0'
 gem 'better_errors', group: :development
 gem 'binding_of_caller', group: :development
 gem 'byebug', group: [:development, :test]
-gem 'pry-byebug', group: [:development, :test]
-gem 'pry-rails', group: [:development, :test]
-gem 'pry-rescue', group: [:development, :test]
-gem 'pry-stack_explorer', group: [:development, :test]
 gem 'active_record_doctor', group: :development
 
 # code coverage and documentation
