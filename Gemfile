@@ -63,7 +63,7 @@ gem 'faraday'
 
 # file attachments
 gem 'fog-aws', group: [:staging, :production]
-gem 'carrierwave', '~>1.1.0'
+gem 'carrierwave', '~>1.3.2'
 
 # development tools
 gem 'better_errors', group: :development
