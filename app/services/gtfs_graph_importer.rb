@@ -225,9 +225,9 @@ class GTFSGraphImporter
     end
 
     # Update Feed Geometry
-    info("Updating Feed geometry", indent: 0)
-    @feed.set_bounding_box_from_stops(entities.select { |i| i.is_a?(Stop) })
-    @feed.save!
+    # info("Updating Feed geometry", indent: 0)
+    # @feed.set_bounding_box_from_stops(entities.select { |i| i.is_a?(Stop) })
+    # @feed.save!
 
     # Create changeset
     info("Changeset create", indent: 0)
