@@ -285,8 +285,10 @@ class Feed < BaseFeed
   def activate_feed_version(feed_version_sha1, import_level)
     feed_version = self.feed_versions.find_by!(sha1: feed_version_sha1)
     self.transaction do
-      self.update!(active_feed_version: feed_version)
-      feed_version.update!(import_level: import_level)
+      self.update_column(:active_feed_version, feed_version)
+      feed_version.update_column(:import_level, import_level)
+      # self.update!(active_feed_version: feed_version)
+      # feed_version.update!(import_level: import_level)
     end
   end
 
