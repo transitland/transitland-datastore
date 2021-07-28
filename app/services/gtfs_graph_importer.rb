@@ -39,17 +39,22 @@ class GTFSGraphImporter
     # gtfs_agency_id => operator
     oifs = Hash[@feed.operators_in_feed.map { |oif| [oif.gtfs_agency_id, oif.operator] }]
 
+    default_operator = nil
+    if oifs.length == 1
+      default_operator = oifs.first[1]
+    end
+
     # Operators
     @gtfs.agencies.each do |gtfs_agency|
       info("GTFS Agency: #{gtfs_agency.agency_id}", indent: 1)
-      tl_operator = oifs[gtfs_agency.agency_id]
+      tl_operator = oifs[gtfs_agency.agency_id] || default_operator
       if !tl_operator
         info("Operator not found, skipping", indent: 2)
         next
       end
       info("Operator: #{tl_operator.onestop_id}", indent: 2)
-      @entity_tl[gtfs_agency] = tl_operator
-      add_eiff(tl_operator, gtfs_agency)
+      # @entity_tl[gtfs_agency] = tl_operator
+      # add_eiff(tl_operator, gtfs_agency)
 
       # Routes
       gtfs_agency.routes.each do |gtfs_route|
@@ -220,9 +225,9 @@ class GTFSGraphImporter
     end
 
     # Update Feed Geometry
-    info("Updating Feed geometry", indent: 0)
-    @feed.set_bounding_box_from_stops(entities.select { |i| i.is_a?(Stop) })
-    @feed.save!
+    # info("Updating Feed geometry", indent: 0)
+    # @feed.set_bounding_box_from_stops(entities.select { |i| i.is_a?(Stop) })
+    # @feed.save!
 
     # Create changeset
     info("Changeset create", indent: 0)
