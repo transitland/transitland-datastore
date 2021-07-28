@@ -53,8 +53,8 @@ class GTFSGraphImporter
         next
       end
       info("Operator: #{tl_operator.onestop_id}", indent: 2)
-      @entity_tl[gtfs_agency] = tl_operator
-      add_eiff(tl_operator, gtfs_agency)
+      # @entity_tl[gtfs_agency] = tl_operator
+      # add_eiff(tl_operator, gtfs_agency)
 
       # Routes
       gtfs_agency.routes.each do |gtfs_route|
