@@ -37,7 +37,7 @@ class OperatorInFeedSerializer < ApplicationSerializer
     if object.operator.try(:persisted?)
       api_v1_operator_url(object.operator.onestop_id)
     elsif object.try(:resolved_onestop_id).present?
-      "https://transit.land/api/v2/rest/operators/${resolved_onestop_id}"
+      "https://transit.land/api/v2/rest/operators/#{resolved_onestop_id}"
     end
   end
 
