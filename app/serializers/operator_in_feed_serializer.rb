@@ -26,18 +26,22 @@ class OperatorInFeedSerializer < ApplicationSerializer
              :feed_url
 
   def operator_onestop_id
-    object.operator.onestop_id
+    object.operator.try(:onestop_id) || object.try(:resolved_onestop_id)
   end
 
   def feed_onestop_id
-    object.feed.onestop_id
+    object.feed.try(:onestop_id)
   end
 
   def operator_url
-    api_v1_operator_url(object.operator.onestop_id) if object.operator.persisted?
+    if object.operator.try(:persisted?)
+      api_v1_operator_url(object.operator.onestop_id)
+    elsif object.try(:resolved_onestop_id).present?
+      "https://transit.land/api/v2/rest/operators/${resolved_onestop_id}"
+    end
   end
 
   def feed_url
-    api_v1_feed_url(object.feed.onestop_id) if object.feed.persisted?
+    api_v1_feed_url(object.feed.onestop_id) if object.feed.try(:persisted?)
   end
 end
