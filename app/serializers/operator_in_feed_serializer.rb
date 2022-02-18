@@ -24,6 +24,11 @@ class OperatorInFeedSerializer < ApplicationSerializer
              :feed_onestop_id,
              :operator_url,
              :feed_url
+  
+  def gtfs_agency_id
+    object.gtfs_agency_id || object.try(:resolved_gtfs_agency_id)
+  end
+
 
   def operator_onestop_id
     object.operator.try(:onestop_id) || object.try(:resolved_onestop_id)
@@ -37,7 +42,7 @@ class OperatorInFeedSerializer < ApplicationSerializer
     if object.operator.try(:persisted?)
       api_v1_operator_url(object.operator.onestop_id)
     elsif object.try(:resolved_onestop_id).present?
-      "https://transit.land/api/v2/rest/operators/${resolved_onestop_id}"
+      "https://transit.land/api/v2/rest/operators/#{object.try(:resolved_onestop_id)}"
     end
   end
 
