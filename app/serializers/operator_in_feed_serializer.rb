@@ -24,6 +24,11 @@ class OperatorInFeedSerializer < ApplicationSerializer
              :feed_onestop_id,
              :operator_url,
              :feed_url
+  
+  def gtfs_agency_id
+    object.gtfs_agency_id || object.try(:resolved_gtfs_agency_id)
+  end
+
 
   def operator_onestop_id
     object.operator.try(:onestop_id) || object.try(:resolved_onestop_id)
