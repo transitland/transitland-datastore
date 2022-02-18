@@ -5,10 +5,11 @@ jobs:
       - image: ruby:2.3.8
         environment:
           RAILS_ENV: test
-          DATABASE_URL: postgis://root@localhost/transitland_datastore_test
+          DATABASE_URL: postgis://root:for_testing@localhost/transitland_datastore_test
       - image: postgis/postgis:12-3.2-alpine
         environment:
           POSTGRES_USER: root
+          POSTGRES_PASSWORD: for_testing
           POSTGRES_DB: transitland_datastore_test
     steps:
       - checkout
