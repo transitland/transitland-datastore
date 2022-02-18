@@ -6,7 +6,7 @@ jobs:
         environment:
           RAILS_ENV: test
           DATABASE_URL: postgis://root@localhost/transitland_datastore_test
-      - image: mdillon/postgis:9.5
+      - image: postgis/postgis:12-3.2-alpine
         environment:
           POSTGRES_USER: root
           POSTGRES_DB: transitland_datastore_test
